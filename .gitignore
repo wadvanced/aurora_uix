@@ -24,3 +24,9 @@ aurora_uix-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# idea
+/.idea
+
+*.iml
+
