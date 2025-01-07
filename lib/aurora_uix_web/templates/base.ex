@@ -33,7 +33,7 @@ defmodule AuroraUixWeb.Templates.Base do
   - `type` (`atom`): Specifies the type of template to generate.
     Supported values: `:list`, `:card`, `:form`.
 
-  - `opts` (`map`): A map of options (currently unused in this implementation).
+  - `parsed_opts` (`map`): A map of options (currently unused in this implementation).
 
   ## Returns
 
@@ -51,17 +51,17 @@ defmodule AuroraUixWeb.Templates.Base do
   generate(:form, %{})
   # => quote do: ~H"<h1>Base Template</h1>form"
   """
-  @spec generate(atom, Keyword.t()) :: Macro.t()
-  def generate(:list, _opts) do
+  @spec generate(atom, map) :: Macro.t()
+  def generate(:list, _parsed_opts) do
     quote do
       ~H"""
       <.header>
-      Listing Accounts
-      <:actions>
-      <.link patch={~p"/accounts/new"}>
-      <.button>New Account</.button>
-      </.link>
-      </:actions>
+        Listing Accounts
+        <:actions>
+          <.link patch={~p"/accounts/new"}>
+            <.button>New Account</.button>
+          </.link>
+        </:actions>
       </.header>
 
       <.table
@@ -101,7 +101,7 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  def generate(:card, _opts) do
+  def generate(:card, _parsed_opts) do
     quote do
       ~H"""
       <h1>Base Template</h1>
@@ -110,7 +110,7 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  def generate(:form, _opts) do
+  def generate(:form, _parsed_opts) do
     quote do
       ~H"""
       <h1>Base Template</h1>

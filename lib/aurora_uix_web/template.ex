@@ -11,8 +11,7 @@ defmodule AuroraUixWeb.Template do
   - `type` (`atom`): Specifies the type of UI component to generate.
     The types implemented and supported by the library are: `:list`, `:card`, `:form`.
 
-  - `opts` (`Keyword.t()`): A keyword list of options for customizing the generated HEEx code.
-    See the list of available opts in AuroraUixWeb.Uix.define/3.
+  - `parsed_opts` (`map`): A map with the customized value for the generated HEEx code.
 
   ## Returns
 
@@ -21,14 +20,14 @@ defmodule AuroraUixWeb.Template do
   ## Examples
 
   ```elixir
-  generate(:list, fields: [:name, :email])
+  generate(:list, %{fields: [:name, :email})
   # => quote do: ~H"<ul><li><%= @name %></li><li><%= @email %></li></ul>"
 
-  generate(:card, title: "User Info", content: ~H"<p><%= @user %></p>")
+  generate(:card, %{title: "User Info", content: ~H"<p><%= @user %></p>"})
   # => quote do: ~H"<div class=\"card\"><h1>User Info</h1><p><%= @user %></p></div>"
 
   """
-  @callback generate(type :: atom, opts :: Keyword.t()) :: Macro.t()
+  @callback generate(type :: atom, parsed_opts :: map) :: Macro.t()
 
   @doc """
   Validates that the given module implements the current behaviour (`#{__MODULE__}`).
@@ -56,11 +55,11 @@ defmodule AuroraUixWeb.Template do
     ```elixir
     defmodule ValidModule do
       @behaviour AuroraUixWeb.Template
-      def generate(:example, _opts), do: :ok
+      def generate(:example, _parsed_opts), do: :ok
     end
 
     defmodule InvalidModule do
-      def generate(:example, _opts), do: :ok
+      def generate(:example, _parsed_opts), do: :ok
     end
 
     AuroraUixWeb.Template.validate(ValidModule)

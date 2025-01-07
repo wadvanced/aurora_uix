@@ -33,7 +33,7 @@ defmodule AuroraUixWeb.Templates.Phoenix do
   - `type` (`atom`): Specifies the type of template to generate.
     Supported values: `:list`, `:card`, `:form`.
 
-  - `opts` (`map`): A map of options (currently unused in this implementation).
+  - `parsed_opts` (`map`): A map of options (currently unused in this implementation).
 
   ## Returns
 
@@ -51,8 +51,8 @@ defmodule AuroraUixWeb.Templates.Phoenix do
   generate(:form, %{})
   # => quote do: ~H"<h1>Phoenix Template</h1>form"
   """
-  @spec generate(atom, Keyword.t()) :: Macro.t()
-  def generate(:list, _opts) do
+  @spec generate(atom, map) :: Macro.t()
+  def generate(:list, _parsed_opts) do
     quote do
       ~H"""
       <h1>Phoenix Template</h1>
@@ -61,7 +61,7 @@ defmodule AuroraUixWeb.Templates.Phoenix do
     end
   end
 
-  def generate(:card, _opts) do
+  def generate(:card, _parsed_opts) do
     quote do
       ~H"""
       <h1>Phoenix Template</h1>
@@ -70,7 +70,7 @@ defmodule AuroraUixWeb.Templates.Phoenix do
     end
   end
 
-  def generate(:form, _opts) do
+  def generate(:form, _parsed_opts) do
     quote do
       ~H"""
       <h1>Phoenix Template</h1>
