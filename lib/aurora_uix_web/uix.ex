@@ -3,9 +3,14 @@ defmodule AuroraUixWeb.Uix do
   Main module for generating user interfaces.
   """
 
+  alias AuroraUixWeb.Template
+
   require Logger
 
-  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Base)
+  @uix_template :aurora_uix
+                |> Application.compile_env(:template, AuroraUixWeb.Templates.Base)
+                |> Template.validate()
+
   @uix_valid_types [:list, :card, :form]
 
   @doc """
