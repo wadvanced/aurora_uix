@@ -41,13 +41,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      uix_schema_metadata :product, MyApp.Product, MyApp.Inventory do
+      uix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      uix_schema_metadata :category, MyApp.Category do
+      uix_schema_metadata :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -72,7 +72,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   The following options can be provided to configure the field:
 
-            field: atom | nil,
+          field: atom | nil,
           html_type: atom | nil,
           renderer: function | nil,
           name: binary,
@@ -121,42 +121,54 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   - `module` (`module`) - The module where metadata is being registered.
   - `name` (`atom`)- An identifier for the schema metadata (atom).
-  - `schema` (`module`) - The Ecto schema module.
-  - `context` (`module`) - The associated context module. This module should have the functions for operating on
-    the schema module. Can be omitted if the operations are performed using another approach.
+  - `opts` (`Keyword.t`) - Options
+
+  ## Options
+    - `:context` - Context containing the accessing functions for the schema.
+    - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
+    - `:exclude_associations` - For each associated schema, the metadata is created. By default is false, so every associated schema is parsed.
   """
-  @spec __uix_metadata__(module, atom, module, module, boolean) :: :ok
-  def __uix_metadata__(module, name, schema, context, exclude_associations?) do
-    IO.inspect({name, schema}, label: "****** PROCESSING metadata")
-    module
-    |> Module.get_attribute(:auix_schemas, %{})
-    |> Map.put(name, %{schema: schema, context: context, fields: fields(schema)})
-    |> then(&Module.put_attribute(module, :auix_schemas, &1))
+  @spec __uix_metadata__(module, atom, Keyword.t()) :: :ok
+  def __uix_metadata__(module, name, opts) do
+    schema = opts[:schema]
+    context = opts[:context]
 
-    include_associations(module, schema, context, exclude_associations?)
+    schemas = Module.get_attribute(module, :_auix_schemas, %{})
 
-    Module.put_attribute(module, :auix_current_schema_name, name)
+    schemas
+    |> Map.get(name, %{})
+    |> put_option(opts, :context)
+    |> put_option(opts, :schema)
+    |> Map.put(:fields, fields(schema))
+    |> then(&Map.put(schemas, name, &1))
+    |> then(&Module.put_attribute(module, :_auix_schemas, &1))
+
+    include_associations(module, schema, context, opts[:exclude_associations])
+
+    Module.put_attribute(module, :_auix_current_schema_name, name)
   end
 
   @spec __field__(module, atom, Keyword.t()) :: :ok
   def __field__(module, field, opts) do
-    name = Module.get_attribute(module, :auix_current_schema_name)
+    name = Module.get_attribute(module, :_auix_current_schema_name)
 
     changed_field =
       module
-      |> Module.get_attribute(:auix_schemas, %{})
+      |> Module.get_attribute(:_auix_schemas, %{})
       |> get_in([name, :fields, field])
       |> Kernel.||(Field.new())
       |> Field.change(opts)
 
     module
-    |> Module.get_attribute(:auix_schemas, %{})
+    |> Module.get_attribute(:_auix_schemas, %{})
     |> put_in([name, :fields, field], changed_field)
-    |> then(&Module.put_attribute(module, :auix_schemas, &1))
+    |> then(&Module.put_attribute(module, :_auix_schemas, &1))
   end
 
   ## PRIVATE
-  @spec fields(module) :: map
+  @spec fields(module | nil) :: map
+  defp fields(nil), do: %{}
+
   defp fields(schema) do
     Code.ensure_compiled(schema)
 
@@ -238,29 +250,47 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   defp field_scale(_type), do: 0
 
   defp include_associations(_module, _schema, _context, true), do: :ok
+
   defp include_associations(module, schema, context, exclude_associations?) do
     if function_exported?(schema, :__schema__, 1) do
-        :associations
-        |> schema.__schema__()
-        |> Enum.each(fn assoc ->
-          assoc_schema =
-            :association
-            |> schema.__schema__(assoc)
-            |> association_schema()
-
-          Code.ensure_compiled(assoc_schema)
-
-          assoc_name = assoc_schema |> Module.split() |> List.last() |> Macro.underscore() |> String.to_existing_atom()
-
-          if !Module.get_attribute(module, :auix_schemas, %{})[assoc_name] do
-            IO.inspect({assoc_name, assoc_schema}, label: "******** including association")
-            __uix_metadata__(module, assoc_name, assoc_schema, context, exclude_associations?)
-          end
-        end)
-
+      :associations
+      |> schema.__schema__()
+      |> Enum.each(&include_association(module, schema, context, exclude_associations?, &1))
     end
   end
 
+  defp include_association(module, schema, context, exclude_associations?, assoc) do
+    assoc_schema =
+      :association
+      |> schema.__schema__(assoc)
+      |> association_schema()
+
+    Code.ensure_compiled(assoc_schema)
+
+    assoc_name =
+      assoc_schema
+      |> Module.split()
+      |> List.last()
+      |> Macro.underscore()
+      |> String.to_existing_atom()
+
+    if !Module.get_attribute(module, :_auix_schemas, %{})[assoc_name] do
+      __uix_metadata__(module, assoc_name,
+        schema: assoc_schema,
+        context: context,
+        exclude_associations: exclude_associations?
+      )
+    end
+  end
+
+  @spec association_schema(map) :: module
   defp association_schema(%{relationship: :parent, owner: assoc_schema}), do: assoc_schema
   defp association_schema(%{relationship: :child, related: assoc_schema}), do: assoc_schema
+
+  @spec put_option(map, Keyword.t(), atom) :: map
+  defp put_option(metadata, opts, key) do
+    if Keyword.has_key?(opts, key),
+      do: Map.put(metadata, key, opts[key]),
+      else: metadata
+  end
 end

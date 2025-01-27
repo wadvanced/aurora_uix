@@ -42,13 +42,13 @@ defmodule AuroraUixWeb.Uix do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      uix_schema_metadata :product, MyApp.Product, MyApp.Inventory do
+      uix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      uix_schema_metadata :category, MyApp.Category do
+      uix_schema_metadata :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -104,21 +104,17 @@ defmodule AuroraUixWeb.Uix do
     end
   end
 
-  defmacro uix_schema_metadata(name, schema, context \\ nil, do_block \\ nil) do
-    Keyword.pop(do_block, :do)
-    |> IO.inspect(label: "********* do_block")
+  defmacro uix_schema_metadata(name, opts \\ [], do_block \\ nil) do
     quote do
       import SchemaMetadata
 
       SchemaMetadata.__uix_metadata__(
         __MODULE__,
         unquote(name),
-        unquote(schema),
-        unquote(context),
-        unquote(do_block[:exclude_associations])
+        unquote(opts |> Keyword.pop(:do) |> elem(1))
       )
 
-      unquote(do_block[:do])
+      unquote(opts[:do] || do_block[:do])
     end
   end
 

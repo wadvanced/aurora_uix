@@ -4,11 +4,12 @@ defmodule AuroraUixTestWeb.ProductLive.Index do
 
   alias AuroraUixTest.Inventory
   alias AuroraUixTest.Inventory.Product
-  alias AuroraUixTest.Inventory.ProductTransaction
+  #  alias AuroraUixTest.Inventory.ProductTransaction
 
-  uix_schema_metadata(:product, Product, Inventory) do
+  uix_schema_metadata :product, context: Inventory, schema: Product do
+    field(:id, hidden: true)
   end
 
-  uix_schema_metadata(:product_transaction, ProductTransaction, Inventory) do
-  end
+  #  uix_schema_metadata(:product_transaction, ProductTransaction, Inventory) do
+  #  end
 end

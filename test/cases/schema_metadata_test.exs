@@ -7,7 +7,7 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
     auix_schemas =
       :attributes
       |> Index.__info__()
-      |> Keyword.get(:auix_schemas)
+      |> Keyword.get(:_auix_schemas)
       |> List.first()
 
     assert is_map(auix_schemas)
@@ -18,7 +18,6 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
   defp valid_product?(%{product: schema}) do
     assert schema.context == AuroraUixTest.Inventory
     assert schema.schema == AuroraUixTest.Inventory.Product
-
 
     validate_field(schema.fields.cost, %{
       field: :cost,

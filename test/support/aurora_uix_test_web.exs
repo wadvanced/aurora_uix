@@ -1,6 +1,8 @@
 defmodule AuroraUixTestWeb do
+  @spec static_paths() :: [binary]
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
+  @spec router() :: Macro.t()
   def router do
     quote do
       use Phoenix.Router, helpers: false
@@ -12,6 +14,7 @@ defmodule AuroraUixTestWeb do
     end
   end
 
+  @spec live_view() :: Macro.t()
   def live_view do
     quote do
       use Phoenix.LiveView,
@@ -21,7 +24,32 @@ defmodule AuroraUixTestWeb do
     end
   end
 
+  @spec verified_routes() :: Macro.t()
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: AuroraUixTestWeb.Endpoint,
+        router: AuroraUixTestWeb.Router,
+        statics: AuroraUixTestWeb.static_paths()
+    end
+  end
+
+  @spec persist_attributes() :: Macro.t()
+  def persist_attributes do
+    quote do
+      Module.register_attribute(__MODULE__, :_auix_schemas, persist: true)
+    end
+  end
+
+  @doc """
+  When used, dispatch to the appropriate controller/live_view/etc.
+  """
+  defmacro __using__(which) when is_atom(which) do
+    apply(__MODULE__, which, [])
+  end
+
   ## PRIVATE
+  @spec html_helpers() :: Macro.t()
   defp html_helpers do
     quote do
       # HTML escaping functionality
@@ -36,27 +64,5 @@ defmodule AuroraUixTestWeb do
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end
-  end
-
-  def verified_routes do
-    quote do
-      use Phoenix.VerifiedRoutes,
-        endpoint: AuroraUixTestWeb.Endpoint,
-        router: AuroraUixTestWeb.Router,
-        statics: AuroraUixTestWeb.static_paths()
-    end
-  end
-
-  def persist_attributes do
-    quote do
-      Module.register_attribute(__MODULE__, :auix_schemas, persist: true)
-    end
-  end
-
-  @doc """
-  When used, dispatch to the appropriate controller/live_view/etc.
-  """
-  defmacro __using__(which) when is_atom(which) do
-    apply(__MODULE__, which, [])
   end
 end
