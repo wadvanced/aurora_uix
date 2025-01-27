@@ -4,10 +4,10 @@ defmodule AuroraUixWeb.Uix do
 
   This module introduces two key features:
 
-  1. `uix_schema_metadata`: Adds UI-specific metadata to schemas to enhance their rendering capabilities in forms, lists, and other views.
-  2. `uix_define`: Allows for the composition of UI layouts and interaction logic by leveraging schema metadata.
+  1. `auix_schema_metadata`: Adds UI-specific metadata to schemas to enhance their rendering capabilities in forms, lists, and other views.
+  2. `auix_define`: Allows for the composition of UI layouts and interaction logic by leveraging schema metadata.
 
-  ## `uix_schema_metadata`
+  ## `auix_schema_metadata`
 
   Ecto schemas typically lack the metadata required for rendering user interfaces effectively.
   This macro enriches schemas with metadata for UI purposes, such as field visibility, placeholders, validation rules, and layout grouping.
@@ -42,27 +42,27 @@ defmodule AuroraUixWeb.Uix do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      uix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      uix_schema_metadata :category, schema: MyApp.Category do
+      auix_schema_metadata :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
     end
   ```
 
-  ## `uix_define`
+  ## `auix_define`
   This macro defines the layout and behavior of the views and components to be rendered.
-  It relies on the metadata defined through uix_schema_metadata to determine field characteristics.
+  It relies on the metadata defined through auix_schema_metadata to determine field characteristics.
 
   ### Example
   ```elixir
     defmodule MyAppWeb.ProductLive.Index do
-      uix_define do
+      auix_define do
         layout :form, :component do
           group "Product" do
             line product: name, product: price
@@ -104,11 +104,11 @@ defmodule AuroraUixWeb.Uix do
     end
   end
 
-  defmacro uix_schema_metadata(name, opts \\ [], do_block \\ nil) do
+  defmacro auix_schema_metadata(name, opts \\ [], do_block \\ nil) do
     quote do
       import SchemaMetadata
 
-      SchemaMetadata.__uix_metadata__(
+      SchemaMetadata.__auix_metadata__(
         __MODULE__,
         unquote(name),
         unquote(opts |> Keyword.pop(:do) |> elem(1))
@@ -118,7 +118,7 @@ defmodule AuroraUixWeb.Uix do
     end
   end
 
-  defmacro uix_define(do: block) do
+  defmacro auix_define(do: block) do
     quote do
       import AuroraUixWeb.Uix.Define
       unquote(block)

@@ -1,3 +1,7 @@
 defmodule AuroraUixWeb.Uix.Define do
-  @moduledoc false
+  @moduledoc """
+  Enables the definition of views and components.
+  """
+
+  
 end

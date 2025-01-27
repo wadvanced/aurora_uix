@@ -7,7 +7,7 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    uix_schema_metadata(:product, context: Inventory, schema: Product)
+    auix_schema_metadata(:product, context: Inventory, schema: Product)
   end
 
   defmodule ParseAssociations do
@@ -16,7 +16,7 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    uix_schema_metadata(:product, context: Inventory, schema: Product, include_associations: true)
+    auix_schema_metadata(:product, context: Inventory, schema: Product, include_associations: true)
   end
 
   defmodule ModifyFieldValues do
@@ -25,7 +25,7 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    uix_schema_metadata(:product, context: Inventory, schema: Product) do
+    auix_schema_metadata(:product, context: Inventory, schema: Product) do
       field(:inactive, length: 10)
       field(:inserted_at, hidden: true)
     end

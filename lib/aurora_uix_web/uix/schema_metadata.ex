@@ -7,7 +7,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   The primary functions include:
 
-  - `__uix_metadata__/4`: Registers schema metadata, including fields and their configurations.
+  - `__auix_metadata__/4`: Registers schema metadata, including fields and their configurations.
   - `field/2`: Adds or updates field-specific metadata.
   - Internal utilities for deriving field attributes such as labels, placeholders, and types based on schema definitions.
 
@@ -41,13 +41,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      uix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      uix_schema_metadata :category, schema: MyApp.Category do
+      auix_schema_metadata :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -124,7 +124,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   @doc """
   Registers schema metadata for a given schema within the module.
 
-  This function attaches metadata such as schema fields, context, and other configurations. It is typically used internally by the `uix_schema_metadata` macro.
+  This function attaches metadata such as schema fields, context, and other configurations. It is typically used internally by the `auix_schema_metadata` macro.
 
   ## Parameters
 
@@ -137,8 +137,8 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
     - `:include_associations` - For each associated schema, the metadata is created. If true, then, every associated schema is parsed.
   """
-  @spec __uix_metadata__(module, atom, Keyword.t()) :: :ok
-  def __uix_metadata__(module, name, opts) do
+  @spec __auix_metadata__(module, atom, Keyword.t()) :: :ok
+  def __auix_metadata__(module, name, opts) do
     schema = opts[:schema]
     context = opts[:context]
 
@@ -294,7 +294,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     if Module.get_attribute(module, :_auix_schemas, %{})[assoc_name] do
       :ok
     else
-      __uix_metadata__(module, assoc_name,
+      __auix_metadata__(module, assoc_name,
         schema: assoc_schema,
         context: context,
         include_associations: include_associations?
