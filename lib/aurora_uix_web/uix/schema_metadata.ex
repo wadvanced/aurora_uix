@@ -57,6 +57,8 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   alias AuroraUix.Field
   alias AuroraUixWeb.Uix.SchemaMetadata
 
+  @default_field_attributes %Field{html_type: :text, length: 20}
+
   @doc """
   Adds or updates metadata for a specific field in the schema.
 
@@ -72,28 +74,17 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   The following options can be provided to configure the field:
 
-          field: atom | nil,
-          html_type: atom | nil,
-          renderer: function | nil,
-          name: binary,
-          label: binary,
-          placeholder: binary,
-          length: non_neg_integer,
-          precision: non_neg_integer,
-          scale: non_neg_integer,
-          hidden: boolean,
-          readonly: boolean
-
-
   - `:field` (`atom`) - The referred field in the schema. This should be rarely changed.
   - `:html_type`(`atom`) - The html type that best represent the current field elixir type.
   - `:label` (`binary`) - A custom label for the field.
   - `:placeholder` (`binary`) - Placeholder text for the field.
+  - `:length`(`non_neg_integer`) - Display length of the field.
   - `:precision` (`integer`) - The numeric precision for decimal or float fields.
+  - `:scale` (`integer`) - The numeric scale for decimal or float fields.
   - `:readonly` (`boolean`) - Marks the field as read-only.
+  - `:hidden` (`boolean`) - Hides the field
   - `:renderer` (`function`) - A function that can render the field. It can refer a function component.
   - `:required` (`boolean`) - Marks the field as required.
-  - `:scale` (`integer`) - The numeric scale for decimal or float fields.
 
   ## Example
 
@@ -112,6 +103,24 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     end
   end
 
+  @spec fields([atom], Keyword.t()) :: Macro.t()
+  defmacro fields(fields, opts \\ []) do
+    quotes =
+      Enum.map(fields, fn field ->
+        quote do
+          SchemaMetadata.__field__(
+            __MODULE__,
+            unquote(field),
+            Macro.escape(unquote(opts))
+          )
+        end
+      end)
+
+    quote do
+      (unquote_splicing(quotes))
+    end
+  end
+
   @doc """
   Registers schema metadata for a given schema within the module.
 
@@ -126,7 +135,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   ## Options
     - `:context` - Context containing the accessing functions for the schema.
     - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
-    - `:exclude_associations` - For each associated schema, the metadata is created. By default is false, so every associated schema is parsed.
+    - `:include_associations` - For each associated schema, the metadata is created. If true, then, every associated schema is parsed.
   """
   @spec __uix_metadata__(module, atom, Keyword.t()) :: :ok
   def __uix_metadata__(module, name, opts) do
@@ -139,11 +148,11 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     |> Map.get(name, %{})
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
-    |> Map.put(:fields, fields(schema))
+    |> Map.put(:fields, parse_fields(schema))
     |> then(&Map.put(schemas, name, &1))
     |> then(&Module.put_attribute(module, :_auix_schemas, &1))
 
-    include_associations(module, schema, context, opts[:exclude_associations])
+    include_associations(module, schema, context, opts[:include_associations])
 
     Module.put_attribute(module, :_auix_current_schema_name, name)
   end
@@ -156,7 +165,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
       module
       |> Module.get_attribute(:_auix_schemas, %{})
       |> get_in([name, :fields, field])
-      |> Kernel.||(Field.new())
+      |> get_field(field)
       |> Field.change(opts)
 
     module
@@ -166,24 +175,24 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   end
 
   ## PRIVATE
-  @spec fields(module | nil) :: map
-  defp fields(nil), do: %{}
+  @spec parse_fields(module | nil) :: map
+  defp parse_fields(nil), do: %{}
 
-  defp fields(schema) do
+  defp parse_fields(schema) do
     Code.ensure_compiled(schema)
 
     if function_exported?(schema, :__schema__, 1) do
       :fields
       |> schema.__schema__()
-      |> Enum.map(&fields_field(schema, &1))
+      |> Enum.map(&parse_field(schema, &1))
       |> Map.new()
     else
       %{}
     end
   end
 
-  @spec fields_field(module, atom | binary) :: {atom | binary, Field.t()}
-  defp fields_field(module, field) do
+  @spec parse_field(module, atom | binary) :: {atom | binary, Field.t()}
+  defp parse_field(module, field) do
     type = module.__schema__(:type, field)
 
     attrs = %{
@@ -198,6 +207,10 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
     {field, Field.new(attrs)}
   end
+
+  @spec get_field(atom | nil, atom) :: map
+  defp get_field(nil, field_name), do: struct(@default_field_attributes, %{field: field_name})
+  defp get_field(field, _field_name), do: field
 
   @spec field_label(binary) :: binary
   defp field_label(nil), do: ""
@@ -239,6 +252,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   defp field_length(type) when type in [:time, :time_usec], do: 10
   defp field_length(Ecto.UUID), do: 34
+  defp field_length(:boolean), do: 5
   defp field_length(_type), do: 50
 
   @spec field_precision(atom) :: integer
@@ -249,17 +263,20 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
-  defp include_associations(_module, _schema, _context, true), do: :ok
+  @spec include_associations(module, module, module, boolean) :: :ok
 
-  defp include_associations(module, schema, context, exclude_associations?) do
+  defp include_associations(module, schema, context, true = include_associations?) do
     if function_exported?(schema, :__schema__, 1) do
       :associations
       |> schema.__schema__()
-      |> Enum.each(&include_association(module, schema, context, exclude_associations?, &1))
+      |> Enum.each(&include_association(module, schema, context, include_associations?, &1))
     end
   end
 
-  defp include_association(module, schema, context, exclude_associations?, assoc) do
+  defp include_associations(_module, _schema, _context, _include_associations?), do: :ok
+
+  @spec include_association(module, module, module, boolean, atom) :: :ok
+  defp include_association(module, schema, context, include_associations?, assoc) do
     assoc_schema =
       :association
       |> schema.__schema__(assoc)
@@ -274,11 +291,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
       |> Macro.underscore()
       |> String.to_existing_atom()
 
-    if !Module.get_attribute(module, :_auix_schemas, %{})[assoc_name] do
+    if Module.get_attribute(module, :_auix_schemas, %{})[assoc_name] do
+      :ok
+    else
       __uix_metadata__(module, assoc_name,
         schema: assoc_schema,
         context: context,
-        exclude_associations: exclude_associations?
+        include_associations: include_associations?
       )
     end
   end

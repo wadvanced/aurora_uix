@@ -61,7 +61,7 @@ config :aurora_uix, AuroraUixTest.Repo,
 You can create and modify its content to meet your test environment.
 
 ## Contributing
-PR are welcomed, we encourage code quality, so PR must pass the mix consistency task. It do:
+PR are welcomed, we encourage code quality, so PR must pass the mix consistency task. It does:
 * Re-formats code with mix `format`.
 * Compiles with `--warnings-as-errors`.
 * Applies strict credo analysis using mix `credo` --strict.
@@ -69,7 +69,7 @@ PR are welcomed, we encourage code quality, so PR must pass the mix consistency 
 * Verify documentation healthiness with mix `doctor`.
 
 The formatter credo and doctor have configuration files have been authored according to this project code quality checks. 
-However rules changes can be accepted.
+However, rules changes can be accepted.
 
 ## License
 

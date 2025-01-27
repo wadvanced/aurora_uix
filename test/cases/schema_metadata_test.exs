@@ -1,48 +1,64 @@
 defmodule AuroraUixTest.SchemaMetaDataTest do
-  use AuroraUixTestWeb.ConnCase
+  use AuroraUixTest.MetadataCase
 
-  alias AuroraUixTestWeb.ProductLive.Index
+  defmodule DefaultGeneration do
+    use AuroraUixTestWeb, :aurora_uix_for_test
 
-  test "Module attributes" do
-    auix_schemas =
-      :attributes
-      |> Index.__info__()
-      |> Keyword.get(:_auix_schemas)
-      |> List.first()
+    alias AuroraUixTest.Inventory
+    alias AuroraUixTest.Inventory.Product
 
-    assert is_map(auix_schemas)
-    assert valid_product?(auix_schemas)
-    assert valid_product_transaction?(auix_schemas)
+    uix_schema_metadata(:product, context: Inventory, schema: Product)
   end
 
-  defp valid_product?(%{product: schema}) do
-    assert schema.context == AuroraUixTest.Inventory
-    assert schema.schema == AuroraUixTest.Inventory.Product
+  defmodule ParseAssociations do
+    use AuroraUixTestWeb, :aurora_uix_for_test
 
-    validate_field(schema.fields.cost, %{
-      field: :cost,
-      html_type: :number,
-      renderer: nil,
-      name: "cost",
-      label: "Cost",
-      placeholder: "0",
-      length: 12,
-      precision: 10,
-      scale: 2,
-      hidden: false,
-      readonly: false,
-      required: false
-    })
+    alias AuroraUixTest.Inventory
+    alias AuroraUixTest.Inventory.Product
+
+    uix_schema_metadata(:product, context: Inventory, schema: Product, include_associations: true)
   end
 
-  defp valid_product_transaction?(%{product_transaction: schema}) do
-    assert schema.context == AuroraUixTest.Inventory
-    assert schema.schema == AuroraUixTest.Inventory.ProductTransaction
+  defmodule ModifyFieldValues do
+    use AuroraUixTestWeb, :aurora_uix_for_test
+
+    alias AuroraUixTest.Inventory
+    alias AuroraUixTest.Inventory.Product
+
+    uix_schema_metadata(:product, context: Inventory, schema: Product) do
+      field(:inactive, length: 10)
+      field(:inserted_at, hidden: true)
+    end
   end
 
-  defp validate_field(field, checks) do
-    Enum.each(checks, fn {key, value} ->
-      assert(Map.get(field, key) == value, "Field `#{field.field}`")
-    end)
+  test "Default parsing with association" do
+    schemas_metadata = schemas_metadata(DefaultGeneration)
+
+    assert Map.get(schemas_metadata, :product_transaction) == nil
+
+    validate_schema(schemas_metadata, :product,
+      cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
+    )
+  end
+
+  test "Parsing with associations" do
+    schemas_metadata = schemas_metadata(ParseAssociations)
+
+    validate_schema(schemas_metadata, :product,
+      cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
+    )
+
+    validate_schema(schemas_metadata, :product_transaction,
+      product_id: %{html_type: :text, name: "product_id", length: 255}
+    )
+  end
+
+  test "Parsing with field modifications" do
+    schemas_metadata = schemas_metadata(ModifyFieldValues)
+
+    validate_schema(schemas_metadata, :product,
+      inactive: %{html_type: :boolean, name: "inactive", label: "Inactive", length: 10},
+      inserted_at: %{hidden: true}
+    )
   end
 end

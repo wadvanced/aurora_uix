@@ -34,10 +34,11 @@ defmodule AuroraUixTestWeb do
     end
   end
 
-  @spec persist_attributes() :: Macro.t()
-  def persist_attributes do
+  @spec aurora_uix_for_test() :: Macro.t()
+  def aurora_uix_for_test do
     quote do
       Module.register_attribute(__MODULE__, :_auix_schemas, persist: true)
+      use AuroraUixWeb.Uix
     end
   end
 
