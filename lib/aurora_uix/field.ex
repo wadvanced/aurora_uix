@@ -153,5 +153,5 @@ defmodule AuroraUix.Field do
   ## PRIVATE
 
   @spec update_name(__MODULE__.t()) :: __MODULE__.t()
-  defp update_name(field), do: struct(field, %{name: field.field || ""})
+  defp update_name(field), do: struct(field, %{name: to_string(field.field) || ""})
 end

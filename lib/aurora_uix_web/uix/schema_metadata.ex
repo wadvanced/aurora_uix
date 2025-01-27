@@ -125,13 +125,17 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   - `context` (`module`) - The associated context module. This module should have the functions for operating on
     the schema module. Can be omitted if the operations are performed using another approach.
   """
-  @spec __uix_metadata__(module, atom, module, module) :: :ok
-  def __uix_metadata__(module, name, schema, context) do
+  @spec __uix_metadata__(module, atom, module, module, boolean) :: :ok
+  def __uix_metadata__(module, name, schema, context, exclude_associations?) do
+    IO.inspect({name, schema}, label: "****** PROCESSING metadata")
     module
     |> Module.get_attribute(:auix_schemas, %{})
     |> Map.put(name, %{schema: schema, context: context, fields: fields(schema)})
     |> then(&Module.put_attribute(module, :auix_schemas, &1))
-    |> tap(fn _ -> Module.put_attribute(module, :auix_current_schema_name, name) end)
+
+    include_associations(module, schema, context, exclude_associations?)
+
+    Module.put_attribute(module, :auix_current_schema_name, name)
   end
 
   @spec __field__(module, atom, Keyword.t()) :: :ok
@@ -232,4 +236,31 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   @spec field_precision(atom) :: integer
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
+
+  defp include_associations(_module, _schema, _context, true), do: :ok
+  defp include_associations(module, schema, context, exclude_associations?) do
+    if function_exported?(schema, :__schema__, 1) do
+        :associations
+        |> schema.__schema__()
+        |> Enum.each(fn assoc ->
+          assoc_schema =
+            :association
+            |> schema.__schema__(assoc)
+            |> association_schema()
+
+          Code.ensure_compiled(assoc_schema)
+
+          assoc_name = assoc_schema |> Module.split() |> List.last() |> Macro.underscore() |> String.to_existing_atom()
+
+          if !Module.get_attribute(module, :auix_schemas, %{})[assoc_name] do
+            IO.inspect({assoc_name, assoc_schema}, label: "******** including association")
+            __uix_metadata__(module, assoc_name, assoc_schema, context, exclude_associations?)
+          end
+        end)
+
+    end
+  end
+
+  defp association_schema(%{relationship: :parent, owner: assoc_schema}), do: assoc_schema
+  defp association_schema(%{relationship: :child, related: assoc_schema}), do: assoc_schema
 end

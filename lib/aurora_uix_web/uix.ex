@@ -101,11 +101,12 @@ defmodule AuroraUixWeb.Uix do
   defmacro __using__(_opts) do
     quote do
       import Uix
-      Module.register_attribute(__MODULE__, :auix_schemas, persist: true)
     end
   end
 
   defmacro uix_schema_metadata(name, schema, context \\ nil, do_block \\ nil) do
+    Keyword.pop(do_block, :do)
+    |> IO.inspect(label: "********* do_block")
     quote do
       import SchemaMetadata
 
@@ -113,7 +114,8 @@ defmodule AuroraUixWeb.Uix do
         __MODULE__,
         unquote(name),
         unquote(schema),
-        unquote(context)
+        unquote(context),
+        unquote(do_block[:exclude_associations])
       )
 
       unquote(do_block[:do])

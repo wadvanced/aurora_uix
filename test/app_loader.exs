@@ -8,6 +8,9 @@ defmodule AuroraUixTest.AppLoader do
   """
   @spec load_app() :: :ok
   def load_app do
+    Code.require_file("test/support/data_case.exs")
+    Code.require_file("test/support/conn_case.exs")
+    Code.require_file("test/support/aurora_uix_test_web.exs")
     load_modules("app")
     load_modules("app_web")
   end
