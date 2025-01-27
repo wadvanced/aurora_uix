@@ -6,8 +6,7 @@ if File.exists?(configuration_file) do
   configuration_file
   |> Config.Reader.read!()
   |> Enum.each(fn {app, configs} ->
-    configs
-    |> Enum.each(fn {key, value} ->
+    Enum.each(configs, fn {key, value} ->
       Application.put_env(app, key, value)
     end)
   end)
@@ -23,6 +22,10 @@ if is_nil(Application.get_env(:aurora_uix, AuroraUixTestWeb.Endpoint)),
       secret_key_base: "4ur0raU1x"
     )
 
+## Repo
+if is_nil(Application.get_env(:aurora_uix, :ecto_repos)),
+  do: Application.put_env(:aurora_uix, :ecto_repos, [AuroraUixTest.Repo])
+
 ## Ecto / Postgres environment default configuration
 if is_nil(Application.get_env(:aurora_uix, AuroraUixTest.Repo)),
   do:
@@ -31,5 +34,7 @@ if is_nil(Application.get_env(:aurora_uix, AuroraUixTest.Repo)),
       password: "postgres",
       database: "aurora_uix_test",
       hostname: "localhost",
-      pool: Ecto.Adapters.SQL.Sandbox
+      pool: Ecto.Adapters.SQL.Sandbox,
+      pool_size: 10,
+      migration_timestamps: [type: :utc_datetime]
     )

@@ -10,7 +10,7 @@ defmodule AuroraUix.MixProject do
       deps: deps(),
       aliases: aliases(),
       dialyzer: [
-        plt_add_apps: [:eex]
+        plt_add_apps: [:eex, :mix]
       ]
     ]
   end

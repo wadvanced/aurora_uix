@@ -3,11 +3,36 @@ Low code UI for the elixir's Phoenix Framework.
 
 ## Installation
 
-## Running tests
-The tests require postgres running, and the existence of the `aurora_uix_test` database.
+## Testing
 
-To run the tests:
+### Requirements
+- A running postgres server. Defaults to localhost:5432, username: postgres, password: postgres.
+  The database is aurora_uix_test.
+- The postgres server with the extension `uuid-ossp` created.
+  ```sql
+  create extension if not exists "uuid-ossp";
+  ```
+### Ecto
+Ecto app is only available in the test environment. To run any ecto command use the following syntax:
+```shell
+MIX_ENV=test mix do test.setup, #ecto command
+```
+- To create the database
+```shell
+MIX_ENV=test mix do test.setup, ecto create
+```
+
+- To run migrations
+```shell
+MIX_ENV=test mix do test.setup, ecto migrate
+```
+
+### Run tests
+To run the tests simply:
+```shell
 mix test
+```
+
 
 ### Tests configuration
 You can override the default environment configuration by creating a config/test.exs file.
@@ -20,12 +45,17 @@ config :aurora_uix, AuroraUixTestWeb.Endpoint,
   http: [port: 4001],
   server: false
 
+config :aurora_uix,
+  ecto_repos: [AuroraUixTest.Repo]
+  
 config :aurora_uix, AuroraUixTest.Repo,
   username: "postgres",
   password: "postgres",
   database: "aurora_uix_test",
   hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: 10,
+  migration_timestamps: [type: :utc_datetime]
 ```
 
 You can create and modify its content to meet your test environment.
