@@ -27,7 +27,15 @@ defmodule AuroraUix.MixProject do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-      {:doctor, "~> 0.22.0", only: :dev, runtime: false}
+      {:doctor, "~> 0.22.0", only: :dev, runtime: false},
+
+      ## Test only dependencies
+      {:phoenix, "~> 1.7.15", only: :test, runtime: false},
+      {:phoenix_ecto, "~> 4.5", only: :test, runtime: false},
+      {:phoenix_html, "~> 4.2", only: :test, runtime: false},
+      {:phoenix_live_view, "~> 1.0.1", override: true, only: :test, runtime: false},
+      {:ecto_sql, "~> 3.10", only: :test, runtime: false},
+      {:postgrex, ">= 0.0.0", only: :test, runtime: false}
     ]
   end
 

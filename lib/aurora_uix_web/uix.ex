@@ -93,7 +93,6 @@ defmodule AuroraUixWeb.Uix do
   ```
 
   """
-  alias AuroraUixWeb.Template
   alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.SchemaMetadata
 
@@ -122,8 +121,6 @@ defmodule AuroraUixWeb.Uix do
   end
 
   defmacro uix_define(do: block) do
-    module = __CALLER__.module
-
     quote do
       import AuroraUixWeb.Uix.Define
       unquote(block)
