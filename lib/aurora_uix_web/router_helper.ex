@@ -5,6 +5,8 @@ defmodule AuroraUixWeb.RouterHelper do
   to conditionally include routes depending on specific criteria.
   """
 
+  @ids_placeholder "{ids}"
+
   @doc """
   Generates routes for a given module if the condition is met.
 
@@ -18,8 +20,6 @@ defmodule AuroraUixWeb.RouterHelper do
   """
   @spec generate_routes(boolean, module, module) :: Macro.t()
   def generate_routes(true, web_module, schema) do
-    source = schema.__schema__(:source)
-
     context_module =
       schema
       |> Module.split()
@@ -30,14 +30,13 @@ defmodule AuroraUixWeb.RouterHelper do
     show_module = Module.concat([context_module, "Show"])
 
     quote do
-      unquote(add_route(source, web_module, index_module, :index))
-      unquote(add_route(source, web_module, index_module, :new, path: "new"))
-      unquote(add_route(source, web_module, index_module, :edit, path: "edit", include_id: true))
+      unquote(add_route(schema, web_module, index_module, :index))
+      unquote(add_route(schema, web_module, index_module, :new, "new"))
+      unquote(add_route(schema, web_module, index_module, :edit, "#{@ids_placeholder}/edit"))
 
-      live("/#{unquote(source)}/:id/edit", unquote(index_module), :edit)
+      unquote(add_route(schema, web_module, show_module, :show, "#{@ids_placeholder}"))
+      unquote(add_route(schema, web_module, show_module, :edit, "#{@ids_placeholder}/show/edit"))
 
-      live("/#{unquote(source)}/:id", unquote(show_module), :show)
-      live("/#{unquote(source)}/:id/show/edit", unquote(show_module), :edit)
     end
   end
 
@@ -52,42 +51,43 @@ defmodule AuroraUixWeb.RouterHelper do
     end
   end
 
-  @spec add_route(binary, module, module, atom, Keyword.t()) :: Macro.t()
-  defp add_route(source, web_module, target_module, live_action, opts \\ []) do
+  @spec add_route(module, module, module, atom, Keyword.t()) :: Macro.t()
+  defp add_route(schema, web_module, target_module, live_action, path \\ "") do
     module = Module.concat(web_module, target_module)
 
     case Code.ensure_compiled(module) do
       {:module, module} ->
         live_route? = function_exported?(module, :__live__, 0)
-        do_add_route(live_route?, source, target_module, live_action, opts)
+        do_add_route(live_route?, schema, target_module, live_action, path)
 
       {:error, _} ->
         no_route()
     end
   end
 
-  @spec do_add_route(boolean, binary, module, atom, Keyword.t()) :: Macro.t()
-  defp do_add_route(true = _live_route?, source, target_module, live_action, opts) do
-    path = parse_opts(source, opts)
+  defp do_add_route(true, schema, target_module, live_action, path) do
+    source = schema.__schema__(:source)
+
+    full_path =
+      path
+      |> process_ids(schema)
+      |> then(&("/#{source}/#{&1}"))
 
     quote do
-      live("/#{unquote(path)}", unquote(target_module), unquote(live_action))
+      live("/#{unquote(full_path)}", unquote(target_module), unquote(live_action))
     end
   end
 
-  defp do_add_route(_live_route?, _source, _target_module, _live_action, _opts), do: no_route()
+  defp do_add_route(_, _path, _schema, _target_module, _live_action), do: no_route()
 
-  defp parse_opts(source, opts) do
-    opts
-    |> Enum.reduce({"", ""}, &do_parse_opts/2)
-    |> then(fn {path, query} -> "/#{source}#{path}#{query}" end)
+  defp process_ids(path, schema) do
+    with true <- String.contains?(path, @ids_placeholder),
+      primary_keys when not is_nil(primary_keys) <- schema.__schema__(:primary_key) do
+        primary_keys
+        |> Enum.map_join("/", &(":#{&1}"))
+        |> then(&String.replace(path, @ids_placeholder, &1))
+    else
+      _ -> path
+    end
   end
-
-  defp do_parse_opts({:path, "/" <> path}, {current_path, query}),
-    do: {current_path <> path, query}
-
-  defp do_parse_opts({:path, path}, {current_path, query}),
-    do: {current_path <> "/#{path}", query}
-
-  defp do_parse_opts(_, full_path), do: full_path
 end

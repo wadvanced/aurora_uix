@@ -22,6 +22,8 @@ defmodule AuroraUix.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ecto_sql, "~> 3.10"},
+      {:postgrex, ">= 0.0.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.4", only: [:dev]},
       {:doctor, "~> 0.22.0", only: :dev}
