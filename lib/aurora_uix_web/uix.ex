@@ -111,17 +111,27 @@ defmodule AuroraUixWeb.Uix do
       SchemaMetadata.__auix_metadata__(
         __MODULE__,
         unquote(name),
-        unquote(opts |> Keyword.pop(:do) |> elem(1))
+        unquote(__auix_options__(opts))
       )
 
-      unquote(opts[:do] || do_block[:do])
+      unquote(__auix_do__(opts, do_block))
     end
   end
 
-  defmacro auix_define(do: block) do
+  defmacro auix_define(do_block) do
     quote do
       import AuroraUixWeb.Uix.Define
-      unquote(block)
+
+      unquote(__auix_do__([], do_block))
     end
   end
+
+  @spec __auix_options__(Keyword.t()) :: Keyword.t()
+  def __auix_options__(options) do
+    {_, opts} = Keyword.pop(options, :do)
+    opts
+  end
+
+  @spec __auix_do__(Keyword.t(), Keyword.t() | nil) :: Macro.t() | nil
+  def __auix_do__(options, do_block), do: options[:do] || do_block[:do]
 end

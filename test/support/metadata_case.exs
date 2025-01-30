@@ -8,7 +8,7 @@ defmodule AuroraUixTest.MetadataCase do
 
   @spec validate_schema(map, atom, map) :: boolean
   def validate_schema(schemas_metadata, schema, fields_checks) do
-    metadata = get_in(schemas_metadata, [schema, :fields])
+    metadata = get_in(schemas_metadata, [schema, Access.key!(:fields)])
 
     Enum.each(fields_checks, fn {field_id, checks} ->
       field =

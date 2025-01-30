@@ -2,6 +2,7 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
   use AuroraUixTest.MetadataCase
 
   defmodule DefaultGeneration do
+    # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
     alias AuroraUixTest.Inventory
@@ -16,7 +17,11 @@ defmodule AuroraUixTest.SchemaMetaDataTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_schema_metadata(:product, context: Inventory, schema: Product, include_associations: true)
+    auix_schema_metadata(:product,
+      context: Inventory,
+      schema: Product,
+      include_associations: true
+    )
   end
 
   defmodule ModifyFieldValues do

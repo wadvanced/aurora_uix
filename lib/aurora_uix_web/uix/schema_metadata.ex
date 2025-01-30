@@ -55,6 +55,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   """
 
   alias AuroraUix.Field
+  alias AuroraUix.Metadata
   alias AuroraUixWeb.Uix.SchemaMetadata
 
   @default_field_attributes %Field{html_type: :text, length: 20}
@@ -145,10 +146,10 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     schemas = Module.get_attribute(module, :_auix_schemas, %{})
 
     schemas
-    |> Map.get(name, %{})
+    |> Map.get(name, %Metadata{})
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
-    |> Map.put(:fields, parse_fields(schema))
+    |> struct(%{fields: parse_fields(schema)})
     |> then(&Map.put(schemas, name, &1))
     |> then(&Module.put_attribute(module, :_auix_schemas, &1))
 
@@ -164,13 +165,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     changed_field =
       module
       |> Module.get_attribute(:_auix_schemas, %{})
-      |> get_in([name, :fields, field])
+      |> get_in([name, Access.key!(:fields), field])
       |> get_field(field)
       |> Field.change(opts)
 
     module
     |> Module.get_attribute(:_auix_schemas, %{})
-    |> put_in([name, :fields, field], changed_field)
+    |> put_in([name, Access.key!(:fields), field], changed_field)
     |> then(&Module.put_attribute(module, :_auix_schemas, &1))
   end
 

@@ -38,6 +38,8 @@ defmodule AuroraUixTestWeb do
   def aurora_uix_for_test do
     quote do
       Module.register_attribute(__MODULE__, :_auix_schemas, persist: true)
+      Module.register_attribute(__MODULE__, :_auix_layouts, persist: true)
+
       use AuroraUixWeb.Uix
     end
   end
