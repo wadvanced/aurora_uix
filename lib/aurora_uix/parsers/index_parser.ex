@@ -10,10 +10,6 @@ defmodule AuroraUix.Parsers.IndexParser do
 
   ## PARAMETERS
   * `module` (module): Schema module to be used for gathering field information.
-  * `type` (atom): Type of view to generate.
-    * `:index` : Represents the index module.
-    * `:card` : Card like view with configurable card fields.
-    * `:form` : Form like view, can have nested elements displayed as block or sections.
   * `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
     ### :list and :card opts
     * `rows ([])`: List of fields to use. By default, relies on Phoenix streams and the name of
@@ -29,12 +25,10 @@ defmodule AuroraUix.Parsers.IndexParser do
     * `layout: Uix.Formatter`: Overrides the default layout by using a formatter. See details in the module.
 
   """
-  @spec parse(map, module, atom, Keyword.t()) :: map
-  def parse(parsed_opts, module, :index, opts) do
+  @spec parse(map, module, Keyword.t()) :: map
+  def parse(parsed_opts, module, opts) do
     add_opt(parsed_opts, module, opts, :rows)
   end
-
-  def parse(parsed_opts, _module, _type, _opts), do: parsed_opts
 
   @doc """
   Produce the default value for the given field.

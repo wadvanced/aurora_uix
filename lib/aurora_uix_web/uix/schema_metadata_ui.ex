@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.SchemaMetadata do
+defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   @moduledoc """
   Provides schema metadata management for AuroraUixWeb.
 
@@ -7,7 +7,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   The primary functions include:
 
-  - `__auix_metadata__/4`: Registers schema metadata, including fields and their configurations.
+  - `__auix_metadata__/2`: Registers schema metadata, including fields and their configurations.
   - `field/2`: Adds or updates field-specific metadata.
   - Internal utilities for deriving field attributes such as labels, placeholders, and types based on schema definitions.
 
@@ -55,10 +55,19 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   """
 
   alias AuroraUix.Field
-  alias AuroraUix.Metadata
-  alias AuroraUixWeb.Uix.SchemaMetadata
+  alias AuroraUix.SchemaMetadata
+  alias AuroraUixWeb.Uix.SchemaMetadataUI
 
-  @default_field_attributes %Field{html_type: :text, length: 20}
+  defmacro __using__(opts) do
+    schema_name = opts[:schema_name]
+
+    quote do
+      import AuroraUixWeb.Uix.SchemaMetadataUI
+
+      Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
+      Module.put_attribute(__MODULE__, :_auix_schema_name, unquote(schema_name))
+    end
+  end
 
   @doc """
   Adds or updates metadata for a specific field in the schema.
@@ -96,10 +105,18 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   @spec field(atom, Keyword.t()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     quote do
-      SchemaMetadata.__field__(
+      schema_name = Module.get_attribute(__MODULE__, :_auix_schema_name)
+
+      parsed_field =
+        SchemaMetadataUI.__field__(
+          unquote(field),
+          unquote(opts)
+        )
+
+      Module.put_attribute(
         __MODULE__,
-        unquote(field),
-        Macro.escape(unquote(opts))
+        :_auix_fields,
+        {Macro.escape(schema_name), parsed_field}
       )
     end
   end
@@ -109,11 +126,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     quotes =
       Enum.map(fields, fn field ->
         quote do
-          SchemaMetadata.__field__(
-            __MODULE__,
-            unquote(field),
-            Macro.escape(unquote(opts))
-          )
+          field(unquote(field), unquote(opts))
         end
       end)
 
@@ -129,7 +142,6 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
   ## Parameters
 
-  - `module` (`module`) - The module where metadata is being registered.
   - `name` (`atom`)- An identifier for the schema metadata (atom).
   - `opts` (`Keyword.t`) - Options
 
@@ -138,41 +150,52 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
     - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
     - `:include_associations` - For each associated schema, the metadata is created. If true, then, every associated schema is parsed.
   """
-  @spec __auix_metadata__(module, atom, Keyword.t()) :: :ok
-  def __auix_metadata__(module, name, opts) do
+  @spec __auix_metadata__(atom, Keyword.t()) :: SchemaMetadata.t()
+  def __auix_metadata__(_name, opts) do
     schema = opts[:schema]
-    context = opts[:context]
 
-    schemas = Module.get_attribute(module, :_auix_schemas, %{})
-
-    schemas
-    |> Map.get(name, %Metadata{})
+    %SchemaMetadata{}
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
     |> struct(%{fields: parse_fields(schema)})
-    |> then(&Map.put(schemas, name, &1))
-    |> then(&Module.put_attribute(module, :_auix_schemas, &1))
-
-    include_associations(module, schema, context, opts[:include_associations])
-
-    Module.put_attribute(module, :_auix_current_schema_name, name)
   end
 
-  @spec __field__(module, atom, Keyword.t()) :: :ok
-  def __field__(module, field, opts) do
-    name = Module.get_attribute(module, :_auix_current_schema_name)
+  @spec __field__(atom, keyword) :: map
+  def __field__(field, opts) do
+    opts
+    |> Map.new()
+    |> Map.merge(%{field: field})
+  end
 
-    changed_field =
-      module
-      |> Module.get_attribute(:_auix_schemas, %{})
-      |> get_in([name, Access.key!(:fields), field])
-      |> get_field(field)
-      |> Field.change(opts)
+  @doc """
+  Gets the schema metadata by its name.
 
-    module
-    |> Module.get_attribute(:_auix_schemas, %{})
-    |> put_in([name, Access.key!(:fields), field], changed_field)
-    |> then(&Module.put_attribute(module, :_auix_schemas, &1))
+  ## Parameters
+    - `module`
+  """
+  @spec __get_metadata__(module, atom) :: map
+  def __get_metadata__(module, name) do
+    all_metadata = Module.get_attribute(module, :_auix_schemas, [])
+
+    all_metadata
+    |> Enum.filter(fn {metadata_name, _metadata} -> metadata_name == name end)
+    |> Enum.map(fn {_metadata_name, metadata} -> metadata end)
+    |> List.last()
+    |> Kernel.||(%{})
+  end
+
+  @spec __merge_schemas_and_fields__(list, list) :: map
+  def __merge_schemas_and_fields__(schema_metadata, []), do: schema_metadata
+
+  def __merge_schemas_and_fields__(schema_metadata, all_fields) do
+    Enum.map(
+      schema_metadata,
+      fn {schema_name, schema_config} ->
+        modified_fields = filter_fields(schema_name, all_fields)
+        schema_modified_config = modify_schema_config_fields(schema_config, modified_fields)
+        {schema_name, schema_modified_config}
+      end
+    )
   end
 
   ## PRIVATE
@@ -208,10 +231,6 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
 
     {field, Field.new(attrs)}
   end
-
-  @spec get_field(atom | nil, atom) :: map
-  defp get_field(nil, field_name), do: struct(@default_field_attributes, %{field: field_name})
-  defp get_field(field, _field_name), do: field
 
   @spec field_label(binary) :: binary
   defp field_label(nil), do: ""
@@ -264,53 +283,38 @@ defmodule AuroraUixWeb.Uix.SchemaMetadata do
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
-  @spec include_associations(module, module, module, boolean) :: :ok
-
-  defp include_associations(module, schema, context, true = include_associations?) do
-    if function_exported?(schema, :__schema__, 1) do
-      :associations
-      |> schema.__schema__()
-      |> Enum.each(&include_association(module, schema, context, include_associations?, &1))
-    end
-  end
-
-  defp include_associations(_module, _schema, _context, _include_associations?), do: :ok
-
-  @spec include_association(module, module, module, boolean, atom) :: :ok
-  defp include_association(module, schema, context, include_associations?, assoc) do
-    assoc_schema =
-      :association
-      |> schema.__schema__(assoc)
-      |> association_schema()
-
-    Code.ensure_compiled(assoc_schema)
-
-    assoc_name =
-      assoc_schema
-      |> Module.split()
-      |> List.last()
-      |> Macro.underscore()
-      |> String.to_existing_atom()
-
-    if Module.get_attribute(module, :_auix_schemas, %{})[assoc_name] do
-      :ok
-    else
-      __auix_metadata__(module, assoc_name,
-        schema: assoc_schema,
-        context: context,
-        include_associations: include_associations?
-      )
-    end
-  end
-
-  @spec association_schema(map) :: module
-  defp association_schema(%{relationship: :parent, owner: assoc_schema}), do: assoc_schema
-  defp association_schema(%{relationship: :child, related: assoc_schema}), do: assoc_schema
-
   @spec put_option(map, Keyword.t(), atom) :: map
   defp put_option(metadata, opts, key) do
     if Keyword.has_key?(opts, key),
       do: Map.put(metadata, key, opts[key]),
       else: metadata
+  end
+
+  @spec filter_fields(atom, list) :: list
+  defp filter_fields(schema_name, all_fields),
+    do: all_fields |> Enum.reduce([], &filter_schema(&1, &2, schema_name)) |> Enum.reverse()
+
+  @spec filter_schema(tuple, list, atom) :: list
+  defp filter_schema({field_schema_name, field_config}, acc, field_schema_name),
+    do: [field_config | acc]
+
+  defp filter_schema(_field, acc, _schema_name), do: acc
+
+  @spec modify_schema_config_fields(map, list) :: map
+  defp modify_schema_config_fields(schema_config, modified_fields) do
+    schema_config
+    |> Map.get(:fields, %{})
+    |> Enum.map(&modify_schema_config_field(&1, modified_fields))
+    |> Map.new()
+    |> then(&struct(schema_config, %{fields: &1}))
+  end
+
+  @spec modify_schema_config_field(tuple, list) :: tuple
+  defp modify_schema_config_field({field_name, field_config}, modified_fields) do
+    modified_fields
+    |> Enum.filter(&(&1.field == field_name))
+    |> Enum.reduce(%{}, &Map.merge(&2, &1))
+    |> then(&struct(field_config, &1))
+    |> then(&{field_name, &1})
   end
 end

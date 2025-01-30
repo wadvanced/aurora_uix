@@ -54,7 +54,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
 
     {opts, _} = Code.eval_quoted(opts)
 
-    parsed_opts = parse_opts(module, type, opts)
+    parsed_opts = parse_opts(module, opts)
 
     template = Template.uix_template().generate_view(type, parsed_opts)
 
@@ -128,9 +128,10 @@ defmodule AuroraUixWeb.Uix.Renderer do
     |> Map.values()
     |> Enum.each(&Code.ensure_compiled/1)
 
+    parsed_opts = parse_opts(module, opts)
+
     generated_code =
       for type <- types do
-        parsed_opts = parse_opts(module, type, opts)
         Template.uix_template().generate_module(modules, type, opts, parsed_opts)
       end
 
@@ -155,10 +156,10 @@ defmodule AuroraUixWeb.Uix.Renderer do
     end
   end
 
-  @spec parse_opts(module, atom, Keyword.t()) :: map
-  defp parse_opts(module, type, opts) do
+  @spec parse_opts(module, Keyword.t()) :: map
+  defp parse_opts(module, opts) do
     module
     |> validate_module()
-    |> Parser.parse(type, opts)
+    |> Parser.parse(opts)
   end
 end

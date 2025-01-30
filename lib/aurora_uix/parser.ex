@@ -11,7 +11,6 @@ defmodule AuroraUix.Parser do
   @doc """
   ## Parameters
     - `module` (module): Schema module to be used for gathering field information.
-    - `type` (atom): Type of view to generate.
     - `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
     See AuroraUixWeb.Uix.define/3 docs for type and opts details.
 
@@ -30,10 +29,10 @@ defmodule AuroraUix.Parser do
     the %{rows: [:streams, :account_receivables]
 
   """
-  @spec parse(module, atom, Keyword.t()) :: map
-  def parse(module, type, opts \\ []) do
+  @spec parse(module, Keyword.t()) :: map
+  def parse(module, opts \\ []) do
     %{}
-    |> Common.parse(module, type, opts)
-    |> IndexParser.parse(module, type, opts)
+    |> Common.parse(module, opts)
+    |> IndexParser.parse(module, opts)
   end
 end

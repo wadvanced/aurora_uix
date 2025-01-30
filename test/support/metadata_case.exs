@@ -3,7 +3,6 @@ defmodule AuroraUixTest.MetadataCase do
   Support for testing schema metadata behaviour.
   """
 
-  use AuroraUixTestWeb.ConnCase
   alias AuroraUix.Field
 
   @spec validate_schema(map, atom, map) :: boolean
@@ -23,21 +22,33 @@ defmodule AuroraUixTest.MetadataCase do
     Enum.each(checks, fn {key, value} ->
       current_value = Map.get(field, key)
 
-      assert(
-        current_value == value,
-        "Field `#{field.field}`, key: `#{key}`. Expected: `#{value}`, current: `#{current_value}`"
-      )
+      if current_value != value do
+        raise(
+          current_value == value,
+          "Field `#{field.field}`, key: `#{key}`. Expected: `#{value}`, current: `#{current_value}`"
+        )
+      end
     end)
   end
 
   @spec schemas_metadata(module) :: map
   def schemas_metadata(module) do
+    attributes(module, :_auix_schemas)
+  end
+
+  @spec layouts(module) :: map
+  def layouts(module) do
+    attributes(module, :_auix_layouts)
+  end
+
+  @spec attributes(module, atom) :: map
+  def attributes(module, attribute) do
     Code.ensure_compiled(module)
 
     :attributes
     |> module.__info__()
-    |> Keyword.get(:_auix_schemas)
-    |> List.first()
+    |> Keyword.get(attribute, [])
+    |> Map.new()
   end
 
   defmacro __using__(_opts) do

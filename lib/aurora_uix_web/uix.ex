@@ -60,27 +60,35 @@ defmodule AuroraUixWeb.Uix do
   It relies on the metadata defined through auix_schema_metadata to determine field characteristics.
 
   ### Example
+    ```elixir
+    defmodule MyAppWeb.ProductLive.Index do
+      ## These two lines should create a complete CRUD for the schema MyApp.Product
+      auix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory
+      auix_define for: :product
+    end
+  ```
+
   ```elixir
     defmodule MyAppWeb.ProductLive.Index do
       auix_define do
         layout :form, :component do
           group "Product" do
-            line product: name, product: price
+            row product: name, product: price
           end
           group "Category Details" do
-            line category: (field :name, readonly: true)
+            row category: (field :name, readonly: true)
           end
           tab "Sales" do
-            line _assigns: :last_quarter
+            row _assigns: :last_quarter
           end
           tab "Forecast" do
             group "Next Semester" do
-              line forecast: :quantities
-              line forecast: :revenues
+              row forecast: :quantities
+              row forecast: :revenues
             end
             group "Next Year" do
-              line forecast_next: :quantities
-              line forecast_next: :revenues
+              row forecast_next: :quantities
+              row forecast_next: :revenues
             end
           end
         end
@@ -94,44 +102,83 @@ defmodule AuroraUixWeb.Uix do
 
   """
   alias AuroraUixWeb.Uix
-  alias AuroraUixWeb.Uix.SchemaMetadata
+  alias AuroraUixWeb.Uix.DefineUI
+  alias AuroraUixWeb.Uix.SchemaMetadataUI
 
   require Logger
 
   defmacro __using__(_opts) do
     quote do
       import Uix
+      Module.register_attribute(__MODULE__, :_auix_schemas, accumulate: true)
+      @before_compile AuroraUixWeb.Uix
     end
   end
 
-  defmacro auix_schema_metadata(name, opts \\ [], do_block \\ nil) do
+  defmacro __before_compile__(env) do
+    ## Schema metadata definitions are returned in reversed order.
+    schema_metadata = env.module |> Module.get_attribute(:_auix_schemas) |> Enum.reverse()
+    ## Field modifications are returned in reversed order.
+    fields = env.module |> Module.get_attribute(:_auix_fields) |> Enum.reverse()
+
+    Module.delete_attribute(env.module, :_auix_schemas)
+    Module.delete_attribute(env.module, :_auix_fields)
+
+    schema_metadata
+    |> SchemaMetadataUI.__merge_schemas_and_fields__(fields)
+    |> then(&Module.put_attribute(env.module, :_auix_schemas, &1))
+
     quote do
-      import SchemaMetadata
-
-      SchemaMetadata.__auix_metadata__(
-        __MODULE__,
-        unquote(name),
-        unquote(__auix_options__(opts))
-      )
-
-      unquote(__auix_do__(opts, do_block))
+      :ok
     end
   end
 
-  defmacro auix_define(do_block) do
+  defmacro auix_schema_metadata(name, opts \\ []) do
+    schema_metadata = AuroraUixWeb.Uix.__schema_metadata__(name, opts)
+
     quote do
-      import AuroraUixWeb.Uix.Define
-
-      unquote(__auix_do__([], do_block))
+      unquote(schema_metadata)
     end
   end
 
-  @spec __auix_options__(Keyword.t()) :: Keyword.t()
-  def __auix_options__(options) do
-    {_, opts} = Keyword.pop(options, :do)
-    opts
+  defmacro auix_schema_metadata(name, opts, do: block) do
+    schema_metadata = AuroraUixWeb.Uix.__schema_metadata__(name, opts)
+
+    quote do
+      unquote(schema_metadata)
+      unquote(block)
+    end
   end
 
-  @spec __auix_do__(Keyword.t(), Keyword.t() | nil) :: Macro.t() | nil
-  def __auix_do__(options, do_block), do: options[:do] || do_block[:do]
+  defmacro auix_define(opts \\ []) do
+    quote do
+      import DefineUI, only: [layout: 2, layout: 3, layout: 4]
+
+      DefineUI.__auix_define__(__MODULE__, unquote(opts))
+    end
+  end
+
+  defmacro auix_define(opts, do: block) do
+    quote do
+      import DefineUI, only: [layout: 2, layout: 3, layout: 4]
+
+      DefineUI.__auix_define__(__MODULE__, unquote(opts))
+      unquote(block)
+    end
+  end
+
+  @spec __schema_metadata__(atom, Keyword.t()) :: Macro.t()
+  def __schema_metadata__(name, opts) do
+    quote do
+      use SchemaMetadataUI, schema_name: unquote(name)
+
+      schema_metadata =
+        SchemaMetadataUI.__auix_metadata__(
+          unquote(name),
+          unquote(opts)
+        )
+
+      Module.put_attribute(__MODULE__, :_auix_schemas, {unquote(name), schema_metadata})
+    end
+  end
 end

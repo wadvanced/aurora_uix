@@ -1,4 +1,4 @@
-defmodule AuroraUix.Metadata do
+defmodule AuroraUix.SchemaMetadata do
   @moduledoc """
   Provides a structure and functions to manage metadata for schemas and contexts.
 
@@ -10,10 +10,10 @@ defmodule AuroraUix.Metadata do
   defstruct [:schema, :context, fields: %{}]
 
   @type t() :: %__MODULE__{
-      schema: module,
-      context: module | nil,
-      fields: map
-    }
+          schema: module,
+          context: module | nil,
+          fields: map
+        }
 
   @doc """
   Creates a new `AuroraUix.Metadata` struct with the given attributes.

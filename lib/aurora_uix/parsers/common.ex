@@ -12,10 +12,6 @@ defmodule AuroraUix.Parsers.Common do
 
     ## PARAMETERS
   * `module` (module): Schema module to be used for gathering field information.
-  * `type` (atom): Type of view to generate.
-    * `:list` : Table like view with selectable fields and action buttons.
-    * `:card` : Card like view with configurable card fields.
-    * `:form` : Form like view, can have nested elements displayed as block or sections.
   * `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
     ### Common opts
     * `actions: [{:top | :bottom, function}]` : Overrides the default list of actions that are displayed at the top or bottom.
@@ -55,8 +51,8 @@ defmodule AuroraUix.Parsers.Common do
       Schema source: "account_receivables"
       Title: "Account receivables"
   """
-  @spec parse(map, module, atom, Keyword.t()) :: map
-  def parse(parsed_opts, module, _type, opts) do
+  @spec parse(map, module, Keyword.t()) :: map
+  def parse(parsed_opts, module, opts) do
     parsed_opts
     |> add_opt(module, opts, :module)
     |> add_opt(module, opts, :name)

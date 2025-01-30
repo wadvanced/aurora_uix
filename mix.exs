@@ -43,7 +43,7 @@ defmodule AuroraUix.MixProject do
     [
       consistency: [
         "format",
-        "compile --warnings-as-error",
+        "compile --warnings-as-errors",
         "credo --strict",
         "dialyzer",
         "doctor"

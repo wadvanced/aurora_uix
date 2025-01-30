@@ -33,6 +33,10 @@ To run the tests simply:
 mix test
 ```
 
+To open the iex, and have the test environment available:
+```shell
+MIX_ENV=test iex --dot-iex "test/dependencies_start.exs" -S mix 
+```
 
 ### Tests configuration
 You can override the default environment configuration by creating a config/test.exs file.
