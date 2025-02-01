@@ -191,16 +191,19 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
     Enum.map(
       schema_metadata,
       fn {schema_name, schema_config} ->
-        modified_fields = filter_fields(schema_name, all_fields)
-        schema_modified_config = modify_schema_config_fields(schema_config, modified_fields)
-        {schema_name, schema_modified_config}
+        modified_schema_metadata =
+          schema_name
+          |> filter_fields(all_fields)
+          |> then(&SchemaMetadata.change(schema_config, fields: &1))
+
+        {schema_name, modified_schema_metadata}
       end
     )
   end
 
   ## PRIVATE
-  @spec parse_fields(module | nil) :: map
-  defp parse_fields(nil), do: %{}
+  @spec parse_fields(module | nil) :: list
+  defp parse_fields(nil), do: []
 
   defp parse_fields(schema) do
     Code.ensure_compiled(schema)
@@ -209,9 +212,8 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
       :fields
       |> schema.__schema__()
       |> Enum.map(&parse_field(schema, &1))
-      |> Map.new()
     else
-      %{}
+      []
     end
   end
 
@@ -229,7 +231,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
       scale: field_scale(type)
     }
 
-    {field, Field.new(attrs)}
+    Field.new(attrs)
   end
 
   @spec field_label(binary) :: binary
@@ -291,8 +293,10 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   end
 
   @spec filter_fields(atom, list) :: list
-  defp filter_fields(schema_name, all_fields),
-    do: all_fields |> Enum.reduce([], &filter_schema(&1, &2, schema_name)) |> Enum.reverse()
+  defp filter_fields(schema_name, all_fields) do
+    all_fields |> Enum.reduce([], &filter_schema(&1, &2, schema_name))
+    |> Enum.map(&({&1.field, &1})) |> Enum.reverse()
+  end
 
   @spec filter_schema(tuple, list, atom) :: list
   defp filter_schema({field_schema_name, field_config}, acc, field_schema_name),
@@ -300,21 +304,4 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
 
   defp filter_schema(_field, acc, _schema_name), do: acc
 
-  @spec modify_schema_config_fields(map, list) :: map
-  defp modify_schema_config_fields(schema_config, modified_fields) do
-    schema_config
-    |> Map.get(:fields, %{})
-    |> Enum.map(&modify_schema_config_field(&1, modified_fields))
-    |> Map.new()
-    |> then(&struct(schema_config, %{fields: &1}))
-  end
-
-  @spec modify_schema_config_field(tuple, list) :: tuple
-  defp modify_schema_config_field({field_name, field_config}, modified_fields) do
-    modified_fields
-    |> Enum.filter(&(&1.field == field_name))
-    |> Enum.reduce(%{}, &Map.merge(&2, &1))
-    |> then(&struct(field_config, &1))
-    |> then(&{field_name, &1})
-  end
 end

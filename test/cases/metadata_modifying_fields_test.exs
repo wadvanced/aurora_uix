@@ -13,6 +13,7 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
       fields([:weight, :length, :width, :height], precision: 16, scale: 3)
       # :height field properties are changed again, the last one should be the one prevailing
       field(:height, scale: 1)
+      field(:data_virtual, html_type: :boolean)
     end
   end
 
@@ -26,7 +27,8 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
       length: %{precision: 16, scale: 3},
       width: %{precision: 16, scale: 3},
       # Order is important, scale is changed, once again on the :height field
-      height: %{precision: 16, scale: 1}
+      height: %{precision: 16, scale: 1},
+      data_virtual: %{html_type: :boolean}
     )
   end
 end

@@ -17,7 +17,6 @@ defmodule AuroraUixTest.Inventory.Product do
           reference: String.t() | nil,
           name: String.t() | nil,
           description: String.t() | nil,
-          status: String.t() | nil,
           quantity_at_hand: Decimal.t() | nil,
           quantity_initial: Decimal.t() | nil,
           quantity_entries: Decimal.t() | nil,
@@ -32,6 +31,7 @@ defmodule AuroraUixTest.Inventory.Product do
           height: Decimal.t() | nil,
           image: binary() | nil,
           thumbnail: binary() | nil,
+          status: String.t() | nil,
           deleted: boolean() | nil,
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,
@@ -42,7 +42,6 @@ defmodule AuroraUixTest.Inventory.Product do
     field(:reference, :string)
     field(:name, :string)
     field(:description, :string)
-    field(:status, :string)
     field(:quantity_at_hand, :decimal)
     field(:quantity_initial, :decimal)
     field(:quantity_entries, :decimal)
@@ -57,6 +56,7 @@ defmodule AuroraUixTest.Inventory.Product do
     field(:height, :decimal)
     field(:image, :binary)
     field(:thumbnail, :binary)
+    field(:status, :string)
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
