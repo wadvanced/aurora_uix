@@ -63,7 +63,7 @@ defmodule AuroraUix.Field do
         field: :age,
         html_type: :float,
         renderer: nil,
-        name: :age,
+        name: "age",
         label: "",
         placeholder: "",
         length: 0,
@@ -80,7 +80,7 @@ defmodule AuroraUix.Field do
         field: :username,
         html_type: :text,
         renderer: nil,
-        name: :username,
+        name: "username",
         label: "",
         placeholder: "",
         length: 0,
@@ -110,7 +110,7 @@ defmodule AuroraUix.Field do
           field: :age,
           html_type: nil,
           renderer: nil,
-          name: :age,
+          name: "age",
           label: "",
           placeholder: "",
           length: 0,
@@ -120,13 +120,12 @@ defmodule AuroraUix.Field do
           readonly: false,
           required: false
         }
-
         iex> AuroraUix.Field.change(field, %{html_type: :number, precision: 3})
         %AuroraUix.Field{
           field: :age,
           html_type: :number,
           renderer: nil,
-          name: :age,
+          name: "age",
           label: "",
           placeholder: "",
           length: 0,

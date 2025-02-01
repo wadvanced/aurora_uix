@@ -1,6 +1,6 @@
 defmodule AuroraUix.Parsers.BaseParser do
   @moduledoc """
-  Enables parser behaviour
+  Enables parser behaviour.
   """
 
   defmacro __using__(_opts) do

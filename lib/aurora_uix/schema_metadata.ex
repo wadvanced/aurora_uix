@@ -6,10 +6,9 @@ defmodule AuroraUix.SchemaMetadata do
   about a schema, its context, and additional fields. It also provides functions
   to create and update this metadata.
   """
+  alias AuroraUix.Field
 
   defstruct [:schema, :context, fields: []]
-
-  alias AuroraUix.Field
 
   @type t() :: %__MODULE__{
           schema: module,
@@ -28,7 +27,7 @@ defmodule AuroraUix.SchemaMetadata do
   ## Examples
 
       iex> AuroraUix.SchemaMetadata.new()
-      %AuroraUix.SchemaMetadata.new(){schema: nil, context: nil, fields: []}
+      %AuroraUix.SchemaMetadata{schema: nil, context: nil, fields: []}
 
       iex> AuroraUix.SchemaMetadata.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
       %AuroraUix.SchemaMetadata{
@@ -68,7 +67,6 @@ defmodule AuroraUix.SchemaMetadata do
 
       iex> metadata = %AuroraUix.SchemaMetadata{schema: MySchema, context: MyContext}
       %AuroraUix.SchemaMetadata{schema: MySchema, context: MyContext, fields: []}
-
       iex> AuroraUix.SchemaMetadata.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
       %AuroraUix.SchemaMetadata{
         schema: MySchema,
@@ -113,10 +111,39 @@ defmodule AuroraUix.SchemaMetadata do
         ]
       }
       iex> AuroraUix.SchemaMetadata.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
-      %AuroraUix.Metadata{
+      %AuroraUix.SchemaMetadata{
         schema: MySchema,
         context: MyContext,
-        fields: %{updated_field: "new_value"}
+        fields: [
+          %AuroraUix.Field{
+            field: :reference,
+            html_type: nil,
+            renderer: nil,
+            name: "reference",
+            label: "My reference",
+            placeholder: "",
+            length: 0,
+            precision: 0,
+            scale: 0,
+            hidden: false,
+            readonly: false,
+            required: false
+          },
+          %AuroraUix.Field{
+            field: :description,
+            html_type: nil,
+            renderer: nil,
+            name: "description",
+            label: "My description",
+            placeholder: "",
+            length: 0,
+            precision: 0,
+            scale: 0,
+            hidden: false,
+            readonly: false,
+            required: false
+          }
+        ]
       }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
@@ -144,9 +171,7 @@ defmodule AuroraUix.SchemaMetadata do
       |> List.last()
       |> elem(1)
 
-    metadata_changed_fields =
-      metadata_fields
-      |> Enum.map(&change_field(&1, changed_fields))
+    metadata_changed_fields = Enum.map(metadata_fields, &change_field(&1, changed_fields))
 
     struct(metadata, %{fields: metadata_changed_fields})
   end
@@ -167,9 +192,7 @@ defmodule AuroraUix.SchemaMetadata do
   defp change_field(metadata_field, _changed_fields), do: metadata_field
 
   defp add_fields(%{fields: metadata_fields} = metadata, attrs) do
-    keys =
-      metadata_fields
-      |> Enum.map(& &1.field)
+    keys = Enum.map(metadata_fields, & &1.field)
 
     metadata_fields = Enum.reverse(metadata_fields)
 
@@ -177,17 +200,28 @@ defmodule AuroraUix.SchemaMetadata do
     |> filter(:fields)
     |> List.last()
     |> elem(1)
-    |> Enum.reject(&(elem(&1, 0) in keys))
-    |> Enum.reduce(metadata_fields, &[create_field(&1) | &2])
+    |> Enum.reject(fn
+      field_properties when is_map(field_properties) -> Map.get(field_properties, :field) in keys
+      field_properties when is_tuple(field_properties) -> elem(field_properties, 0) in keys
+      _ -> true
+    end)
+    |> Enum.reduce(metadata_fields, &create_field/2)
     |> Enum.reverse()
     |> then(&struct(metadata, %{fields: &1}))
   end
 
-  defp create_field({field, properties}) do
-    properties
-    |> Map.put(:field, field)
-    |> Field.new()
+  defp create_field({field, properties}, acc) do
+    new_field =
+      properties
+      |> Map.put(:field, field)
+      |> Field.new()
+
+    [new_field | acc]
   end
+
+  defp create_field(%Field{} = field, acc), do: [field | acc]
+  defp create_field(%{field: _field_id} = attrs, _acc), do: Field.new(attrs)
+  defp create_field(_field, acc), do: acc
 
   defp filter(attrs, key) do
     Enum.filter(attrs, fn

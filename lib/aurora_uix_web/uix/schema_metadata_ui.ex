@@ -217,7 +217,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
     end
   end
 
-  @spec parse_field(module, atom | binary) :: {atom | binary, Field.t()}
+  @spec parse_field(module, atom | binary) :: Field.t()
   defp parse_field(module, field) do
     type = module.__schema__(:type, field)
 
@@ -294,8 +294,10 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
 
   @spec filter_fields(atom, list) :: list
   defp filter_fields(schema_name, all_fields) do
-    all_fields |> Enum.reduce([], &filter_schema(&1, &2, schema_name))
-    |> Enum.map(&({&1.field, &1})) |> Enum.reverse()
+    all_fields
+    |> Enum.reduce([], &filter_schema(&1, &2, schema_name))
+    |> Enum.map(&{&1.field, &1})
+    |> Enum.reverse()
   end
 
   @spec filter_schema(tuple, list, atom) :: list
@@ -303,5 +305,4 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
     do: [field_config | acc]
 
   defp filter_schema(_field, acc, _schema_name), do: acc
-
 end

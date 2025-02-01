@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.DefineUI do
+defmodule AuroraUixWeb.Uix.CreateUI do
   @moduledoc """
   Enables the definition of views and components.
   """

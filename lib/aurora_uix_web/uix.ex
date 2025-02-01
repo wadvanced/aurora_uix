@@ -102,7 +102,7 @@ defmodule AuroraUixWeb.Uix do
 
   """
   alias AuroraUixWeb.Uix
-  alias AuroraUixWeb.Uix.DefineUI
+  alias AuroraUixWeb.Uix.CreateUI
   alias AuroraUixWeb.Uix.SchemaMetadataUI
 
   require Logger
@@ -152,17 +152,17 @@ defmodule AuroraUixWeb.Uix do
 
   defmacro auix_define(opts \\ []) do
     quote do
-      import DefineUI, only: [layout: 2, layout: 3, layout: 4]
+      import CreateUI, only: [layout: 2, layout: 3, layout: 4]
 
-      DefineUI.__auix_define__(__MODULE__, unquote(opts))
+      CreateUI.__auix_define__(__MODULE__, unquote(opts))
     end
   end
 
   defmacro auix_define(opts, do: block) do
     quote do
-      import DefineUI, only: [layout: 2, layout: 3, layout: 4]
+      import CreateUI, only: [layout: 2, layout: 3, layout: 4]
 
-      DefineUI.__auix_define__(__MODULE__, unquote(opts))
+      CreateUI.__auix_define__(__MODULE__, unquote(opts))
       unquote(block)
     end
   end

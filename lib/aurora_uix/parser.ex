@@ -12,10 +12,10 @@ defmodule AuroraUix.Parser do
   ## Parameters
     - `module` (module): Schema module to be used for gathering field information.
     - `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
-    See AuroraUixWeb.Uix.define/3 docs for type and opts details.
+    See AuroraUixWeb.Uix.auix_define/1 docs for type and opts details.
 
   ## Parsed output
-    A map with the following content is produced
+    A map with the following content is produced:
 
   ### Common keys
    - `:module`: Last part of the name of the schema module. For schema `AuroraUixDemo.GeneralLedger.Account` then %{module: "account"}.
@@ -28,6 +28,37 @@ defmodule AuroraUix.Parser do
    - `:rows`: Keys path for accessing the socket list of elements. For schema `AuroraUixDemo.GeneralLedger.AccountReceivable`
     the %{rows: [:streams, :account_receivables]
 
+  ### Example
+    iex> defmodule MySchema do
+    ...>   use Ecto.Schema
+    ...>   schema "my_schemas" do
+    ...>     field :reference, :string
+    ...>   end
+    ...> end
+    iex> AuroraUix.Parser.parse(MySchema)
+    %{
+      module: "my_schema",
+      name: "My schema",
+      title: "My schemas",
+      fields: [
+        %AuroraUix.Field{
+          field: :reference,
+          html_type: :text,
+          renderer: nil,
+          name: "reference",
+          label: "Reference",
+          placeholder: "Reference",
+          length: 255,
+          precision: 0,
+          scale: 0,
+          hidden: false,
+          readonly: false,
+          required: false
+        }
+      ],
+      rows: [:streams, :my_schemas],
+      source: "my_schemas"
+    }
   """
   @spec parse(module, Keyword.t()) :: map
   def parse(module, opts \\ []) do
