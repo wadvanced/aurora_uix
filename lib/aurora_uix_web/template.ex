@@ -27,7 +27,7 @@ defmodule AuroraUixWeb.Template do
 
   generate_view(:card, %{title: "User Info", content: ~H"<p><%= @user %></p>"})
   # => quote do: ~H"<div class=\"card\"><h1>User Info</h1><p><%= @user %></p></div>"
-
+  ```
   """
   @callback generate_view(type :: atom, parsed_opts :: map) :: binary
 

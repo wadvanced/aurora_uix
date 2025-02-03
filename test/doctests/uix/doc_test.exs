@@ -3,5 +3,5 @@ defmodule AuroraUixTest.Uix.DocTest do
 
   doctest AuroraUix.Field
   doctest AuroraUix.Parser
-  doctest AuroraUix.SchemaMetadata
+  doctest AuroraUix.SchemaConfig
 end

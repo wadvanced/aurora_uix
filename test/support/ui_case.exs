@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.MetadataCase do
+defmodule AuroraUixTest.UICase do
   @moduledoc """
   Support for testing schema metadata behaviour.
   """
@@ -6,8 +6,8 @@ defmodule AuroraUixTest.MetadataCase do
   alias AuroraUix.Field
 
   @spec validate_schema(map, atom, map) :: boolean
-  def validate_schema(schemas_metadata, schema, fields_checks) do
-    metadata = get_in(schemas_metadata, [schema, Access.key!(:fields)])
+  def validate_schema(schema_configs, schema, fields_checks) do
+    metadata = get_in(schema_configs, [schema, Access.key!(:fields)])
 
     Enum.each(fields_checks, fn {field_id, checks} ->
       field = find_field(metadata, field_id)
@@ -31,16 +31,16 @@ defmodule AuroraUixTest.MetadataCase do
   end
 
   @spec find_field(map, atom) :: map | nil
-  def find_field(schema_metadata, field) do
-    Enum.find(schema_metadata, fn
+  def find_field(schema_config, field) do
+    Enum.find(schema_config, fn
       %{field: ^field} -> true
       _ -> false
     end)
   end
 
-  @spec schemas_metadata(module) :: map
-  def schemas_metadata(module) do
-    attributes(module, :_auix_schemas)
+  @spec schema_configs(module) :: map
+  def schema_configs(module) do
+    attributes(module, :_auix_schema_configs)
   end
 
   @spec layouts(module) :: map
@@ -61,7 +61,7 @@ defmodule AuroraUixTest.MetadataCase do
   defmacro __using__(_opts) do
     quote do
       use AuroraUixTestWeb.ConnCase
-      import AuroraUixTest.MetadataCase
+      import AuroraUixTest.UICase
     end
   end
 end

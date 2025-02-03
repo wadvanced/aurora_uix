@@ -113,6 +113,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
 
     module MyAppWeb, MyApp.Accounts, MyApp.Accounts.User, :list, [source: "users", name: "User", title: "Users"]
   end
+  ```
   """
   defmacro module(web, context, module, types, opts \\ []) do
     web = Macro.expand(web, __CALLER__)

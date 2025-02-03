@@ -20,11 +20,7 @@ defmodule AuroraUix.Parsers.BaseParser do
         string
         |> Macro.underscore()
         |> String.split("_")
-        |> Enum.with_index(fn
-          word, 0 -> String.capitalize(word)
-          word, _ -> word
-        end)
-        |> Enum.join(" ")
+        |> Enum.map_join(" ", &String.capitalize/1)
       end
     end
   end

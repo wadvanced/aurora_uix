@@ -12,7 +12,7 @@ defmodule AuroraUix.Parser do
   ## Parameters
     - `module` (module): Schema module to be used for gathering field information.
     - `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
-    See AuroraUixWeb.Uix.auix_define/1 docs for type and opts details.
+    See `AuroraUixWeb.Uix.auix_create_ui/1` docs for type and opts details.
 
   ## Parsed output
     A map with the following content is produced:
@@ -38,8 +38,8 @@ defmodule AuroraUix.Parser do
     iex> AuroraUix.Parser.parse(MySchema)
     %{
       module: "my_schema",
-      name: "My schema",
-      title: "My schemas",
+      name: "My Schema",
+      title: "My Schemas",
       fields: [
         %AuroraUix.Field{
           field: :reference,

@@ -21,6 +21,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
   iex> AuroraUixWeb.Templates.Base.generate_view(:form, %{})
   # => "<h1>Base Template</h1>form"
+  ```
   """
 
   @behaviour AuroraUixWeb.Template
@@ -52,6 +53,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
   generate(:form, %{})
   # => "<h1>Base Template</h1>form"
+  ```
   """
   @spec generate_view(atom, map) :: binary
   def generate_view(:index, parsed_opts) do

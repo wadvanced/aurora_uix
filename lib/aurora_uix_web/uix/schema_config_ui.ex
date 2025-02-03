@@ -1,13 +1,13 @@
-defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
+defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   @moduledoc """
-  Provides schema metadata management for AuroraUixWeb.
+  Provides schema config management for AuroraUixWeb.
 
   This module is responsible for attaching and managing UI-related metadata for Ecto schemas.
   This metadata enhances schema usability in UI rendering, enabling customization of fields, placeholders, labels, and other attributes.
 
   The primary functions include:
 
-  - `__auix_metadata__/2`: Registers schema metadata, including fields and their configurations.
+  - `__auix_schema_config__/2`: Registers schema metadata, including fields and their configurations.
   - `field/2`: Adds or updates field-specific metadata.
   - Internal utilities for deriving field attributes such as labels, placeholders, and types based on schema definitions.
 
@@ -41,13 +41,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      auix_schema_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_schema_configs :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      auix_schema_metadata :category, schema: MyApp.Category do
+      auix_schema_configs :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -55,14 +55,14 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   """
 
   alias AuroraUix.Field
-  alias AuroraUix.SchemaMetadata
-  alias AuroraUixWeb.Uix.SchemaMetadataUI
+  alias AuroraUix.SchemaConfig
+  alias AuroraUixWeb.Uix.SchemaConfigUI
 
   defmacro __using__(opts) do
     schema_name = opts[:schema_name]
 
     quote do
-      import AuroraUixWeb.Uix.SchemaMetadataUI
+      import AuroraUixWeb.Uix.SchemaConfigUI
 
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
       Module.put_attribute(__MODULE__, :_auix_schema_name, unquote(schema_name))
@@ -101,6 +101,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   ```elixir
   field :name, label: "Product Name", placeholder: "Enter product name", required: true
   field :price, precision: 12, scale: 2, label: "Price ($)"
+  ```
   """
   @spec field(atom, Keyword.t()) :: Macro.t()
   defmacro field(field, opts \\ []) do
@@ -108,7 +109,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
       schema_name = Module.get_attribute(__MODULE__, :_auix_schema_name)
 
       parsed_field =
-        SchemaMetadataUI.__field__(
+        SchemaConfigUI.__field__(
           unquote(field),
           unquote(opts)
         )
@@ -121,6 +122,13 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
     end
   end
 
+  @doc """
+  Adds or updates metadata for group of fields in the schema.
+
+  This macro allows customization of individual fields, such as setting labels, placeholders, types, and validation rules.
+  See `field/2` for option details.
+
+  """
   @spec fields([atom], Keyword.t()) :: Macro.t()
   defmacro fields(fields, opts \\ []) do
     quotes =
@@ -136,25 +144,27 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   end
 
   @doc """
-  Registers schema metadata for a given schema within the module.
+  Registers schema metadata and configuration for a given schema within the module.
 
-  This function attaches metadata such as schema fields, context, and other configurations. It is typically used internally by the `auix_schema_metadata` macro.
+  This function attaches schema fields metadata, context, and other configurations.
+  It is used internally by the `auix_schema_configs` macro.
 
   ## Parameters
 
-  - `name` (`atom`)- An identifier for the schema metadata (atom).
+  - `name` (`atom`)- An identifier for the schema configuration (atom).
   - `opts` (`Keyword.t`) - Options
 
   ## Options
     - `:context` - Context containing the accessing functions for the schema.
     - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
-    - `:include_associations` - For each associated schema, the metadata is created. If true, then, every associated schema is parsed.
+    - `:include_associations` - For each associated schema, the configuration is created.
+      If true, then, every associated schema is configured inheriting the parent configuration.
   """
-  @spec __auix_metadata__(atom, Keyword.t()) :: SchemaMetadata.t()
-  def __auix_metadata__(_name, opts) do
+  @spec __auix_schema_config__(atom, Keyword.t()) :: SchemaConfig.t()
+  def __auix_schema_config__(_name, opts) do
     schema = opts[:schema]
 
-    %SchemaMetadata{}
+    %SchemaConfig{}
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
     |> struct(%{fields: parse_fields(schema)})
@@ -168,33 +178,53 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   end
 
   @doc """
-  Gets the schema metadata by its name.
+  Gets the schema configuration by its name.
 
   ## Parameters
     - `module`
   """
-  @spec __get_metadata__(module, atom) :: map
-  def __get_metadata__(module, name) do
-    all_metadata = Module.get_attribute(module, :_auix_schemas, [])
+  @spec __get_schema_config__(module, atom) :: map
+  def __get_schema_config__(module, name) do
+    module
+    |> Module.get_attribute(:_auix_schema_configs, [])
+    |> SchemaConfigUI.__find_schema_config__(name)
+  end
 
-    all_metadata
-    |> Enum.filter(fn {metadata_name, _metadata} -> metadata_name == name end)
-    |> Enum.map(fn {_metadata_name, metadata} -> metadata end)
+  @doc """
+  Finds the schema configuration by its name.
+
+  ## Parameters
+    - `module`
+  """
+  @spec __find_schema_config__(module, atom) :: map
+  def __find_schema_config__(auix_schema_configs, name) do
+    auix_schema_configs
+    |> Enum.filter(fn {schema_config_name, _metadata} -> schema_config_name == name end)
+    |> Enum.map(fn {_schema_config_name, schema_config} -> schema_config end)
     |> List.last()
     |> Kernel.||(%{})
   end
 
-  @spec __merge_schemas_and_fields__(list, list) :: map
-  def __merge_schemas_and_fields__(schema_metadata, []), do: schema_metadata
+  @doc """
+  Updates the given schema configurations by applying field changes derived from a list of field definitions.
 
-  def __merge_schemas_and_fields__(schema_metadata, all_fields) do
+  This function takes two arguments:
+
+  - `schema_config`: a collection of schema configurations.
+      Each `config` will be updated based on the fields associated with its corresponding `schema_name`.
+  - `all_fields`: a list of field metadata for all schema configuration.
+  """
+  @spec __change_schema_configs__(list, list) :: map
+  def __change_schema_configs__(schema_config, []), do: schema_config
+
+  def __change_schema_configs__(schema_config, all_fields) do
     Enum.map(
-      schema_metadata,
+      schema_config,
       fn {schema_name, schema_config} ->
         modified_schema_metadata =
           schema_name
           |> filter_fields(all_fields)
-          |> then(&SchemaMetadata.change(schema_config, fields: &1))
+          |> then(&SchemaConfig.change(schema_config, fields: &1))
 
         {schema_name, modified_schema_metadata}
       end
@@ -238,7 +268,7 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   defp field_label(nil), do: ""
 
   defp field_label(name),
-    do: name |> to_string() |> String.capitalize() |> String.replace("_", " ")
+    do: name |> to_string() |> String.replace("_", " ") |> String.capitalize()
 
   @spec field_placeholder(binary, atom) :: binary
   defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
@@ -286,10 +316,10 @@ defmodule AuroraUixWeb.Uix.SchemaMetadataUI do
   defp field_scale(_type), do: 0
 
   @spec put_option(map, Keyword.t(), atom) :: map
-  defp put_option(metadata, opts, key) do
+  defp put_option(schema_config, opts, key) do
     if Keyword.has_key?(opts, key),
-      do: Map.put(metadata, key, opts[key]),
-      else: metadata
+      do: Map.put(schema_config, key, opts[key]),
+      else: schema_config
   end
 
   @spec filter_fields(atom, list) :: list

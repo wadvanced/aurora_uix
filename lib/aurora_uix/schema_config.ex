@@ -1,8 +1,8 @@
-defmodule AuroraUix.SchemaMetadata do
+defmodule AuroraUix.SchemaConfig do
   @moduledoc """
   Provides a structure and functions to manage metadata for schemas and contexts.
 
-  The `AuroraUix.Metadata` module defines a struct that holds metadata information
+  The `AuroraUix.SchemaConfig` module defines a struct that holds metadata information
   about a schema, its context, and additional fields. It also provides functions
   to create and update this metadata.
   """
@@ -17,7 +17,7 @@ defmodule AuroraUix.SchemaMetadata do
         }
 
   @doc """
-  Creates a new `AuroraUix.Metadata` struct with the given attributes.
+  Creates a new `AuroraUix.SchemaConfig` struct with the given attributes.
 
   ## Parameters
 
@@ -26,11 +26,11 @@ defmodule AuroraUix.SchemaMetadata do
 
   ## Examples
 
-      iex> AuroraUix.SchemaMetadata.new()
-      %AuroraUix.SchemaMetadata{schema: nil, context: nil, fields: []}
+      iex> AuroraUix.SchemaConfig.new()
+      %AuroraUix.SchemaConfig{schema: nil, context: nil, fields: []}
 
-      iex> AuroraUix.SchemaMetadata.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
-      %AuroraUix.SchemaMetadata{
+      iex> AuroraUix.SchemaConfig.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
+      %AuroraUix.SchemaConfig{
         schema: MySchema,
         context: nil,
         fields: [
@@ -55,20 +55,20 @@ defmodule AuroraUix.SchemaMetadata do
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `AuroraUix.Metadata` struct with the given attributes.
+  Updates an existing `AuroraUix.SchemaConfig` struct with the given attributes.
 
   ## Parameters
 
-  - `metadata`: The existing `AuroraUix.Metadata` struct to be updated.
+  - `metadata`: The existing `AuroraUix.SchemaConfig` struct to be updated.
   - `attrs`: A map or keyword list containing the attributes to update the metadata.
     The allowed keys are `:schema`, `:context`, and `:fields`.
 
   ## Examples
 
-      iex> metadata = %AuroraUix.SchemaMetadata{schema: MySchema, context: MyContext}
-      %AuroraUix.SchemaMetadata{schema: MySchema, context: MyContext, fields: []}
-      iex> AuroraUix.SchemaMetadata.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
-      %AuroraUix.SchemaMetadata{
+      iex> metadata = %AuroraUix.SchemaConfig{schema: MySchema, context: MyContext}
+      %AuroraUix.SchemaConfig{schema: MySchema, context: MyContext, fields: []}
+      iex> AuroraUix.SchemaConfig.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
+      %AuroraUix.SchemaConfig{
         schema: MySchema,
         context: nil,
         fields: [
@@ -89,8 +89,8 @@ defmodule AuroraUix.SchemaMetadata do
         ]
       }
 
-      iex> metadata = %AuroraUix.SchemaMetadata{schema: MySchema, fields: [AuroraUix.Field.new(field: :reference)]}
-      %AuroraUix.SchemaMetadata{
+      iex> metadata = %AuroraUix.SchemaConfig{schema: MySchema, fields: [AuroraUix.Field.new(field: :reference)]}
+      %AuroraUix.SchemaConfig{
         schema: MySchema,
         context: nil,
         fields: [
@@ -110,8 +110,8 @@ defmodule AuroraUix.SchemaMetadata do
           }
         ]
       }
-      iex> AuroraUix.SchemaMetadata.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
-      %AuroraUix.SchemaMetadata{
+      iex> AuroraUix.SchemaConfig.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
+      %AuroraUix.SchemaConfig{
         schema: MySchema,
         context: MyContext,
         fields: [
@@ -147,7 +147,7 @@ defmodule AuroraUix.SchemaMetadata do
       }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
-  def change(metadata, attrs) when is_list(attrs) do
+  def change(schema_config, attrs) when is_list(attrs) do
     keys =
       %__MODULE__{}
       |> Map.keys()
@@ -156,45 +156,47 @@ defmodule AuroraUix.SchemaMetadata do
     attrs
     |> Enum.filter(&(elem(&1, 0) in keys))
     |> Map.new()
-    |> then(&struct(metadata, &1))
+    |> then(&struct(schema_config, &1))
     |> change_fields(attrs)
     |> add_fields(attrs)
   end
 
-  def change(metadata, %{} = attrs), do: struct(metadata, attrs)
+  def change(schema_config, %{} = attrs), do: struct(schema_config, attrs)
 
   ## PRIVATE
-  defp change_fields(%{fields: metadata_fields} = metadata, attrs) when is_list(attrs) do
+  defp change_fields(%{fields: schema_config_fields} = schema_config, attrs)
+       when is_list(attrs) do
     changed_fields =
       attrs
       |> filter(:fields)
       |> List.last()
       |> elem(1)
 
-    metadata_changed_fields = Enum.map(metadata_fields, &change_field(&1, changed_fields))
+    schema_config_changed_fields =
+      Enum.map(schema_config_fields, &change_field(&1, changed_fields))
 
-    struct(metadata, %{fields: metadata_changed_fields})
+    struct(schema_config, %{fields: schema_config_changed_fields})
   end
 
-  defp change_fields(metadata, _attrs),
-    do: metadata
+  defp change_fields(schema_config, _attrs),
+    do: schema_config
 
-  defp change_field(%{field: field_id} = metadata_field, changed_fields)
+  defp change_field(%{field: field_id} = schema_config_field, changed_fields)
        when is_list(changed_fields) or is_map(changed_fields) do
     changed_fields
     |> Enum.filter(fn
       {^field_id, _} -> true
       _ -> false
     end)
-    |> Enum.reduce(metadata_field, fn {_field, value}, acc -> struct(acc, value) end)
+    |> Enum.reduce(schema_config_field, fn {_field, value}, acc -> struct(acc, value) end)
   end
 
-  defp change_field(metadata_field, _changed_fields), do: metadata_field
+  defp change_field(schema_config_field, _changed_fields), do: schema_config_field
 
-  defp add_fields(%{fields: metadata_fields} = metadata, attrs) do
-    keys = Enum.map(metadata_fields, & &1.field)
+  defp add_fields(%{fields: schema_config_fields} = schema_config, attrs) do
+    keys = Enum.map(schema_config_fields, & &1.field)
 
-    metadata_fields = Enum.reverse(metadata_fields)
+    schema_config_fields = Enum.reverse(schema_config_fields)
 
     attrs
     |> filter(:fields)
@@ -205,9 +207,9 @@ defmodule AuroraUix.SchemaMetadata do
       field_properties when is_tuple(field_properties) -> elem(field_properties, 0) in keys
       _ -> true
     end)
-    |> Enum.reduce(metadata_fields, &create_field/2)
+    |> Enum.reduce(schema_config_fields, &create_field/2)
     |> Enum.reverse()
-    |> then(&struct(metadata, %{fields: &1}))
+    |> then(&struct(schema_config, %{fields: &1}))
   end
 
   defp create_field({field, properties}, acc) do
