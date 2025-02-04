@@ -24,6 +24,15 @@ defmodule AuroraUixTestWeb do
     end
   end
 
+  @spec live_component() :: Macro.t()
+  def live_component do
+    quote do
+      use Phoenix.LiveComponent
+
+      unquote(html_helpers())
+    end
+  end
+
   @spec verified_routes() :: Macro.t()
   def verified_routes do
     quote do
@@ -58,8 +67,8 @@ defmodule AuroraUixTestWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      #      import AuroraUixTestWeb.CoreComponents
-      #      import AuroraUixTestWeb.Gettext
+      import AuroraUixTestWeb.CoreComponents
+      import AuroraUixTestWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

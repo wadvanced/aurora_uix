@@ -66,7 +66,7 @@ defmodule AuroraUixWeb.Templates.Base do
       parsed_opts,
       ~S"""
         <.header>
-          Listing [[title]] 002
+          Listing [[title]]
           <:actions>
             <.link patch={~p"/[[source]]/new"}>
               <.button>New [[title]]</.button>
@@ -185,20 +185,22 @@ defmodule AuroraUixWeb.Templates.Base do
   - The generated module provides standard LiveView functionality, including dynamic assignment
   of page titles and CRUD operations for the specified schema or context module.
   """
-  @spec generate_module(map, atom, Keyword.t(), map) :: Macro.t()
-  def generate_module(modules, :index = type, opts, parsed_opts) do
+  @spec generate_module(map, atom, map) :: Macro.t()
+  def generate_module(modules, :index = type, parsed_opts) do
     list_key = String.to_existing_atom(parsed_opts.source)
     entity_key = String.to_atom(parsed_opts.module)
-    list_function = String.to_existing_atom("list_#{parsed_opts.source}")
-    get_function = String.to_existing_atom("get_#{parsed_opts.module}!")
-    delete_function = String.to_existing_atom("delete_#{parsed_opts.module}")
+    list_function = String.to_atom("list_#{parsed_opts.source}")
+    get_function = String.to_atom("get_#{parsed_opts.module}!")
+    delete_function = String.to_atom("delete_#{parsed_opts.module}")
     form_component = form_component(modules, parsed_opts)
+    parsed_opts = Map.put(parsed_opts, :_module_generator, "Base#generate_module(:form)")
 
     quote do
       defmodule Index do
         @moduledoc false
 
         use unquote(modules.web), :live_view
+        import AuroraUixWeb.Uix.Renderer
 
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -207,7 +209,7 @@ defmodule AuroraUixWeb.Templates.Base do
         @impl true
         def render(assigns) do
           var!(assigns) = Map.merge(%{}, assigns)
-          define(unquote(modules.module), unquote(type), unquote(opts))
+          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -266,24 +268,28 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  def generate_module(modules, :form = type, opts, parsed_opts) do
+  def generate_module(modules, :form = type, parsed_opts) do
     entity_key = String.to_atom(parsed_opts.module)
-    change_function = String.to_existing_atom("change_#{parsed_opts.module}")
-    update_function = String.to_existing_atom("update_#{parsed_opts.module}")
-    create_function = String.to_existing_atom("create_#{parsed_opts.module}")
+    change_function = String.to_atom("change_#{parsed_opts.module}")
+    update_function = String.to_atom("update_#{parsed_opts.module}")
+    create_function = String.to_atom("create_#{parsed_opts.module}")
     form_component = form_component(modules, parsed_opts)
+
+    parsed_opts = Map.put(parsed_opts, :_module_generator, "Base#generate_module(:form)")
 
     quote do
       defmodule unquote(form_component) do
         @moduledoc false
 
         use unquote(modules.web), :live_component
+        import AuroraUixWeb.Uix.Renderer
+
         alias unquote(modules.context)
 
         @impl true
         def render(assigns) do
           var!(assigns) = Map.merge(%{}, assigns)
-          define(unquote(modules.module), unquote(type), unquote(opts))
+          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -352,7 +358,7 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  def generate_module(_modules, _type, _opts, _parsed_opts) do
+  def generate_module(_modules, _type, _parsed_opts) do
     quote do
       # no generation
     end

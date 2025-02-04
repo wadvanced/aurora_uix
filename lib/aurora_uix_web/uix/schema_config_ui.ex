@@ -41,13 +41,13 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      auix_schema_configs :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      auix_schema_configs :category, schema: MyApp.Category do
+      auix_schema_config :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -66,7 +66,24 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
       Module.put_attribute(__MODULE__, :_auix_schema_name, unquote(schema_name))
+
+      @before_compile AuroraUixWeb.Uix.SchemaConfigUI
     end
+  end
+
+  defmacro __before_compile__(env) do
+    ## Schema config definitions (@_auix_schema_configs) are returned in reversed creation order, this fix that.
+    schema_config = env.module |> Module.get_attribute(:_auix_schema_configs) |> Enum.reverse()
+    ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
+    field_changes = env.module |> Module.get_attribute(:_auix_fields) |> Enum.reverse()
+
+    Module.delete_attribute(env.module, :_auix_schema_configs)
+    Module.delete_attribute(env.module, :_auix_fields)
+
+    schema_config
+    |> SchemaConfigUI.__change_schema_configs__(field_changes)
+    |> List.flatten()
+    |> then(&Module.put_attribute(env.module, :_auix_schema_configs, &1))
   end
 
   @doc """
@@ -147,7 +164,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   Registers schema metadata and configuration for a given schema within the module.
 
   This function attaches schema fields metadata, context, and other configurations.
-  It is used internally by the `auix_schema_configs` macro.
+  It is used internally by the `auix_schema_config` macro.
 
   ## Parameters
 
@@ -197,8 +214,8 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     - `module`
   """
   @spec __find_schema_config__(module, atom) :: map
-  def __find_schema_config__(auix_schema_configs, name) do
-    auix_schema_configs
+  def __find_schema_config__(auix_schema_config, name) do
+    auix_schema_config
     |> Enum.filter(fn {schema_config_name, _metadata} -> schema_config_name == name end)
     |> Enum.map(fn {_schema_config_name, schema_config} -> schema_config end)
     |> List.last()
@@ -214,21 +231,18 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
       Each `config` will be updated based on the fields associated with its corresponding `schema_name`.
   - `all_fields`: a list of field metadata for all schema configuration.
   """
-  @spec __change_schema_configs__(list, list) :: map
+  @spec __change_schema_configs__(list, list) :: list
   def __change_schema_configs__(schema_config, []), do: schema_config
 
   def __change_schema_configs__(schema_config, all_fields) do
-    Enum.map(
-      schema_config,
-      fn {schema_name, schema_config} ->
-        modified_schema_metadata =
-          schema_name
-          |> filter_fields(all_fields)
-          |> then(&SchemaConfig.change(schema_config, fields: &1))
+    Enum.map(schema_config, fn {schema_name, schema_config} ->
+      modified_schema_metadata =
+        schema_name
+        |> filter_fields(all_fields)
+        |> then(&SchemaConfig.change(schema_config, fields: &1))
 
-        {schema_name, modified_schema_metadata}
-      end
-    )
+      {schema_name, modified_schema_metadata}
+    end)
   end
 
   ## PRIVATE
@@ -288,9 +302,12 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
   defp field_html_type(type)
        when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-       do: :datetime_local
+       do: :"datetime-local"
 
   defp field_html_type(type) when type in [:time, :time_usec], do: :time
+
+  defp field_html_type(:boolean), do: :checkbox
+
   defp field_html_type(type), do: type
 
   @spec field_length(atom) :: integer

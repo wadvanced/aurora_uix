@@ -46,15 +46,9 @@ defmodule AuroraUixWeb.Uix.Renderer do
     ### :card :form opts
     * `layout: Uix.Formatter`: Overrides the default layout by using a formatter. See details in the module.
   """
-  defmacro define(module, type, opts \\ [])
-
-  defmacro define(module, type, opts) when type in @uix_valid_types do
+  defmacro define(module, type, parsed_opts) when type in @uix_valid_types do
     module = Macro.expand(module, __CALLER__)
     Code.ensure_compiled(module)
-
-    {opts, _} = Code.eval_quoted(opts)
-
-    parsed_opts = parse_opts(module, opts)
 
     template = Template.uix_template().generate_view(type, parsed_opts)
 
@@ -77,10 +71,16 @@ defmodule AuroraUixWeb.Uix.Renderer do
     end
   end
 
-  defmacro define(_module, type, _opts) do
+  defmacro define(_module, type, parsed_opts) do
+    module_generator_text =
+      if module_generator = parsed_opts[:_module_generator],
+        do: "Called by: #{module_generator}",
+        else: ""
+
     Logger.warning("""
-    The type `#{inspect(type)}` is not implemented.
-    Only `#{inspect(@uix_valid_types)}` are supported.
+      The type `#{inspect(type)}` is not implemented.
+      Only `#{inspect(@uix_valid_types)}` are supported.
+      #{module_generator_text}
     """)
 
     quote do
@@ -133,7 +133,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
 
     generated_code =
       for type <- types do
-        Template.uix_template().generate_module(modules, type, opts, parsed_opts)
+        Template.uix_template().generate_module(modules, type, parsed_opts)
       end
 
     quote do

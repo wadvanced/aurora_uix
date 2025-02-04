@@ -7,7 +7,7 @@ defmodule AuroraUixTest.MetadataAssociationTest do
   #    alias AuroraUixTest.Inventory
   #    alias AuroraUixTest.Inventory.Product
   #
-  #    auix_schema_configs(:product,
+  #    auix_schema_config(:product,
   #      context: Inventory,
   #      schema: Product,
   #      include_associations: true

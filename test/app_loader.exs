@@ -10,6 +10,8 @@ defmodule AuroraUixTest.AppLoader do
   def load_app do
     Code.require_file("test/support/data_case.exs")
     Code.require_file("test/support/conn_case.exs")
+    Code.require_file("test/support/app_web/gettext.exs")
+    Code.require_file("test/support/app_web/components/core_components.exs")
     Code.require_file("test/support/aurora_uix_test_web.exs")
     Code.require_file("test/support/ui_case.exs")
     load_modules("app")

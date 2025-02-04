@@ -32,6 +32,7 @@ defmodule AuroraUix.MixProject do
 
       ## Test only dependencies
       {:ecto_sql, "~> 3.10", only: :test, runtime: false},
+      {:gettext, "~> 0.20", only: :test, runtime: false},
       {:phoenix, "~> 1.7", only: :test, runtime: false},
       {:phoenix_ecto, "~> 4.5", only: :test, runtime: false},
       {:phoenix_html, "~> 4.2", only: :test, runtime: false},

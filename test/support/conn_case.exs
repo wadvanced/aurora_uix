@@ -25,8 +25,8 @@ defmodule AuroraUixTestWeb.ConnCase do
       use AuroraUixTestWeb, :verified_routes
 
       # Import conveniences for testing with connections
-      import Plug.Conn
-      import Phoenix.ConnTest
+      import Plug.Conn, except: [assign: 3]
+      import Phoenix.ConnTest, except: [put_flash: 3]
       import AuroraUixTestWeb.ConnCase
     end
   end

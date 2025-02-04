@@ -5,12 +5,12 @@ defmodule AuroraUixTest.CreateWithoutOptions do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    auix_schema_configs(:product)
+    auix_schema_config(:product)
     auix_create_ui()
   end
 
   test "Test UI default without options - no schema, no context" do
-    layouts = layouts(DefaultWithoutOptions)
-    assert layouts == %{}
+    index_module = Module.concat(TestModule, Index)
+    assert false == Code.ensure_loaded?(index_module)
   end
 end

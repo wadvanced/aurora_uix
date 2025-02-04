@@ -40,22 +40,6 @@ defmodule AuroraUix.Parser do
       module: "my_schema",
       name: "My Schema",
       title: "My Schemas",
-      fields: [
-        %AuroraUix.Field{
-          field: :reference,
-          html_type: :text,
-          renderer: nil,
-          name: "reference",
-          label: "Reference",
-          placeholder: "Reference",
-          length: 255,
-          precision: 0,
-          scale: 0,
-          hidden: false,
-          readonly: false,
-          required: false
-        }
-      ],
       rows: [:streams, :my_schemas],
       source: "my_schemas"
     }

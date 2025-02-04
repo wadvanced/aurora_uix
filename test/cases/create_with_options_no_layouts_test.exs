@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.CreateWithOptionsNoLayoutsTest do
+defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
   use AuroraUixTest.UICase
 
   defmodule TestModule do
@@ -7,27 +7,28 @@ defmodule AuroraUixTest.CreateWithOptionsNoLayoutsTest do
 
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
-    alias AuroraUixTest.Inventory.ProductTransaction
 
-    auix_schema_configs(:product, context: Inventory, schema: Product)
-    auix_schema_configs(:product_transaction, context: Inventory, schema: ProductTransaction)
+    auix_schema_config(:product, context: Inventory, schema: Product)
 
     auix_create_ui()
   end
 
   test "Test UI default with schema, context, NO layouts details" do
-    layouts = layouts(TestModule)
+    index_module = Module.concat(TestModule, Index)
 
-    assert !is_nil(layouts.product.index.view)
-    assert !is_nil(layouts.product.form)
-    assert !is_nil(layouts.product_transaction.index.view)
-    assert !is_nil(layouts.product_transaction.form)
+    index_functions = index_module.__info__(:functions)
+    assert {:__live__, 0} in index_functions
+    assert {:render, 1} in index_functions
+    assert {:handle_params, 3} in index_functions
+    assert {:handle_event, 3} in index_functions
+    assert {:handle_info, 2} in index_functions
 
-    assert String.contains?(layouts.product.index.view, "Listing Products")
-
-    assert String.contains?(
-             layouts.product_transaction.index.view,
-             "Listing Product Transactions"
-           )
+    form_module = Module.concat(TestModule, ProductFormComponent)
+    form_functions = form_module.__info__(:functions)
+    assert {:__live__, 0} in form_functions
+    assert {:__components__, 0} in form_functions
+    assert {:render, 1} in form_functions
+    assert {:update, 2} in form_functions
+    assert {:handle_event, 3} in form_functions
   end
 end

@@ -4,10 +4,10 @@ defmodule AuroraUixWeb.Uix do
 
   This module introduces two key features:
 
-  1. `auix_schema_configs`: Adds UI-specific metadata to schemas to enhance their rendering capabilities in forms, lists, and other views.
+  1. `auix_schema_config`: Adds UI-specific metadata to schemas to enhance their rendering capabilities in forms, lists, and other views.
   2. `auix_create_ui`: Allows for the composition of UI layouts and interaction logic by leveraging schema metadata.
 
-  ## `auix_schema_configs`
+  ## `auix_schema_config`
 
   Ecto schemas typically lack the metadata required for rendering user interfaces effectively.
   This macro enriches schemas with metadata for UI purposes, such as field visibility, placeholders, validation rules, and layout grouping.
@@ -42,13 +42,13 @@ defmodule AuroraUixWeb.Uix do
     end
 
     defmodule MyAppWeb.ProductLive.Index do
-      auix_schema_configs :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      auix_schema_configs :category, schema: MyApp.Category do
+      auix_schema_config :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -57,13 +57,13 @@ defmodule AuroraUixWeb.Uix do
 
   ## `auix_create_ui`
   This macro defines the layout and behavior of the views and components to be rendered.
-  It relies on the metadata defined through auix_schema_configs to determine field characteristics.
+  It relies on the metadata defined through auix_schema_config to determine field characteristics.
 
   ### Example
     ```elixir
     defmodule MyAppWeb.ProductLive.Index do
       ## These two lines should create a complete CRUD for the schema MyApp.Product
-      auix_schema_configs :product, schema: MyApp.Product, context: MyApp.Inventory
+      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory
       auix_create_ui for: :product
     end
   ```
@@ -112,29 +112,10 @@ defmodule AuroraUixWeb.Uix do
       import Uix
       Module.register_attribute(__MODULE__, :_auix_schema_configs, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_layouts, accumulate: true)
-      @before_compile AuroraUixWeb.Uix
     end
   end
 
-  defmacro __before_compile__(env) do
-    ## Schema config definitions (@_auix_schema_configs) are returned in reversed creation order, this fix that.
-    schema_config = env.module |> Module.get_attribute(:_auix_schema_configs) |> Enum.reverse()
-    ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
-    field_changes = env.module |> Module.get_attribute(:_auix_fields) |> Enum.reverse()
-
-    Module.delete_attribute(env.module, :_auix_schema_configs)
-    Module.delete_attribute(env.module, :_auix_fields)
-
-    schema_config
-    |> SchemaConfigUI.__change_schema_configs__(field_changes)
-    |> then(&Module.put_attribute(env.module, :_auix_schema_configs, &1))
-
-    quote do
-      :ok
-    end
-  end
-
-  defmacro auix_schema_configs(name, opts \\ []) do
+  defmacro auix_schema_config(name, opts \\ []) do
     schema_config = AuroraUixWeb.Uix.__register_schema_config__(name, opts)
 
     quote do
@@ -142,7 +123,7 @@ defmodule AuroraUixWeb.Uix do
     end
   end
 
-  defmacro auix_schema_configs(name, opts, do: block) do
+  defmacro auix_schema_config(name, opts, do: block) do
     schema_config = AuroraUixWeb.Uix.__register_schema_config__(name, opts)
 
     quote do
@@ -152,18 +133,16 @@ defmodule AuroraUixWeb.Uix do
   end
 
   defmacro auix_create_ui(opts \\ []) do
-    layouts = AuroraUixWeb.Uix.__generate_ui__(opts)
-
     quote do
-      unquote(layouts)
+      use CreateUI
+      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
     end
   end
 
   defmacro auix_create_ui(opts, do: block) do
-    layouts = AuroraUixWeb.Uix.__generate_ui__(opts)
-
     quote do
-      unquote(layouts)
+      use CreateUI
+      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
       unquote(block)
     end
   end
@@ -186,16 +165,6 @@ defmodule AuroraUixWeb.Uix do
         )
 
       Module.put_attribute(__MODULE__, :_auix_schema_configs, {unquote(name), schema_config})
-    end
-  end
-
-  @spec __generate_ui__(keyword) :: Macro.t()
-  def __generate_ui__(opts) do
-    quote do
-      __MODULE__
-      |> Module.get_attribute(:_auix_schema_configs, [])
-      |> CreateUI.__auix_create_ui__(unquote(opts))
-      |> then(&Module.put_attribute(__MODULE__, :_auix_layouts, &1))
     end
   end
 end
