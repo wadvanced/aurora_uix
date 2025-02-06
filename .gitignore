@@ -33,3 +33,5 @@ aurora_uix-*.tar
 
 *.iml
 
+/assets/
+/test/_priv/static/assets/

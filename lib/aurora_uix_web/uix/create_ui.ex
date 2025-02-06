@@ -47,11 +47,11 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   A list of generated layouts.
   """
   @spec __auix_create_ui__(any, list | nil, keyword) :: list
-  def __auix_create_ui__(caller, auix_schema_config, opts) do
+  def __auix_create_ui__(caller, auix_schema_configs, opts) do
     if schema_config_name = opts[:for] do
-      generate_index_form_layouts(caller, auix_schema_config, schema_config_name, opts)
+      generate_index_form_layouts(caller, auix_schema_configs, schema_config_name, opts)
     else
-      generate_base_layouts(caller, auix_schema_config, opts)
+      generate_base_layouts(caller, auix_schema_configs, opts)
     end
   end
 
@@ -93,11 +93,11 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   ## PRIVATE
 
   @spec generate_base_layouts(module, list | nil, atom | nil) :: list
-  defp generate_base_layouts(caller, auix_schema_config, opts) do
+  defp generate_base_layouts(caller, auix_schema_configs, opts) do
     Enum.reduce(
-      auix_schema_config,
+      auix_schema_configs,
       [],
-      &generate_index_form_layouts(caller, auix_schema_config, elem(&1, 0), opts, &2)
+      &generate_index_form_layouts(caller, auix_schema_configs, elem(&1, 0), opts, &2)
     )
   end
 

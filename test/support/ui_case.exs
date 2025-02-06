@@ -1,3 +1,5 @@
+Code.require_file("test/support/conn_case.exs")
+
 defmodule AuroraUixTest.UICase do
   @moduledoc """
   Support for testing schema metadata behaviour.

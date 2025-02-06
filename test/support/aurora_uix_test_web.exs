@@ -1,3 +1,6 @@
+Code.require_file("test/support/app_web/gettext.exs")
+Code.require_file("test/support/app_web/components/core_components.exs")
+
 defmodule AuroraUixTestWeb do
   @spec static_paths() :: [binary]
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
@@ -40,6 +43,20 @@ defmodule AuroraUixTestWeb do
         endpoint: AuroraUixTestWeb.Endpoint,
         router: AuroraUixTestWeb.Router,
         statics: AuroraUixTestWeb.static_paths()
+    end
+  end
+
+  @spec html() :: Macro.t()
+  def html do
+    quote do
+      use Phoenix.Component
+
+      # Import convenience functions from controllers
+      import Phoenix.Controller,
+        only: [get_csrf_token: 0, view_module: 1, view_template: 1]
+
+      # Include general helpers for rendering HTML
+      unquote(html_helpers())
     end
   end
 

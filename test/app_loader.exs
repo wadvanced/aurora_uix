@@ -8,19 +8,24 @@ defmodule AuroraUixTest.AppLoader do
   """
   @spec load_app() :: :ok
   def load_app do
-    Code.require_file("test/support/data_case.exs")
-    Code.require_file("test/support/conn_case.exs")
-    Code.require_file("test/support/app_web/gettext.exs")
-    Code.require_file("test/support/app_web/components/core_components.exs")
-    Code.require_file("test/support/aurora_uix_test_web.exs")
-    Code.require_file("test/support/ui_case.exs")
     load_modules("app")
     load_modules("app_web")
   end
 
+  @doc """
+  Loads modules in test/support +  given path.
+
+  ## Parameters
+    - `path`: Path to be appended
+  """
   @spec load_modules(binary) :: :ok
-  defp load_modules(path) do
-    ["test", "support", path]
+  def load_modules(path) when is_binary(path) do
+    load_modules(["test", "support", path])
+  end
+
+  @spec load_modules(binary) :: :ok
+  def load_modules(paths) when is_list(paths) do
+    paths
     |> Path.join()
     |> recursive_list_dir()
     |> Enum.each(fn path ->

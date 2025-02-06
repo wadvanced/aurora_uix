@@ -112,6 +112,8 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   - `:hidden` (`boolean`) - Hides the field
   - `:renderer` (`function`) - A function that can render the field. It can refer a function component.
   - `:required` (`boolean`) - Marks the field as required.
+  - `:disabled` (`boolean`) - If true, should behave as if the field does not exists. The TEMPLATE implementation
+    should handle this case.
 
   ## Example
 
@@ -261,7 +263,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
   end
 
-  @spec parse_field(module, atom | binary) :: Field.t()
+  @spec parse_field(module, atom) :: Field.t()
   defp parse_field(module, field) do
     type = module.__schema__(:type, field)
 
@@ -272,19 +274,20 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
       html_type: field_html_type(type),
       length: field_length(type),
       precision: field_precision(type),
-      scale: field_scale(type)
+      scale: field_scale(type),
+      disabled: field_disabled(field)
     }
 
     Field.new(attrs)
   end
 
-  @spec field_label(binary) :: binary
+  @spec field_label(atom) :: binary
   defp field_label(nil), do: ""
 
   defp field_label(name),
     do: name |> to_string() |> String.replace("_", " ") |> String.capitalize()
 
-  @spec field_placeholder(binary, atom) :: binary
+  @spec field_placeholder(atom, atom) :: binary
   defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
 
   defp field_placeholder(_, type)
@@ -331,6 +334,12 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   @spec field_precision(atom) :: integer
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
+
+  @spec field_disabled(atom) :: boolean
+  defp field_disabled(field) when field in [:id, :deleted, :inactive, :inserted_at, :updated_at],
+    do: true
+
+  defp field_disabled(_field), do: false
 
   @spec put_option(map, Keyword.t(), atom) :: map
   defp put_option(schema_config, opts, key) do

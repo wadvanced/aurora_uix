@@ -59,6 +59,7 @@ defmodule AuroraUixWeb.Templates.Base do
   def generate_view(:index, parsed_opts) do
     parsed_opts =
       parsed_opts
+      |> remove_disabled_fields()
       |> columns()
       |> then(&Map.put(parsed_opts, :columns, &1))
 
@@ -113,6 +114,7 @@ defmodule AuroraUixWeb.Templates.Base do
   def generate_view(:form, parsed_opts) do
     parsed_opts =
       parsed_opts
+      |> remove_disabled_fields()
       |> form_fields()
       |> then(&Map.put(parsed_opts, :form_fields, &1))
 
@@ -187,13 +189,17 @@ defmodule AuroraUixWeb.Templates.Base do
   """
   @spec generate_module(map, atom, map) :: Macro.t()
   def generate_module(modules, :index = type, parsed_opts) do
+    parsed_opts =
+      parsed_opts
+      |> remove_disabled_fields()
+      |> Map.put(:_module_generator, "Base#generate_module(:form)")
+
     list_key = String.to_existing_atom(parsed_opts.source)
     entity_key = String.to_atom(parsed_opts.module)
     list_function = String.to_atom("list_#{parsed_opts.source}")
     get_function = String.to_atom("get_#{parsed_opts.module}!")
     delete_function = String.to_atom("delete_#{parsed_opts.module}")
     form_component = form_component(modules, parsed_opts)
-    parsed_opts = Map.put(parsed_opts, :_module_generator, "Base#generate_module(:form)")
 
     quote do
       defmodule Index do
@@ -269,13 +275,16 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   def generate_module(modules, :form = type, parsed_opts) do
+    parsed_opts =
+      parsed_opts
+      |> remove_disabled_fields()
+      |> Map.put(:_module_generator, "Base#generate_module(:form)")
+
     entity_key = String.to_atom(parsed_opts.module)
     change_function = String.to_atom("change_#{parsed_opts.module}")
     update_function = String.to_atom("update_#{parsed_opts.module}")
     create_function = String.to_atom("create_#{parsed_opts.module}")
     form_component = form_component(modules, parsed_opts)
-
-    parsed_opts = Map.put(parsed_opts, :_module_generator, "Base#generate_module(:form)")
 
     quote do
       defmodule unquote(form_component) do
@@ -374,17 +383,32 @@ defmodule AuroraUixWeb.Templates.Base do
     end)
   end
 
-  defp columns(_parsed_opts), do: ""
-
   @spec form_fields(map) :: binary
   defp form_fields(%{fields: fields}) do
     # <.input field={@form[:number]} type="text" label="Number" />
-    Enum.map_join(fields, "\n", fn field ->
-      "<.input field={@form[:#{field.field}]} type=\"#{field.html_type}\" label=\"#{field.label}}\"/>"
-    end)
+    Enum.map_join(
+      fields,
+      "\n",
+      fn
+        %{hidden: true} = field ->
+          "<.input field={@form[:#{field.field}]} type=\"#{field.html_type}\" label=\"hidden #{field.label}\"/>"
+
+        field ->
+          "<.input field={@form[:#{field.field}]} type=\"#{field.html_type}\" label=\"#{field.label}\"/>"
+      end
+    )
   end
 
+  @spec form_component(map, map) :: module
   defp form_component(modules, parsed_opts) do
     Module.concat(modules.caller, "#{parsed_opts.name}FormComponent")
+  end
+
+  @spec remove_disabled_fields(map) :: map
+  defp remove_disabled_fields(parsed_options) do
+    parsed_options
+    |> Map.get(:fields, %{})
+    |> Enum.reject(& &1.disabled)
+    |> then(&Map.put(parsed_options, :fields, &1))
   end
 end

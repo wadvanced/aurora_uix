@@ -56,7 +56,7 @@ defmodule AuroraUixTest.Inventory.Product do
     field(:height, :decimal)
     field(:image, :binary)
     field(:thumbnail, :binary)
-    field(:status, :string)
+    field(:status, :string, default: "in_stock")
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
@@ -68,7 +68,7 @@ defmodule AuroraUixTest.Inventory.Product do
   @doc """
   Generates a changeset for a product schema.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def changeset(product, attrs) do
     product
     |> cast(attrs, [

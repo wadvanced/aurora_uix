@@ -46,7 +46,8 @@ defmodule AuroraUix.SchemaConfig do
             scale: 0,
             hidden: false,
             readonly: false,
-            required: false
+            required: false,
+            disabled: false
           }
         ]
       }
@@ -84,7 +85,8 @@ defmodule AuroraUix.SchemaConfig do
             scale: 0,
             hidden: false,
             readonly: false,
-            required: false
+            required: false,
+            disabled: false
           }
         ]
       }
@@ -106,7 +108,8 @@ defmodule AuroraUix.SchemaConfig do
             scale: 0,
             hidden: false,
             readonly: false,
-            required: false
+            required: false,
+            disabled: false
           }
         ]
       }
@@ -127,7 +130,8 @@ defmodule AuroraUix.SchemaConfig do
             scale: 0,
             hidden: false,
             readonly: false,
-            required: false
+            required: false,
+            disabled: false
           },
           %AuroraUix.Field{
             field: :description,
@@ -141,7 +145,8 @@ defmodule AuroraUix.SchemaConfig do
             scale: 0,
             hidden: false,
             readonly: false,
-            required: false
+            required: false,
+            disabled: false
           }
         ]
       }

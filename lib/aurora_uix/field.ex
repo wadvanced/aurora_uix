@@ -30,7 +30,8 @@ defmodule AuroraUix.Field do
     scale: 0,
     hidden: false,
     readonly: false,
-    required: false
+    required: false,
+    disabled: false
   ]
 
   @type t() :: %__MODULE__{
@@ -45,7 +46,8 @@ defmodule AuroraUix.Field do
           scale: non_neg_integer,
           hidden: boolean,
           readonly: boolean,
-          required: boolean
+          required: boolean,
+          disabled: boolean
         }
 
   @doc """
@@ -71,7 +73,8 @@ defmodule AuroraUix.Field do
         scale: 2,
         hidden: false,
         readonly: false,
-        required: false
+        required: false,
+        disabled: false
       }
 
 
@@ -88,7 +91,8 @@ defmodule AuroraUix.Field do
         scale: 0,
         hidden: false,
         readonly: false,
-        required: false
+        required: false,
+        disabled: false
       }
   """
   @spec new(map | keyword) :: __MODULE__.t()
@@ -118,7 +122,8 @@ defmodule AuroraUix.Field do
           scale: 0,
           hidden: false,
           readonly: false,
-          required: false
+          required: false,
+          disabled: false
         }
         iex> AuroraUix.Field.change(field, %{html_type: :number, precision: 3})
         %AuroraUix.Field{
@@ -133,7 +138,8 @@ defmodule AuroraUix.Field do
           scale: 0,
           hidden: false,
           readonly: false,
-          required: false
+          required: false,
+          disabled: false
         }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()

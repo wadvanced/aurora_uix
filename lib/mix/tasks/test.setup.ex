@@ -15,8 +15,8 @@ defmodule Mix.Tasks.Test.Setup do
   use Mix.Task
 
   @doc """
-  Compiles (and run) test/dependencies_start.exs, that load phoenix and ecto apps and start their corresponding GenServers.
+  Compiles (and run) test/start_dependencies.exs, that load phoenix and ecto apps and start their corresponding GenServers.
   """
   @spec run(list | nil) :: any
-  def run(_args), do: Code.require_file("test/dependencies_start.exs")
+  def run(_args), do: Code.require_file("test/start_dependencies.exs")
 end
