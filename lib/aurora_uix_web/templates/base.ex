@@ -189,10 +189,7 @@ defmodule AuroraUixWeb.Templates.Base do
   """
   @spec generate_module(map, atom, map) :: Macro.t()
   def generate_module(modules, :index = type, parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> remove_disabled_fields()
-      |> Map.put(:_module_generator, "Base#generate_module(:form)")
+    parsed_opts = remove_disabled_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
     entity_key = String.to_atom(parsed_opts.module)
@@ -214,7 +211,8 @@ defmodule AuroraUixWeb.Templates.Base do
 
         @impl true
         def render(assigns) do
-          var!(assigns) = Map.merge(%{}, assigns)
+          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
+          var!(assigns) = assigns
           define(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
@@ -275,10 +273,7 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   def generate_module(modules, :form = type, parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> remove_disabled_fields()
-      |> Map.put(:_module_generator, "Base#generate_module(:form)")
+    parsed_opts = remove_disabled_fields(parsed_opts)
 
     entity_key = String.to_atom(parsed_opts.module)
     change_function = String.to_atom("change_#{parsed_opts.module}")
@@ -297,7 +292,8 @@ defmodule AuroraUixWeb.Templates.Base do
 
         @impl true
         def render(assigns) do
-          var!(assigns) = Map.merge(%{}, assigns)
+          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
+          var!(assigns) = assigns
           define(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 

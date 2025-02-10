@@ -30,6 +30,7 @@ defmodule AuroraUixWeb.Template do
   ```
   """
   @callback generate_view(type :: atom, parsed_opts :: map) :: binary
+  @callback generate_module(modules :: map, type :: atom, parsed_opts :: map) :: Macro.t()
 
   @doc """
   Validates and return the configured uix template.
