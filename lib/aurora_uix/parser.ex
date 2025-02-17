@@ -19,8 +19,9 @@ defmodule AuroraUix.Parser do
 
   ### Common keys
    - `:module`: Last part of the name of the schema module. For schema `AuroraUixDemo.GeneralLedger.Account` then %{module: "account"}.
+   - `:module_name`: Last part of the name of the schema module. For schema `AuroraUixDemo.GeneralLedger.AccountReceivable` then %{module_name: "AccountReceivable"}
    - `:name`: Capitalize schema module. For schema `AuroraUixDemo.GeneralLedger.Account` then %{name: "Account"}
-   - `:source`: The table name of the schema. For example: %{source: "account receivable"}
+   - `:source`: The table name of the schema. For example: %{source: "account_receivables"}
    - `:title`: The pluralize name of the module. For schema `AuroraUixDemo.GeneralLedger.AccountReceivable` then %{title: "Account receivables"}.
    - `:fields`: List of the schema fields
 
@@ -38,6 +39,7 @@ defmodule AuroraUix.Parser do
     iex> AuroraUix.Parser.parse(MySchema)
     %{
       module: "my_schema",
+      module_name: "MySchema",
       name: "My Schema",
       title: "My Schemas",
       rows: [:streams, :my_schemas],

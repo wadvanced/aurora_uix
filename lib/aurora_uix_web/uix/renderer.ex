@@ -15,7 +15,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
   ## PARAMETERS
   * `module` (module): Schema module to be used for gathering field information.
   * `type` (atom): Type of view to generate.
-    * `:list` : Table like view with selectable fields and action buttons.
+    * `:index` : Table like view with selectable fields and action buttons.
     * `:card` : Card like view with configurable card fields.
     * `:form` : Form like view, can have nested elements displayed as block or sections.
   * `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
@@ -37,7 +37,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
     * `sub_title: string | :hide`: Subtitle for the view, a :hide value will disallow its generation.
     * `remove_actions: [function]`: Removes actions from the current list.
 
-    ### :list and card opts
+    ### :index and :card opts
     * `order_by: [{field, :asc | :desc}]`: Overrides the default order of the list / card.
       By default, the order is by id for numeric id, and by created_at (desc) for compose id or string id.
     * `where: string`: Adds a where like string.

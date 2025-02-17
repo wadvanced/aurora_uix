@@ -13,7 +13,7 @@ defmodule AuroraUixWeb.Templates.Base do
   ## Examples
 
   ```elixir
-  iex> AuroraUixWeb.Templates.Base.generate_view(:list, %{})
+  iex> AuroraUixWeb.Templates.Base.generate_view(:index, %{})
   # => "<h1>Base Template</h1>list"
 
   iex> AuroraUixWeb.Templates.Base.generate_view(:card, %{})
@@ -34,7 +34,7 @@ defmodule AuroraUixWeb.Templates.Base do
   ## Parameters
 
   - `type` (`atom`): Specifies the type of template to generate.
-    Supported values: `:list`, `:card`, `:form`.
+    Supported values: `:index`, `:card`, `:form`.
 
   - `parsed_opts` (`map`): A map of options (currently unused in this implementation).
 
@@ -45,7 +45,7 @@ defmodule AuroraUixWeb.Templates.Base do
   ## Examples
 
   ```elixir
-  generate(:list, %{})
+  generate(:index, %{})
   # => "<h1>Base Template</h1>list"
 
   generate(:card, %{})
@@ -63,7 +63,7 @@ defmodule AuroraUixWeb.Templates.Base do
       |> columns()
       |> then(&Map.put(parsed_opts, :columns, &1))
 
-    Template.interpolate(
+    Template.build(
       parsed_opts,
       ~S"""
         <.header>
@@ -99,7 +99,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
         <.modal :if={@live_action in [:new, :edit]} id="[[module]]-modal" show on_cancel={JS.patch(~p"/[[source]]")}>
           <.live_component
-            module={[[name]]FormComponent}
+            module={[[module_name]]FormComponent}
             id={@[[module]].id || :new}
             title={@page_title}
             action={@live_action}
@@ -118,7 +118,7 @@ defmodule AuroraUixWeb.Templates.Base do
       |> form_fields()
       |> then(&Map.put(parsed_opts, :form_fields, &1))
 
-    Template.interpolate(
+    Template.build(
       parsed_opts,
       ~S"""
         <div>
@@ -165,7 +165,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
     - `context` (`module`): The module that provides the data access functions, such as `list_`, `get_`, and `delete_`.
     - `module` (`module`): The Ecto schema module or context module used for data operations.
-    - `type` (`atom`): Specifies the type of UI component to generate. Currently, only `:list` is supported.
+    - `type` (`atom`): Specifies the type of UI component to generate. Currently, only `:index` is supported.
     - `opts` (`Keyword.t()`): A map of options passed to customize the generated LiveView module.
     - `parsed_opts` (`map`): A map of parsed options containing precomputed values such as the source name,
     module name, and titles for use in the generated module.
@@ -196,10 +196,12 @@ defmodule AuroraUixWeb.Templates.Base do
     list_function = String.to_atom("list_#{parsed_opts.source}")
     get_function = String.to_atom("get_#{parsed_opts.module}!")
     delete_function = String.to_atom("delete_#{parsed_opts.module}")
-    form_component = form_component(modules, parsed_opts)
+    index_module = module_name(modules, parsed_opts, ".Index")
+    form_component = module_name(modules, parsed_opts, ".FormComponent")
+    alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
 
     quote do
-      defmodule Index do
+      defmodule unquote(index_module) do
         @moduledoc false
 
         use unquote(modules.web), :live_view
@@ -207,7 +209,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
         alias unquote(modules.context)
         alias unquote(modules.module)
-        alias unquote(form_component)
+        alias unquote(form_component), as: unquote(alias_form_component)
 
         @impl true
         def render(assigns) do
@@ -279,7 +281,7 @@ defmodule AuroraUixWeb.Templates.Base do
     change_function = String.to_atom("change_#{parsed_opts.module}")
     update_function = String.to_atom("update_#{parsed_opts.module}")
     create_function = String.to_atom("create_#{parsed_opts.module}")
-    form_component = form_component(modules, parsed_opts)
+    form_component = module_name(modules, parsed_opts, ".FormComponent")
 
     quote do
       defmodule unquote(form_component) do
@@ -395,9 +397,9 @@ defmodule AuroraUixWeb.Templates.Base do
     )
   end
 
-  @spec form_component(map, map) :: module
-  defp form_component(modules, parsed_opts) do
-    Module.concat(modules.caller, "#{parsed_opts.name}FormComponent")
+  @spec module_name(map, map, binary) :: module
+  defp module_name(modules, parsed_opts, suffix) do
+    Module.concat(modules.caller, "#{parsed_opts.module_name}#{suffix}")
   end
 
   @spec remove_disabled_fields(map) :: map

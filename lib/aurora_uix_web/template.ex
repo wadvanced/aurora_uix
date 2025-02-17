@@ -11,7 +11,7 @@ defmodule AuroraUixWeb.Template do
   ## Parameters
 
   - `type` (`atom`): Specifies the type of UI component to generate.
-    The types implemented and supported by the library are: `:list`, `:card`, `:form`.
+    The types implemented and supported by the library are: `:index`, `:card`, `:form`.
 
   - `parsed_opts` (`map`): A map with the customized value for the generated HEEx code.
 
@@ -22,7 +22,7 @@ defmodule AuroraUixWeb.Template do
   ## Examples
 
   ```elixir
-  generate_view(:list, %{fields: [:name, :email})
+  generate_view(:index, %{fields: [:name, :email})
   # => quote do: ~H"<ul><li><%= @name %></li><li><%= @email %></li></ul>"
 
   generate_view(:card, %{title: "User Info", content: ~H"<p><%= @user %></p>"})
@@ -39,15 +39,22 @@ defmodule AuroraUixWeb.Template do
   def uix_template, do: validate(@uix_template)
 
   @doc """
-  Interpolates [[key]] with the string value. Ensures that the returned template has the least amount of
-  dynamic contents.
+  Replaces [[key]] with the string value found in the parsed_options.
+  If the key value is not found, then NO replaces occurs.
 
   ## Parameters
     - `template (binary)`: The template to apply the interpolation.
     - `parsed_options (map)`: Options to use.
+
+  ## Examples
+    iex> AuroraUixWeb.Template.build(%{title: "Aurora UIX builder"},
+    ... ~S\"""
+    ... This application: [[title]]
+    ... \""")
+    "this application: Aurora UIX builder\n"
   """
-  @spec interpolate(map, binary) :: binary
-  def interpolate(parsed_options, template) do
+  @spec build(map, binary) :: binary
+  def build(parsed_options, template) do
     Enum.reduce(parsed_options, template, &replace/2)
   end
 

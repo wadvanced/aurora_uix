@@ -19,8 +19,8 @@ defmodule AuroraUixTestWeb.Router do
   scope "/", AuroraUixTestWeb do
     pipe_through(:browser)
 
-    live("/products", CrudTest.TestModule.Index, :index)
-    live("/products/new", CrudTest.TestModule.Index, :new)
-    live("/products/:id/edit", CrudTest.TestModule.Index, :edit)
+    live("/products", CrudTest.TestModule.Product.Index, :index)
+    live("/products/new", CrudTest.TestModule.Product.Index, :new)
+    live("/products/:id/edit", CrudTest.TestModule.Product.Index, :edit)
   end
 end

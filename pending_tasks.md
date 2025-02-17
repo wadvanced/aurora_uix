@@ -1,3 +1,5 @@
 - [x] Try to use ~H (eliminate AuroraUixWeb.Uix.Renderer)
 - [ ] Implement the show part
+- [x] Generated module name should be unquote(schema).Index
 - [ ] Implement layout parsing
+- 

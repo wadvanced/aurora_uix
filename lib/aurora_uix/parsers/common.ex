@@ -73,6 +73,7 @@ defmodule AuroraUix.Parsers.Common do
   def parse(parsed_opts, module, opts) do
     parsed_opts
     |> add_opt(module, opts, :module)
+    |> add_opt(module, opts, :module_name)
     |> add_opt(module, opts, :name)
     |> add_opt(module, opts, :source)
     |> add_opt(module, opts, :title)
@@ -93,6 +94,12 @@ defmodule AuroraUix.Parsers.Common do
     |> Module.split()
     |> List.last()
     |> Macro.underscore()
+  end
+
+  def default_value(module, :module_name) do
+    module
+    |> Module.split()
+    |> List.last()
   end
 
   def default_value(module, :name) do

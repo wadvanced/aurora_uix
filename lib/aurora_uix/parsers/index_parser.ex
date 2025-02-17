@@ -11,7 +11,7 @@ defmodule AuroraUix.Parsers.IndexParser do
   ## PARAMETERS
   * `module` (module): Schema module to be used for gathering field information.
   * `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
-    ### :list and :card opts
+    ### :index and :card opts
     * `rows ([])`: List of fields to use. By default, relies on Phoenix streams and the name of
     the schema.
     #### Example

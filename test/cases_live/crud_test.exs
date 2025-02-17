@@ -15,7 +15,7 @@ defmodule AuroraUixTestWeb.CrudTest do
   end
 
   test "Test CRUD List", %{conn: conn} do
-    index_module = AuroraUixTestWeb.CrudTest.TestModule.Index
+    index_module = AuroraUixTestWeb.CrudTest.TestModule.Product.Index
 
     index_functions = index_module.__info__(:functions)
     assert {:__live__, 0} in index_functions
