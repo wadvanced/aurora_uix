@@ -133,7 +133,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
       Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
 
       Enum.reduce(
-        [:form, :index],
+        [:form, :index, :show],
         acc,
         &[template.generate_module(modules, &1, parsed_opts) | &2]
       )

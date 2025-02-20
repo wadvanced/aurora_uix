@@ -7,7 +7,7 @@ defmodule AuroraUixWeb.Uix.Renderer do
 
   require Logger
 
-  @uix_valid_types [:index, :card, :form]
+  @uix_valid_types [:index, :card, :form, :show]
 
   @doc """
   Defines the generation options for creating a full fledge view.

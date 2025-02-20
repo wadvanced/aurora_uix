@@ -14,7 +14,7 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
   end
 
   test "Test UI default with schema, context, NO layouts details" do
-    index_module = Module.concat(TestModule, Index)
+    index_module = AuroraUixTestWeb.CrudTest.TestModule.Product.Index
 
     index_functions = index_module.__info__(:functions)
     assert {:__live__, 0} in index_functions
@@ -23,7 +23,7 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
     assert {:handle_event, 3} in index_functions
     assert {:handle_info, 2} in index_functions
 
-    form_module = Module.concat(TestModule, ProductFormComponent)
+    form_module = AuroraUixTestWeb.CrudTest.TestModule.Product.FormComponent
     form_functions = form_module.__info__(:functions)
     assert {:__live__, 0} in form_functions
     assert {:__components__, 0} in form_functions

@@ -100,13 +100,57 @@ defmodule AuroraUixWeb.Templates.Base do
         <.modal :if={@live_action in [:new, :edit]} id="[[module]]-modal" show on_cancel={JS.patch(~p"/[[source]]")}>
           <.live_component
             module={[[module_name]]FormComponent}
-            id={@[[module]].id || :new}
+            id={@_entity.id || :new}
             title={@page_title}
             action={@live_action}
-            [[module]]={@[[module]]}
+            entity={@_entity}
             patch={~p"/[[source]]"}
           />
         </.modal>
+      """
+    )
+  end
+
+  def generate_view(:show, parsed_opts) do
+    parsed_opts =
+      parsed_opts
+      |> remove_disabled_fields()
+      |> field_list()
+      |> then(&Map.put(parsed_opts, :field_list, &1))
+
+    Template.build(
+      parsed_opts,
+      ~S"""
+      <.header>
+        [[name]] {@_entity.id}
+        <:subtitle>[[subtitle]]</:subtitle>
+        <:actions>
+          <.link patch={~p"/[[source]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()}>
+            <.button>Edit [[name]]</.button>
+          </.link>
+        </:actions>
+      </.header>
+
+      <.list>
+        [[field_list]]
+      </.list>
+
+      <.back navigate={~p"/[[source]]"}>Back to [[name]]</.back>
+
+      <.modal :if={@live_action == :edit}
+        id="[[module]]-modal"
+        show
+        on_cancel={JS.patch(~p"/[[source]]/#{@_entity}")}
+      >
+        <.live_component
+          module={[[module_name]]FormComponent}
+          id={@_entity.id}
+          title={@page_title}
+          action={@live_action}
+          entity={@_entity}
+          patch={~p"/[[source]]/#{@_entity}"}
+        />
+      </.modal>
       """
     )
   end
@@ -192,7 +236,6 @@ defmodule AuroraUixWeb.Templates.Base do
     parsed_opts = remove_disabled_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
-    entity_key = String.to_atom(parsed_opts.module)
     list_function = String.to_atom("list_#{parsed_opts.source}")
     get_function = String.to_atom("get_#{parsed_opts.module}!")
     delete_function = String.to_atom("delete_#{parsed_opts.module}")
@@ -237,7 +280,7 @@ defmodule AuroraUixWeb.Templates.Base do
         def handle_event("delete", %{"id" => id}, socket) do
           instance = apply(unquote(modules.context), unquote(get_function), [id])
 
-          {:ok, _} = apply(unquote(modules.module), unquote(delete_function), [instance])
+          {:ok, _} = apply(unquote(modules.context), unquote(delete_function), [instance])
 
           {:noreply, stream_delete(socket, unquote(list_key), instance)}
         end
@@ -254,7 +297,7 @@ defmodule AuroraUixWeb.Templates.Base do
           socket
           |> assign(:page_title, "Edit #{unquote(parsed_opts.name)}")
           |> assign(
-            unquote(entity_key),
+            :_entity,
             apply(unquote(modules.context), unquote(get_function), [id])
           )
         end
@@ -262,13 +305,63 @@ defmodule AuroraUixWeb.Templates.Base do
         defp apply_action(socket, :new, _params) do
           socket
           |> assign(:page_title, "New #{unquote(parsed_opts.name)}")
-          |> assign(unquote(entity_key), %unquote(modules.module){})
+          |> assign(:_entity, %unquote(modules.module){})
         end
 
         defp apply_action(socket, :index, _params) do
           socket
           |> assign(:page_title, "Listing #{unquote(parsed_opts.title)}")
-          |> assign(unquote(entity_key), nil)
+          |> assign(:_entity, nil)
+        end
+      end
+    end
+  end
+
+  def generate_module(modules, :show = type, parsed_opts) do
+    get_function = String.to_atom("get_#{parsed_opts.module}!")
+    show_module = module_name(modules, parsed_opts, ".Show")
+    form_component = module_name(modules, parsed_opts, ".FormComponent")
+    alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
+
+    quote do
+      defmodule unquote(show_module) do
+        @moduledoc false
+
+        use unquote(modules.web), :live_view
+        import AuroraUixWeb.Uix.Renderer
+
+        alias unquote(modules.context)
+        alias unquote(modules.module)
+        alias unquote(form_component), as: unquote(alias_form_component)
+
+        @impl true
+        def mount(_params, _session, socket) do
+          {:ok, socket}
+        end
+
+        @impl true
+        def render(assigns) do
+          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
+          var!(assigns) = assigns
+          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
+        end
+
+        @impl true
+        def handle_params(%{"id" => id}, _, socket) do
+          {:noreply,
+           socket
+           |> assign(
+             :page_title,
+             page_title(socket.assigns.live_action, unquote(parsed_opts.name))
+           )
+           |> assign(:_entity, apply(unquote(modules.context), unquote(get_function), [id]))}
+        end
+
+        defp page_title(action, suffix) do
+          action
+          |> to_string()
+          |> String.capitalize()
+          |> Kernel.<>(" #{suffix}")
         end
       end
     end
@@ -277,7 +370,6 @@ defmodule AuroraUixWeb.Templates.Base do
   def generate_module(modules, :form = type, parsed_opts) do
     parsed_opts = remove_disabled_fields(parsed_opts)
 
-    entity_key = String.to_atom(parsed_opts.module)
     change_function = String.to_atom("change_#{parsed_opts.module}")
     update_function = String.to_atom("update_#{parsed_opts.module}")
     create_function = String.to_atom("create_#{parsed_opts.module}")
@@ -300,7 +392,7 @@ defmodule AuroraUixWeb.Templates.Base do
         end
 
         @impl true
-        def update(%{unquote(entity_key) => entity} = assigns, socket) do
+        def update(%{:entity => entity} = assigns, socket) do
           form =
             unquote(modules.context)
             |> apply(unquote(change_function), [entity])
@@ -316,7 +408,7 @@ defmodule AuroraUixWeb.Templates.Base do
         def handle_event("validate", %{unquote(parsed_opts.module) => entity_params}, socket) do
           changeset =
             apply(unquote(modules.context), unquote(change_function), [
-              socket.assigns[unquote(entity_key)],
+              socket.assigns[:entity],
               entity_params
             ])
 
@@ -329,7 +421,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
         defp save_entity(socket, :edit, entity_params) do
           case apply(unquote(modules.context), unquote(update_function), [
-                 socket.assigns[unquote(entity_key)],
+                 socket.assigns[:entity],
                  entity_params
                ]) do
             {:ok, entity} ->
@@ -378,6 +470,14 @@ defmodule AuroraUixWeb.Templates.Base do
     # <:col :let={{_id, account}} label="Number">{account.number}</:col>
     Enum.map_join(fields, "\n", fn field ->
       "<:col :let={{_id, entity}} label=\"#{field.label}\">{entity.#{field.name}}</:col>"
+    end)
+  end
+
+  @spec field_list(map) :: binary
+  defp field_list(%{fields: fields}) do
+    # <:item title="Number">{@account.number}</:item>
+    Enum.map_join(fields, "\n", fn field ->
+      "<:item title=\"#{field.label}\">{@_entity.#{field.name}}</:item>"
     end)
   end
 

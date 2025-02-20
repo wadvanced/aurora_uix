@@ -1,6 +1,5 @@
 defmodule AuroraUixTestWeb.CrudTest do
   use AuroraUixTest.UICase
-  import Phoenix.LiveViewTest
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
@@ -14,7 +13,7 @@ defmodule AuroraUixTestWeb.CrudTest do
     auix_create_ui()
   end
 
-  test "Test CRUD List", %{conn: conn} do
+  test "Test CRUD List", %{conn: _conn} do
     index_module = AuroraUixTestWeb.CrudTest.TestModule.Product.Index
 
     index_functions = index_module.__info__(:functions)
