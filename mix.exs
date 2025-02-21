@@ -1,17 +1,44 @@
 defmodule AuroraUix.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/wadvanced/aurora_uix"
+  @version "0.1.0"
+
   def project do
     [
       app: :aurora_uix,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: [
         plt_add_apps: [:eex, :mix]
       ],
-      aliases: aliases()
+      aliases: aliases(),
+
+      # Hex
+      description: "Low code UI for the elixir's Phoenix Framework",
+      package: [
+        maintainers: ["Federico Alcántara"],
+        licenses: ["MIT"],
+        links: %{"GitHub" => @source_url},
+        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib)
+      ],
+
+      # Docs
+      name: "Aurora UIX",
+      docs: [
+        source_ref: @version,
+        extra_section: "GUIDES",
+        source_url: @source_url,
+        extras: [
+          "guides/introduction/getting_started.md",
+          "CHANGELOG.md"
+        ],
+        groups_for_extras: [
+          Introduction: ~r(guides/introduction/.?)
+        ]
+      ]
     ]
   end
 
@@ -61,16 +88,6 @@ defmodule AuroraUix.MixProject do
         "credo --strict",
         "dialyzer",
         "doctor"
-      ],
-      "test.assets.install": [
-        "do test.env, tailwind.install --if-missing",
-        "do test.env, esbuild.install --if-missing"
-      ],
-      "test.assets.build": [
-        "do test.env, tailwind aurora_uix",
-        "do test.env, esbuild aurora_uix",
-        "do test.env, phx.digest test/_priv/static",
-        "do test.env, phx.digest.clean -o test/_priv/static --all"
       ]
     ]
   end

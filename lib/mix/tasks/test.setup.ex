@@ -1,21 +1,20 @@
 defmodule Mix.Tasks.Test.Setup do
   @shortdoc """
-  Run all the dependencies for testing under phoenix / ecto.
-
-  ## Examples
-  ```shell
-  ENV_MIX=test mix do test.setup, ecto.migrate
-  ```
+  Sets up the test environment and starts Phoenix, Ecto, and ExUnit.
   """
 
   @moduledoc """
-  Compiles and start required dependencies for testing.
+  Prepares the test environment by compiling and starting required dependencies.
+
+  This task ensures that Phoenix, Ecto, and ExUnit are properly loaded and their
+  respective GenServers are started before running tests.
   """
 
   use Mix.Task
 
   @doc """
-  Compiles (and run) test/start_dependencies.exs, that load phoenix and ecto apps and start their corresponding GenServers.
+  Loads and initializes Phoenix, Ecto, and ExUnit,
+  ensuring their applications and GenServers are ready for testing.
   """
   @spec run(list | nil) :: any
   def run(_args), do: Code.require_file("test/start_dependencies.exs")

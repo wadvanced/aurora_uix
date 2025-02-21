@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Federico Alcantara Tatis
+Copyright (c) 2025 Federico Alcántara Tatis
 Copyright (c) 2025 WAdvanced
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

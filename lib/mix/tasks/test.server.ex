@@ -9,7 +9,23 @@ defmodule Mix.Tasks.Test.Server do
   """
 
   @moduledoc """
-  Compiles and start required dependencies for testing.
+  Starts a phoenix server in the test environment.
+
+  This task launches a Phoenix server, opens an IEx console,
+  and serves the application for browser visualization.
+  The Phoenix framework is only available in the test environment.
+
+  ## Usage
+
+  ```shell
+  ~$ mix test.server
+
+  09:08:12.727 [info] Running AuroraUixTestWeb.Endpoint with Bandit 1.6.7 at 0.0.0.0:4001 (http)
+
+  09:08:12.729 [info] Access AuroraUixTestWeb.Endpoint at http://localhost:4001
+  Code.require_file("test/cases_live/crud_test.exs")
+  iex(1)>
+  ```
   """
 
   use Mix.Task
