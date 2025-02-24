@@ -15,6 +15,7 @@ defmodule AuroraUixTest.Repo.Migrations.CreateProductTable do
       add :quantity_entries, :numeric, precision: 14, scale: 6
       add :quantity_exits, :numeric, precision: 14, scale: 6
       add :cost, :numeric, precision: 14, scale: 6
+      add :msrp, :numeric, precision: 12, scale: 2
       add :rrp, :numeric, precision: 12, scale: 2
       add :list_price, :numeric, precision: 12, scale: 2
       add :discounted_price, :numeric, precision: 12, scale: 2

@@ -21,7 +21,7 @@ defmodule AuroraUixTestWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {AuroraUixTestWeb.Layouts, :app}
+        layout: {AuroraUixTestWeb.Layout, :app}
 
       unquote(html_helpers())
     end

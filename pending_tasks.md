@@ -6,4 +6,4 @@
 - [ ] Think about actions
 - [ ] Think about conditionals
 - [ ] Think about fragments
-
+- [ ] Move the default configuration to a file, that will serve, also, as a template.

@@ -1,7 +1,7 @@
 Code.require_file("test/support/aurora_uix_test_web.exs")
 Code.require_file("test/support/app_web/router.exs")
 
-defmodule AuroraUixTestWeb.Layouts do
+defmodule AuroraUixTestWeb.Layout do
   @moduledoc """
   This module holds different layouts used by your application.
 

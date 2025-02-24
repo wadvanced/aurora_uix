@@ -1,5 +1,5 @@
 ## Steps to enable the application dependencies
-Logger.configure(level: :debug)
+Logger.configure(level: :error)
 Code.require_file("test/env_loader.exs")
 Code.require_file("test/support/ui_case.exs")
 Code.require_file("test/app_loader.exs")

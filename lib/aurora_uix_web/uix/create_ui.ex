@@ -4,8 +4,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
   This module is responsible for creating base layouts, forms, and index views
   based on the provided schema configurations. It integrates with `AuroraUix.Parser`,
-  `AuroraUixWeb.Layouts`, and `AuroraUixWeb.Template` to dynamically generate
-  UI components.
+  and `AuroraUixWeb.Uix.Layout` to dynamically generate UI components.
 
   ## Usage
   - Use `__auix_create_ui__/3` to generate base layouts for a list of schema configurations.
@@ -13,7 +12,6 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   """
 
   alias AuroraUix.Parser
-  alias AuroraUixWeb.Layouts
   alias AuroraUixWeb.Template
   alias AuroraUixWeb.Uix.CreateUI
   alias AuroraUixWeb.Uix.SchemaConfigUI
@@ -21,6 +19,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   defmacro __using__(_opts) do
     quote do
       import AuroraUixWeb.Uix.CreateUI
+      import AuroraUixWeb.Uix.Layout, only: [layout: 2, layout: 3]
 
       @before_compile AuroraUixWeb.Uix.CreateUI
     end
@@ -34,6 +33,21 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     |> Module.get_attribute(:_auix_schema_configs, [])
     |> List.flatten()
     |> then(&CreateUI.__auix_create_ui__(module, &1, opts))
+  end
+
+  defmacro auix_create_ui(opts \\ []) do
+    quote do
+      use CreateUI
+      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
+    end
+  end
+
+  defmacro auix_create_ui(opts, do: block) do
+    quote do
+      use CreateUI
+      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
+      unquote(block)
+    end
   end
 
   @doc """
@@ -52,41 +66,6 @@ defmodule AuroraUixWeb.Uix.CreateUI do
       generate_index_form_layouts(caller, auix_schema_configs, schema_config_name, opts)
     else
       generate_base_layouts(caller, auix_schema_configs, opts)
-    end
-  end
-
-  @doc """
-    Defines a layout for a given name and type.
-
-    This macro is used to define a layout block within a module. It delegates
-    to `Layouts.__auix_layout__/4` to handle the actual layout generation.
-
-    ## Parameters
-    - `name`: The name of the layout (atom).
-    - `type`: The type of the layout (atom).
-    - `opts`: A keyword list of options for the layout.
-    - `block`: A `do` block containing the layout definition.
-
-    ## Example
-        layout :my_layout, :form, [class: "form-layout"] do
-          # Layout content
-        end
-  """
-  @spec layout(atom, atom, Keyword.t(), Keyword.t() | nil) :: Macro.t()
-  defmacro layout(_name, _type, _opts), do: :ok
-
-  defmacro layout(name, type, opts, do: block) do
-    quote do
-      import Layouts
-
-      Layouts.__auix_layout__(
-        __MODULE__,
-        unquote(name),
-        unquote(type),
-        unquote(opts)
-      )
-
-      unquote(block)
     end
   end
 

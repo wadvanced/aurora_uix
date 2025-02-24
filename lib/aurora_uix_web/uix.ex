@@ -1,170 +1,102 @@
 defmodule AuroraUixWeb.Uix do
   @moduledoc """
-  Provides tools for low-code, highly opinionated view rendering and handling in Phoenix applications.
+  Provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
 
-  This module introduces two key features:
+  This module simplifies UI development by offering declarative tools for schema configuration
+  and UI composition. It is designed to reduce boilerplate code while maintaining flexibility
+  for customization.
 
-  1. `auix_schema_config`: Adds UI-specific metadata to schemas to enhance their rendering capabilities in forms, lists, and other views.
-  2. `auix_create_ui`: Allows for the composition of UI layouts and interaction logic by leveraging schema metadata.
+  ## Key Features
 
-  ## `auix_schema_config`
+  ### 1. Schema Configuration (`auix_schema_config`)
+  - Attaches UI-specific metadata to schemas or structured data.
+  - Enables consistent rendering of forms, lists, and detail views.
+  - Supports customization of field labels, placeholders, validation rules, and more.
+  - Works with Ecto schemas, structs, or any structured data format.
 
-  Ecto schemas typically lack the metadata required for rendering user interfaces effectively.
-  This macro enriches schemas with metadata for UI purposes, such as field visibility, placeholders, validation rules, and layout grouping.
+  ### 2. UI Composition (`auix_create_ui`)
+  - Dynamically generates UI layouts based on schema metadata.
+  - Provides pre-built templates for common UI patterns (forms, tables, etc.).
+  - Allows customization of layout and interaction logic.
+  - Integrates seamlessly with Phoenix LiveView.
 
-  ### Example:
+  ## Getting Started
 
-  ```elixir
-    defmodule MyApp.Product do
-      use Ecto.Schema
-      import Ecto.Changeset
-
-      schema "products" do
-        field :name, :string
-        field :price, :float
-        field :quantity, :integer
-        belongs_to :category, MyApp.Category
-
-        timestamps()
-      end
-    end
-
-    defmodule MyApp.Category do
-      use Ecto.Schema
-      import Ecto.Changeset
-
-      schema "categories" do
-        field :name, :string
-        has_many :products, MyApp.Product
-
-        timestamps()
-      end
-    end
-
-    defmodule MyAppWeb.ProductLive.Index do
-      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
-        field :id, hidden: true
-        field :name, placeholder: "Product name", max_length: 40, required: true
-        field :price, placeholder: "Price", precision: 12, scale: 2
-      end
-
-      auix_schema_config :category, schema: MyApp.Category do
-        field :id, readonly: true
-        field :name, max_length: 20, required: true
-      end
-    end
-  ```
-
-  ## `auix_create_ui`
-  This macro defines the layout and behavior of the views and components to be rendered.
-  It relies on the metadata defined through auix_schema_config to determine field characteristics.
-
-  ### Example
-    ```elixir
-    defmodule MyAppWeb.ProductLive.Index do
-      ## These two lines should create a complete CRUD for the schema MyApp.Product
-      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory
-      auix_create_ui for: :product
-    end
-  ```
+  To use `AuroraUixWeb.Uix`, simply `use` it in your module:
 
   ```elixir
-    defmodule MyAppWeb.ProductLive.Index do
-      auix_create_ui do
-        layout :form, :component do
-          group "Product" do
-            row product: name, product: price
-          end
-          group "Category Details" do
-            row category: (field :name, readonly: true)
-          end
-          tab "Sales" do
-            row _assigns: :last_quarter
-          end
-          tab "Forecast" do
-            group "Next Semester" do
-              row forecast: :quantities
-              row forecast: :revenues
-            end
-            group "Next Year" do
-              row forecast_next: :quantities
-              row forecast_next: :revenues
-            end
-          end
-        end
+  defmodule MyAppWeb.ProductView do
+    use AuroraUixWeb.Uix
 
-        layout :list, :index do
-          row :category_name, :product_name, :product_quantity
-        end
-      end
+    # Define schema configuration
+    auix_schema_config :product,
+      schema: MyApp.Product,
+      context: MyApp.Products do
+      field :name, placeholder: "Product name", max_length: 40, required: true
+      field :description, max_length: 255
+      field :price, precision: 12, scale: 2, readonly: true
     end
+
+    # Create a UI layout
+    auix_create_ui :product, actions: [:create, :update] do
+      index: [:name, :price]
+    end
+  end
   ```
 
+  ## Use Cases
+  * Rapid prototyping of UIs for CRUD operations.
+  * Consistent rendering of forms and tables across an application.
+  * Customizable UI components with minimal boilerplate.
+  * Integration with Phoenix LiveView for real-time updates.
+
+  ## Example: Full Workflow
+
+  ```elixir
+  defmodule MyAppWeb.UserView do
+    use AuroraUixWeb.Uix
+
+    # Configure schema metadata
+    auix_schema_config :user,
+      schema: MyApp.Accounts.User,
+      context: MyApp.Accounts do
+      field :email, placeholder: "user@example.com", required: true
+      field :password, html_type: :password, required: true
+    end
+
+    # Generate a UI layout
+    auix_create_ui :user,
+      actions: [:new, :create],
+      renderer: &CustomComponents.registration_form/1
+    end
+  end
+  ```
+
+  ## Opinionated Design
+  This module is intentionally opinionated to:
+
+  * Reduce decision fatigue by providing sensible defaults.
+  * Encourage consistent UI patterns across applications.
+  * Minimize boilerplate code for common use cases.
+
+  While it provides flexibility for customization, it works best when embracing its conventions.
   """
-  alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.CreateUI
   alias AuroraUixWeb.Uix.SchemaConfigUI
 
   require Logger
 
+  @doc false
   defmacro __using__(_opts) do
     quote do
-      import Uix
+      import CreateUI,
+        only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
+
+      import SchemaConfigUI,
+        only: [auix_schema_config: 1, auix_schema_config: 2, auix_schema_config: 3]
+
       Module.register_attribute(__MODULE__, :_auix_schema_configs, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_layouts, accumulate: true)
-    end
-  end
-
-  defmacro auix_schema_config(name, opts \\ []) do
-    schema_config = AuroraUixWeb.Uix.__register_schema_config__(name, opts)
-
-    quote do
-      unquote(schema_config)
-    end
-  end
-
-  defmacro auix_schema_config(name, opts, do: block) do
-    schema_config = AuroraUixWeb.Uix.__register_schema_config__(name, opts)
-
-    quote do
-      unquote(schema_config)
-      unquote(block)
-    end
-  end
-
-  defmacro auix_create_ui(opts \\ []) do
-    quote do
-      use CreateUI
-      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
-    end
-  end
-
-  defmacro auix_create_ui(opts, do: block) do
-    quote do
-      use CreateUI
-      Module.put_attribute(__MODULE__, :_auix_layouts_opts, unquote(opts))
-      unquote(block)
-    end
-  end
-
-  @doc """
-  Registers schema metadata and configuration for a given schema within the module.
-
-  See `AuroraUix.SchemaConfigUI.__auix_schema_config__/2` for more details.
-
-  """
-  @spec __register_schema_config__(atom, Keyword.t()) :: Macro.t()
-  def __register_schema_config__(name, opts) do
-    quote do
-      use SchemaConfigUI, schema_name: unquote(name)
-
-      schema_config =
-        SchemaConfigUI.__auix_schema_config__(
-          unquote(name),
-          unquote(opts)
-        )
-
-      Module.put_attribute(__MODULE__, :_auix_schema_configs, {unquote(name), schema_config})
     end
   end
 end

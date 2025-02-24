@@ -34,17 +34,15 @@ defmodule Mix.Tasks.Test.Assets.Build do
   """
   @spec run(list | nil) :: any
   def run(_args) do
-    Mix.Task.run("test.env")
-    Mix.Task.reenable("tailwind")
-    Mix.Task.run("tailwind", ["aurora_uix"])
+    Mix.Task.run("test.task", ["tailwind", "aurora_uix", "silent"])
 
-    Mix.Task.reenable("esbuild")
-    Mix.Task.run("esbuild", ["aurora_uix"])
+    Mix.Task.reenable("test.task")
+    Mix.Task.run("test.task", ["esbuild", "aurora_uix", "silent"])
 
-    Mix.Task.reenable("phx.digest")
-    Mix.Task.run("phx.digest", ["test/_priv/static"])
+    Mix.Task.reenable("test.task")
+    Mix.Task.run("test.task", ["phx.digest", "test/_priv/static", "silent"])
 
-    Mix.Task.reenable("phx.digest.clean")
-    Mix.Task.run("phx.digest.clean", ["-o", "test/_priv/static", "--all"])
+    Mix.Task.reenable("test.task")
+    Mix.Task.run("test.task", ["phx.digest.clean", "-o", "test/_priv/static", "--all", "silent"])
   end
 end

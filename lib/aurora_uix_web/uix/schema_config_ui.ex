@@ -1,15 +1,18 @@
 defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   @moduledoc """
-  Provides schema config management for AuroraUixWeb.
+  Provides declarative UI configuration for structured data in Phoenix LiveView.
 
-  This module is responsible for attaching and managing UI-related metadata for Ecto schemas.
-  This metadata enhances schema usability in UI rendering, enabling customization of fields, placeholders, labels, and other attributes.
+  This module enables UI metadata management for any structured data format, with
+  first-class support for Phoenix LiveView components. While particularly useful
+  with Ecto schemas, it can configure any data structure that provides field
+  definitions.
 
-  The primary functions include:
-
-  - `__auix_schema_config__/2`: Registers schema metadata, including fields and their configurations.
-  - `field/2`: Adds or updates field-specific metadata.
-  - Internal utilities for deriving field attributes such as labels, placeholders, and types based on schema definitions.
+  ## Key Features
+  - Field-level UI metadata (labels, placeholders, validation rules).
+  - Cross-structure configuration inheritance.
+  - LiveView component integration.
+  - Type-aware default generation.
+  - Association-aware configuration.
 
   ## Example
 
@@ -40,7 +43,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
       end
     end
 
-    defmodule MyAppWeb.ProductLive.Index do
+    defmodule MyAppWeb.Inventory.Views do
       auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
@@ -51,6 +54,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
+    end
   ```
   """
 
@@ -71,6 +75,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
   end
 
+  @doc false
   defmacro __before_compile__(env) do
     ## Schema config definitions (@_auix_schema_configs) are returned in reversed creation order, this fix that.
     schema_config = env.module |> Module.get_attribute(:_auix_schema_configs) |> Enum.reverse()
@@ -87,15 +92,53 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   end
 
   @doc """
-  Adds or updates metadata for a specific field in the schema.
+  Defines UI configuration for a schema.
+
+  ## Parameters
+    - `name` (`atom`) - Identifier for the configuration block.
+    - `opts` (`Keyword.t`) - Configuration options.
+
+  ## Options
+    - `:schema` (`module`) (required) - Struct module being configured, usually an Ecto schema.
+    - `:context` (`module`) - Context module containing data access functions.
+    - `:include_associations` (`boolean`) - Auto configure associations (default: false).
+
+  ## Example
+    ```elixir
+      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
+        field :id, hidden: true
+        field :name, placeholder: "Product name", max_length: 40, required: true
+        field :price, placeholder: "Price", precision: 12, scale: 2
+      end
+    ```
+  """
+  defmacro auix_schema_config(name, opts \\ []) do
+    schema_config = __register_schema_config__(name, opts)
+
+    quote do
+      unquote(schema_config)
+    end
+  end
+
+  defmacro auix_schema_config(name, opts, do: block) do
+    schema_config = __register_schema_config__(name, opts)
+
+    quote do
+      unquote(schema_config)
+      unquote(block)
+    end
+  end
+
+  @doc """
+  Adds or updates UI metadata for a single field.
 
   This macro allows customization of individual fields, such as setting labels, placeholders, types, and validation rules.
   The updates are stored in the schema metadata registered in the current module.
 
   ## Parameters
 
-  - `field` (`atom`) - The name of the schema field.
-  - `opts` (`Keyword.t`) - A keyword list of field options.
+  - `field` (`atom`) - The name of the field.
+  - `opts` (`Keyword.t`) - A keyword list of field presentation options.
 
   ## Options
 
@@ -103,14 +146,14 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
   - `:field` (`atom`) - The referred field in the schema. This should be rarely changed.
   - `:html_type`(`atom`) - The html type that best represent the current field elixir type.
-  - `:label` (`binary`) - A custom label for the field.
+  - `:label` (`binary`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary`) - Placeholder text for the field.
   - `:length`(`non_neg_integer`) - Display length of the field.
   - `:precision` (`integer`) - The numeric precision for decimal or float fields.
   - `:scale` (`integer`) - The numeric scale for decimal or float fields.
   - `:readonly` (`boolean`) - Marks the field as read-only.
-  - `:hidden` (`boolean`) - Hides the field
-  - `:renderer` (`function`) - A function that can render the field. It can refer a function component.
+  - `:hidden` (`boolean`) - Hides the field.
+  - `:renderer` (`function`) - Custom rendering function/component.
   - `:required` (`boolean`) - Marks the field as required.
   - `:disabled` (`boolean`) - If true, should behave as if the field does not exists. The TEMPLATE implementation
     should handle this case.
@@ -142,11 +185,16 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   end
 
   @doc """
-  Adds or updates metadata for group of fields in the schema.
+  Applies configuration to multiple fields simultaneously.
 
-  This macro allows customization of individual fields, such as setting labels, placeholders, types, and validation rules.
-  See `field/2` for option details.
+  ## Parameters
+    - `fields` (`[atom]`) - List of fields to be configured.
+    - `opts` (`Keyword.t`) - A keyword list of fields' options. See `field/2` for options' details.
 
+  ## Example
+  ```elixir
+  fields [:msrp, :rrp, :list_price], precision: 10, scale: 2
+  ```
   """
   @spec fields([atom], Keyword.t()) :: Macro.t()
   defmacro fields(fields, opts \\ []) do
@@ -162,23 +210,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
   end
 
-  @doc """
-  Registers schema metadata and configuration for a given schema within the module.
-
-  This function attaches schema fields metadata, context, and other configurations.
-  It is used internally by the `auix_schema_config` macro.
-
-  ## Parameters
-
-  - `name` (`atom`)- An identifier for the schema configuration (atom).
-  - `opts` (`Keyword.t`) - Options
-
-  ## Options
-    - `:context` - Context containing the accessing functions for the schema.
-    - `:schema` - Associated ecto schema module. If it is defined, tries to create the fields metadata information from the ecto schema.
-    - `:include_associations` - For each associated schema, the configuration is created.
-      If true, then, every associated schema is configured inheriting the parent configuration.
-  """
+  @doc false
   @spec __auix_schema_config__(atom, Keyword.t()) :: SchemaConfig.t()
   def __auix_schema_config__(_name, opts) do
     schema = opts[:schema]
@@ -189,6 +221,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     |> struct(%{fields: parse_fields(schema)})
   end
 
+  @doc false
   @spec __field__(atom, keyword) :: map
   def __field__(field, opts) do
     opts
@@ -196,12 +229,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     |> Map.merge(%{field: field})
   end
 
-  @doc """
-  Gets the schema configuration by its name.
-
-  ## Parameters
-    - `module`
-  """
+  @doc false
   @spec __get_schema_config__(module, atom) :: map
   def __get_schema_config__(module, name) do
     module
@@ -209,12 +237,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     |> SchemaConfigUI.__find_schema_config__(name)
   end
 
-  @doc """
-  Finds the schema configuration by its name.
-
-  ## Parameters
-    - `module`
-  """
+  @doc false
   @spec __find_schema_config__(module, atom) :: map
   def __find_schema_config__(auix_schema_config, name) do
     auix_schema_config
@@ -224,15 +247,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     |> Kernel.||(%{})
   end
 
-  @doc """
-  Updates the given schema configurations by applying field changes derived from a list of field definitions.
-
-  This function takes two arguments:
-
-  - `schema_config`: a collection of schema configurations.
-      Each `config` will be updated based on the fields associated with its corresponding `schema_name`.
-  - `all_fields`: a list of field metadata for all schema configuration.
-  """
+  @doc false
   @spec __change_schema_configs__(list, list) :: list
   def __change_schema_configs__(schema_config, []), do: schema_config
 
@@ -245,6 +260,22 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
       {schema_name, modified_schema_metadata}
     end)
+  end
+
+  @doc false
+  @spec __register_schema_config__(atom, Keyword.t()) :: Macro.t()
+  def __register_schema_config__(name, opts) do
+    quote do
+      use SchemaConfigUI, schema_name: unquote(name)
+
+      schema_config =
+        SchemaConfigUI.__auix_schema_config__(
+          unquote(name),
+          unquote(opts)
+        )
+
+      Module.put_attribute(__MODULE__, :_auix_schema_configs, {unquote(name), schema_config})
+    end
   end
 
   ## PRIVATE

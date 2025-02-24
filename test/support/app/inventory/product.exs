@@ -22,6 +22,7 @@ defmodule AuroraUixTest.Inventory.Product do
           quantity_entries: Decimal.t() | nil,
           quantity_exits: Decimal.t() | nil,
           cost: Decimal.t() | nil,
+          msrp: Decimal.t() | nil,
           rrp: Decimal.t() | nil,
           list_price: Decimal.t() | nil,
           discounted_price: Decimal.t() | nil,
@@ -47,6 +48,7 @@ defmodule AuroraUixTest.Inventory.Product do
     field(:quantity_entries, :decimal)
     field(:quantity_exits, :decimal)
     field(:cost, :decimal)
+    field(:msrp, :decimal)
     field(:rrp, :decimal)
     field(:list_price, :decimal)
     field(:discounted_price, :decimal)
@@ -81,6 +83,7 @@ defmodule AuroraUixTest.Inventory.Product do
       :quantity_entries,
       :quantity_exits,
       :cost,
+      :msrp,
       :rrp,
       :list_price,
       :discounted_price,
@@ -99,6 +102,7 @@ defmodule AuroraUixTest.Inventory.Product do
     |> validate_number(:quantity_at_hand, greater_than_or_equal_to: 0)
     |> validate_number(:quantity_initial, greater_than_or_equal_to: 0)
     |> validate_number(:cost, greater_than_or_equal_to: 0)
+    |> validate_number(:msrp, greater_than_or_equal_to: 0)
     |> validate_number(:rrp, greater_than_or_equal_to: 0)
     |> validate_number(:list_price, greater_than_or_equal_to: 0)
     |> validate_number(:discounted_price, greater_than_or_equal_to: 0)

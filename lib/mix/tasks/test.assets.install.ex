@@ -28,11 +28,8 @@ defmodule Mix.Tasks.Test.Assets.Install do
   """
   @spec run(list | nil) :: any
   def run(_args) do
-    Mix.Task.run("test.env")
-    Mix.Task.reenable("tailwind.install")
-    Mix.Task.run("tailwind.install", ["--if-missing"])
-
-    Mix.Task.reenable("esbuild.install")
-    Mix.Task.run("esbuild.install", ["--if-missing"])
+    Mix.Task.run("test.task", ["tailwind.install", "--if-missing", "silent"])
+    Mix.Task.reenable("test.task")
+    Mix.Task.run("test.task", ["esbuild.install", "--if-missing", "silent"])
   end
 end
