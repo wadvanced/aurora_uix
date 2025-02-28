@@ -19,6 +19,7 @@ defmodule AuroraUix.Parsers.Common do
     * `fields: []`: Fields to be used, overrides the default list.
       The default list is created with all the fields found in the module, excluding
       the redacted fields.
+    * `link: :string`: The link name to use for paths. By default is the same as source.
     * `name: :string`: Name of the schema. By default, uses the last part of the module name.
     * `remove: []`: List of fields to be remove from the list.
       trying to remove non-existing fields will log a warning, but no error will be raised.
@@ -74,6 +75,7 @@ defmodule AuroraUix.Parsers.Common do
     parsed_opts
     |> add_opt(module, opts, :module)
     |> add_opt(module, opts, :module_name)
+    |> add_opt(module, opts, :link)
     |> add_opt(module, opts, :name)
     |> add_opt(module, opts, :source)
     |> add_opt(module, opts, :title)
@@ -110,6 +112,8 @@ defmodule AuroraUix.Parsers.Common do
   end
 
   def default_value(module, :source), do: module.__schema__(:source)
+
+  def default_value(module, :link), do: module.__schema__(:source)
 
   def default_value(module, :title) do
     :source

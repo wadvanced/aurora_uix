@@ -7,7 +7,7 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_schema_config(:product, context: Inventory, schema: Product) do
+    auix_resource_config(:product, context: Inventory, schema: Product) do
       field(:inactive, length: 10)
       field(:inserted_at, hidden: true)
       fields([:weight, :length, :width, :height], precision: 16, scale: 3)
@@ -18,9 +18,9 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
   end
 
   test "Test field modifications" do
-    schema_configs = schema_configs(FieldValuesModified)
+    resource_configs = resource_configs(FieldValuesModified)
 
-    validate_schema(schema_configs, :product,
+    validate_schema(resource_configs, :product,
       inactive: %{html_type: :checkbox, name: "inactive", label: "Inactive", length: 10},
       inserted_at: %{hidden: true},
       weight: %{precision: 16, scale: 3},

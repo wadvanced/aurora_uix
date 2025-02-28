@@ -7,7 +7,7 @@ defmodule AuroraUixTest.MetadataAssociationTest do
   #    alias AuroraUixTest.Inventory
   #    alias AuroraUixTest.Inventory.Product
   #
-  #    auix_schema_config(:product,
+  #    auix_resource_config(:product,
   #      context: Inventory,
   #      schema: Product,
   #      include_associations: true
@@ -16,13 +16,13 @@ defmodule AuroraUixTest.MetadataAssociationTest do
   #
 
   #  test "Parsing with associations" do
-  #    schema_configs = schema_configs(ParseAssociations)
+  #    resource_configs = resource_configs(ParseAssociations)
   #
-  #    validate_schema(schema_configs, :product,
+  #    validate_schema(resource_configs, :product,
   #      cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
   #    )
   #
-  #    validate_schema(schema_configs, :product_transaction,
+  #    validate_schema(resource_configs, :product_transaction,
   #      product_id: %{html_type: :text, name: "product_id", length: 255}
   #    )
   #  end

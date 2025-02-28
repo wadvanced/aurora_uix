@@ -55,7 +55,7 @@ defmodule AuroraUix.Field do
 
     ## Parameters
 
-    - `attrs` (map | keyword list): A map or keyword list of attributes to initialize the struct.
+    - `attrs` (map | keyword): A map or keyword of attributes to initialize the struct.
       Keys not present in the struct are ignored. Default is an empty map.
 
   ## Examples
@@ -104,7 +104,7 @@ defmodule AuroraUix.Field do
     ## Parameters
 
       - `field` (t()): The existing field struct.
-      - `attrs` (map | keyword list): A map or keyword list of attributes to update the struct.
+      - `attrs` (map | keyword): A map or keyword of attributes to update the struct.
         Keys not present in the struct are ignored.
 
     ## Examples

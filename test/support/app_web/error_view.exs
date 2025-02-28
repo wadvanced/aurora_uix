@@ -11,8 +11,8 @@ defmodule AuroraUixTestWeb.ErrorView do
   Renders an error template with the given assigns.
 
   ## Parameters
-  - `template`: The error template to be rendered (as an atom or string).
-  - `assigns`: A keyword list or map containing the error details, such as `:reason`.
+  - `template` (binary): The error template to be rendered.
+  - `assigns` (map): A map containing the error details, such as `:reason`.
 
   ## Returns
   A string representation of the error template and its associated data.

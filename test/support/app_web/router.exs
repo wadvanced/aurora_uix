@@ -18,19 +18,17 @@ defmodule AuroraUixTestWeb.Router do
 
   scope "/", AuroraUixTestWeb do
     pipe_through(:browser)
+    AuroraUixTestWeb.register_crud(Inventory.Views.Product, "products")
+    AuroraUixTestWeb.register_crud(Inventory.Views.ProductTransaction, "product_transactions")
 
-    #    live("/products", CrudTest.TestModule.Product.Index, :index)
-    #    live("/products/new", CrudTest.TestModule.Product.Index, :new)
-    #    live("/products/:id/edit", CrudTest.TestModule.Product.Index, :edit)
+    # Tests with required CRUD links for testing
+    AuroraUixTestWeb.register_crud(CreateUILayoutTest.TestModule.Product, "ui-layout-products")
+
+    #    live("/products", Inventory.Views.Product.Index, :index)
+    #    live("/products/new", Inventory.Views.Product.Index, :new)
+    #    live("/products/:id/edit", Inventory.Views.Product.Index, :edit)
     #
-    #    live("/products/:id", CrudTest.TestModule.Product.Show, :show)
-    #    live("/products/:id/show/edit", CrudTest.TestModule.Product.Show, :edit)
-
-    live("/products", Inventory.Views.Product.Index, :index)
-    live("/products/new", Inventory.Views.Product.Index, :new)
-    live("/products/:id/edit", Inventory.Views.Product.Index, :edit)
-
-    live("/products/:id", Inventory.Views.Product.Show, :show)
-    live("/products/:id/show/edit", Inventory.Views.Product.Show, :edit)
+    #    live("/products/:id", Inventory.Views.Product.Show, :show)
+    #    live("/products/:id/show/edit", Inventory.Views.Product.Show, :edit)
   end
 end

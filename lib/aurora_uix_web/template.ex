@@ -10,14 +10,14 @@ defmodule AuroraUixWeb.Template do
 
   ## Parameters
 
-  - `type` (`atom`): Specifies the type of UI component to generate.
+  - `type` (atom): Specifies the type of UI component to generate.
     The types implemented and supported by the library are: `:index`, `:card`, `:form`.
 
-  - `parsed_opts` (`map`): A map with the customized value for the generated HEEx code.
+  - `parsed_opts` (map): A map with the customized value for the generated HEEx code.
 
   ## Returns
 
-  - (`Macro.t()`): The generated HEEx code fragment as a quoted expression.
+  - `Macro.t()`: The generated HEEx code fragment as a quoted expression.
 
   ## Examples
 
@@ -43,8 +43,8 @@ defmodule AuroraUixWeb.Template do
   If the key value is not found, then NO replaces occurs.
 
   ## Parameters
-    - `template (binary)`: The template to apply the interpolation.
-    - `parsed_options (map)`: Options to use.
+    - `template` (binary): The template to apply the interpolation.
+    - `parsed_options` (map): Options to use.
 
   ## Examples
     iex> AuroraUixWeb.Template.build(%{title: "Aurora UIX builder"},

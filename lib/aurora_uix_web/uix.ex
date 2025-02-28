@@ -8,7 +8,7 @@ defmodule AuroraUixWeb.Uix do
 
   ## Key Features
 
-  ### 1. Schema Configuration (`auix_schema_config`)
+  ### 1. Schema Configuration (`auix_resource_config`)
   - Attaches UI-specific metadata to schemas or structured data.
   - Enables consistent rendering of forms, lists, and detail views.
   - Supports customization of field labels, placeholders, validation rules, and more.
@@ -29,7 +29,7 @@ defmodule AuroraUixWeb.Uix do
     use AuroraUixWeb.Uix
 
     # Define schema configuration
-    auix_schema_config :product,
+    auix_resource_config :product,
       schema: MyApp.Product,
       context: MyApp.Products do
       field :name, placeholder: "Product name", max_length: 40, required: true
@@ -57,7 +57,7 @@ defmodule AuroraUixWeb.Uix do
     use AuroraUixWeb.Uix
 
     # Configure schema metadata
-    auix_schema_config :user,
+    auix_resource_config :user,
       schema: MyApp.Accounts.User,
       context: MyApp.Accounts do
       field :email, placeholder: "user@example.com", required: true
@@ -82,7 +82,7 @@ defmodule AuroraUixWeb.Uix do
   While it provides flexibility for customization, it works best when embracing its conventions.
   """
   alias AuroraUixWeb.Uix.CreateUI
-  alias AuroraUixWeb.Uix.SchemaConfigUI
+  alias AuroraUixWeb.Uix.DataConfigUI
 
   require Logger
 
@@ -92,11 +92,10 @@ defmodule AuroraUixWeb.Uix do
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
 
-      import SchemaConfigUI,
-        only: [auix_schema_config: 1, auix_schema_config: 2, auix_schema_config: 3]
+      import DataConfigUI,
+        only: [auix_resource_config: 1, auix_resource_config: 2, auix_resource_config: 3]
 
-      Module.register_attribute(__MODULE__, :_auix_schema_configs, accumulate: true)
-      Module.register_attribute(__MODULE__, :_auix_layouts, accumulate: true)
+      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: true)
     end
   end
 end

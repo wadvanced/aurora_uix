@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.SchemaConfigUI do
+defmodule AuroraUixWeb.Uix.DataConfigUI do
   @moduledoc """
   Provides declarative UI configuration for structured data in Phoenix LiveView.
 
@@ -44,13 +44,13 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
 
     defmodule MyAppWeb.Inventory.Views do
-      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_resource_config :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      auix_schema_config :category, schema: MyApp.Category do
+      auix_resource_config :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
       end
@@ -59,44 +59,44 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   """
 
   alias AuroraUix.Field
-  alias AuroraUix.SchemaConfig
-  alias AuroraUixWeb.Uix.SchemaConfigUI
+  alias AuroraUix.ResourceConfigUI
+  alias AuroraUixWeb.Uix.DataConfigUI
 
   defmacro __using__(opts) do
     schema_name = opts[:schema_name]
 
     quote do
-      import AuroraUixWeb.Uix.SchemaConfigUI
+      import AuroraUixWeb.Uix.DataConfigUI
 
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
       Module.put_attribute(__MODULE__, :_auix_schema_name, unquote(schema_name))
 
-      @before_compile AuroraUixWeb.Uix.SchemaConfigUI
+      @before_compile AuroraUixWeb.Uix.DataConfigUI
     end
   end
 
   @doc false
   defmacro __before_compile__(env) do
-    ## Schema config definitions (@_auix_schema_configs) are returned in reversed creation order, this fix that.
-    schema_config = env.module |> Module.get_attribute(:_auix_schema_configs) |> Enum.reverse()
+    ## Schema config definitions (@_auix_resource_configs) are returned in reversed creation order, this fix that.
+    schema_config = env.module |> Module.get_attribute(:_auix_resource_configs) |> Enum.reverse()
     ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
     field_changes = env.module |> Module.get_attribute(:_auix_fields) |> Enum.reverse()
 
-    Module.delete_attribute(env.module, :_auix_schema_configs)
+    Module.delete_attribute(env.module, :_auix_resource_configs)
     Module.delete_attribute(env.module, :_auix_fields)
 
     schema_config
-    |> SchemaConfigUI.__change_schema_configs__(field_changes)
+    |> DataConfigUI.__change_schema_configs__(field_changes)
     |> List.flatten()
-    |> then(&Module.put_attribute(env.module, :_auix_schema_configs, &1))
+    |> then(&Module.put_attribute(env.module, :_auix_resource_configs, &1))
   end
 
   @doc """
   Defines UI configuration for a schema.
 
   ## Parameters
-    - `name` (`atom`) - Identifier for the configuration block.
-    - `opts` (`Keyword.t`) - Configuration options.
+    - `name` (atom) - Identifier for the configuration block.
+    - `opts` (keyword) - Configuration options.
 
   ## Options
     - `:schema` (`module`) (required) - Struct module being configured, usually an Ecto schema.
@@ -105,14 +105,14 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
   ## Example
     ```elixir
-      auix_schema_config :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_resource_config :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
     ```
   """
-  defmacro auix_schema_config(name, opts \\ []) do
+  defmacro auix_resource_config(name, opts \\ []) do
     schema_config = __register_schema_config__(name, opts)
 
     quote do
@@ -120,7 +120,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
     end
   end
 
-  defmacro auix_schema_config(name, opts, do: block) do
+  defmacro auix_resource_config(name, opts, do: block) do
     schema_config = __register_schema_config__(name, opts)
 
     quote do
@@ -137,8 +137,8 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
 
   ## Parameters
 
-  - `field` (`atom`) - The name of the field.
-  - `opts` (`Keyword.t`) - A keyword list of field presentation options.
+  - `field` (atom) - The name of the field.
+  - `opts` (keyword) - A keyword list of field presentation options.
 
   ## Options
 
@@ -171,7 +171,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
       schema_name = Module.get_attribute(__MODULE__, :_auix_schema_name)
 
       parsed_field =
-        SchemaConfigUI.__field__(
+        DataConfigUI.__field__(
           unquote(field),
           unquote(opts)
         )
@@ -188,8 +188,8 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   Applies configuration to multiple fields simultaneously.
 
   ## Parameters
-    - `fields` (`[atom]`) - List of fields to be configured.
-    - `opts` (`Keyword.t`) - A keyword list of fields' options. See `field/2` for options' details.
+    - `fields` ([atom]) - List of fields to be configured.
+    - `opts` (keyword) - A keyword list of fields' options. See `field/2` for options' details.
 
   ## Example
   ```elixir
@@ -211,11 +211,11 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   end
 
   @doc false
-  @spec __auix_schema_config__(atom, Keyword.t()) :: SchemaConfig.t()
+  @spec __auix_schema_config__(atom, Keyword.t()) :: ResourceConfigUI.t()
   def __auix_schema_config__(_name, opts) do
     schema = opts[:schema]
 
-    %SchemaConfig{}
+    %ResourceConfigUI{}
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
     |> struct(%{fields: parse_fields(schema)})
@@ -233,14 +233,14 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   @spec __get_schema_config__(module, atom) :: map
   def __get_schema_config__(module, name) do
     module
-    |> Module.get_attribute(:_auix_schema_configs, [])
-    |> SchemaConfigUI.__find_schema_config__(name)
+    |> Module.get_attribute(:_auix_resource_configs, [])
+    |> DataConfigUI.__find_schema_config__(name)
   end
 
   @doc false
   @spec __find_schema_config__(module, atom) :: map
-  def __find_schema_config__(auix_schema_config, name) do
-    auix_schema_config
+  def __find_schema_config__(auix_resource_config, name) do
+    auix_resource_config
     |> Enum.filter(fn {schema_config_name, _metadata} -> schema_config_name == name end)
     |> Enum.map(fn {_schema_config_name, schema_config} -> schema_config end)
     |> List.last()
@@ -256,7 +256,7 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
       modified_schema_metadata =
         schema_name
         |> filter_fields(all_fields)
-        |> then(&SchemaConfig.change(schema_config, fields: &1))
+        |> then(&ResourceConfigUI.change(schema_config, fields: &1))
 
       {schema_name, modified_schema_metadata}
     end)
@@ -266,15 +266,15 @@ defmodule AuroraUixWeb.Uix.SchemaConfigUI do
   @spec __register_schema_config__(atom, Keyword.t()) :: Macro.t()
   def __register_schema_config__(name, opts) do
     quote do
-      use SchemaConfigUI, schema_name: unquote(name)
+      use DataConfigUI, schema_name: unquote(name)
 
       schema_config =
-        SchemaConfigUI.__auix_schema_config__(
+        DataConfigUI.__auix_schema_config__(
           unquote(name),
           unquote(opts)
         )
 
-      Module.put_attribute(__MODULE__, :_auix_schema_configs, {unquote(name), schema_config})
+      Module.put_attribute(__MODULE__, :_auix_resource_configs, {unquote(name), schema_config})
     end
   end
 

@@ -11,7 +11,7 @@ defmodule AuroraUix.Parser do
   @doc """
   ## Parameters
     - `module` (module): Schema module to be used for gathering field information.
-    - `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
+    - `opts` (keyword): List of options, the available ones depends on the type of view.
     See `AuroraUixWeb.Uix.CreateUI.auix_create_ui/1` docs for type and opts details.
 
   ## Parsed output
@@ -48,6 +48,8 @@ defmodule AuroraUix.Parser do
   """
   @spec parse(module, Keyword.t()) :: map
   def parse(module, opts \\ []) do
+    opts = List.flatten(opts)
+
     %{}
     |> Common.parse(module, opts)
     |> IndexParser.parse(module, opts)

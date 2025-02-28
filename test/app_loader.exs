@@ -16,7 +16,7 @@ defmodule AuroraUixTest.AppLoader do
   Loads modules in test/support +  given path.
 
   ## Parameters
-    - `path`: Path to be appended
+    - `path` (binary): Path to be appended.
   """
   @spec load_modules(binary) :: :ok
   def load_modules(path) when is_binary(path) do

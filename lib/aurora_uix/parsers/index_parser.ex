@@ -34,8 +34,8 @@ defmodule AuroraUix.Parsers.IndexParser do
   Produce the default value for the given field.
 
   ## Parameters
-    - `module (module)`: Schema module.
-    - `field (atom)`: Field to produce the default value for.
+    - `module` (module): Schema module.
+    - `field` (atom): Field to produce the default value for.
   """
   @spec default_value(module, atom) :: any
   def default_value(module, :rows) do

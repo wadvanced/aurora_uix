@@ -33,14 +33,14 @@ defmodule AuroraUixWeb.Templates.Base do
 
   ## Parameters
 
-  - `type` (`atom`): Specifies the type of template to generate.
+  - `type` (atom): Specifies the type of template to generate.
     Supported values: `:index`, `:card`, `:form`.
 
-  - `parsed_opts` (`map`): A map of options (currently unused in this implementation).
+  - `parsed_opts` (map): A map of options (currently unused in this implementation).
 
   ## Returns
 
-  - (`binary`): A HEEx template corresponding to the specified type.
+  - `binary`: A HEEx template corresponding to the specified type.
 
   ## Examples
 
@@ -69,23 +69,23 @@ defmodule AuroraUixWeb.Templates.Base do
         <.header>
           Listing [[title]]
           <:actions>
-            <.link patch={~p"/[[source]]/new"}>
+            <.link patch={~p"/[[link]]/new"}>
               <.button>New [[title]]</.button>
             </.link>
           </:actions>
         </.header>
 
         <.table
-            id={"uix-[[source]]"}
+            id={"uix-[[link]]"}
             rows={get_in(assigns, @_uix.rows)}
-            row_click={fn {_id, row} -> JS.navigate(~p"/[[source]]/#{row}") end}
+            row_click={fn {_id, row} -> JS.navigate(~p"/[[link]]/#{row}") end}
         >
           [[columns]]
           <:action :let={{_id, [[module]]}}>
             <div class="sr-only">
-              <.link navigate={~p"/[[source]]/#{[[module]]}"}>Show</.link>
+              <.link navigate={~p"/[[link]]/#{[[module]]}"}>Show</.link>
             </div>
-            <.link patch={~p"/[[source]]/#{[[module]]}/edit"}>Edit</.link>
+            <.link patch={~p"/[[link]]/#{[[module]]}/edit"}>Edit</.link>
           </:action>
           <:action :let={{id, [[module]]}}>
             <.link
@@ -97,14 +97,14 @@ defmodule AuroraUixWeb.Templates.Base do
           </:action>
         </.table>
 
-        <.modal :if={@live_action in [:new, :edit]} id="[[module]]-modal" show on_cancel={JS.patch(~p"/[[source]]")}>
+        <.modal :if={@live_action in [:new, :edit]} id="[[module]]-modal" show on_cancel={JS.patch(~p"/[[link]]")}>
           <.live_component
             module={[[module_name]]FormComponent}
             id={@_entity.id || :new}
             title={@page_title}
             action={@live_action}
             entity={@_entity}
-            patch={~p"/[[source]]"}
+            patch={~p"/[[link]]"}
           />
         </.modal>
       """
@@ -125,7 +125,7 @@ defmodule AuroraUixWeb.Templates.Base do
         [[name]] {@_entity.id}
         <:subtitle>[[subtitle]]</:subtitle>
         <:actions>
-          <.link patch={~p"/[[source]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()}>
+          <.link patch={~p"/[[link]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()}>
             <.button>Edit [[name]]</.button>
           </.link>
         </:actions>
@@ -135,12 +135,12 @@ defmodule AuroraUixWeb.Templates.Base do
         [[field_list]]
       </.list>
 
-      <.back navigate={~p"/[[source]]"}>Back to [[name]]</.back>
+      <.back navigate={~p"/[[link]]"}>Back to [[name]]</.back>
 
       <.modal :if={@live_action == :edit}
         id="[[module]]-modal"
         show
-        on_cancel={JS.patch(~p"/[[source]]/#{@_entity}")}
+        on_cancel={JS.patch(~p"/[[link]]/#{@_entity}")}
       >
         <.live_component
           module={[[module_name]]FormComponent}
@@ -148,7 +148,7 @@ defmodule AuroraUixWeb.Templates.Base do
           title={@page_title}
           action={@live_action}
           entity={@_entity}
-          patch={~p"/[[source]]/#{@_entity}"}
+          patch={~p"/[[link]]/#{@_entity}"}
         />
       </.modal>
       """
