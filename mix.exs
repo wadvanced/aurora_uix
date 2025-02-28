@@ -61,6 +61,7 @@ defmodule AuroraUix.MixProject do
       {:bandit, "~> 1.5", only: :test, runtime: false},
       {:ecto_sql, "~> 3.10", only: :test, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:gettext, "~> 0.20", only: :test, runtime: false},
       {:heroicons,
        github: "tailwindlabs/heroicons",

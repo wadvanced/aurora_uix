@@ -63,8 +63,17 @@ defmodule AuroraUixTestWeb do
   @spec aurora_uix_for_test() :: Macro.t()
   def aurora_uix_for_test do
     quote do
-      Module.register_attribute(__MODULE__, :_auix_schema_configs, persist: true)
-      Module.register_attribute(__MODULE__, :_auix_layouts, persist: true)
+      Module.register_attribute(__MODULE__, :_auix_resource_configs,
+        accumulate: true,
+        persist: true
+      )
+
+      Module.register_attribute(__MODULE__, :_auix_form_layouts, accumulate: true, persist: true)
+
+      Module.register_attribute(__MODULE__, :_auix_form_layouts_opts,
+        accumulate: true,
+        persist: true
+      )
 
       use AuroraUixWeb.Uix
     end
@@ -75,6 +84,26 @@ defmodule AuroraUixTestWeb do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+
+  @spec register_crud(module, binary) :: Macro.t()
+  defmacro register_crud(module, link_prefix) do
+    routes =
+      quote do
+        link = "/#{unquote(link_prefix)}"
+        index_module = Module.concat(unquote(module), Index)
+        show_module = Module.concat(unquote(module), Show)
+
+        live("/#{link}", index_module, :index)
+        live("/#{link}/new", index_module, :new)
+        live("/#{link}/:id/edit", index_module, :edit)
+        live("/#{link}/:id", show_module, :show)
+        live("/#{link}/:id/show/edit", show_module, :edit)
+      end
+
+    quote do
+      unquote(routes)
+    end
   end
 
   ## PRIVATE

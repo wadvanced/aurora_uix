@@ -1,5 +1,5 @@
 ## Steps to enable the application dependencies
-Logger.configure(level: :error)
+Logger.configure(level: :error, truncate: :infinity)
 Code.require_file("test/env_loader.exs")
 Code.require_file("test/support/ui_case.exs")
 Code.require_file("test/app_loader.exs")
@@ -10,4 +10,4 @@ Code.require_file("test/app_loader.exs")
 AuroraUixTest.Repo.start_link()
 AuroraUixTestWeb.Endpoint.start_link()
 
-Ecto.Adapters.SQL.Sandbox.mode(AuroraUixTest.Repo, :auto)
+Ecto.Adapters.SQL.Sandbox.mode(AuroraUixTest.Repo, :manual)

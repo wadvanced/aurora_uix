@@ -5,7 +5,7 @@ defmodule AuroraUixTest.CreateWithoutOptions do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    auix_schema_config(:product)
+    auix_resource_config(:product)
     auix_create_ui()
   end
 

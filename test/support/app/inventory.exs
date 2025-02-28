@@ -20,8 +20,16 @@ defmodule AuroraUixTest.Inventory do
   end
 
   @spec change_product(Product.t() | Ecto.Changeset.t(), map) :: Ecto.Changeset.t()
-  def change_product(%Product{} = account, attrs \\ %{}) do
-    Product.changeset(account, attrs)
+  def change_product(%Product{} = product, attrs \\ %{}) do
+    Product.changeset(product, attrs)
+  end
+
+  @spec update_product(Product.t() | Ecto.Changeset.t(), map) ::
+          {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
+  def update_product(%Product{} = product, attrs) do
+    product
+    |> Product.changeset(attrs)
+    |> Repo.update()
   end
 
   @spec get_product!(binary) :: nil | Product.t()

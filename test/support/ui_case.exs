@@ -8,8 +8,8 @@ defmodule AuroraUixTest.UICase do
   alias AuroraUix.Field
 
   @spec validate_schema(map, atom, map) :: boolean
-  def validate_schema(schema_configs, schema, fields_checks) do
-    metadata = get_in(schema_configs, [schema, Access.key!(:fields)])
+  def validate_schema(resource_configs, schema, fields_checks) do
+    metadata = get_in(resource_configs, [schema, Access.key!(:fields)])
 
     Enum.each(fields_checks, fn {field_id, checks} ->
       field = find_field(metadata, field_id)
@@ -40,14 +40,14 @@ defmodule AuroraUixTest.UICase do
     end)
   end
 
-  @spec schema_configs(module) :: map
-  def schema_configs(module) do
-    attributes(module, :_auix_schema_configs)
+  @spec resource_configs(module) :: map
+  def resource_configs(module) do
+    attributes(module, :_auix_resource_configs)
   end
 
   @spec layouts(module) :: map
   def layouts(module) do
-    attributes(module, :_auix_layouts)
+    attributes(module, :_auix_form_layouts)
   end
 
   @spec attributes(module, atom) :: map
@@ -60,10 +60,14 @@ defmodule AuroraUixTest.UICase do
     |> Map.new()
   end
 
-  defmacro __using__(_opts) do
-    quote do
-      use AuroraUixTestWeb.ConnCase
-      import AuroraUixTest.UICase
-    end
+  @doc """
+  When used, dispatch to the appropriate controller/live_view/etc.
+  """
+  defmacro __using__(which) when is_atom(which) do
+    apply(__MODULE__, which, [])
+  end
+
+  defmacro __using__(_) do
+    apply(__MODULE__, :test_case, [])
   end
 end

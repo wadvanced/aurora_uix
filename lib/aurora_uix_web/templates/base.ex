@@ -33,14 +33,14 @@ defmodule AuroraUixWeb.Templates.Base do
 
   ## Parameters
 
-  - `type` (`atom`): Specifies the type of template to generate.
+  - `type` (atom): Specifies the type of template to generate.
     Supported values: `:index`, `:card`, `:form`.
 
-  - `parsed_opts` (`map`): A map of options (currently unused in this implementation).
+  - `parsed_opts` (map): A map of options (currently unused in this implementation).
 
   ## Returns
 
-  - (`binary`): A HEEx template corresponding to the specified type.
+  - `binary`: A HEEx template corresponding to the specified type.
 
   ## Examples
 
@@ -69,42 +69,43 @@ defmodule AuroraUixWeb.Templates.Base do
         <.header>
           Listing [[title]]
           <:actions>
-            <.link patch={~p"/[[source]]/new"}>
+            <.link patch={~p"/[[link]]/new"} id="auix-new-[[source]]">
               <.button>New [[title]]</.button>
             </.link>
           </:actions>
         </.header>
 
         <.table
-            id={"uix-[[source]]"}
+            id={"auix-list-[[link]]"}
             rows={get_in(assigns, @_uix.rows)}
-            row_click={fn {_id, row} -> JS.navigate(~p"/[[source]]/#{row}") end}
+            row_click={fn {_id, row} -> JS.navigate(~p"/[[link]]/#{row}") end}
         >
           [[columns]]
-          <:action :let={{_id, [[module]]}}>
-            <div class="sr-only">
-              <.link navigate={~p"/[[source]]/#{[[module]]}"}>Show</.link>
-            </div>
-            <.link patch={~p"/[[source]]/#{[[module]]}/edit"}>Edit</.link>
-          </:action>
           <:action :let={{id, [[module]]}}>
+            <div class="sr-only">
+              <.link navigate={~p"/[[link]]/#{[[module]]}"} id={"auix-show-#{id}"}>Show</.link>
+            </div>
+            <.link patch={~p"/[[link]]/#{[[module]]}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
+          </:action>
+          <:action :let={{id, _[[module]]}}>
             <.link
-              phx-click={JS.push("delete", value: %{id: [[module]].id}) |> hide("##{id}")}
+              phx-click={JS.push("delete", value: %{id: id}) |> hide("##{id}")}
               data-confirm="Are you sure?"
+              id={"auix-delete-#{id}"}
             >
               Delete
             </.link>
           </:action>
         </.table>
 
-        <.modal :if={@live_action in [:new, :edit]} id="[[module]]-modal" show on_cancel={JS.patch(~p"/[[source]]")}>
+        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch(~p"/[[link]]")}>
           <.live_component
             module={[[module_name]]FormComponent}
             id={@_entity.id || :new}
             title={@page_title}
             action={@live_action}
             entity={@_entity}
-            patch={~p"/[[source]]"}
+            patch={~p"/[[link]]"}
           />
         </.modal>
       """
@@ -125,7 +126,7 @@ defmodule AuroraUixWeb.Templates.Base do
         [[name]] {@_entity.id}
         <:subtitle>[[subtitle]]</:subtitle>
         <:actions>
-          <.link patch={~p"/[[source]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()}>
+          <.link patch={~p"/[[link]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
             <.button>Edit [[name]]</.button>
           </.link>
         </:actions>
@@ -135,12 +136,12 @@ defmodule AuroraUixWeb.Templates.Base do
         [[field_list]]
       </.list>
 
-      <.back navigate={~p"/[[source]]"}>Back to [[name]]</.back>
+      <.back navigate={~p"/[[link]]"}>Back to [[name]]</.back>
 
       <.modal :if={@live_action == :edit}
-        id="[[module]]-modal"
+        id="auix-[[module]]-modal"
         show
-        on_cancel={JS.patch(~p"/[[source]]/#{@_entity}")}
+        on_cancel={JS.patch(~p"/[[link]]/#{@_entity}")}
       >
         <.live_component
           module={[[module_name]]FormComponent}
@@ -148,7 +149,7 @@ defmodule AuroraUixWeb.Templates.Base do
           title={@page_title}
           action={@live_action}
           entity={@_entity}
-          patch={~p"/[[source]]/#{@_entity}"}
+          patch={~p"/[[link]]/#{@_entity}"}
         />
       </.modal>
       """
@@ -173,14 +174,14 @@ defmodule AuroraUixWeb.Templates.Base do
 
           <.simple_form
             for={@form}
-            id="[[module]]-form"
+            id="auix-[[module]]-form"
             phx-target={@myself}
             phx-change="validate"
             phx-submit="save"
           >
             [[form_fields]]
             <:actions>
-              <.button phx-disable-with="Saving...">Save [[name]]</.button>
+              <.button phx-disable-with="Saving..." id="auix-save-[[source]]">Save [[name]]</.button>
             </:actions>
           </.simple_form>
         </div>
@@ -482,17 +483,29 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   @spec form_fields(map) :: binary
-  defp form_fields(%{fields: fields}) do
+  defp form_fields(%{fields: fields, module: module}) do
     # <.input field={@form[:number]} type="text" label="Number" />
     Enum.map_join(
       fields,
       "\n",
       fn
         %{hidden: true} = field ->
-          "<.input field={@form[:#{field.field}]} type=\"#{field.html_type}\" label=\"hidden #{field.label}\"/>"
+          """
+            <.input
+              field={@form[:#{field.field}]}
+              type="#{field.html_type}"
+              label="hidden #{field.label}"
+              id="auix-field-#{module}_#{field.field}"/>
+          """
 
         field ->
-          "<.input field={@form[:#{field.field}]} type=\"#{field.html_type}\" label=\"#{field.label}\"/>"
+          """
+            <.input
+              field={@form[:#{field.field}]}
+              type="#{field.html_type}"
+              label="#{field.label}"
+              id="auix-field-#{module}_#{field.field}"/>
+          """
       end
     )
   end

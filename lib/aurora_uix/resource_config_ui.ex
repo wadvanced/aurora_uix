@@ -1,36 +1,38 @@
-defmodule AuroraUix.SchemaConfig do
+defmodule AuroraUix.ResourceConfigUI do
   @moduledoc """
   Provides a structure and functions to manage metadata for schemas and contexts.
 
-  The `AuroraUix.SchemaConfig` module defines a struct that holds metadata information
+  The `AuroraUix.ResourceConfigUI` module defines a struct that holds metadata information
   about a schema, its context, and additional fields. It also provides functions
   to create and update this metadata.
   """
   alias AuroraUix.Field
 
-  defstruct [:schema, :context, fields: []]
+  defstruct [:schema, :context, fields: [], form_layout: [], list_layout: []]
 
   @type t() :: %__MODULE__{
           schema: module,
           context: module | nil,
-          fields: list(Field.t())
+          fields: list(Field.t()),
+          form_layout: [],
+          list_layout: []
         }
 
   @doc """
-  Creates a new `AuroraUix.SchemaConfig` struct with the given attributes.
+  Creates a new `AuroraUix.ResourceConfigUI` struct with the given attributes.
 
   ## Parameters
 
-  - `attrs`: A map or keyword list containing the attributes to initialize the metadata.
+  - `attrs` (map | keyword): A map or keyword containing the attributes to initialize the metadata.
     The allowed keys are `:schema`, `:context`, and `:fields`.
 
   ## Examples
 
-      iex> AuroraUix.SchemaConfig.new()
-      %AuroraUix.SchemaConfig{schema: nil, context: nil, fields: []}
+      iex> AuroraUix.ResourceConfigUI.new()
+      %AuroraUix.ResourceConfigUI{schema: nil, context: nil, fields: [], form_layout: %{}}
 
-      iex> AuroraUix.SchemaConfig.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
-      %AuroraUix.SchemaConfig{
+      iex> AuroraUix.ResourceConfigUI.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
+      %AuroraUix.ResourceConfigUI{
         schema: MySchema,
         context: nil,
         fields: [
@@ -49,27 +51,35 @@ defmodule AuroraUix.SchemaConfig do
             required: false,
             disabled: false
           }
-        ]
+        ],
+        form_layout: [],
+        list_layout: []
       }
   """
   @spec new(map | keyword) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `AuroraUix.SchemaConfig` struct with the given attributes.
+  Updates an existing `AuroraUix.ResourceConfigUI` struct with the given attributes.
 
   ## Parameters
 
-  - `metadata`: The existing `AuroraUix.SchemaConfig` struct to be updated.
-  - `attrs`: A map or keyword list containing the attributes to update the metadata.
+  - `metadata`: The existing `AuroraUix.ResourceConfigUI` struct to be updated.
+  - `attrs`: A map or keyword containing the attributes to update the metadata.
     The allowed keys are `:schema`, `:context`, and `:fields`.
 
   ## Examples
 
-      iex> metadata = %AuroraUix.SchemaConfig{schema: MySchema, context: MyContext}
-      %AuroraUix.SchemaConfig{schema: MySchema, context: MyContext, fields: []}
-      iex> AuroraUix.SchemaConfig.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
-      %AuroraUix.SchemaConfig{
+      iex> metadata = %AuroraUix.ResourceConfigUI{schema: MySchema, context: MyContext}
+      %AuroraUix.ResourceConfigUI{
+        schema: MySchema,
+        context: MyContext,
+        fields: [],
+        form_layout: [],
+        list_layout: []
+      }
+      iex> AuroraUix.ResourceConfigUI.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
+      %AuroraUix.ResourceConfigUI{
         schema: MySchema,
         context: nil,
         fields: [
@@ -88,11 +98,13 @@ defmodule AuroraUix.SchemaConfig do
             required: false,
             disabled: false
           }
-        ]
+        ],
+        form_layout: [],
+        list_layout: []
       }
 
-      iex> metadata = %AuroraUix.SchemaConfig{schema: MySchema, fields: [AuroraUix.Field.new(field: :reference)]}
-      %AuroraUix.SchemaConfig{
+      iex> metadata = %AuroraUix.ResourceConfigUI{schema: MySchema, fields: [AuroraUix.Field.new(field: :reference)]}
+      %AuroraUix.ResourceConfigUI{
         schema: MySchema,
         context: nil,
         fields: [
@@ -111,10 +123,12 @@ defmodule AuroraUix.SchemaConfig do
             required: false,
             disabled: false
           }
-        ]
+        ],
+        form_layout: [],
+        list_layout: []
       }
-      iex> AuroraUix.SchemaConfig.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
-      %AuroraUix.SchemaConfig{
+      iex> AuroraUix.ResourceConfigUI.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
+      %AuroraUix.ResourceConfigUI{
         schema: MySchema,
         context: MyContext,
         fields: [
@@ -148,7 +162,9 @@ defmodule AuroraUix.SchemaConfig do
             required: false,
             disabled: false
           }
-        ]
+        ],
+        form_layout: [],
+        list_layout: []
       }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
