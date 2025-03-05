@@ -37,7 +37,8 @@ defmodule AuroraUix.MixProject do
         ],
         groups_for_extras: [
           Introduction: ~r(guides/introduction/.?)
-        ]
+        ],
+        before_closing_body_tag: &before_closing_body_tag/1
       ]
     ]
   end
@@ -92,4 +93,8 @@ defmodule AuroraUix.MixProject do
       ]
     ]
   end
+
+  defp before_closing_body_tag(_),
+    do:
+      ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
 end

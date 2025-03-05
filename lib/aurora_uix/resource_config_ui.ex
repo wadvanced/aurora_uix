@@ -29,7 +29,7 @@ defmodule AuroraUix.ResourceConfigUI do
   ## Examples
 
       iex> AuroraUix.ResourceConfigUI.new()
-      %AuroraUix.ResourceConfigUI{schema: nil, context: nil, fields: [], form_layout: %{}}
+      %AuroraUix.ResourceConfigUI{schema: nil, context: nil, fields: [], form_layout: []}
 
       iex> AuroraUix.ResourceConfigUI.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
       %AuroraUix.ResourceConfigUI{

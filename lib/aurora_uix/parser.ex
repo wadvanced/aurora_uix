@@ -43,7 +43,8 @@ defmodule AuroraUix.Parser do
       name: "My Schema",
       title: "My Schemas",
       rows: [:streams, :my_schemas],
-      source: "my_schemas"
+      source: "my_schemas",
+      link: "my_schemas"
     }
   """
   @spec parse(module, Keyword.t()) :: map

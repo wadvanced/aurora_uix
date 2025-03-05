@@ -68,8 +68,6 @@ defmodule AuroraUixTestWeb do
         persist: true
       )
 
-      Module.register_attribute(__MODULE__, :_auix_form_layouts, accumulate: true, persist: true)
-
       Module.register_attribute(__MODULE__, :_auix_form_layouts_opts,
         accumulate: true,
         persist: true

@@ -16,6 +16,7 @@ defmodule AuroraUix.Field do
       However, it is up to the implementation whether to include the field in the generated artifact or not.
     - `readonly` (`boolean`) - If true the field should not accept changes.
     - `required` (`boolean`) - Indicates that the field should not be empty or unused.
+    - `disabled` (`boolean`) - If true the template may omit the field representation at all.
 
   """
   defstruct [

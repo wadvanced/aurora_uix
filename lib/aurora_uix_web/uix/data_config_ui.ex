@@ -60,6 +60,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   alias AuroraUix.Field
   alias AuroraUix.ResourceConfigUI
+  alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.DataConfigUI
 
   defmacro __using__(opts) do
@@ -112,22 +113,36 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       end
     ```
   """
-  defmacro auix_resource_config(name, opts \\ []) do
-    schema_config = __register_schema_config__(name, opts)
+  defmacro auix_resource_config(name, opts \\ [], do_block \\ nil) do
+    {block, opts} = Uix.extract_block_options(opts, do_block)
 
-    quote do
-      unquote(schema_config)
-    end
-  end
+    schema_config =
+      quote do
+        use DataConfigUI, schema_name: unquote(name)
 
-  defmacro auix_resource_config(name, opts, do: block) do
-    schema_config = __register_schema_config__(name, opts)
+        schema_config =
+          DataConfigUI.__auix_schema_config__(
+            unquote(name),
+            unquote(opts)
+          )
+
+        Module.put_attribute(__MODULE__, :_auix_resource_configs, {unquote(name), schema_config})
+      end
 
     quote do
       unquote(schema_config)
       unquote(block)
     end
   end
+
+  #  defmacro auix_resource_config(name, opts, do: block) do
+  #    schema_config = register_schema_config(name, opts)
+  #
+  #    quote do
+  #      unquote(schema_config)
+  #      unquote(block)
+  #    end
+  #  end
 
   @doc """
   Adds or updates UI metadata for a single field.
@@ -260,22 +275,6 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
       {schema_name, modified_schema_metadata}
     end)
-  end
-
-  @doc false
-  @spec __register_schema_config__(atom, Keyword.t()) :: Macro.t()
-  def __register_schema_config__(name, opts) do
-    quote do
-      use DataConfigUI, schema_name: unquote(name)
-
-      schema_config =
-        DataConfigUI.__auix_schema_config__(
-          unquote(name),
-          unquote(opts)
-        )
-
-      Module.put_attribute(__MODULE__, :_auix_resource_configs, {unquote(name), schema_config})
-    end
   end
 
   ## PRIVATE

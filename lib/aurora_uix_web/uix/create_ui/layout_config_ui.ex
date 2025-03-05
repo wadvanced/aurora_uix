@@ -1,6 +1,6 @@
-defmodule AuroraUixWeb.Uix.LayoutConfigUI do
+defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   @moduledoc ~S"""
-  The AuroraUixWeb.Uix.LayoutConfigUI defines how the fields are going to be rendered.
+  The AuroraUixWeb.Uix.CreateUI.LayoutConfigUI defines how the fields are going to be rendered.
 
   ## Examples
 
@@ -223,45 +223,32 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
       end
     ```
 
+  ## Layout Path Structure
+    The structure of a layout is represented by a map list where each entry contains the following keys:
+    - `:tag` (atom): The command that is being processed. For example: inline, stacked, group, etc.
+    - `:state` (atom): The path state, can be :start or :end.
+    - `:opts` (keyword): The options for the command, might be empty ([]).
+    - `:config` (map | atom): Specific configuration for the command (not an option).
+        For example the `layout` command requires the name of the resource_config, that value will be registered
+        in the `:config` key. The `group` tag/command will store its title in the `:config` key.
+
   """
 
-  alias AuroraUixWeb.Uix.LayoutConfigUI
+  alias AuroraUixWeb.Uix
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import AuroraUixWeb.Uix.LayoutConfigUI
-      import AuroraUixWeb.Uix.LayoutConfigUI.Inline
+      import AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
 
-      Module.register_attribute(__MODULE__, :_auix_layout_contents, accumulate: true)
-      Module.register_attribute(__MODULE__, :_auix_layout_opts, accumulate: true)
+      Module.register_attribute(__MODULE__, :_auix_layout_paths, accumulate: true)
 
-      @before_compile AuroraUixWeb.Uix.LayoutConfigUI
+      @before_compile AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
     end
   end
 
   @doc false
-  defmacro __before_compile__(env) do
-    opts =
-      env.module
-      |> Module.get_attribute(:_auix_layout_opts)
-      |> Map.new()
-
-    env.module
-    |> Module.get_attribute(:_auix_layout_contents, [])
-    |> List.flatten()
-    |> Enum.reduce(
-      %{},
-      fn {layout, contents}, acc ->
-        current = Map.get(acc, layout, [])
-        Map.put(acc, layout, [contents | current])
-      end
-    )
-    |> Enum.map(fn {layout, [content]} ->
-      {layout, %{layout: content, opts: Map.get(opts, layout, [])}}
-    end)
-    |> then(&Module.put_attribute(env.module, :_auix_form_layouts, &1))
-
+  defmacro __before_compile__(_env) do
     :ok
   end
 
@@ -282,96 +269,26 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     end
   ```
   """
-  @spec layout(atom, Keyword.t(), Keyword.t() | nil) :: Macro.t()
-  defmacro layout(name, opts, do: block) do
-    options =
-      quote do
-        LayoutConfigUI.__layout_options__(
-          __MODULE__,
-          unquote(name),
-          unquote(opts)
-        )
-      end
-
-    do_block =
-      quote do
-        __MODULE__
-        |> LayoutConfigUI.__extract_config_fields__(unquote(name))
-        |> then(&Module.put_attribute(__MODULE__, :_auix_current_fields, &1))
-
-        unquote(block)
-      end
-
-    container =
-      quote do
-        __MODULE__
-        |> Module.get_attribute(:_auix_current_container, [])
-        |> then(&Module.put_attribute(__MODULE__, :_auix_layout_contents, {unquote(name), &1}))
-
-        Module.delete_attribute(__MODULE__, :_auix_current_container)
-      end
-
-    quote do
-      import LayoutConfigUI
-
-      unquote(options)
-      unquote(do_block)
-      unquote(container)
-    end
+  @spec layout(atom, Keyword.t(), any) :: Macro.t()
+  defmacro layout(name, opts, do_block \\ nil) do
+    register_layout_path(:layout, {:name, name}, opts, do_block)
   end
 
-  defmacro layout(name, opts) do
-    options =
-      quote do
-        LayoutConfigUI.__layout_options__(
-          __MODULE__,
-          unquote(name),
-          unquote(opts)
-        )
-      end
-
-    quote do
-      import LayoutConfigUI
-      unquote(options)
-    end
+  @spec inline(Keyword.t(), any) :: Macro.t()
+  defmacro inline(fields, do_block \\ nil) do
+    {block, fields} = Uix.extract_block_options(fields, do_block)
+    register_layout_path(:inline, {:fields, fields}, [], block)
   end
 
-  @doc """
-  Generates a default layout configuration for the given schema configs.
-
-  This function creates an index and form layout based on the fields present
-  in the schema configuration.
-
-  ## Parameters
-  - `resource_configs` (map): A map where keys are schema names and values are configuration maps.
-
-  ## Returns
-  - A tuple containing the updated schema configurations.
-
-  ## Example
-
-  ```elixir
-    generate_form_layouts([], %{product: %{fields: [:name, :price]}})
-  ```
-  """
-  @spec generate_form_layouts(list, map) :: list
-  def generate_form_layouts(resource_configs, form_layouts) do
-    resource_configs
-    |> extract_config_field_names()
-    |> do_generate_form_layouts(resource_configs, form_layouts)
+  @spec stacked(Keyword.t(), any) :: Macro.t()
+  defmacro stacked(fields, do_block \\ nil) do
+    {block, fields} = Uix.extract_block_options(fields, do_block)
+    register_layout_path(:stacked, {:fields, fields}, [], block)
   end
 
-  @doc false
-  @spec __layout_options__(module, atom, Keyword.t()) :: :ok
-  def __layout_options__(module, name, opts) do
-    Module.put_attribute(module, :_auix_layout_opts, {name, opts})
-  end
-
-  @spec __expand_fields__(module, list) :: list
-  def __expand_fields__(module, fields) do
-    module
-    |> Module.get_attribute(:_auix_current_fields, %{})
-    |> expand_fields(fields)
+  @spec group(atom, Keyword.t(), any) :: Macro.t()
+  defmacro group(title, opts, do_block \\ nil) do
+    register_layout_path(:group, {:title, title}, opts, do_block)
   end
 
   @spec __extract_config_fields__(module, atom) :: map
@@ -389,34 +306,25 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   end
 
   ## PRIVATE
-  @spec extract_config_field_names(list) :: map
-  defp extract_config_field_names(resource_configs) do
-    resource_configs
-    |> Enum.map(&extract_field_names/1)
-    |> Map.new()
-  end
 
-  @spec extract_field_names(tuple) :: tuple
-  defp extract_field_names({element, %{fields: fields}}) do
-    {element, Enum.map(fields, & &1.field)}
-  end
+  @spec register_layout_path(atom, tuple, keyword, any) :: Macro.t()
+  defp register_layout_path(tag, config, opts, do_block) do
+    {block, opts} = Uix.extract_block_options(opts, do_block)
 
-  @spec expand_fields(map, Keyword.t()) :: list
-  defp expand_fields(current_fields, fields) do
-    Enum.map(fields, &Map.get(current_fields, &1))
-  end
+    registration =
+      quote do
+        Module.put_attribute(
+          __MODULE__,
+          :_auix_layout_paths,
+          %{tag: unquote(tag), state: :start, opts: unquote(opts), config: unquote(config)}
+        )
 
-  @spec do_generate_form_layouts(map, list, map | nil) :: list
-  defp do_generate_form_layouts(fields, resource_configs, form_layouts),
-    do: Enum.map(resource_configs, &generate_form_layout(&1, fields, form_layouts))
+        unquote(block)
+        Module.put_attribute(__MODULE__, :_auix_layout_paths, %{tag: unquote(tag), state: :end})
+      end
 
-  @spec generate_form_layout(tuple, map, list) :: tuple
-  defp generate_form_layout({data_name, resource_config}, fields, form_layouts) do
-    form_layout = form_layouts[data_name][:layout]
-
-    fields
-    |> Map.get(data_name, [])
-    |> then(&Map.merge(resource_config, %{form_layout: form_layout || &1}))
-    |> then(&{data_name, &1})
+    quote do
+      unquote(registration)
+    end
   end
 end

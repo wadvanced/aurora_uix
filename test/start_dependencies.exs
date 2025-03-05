@@ -10,4 +10,4 @@ Code.require_file("test/app_loader.exs")
 AuroraUixTest.Repo.start_link()
 AuroraUixTestWeb.Endpoint.start_link()
 
-Ecto.Adapters.SQL.Sandbox.mode(AuroraUixTest.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(AuroraUixTest.Repo, :auto)

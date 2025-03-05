@@ -2,12 +2,11 @@ defmodule AuroraUixWeb.Templates.Base do
   @moduledoc """
   A module for generating basic HEEx templates for different UI component types.
 
-  This module provides a single function, `generate_view/2`,
+  This module provides the, `generate_view/2` function,
   which creates HEEx template fragments based on the specified type.
   Currently, it supports the following types:
 
-  - `:live_view`: Generates a template for a list.
-  - `:card`: Generates a template for a card.
+  - `:index`: Generates a template for a list.
   - `:form`: Generates a template for a form.
 
   ## Examples
@@ -16,7 +15,7 @@ defmodule AuroraUixWeb.Templates.Base do
   iex> AuroraUixWeb.Templates.Base.generate_view(:index, %{})
   # => "<h1>Base Template</h1>list"
 
-  iex> AuroraUixWeb.Templates.Base.generate_view(:card, %{})
+  iex> AuroraUixWeb.Templates.Base.generate_view(:index, %{})
   # => "<h1>Base Template</h1>card"
 
   iex> AuroraUixWeb.Templates.Base.generate_view(:form, %{})
@@ -63,7 +62,7 @@ defmodule AuroraUixWeb.Templates.Base do
       |> columns()
       |> then(&Map.put(parsed_opts, :columns, &1))
 
-    Template.build(
+    Template.build_html(
       parsed_opts,
       ~S"""
         <.header>
@@ -113,18 +112,12 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   def generate_view(:show, parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> remove_disabled_fields()
-      |> field_list()
-      |> then(&Map.put(parsed_opts, :field_list, &1))
-
-    Template.build(
+    Template.build_html(
       parsed_opts,
       ~S"""
       <.header>
         [[name]] {@_entity.id}
-        <:subtitle>[[subtitle]]</:subtitle>
+        <:subtitle>{@subtitle}</:subtitle>
         <:actions>
           <.link patch={~p"/[[link]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
             <.button>Edit [[name]]</.button>
@@ -132,11 +125,9 @@ defmodule AuroraUixWeb.Templates.Base do
         </:actions>
       </.header>
 
-      <.list>
-        [[field_list]]
-      </.list>
+      [[show_fields]]
 
-      <.back navigate={~p"/[[link]]"}>Back to [[name]]</.back>
+      <.back navigate={~p"/[[link]]"}>Back to [[title]]</.back>
 
       <.modal :if={@live_action == :edit}
         id="auix-[[module]]-modal"
@@ -157,13 +148,7 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   def generate_view(:form, parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> remove_disabled_fields()
-      |> form_fields()
-      |> then(&Map.put(parsed_opts, :form_fields, &1))
-
-    Template.build(
+    Template.build_html(
       parsed_opts,
       ~S"""
         <div>
@@ -221,7 +206,7 @@ defmodule AuroraUixWeb.Templates.Base do
 
   ## Generated Behavior
 
-  The function expects the provided context and module to define the following functions:
+  The function expects the provided context and module to have the following functions defined:
 
   - `list_<source>()` - Returns a list of all entities for streaming.
   - `get_<schema_module>!(id)` - Fetches a specific entity by its ID.
@@ -249,7 +234,8 @@ defmodule AuroraUixWeb.Templates.Base do
         @moduledoc false
 
         use unquote(modules.web), :live_view
-        import AuroraUixWeb.Uix.Renderer
+
+        import AuroraUixWeb.Template, only: [compile_heex: 3]
 
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -259,7 +245,7 @@ defmodule AuroraUixWeb.Templates.Base do
         def render(assigns) do
           # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
           var!(assigns) = assigns
-          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
+          compile_heex(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -329,7 +315,8 @@ defmodule AuroraUixWeb.Templates.Base do
         @moduledoc false
 
         use unquote(modules.web), :live_view
-        import AuroraUixWeb.Uix.Renderer
+
+        import AuroraUixWeb.Template, only: [compile_heex: 3]
 
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -344,7 +331,7 @@ defmodule AuroraUixWeb.Templates.Base do
         def render(assigns) do
           # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
           var!(assigns) = assigns
-          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
+          compile_heex(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -355,6 +342,7 @@ defmodule AuroraUixWeb.Templates.Base do
              :page_title,
              page_title(socket.assigns.live_action, unquote(parsed_opts.name))
            )
+           |> assign(:subtitle, " Detail")
            |> assign(:_entity, apply(unquote(modules.context), unquote(get_function), [id]))}
         end
 
@@ -381,7 +369,8 @@ defmodule AuroraUixWeb.Templates.Base do
         @moduledoc false
 
         use unquote(modules.web), :live_component
-        import AuroraUixWeb.Uix.Renderer
+
+        import AuroraUixWeb.Template, only: [compile_heex: 3]
 
         alias unquote(modules.context)
 
@@ -389,7 +378,7 @@ defmodule AuroraUixWeb.Templates.Base do
         def render(assigns) do
           # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
           var!(assigns) = assigns
-          define(unquote(modules.module), unquote(type), unquote(parsed_opts))
+          compile_heex(unquote(modules.module), unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -464,7 +453,105 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  ## PRIVATE
+  @doc """
+  Callback implementation
+  """
+  @spec parse_layout(map, atom) :: binary
+  def parse_layout(%{tag: :layout, state: :start, config: {:name, name}, opts: _opts}, _mode) do
+    ~s(<div class="p-4 border rounded-lg shadow bg-white" data-layout="#{name}">\n)
+  end
+
+  def parse_layout(%{tag: :layout, state: :end}, _mode) do
+    "</div>\n"
+  end
+
+  def parse_layout(%{tag: :group, state: :start, config: {:title, title}}, _mode) do
+    ~s(<div class="p-3 border rounded-md bg-gray-100">\n  <h3 class="font-semibold text-lg">#{title}</h3>\n)
+  end
+
+  def parse_layout(%{tag: :group, state: :end}, _mode) do
+    "</div>\n"
+  end
+
+  def parse_layout(%{tag: :inline, state: :start, config: {:fields, fields}}, mode)
+      when is_list(fields) do
+    fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
+    "<div class=\"flex gap-2\">\n#{fields_html}\n"
+  end
+
+  def parse_layout(%{tag: :inline, state: :end}, _mode) do
+    "</div>\n"
+  end
+
+  def parse_layout(%{tag: :stacked, state: :start, config: {:fields, fields}}, mode) do
+    fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
+    "<div class=\"flex flex-col gap-2\">\n#{fields_html}\n"
+  end
+
+  def parse_layout(%{tag: :stacked, state: :end}, _mode) do
+    "</div>\n"
+  end
+
+  # Renders individual fields
+  # Skip disabled fields
+  defp render_field(%AuroraUix.Field{disabled: true}, _mode), do: ""
+
+  defp render_field(%AuroraUix.Field{} = field, mode) do
+    case field.renderer do
+      custom_renderer when is_function(custom_renderer, 1) -> custom_renderer.(field)
+      _ -> default_field_render(field, mode)
+    end
+  end
+
+  defp default_field_render(field, mode) do
+    opts = %{
+      id: "auix-field-#{field.field}",
+      input_class:
+        "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
+      readonly: if(field.readonly, do: " readonly", else: ""),
+      disabled: if(mode == :entity, do: " disabled", else: "")
+    }
+
+    do_default_field_render(field, opts, mode)
+  end
+
+  defp do_default_field_render(%{hidden: true} = field, opts, :form = _mode),
+    do: ~s(<.hidden_input id="#{opts.id}" field={@form[:#{field.field}]}  />)
+
+  defp do_default_field_render(%{hidden: true} = field, opts, :entity = _mode),
+    do:
+      ~s(<.hidden_input id="#{opts.id}" name={#{field.field}} value={@_entity.#{field.field}} />)
+
+  defp do_default_field_render(%{hidden: false} = field, opts, :form = _mode) do
+    ~s(
+      <div class="flex flex-col">
+        <.input
+          id="#{opts.id}"
+          field={@form[:#{field.field}]}
+          type="#{field.html_type}"
+          label="#{field.label}"
+          #{opts.readonly}
+          #{opts.disabled}
+          class="#{opts.input_class}"/>
+      </div>
+      )
+  end
+
+  defp do_default_field_render(%{hidden: false} = field, opts, :entity = _mode) do
+    ~s(
+      <div class="flex flex-col">
+        <.input
+          id="#{opts.id}"
+          name="#{field.field}"
+          type="#{field.html_type}"
+          label="#{field.label}"
+          value={@_entity.#{field.field}}
+          #{opts.readonly}
+          #{opts.disabled}
+          class="#{opts.input_class}"/>
+      </div>
+      )
+  end
 
   @spec columns(map) :: binary
   defp columns(%{fields: fields}) do
@@ -472,42 +559,6 @@ defmodule AuroraUixWeb.Templates.Base do
     Enum.map_join(fields, "\n", fn field ->
       "<:col :let={{_id, entity}} label=\"#{field.label}\">{entity.#{field.name}}</:col>"
     end)
-  end
-
-  @spec field_list(map) :: binary
-  defp field_list(%{fields: fields}) do
-    # <:item title="Number">{@account.number}</:item>
-    Enum.map_join(fields, "\n", fn field ->
-      "<:item title=\"#{field.label}\">{@_entity.#{field.name}}</:item>"
-    end)
-  end
-
-  @spec form_fields(map) :: binary
-  defp form_fields(%{fields: fields, module: module}) do
-    # <.input field={@form[:number]} type="text" label="Number" />
-    Enum.map_join(
-      fields,
-      "\n",
-      fn
-        %{hidden: true} = field ->
-          """
-            <.input
-              field={@form[:#{field.field}]}
-              type="#{field.html_type}"
-              label="hidden #{field.label}"
-              id="auix-field-#{module}_#{field.field}"/>
-          """
-
-        field ->
-          """
-            <.input
-              field={@form[:#{field.field}]}
-              type="#{field.html_type}"
-              label="#{field.label}"
-              id="auix-field-#{module}_#{field.field}"/>
-          """
-      end
-    )
   end
 
   @spec module_name(map, map, binary) :: module

@@ -45,11 +45,6 @@ defmodule AuroraUixTest.UICase do
     attributes(module, :_auix_resource_configs)
   end
 
-  @spec layouts(module) :: map
-  def layouts(module) do
-    attributes(module, :_auix_form_layouts)
-  end
-
   @spec attributes(module, atom) :: map
   def attributes(module, attribute) do
     Code.ensure_compiled(module)
@@ -69,5 +64,23 @@ defmodule AuroraUixTest.UICase do
 
   defmacro __using__(_) do
     apply(__MODULE__, :test_case, [])
+  end
+
+  @doc false
+  @spec test_case() :: Macro.t()
+  def test_case do
+    quote do
+      use AuroraUixTestWeb.ConnCase
+      import AuroraUixTest.UICase
+    end
+  end
+
+  @doc false
+  @spec phoenix_case() :: Macro.t()
+  def phoenix_case do
+    quote do
+      use AuroraUixTestWeb.ConnCase
+      import Phoenix.LiveViewTest
+    end
   end
 end
