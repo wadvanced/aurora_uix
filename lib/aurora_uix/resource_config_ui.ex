@@ -49,7 +49,8 @@ defmodule AuroraUix.ResourceConfigUI do
             hidden: false,
             readonly: false,
             required: false,
-            disabled: false
+            disabled: false,
+            omitted: false
           }
         ],
         form_layout: [],
@@ -96,7 +97,8 @@ defmodule AuroraUix.ResourceConfigUI do
             hidden: false,
             readonly: false,
             required: false,
-            disabled: false
+            disabled: false,
+            omitted: false
           }
         ],
         form_layout: [],
@@ -121,7 +123,8 @@ defmodule AuroraUix.ResourceConfigUI do
             hidden: false,
             readonly: false,
             required: false,
-            disabled: false
+            disabled: false,
+            omitted: false
           }
         ],
         form_layout: [],
@@ -145,7 +148,8 @@ defmodule AuroraUix.ResourceConfigUI do
             hidden: false,
             readonly: false,
             required: false,
-            disabled: false
+            disabled: false,
+            omitted: false
           },
           %AuroraUix.Field{
             field: :description,
@@ -160,7 +164,8 @@ defmodule AuroraUix.ResourceConfigUI do
             hidden: false,
             readonly: false,
             required: false,
-            disabled: false
+            disabled: false,
+            omitted: false
           }
         ],
         form_layout: [],
@@ -168,24 +173,26 @@ defmodule AuroraUix.ResourceConfigUI do
       }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
-  def change(schema_config, attrs) when is_list(attrs) do
+  def change(resource_config, attrs) when is_list(attrs) do
     keys =
       %__MODULE__{}
       |> Map.keys()
       |> Enum.reject(&(&1 == :fields))
 
+    ## applies changes to resource_config struct
     attrs
     |> Enum.filter(&(elem(&1, 0) in keys))
     |> Map.new()
-    |> then(&struct(schema_config, &1))
+    |> then(&struct(resource_config, &1))
+    ## changes the fields values with fields attributes
     |> change_fields(attrs)
     |> add_fields(attrs)
   end
 
-  def change(schema_config, %{} = attrs), do: struct(schema_config, attrs)
+  def change(resource_config, %{} = attrs), do: struct(resource_config, attrs)
 
   ## PRIVATE
-  defp change_fields(%{fields: schema_config_fields} = schema_config, attrs)
+  defp change_fields(%{fields: resource_config_fields} = resource_config, attrs)
        when is_list(attrs) do
     changed_fields =
       attrs
@@ -194,30 +201,30 @@ defmodule AuroraUix.ResourceConfigUI do
       |> elem(1)
 
     schema_config_changed_fields =
-      Enum.map(schema_config_fields, &change_field(&1, changed_fields))
+      Enum.map(resource_config_fields, &change_field(&1, changed_fields))
 
-    struct(schema_config, %{fields: schema_config_changed_fields})
+    struct(resource_config, %{fields: schema_config_changed_fields})
   end
 
-  defp change_fields(schema_config, _attrs),
-    do: schema_config
+  defp change_fields(resource_config, _attrs),
+    do: resource_config
 
-  defp change_field(%{field: field_id} = schema_config_field, changed_fields)
+  defp change_field(%{field: field_id} = resource_config_field, changed_fields)
        when is_list(changed_fields) or is_map(changed_fields) do
     changed_fields
     |> Enum.filter(fn
       {^field_id, _} -> true
       _ -> false
     end)
-    |> Enum.reduce(schema_config_field, fn {_field, value}, acc -> struct(acc, value) end)
+    |> Enum.reduce(resource_config_field, fn {_field, value}, acc -> struct(acc, value) end)
   end
 
-  defp change_field(schema_config_field, _changed_fields), do: schema_config_field
+  defp change_field(resource_config_field, _changed_fields), do: resource_config_field
 
-  defp add_fields(%{fields: schema_config_fields} = schema_config, attrs) do
-    keys = Enum.map(schema_config_fields, & &1.field)
+  defp add_fields(%{fields: resource_config_fields} = resource_config, attrs) do
+    keys = Enum.map(resource_config_fields, & &1.field)
 
-    schema_config_fields = Enum.reverse(schema_config_fields)
+    resource_config_fields = Enum.reverse(resource_config_fields)
 
     attrs
     |> filter(:fields)
@@ -228,9 +235,9 @@ defmodule AuroraUix.ResourceConfigUI do
       field_properties when is_tuple(field_properties) -> elem(field_properties, 0) in keys
       _ -> true
     end)
-    |> Enum.reduce(schema_config_fields, &create_field/2)
+    |> Enum.reduce(resource_config_fields, &create_field/2)
     |> Enum.reverse()
-    |> then(&struct(schema_config, %{fields: &1}))
+    |> then(&struct(resource_config, %{fields: &1}))
   end
 
   defp create_field({field, properties}, acc) do

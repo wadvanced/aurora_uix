@@ -63,14 +63,12 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.DataConfigUI
 
-  defmacro __using__(opts) do
-    schema_name = opts[:schema_name]
-
+  defmacro __using__(_opts) do
     quote do
       import AuroraUixWeb.Uix.DataConfigUI
 
+      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: false)
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
-      Module.put_attribute(__MODULE__, :_auix_schema_name, unquote(schema_name))
 
       @before_compile AuroraUixWeb.Uix.DataConfigUI
     end
@@ -78,19 +76,43 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   @doc false
   defmacro __before_compile__(env) do
-    ## Schema config definitions (@_auix_resource_configs) are returned in reversed creation order, this fix that.
-    schema_config = env.module |> Module.get_attribute(:_auix_resource_configs) |> Enum.reverse()
     ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
-    field_changes = env.module |> Module.get_attribute(:_auix_fields) |> Enum.reverse()
+    changes =
+      env.module
+      |> Module.get_attribute(:_auix_fields)
+      |> Enum.reverse()
+      |> parse_change(%{}, [])
+      |> Map.new()
 
-    Module.delete_attribute(env.module, :_auix_resource_configs)
+    if !Enum.empty?(changes),
+      do: Module.put_attribute(env.module, :_auix_resource_configs, changes)
+
     Module.delete_attribute(env.module, :_auix_fields)
-
-    schema_config
-    |> DataConfigUI.__change_schema_configs__(field_changes)
-    |> List.flatten()
-    |> then(&Module.put_attribute(env.module, :_auix_resource_configs, &1))
+    :ok
   end
+
+  defp parse_change([%{tag: :resource, state: :start} | rest], acc, _current) do
+    parse_change(rest, acc, [])
+  end
+
+  defp parse_change(
+         [%{tag: :resource, name: name, config: opts, state: :end} | rest],
+         acc,
+         current
+       ) do
+    resource =
+      opts
+      |> default_config()
+      |> ResourceConfigUI.change(fields: current)
+
+    parse_change(rest, Map.put(acc, name, resource), [])
+  end
+
+  defp parse_change([%{tag: :field, field: field, opts: opts} | rest], acc, current) do
+    parse_change(rest, acc, [{field, Map.new(opts)} | current])
+  end
+
+  defp parse_change([], acc, _current), do: acc
 
   @doc """
   Defines UI configuration for a schema.
@@ -116,33 +138,30 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   defmacro auix_resource_config(name, opts \\ [], do_block \\ nil) do
     {block, opts} = Uix.extract_block_options(opts, do_block)
 
-    schema_config =
+    resource_config =
       quote do
-        use DataConfigUI, schema_name: unquote(name)
+        use DataConfigUI
 
-        schema_config =
-          DataConfigUI.__auix_schema_config__(
-            unquote(name),
-            unquote(opts)
-          )
+        Module.put_attribute(__MODULE__, :_auix_fields, %{
+          tag: :resource,
+          state: :start,
+          name: unquote(name)
+        })
 
-        Module.put_attribute(__MODULE__, :_auix_resource_configs, {unquote(name), schema_config})
+        unquote(block)
+
+        Module.put_attribute(__MODULE__, :_auix_fields, %{
+          tag: :resource,
+          state: :end,
+          name: unquote(name),
+          config: unquote(opts)
+        })
       end
 
     quote do
-      unquote(schema_config)
-      unquote(block)
+      unquote(resource_config)
     end
   end
-
-  #  defmacro auix_resource_config(name, opts, do: block) do
-  #    schema_config = register_schema_config(name, opts)
-  #
-  #    quote do
-  #      unquote(schema_config)
-  #      unquote(block)
-  #    end
-  #  end
 
   @doc """
   Adds or updates UI metadata for a single field.
@@ -170,8 +189,9 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   - `:hidden` (`boolean`) - Hides the field.
   - `:renderer` (`function`) - Custom rendering function/component.
   - `:required` (`boolean`) - Marks the field as required.
-  - `:disabled` (`boolean`) - If true, should behave as if the field does not exists. The TEMPLATE implementation
-    should handle this case.
+  - `disabled` (`boolean`) - If true, the field should not participate in form interaction.
+  - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
+      It is equivalent to not having the field at all.
 
   ## Example
 
@@ -183,18 +203,10 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   @spec field(atom, Keyword.t()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     quote do
-      schema_name = Module.get_attribute(__MODULE__, :_auix_schema_name)
-
-      parsed_field =
-        DataConfigUI.__field__(
-          unquote(field),
-          unquote(opts)
-        )
-
       Module.put_attribute(
         __MODULE__,
         :_auix_fields,
-        {Macro.escape(schema_name), parsed_field}
+        %{tag: :field, field: unquote(field), opts: unquote(opts)}
       )
     end
   end
@@ -225,56 +237,41 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     end
   end
 
-  @doc false
-  @spec __auix_schema_config__(atom, Keyword.t()) :: ResourceConfigUI.t()
-  def __auix_schema_config__(_name, opts) do
+  @doc """
+  Returns the default UI configuration for a resource.
+
+  This function initializes a `%ResourceConfigUI{}` struct and populates it with the provided options.
+  It specifically extracts the `:context` and `:schema` options and assigns them to the struct. Additionally,
+  it processes the schema to extract and define the `fields` configuration.
+
+  ## Parameters
+
+    - `opts` (`Keyword.t()`): A keyword list of options containing:
+    - `:context` - The context module for the resource (optional).
+    - `:schema` - The schema module for the resource (required).
+
+  ## Returns
+
+  - `%ResourceConfigUI{}`: A struct containing the configured resource UI settings.
+
+  ## Example
+
+    iex> AuroraUixWeb.Uix.DataConfigUI.default_config(schema: MyApp.Products.Product)
+    %ResourceConfigUI{
+      context: nil,
+      schema: MyApp.Products.Product,
+      fields: [...]
+    }
+
+  """
+  @spec default_config(Keyword.t()) :: ResourceConfigUI.t()
+  def default_config(opts) do
     schema = opts[:schema]
 
     %ResourceConfigUI{}
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
     |> struct(%{fields: parse_fields(schema)})
-  end
-
-  @doc false
-  @spec __field__(atom, keyword) :: map
-  def __field__(field, opts) do
-    opts
-    |> Map.new()
-    |> Map.merge(%{field: field})
-  end
-
-  @doc false
-  @spec __get_schema_config__(module, atom) :: map
-  def __get_schema_config__(module, name) do
-    module
-    |> Module.get_attribute(:_auix_resource_configs, [])
-    |> DataConfigUI.__find_schema_config__(name)
-  end
-
-  @doc false
-  @spec __find_schema_config__(module, atom) :: map
-  def __find_schema_config__(auix_resource_config, name) do
-    auix_resource_config
-    |> Enum.filter(fn {schema_config_name, _metadata} -> schema_config_name == name end)
-    |> Enum.map(fn {_schema_config_name, schema_config} -> schema_config end)
-    |> List.last()
-    |> Kernel.||(%{})
-  end
-
-  @doc false
-  @spec __change_schema_configs__(list, list) :: list
-  def __change_schema_configs__(schema_config, []), do: schema_config
-
-  def __change_schema_configs__(schema_config, all_fields) do
-    Enum.map(schema_config, fn {schema_name, schema_config} ->
-      modified_schema_metadata =
-        schema_name
-        |> filter_fields(all_fields)
-        |> then(&ResourceConfigUI.change(schema_config, fields: &1))
-
-      {schema_name, modified_schema_metadata}
-    end)
   end
 
   ## PRIVATE
@@ -305,7 +302,8 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       length: field_length(type),
       precision: field_precision(type),
       scale: field_scale(type),
-      disabled: field_disabled(field)
+      disabled: field_disabled(field),
+      omitted: field_omitted(field)
     }
 
     Field.new(attrs)
@@ -366,29 +364,21 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   defp field_scale(_type), do: 0
 
   @spec field_disabled(atom) :: boolean
-  defp field_disabled(field) when field in [:id, :deleted, :inactive, :inserted_at, :updated_at],
+  defp field_disabled(field) when field in [:id, :deleted, :inactive],
     do: true
 
   defp field_disabled(_field), do: false
 
+  @spec field_omitted(atom) :: boolean
+  defp field_omitted(field) when field in [:inserted_at, :updated_at],
+    do: true
+
+  defp field_omitted(_field), do: false
+
   @spec put_option(map, Keyword.t(), atom) :: map
-  defp put_option(schema_config, opts, key) do
+  defp put_option(resource_config, opts, key) do
     if Keyword.has_key?(opts, key),
-      do: Map.put(schema_config, key, opts[key]),
-      else: schema_config
+      do: Map.put(resource_config, key, opts[key]),
+      else: resource_config
   end
-
-  @spec filter_fields(atom, list) :: list
-  defp filter_fields(schema_name, all_fields) do
-    all_fields
-    |> Enum.reduce([], &filter_schema(&1, &2, schema_name))
-    |> Enum.map(&{&1.field, &1})
-    |> Enum.reverse()
-  end
-
-  @spec filter_schema(tuple, list, atom) :: list
-  defp filter_schema({field_schema_name, field_config}, acc, field_schema_name),
-    do: [field_config | acc]
-
-  defp filter_schema(_field, acc, _schema_name), do: acc
 end

@@ -94,8 +94,6 @@ defmodule AuroraUixWeb.Uix do
 
       import DataConfigUI,
         only: [auix_resource_config: 1, auix_resource_config: 2, auix_resource_config: 3]
-
-      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: true)
     end
   end
 

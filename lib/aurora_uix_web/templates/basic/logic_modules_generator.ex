@@ -1,185 +1,25 @@
-defmodule AuroraUixWeb.Templates.Base do
+defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
   @moduledoc """
-  A module for generating basic HEEx templates for different UI component types.
+  Provides functionality to dynamically generate LiveView modules for CRUD operations.
 
-  This module provides the, `generate_view/2` function,
-  which creates HEEx template fragments based on the specified type.
-  Currently, it supports the following types:
+  This module generates LiveView modules for `:index`, `:show`, and `:form` views, including
+  functions for rendering, mounting, handling events, and managing entity lifecycle operations
+  (e.g., listing, editing, creating, and deleting entities).
 
-  - `:index`: Generates a template for a list.
-  - `:form`: Generates a template for a form.
+  ## Key Features
+  - Dynamically generates LiveView modules based on the provided context and schema.
+  - Supports standard CRUD operations for entities.
+  - Integrates with Ecto schemas and contexts for data access and manipulation.
+  - Provides customizable templates and behavior through parsed options.
 
-  ## Examples
+  ## Usage
+  Use `generate_module/3` to create LiveView modules for specific UI types (`:index`, `:show`, `:form`).
+  The generated modules include:
+  - Streamed entity listing for `:index`.
+  - Entity detail views for `:show`.
+  - Forms for creating and editing entities for `:form`.
 
-  ```elixir
-  iex> AuroraUixWeb.Templates.Base.generate_view(:index, %{})
-  # => "<h1>Base Template</h1>list"
-
-  iex> AuroraUixWeb.Templates.Base.generate_view(:index, %{})
-  # => "<h1>Base Template</h1>card"
-
-  iex> AuroraUixWeb.Templates.Base.generate_view(:form, %{})
-  # => "<h1>Base Template</h1>form"
-  ```
   """
-
-  @behaviour AuroraUixWeb.Template
-
-  alias AuroraUixWeb.Template
-
-  @doc """
-  Generates a basic HEEx template fragment for the specified type.
-
-  ## Parameters
-
-  - `type` (atom): Specifies the type of template to generate.
-    Supported values: `:index`, `:card`, `:form`.
-
-  - `parsed_opts` (map): A map of options (currently unused in this implementation).
-
-  ## Returns
-
-  - `binary`: A HEEx template corresponding to the specified type.
-
-  ## Examples
-
-  ```elixir
-  generate(:index, %{})
-  # => "<h1>Base Template</h1>list"
-
-  generate(:card, %{})
-  # => "<h1>Base Template</h1>card"
-
-  generate(:form, %{})
-  # => "<h1>Base Template</h1>form"
-  ```
-  """
-  @spec generate_view(atom, map) :: binary
-  def generate_view(:index, parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> remove_disabled_fields()
-      |> columns()
-      |> then(&Map.put(parsed_opts, :columns, &1))
-
-    Template.build_html(
-      parsed_opts,
-      ~S"""
-        <.header>
-          Listing [[title]]
-          <:actions>
-            <.link patch={~p"/[[link]]/new"} id="auix-new-[[source]]">
-              <.button>New [[title]]</.button>
-            </.link>
-          </:actions>
-        </.header>
-
-        <.table
-            id={"auix-list-[[link]]"}
-            rows={get_in(assigns, @_uix.rows)}
-            row_click={fn {_id, row} -> JS.navigate(~p"/[[link]]/#{row}") end}
-        >
-          [[columns]]
-          <:action :let={{id, [[module]]}}>
-            <div class="sr-only">
-              <.link navigate={~p"/[[link]]/#{[[module]]}"} id={"auix-show-#{id}"}>Show</.link>
-            </div>
-            <.link patch={~p"/[[link]]/#{[[module]]}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
-          </:action>
-          <:action :let={{id, _[[module]]}}>
-            <.link
-              phx-click={JS.push("delete", value: %{id: id}) |> hide("##{id}")}
-              data-confirm="Are you sure?"
-              id={"auix-delete-#{id}"}
-            >
-              Delete
-            </.link>
-          </:action>
-        </.table>
-
-        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch(~p"/[[link]]")}>
-          <.live_component
-            module={[[module_name]]FormComponent}
-            id={@_entity.id || :new}
-            title={@page_title}
-            action={@live_action}
-            entity={@_entity}
-            patch={~p"/[[link]]"}
-          />
-        </.modal>
-      """
-    )
-  end
-
-  def generate_view(:show, parsed_opts) do
-    Template.build_html(
-      parsed_opts,
-      ~S"""
-      <.header>
-        [[name]] {@_entity.id}
-        <:subtitle>{@subtitle}</:subtitle>
-        <:actions>
-          <.link patch={~p"/[[link]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
-            <.button>Edit [[name]]</.button>
-          </.link>
-        </:actions>
-      </.header>
-
-      [[show_fields]]
-
-      <.back navigate={~p"/[[link]]"}>Back to [[title]]</.back>
-
-      <.modal :if={@live_action == :edit}
-        id="auix-[[module]]-modal"
-        show
-        on_cancel={JS.patch(~p"/[[link]]/#{@_entity}")}
-      >
-        <.live_component
-          module={[[module_name]]FormComponent}
-          id={@_entity.id}
-          title={@page_title}
-          action={@live_action}
-          entity={@_entity}
-          patch={~p"/[[link]]/#{@_entity}"}
-        />
-      </.modal>
-      """
-    )
-  end
-
-  def generate_view(:form, parsed_opts) do
-    Template.build_html(
-      parsed_opts,
-      ~S"""
-        <div>
-          <.header>
-            {@title}
-            <:subtitle>Use this form to manage [[module]] records in your database.</:subtitle>
-          </.header>
-
-          <.simple_form
-            for={@form}
-            id="auix-[[module]]-form"
-            phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
-          >
-            [[form_fields]]
-            <:actions>
-              <.button phx-disable-with="Saving..." id="auix-save-[[source]]">Save [[name]]</.button>
-            </:actions>
-          </.simple_form>
-        </div>
-      """
-    )
-  end
-
-  def generate_view(:card, _parsed_opts) do
-    ~S"""
-      <h1>Base Template</h1>
-    card
-    """
-  end
 
   @doc """
   Generates a LiveView module definition for the specified `type`, including functions for rendering,
@@ -219,7 +59,7 @@ defmodule AuroraUixWeb.Templates.Base do
   """
   @spec generate_module(map, atom, map) :: Macro.t()
   def generate_module(modules, :index = type, parsed_opts) do
-    parsed_opts = remove_disabled_fields(parsed_opts)
+    parsed_opts = remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
     list_function = String.to_atom("list_#{parsed_opts.source}")
@@ -357,7 +197,7 @@ defmodule AuroraUixWeb.Templates.Base do
   end
 
   def generate_module(modules, :form = type, parsed_opts) do
-    parsed_opts = remove_disabled_fields(parsed_opts)
+    parsed_opts = remove_omitted_fields(parsed_opts)
 
     change_function = String.to_atom("change_#{parsed_opts.module}")
     update_function = String.to_atom("update_#{parsed_opts.module}")
@@ -453,124 +293,18 @@ defmodule AuroraUixWeb.Templates.Base do
     end
   end
 
-  @doc """
-  Callback implementation
-  """
-  @spec parse_layout(map, atom) :: binary
-  def parse_layout(%{tag: :layout, state: :start, config: {:name, name}, opts: _opts}, _mode) do
-    ~s(<div class="p-4 border rounded-lg shadow bg-white" data-layout="#{name}">\n)
-  end
-
-  def parse_layout(%{tag: :layout, state: :end}, _mode) do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :group, state: :start, config: {:title, title}}, _mode) do
-    ~s(<div class="p-3 border rounded-md bg-gray-100">\n  <h3 class="font-semibold text-lg">#{title}</h3>\n)
-  end
-
-  def parse_layout(%{tag: :group, state: :end}, _mode) do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :inline, state: :start, config: {:fields, fields}}, mode)
-      when is_list(fields) do
-    fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
-    "<div class=\"flex gap-2\">\n#{fields_html}\n"
-  end
-
-  def parse_layout(%{tag: :inline, state: :end}, _mode) do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :stacked, state: :start, config: {:fields, fields}}, mode) do
-    fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
-    "<div class=\"flex flex-col gap-2\">\n#{fields_html}\n"
-  end
-
-  def parse_layout(%{tag: :stacked, state: :end}, _mode) do
-    "</div>\n"
-  end
-
-  # Renders individual fields
-  # Skip disabled fields
-  defp render_field(%AuroraUix.Field{disabled: true}, _mode), do: ""
-
-  defp render_field(%AuroraUix.Field{} = field, mode) do
-    case field.renderer do
-      custom_renderer when is_function(custom_renderer, 1) -> custom_renderer.(field)
-      _ -> default_field_render(field, mode)
-    end
-  end
-
-  defp default_field_render(field, mode) do
-    opts = %{
-      id: "auix-field-#{field.field}",
-      input_class:
-        "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
-      readonly: if(field.readonly, do: " readonly", else: ""),
-      disabled: if(mode == :entity, do: " disabled", else: "")
-    }
-
-    do_default_field_render(field, opts, mode)
-  end
-
-  defp do_default_field_render(%{hidden: true} = field, opts, :form = _mode),
-    do: ~s(<.hidden_input id="#{opts.id}" field={@form[:#{field.field}]}  />)
-
-  defp do_default_field_render(%{hidden: true} = field, opts, :entity = _mode),
-    do:
-      ~s(<.hidden_input id="#{opts.id}" name={#{field.field}} value={@_entity.#{field.field}} />)
-
-  defp do_default_field_render(%{hidden: false} = field, opts, :form = _mode) do
-    ~s(
-      <div class="flex flex-col">
-        <.input
-          id="#{opts.id}"
-          field={@form[:#{field.field}]}
-          type="#{field.html_type}"
-          label="#{field.label}"
-          #{opts.readonly}
-          #{opts.disabled}
-          class="#{opts.input_class}"/>
-      </div>
-      )
-  end
-
-  defp do_default_field_render(%{hidden: false} = field, opts, :entity = _mode) do
-    ~s(
-      <div class="flex flex-col">
-        <.input
-          id="#{opts.id}"
-          name="#{field.field}"
-          type="#{field.html_type}"
-          label="#{field.label}"
-          value={@_entity.#{field.field}}
-          #{opts.readonly}
-          #{opts.disabled}
-          class="#{opts.input_class}"/>
-      </div>
-      )
-  end
-
-  @spec columns(map) :: binary
-  defp columns(%{fields: fields}) do
-    # <:col :let={{_id, account}} label="Number">{account.number}</:col>
-    Enum.map_join(fields, "\n", fn field ->
-      "<:col :let={{_id, entity}} label=\"#{field.label}\">{entity.#{field.name}}</:col>"
-    end)
-  end
+  ## private
 
   @spec module_name(map, map, binary) :: module
   defp module_name(modules, parsed_opts, suffix) do
     Module.concat(modules.caller, "#{parsed_opts.module_name}#{suffix}")
   end
 
-  @spec remove_disabled_fields(map) :: map
-  defp remove_disabled_fields(parsed_options) do
+  @spec remove_omitted_fields(map) :: map
+  defp remove_omitted_fields(parsed_options) do
     parsed_options
     |> Map.get(:fields, %{})
-    |> Enum.reject(& &1.disabled)
+    |> Enum.reject(& &1.omitted)
     |> then(&Map.put(parsed_options, :fields, &1))
   end
 end

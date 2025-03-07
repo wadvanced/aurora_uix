@@ -7,10 +7,19 @@ defmodule AuroraUixTestWeb.Inventory.Views do
 
   alias AuroraUixTest.Inventory
   alias AuroraUixTest.Inventory.Product
+  alias AuroraUixTest.Inventory.ProductTransaction
 
-  auix_resource_config(:product, context: Inventory, schema: Product)
+  auix_resource_config(:product, context: Inventory, schema: Product) do
+    field(:reference, length: 100)
+    fields([:name, :description], length: 40)
+  end
+
+  auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
 
   auix_create_ui do
+    index(:product, [:name, :description])
+    index(:product, [:list_price])
+
     layout :product, a: "a-test" do
       inline(name: [], reference: [readonly: true], description: [])
 

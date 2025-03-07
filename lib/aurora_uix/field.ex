@@ -16,7 +16,9 @@ defmodule AuroraUix.Field do
       However, it is up to the implementation whether to include the field in the generated artifact or not.
     - `readonly` (`boolean`) - If true the field should not accept changes.
     - `required` (`boolean`) - Indicates that the field should not be empty or unused.
-    - `disabled` (`boolean`) - If true the template may omit the field representation at all.
+    - `disabled` (`boolean`) - If true, the field should not participate in form interaction.
+    - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
+      It is equivalent to not having the field at all.
 
   """
   defstruct [
@@ -32,7 +34,8 @@ defmodule AuroraUix.Field do
     hidden: false,
     readonly: false,
     required: false,
-    disabled: false
+    disabled: false,
+    omitted: false
   ]
 
   @type t() :: %__MODULE__{
@@ -48,7 +51,8 @@ defmodule AuroraUix.Field do
           hidden: boolean,
           readonly: boolean,
           required: boolean,
-          disabled: boolean
+          disabled: boolean,
+          omitted: boolean
         }
 
   @doc """
@@ -75,7 +79,8 @@ defmodule AuroraUix.Field do
         hidden: false,
         readonly: false,
         required: false,
-        disabled: false
+        disabled: false,
+        omitted: false
       }
 
 
@@ -93,7 +98,8 @@ defmodule AuroraUix.Field do
         hidden: false,
         readonly: false,
         required: false,
-        disabled: false
+        disabled: false,
+        omitted: false
       }
   """
   @spec new(map | keyword) :: __MODULE__.t()
@@ -124,7 +130,8 @@ defmodule AuroraUix.Field do
           hidden: false,
           readonly: false,
           required: false,
-          disabled: false
+          disabled: false,
+          omitted: false
         }
         iex> AuroraUix.Field.change(field, %{html_type: :number, precision: 3})
         %AuroraUix.Field{
@@ -140,7 +147,8 @@ defmodule AuroraUix.Field do
           hidden: false,
           readonly: false,
           required: false,
-          disabled: false
+          disabled: false,
+          omitted: false
         }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()

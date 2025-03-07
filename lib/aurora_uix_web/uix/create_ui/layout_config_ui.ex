@@ -240,16 +240,8 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   defmacro __using__(_opts) do
     quote do
       import AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
-
       Module.register_attribute(__MODULE__, :_auix_layout_paths, accumulate: true)
-
-      @before_compile AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
     end
-  end
-
-  @doc false
-  defmacro __before_compile__(_env) do
-    :ok
   end
 
   @doc """
@@ -290,6 +282,70 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   defmacro group(title, opts, do_block \\ nil) do
     register_layout_path(:group, {:title, title}, opts, do_block)
   end
+
+  @doc """
+  Generates a default path structure for rendering UI components based on the given mode.
+
+  This function constructs a list of tagged maps representing UI elements such as `:layout`, `:index`, and `:inline`.
+  It generates a default path when no paths are provided, depending on the specified mode (`:index`, `:form`, or `:show`).
+
+  ## Parameters
+
+  - `paths` (`list`) - An existing list of paths. If empty, default paths are generated.
+  - `resource_config_name` (`binary`) - The name of the resource configuration.
+  - `parsed_opts` (`map`) - A map containing parsed options, including:
+    - `:fields` (`list`) - A list of field structures.
+  - `mode` (`atom`) - The rendering mode (`:index`, `:form`, or `:show`).
+
+  ## Returns
+
+  - `list` - A list of tagged maps representing the UI structure.
+
+  ## Modes and Behavior
+
+  - **`:index` mode**: Generates an `:index` structure using all available fields as columns.
+  - **`:form` and `:show` modes**: Generates a `:layout` structure containing an `:inline` group with all fields.
+  - If paths are already provided, they are returned unchanged.
+
+  ## Example
+
+    iex> AuroraUixWeb.Uix.CreateUI.LayoutConfigUI.generate_default_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :index)
+    [
+      %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
+      %{tag: :index, state: :end}
+    ]
+
+    iex> generate_default_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :form)
+    [
+      %{tag: :layout, state: :start, config: {:name, "product"}, opts: []},
+      %{tag: :inline, state: :start, config: {:fields, [:name, :price]}, opts: []},
+      %{tag: :inline, state: :end},
+      %{tag: :layout, state: :end}
+    ]
+  """
+  @spec generate_default_paths(list, atom, map, atom) :: list
+  def generate_default_paths([], _resource_config_name, %{fields: fields} = _parsed_opts, :index) do
+    columns = Enum.map(fields, & &1.field)
+
+    [
+      %{tag: :index, state: :start, opts: [], config: {:fields, columns}},
+      %{tag: :index, state: :end}
+    ]
+  end
+
+  def generate_default_paths([], resource_config_name, %{fields: fields} = _parsed_opts, mode)
+      when mode in [:form, :show] do
+    inline = Enum.map(fields, & &1.field)
+
+    [
+      %{tag: :layout, state: :start, config: {:name, resource_config_name}, opts: []},
+      %{tag: :inline, state: :start, config: {:fields, inline}, opts: []},
+      %{tag: :inline, state: :end},
+      %{tag: :layout, state: :end}
+    ]
+  end
+
+  def generate_default_paths(paths, _resource_config_name, _parsed_opts, _mode), do: paths
 
   @spec __extract_config_fields__(module, atom) :: map
   def __extract_config_fields__(module, name) do

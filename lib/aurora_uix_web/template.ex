@@ -61,7 +61,7 @@ defmodule AuroraUixWeb.Template do
 
   alias AuroraUixWeb.Template
 
-  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Base)
+  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Basic)
   @uix_valid_types [:index, :form, :show]
 
   @doc """
