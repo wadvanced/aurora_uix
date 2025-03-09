@@ -13,7 +13,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     auix_resource_config(:product, context: Inventory, schema: Product)
 
     auix_create_ui link: "ui-layout-products" do
-      layout :product, [] do
+      edit_layout :product, [] do
         inline([:reference, :name, :description])
         inline([:quantity_at_hand, :quantity_initial])
         inline([:list_price, :rrp])

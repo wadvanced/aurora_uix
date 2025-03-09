@@ -30,48 +30,50 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   - `binary`: The generated HTML string.
   """
   @spec parse_layout(map, atom) :: binary
-  def parse_layout(%{tag: :layout, state: :start, config: {:name, name}, opts: _opts}, _mode) do
+  def parse_layout(%{tag: mode, state: :start, name: name}, mode) when mode in [:form, :show] do
     ~s(<div class="p-4 border rounded-lg shadow bg-white" data-layout="#{name}">\n)
   end
 
-  def parse_layout(%{tag: :layout, state: :end}, _mode) do
+  def parse_layout(%{tag: mode, state: :end}, mode) when mode in [:form, :show] do
     "</div>\n"
   end
 
-  def parse_layout(%{tag: :group, state: :start, config: {:title, title}}, _mode) do
+  def parse_layout(%{tag: :group, state: :start, config: {:title, title}}, mode)
+      when mode in [:form, :show] do
     ~s(<div class="p-3 border rounded-md bg-gray-100">\n  <h3 class="font-semibold text-lg">#{title}</h3>\n)
   end
 
-  def parse_layout(%{tag: :group, state: :end}, _mode) do
+  def parse_layout(%{tag: :group, state: :end}, mode) when mode in [:form, :show] do
     "</div>\n"
   end
 
   def parse_layout(%{tag: :inline, state: :start, config: {:fields, fields}}, mode)
-      when is_list(fields) do
+      when is_list(fields) and mode in [:form, :show] do
     fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
     "<div class=\"flex gap-2\">\n#{fields_html}\n"
   end
 
-  def parse_layout(%{tag: :inline, state: :end}, _mode) do
+  def parse_layout(%{tag: :inline, state: :end}, mode) when mode in [:form, :show] do
     "</div>\n"
   end
 
-  def parse_layout(%{tag: :stacked, state: :start, config: {:fields, fields}}, mode) do
+  def parse_layout(%{tag: :stacked, state: :start, config: {:fields, fields}}, mode)
+      when mode in [:form, :show] do
     fields_html = Enum.map_join(fields, "\n", &render_field(&1, mode))
     "<div class=\"flex flex-col gap-2\">\n#{fields_html}\n"
   end
 
-  def parse_layout(%{tag: :stacked, state: :end}, _mode) do
+  def parse_layout(%{tag: :stacked, state: :end}, mode) when mode in [:form, :show] do
     "</div>\n"
   end
 
-  def parse_layout(%{tag: :index, state: :start, config: {:fields, fields}}, _mode) do
+  def parse_layout(%{tag: :index, state: :start, config: {:fields, fields}}, :index) do
     Enum.map_join(fields, "\n", fn field ->
       "<:col :let={{_id, entity}} label=\"#{field.label}\">{entity.#{field.name}}</:col>"
     end)
   end
 
-  def parse_layout(%{tag: :index, state: :end}, _mode) do
+  def parse_layout(%{tag: :index, state: :end}, :index) do
     ""
   end
 

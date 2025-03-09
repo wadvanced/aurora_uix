@@ -12,7 +12,7 @@ defmodule AuroraUixTest.UICase do
     metadata = get_in(resource_configs, [schema, Access.key!(:fields)])
 
     Enum.each(fields_checks, fn {field_id, checks} ->
-      field = find_field(metadata, field_id)
+      field = locate_field(metadata, field_id)
       validate_field(field, checks, field_id)
     end)
   end
@@ -32,8 +32,8 @@ defmodule AuroraUixTest.UICase do
     end)
   end
 
-  @spec find_field(map, atom) :: map | nil
-  def find_field(schema_config, field) do
+  @spec locate_field(map, atom) :: map | nil
+  def locate_field(schema_config, field) do
     Enum.find(schema_config, fn
       %{field: ^field} -> true
       _ -> false
@@ -52,7 +52,7 @@ defmodule AuroraUixTest.UICase do
     :attributes
     |> module.__info__()
     |> Keyword.get(attribute, [])
-    |> Map.new()
+    |> List.first()
   end
 
   @doc """

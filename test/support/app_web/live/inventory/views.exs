@@ -17,10 +17,10 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
 
   auix_create_ui do
-    index(:product, [:name, :description])
-    index(:product, [:list_price])
+    index_columns(:product, [:name, :description])
+    index_columns(:product, [:list_price])
 
-    layout :product, a: "a-test" do
+    edit_layout :product, a: "a-test" do
       inline(name: [], reference: [readonly: true], description: [])
 
       inline do

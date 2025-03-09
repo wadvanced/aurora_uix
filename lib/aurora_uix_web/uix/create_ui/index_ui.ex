@@ -17,16 +17,24 @@ defmodule AuroraUixWeb.Uix.CreateUI.IndexUI do
   defmacro __before_compile__(env) do
     env.module
     |> Module.get_attribute(:_auix_index_fields, %{})
-    |> Enum.map(fn {name, fields} ->
-      paths = [
-        %{tag: :index, state: :start, opts: [], config: {:fields, fields}},
-        %{tag: :index, state: :end}
-      ]
+    |> Enum.each(fn {name, fields} ->
+      Module.put_attribute(env.module, :_auix_layout_paths, %{
+        tag: :index,
+        name: name,
+        state: :start,
+        opts: [],
+        config: {:fields, fields}
+      })
 
-      {name, paths}
+      Module.put_attribute(env.module, :_auix_layout_paths, %{
+        tag: :index,
+        name: name,
+        state: :end
+      })
     end)
-    |> Map.new()
-    |> then(&Module.put_attribute(env.module, :_auix_index_fields, &1))
+
+    Module.delete_attribute(env.module, :_auix_index_fields)
+    :ok
   end
 
   @doc """
@@ -42,7 +50,8 @@ defmodule AuroraUixWeb.Uix.CreateUI.IndexUI do
   - `name` (`atom`) - The identifier for the index (e.g., `:products`, `:users`).
   - `fields` (`list(atom)`) - A list of field names to include in the index.
   """
-  defmacro index(name, fields) do
+  @spec index_columns(atom, list) :: Macro.t()
+  defmacro index_columns(name, fields) do
     registration =
       quote do
         fields_map = Module.get_attribute(__MODULE__, :_auix_index_fields, %{})

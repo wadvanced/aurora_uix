@@ -1,10 +1,14 @@
-- [x] Try to use ~H (eliminate AuroraUixWeb.Uix.Renderer)
-- [x] Implement the show part
-- [x] Generated module name should be unquote(schema).Index
-- [x] Form component should use a generic variable name for the entity. Now uses a variable name that changes.
 - [x] Implement layout parsing
-- [ ] Implement index parsing
-- [ ] Differentiate form layout from show layout 
+- [x] Implement index parsing
+- [x] Change `layout` macro to `form` macro
+- [x] Move `index` module inside `layout_config_ui` module
+- [x] Differentiate form layout from show layout
+- [ ] Implement sections
+- [ ] Improve css
+- [ ] Create macro for adding a schema to the context and produce all the required functions
+- [ ] Consider pagination for the context functions
+- [ ] Fix the views and input so they can be better
+- [ ] Default to stacked instead of inline
 - [ ] Think about actions
 - [ ] Think about conditionals
 - [ ] Think about fragments

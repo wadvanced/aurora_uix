@@ -260,7 +260,7 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
               {:noreply,
                socket
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
-               |> push_patch(to: socket.assigns.patch)}
+               |> push_navigate(to: socket.assigns.patch, replace: true)}
 
             {:error, %Ecto.Changeset{} = changeset} ->
               {:noreply, assign(socket, form: to_form(changeset))}

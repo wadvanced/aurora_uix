@@ -3,12 +3,17 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     Provides functionality for defining and generating UI layouts and views.
 
   This module is responsible for creating base layouts, forms, and index views
-  based on the provided schema configurations. It integrates with `AuroraUix.Parser`,
+  based on the provided schema configurations. It integrates with `AuroraUix.Parser`
   and `AuroraUixWeb.Uix.CreateUI.LayoutConfigUI` to dynamically generate UI components.
 
   ## Usage
-  - Use `create_ui/3` to generate base layouts for a list of schema configurations.
-  - Use the `layout/4` macro to define custom layouts within your modules.
+
+  - Use `use AuroraUixWeb.Uix.CreateUI` to import necessary functions and macros.
+  - Optionally, use the `auix_create_ui/2` macro within your module to set custom
+    options for UI generation.
+  - The `create_ui/4` function is automatically invoked at compile time to generate
+    the layouts based on your schema configurations.
+
   """
 
   alias AuroraUix.Parser
@@ -32,18 +37,42 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     module = env.module
     opts = Module.get_attribute(module, :_auix_form_layouts_opts)
 
-    index_fields =
-      Module.get_attribute(module, :_auix_index_fields, [])
-
     layout_paths =
-      Module.get_attribute(module, :_auix_layout_paths, [])
+      module
+      |> Module.get_attribute(:_auix_layout_paths, [])
+      |> Enum.reverse()
+
+    Module.delete_attribute(module, :_auix_layout_paths)
 
     module
     |> Module.get_attribute(:_auix_resource_configs, %{})
     |> List.first()
-    |> then(&CreateUI.create_ui(module, &1, index_fields, layout_paths, opts))
+    |> then(&CreateUI.build_ui(module, &1, layout_paths, opts))
   end
 
+  @doc """
+  Macro to configure and initiate UI generation within a module.
+
+  This macro allows you to provide custom options and an optional block
+  that defines additional UI configuration. It registers the provided options,
+  and then imports the necessary UI creation functions for compile-time layout generation.
+
+  ## Parameters
+
+    - `opts` (keyword): A keyword list of options for UI generation.
+    - `do_block` (optional): An optional block to define custom UI elements.
+
+  ## Example
+
+      defmodule MyApp.CustomUI do
+        use AuroraUixWeb.Uix.CreateUI
+
+        auix_create_ui for: :user do
+          # Define additional customizations here
+        end
+      end
+  """
+  @spec auix_create_ui(keyword, any) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
     {block, opts} = Uix.extract_block_options(opts, do_block)
 
@@ -55,44 +84,56 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   end
 
   @doc """
-  Generates base layouts for the given schema configurations.
+  Generates UI layouts based on the provided schema configurations and options.
+
+  This function is the main entry point for dynamic UI generation. It is typically
+  invoked during the compile phase via the `@before_compile` callback. Depending on the
+  options provided, it either builds index and form layouts for a specific schema (using
+  the `:for` option) or creates base layouts for all provided schema configurations.
 
   ## Parameters
-  - `caller` (module): Host module for the generated children modules.
-  - `auix_resource_config` (list): A list of schema configurations or `nil`.
-  - `opts` (keyword): A keyword list of options. The `:for` key specifies the target schema.
+
+    - `caller` (module): The module initiating UI generation.
+    - `auix_resource_configs_ui` (map | nil): A map containing schema configuration(s).
+    - `layout_paths` (list): A list of layout path definitions accumulated from the module.
+    - `opts` (keyword): A list of options. If the `:for` key is present, only the layouts
+      for the specified schema are generated; otherwise, base layouts for all schemas are created.
 
   ## Returns
-  A list of generated layouts.
+
+  A list of generated UI layout modules.
+
+  ## Example
+
+      # Within the __before_compile__ callback or a custom UI module:
+      generated_layouts = create_ui(MyApp.UI, resource_configs, layout_paths, for: :user)
   """
-  @spec create_ui(any, map | nil, map, list, keyword) :: list
-  def create_ui(caller, auix_resource_configs_ui, index_fields, layout_paths, opts) do
+  @spec build_ui(any, map | nil, list, keyword) :: list
+  def build_ui(caller, auix_resource_configs_ui, layout_paths, opts) do
     if resource_config_name = opts[:for] do
-      generate_index_form_layouts(
+      build_index_form_layouts(
         caller,
         auix_resource_configs_ui,
         resource_config_name,
-        index_fields,
         layout_paths,
         opts
       )
     else
-      generate_base_layouts(caller, auix_resource_configs_ui, index_fields, layout_paths, opts)
+      build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts)
     end
   end
 
   ## PRIVATE
 
-  @spec generate_base_layouts(module, map | nil, map, list, keyword) :: list
-  defp generate_base_layouts(caller, auix_resource_configs_ui, index_fields, layout_paths, opts) do
+  @spec build_base_layouts(module, map | nil, list, keyword) :: list
+  defp build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts) do
     Enum.reduce(
       auix_resource_configs_ui,
       [],
-      &generate_index_form_layouts(
+      &build_index_form_layouts(
         caller,
         auix_resource_configs_ui,
         elem(&1, 0),
-        index_fields,
         layout_paths,
         opts,
         &2
@@ -100,12 +141,11 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     )
   end
 
-  @spec generate_index_form_layouts(module, map | nil, atom, map, list, keyword, list) :: any
-  defp generate_index_form_layouts(
+  @spec build_index_form_layouts(module, map | nil, atom, list, keyword, list) :: any
+  defp build_index_form_layouts(
          caller,
          auix_resource_config,
          resource_config_name,
-         index_fields,
          layout_paths,
          opts,
          acc \\ []
@@ -124,42 +164,20 @@ defmodule AuroraUixWeb.Uix.CreateUI do
         |> Parser.parse(opts)
         |> Map.put(:fields, resource_config.fields)
 
+      layouts = %{index: :index_columns, form: :form_fields, show: :show_fields}
+
+      # Get all layout paths
       paths =
-        layout_paths
-        |> Enum.reverse()
-        |> find_layout_paths(resource_config_name)
-        |> LayoutConfigUI.generate_default_paths(resource_config_name, parsed_opts, :form)
-
-      index_columns =
-        index_fields
-        |> Map.get(resource_config_name, [])
-        |> LayoutConfigUI.generate_default_paths(resource_config_name, parsed_opts, :index)
-        |> Enum.map_join(fn path ->
-          path
-          |> expand_fields(parsed_opts, %{})
-          |> template.parse_layout(:index)
-        end)
-
-      form_fields =
-        Enum.map_join(paths, fn path ->
-          path
-          |> expand_fields(parsed_opts, %{})
-          |> template.parse_layout(:form)
-        end)
-
-      show_fields =
-        Enum.map_join(paths, fn path ->
-          path
-          |> expand_fields(parsed_opts, %{disabled: true})
-          |> template.parse_layout(:show)
-        end)
+        layouts
+        |> Enum.map(&locate_layout_paths(&1, layout_paths, resource_config_name))
+        |> Map.new()
+        |> fill_missing_paths(:form, :show)
 
       parsed_opts =
-        Map.merge(parsed_opts, %{
-          index_columns: index_columns,
-          form_fields: form_fields,
-          show_fields: show_fields
-        })
+        layouts
+        |> Enum.map(&parse_template_paths(&1, paths, resource_config_name, parsed_opts, template))
+        |> Map.new()
+        |> then(&Map.merge(parsed_opts, &1))
 
       {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
 
@@ -180,33 +198,83 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     end
   end
 
-  @spec find_layout_paths(list, atom) :: list
-  defp find_layout_paths(layout_paths, resource_config_name) do
+  @spec parse_template_paths(tuple, map, atom, map, module) :: tuple
+  defp parse_template_paths({tag, key}, paths, resource_config_name, parsed_opts, template) do
+    paths
+    |> Map.get(tag)
+    |> LayoutConfigUI.build_default_layout_paths(resource_config_name, parsed_opts, tag)
+    |> Enum.map_join(&parse_template_path(&1, parsed_opts, tag, template))
+    |> then(&{key, &1})
+  end
+
+  @spec parse_template_path(map, map, atom, module) :: binary
+  defp parse_template_path(path, parsed_opts, :show = tag, template) do
+    path
+    |> expand_fields(parsed_opts, %{disabled: true})
+    |> template.parse_layout(tag)
+  end
+
+  defp parse_template_path(path, parsed_opts, tag, template) do
+    path
+    |> expand_fields(parsed_opts, %{})
+    |> template.parse_layout(tag)
+  end
+
+  @spec locate_layout_paths(tuple, list, atom) :: tuple
+  defp locate_layout_paths({tag, _key}, layout_paths, resource_config_name) do
     layout_paths
-    |> do_find_layout_path(resource_config_name, [])
+    |> locate_layout_paths_by_resource(resource_config_name, tag)
+    |> then(&{tag, &1})
+  end
+
+  @spec fill_missing_paths(map, atom, atom) :: map
+  defp fill_missing_paths(layout_paths, from, to) do
+    layout_paths
+    |> Map.get(from, [])
+    |> fill_missing_paths_recursive(layout_paths[to], from, to)
+    |> then(&Map.put(layout_paths, to, &1))
+  end
+
+  @spec fill_missing_paths_recursive(list, list, atom, atom) :: list
+  defp fill_missing_paths_recursive(from_paths, to_paths, from, to)
+       when is_nil(to_paths) or to_paths == [],
+       do: Enum.map(from_paths, &update_layout_path_tag(&1, from, to))
+
+  defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
+
+  defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
+  defp update_layout_path_tag(path, _from, _to), do: path
+
+  @spec locate_layout_paths_by_resource(list, atom, atom) :: list
+  defp locate_layout_paths_by_resource(layout_paths, resource_config_name, tag) do
+    layout_paths
+    |> locate_layout_paths_recursive(resource_config_name, tag, [])
     |> Enum.reverse()
   end
 
-  @spec do_find_layout_path(list, atom, list) :: list
-  defp do_find_layout_path(
-         [%{tag: :layout, state: _start, config: {:name, resource_config_name}} = path | rest],
+  @spec locate_layout_paths_recursive(list, atom, atom, list) :: list
+  defp locate_layout_paths_recursive(
+         [%{tag: tag, name: resource_config_name, state: :start} = path | rest],
          resource_config_name,
+         tag,
          paths
        ) do
-    append_layout_path(rest, [path | paths])
+    append_layout_path(rest, tag, [path | paths])
   end
 
-  defp do_find_layout_path([_ | rest], resource_config_name, _paths),
-    do: do_find_layout_path(rest, resource_config_name, [])
+  defp locate_layout_paths_recursive([_ | rest], resource_config_name, tag, _paths),
+    do: locate_layout_paths_recursive(rest, resource_config_name, tag, [])
 
-  defp do_find_layout_path([], _resource_config_name, _paths), do: []
+  defp locate_layout_paths_recursive([], _resource_config_name, _tag, _paths), do: []
 
-  @spec append_layout_path(list, list) :: list
-  defp append_layout_path([%{tag: :layout, state: :end} = path | _rest], paths),
+  @spec append_layout_path(list, atom, list) :: list
+  defp append_layout_path([%{tag: tag, state: :end} = path | _rest], tag, paths),
     do: [path | paths]
 
-  defp append_layout_path([], paths), do: paths
-  defp append_layout_path([path | rest], paths), do: append_layout_path(rest, [path | paths])
+  defp append_layout_path([], _tag, paths), do: paths
+
+  defp append_layout_path([path | rest], tag, paths),
+    do: append_layout_path(rest, tag, [path | paths])
 
   @spec expand_fields(map, map, map) :: map
   defp expand_fields(
@@ -228,16 +296,16 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
     overrode_field
     |> elem(0)
-    |> then(&find_field(configured_fields, &1))
+    |> then(&locate_field(configured_fields, &1))
     |> struct(global_overrides)
     |> struct(overrides)
   end
 
   defp expand_field(field, configured_fields, global_overrides),
-    do: configured_fields |> find_field(field) |> struct(global_overrides)
+    do: configured_fields |> locate_field(field) |> struct(global_overrides)
 
-  @spec find_field(list, atom) :: map
-  defp find_field(configured_fields, field) do
+  @spec locate_field(list, atom) :: map
+  defp locate_field(configured_fields, field) do
     Enum.find(configured_fields, &(&1.field == field))
   end
 end

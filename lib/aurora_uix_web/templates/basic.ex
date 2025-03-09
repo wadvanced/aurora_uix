@@ -3,7 +3,7 @@ defmodule AuroraUixWeb.Templates.Basic do
   Entry point for basic template functionality, coordinating layout parsing, logic generation, and markup creation.
 
   Implements the `AuroraUixWeb.Template` behavior by delegating to specialized components:
-  - `LayoutParser`: Handles layout structure parsing
+  - `LayoutParser`: Handles layout structures parsing
   - `LogicModulesGenerator`: Generates business logic modules
   - `MarkupGenerator`: Creates HEEx template fragments
 
