@@ -35,7 +35,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   - **`:tag` (atom):**
     The layout command. Possible values include:
       - Container commands: `:index`, `:form`, `:show`
-      - Sub-layout commands: `:stacked`, `:group`, `:inline`, and `:section`
+      - Sub-layout commands: `:stacked`, `:group`, `:inline`, and `:sections`
 
   - **`:name` (atom):**
     For container layouts (`:index`, `:form`, and `:show`), this key is **required** and holds the resource configuration name to which the layout applies.
@@ -126,9 +126,11 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
       auix_create_ui do
         edit_layout :product do
-          section "Details", [:reference, :name, :description]
-          section "Prices", [:msrp, :rrp, :list_price]
-          section "Images", [:image, :thumbnail]
+          sections do
+            section "Details", [:reference, :name, :description]
+            section "Prices", [:msrp, :rrp, :list_price]
+            section "Images", [:image, :thumbnail]
+          end
         end
       end
     end
@@ -186,21 +188,23 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
       auix_create_ui do
         edit_layout :product do
-          section "Details" do
-            inline do
-              inline [id: [hidden: true]]
-              group "Identification" do
-                inline [reference: [readonly: true]]
-                inline [:name, :description]
+          sections do
+            section "Details" do
+              inline do
+                inline [id: [hidden: true]]
+                group "Identification" do
+                  inline [reference: [readonly: true]]
+                  inline [:name, :description]
+                end
+                group "Quantities", [:quantity_initial, :quantity_entries, quantity_exits, quantity_at_hand]
               end
-              group "Quantities", [:quantity_initial, :quantity_entries, quantity_exits, quantity_at_hand]
+
+              group "Dimensions", [:height, :width, :length]
             end
 
-            group "Dimensions", [:height, :width, :length]
+            section "Prices", [:msrp, :rrp, :list_price]
+            section "Images", [:image, :thumbnail]
           end
-
-          section "Prices", [:msrp, :rrp, :list_price]
-          section "Images", [:image, :thumbnail]
         end
       end
     ```
@@ -276,7 +280,27 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   @spec group(atom, Keyword.t(), any) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
-    register_layout_path_entry(:group, nil, {:title, title}, opts, do_block)
+    register_layout_path_entry(
+      :group,
+      nil,
+      [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
+      opts,
+      do_block
+    )
+  end
+
+  defmacro sections(opts, do_block \\ nil) do
+    register_layout_path_entry(:sections, nil, nil, opts, do_block)
+  end
+
+  defmacro section(label, opts, do_block \\ nil) do
+    register_layout_path_entry(
+      :section,
+      nil,
+      [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
+      opts,
+      do_block
+    )
   end
 
   @doc """
@@ -354,38 +378,71 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   def build_default_layout_paths(paths, _resource_config_name, _parsed_opts, _mode), do: paths
 
+  @doc """
+  Parses a list of paths to handle sections based on the given mode.
+
+  ## Parameters
+  - `paths` (list): A list of path maps representing the layout structure.
+  - `mode` (atom): The mode of parsing, such as `:index` or other modes.
+
+  ## Returns
+  - `list`: A list of parsed paths with sections processed according to the mode.
+
+  ## Examples
+    iex> paths = [
+      %{tag: :sections, state: :start},
+      %{tag: :section, state: :start, config: [tab_id: "tab1", label: "Tab 1"], opts: []},
+      %{tag: :section, state: :end},
+      %{tag: :sections, state: :end}
+      ]
+    iex> parse_sections(paths, :form)
+    [
+      %{
+        tag: :sections,
+        state: :start,
+        config: [%{active: true, label: "Tab 1", tab_id: "tab1"}]
+      },
+      %{
+        tag: :section,
+        state: :start,
+        config: [active: true, tab_id: "tab1", label: "Tab 1"],
+        opts: []
+      },
+      %{tag: :section, state: :end},
+      %{tag: :sections, state: :end}
+    ]
+
+  """
+  @spec parse_sections(list, atom) :: list
+  def parse_sections(paths, mode) when mode in [:form, :show] do
+    parse_section(paths, [])
+  end
+
+  def parse_sections(paths, _mode), do: paths
+
   ## PRIVATE
 
-  @spec register_layout_path_entry(atom, atom, tuple | nil, keyword, any) :: Macro.t()
+  @spec register_layout_path_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
   defp register_layout_path_entry(tag, name, config, opts, do_block) do
     {block, opts} = Uix.extract_block_options(opts, do_block)
 
     registration =
       quote do
         start_attribute =
-          if unquote(name),
-            do: %{
-              tag: unquote(tag),
-              name: unquote(name),
-              state: :start,
-              opts: unquote(opts),
-              config: unquote(config)
-            },
-            else: %{
-              tag: unquote(tag),
-              state: :start,
-              opts: unquote(opts),
-              config: unquote(config)
-            }
+          %{
+            tag: unquote(tag),
+            name: unquote(name),
+            state: :start,
+            opts: unquote(opts),
+            config: unquote(config)
+          }
 
         end_attribute =
-          if unquote(name),
-            do: %{
-              tag: unquote(tag),
-              name: unquote(name),
-              state: :end
-            },
-            else: %{tag: unquote(tag), state: :end}
+          %{
+            tag: unquote(tag),
+            name: unquote(name),
+            state: :end
+          }
 
         Module.put_attribute(__MODULE__, :_auix_layout_paths, start_attribute)
 
@@ -398,4 +455,108 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
       unquote(registration)
     end
   end
+
+  defp unique_titled_id(nil), do: unique_titled_id("untitled")
+  defp unique_titled_id(""), do: unique_titled_id("untitled")
+
+  defp unique_titled_id(title) do
+    slug = normalize_title(title)
+
+    unique_suffix =
+      :md5
+      |> :crypto.hash(title <> to_string(:os.system_time(:millisecond)))
+      |> Base.encode16(case: :lower)
+      |> String.slice(0, 8)
+
+    "#{slug}-#{unique_suffix}"
+  end
+
+  defp normalize_title(title) do
+    title
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9\s-]/, "")
+    |> String.replace(~r/\s+/, "_")
+    |> String.trim("_")
+  end
+
+  @spec parse_section(list, list) :: list
+  defp parse_section([%{tag: :sections, state: :start} = sections_path | paths], result) do
+    {sections, children_paths, remaining_paths} = collect_section_definitions(paths, [], [])
+    single_active_in_sections = ensure_single_active_section(sections)
+
+    single_active_in_children_paths =
+      mark_active_section(children_paths, single_active_in_sections)
+
+    sections_path = Map.put(sections_path, :config, single_active_in_sections)
+    full_sections_paths = [sections_path | single_active_in_children_paths]
+    result = Enum.reduce(full_sections_paths, result, &[&1 | &2])
+    parse_section(remaining_paths, result)
+  end
+
+  defp parse_section([path | paths], result), do: parse_section(paths, [path | result])
+  defp parse_section([], result), do: Enum.reverse(result)
+
+  @spec collect_section_definitions(list, list, list) :: tuple
+  defp collect_section_definitions(
+         [%{tag: :section, state: :start, config: config, opts: opts} = path | paths],
+         sections,
+         children_paths
+       ) do
+    section_data = [
+      %{
+        tab_id: config[:tab_id],
+        label: config[:label],
+        active: Keyword.get(opts, :default, false)
+      }
+      | sections
+    ]
+
+    collect_section_definitions(paths, section_data, [path | children_paths])
+  end
+
+  defp collect_section_definitions(
+         [%{tag: :sections, state: :end} = path | paths],
+         sections,
+         children_paths
+       ) do
+    {Enum.reverse(sections), Enum.reverse([path | children_paths]), paths}
+  end
+
+  defp collect_section_definitions([path | paths], sections, children_paths),
+    do: collect_section_definitions(paths, sections, [path | children_paths])
+
+  @spec ensure_single_active_section(list) :: list
+  defp ensure_single_active_section(sections),
+    do: ensure_single_active_section(sections, Enum.count(sections, & &1.active))
+
+  @spec ensure_single_active_section(list, integer) :: list
+  defp ensure_single_active_section(sections, 0 = _active_count) do
+    sections =
+      Enum.with_index(sections, fn
+        section, 0 -> Map.put(section, :active, true)
+        section, _index -> Map.put(section, :active, false)
+      end)
+
+    sections
+  end
+
+  defp ensure_single_active_section(sections, active_count) when active_count > 1,
+    do: ensure_single_active_section(sections, 0)
+
+  defp ensure_single_active_section(sections, _active_count), do: sections
+
+  @spec mark_active_section(list, list) :: list
+  defp mark_active_section(children_paths, sections) do
+    active_tab = sections |> Enum.find(%{tab_id: ""}, & &1.active) |> Map.get(:tab_id, "")
+
+    Enum.map(children_paths, &mark_active_section_tab(&1, active_tab))
+  end
+
+  defp mark_active_section_tab(
+         %{tag: :section, state: :start, config: config} = path,
+         active_tab
+       ),
+       do: Map.put(path, :config, [{:active, config[:tab_id] == active_tab} | config])
+
+  defp mark_active_section_tab(path, _active_tab), do: path
 end

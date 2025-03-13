@@ -22,13 +22,19 @@ defmodule AuroraUixTestWeb.Router do
     AuroraUixTestWeb.register_crud(Inventory.Views.ProductTransaction, "product_transactions")
 
     # Tests with required CRUD links for testing
-    AuroraUixTestWeb.register_crud(CreateUILayoutTest.TestModule.Product, "ui-layout-products")
+    AuroraUixTestWeb.register_crud(
+      CreateUILayoutTest.TestModule.Product,
+      "create-ui-layout-products"
+    )
 
-    #    live("/products", Inventory.Views.Product.Index, :index)
-    #    live("/products/new", Inventory.Views.Product.Index, :new)
-    #    live("/products/:id/edit", Inventory.Views.Product.Index, :edit)
-    #
-    #    live("/products/:id", Inventory.Views.Product.Show, :show)
-    #    live("/products/:id/show/edit", Inventory.Views.Product.Show, :edit)
+    AuroraUixTestWeb.register_crud(
+      GroupUILayoutTest.TestModule.Product,
+      "group-ui-layout-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      SectionUILayoutTest.TestModule.Product,
+      "section-ui-layout-products"
+    )
   end
 end

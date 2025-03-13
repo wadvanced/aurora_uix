@@ -203,6 +203,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     paths
     |> Map.get(tag)
     |> LayoutConfigUI.build_default_layout_paths(resource_config_name, parsed_opts, tag)
+    |> LayoutConfigUI.parse_sections(tag)
     |> Enum.map_join(&parse_template_path(&1, parsed_opts, tag, template))
     |> then(&{key, &1})
   end

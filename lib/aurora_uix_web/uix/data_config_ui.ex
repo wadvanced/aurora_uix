@@ -103,7 +103,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     resource =
       opts
       |> default_config()
-      |> ResourceConfigUI.change(fields: current)
+      |> ResourceConfigUI.change(fields: Enum.reverse(current))
 
     parse_change(rest, Map.put(acc, name, resource), [])
   end

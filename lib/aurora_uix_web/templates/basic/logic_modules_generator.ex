@@ -2,7 +2,7 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
   @moduledoc """
   Provides functionality to dynamically generate LiveView modules for CRUD operations.
 
-  This module generates LiveView modules for `:index`, `:show`, and `:form` views, including
+  This module generates LiveView modules for `:index`, `:show`, and `:edit` views, including
   functions for rendering, mounting, handling events, and managing entity lifecycle operations
   (e.g., listing, editing, creating, and deleting entities).
 
@@ -13,11 +13,11 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
   - Provides customizable templates and behavior through parsed options.
 
   ## Usage
-  Use `generate_module/3` to create LiveView modules for specific UI types (`:index`, `:show`, `:form`).
+  Use `generate_module/3` to create LiveView modules for specific UI types (`:index`, `:show`, `:edit`).
   The generated modules include:
   - Streamed entity listing for `:index`.
   - Entity detail views for `:show`.
-  - Forms for creating and editing entities for `:form`.
+  - Forms for creating and editing entities for `:edit`.
 
   """
 
@@ -183,7 +183,13 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
              page_title(socket.assigns.live_action, unquote(parsed_opts.name))
            )
            |> assign(:subtitle, " Detail")
+           |> assign_new(:active_tab, fn -> "" end)
            |> assign(:_entity, apply(unquote(modules.context), unquote(get_function), [id]))}
+        end
+
+        @impl true
+        def handle_event("switch_section", %{"tab-id" => tab_id}, socket) do
+          {:noreply, assign(socket, :active_tab, tab_id)}
         end
 
         defp page_title(action, suffix) do
@@ -231,7 +237,8 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
           {:ok,
            socket
            |> assign(assigns)
-           |> assign_new(:form, fn -> form end)}
+           |> assign_new(:form, fn -> form end)
+           |> assign_new(:active_tab, fn -> "" end)}
         end
 
         @impl true
@@ -249,6 +256,11 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
           save_entity(socket, socket.assigns.action, entity_params)
         end
 
+        @impl true
+        def handle_event("switch_section", %{"tab-id" => tab_id}, socket) do
+          {:noreply, assign(socket, :active_tab, tab_id)}
+        end
+
         defp save_entity(socket, :edit, entity_params) do
           case apply(unquote(modules.context), unquote(update_function), [
                  socket.assigns[:entity],
@@ -260,7 +272,7 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
               {:noreply,
                socket
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
-               |> push_navigate(to: socket.assigns.patch, replace: true)}
+               |> push_patch(to: socket.assigns.patch)}
 
             {:error, %Ecto.Changeset{} = changeset} ->
               {:noreply, assign(socket, form: to_form(changeset))}

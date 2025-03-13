@@ -1,8 +1,6 @@
 defmodule AuroraUixTestWeb.CreateUILayoutTest do
   use AuroraUixTest.UICase, :phoenix_case
 
-  # @endpoint AuroraUixTestWeb.Endpoint
-
   defmodule TestModule do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
@@ -12,7 +10,9 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
     auix_resource_config(:product, context: Inventory, schema: Product)
 
-    auix_create_ui link: "ui-layout-products" do
+    # When you define a link in a test, you must add a line to router.exs
+    # See section `Including cases_live tests in the test server` in the README.md file.
+    auix_create_ui link: "create-ui-layout-products" do
       edit_layout :product, [] do
         inline([:reference, :name, :description])
         inline([:quantity_at_hand, :quantity_initial])
@@ -22,11 +22,11 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test UI default with schema, context, basic layout", %{conn: conn} do
-    test_module = AuroraUixTestWeb.CreateUILayoutTest.TestModule
+    test_module = __MODULE__.TestModule
     index_module = Module.concat(test_module, Product.Index)
     assert true == Code.ensure_loaded?(index_module)
 
-    {:ok, view, html} = live(conn, "/ui-layout-products")
+    {:ok, view, html} = live(conn, "/create-ui-layout-products")
     assert html =~ "Listing Products"
     assert html =~ "New Products"
 
@@ -36,7 +36,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/ui-layout-products/new")
+    {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
 
     assert html =~ "New Product"
 
@@ -52,7 +52,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
            )
            |> render_submit() =~ "Listing Products"
 
-    {:ok, _view, new_html} = live(conn, "/ui-layout-products")
+    {:ok, _view, new_html} = live(conn, "/create-ui-layout-products")
 
     assert new_html =~ "Listing Products"
     assert new_html =~ "test-first"

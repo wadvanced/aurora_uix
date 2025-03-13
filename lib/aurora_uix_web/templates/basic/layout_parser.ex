@@ -38,9 +38,9 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
     "</div>\n"
   end
 
-  def parse_layout(%{tag: :group, state: :start, config: {:title, title}}, mode)
+  def parse_layout(%{tag: :group, state: :start, config: config}, mode)
       when mode in [:form, :show] do
-    ~s(<div class="p-3 border rounded-md bg-gray-100">\n  <h3 class="font-semibold text-lg">#{title}</h3>\n)
+    ~s(<div id="#{config[:group_id]}" class="p-3 border rounded-md bg-gray-100">\n  <h3 class="font-semibold text-lg">#{config[:title]}</h3>\n)
   end
 
   def parse_layout(%{tag: :group, state: :end}, mode) when mode in [:form, :show] do
@@ -64,6 +64,37 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   end
 
   def parse_layout(%{tag: :stacked, state: :end}, mode) when mode in [:form, :show] do
+    "</div>\n"
+  end
+
+  def parse_layout(%{tag: :sections, state: :start, config: config}, mode)
+      when mode in [:form, :show] do
+    target = if mode == :form, do: "phx-target={@myself}", else: ""
+
+    buttons_html =
+      Enum.map_join(config, "\n", fn %{label: label, tab_id: tab_id, active: active} ->
+        active_class = if active, do: "active", else: ""
+        ~s(<button type="button" class="tab-button #{active_class}"
+          phx-click="switch_section" phx-value-tab-id="#{tab_id}" #{target}>#{label}</button>)
+      end)
+
+    ~s(<div id="tabs-container-#{mode}" class="tabs-container">\n#{buttons_html}\n<div id="sections-content-#{mode}" class="sections-content">\n)
+  end
+
+  def parse_layout(%{tag: :sections, state: :end}, mode)
+      when mode in [:form, :show] do
+    "</div></div>\n"
+  end
+
+  def parse_layout(%{tag: :section, state: :start, config: config}, mode)
+      when mode in [:form, :show] do
+    active_state =
+      ~s|@active_tab == "#{config[:tab_id]}" or (@active_tab == "" and #{config[:active] || false})|
+
+    ~s(<div :if={#{active_state}} class="section-tab active px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-all duration-200" data-tab-id="#{config[:tab_id]}-#{mode}" data-tab-label="#{config[:label]}">\n)
+  end
+
+  def parse_layout(%{tag: :section, state: :end}, mode) when mode in [:form, :show] do
     "</div>\n"
   end
 
@@ -100,18 +131,18 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
     do_default_field_render(field, opts, mode)
   end
 
-  defp do_default_field_render(%{hidden: true} = field, opts, :form = _mode),
-    do: ~s(<.hidden_input id="#{opts.id}" field={@form[:#{field.field}]}  />)
+  defp do_default_field_render(%{hidden: true} = field, opts, :form = mode),
+    do: ~s(<.hidden_input id="#{opts.id}-#{mode}" field={@form[:#{field.field}]}  />)
 
-  defp do_default_field_render(%{hidden: true} = field, opts, :show = _mode),
+  defp do_default_field_render(%{hidden: true} = field, opts, :show = mode),
     do:
-      ~s(<.hidden_input id="#{opts.id}" name={#{field.field}} value={@_entity.#{field.field}} />)
+      ~s(<.hidden_input id="#{opts.id}-#{mode}" name={#{field.field}} value={@_entity.#{field.field}} />)
 
-  defp do_default_field_render(%{hidden: false} = field, opts, :form = _mode) do
+  defp do_default_field_render(%{hidden: false} = field, opts, :form = mode) do
     ~s(
       <div class="flex flex-col">
         <.input
-          id="#{opts.id}"
+          id="#{opts.id}-#{mode}"
           field={@form[:#{field.field}]}
           type="#{field.html_type}"
           label="#{field.label}"
@@ -122,11 +153,11 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
       )
   end
 
-  defp do_default_field_render(%{hidden: false} = field, opts, :show = _mode) do
+  defp do_default_field_render(%{hidden: false} = field, opts, :show = mode) do
     ~s(
       <div class="flex flex-col">
         <.input
-          id="#{opts.id}"
+          id="#{opts.id}-#{mode}"
           name="#{field.field}"
           type="#{field.html_type}"
           label="#{field.label}"

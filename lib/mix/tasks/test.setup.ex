@@ -17,5 +17,5 @@ defmodule Mix.Tasks.Test.Setup do
   ensuring their applications and GenServers are ready for testing.
   """
   @spec run(list | nil) :: any
-  def run(_args), do: Code.require_file("test/start_dependencies.exs")
+  def run(_args), do: Code.require_file("test/start_test_app.exs")
 end

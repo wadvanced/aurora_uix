@@ -23,13 +23,13 @@ defmodule AuroraUixTestWeb.Inventory.Views do
     edit_layout :product, a: "a-test" do
       inline(name: [], reference: [readonly: true], description: [])
 
-      inline do
-        group "Prices" do
+      sections do
+        section "Prices", default: true do
           inline([:list_price, :rrp])
           inline([:msrp])
         end
 
-        group "Shipping Details" do
+        section "Shipping Details" do
           stacked do
             inline([:length, :width, :height])
             inline([:weight])
