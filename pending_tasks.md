@@ -4,11 +4,11 @@
 - [x] Move `index` module inside `layout_config_ui` module
 - [x] Differentiate form layout from show layout
 - [x] Implement sections
-- [ ] Implement nested sections
-- [ ] Implement section compilation
-- [ ] Can start sections be made during the register_path?
-- [ ] Groups should have a calculated id to be used in rendering and tests.
-- [ ] Improve css on all sections and groups
+- [x] Implement nested sections
+- [x] Groups should have a calculated id to be used in rendering and tests.
+- [ ] Improve css on all: fields, sections and groups
+- [ ] Implement switch and select
+- [ ] Implement @ fields
 - [ ] Create macro for adding a schema to the context and produce all the required functions
 - [ ] Consider pagination for the context functions
 - [ ] Fix the views and input so they can be better

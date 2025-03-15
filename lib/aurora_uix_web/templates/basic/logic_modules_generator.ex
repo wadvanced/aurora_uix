@@ -183,13 +183,20 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
              page_title(socket.assigns.live_action, unquote(parsed_opts.name))
            )
            |> assign(:subtitle, " Detail")
-           |> assign_new(:active_tab, fn -> "" end)
+           |> assign_new(:_auix_sections, fn -> %{} end)
            |> assign(:_entity, apply(unquote(modules.context), unquote(get_function), [id]))}
         end
 
         @impl true
-        def handle_event("switch_section", %{"tab-id" => tab_id}, socket) do
-          {:noreply, assign(socket, :active_tab, tab_id)}
+        def handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
+          %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
+
+          {:noreply,
+           assign(
+             socket,
+             :_auix_sections,
+             Map.put(socket.assigns._auix_sections, sections_id, tab_id)
+           )}
         end
 
         defp page_title(action, suffix) do
@@ -238,7 +245,7 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
            socket
            |> assign(assigns)
            |> assign_new(:form, fn -> form end)
-           |> assign_new(:active_tab, fn -> "" end)}
+           |> assign_new(:_auix_sections, fn -> %{} end)}
         end
 
         @impl true
@@ -257,8 +264,16 @@ defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
         end
 
         @impl true
-        def handle_event("switch_section", %{"tab-id" => tab_id}, socket) do
-          {:noreply, assign(socket, :active_tab, tab_id)}
+        @impl true
+        def handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
+          %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
+
+          {:noreply,
+           assign(
+             socket,
+             :_auix_sections,
+             Map.put(socket.assigns._auix_sections, sections_id, tab_id)
+           )}
         end
 
         defp save_entity(socket, :edit, entity_params) do

@@ -222,13 +222,13 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   end
 
   @doc """
-  Defines a layout for edition form.
+  Defines a layout for an edit form.
 
-  This macro is used within `auix_create_ui` to structure the UI layout for edition of a resource.
+  This macro is used within `auix_create_ui` to structure the UI layout for editing a resource.
 
   ## Parameters
-  - `name` (atom): The name of the UI configuration to apply the layout to.
-  - `opts` (keyword): Additional options for configure the layout.
+  - `name` (atom): The name of the UI configuration to which the layout applies.
+  - `opts` (keyword): Additional options for configuring the layout.
   - `block`: A `do` block containing the layout definition.
 
   ## Example
@@ -244,14 +244,14 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   end
 
   @doc """
-  Defines a layout for show.
+  Defines a layout for a show view.
 
-  This macro is used within `auix_create_ui` to structure the UI layout for display a resource.
-  A show layout definition overrides the default layout that is taken from the form with all fields disabled.
+  This macro is used within `auix_create_ui` to structure the UI layout for displaying a resource.
+  A show layout overrides the default form layout by rendering all fields in a disabled or read-only state.
 
   ## Parameters
-  - `name` (atom): The name of the UI configuration to apply the layout to.
-  - `opts` (keyword): Additional options for configure the layout.
+  - `name` (atom): The name of the UI configuration to which the layout applies.
+  - `opts` (keyword): Additional options for configuring the layout.
   - `block`: A `do` block containing the layout definition.
 
   ## Example
@@ -266,18 +266,71 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     register_layout_path_entry(:show, name, nil, opts, do_block)
   end
 
+  @doc """
+  Defines an inline sub-layout that groups fields horizontally within a form or show container.
+
+  This macro accepts a list of fields (or UI override options) and an optional `do` block for defining nested layouts.
+  It is used to arrange fields side-by-side, either as a standalone block or as part of a larger layout.
+
+  ## Parameters
+  - `fields` (list): A list of field identifiers or keyword options for field-specific UI customizations.
+  - `block`: An optional `do` block containing nested layout definitions.
+
+  ## Examples
+  Inline without a nested block:
+  ```elixir
+    inline [:reference, :name, :description]
+  ```
+  Inline with nested sub-layouts:
+  ```elixir
+    inline do
+      group "Basic Info" do
+        inline [:reference, :name]
+        stacked [:description, :notes]
+      end
+    end
+  ```
+  """
   @spec inline(Keyword.t(), any) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
     {block, fields} = Uix.extract_block_options(fields, do_block)
     register_layout_path_entry(:inline, nil, {:fields, fields}, [], block)
   end
 
+  @doc """
+  Defines a stacked sub-layout that groups fields vertically within a form or show container.
+
+  This macro accepts a list of fields (or UI override options) and an optional `do` block for further nesting.
+  It is typically used to arrange fields one below the other, creating a vertical grouping that aids in visual organization.
+
+  ## Parameters
+  - `fields` (list): A list of field identifiers or keyword options for UI customizations.
+  - `block`: An optional `do` block containing nested layout definitions.
+
+  ## Example
+  ```elixir
+    stacked [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
+  ```
+  """
   @spec stacked(Keyword.t(), any) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
     {block, fields} = Uix.extract_block_options(fields, do_block)
     register_layout_path_entry(:stacked, nil, {:fields, fields}, [], block)
   end
 
+  @doc """
+  Defines a group sub-layout to visually segment related fields under a common title.
+
+  ## Parameters
+  - `title` (string): The title of the group.
+  - `opts` (keyword): Additional options for the group layout.
+  - `block`: An optional `do` block containing nested layout definitions.
+
+  ## Example
+  ```elixir
+    group "Identification", [:reference, :name, :description]
+  ```
+  """
   @spec group(atom, Keyword.t(), any) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
     register_layout_path_entry(
@@ -289,10 +342,46 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     )
   end
 
+  @doc """
+  Defines a sections container that groups multiple section entries into tab-like structures.
+
+  ## Parameters
+  - `opts` (keyword): Additional options for configuring the sections container.
+  - `block`: A `do` block containing one or more `section` definitions.
+
+  ## Example
+  ```elixir
+    sections do
+      section "Details", [:reference, :name]
+      section "Prices", [:msrp, :rrp]
+    end
+  ```
+  """
+  @spec sections(keyword, any) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
-    register_layout_path_entry(:sections, nil, nil, opts, do_block)
+    register_layout_path_entry(
+      :sections,
+      nil,
+      [sections_id: "auix-#{unique_titled_id("sections")}"],
+      opts,
+      do_block
+    )
   end
 
+  @doc """
+  Defines a section within a sections container, representing a tab that contains a specific set of fields.
+
+  ## Parameters
+  - `label` (string): The label for the section.
+  - `opts` (keyword): Additional options for the section layout.
+  - `block`: An optional `do` block for nested layout definitions.
+
+  ## Example
+  ```elixir
+    section "Details", [:reference, :name, :description]
+  ```
+  """
+  @spec section(binary, keyword, any) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
     register_layout_path_entry(
       :section,
@@ -306,20 +395,15 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   @doc """
   Generates a default path structure for rendering UI components based on the given mode.
 
-  This function constructs a list of tagged maps representing UI elements such as `:layout`, `:index`, and `:inline`.
-  It generates a default path when no paths are provided, depending on the specified mode (`:index`, `:form`, or `:show`).
-
   ## Parameters
-
-  - `paths` (`list`) - An existing list of paths. If empty, default paths are generated.
-  - `resource_config_name` (`binary`) - The name of the resource configuration.
-  - `parsed_opts` (`map`) - A map containing parsed options, including:
-    - `:fields` (`list`) - A list of field structures.
-  - `mode` (`atom`) - The rendering mode (`:index`, `:form`, or `:show`).
+  - `paths` (list): An existing list of paths. If empty, default paths are generated.
+  - `resource_config_name` (atom): The resource configuration name.
+  - `parsed_opts` (map): A map containing parsed options, including:
+  - `:fields` (list): A list of field structures.
+  - `mode` (atom): The rendering mode (`:index`, `:form`, or `:show`).
 
   ## Returns
-
-  - `list` - A list of tagged maps representing the UI structure.
+  - `list`: A list of tagged maps representing the UI structure.
 
   ## Modes and Behavior
 
@@ -366,12 +450,12 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   def build_default_layout_paths([], resource_config_name, %{fields: fields} = _parsed_opts, mode)
       when mode in [:form, :show] do
-    inline = Enum.map(fields, & &1.field)
+    stacked = Enum.map(fields, & &1.field)
 
     [
       %{tag: mode, name: resource_config_name, state: :start, config: [], opts: []},
-      %{tag: :inline, state: :start, config: {:fields, inline}, opts: []},
-      %{tag: :inline, state: :end},
+      %{tag: :stacked, state: :start, config: {:fields, stacked}, opts: []},
+      %{tag: :stacked, state: :end},
       %{tag: mode, name: resource_config_name, state: :end}
     ]
   end
@@ -415,7 +499,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   """
   @spec parse_sections(list, atom) :: list
   def parse_sections(paths, mode) when mode in [:form, :show] do
-    parse_section(paths, [])
+    parse_path(paths, [])
   end
 
   def parse_sections(paths, _mode), do: paths
@@ -468,7 +552,9 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
       |> Base.encode16(case: :lower)
       |> String.slice(0, 8)
 
-    "#{slug}-#{unique_suffix}"
+    monotonic = :erlang.unique_integer([:monotonic, :positive])
+
+    "#{slug}-#{unique_suffix}#{monotonic}"
   end
 
   defp normalize_title(title) do
@@ -479,84 +565,108 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     |> String.trim("_")
   end
 
-  @spec parse_section(list, list) :: list
-  defp parse_section([%{tag: :sections, state: :start} = sections_path | paths], result) do
-    {sections, children_paths, remaining_paths} = collect_section_definitions(paths, [], [])
-    single_active_in_sections = ensure_single_active_section(sections)
-
-    single_active_in_children_paths =
-      mark_active_section(children_paths, single_active_in_sections)
-
-    sections_path = Map.put(sections_path, :config, single_active_in_sections)
-    full_sections_paths = [sections_path | single_active_in_children_paths]
-    result = Enum.reduce(full_sections_paths, result, &[&1 | &2])
-    parse_section(remaining_paths, result)
-  end
-
-  defp parse_section([path | paths], result), do: parse_section(paths, [path | result])
-  defp parse_section([], result), do: Enum.reverse(result)
-
-  @spec collect_section_definitions(list, list, list) :: tuple
-  defp collect_section_definitions(
-         [%{tag: :section, state: :start, config: config, opts: opts} = path | paths],
-         sections,
-         children_paths
+  ## Sections parsing
+  @spec parse_path(list, list) :: list
+  defp parse_path(
+         [%{tag: :sections, state: :start, config: config} = sections_path | rest],
+         result
        ) do
-    section_data = [
-      %{
-        tab_id: config[:tab_id],
-        label: config[:label],
-        active: Keyword.get(opts, :default, false)
-      }
-      | sections
-    ]
+    collected =
+      rest
+      |> parse_path([])
+      |> Enum.map(&associate_tabs(&1, config[:sections_id]))
+      |> ensure_single_active_tab(config[:sections_id])
 
-    collect_section_definitions(paths, section_data, [path | children_paths])
+    new_sections_path =
+      collected
+      |> extract_tabs(config[:sections_id])
+      |> then(&Map.put(sections_path, :config, &1))
+
+    result
+    |> add_to_paths(collected)
+    |> add_to_paths(new_sections_path)
   end
 
-  defp collect_section_definitions(
-         [%{tag: :sections, state: :end} = path | paths],
-         sections,
-         children_paths
+  defp parse_path([path | rest], result) do
+    collected = parse_path(rest, [])
+
+    result
+    |> add_to_paths(collected)
+    |> add_to_paths(path)
+  end
+
+  defp parse_path([], result), do: result
+
+  @spec add_to_paths(list, list | map) :: list
+  defp add_to_paths(result, [path | rest]), do: add_to_paths([path | result], rest)
+  defp add_to_paths(result, []), do: Enum.reverse(result)
+  defp add_to_paths(result, single_path), do: [single_path | result]
+
+  @spec associate_tabs(map, binary) :: map
+  defp associate_tabs(
+         %{tag: :section, state: :start, config: config, opts: opts} = section_path,
+         sections_id
        ) do
-    {Enum.reverse(sections), Enum.reverse([path | children_paths]), paths}
+    if Keyword.has_key?(config, :sections_id),
+      do: section_path,
+      else:
+        config
+        |> Keyword.put(:sections_id, sections_id)
+        |> Keyword.put(:active, Keyword.get(opts, :default, false))
+        |> then(&Map.put(section_path, :config, &1))
   end
 
-  defp collect_section_definitions([path | paths], sections, children_paths),
-    do: collect_section_definitions(paths, sections, [path | children_paths])
+  defp associate_tabs(path, _sections_id), do: path
 
-  @spec ensure_single_active_section(list) :: list
-  defp ensure_single_active_section(sections),
-    do: ensure_single_active_section(sections, Enum.count(sections, & &1.active))
-
-  @spec ensure_single_active_section(list, integer) :: list
-  defp ensure_single_active_section(sections, 0 = _active_count) do
-    sections =
-      Enum.with_index(sections, fn
-        section, 0 -> Map.put(section, :active, true)
-        section, _index -> Map.put(section, :active, false)
-      end)
-
-    sections
+  @spec ensure_single_active_tab(list, binary) :: list
+  defp ensure_single_active_tab(paths, sections_id) do
+    active_count = Enum.count(paths, &accept_tab?(&1, sections_id))
+    ensure_single_active_tab(paths, sections_id, active_count)
   end
 
-  defp ensure_single_active_section(sections, active_count) when active_count > 1,
-    do: ensure_single_active_section(sections, 0)
-
-  defp ensure_single_active_section(sections, _active_count), do: sections
-
-  @spec mark_active_section(list, list) :: list
-  defp mark_active_section(children_paths, sections) do
-    active_tab = sections |> Enum.find(%{tab_id: ""}, & &1.active) |> Map.get(:tab_id, "")
-
-    Enum.map(children_paths, &mark_active_section_tab(&1, active_tab))
+  @spec ensure_single_active_tab(list, binary, integer) :: list
+  defp ensure_single_active_tab(paths, sections_id, 0) do
+    paths
+    |> Enum.reduce({[], true}, &mark_active_tab(&1, &2, sections_id))
+    |> elem(0)
+    |> Enum.reverse()
   end
 
-  defp mark_active_section_tab(
-         %{tag: :section, state: :start, config: config} = path,
-         active_tab
-       ),
-       do: Map.put(path, :config, [{:active, config[:tab_id] == active_tab} | config])
+  defp ensure_single_active_tab(paths, _sections_id, 1), do: paths
 
-  defp mark_active_section_tab(path, _active_tab), do: path
+  defp ensure_single_active_tab(paths, sections_id, _count),
+    do: ensure_single_active_tab(paths, sections_id, 0)
+
+  defp mark_active_tab(
+         %{tag: :section, state: :start, config: config} = tab_path,
+         {acc, active},
+         sections_id
+       ) do
+    if config[:sections_id] == sections_id do
+      config
+      |> Keyword.update!(:active, fn _ -> active end)
+      |> then(&Map.put(tab_path, :config, &1))
+      |> then(&{[&1 | acc], false})
+    else
+      {[tab_path | acc], active}
+    end
+  end
+
+  defp mark_active_tab(path, {acc, active}, _sections_id), do: {[path | acc], active}
+
+  @spec accept_tab?(map, binary) :: boolean
+  defp accept_tab?(%{tag: :section, state: :start, config: config}, sections_id),
+    do: config[:sections_id] == sections_id and config[:active]
+
+  defp accept_tab?(_tab, _sections_id), do: false
+
+  @spec extract_tabs(list, binary) :: list
+  defp extract_tabs(paths, sections_id) do
+    paths
+    |> Enum.filter(fn
+      %{tag: :section, state: :start, config: config} -> config[:sections_id] == sections_id
+      _ -> false
+    end)
+    |> Enum.map(&Map.new(&1.config))
+  end
 end

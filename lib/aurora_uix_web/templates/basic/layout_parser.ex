@@ -70,15 +70,23 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   def parse_layout(%{tag: :sections, state: :start, config: config}, mode)
       when mode in [:form, :show] do
     target = if mode == :form, do: "phx-target={@myself}", else: ""
+    monotonic = :erlang.unique_integer([:monotonic, :positive])
 
     buttons_html =
-      Enum.map_join(config, "\n", fn %{label: label, tab_id: tab_id, active: active} ->
-        active_class = if active, do: "active", else: ""
-        ~s(<button type="button" class="tab-button #{active_class}"
-          phx-click="switch_section" phx-value-tab-id="#{tab_id}" #{target}>#{label}</button>)
+      Enum.map_join(config, "\n", fn %{
+                                       label: label,
+                                       tab_id: tab_id,
+                                       sections_id: sections_id,
+                                       active: active
+                                     } ->
+        active_state =
+          ~s|if (@_auix_sections["#{sections_id}"] == "#{tab_id}" or (@_auix_sections["#{sections_id}"] == nil and #{active || false})), do: "active", else: "" |
+
+        ~s(<button type="button" class={"tab-button " <> #{active_state}}
+          phx-click="switch_section" phx-value-tab-id={Jason.encode!%{sections_id: "#{sections_id}", tab_id: "#{tab_id}"}} #{target}>#{label}</button>)
       end)
 
-    ~s(<div id="tabs-container-#{mode}" class="tabs-container">\n#{buttons_html}\n<div id="sections-content-#{mode}" class="sections-content">\n)
+    ~s(<div id="tabs-container-#{monotonic}-#{mode}" class="tabs-container">\n#{buttons_html}\n<div id="sections-content-#{monotonic}-#{mode}" class="sections-content">\n)
   end
 
   def parse_layout(%{tag: :sections, state: :end}, mode)
@@ -89,9 +97,9 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   def parse_layout(%{tag: :section, state: :start, config: config}, mode)
       when mode in [:form, :show] do
     active_state =
-      ~s|@active_tab == "#{config[:tab_id]}" or (@active_tab == "" and #{config[:active] || false})|
+      ~s|@_auix_sections["#{config[:sections_id]}"] == "#{config[:tab_id]}" or (@_auix_sections["#{config[:sections_id]}"] == nil and #{config[:active] || false})|
 
-    ~s(<div :if={#{active_state}} class="section-tab active px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-all duration-200" data-tab-id="#{config[:tab_id]}-#{mode}" data-tab-label="#{config[:label]}">\n)
+    ~s(<div :if={#{active_state}} class="section-tab active px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-all duration-200" data-tab-id="#{config[:tab_id]}" data-tab-label="#{config[:label]}">\n)
   end
 
   def parse_layout(%{tag: :section, state: :end}, mode) when mode in [:form, :show] do
@@ -132,11 +140,11 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   end
 
   defp do_default_field_render(%{hidden: true} = field, opts, :form = mode),
-    do: ~s(<.hidden_input id="#{opts.id}-#{mode}" field={@form[:#{field.field}]}  />)
+    do: ~s(<.input type="hidden" id="#{opts.id}-#{mode}" field={@form[:#{field.field}]}  />)
 
   defp do_default_field_render(%{hidden: true} = field, opts, :show = mode),
     do:
-      ~s(<.hidden_input id="#{opts.id}-#{mode}" name={#{field.field}} value={@_entity.#{field.field}} />)
+      ~s(<.input type="hidden" id="#{opts.id}-#{mode}" name="#{field.field}" value={@_entity.#{field.field}} />)
 
   defp do_default_field_render(%{hidden: false} = field, opts, :form = mode) do
     ~s(

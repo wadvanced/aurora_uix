@@ -67,7 +67,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     quote do
       import AuroraUixWeb.Uix.DataConfigUI
 
-      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: false)
+      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
 
       @before_compile AuroraUixWeb.Uix.DataConfigUI

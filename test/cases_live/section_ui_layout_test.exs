@@ -39,55 +39,21 @@ defmodule AuroraUixTestWeb.SectionUILayoutTest do
     assert_section_button(view, "quantities", 1)
     assert_section_button(view, "sale_prices", 2)
 
-    assert view
-           |> element("#auix-field-quantity_at_hand-form")
-           |> has_element?()
+    assert_field(view, :quantity_at_hand)
+    assert_field(view, :quantity_initial)
 
-    assert view
-           |> element("#auix-field-quantity_initial-form")
-           |> has_element?()
+    refute_field(view, :list_price)
+    refute_field(view, :rrp)
 
-    refute view
-           |> element("#auix-field-list_price-form")
-           |> has_element?()
-
-    refute view
-           |> element("#auix-field-rrp-form")
-           |> has_element?()
-
-    assert view
-           |> element(~s|button[class~="tab-button"]:nth-of-type(2)|)
-           |> render_click() =~ "List price"
+    click_section_button(view, "sale_prices", 2)
 
     assert_section_button(view, "quantities", 1)
     assert_section_button(view, "sale_prices", 2)
 
-    refute view
-           |> element("#auix-field-quantity_at_hand-form")
-           |> has_element?()
+    refute_field(view, :quantity_at_hand)
+    refute_field(view, :quantity_initial)
 
-    refute view
-           |> element("#auix-field-quantity_initial-form")
-           |> has_element?()
-
-    assert view
-           |> element("#auix-field-list_price-form")
-           |> has_element?()
-
-    assert view
-           |> element("#auix-field-rrp-form")
-           |> has_element?()
-  end
-
-  defp assert_section_button(view, section_id, position) do
-    element_html =
-      view
-      |> element(~s|button[class~="tab-button"]:nth-of-type(#{position})|)
-      |> render()
-
-    assert(
-      element_html =~ ~s|phx-value-tab-id="auix-section-#{section_id}|,
-      "Tab button: `#{section_id}` not found at #{position}\n#{element_html}"
-    )
+    assert_field(view, :list_price)
+    assert_field(view, :rrp)
   end
 end

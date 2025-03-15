@@ -36,5 +36,10 @@ defmodule AuroraUixTestWeb.Router do
       SectionUILayoutTest.TestModule.Product,
       "section-ui-layout-products"
     )
+
+    AuroraUixTestWeb.register_crud(
+      NestedSectionsUILayoutTest.TestModule.Product,
+      "nested-sections-ui-layout-products"
+    )
   end
 end

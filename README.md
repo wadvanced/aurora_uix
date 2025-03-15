@@ -12,9 +12,21 @@ def deps do
   ]
 end
 ```
-Then, install the dependencies:
+Install the dependencies:
 ```shell
 mix deps.get
+```
+
+Add aurora_uix to your tailwind.config.js<br>
+add "../dev/aurora_uix/**/*.ex" to content, will look like this:
+```javascript
+module.exports = {
+  content: [
+    "./js/**/*.js",
+    "../lib/aurora_uix_demo_web.ex",
+    "../lib/aurora_uix_demo_web/**/*.*ex",
+    "../dev/aurora_uix/**/*.ex"
+  ],
 ```
 
 ### Usage
