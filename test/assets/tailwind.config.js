@@ -8,8 +8,8 @@ const path = require("path")
 module.exports = {
   content: [
     "./js/**/*.js",
-    "../lib/aurora_uix_web.{ex,exs}",
-    "../lib/aurora_uix_web/**/*.{ex,exs,heex}",
+    "../../lib/aurora_uix_web.{ex,exs}",
+    "../../lib/aurora_uix_web/**/*.{ex,exs,heex}",
     "../support/app_web/aurora_uix_test_web.{ex,exs}",
     "../support/app_web/**/*.{ex,exs,heex}",
   ],

@@ -14,17 +14,39 @@ defmodule AuroraUixTestWeb.NestedSectionsUILayoutTest do
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link: "nested-sections-ui-layout-products" do
       edit_layout :product, [] do
+        # sections_index_1
         sections do
+          # sections_index_1 tab_index_1
           section "References" do
-            inline([:reference, :name, :description])
+            inline([:reference, :name])
+
+            # sections_index_2
+            sections do
+              # sections_index_2 tab_index_1
+              section "Descriptions" do
+                inline([:description, :status])
+              end
+
+              # sections_index_2 tab_index_2
+              section "Specifications" do
+                stacked do
+                  inline([:width, :height, :length])
+                  inline([:weight])
+                end
+              end
+            end
           end
 
+          # sections_index_1 tab_index_2
           section "Information" do
+            # sections_index_3
             sections do
+              # sections_index_3 tab_index_1
               section "Quantities" do
                 inline([:quantity_at_hand, :quantity_initial])
               end
 
+              # sections_index_3 tab_index_2
               section "Sale Prices", default: true do
                 stacked([:list_price, :rrp])
               end
@@ -43,39 +65,143 @@ defmodule AuroraUixTestWeb.NestedSectionsUILayoutTest do
 
     {:ok, view, _html} = live(conn, "/nested-sections-ui-layout-products/new")
 
-    assert_section_button(view, "references", 1)
-    assert_section_button(view, "information", 2)
-    refute_section_button(view, "quantities", :level_2, 1)
-    refute_section_button(view, "sale_prices", :level_2, 2)
+    assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
+    refute_section_button_is_active(view, "information", :sections_index_1, :tab_index_2)
+    assert_section_button_is_active(view, "descriptions", :sections_index_2, :tab_index_1)
+    refute_section_button_is_active(view, "specifications", :sections_index_2, :tab_index_2)
+    refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
+    refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    assert_field(view, :reference)
-    assert_field(view, :name)
-    assert_field(view, :description)
-    refute_field(view, :quantity_at_hand)
-    refute_field(view, :quantity_initial)
-    refute_field(view, :list_price)
-    refute_field(view, :rrp)
+    assert_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+
+    assert_field_is_visible_in_section(
+      view,
+      [:description, :status],
+      :sections_index_2,
+      :tab_index_1
+    )
+
+    refute_field_is_visible_in_section(
+      view,
+      [:width, :height, :length],
+      :sections_index_2,
+      :tab_index_2
+    )
+
+    refute_field_is_visible_in_section(
+      view,
+      [:quantity_at_hand, :quantity_initial],
+      :sections_index_3,
+      :tab_index_1
+    )
+
+    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
 
     click_section_button(view, "information", 2)
-    assert_section_button(view, "quantities", :level_2, 1)
-    assert_section_button(view, "sale_prices", :level_2, 2)
+    refute_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
+    assert_section_button_is_active(view, "information", :sections_index_1, :tab_index_2)
+    refute_section_button_is_active(view, "descriptions", :sections_index_2, :tab_index_1)
+    refute_section_button_is_active(view, "specifications", :sections_index_2, :tab_index_2)
+    refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
+    assert_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    refute_field(view, :reference)
-    refute_field(view, :name)
-    refute_field(view, :description)
-    refute_field(view, :quantity_at_hand)
-    refute_field(view, :quantity_initial)
-    assert_field(view, :list_price)
-    assert_field(view, :rrp)
+    refute_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
 
-    click_section_button(view, "quantities", :level_2, 1)
+    refute_field_is_visible_in_section(
+      view,
+      [:description, :status],
+      :sections_index_2,
+      :tab_index_1
+    )
 
-    refute_field(view, :reference)
-    refute_field(view, :name)
-    refute_field(view, :description)
-    assert_field(view, :quantity_at_hand)
-    assert_field(view, :quantity_initial)
-    refute_field(view, :list_price)
-    refute_field(view, :rrp)
+    refute_field_is_visible_in_section(
+      view,
+      [:width, :height, :length],
+      :sections_index_2,
+      :tab_index_2
+    )
+
+    refute_field_is_visible_in_section(
+      view,
+      [:quantity_at_hand, :quantity_initial],
+      :sections_index_3,
+      :tab_index_1
+    )
+
+    assert_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+
+    click_section_button(view, "quantities", :sections_index_3, :tab_index_1)
+    refute_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
+    assert_section_button_is_active(view, "information", :sections_index_1, :tab_index_2)
+    refute_section_button_is_active(view, "descriptions", :sections_index_2, :tab_index_1)
+    refute_section_button_is_active(view, "specifications", :sections_index_2, :tab_index_2)
+    assert_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
+    refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
+
+    refute_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+
+    refute_field_is_visible_in_section(
+      view,
+      [:description, :status],
+      :sections_index_2,
+      :tab_index_1
+    )
+
+    refute_field_is_visible_in_section(
+      view,
+      [:width, :height, :length],
+      :sections_index_2,
+      :tab_index_2
+    )
+
+    assert_field_is_visible_in_section(
+      view,
+      [:quantity_at_hand, :quantity_initial],
+      :sections_index_3,
+      :tab_index_1
+    )
+
+    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+
+    click_section_button(view, "references", :sections_index_1, :tab_index_1)
+    assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
+    refute_section_button_is_active(view, "information", :sections_index_1, :tab_index_2)
+    assert_section_button_is_active(view, "descriptions", :sections_index_2, :tab_index_1)
+    refute_section_button_is_active(view, "specifications", :sections_index_2, :tab_index_2)
+    refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
+    refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
+
+    click_section_button(view, "specifications", :sections_index_2, :tab_index_2)
+    assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
+    refute_section_button_is_active(view, "information", :sections_index_1, :tab_index_2)
+    refute_section_button_is_active(view, "descriptions", :sections_index_2, :tab_index_1)
+    assert_section_button_is_active(view, "specifications", :sections_index_2, :tab_index_2)
+    refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
+    refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
+
+    assert_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+
+    refute_field_is_visible_in_section(
+      view,
+      [:description, :status],
+      :sections_index_2,
+      :tab_index_1
+    )
+
+    assert_field_is_visible_in_section(
+      view,
+      [:width, :height, :length],
+      :sections_index_2,
+      :tab_index_2
+    )
+
+    refute_field_is_visible_in_section(
+      view,
+      [:quantity_at_hand, :quantity_initial],
+      :sections_index_3,
+      :tab_index_1
+    )
+
+    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
   end
 end

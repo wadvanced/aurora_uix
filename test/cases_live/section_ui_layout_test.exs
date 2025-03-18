@@ -16,11 +16,14 @@ defmodule AuroraUixTestWeb.SectionUILayoutTest do
       edit_layout :product, [] do
         inline([:reference, :name, :description])
 
+        # section_index_1
         sections do
+          # section_index_1, tab_index_1
           section "Quantities" do
             inline([:quantity_at_hand, :quantity_initial])
           end
 
+          # section_index_1, tab_index_2
           section "Sale Prices" do
             stacked([:list_price, :rrp])
           end
@@ -36,24 +39,20 @@ defmodule AuroraUixTestWeb.SectionUILayoutTest do
 
     {:ok, view, _html} = live(conn, "/section-ui-layout-products/new")
 
-    assert_section_button(view, "quantities", 1)
-    assert_section_button(view, "sale_prices", 2)
+    assert_section_button_is_active(view, "quantities", :tab_index_1)
+    refute_section_button_is_active(view, "sale_prices", :tab_index_2)
 
-    assert_field(view, :quantity_at_hand)
-    assert_field(view, :quantity_initial)
+    assert_field_is_visible_in_section(view, [:quantity_at_hand, :quantity_initial], :tab_index_1)
 
-    refute_field(view, :list_price)
-    refute_field(view, :rrp)
+    refute_field_is_visible_in_section(view, [:list_price, :rrp], :tab_index_2)
 
-    click_section_button(view, "sale_prices", 2)
+    click_section_button(view, "sale_prices", :tab_index_2)
 
-    assert_section_button(view, "quantities", 1)
-    assert_section_button(view, "sale_prices", 2)
+    assert_section_button_is_active(view, "quantities", :tab_index_1)
+    assert_section_button_is_active(view, "sale_prices", :tab_index_2)
 
-    refute_field(view, :quantity_at_hand)
-    refute_field(view, :quantity_initial)
+    refute_field_is_visible_in_section(view, [:quantity_at_hand, :quantity_initial], :tab_index_1)
 
-    assert_field(view, :list_price)
-    assert_field(view, :rrp)
+    assert_field_is_visible_in_section(view, [:list_price, :rrp], :tab_index_2)
   end
 end

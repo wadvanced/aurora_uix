@@ -499,7 +499,9 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   """
   @spec parse_sections(list, atom) :: list
   def parse_sections(paths, mode) when mode in [:form, :show] do
-    parse_path(paths, [])
+    paths
+    |> associate_tabs(0, [], [], [], [], [])
+    |> parse_path([])
   end
 
   def parse_sections(paths, _mode), do: paths
@@ -552,9 +554,9 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
       |> Base.encode16(case: :lower)
       |> String.slice(0, 8)
 
-    monotonic = :erlang.unique_integer([:monotonic, :positive])
+    unique_int = :erlang.unique_integer([:positive])
 
-    "#{slug}-#{unique_suffix}#{monotonic}"
+    "#{slug}-#{unique_suffix}#{unique_int}"
   end
 
   defp normalize_title(title) do
@@ -565,58 +567,186 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     |> String.trim("_")
   end
 
+  ## -------------------
   ## Sections parsing
-  @spec parse_path(list, list) :: list
-  defp parse_path(
-         [%{tag: :sections, state: :start, config: config} = sections_path | rest],
-         result
-       ) do
-    collected =
-      rest
-      |> parse_path([])
-      |> Enum.map(&associate_tabs(&1, config[:sections_id]))
-      |> ensure_single_active_tab(config[:sections_id])
+  ## -------------------
 
-    new_sections_path =
-      collected
-      |> extract_tabs(config[:sections_id])
-      |> then(&Map.put(sections_path, :config, &1))
-
-    result
-    |> add_to_paths(collected)
-    |> add_to_paths(new_sections_path)
-  end
-
-  defp parse_path([path | rest], result) do
-    collected = parse_path(rest, [])
-
-    result
-    |> add_to_paths(collected)
-    |> add_to_paths(path)
-  end
-
-  defp parse_path([], result), do: result
-
-  @spec add_to_paths(list, list | map) :: list
-  defp add_to_paths(result, [path | rest]), do: add_to_paths([path | result], rest)
-  defp add_to_paths(result, []), do: Enum.reverse(result)
-  defp add_to_paths(result, single_path), do: [single_path | result]
-
-  @spec associate_tabs(map, binary) :: map
+  @spec associate_tabs(list, integer, list, list, list, list, list) :: list
   defp associate_tabs(
-         %{tag: :section, state: :start, config: config, opts: opts} = section_path,
-         sections_id
+         [%{tag: :sections, state: :start, config: config} = path | rest],
+         sections_index,
+         sections_index_stack,
+         sections_id_stack,
+         tab_index_stack,
+         tab_id_stack,
+         paths
        ) do
-    if Keyword.has_key?(config, :sections_id),
-      do: section_path,
-      else:
-        config
-        |> Keyword.put(:sections_id, sections_id)
-        |> Keyword.put(:active, Keyword.get(opts, :default, false))
-        |> then(&Map.put(section_path, :config, &1))
+    new_sections_index = sections_index + 1
+    new_sections_index_stack = [new_sections_index | sections_index_stack]
+    new_sections_id_stack = [config[:sections_id] | sections_id_stack]
+    new_tab_index_stack = [0 | tab_index_stack]
+
+    new_path =
+      config
+      |> Keyword.put(:sections_index, new_sections_index)
+      |> then(&Map.put(path, :config, &1))
+
+    new_paths = [new_path | paths]
+
+    associate_tabs(
+      rest,
+      new_sections_index,
+      new_sections_index_stack,
+      new_sections_id_stack,
+      new_tab_index_stack,
+      tab_id_stack,
+      new_paths
+    )
   end
 
-  defp associate_tabs(path, _sections_id), do: path
+  defp associate_tabs(
+         [%{tag: :sections, state: :end} = path | rest],
+         sections_index,
+         sections_index_stack,
+         sections_id_stack,
+         tab_index_stack,
+         tab_id_stack,
+         paths
+       ) do
+    {_, new_sections_index_stack} = List.pop_at(sections_index_stack, 0)
+    {_, new_sections_id_stack} = List.pop_at(sections_id_stack, 0)
+    {_, new_tab_index_stack} = List.pop_at(tab_index_stack, 0)
+    new_paths = [path | paths]
+
+    associate_tabs(
+      rest,
+      sections_index,
+      new_sections_index_stack,
+      new_sections_id_stack,
+      new_tab_index_stack,
+      tab_id_stack,
+      new_paths
+    )
+  end
+
+  defp associate_tabs(
+         [%{tag: :section, state: :start, config: config, opts: opts} = path | rest],
+         sections_index,
+         sections_index_stack,
+         sections_id_stack,
+         tab_index_stack,
+         tab_id_stack,
+         paths
+       ) do
+    {current_tab_index, stacked_index} = List.pop_at(tab_index_stack, 0)
+    new_tab_index_stack = [current_tab_index + 1 | stacked_index]
+    new_tab_id_stack = [config[:tab_id] | tab_id_stack]
+
+    new_path =
+      config
+      |> Keyword.merge(
+        sections_index: List.first(sections_index_stack),
+        sections_id: List.first(sections_id_stack),
+        tab_index: List.first(new_tab_index_stack),
+        tab_parent_id: List.first(tab_id_stack),
+        active: Keyword.get(opts, :default, false)
+      )
+      |> then(&Map.put(path, :config, &1))
+
+    associate_tabs(
+      rest,
+      sections_index,
+      sections_index_stack,
+      sections_id_stack,
+      new_tab_index_stack,
+      new_tab_id_stack,
+      [
+        new_path | paths
+      ]
+    )
+  end
+
+  defp associate_tabs(
+         [%{tag: :section, state: :end} = path | rest],
+         sections_index,
+         sections_index_stack,
+         sections_id_stack,
+         tab_index_stack,
+         tab_id_stack,
+         paths
+       ) do
+    {_, new_tab_id_stack} = List.pop_at(tab_id_stack, 0)
+
+    associate_tabs(
+      rest,
+      sections_index,
+      sections_index_stack,
+      sections_id_stack,
+      tab_index_stack,
+      new_tab_id_stack,
+      [path | paths]
+    )
+  end
+
+  defp associate_tabs(
+         [path | rest],
+         sections_index,
+         sections_index_stack,
+         sections_id_stack,
+         tab_index_stack,
+         tab_id_stack,
+         paths
+       ) do
+    associate_tabs(
+      rest,
+      sections_index,
+      sections_index_stack,
+      sections_id_stack,
+      tab_index_stack,
+      tab_id_stack,
+      [path | paths]
+    )
+  end
+
+  defp associate_tabs(
+         [],
+         _sections_index,
+         _sections_index_stack,
+         _sections_id_stack,
+         _tab_index_stack,
+         _tab_id_stack,
+         paths
+       ),
+       do: Enum.reverse(paths)
+
+  @spec parse_path(list, list) :: list
+  defp parse_path([%{tag: :sections, state: :start, config: config} = path | rest], paths) do
+    sections_id = config[:sections_id]
+
+    new_rest = ensure_single_active_tab(rest, sections_id)
+
+    tabs =
+      new_rest
+      |> Enum.filter(&filter_section?(&1, sections_id))
+      |> Enum.map(&Map.new(&1.config))
+
+    new_path =
+      config
+      |> Keyword.put(:tabs, tabs)
+      |> then(&Map.put(path, :config, &1))
+
+    parse_path(new_rest, [new_path | paths])
+  end
+
+  defp parse_path([path | rest], paths), do: parse_path(rest, [path | paths])
+
+  defp parse_path([], paths), do: Enum.reverse(paths)
+
+  @spec filter_section?(map, binary) :: boolean
+  defp filter_section?(%{tag: :section, state: :start, config: config}, sections_id),
+    do: config[:sections_id] == sections_id
+
+  defp filter_section?(_path, _sections_id), do: false
 
   @spec ensure_single_active_tab(list, binary) :: list
   defp ensure_single_active_tab(paths, sections_id) do
@@ -659,14 +789,4 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     do: config[:sections_id] == sections_id and config[:active]
 
   defp accept_tab?(_tab, _sections_id), do: false
-
-  @spec extract_tabs(list, binary) :: list
-  defp extract_tabs(paths, sections_id) do
-    paths
-    |> Enum.filter(fn
-      %{tag: :section, state: :start, config: config} -> config[:sections_id] == sections_id
-      _ -> false
-    end)
-    |> Enum.map(&Map.new(&1.config))
-  end
 end
