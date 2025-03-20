@@ -7,10 +7,13 @@
 - [x] Implement nested sections
 - [x] Groups should have a calculated id to be used in rendering and tests.
 - [x] Improve css on all: fields, sections and groups
-- [ ] Implement switch and select
-- [ ] Implement @ fields
-- [ ] Create macro for adding a schema to the context and produce all the required functions
+- [x] Implement select
 - [ ] Normalize context functions
+- [ ] Implement @ fields (can read values from assigns)
+- [ ] Implement conditional bases on @ fields or functions
+- [ ] Implement switch
+- [ ] Implement color component
+- [ ] Create macro for adding a schema to the context and produce all the required functions
 - [ ] Consider pagination for the context functions
 - [ ] Fix the views and input so they can be better
 - [x] Default to stacked instead of inline

@@ -1,32 +1,27 @@
 defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   @moduledoc ~S"""
-  Provides macros and helper functions to define how resource fields are rendered in the UI.
+  Comprehensive layout configuration system for dynamic UI generation.
 
-  There are **three major layout container types**:
+  ## Layout Hierarchy
+  - Container Layouts: Index, Form, Show
+  - Sub-Layouts: Inline, Stacked, Group, Sections
 
-  1. **Index:**
-     Used for index views to arrange fields horizontally as columns.
-     **Note:** The index layout container requires a `:name` (the resource configuration name) to identify the container.
+  ## Key Features
+  - Declarative UI structure definition
+  - Nested layout support
+  - Compile-time layout generation
+  - Flexible field arrangement
 
-  2. **Form:**
-     Used for editing resources. A form layout container (which also requires a `:name`) starts with a base inline arrangement of fields but can be further customized using additional sub-layout commands.
+  ## Layout Containers
+  1. **Index**: Horizontal field arrangement
+  2. **Form**: Editable field layout
+  3. **Show**: Read-only field display
 
-  3. **Show:**
-     Used for displaying resource details. Like the form layout, the show layout container (requiring a `:name`) renders fields in a disabled or read-only state.
-
-  Within the **form** and **show** layout containers, you can further structure the layout using the following sub-layout commands (which do not require the `:name` key):
-
-  - **stacked:**
-    Arranges fields vertically in a stacked manner.
-
-  - **group:**
-    Groups a set of fields under a common title, allowing you to visually segment related fields.
-
-  - **inline (sub-layout):**
-    In addition to the major inline container for index views, an inline block can be used as a sub-layout in form or show containers to horizontally group fields.
-
-  - **section:**
-    Organizes fields into tab-like sections where only one section is visible at a time. Each section acts as a distinct tab, making it easier to segregate and focus on different groups of fields.
+  ## Sub-Layout Types
+  - `inline`: Horizontal field grouping
+  - `stacked`: Vertical field arrangement
+  - `group`: Visually segmented fields
+  - `sections`: Tab-like field organization
 
   ## Layout Path Structure
 
@@ -222,14 +217,16 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   end
 
   @doc """
-  Defines a layout for an edit form.
-
-  This macro is used within `auix_create_ui` to structure the UI layout for editing a resource.
+  Defines a layout for resource editing.
 
   ## Parameters
-  - `name` (atom): The name of the UI configuration to which the layout applies.
-  - `opts` (keyword): Additional options for configuring the layout.
-  - `block`: A `do` block containing the layout definition.
+  - `name` (atom): Resource configuration name
+  - `opts` (keyword, optional): Additional layout options
+  - `do_block` (optional): Layout definition block
+
+  ## Options
+  - Customization of edit layout behavior
+  - Field-level configurations
 
   ## Example
   ```elixir
@@ -244,15 +241,10 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   end
 
   @doc """
-  Defines a layout for a show view.
-
-  This macro is used within `auix_create_ui` to structure the UI layout for displaying a resource.
-  A show layout overrides the default form layout by rendering all fields in a disabled or read-only state.
-
+  Defines a read-only layout for resource display.
   ## Parameters
-  - `name` (atom): The name of the UI configuration to which the layout applies.
-  - `opts` (keyword): Additional options for configuring the layout.
-  - `block`: A `do` block containing the layout definition.
+  - Similar to `edit_layout/3`
+  - Renders fields in a disabled state
 
   ## Example
   ```elixir
@@ -405,7 +397,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   ## Returns
   - `list`: A list of tagged maps representing the UI structure.
 
-  ## Modes and Behavior
+  ## Modes and Behaviour
 
   - **`:index` mode**: Generates an `:index` structure using all available fields as columns.
   - **`:form` and `:show` modes**: Generates a `:layout` structure containing an `:inline` group with all fields.

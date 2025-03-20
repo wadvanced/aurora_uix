@@ -1,38 +1,44 @@
 defmodule AuroraUix.Parsers.Common do
   @moduledoc """
-  Parse common options and adds the module related values.
+  Handles common parsing logic for extracting metadata from Ecto schema modules.
+
+  Provides mechanisms to:
+  - Extract default values for various module attributes
+  - Generate module-specific metadata
+  - Transform schema information into user-friendly configurations
+
+  Supports a wide range of configuration options for customizing UI generation.
   """
 
-  use AuroraUix.Parsers.BaseParser
+  use AuroraUix.Parsers.ParserCore
 
   @doc """
-  Parse module and common options.
+  Extracts schema metadata and merges common options.
 
   ## PARAMETERS
-  * `module` (module): Schema module to be used for gathering field information.
-  * `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
+  - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
+  - `module` (`module`) - Schema module to be used for gathering field information.
+  - `opts` (`Keyword.t()`) - Configuration options with keys:
     ### Common opts
-    * `actions: [{:top | :bottom, function}]` : Overrides the default list of actions that are displayed at the top or bottom.
-    * `add_opt: []`: List of fields to be added to the default list, duplicated fields are ignored.
-      A proper warning message will be issued.
-    * `add_actions: [{:top | :bottom, function}]`: Adds actions to the current list.
-    * `fields: []`: Fields to be used, overrides the default list.
+    - `actions` - List of {position, function} tuples for UI actions
+    - `add_actions` - Additional actions to append
+    - `fields` -  Fields to be used, overrides the default list.
       The default list is created with all the fields found in the module, excluding
       the redacted fields.
-    * `link: :string`: The link name to use for paths. By default is the same as source.
-    * `name: :string`: Name of the schema. By default, uses the last part of the module name.
-    * `remove: []`: List of fields to be remove from the list.
+    - `link` -  The link name to use for paths. By default, is the same as source.
+    - `name` -  Name of the schema. By default, uses the last part of the module name.
+    - `remove` -  List of fields to be remove from the list.
       trying to remove non-existing fields will log a warning, but no error will be raised.
-    * `remove_actions: [function]`: Removes actions from the current list.
-    * `source` : Key of the data. By default, resolves the source from the schema source value.
+    - `remove_actions` -  Removes actions from the current list.
+    - `source` : Key of the data. By default, resolves the source from the schema source value.
       Uses the function __schema__/1 passing :source as the argument.
-    * `sub_title: string | :hide`: Subtitle for the view, a :hide value will disallow its generation.
-    * `template: Module`: Overrides the module that handles the generation.
+    - `sub_title` -  Subtitle for the view, a :hide value will disallow its generation.
+    - `template` -  Overrides the module that handles the generation.
       By default, uses AuroraUixWeb.AuroraTemplate, which is a sophisticated and highly opinionated template.
       There is also the AuroraUixWeb.PhoenixTemplate, which resembles the phoenix ui.
       The template can also be configured, application wide, by adding :aurora_uix, template: Module.
       New templates can be authored.
-    * `title: string`: Title for the UI. Uses the capitalized schema source as the title.
+    - `title` -  Title for the UI. Uses the capitalized schema source as the title.
       #### Example
       Schema module: GeneralLedger.Account
       Schema source: "accounts"
@@ -82,11 +88,11 @@ defmodule AuroraUix.Parsers.Common do
   end
 
   @doc """
-  Resolves the default value.
+  Resolves default values for schema-derived properties.
 
   ### Parameters
-  * `module (module)`: Schema module.
-  * `key (atom)`: Key value to produce the value from.
+    - `module` (`module`) -  Schema module.
+    - `key` (`atom`) -  Key value to produce the value from.
 
   """
   @spec default_value(module, atom) :: any

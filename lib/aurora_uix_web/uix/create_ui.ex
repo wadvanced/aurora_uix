@@ -1,19 +1,42 @@
 defmodule AuroraUixWeb.Uix.CreateUI do
   @moduledoc """
-    Provides functionality for defining and generating UI layouts and views.
+  Provides a comprehensive framework for dynamically generating UI layouts and views in Phoenix/Elixir applications.
 
-  This module is responsible for creating base layouts, forms, and index views
-  based on the provided schema configurations. It integrates with `AuroraUix.Parser`
-  and `AuroraUixWeb.Uix.CreateUI.LayoutConfigUI` to dynamically generate UI components.
+  ## Key Features
+  - Compile-time UI generation for resources
+  - Flexible layout configuration
+  - Automatic module generation for index, form, and show views
+  - Integration with schema parsing and template generation
 
-  ## Usage
+  ## Core Responsibilities
+  - Define macros for UI configuration
+  - Process schema configurations
+  - Generate UI-related modules dynamically
+  - Support custom layout definitions
 
-  - Use `use AuroraUixWeb.Uix.CreateUI` to import necessary functions and macros.
-  - Optionally, use the `auix_create_ui/2` macro within your module to set custom
-    options for UI generation.
-  - The `create_ui/4` function is automatically invoked at compile time to generate
-    the layouts based on your schema configurations.
+  ## Compilation Workflow
+  1. Module uses `use AuroraUixWeb.Uix.CreateUI`
+  2. Configurations are collected via module attributes
+  3. `__before_compile__/1` macro triggers UI generation
+  4. Modules are dynamically created based on configurations
 
+  ## Examples
+  ```elixir
+    defmodule MyApp.ProductViews do
+      use AuroraUixWeb.Uix.CreateUI
+      auix_create_ui for: :product do
+        index_columns :product, [:name, :price]
+        edit_layout :product do
+          inline [:name, :price]
+        end
+      end
+    end
+  ```
+
+  ## Performance Considerations
+  - UI generation occurs at compile-time
+  - Minimal runtime overhead
+  - Supports complex, nested layouts
   """
 
   alias AuroraUix.Parser
@@ -51,26 +74,31 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   end
 
   @doc """
-  Macro to configure and initiate UI generation within a module.
-
-  This macro allows you to provide custom options and an optional block
-  that defines additional UI configuration. It registers the provided options,
-  and then imports the necessary UI creation functions for compile-time layout generation.
+  Configures and initiates UI generation for a specific module.
 
   ## Parameters
+  - `opts` (keyword): Configuration options for UI generation
+  - `:for` - Specify the target resource
+  - `do_block` (optional): Custom configuration block for advanced layouts
 
-    - `opts` (keyword): A keyword list of options for UI generation.
-    - `do_block` (optional): An optional block to define custom UI elements.
+  ## Options
+  - `for: :resource_name` - Generates UI specifically for the named resource
+  - Custom layout blocks using macros like `index_columns/2`, `edit_layout/2`
 
-  ## Example
-
-      defmodule MyApp.CustomUI do
-        use AuroraUixWeb.Uix.CreateUI
-
-        auix_create_ui for: :user do
-          # Define additional customizations here
-        end
+  ## Examples
+  ```elixir
+    auix_create_ui for: :user do
+      index_columns [:name, :email]
+      edit_layout do
+        inline [:name, :email, :role]
       end
+    end
+  ```
+
+  ## Compile-Time Behavior
+    - Registers module attributes
+    - Prepares for UI generation via @before_compile hook
+
   """
   @spec auix_create_ui(keyword, any) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
@@ -84,7 +112,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   end
 
   @doc """
-  Generates UI layouts based on the provided schema configurations and options.
+  Builds UI layouts based on resource configurations.
 
   This function is the main entry point for dynamic UI generation. It is typically
   invoked during the compile phase via the `@before_compile` callback. Depending on the
@@ -99,14 +127,18 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     - `opts` (keyword): A list of options. If the `:for` key is present, only the layouts
       for the specified schema are generated; otherwise, base layouts for all schemas are created.
 
+  ## Options
+    - :for - Generate UI for a specific resource
+    - Other resource-specific customization options
+
   ## Returns
 
   A list of generated UI layout modules.
 
-  ## Example
+  ## Behavior
+  - If :for is provided, generates layouts for the specific resource
+  - Otherwise, generates base layouts for all configured resources
 
-      # Within the __before_compile__ callback or a custom UI module:
-      generated_layouts = create_ui(MyApp.UI, resource_configs, layout_paths, for: :user)
   """
   @spec build_ui(any, map | nil, list, keyword) :: list
   def build_ui(caller, auix_resource_configs_ui, layout_paths, opts) do

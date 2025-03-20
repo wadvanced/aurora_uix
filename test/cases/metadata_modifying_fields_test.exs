@@ -14,6 +14,7 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
       # :height field properties are changed again, the last one should be the one prevailing
       field(:height, scale: 1)
       field(:data_virtual, html_type: :checkbox)
+      field(:status, data: [:in_stock, :discontinued, :online_only, :in_store_only])
     end
   end
 
@@ -28,7 +29,8 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
       width: %{precision: 16, scale: 3},
       # Order is important, scale is changed, once again on the :height field
       height: %{precision: 16, scale: 1},
-      data_virtual: %{html_type: :checkbox}
+      data_virtual: %{html_type: :checkbox},
+      status: %{data: [:in_stock, :discontinued, :online_only, :in_store_only]}
     )
   end
 end

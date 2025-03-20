@@ -7,6 +7,9 @@ defmodule AuroraUix.Field do
     - `name` (`binary`) - The field's name as a binary.
     - `html_type` (`atom`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `renderer` (`function`) - A custom rendering function for the field.
+    - `data` (`any`) - A general purpose field.
+        Template parser expect specific format for this data, according to any of the field value.
+        Refer to the template documentation to learn special fields data structure.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
     - `length` (`non_neg_integer`) - Maximum allowed length of input (used for validations).
@@ -25,6 +28,7 @@ defmodule AuroraUix.Field do
     :field,
     :html_type,
     :renderer,
+    :data,
     name: "",
     label: "",
     placeholder: "",
@@ -42,6 +46,7 @@ defmodule AuroraUix.Field do
           field: atom | nil,
           html_type: atom | nil,
           renderer: function | nil,
+          data: any | nil,
           name: binary,
           label: binary,
           placeholder: binary,
@@ -70,6 +75,7 @@ defmodule AuroraUix.Field do
         field: :age,
         html_type: :float,
         renderer: nil,
+        data: nil,
         name: "age",
         label: "",
         placeholder: "",
@@ -89,6 +95,7 @@ defmodule AuroraUix.Field do
         field: :username,
         html_type: :text,
         renderer: nil,
+        data: nil,
         name: "username",
         label: "",
         placeholder: "",
@@ -121,6 +128,7 @@ defmodule AuroraUix.Field do
           field: :age,
           html_type: nil,
           renderer: nil,
+          data: nil,
           name: "age",
           label: "",
           placeholder: "",
@@ -138,6 +146,7 @@ defmodule AuroraUix.Field do
           field: :age,
           html_type: :number,
           renderer: nil,
+          data: nil,
           name: "age",
           label: "",
           placeholder: "",

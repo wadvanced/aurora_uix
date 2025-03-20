@@ -1,18 +1,32 @@
 defmodule AuroraUixWeb.Uix.DataConfigUI do
   @moduledoc """
-  Provides declarative UI configuration for structured data in Phoenix LiveView.
+  Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
-  This module enables UI metadata management for any structured data format, with
-  first-class support for Phoenix LiveView components. While particularly useful
-  with Ecto schemas, it can configure any data structure that provides field
-  definitions.
+  ## Overview
+  This module enables rich, metadata-driven UI configuration for data structures, with a focus on:
+  - Flexible field-level UI metadata management
+  - Seamless integration with Phoenix LiveView
+  - Type-aware default generation
+  - Cross-structure configuration inheritance
 
-  ## Key Features
-  - Field-level UI metadata (labels, placeholders, validation rules).
-  - Cross-structure configuration inheritance.
-  - LiveView component integration.
-  - Type-aware default generation.
-  - Association-aware configuration.
+  ## Key Capabilities
+  - Declarative field configuration (labels, placeholders, validation)
+  - Automatic type inference for HTML input types
+  - Support for Ecto schemas and custom data structures
+  - Customizable rendering and interaction rules
+
+  ## Configuration Strategies
+  - Field-level customization
+  - Bulk field configuration
+  - Automatic default generation based on field types
+  - Inheritance and extension of configurations
+
+  ## Supported Field Attributes
+  - Labels and placeholders
+  - Input types and lengths
+  - Validation rules
+  - Rendering options (readonly, hidden, disabled)
+  - Precision and scale for numeric fields
 
   ## Example
 
@@ -56,6 +70,11 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       end
     end
   ```
+
+  ## Performance and Flexibility
+  - Minimal runtime overhead
+  - Compile-time configuration generation
+  - Extensible through custom parsing and rendering strategies
   """
 
   alias AuroraUix.Field
@@ -69,6 +88,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
       Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
+      Module.register_attribute(__MODULE__, :_auix_select_options, accumulate: true)
 
       @before_compile AuroraUixWeb.Uix.DataConfigUI
     end
@@ -91,40 +111,20 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     :ok
   end
 
-  defp parse_change([%{tag: :resource, state: :start} | rest], acc, _current) do
-    parse_change(rest, acc, [])
-  end
-
-  defp parse_change(
-         [%{tag: :resource, name: name, config: opts, state: :end} | rest],
-         acc,
-         current
-       ) do
-    resource =
-      opts
-      |> default_config()
-      |> ResourceConfigUI.change(fields: Enum.reverse(current))
-
-    parse_change(rest, Map.put(acc, name, resource), [])
-  end
-
-  defp parse_change([%{tag: :field, field: field, opts: opts} | rest], acc, current) do
-    parse_change(rest, acc, [{field, Map.new(opts)} | current])
-  end
-
-  defp parse_change([], acc, _current), do: acc
-
   @doc """
-  Defines UI configuration for a schema.
+  Defines a declarative UI configuration for a specific resource (schema).
+
+  Enables comprehensive UI metadata management for structured data, supporting
+  dynamic configuration of fields, associations, and rendering strategies.
 
   ## Parameters
-    - `name` (atom) - Identifier for the configuration block.
-    - `opts` (keyword) - Configuration options.
+  - `name` (atom): A unique identifier for the resource configuration
+  - `opts` (keyword): Configuration options for the resource
 
   ## Options
-    - `:schema` (`module`) (required) - Struct module being configured, usually an Ecto schema.
-    - `:context` (`module`) - Context module containing data access functions.
-    - `:include_associations` (`boolean`) - Auto configure associations (default: false).
+  - `:schema` (module, required): The Ecto schema or data structure being configured
+  - `:context` (module, optional): Context module containing data access functions
+  - `:include_associations` (boolean, default: false): Automatically configure associations
 
   ## Example
     ```elixir
@@ -134,6 +134,11 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
     ```
+
+  ## Behaviour
+  - Initializes a new resource configuration block
+  - Allows nested field configuration
+  - Generates default configurations based on schema metadata
   """
   defmacro auix_resource_config(name, opts \\ [], do_block \\ nil) do
     {block, opts} = Uix.extract_block_options(opts, do_block)
@@ -164,15 +169,15 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   end
 
   @doc """
-  Adds or updates UI metadata for a single field.
+  Configures a single field within a resource configuration.
 
-  This macro allows customization of individual fields, such as setting labels, placeholders, types, and validation rules.
-  The updates are stored in the schema metadata registered in the current module.
+  Provides fine-grained control over field presentation, validation,
+  and interaction rules. Supports comprehensive customization of
+  individual fields.
 
   ## Parameters
-
-  - `field` (atom) - The name of the field.
-  - `opts` (keyword) - A keyword list of field presentation options.
+  - `field` (atom): The name of the field to configure
+  - `opts` (keyword): Field-specific configuration options
 
   ## Options
 
@@ -214,9 +219,12 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   @doc """
   Applies configuration to multiple fields simultaneously.
 
+  Enables bulk configuration of fields, reducing repetitive code
+  and promoting consistent field settings across multiple attributes.
+
   ## Parameters
-    - `fields` ([atom]) - List of fields to be configured.
-    - `opts` (keyword) - A keyword list of fields' options. See `field/2` for options' details.
+  - `fields` (list of atoms): Fields to be configured
+  - `opts` (keyword): Configuration options applied to all specified fields
 
   ## Example
   ```elixir
@@ -275,6 +283,31 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   end
 
   ## PRIVATE
+
+  @spec parse_change(list, map, list) :: map
+  defp parse_change([%{tag: :resource, state: :start} | rest], acc, _current) do
+    parse_change(rest, acc, [])
+  end
+
+  defp parse_change(
+         [%{tag: :resource, name: name, config: opts, state: :end} | rest],
+         acc,
+         current
+       ) do
+    resource =
+      opts
+      |> default_config()
+      |> ResourceConfigUI.change(fields: Enum.reverse(current))
+
+    parse_change(rest, Map.put(acc, name, resource), [])
+  end
+
+  defp parse_change([%{tag: :field, field: field, opts: opts} | rest], acc, current) do
+    parse_change(rest, acc, [{field, Map.new(opts)} | current])
+  end
+
+  defp parse_change([], acc, _current), do: acc
+
   @spec parse_fields(module | nil) :: list
   defp parse_fields(nil), do: []
 

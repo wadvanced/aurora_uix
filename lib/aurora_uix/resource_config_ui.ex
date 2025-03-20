@@ -1,21 +1,25 @@
 defmodule AuroraUix.ResourceConfigUI do
   @moduledoc """
-  Provides a structure and functions to manage metadata for schemas and contexts.
+  Manages comprehensive metadata configuration for schemas and their associated UI representations.
 
-  The `AuroraUix.ResourceConfigUI` module defines a struct that holds metadata information
-  about a schema, its context, and additional fields. It also provides functions
-  to create and update this metadata.
+  This module provides a flexible struct and utility functions for:
+  - Defining schema-specific UI configurations
+  - Managing dynamic field definitions
+  - Supporting complex UI generation scenarios
+
+  Key features:
+  - Supports custom field configurations
+  - Allows runtime modification of schema metadata
+  - Integrates with other AuroraUix parsing components
   """
   alias AuroraUix.Field
 
-  defstruct [:schema, :context, fields: [], form_layout: [], list_layout: []]
+  defstruct [:schema, :context, fields: []]
 
   @type t() :: %__MODULE__{
           schema: module,
           context: module | nil,
-          fields: list(Field.t()),
-          form_layout: [],
-          list_layout: []
+          fields: list(Field.t())
         }
 
   @doc """
@@ -29,7 +33,7 @@ defmodule AuroraUix.ResourceConfigUI do
   ## Examples
 
       iex> AuroraUix.ResourceConfigUI.new()
-      %AuroraUix.ResourceConfigUI{schema: nil, context: nil, fields: [], form_layout: []}
+      %AuroraUix.ResourceConfigUI{schema: nil, context: nil, fields: []}
 
       iex> AuroraUix.ResourceConfigUI.new(%{schema: MySchema, fields: [AuroraUix.Field.new(field: :custom_field)]})
       %AuroraUix.ResourceConfigUI{
@@ -40,6 +44,7 @@ defmodule AuroraUix.ResourceConfigUI do
             field: :custom_field,
             html_type: nil,
             renderer: nil,
+            data: nil,
             name: "custom_field",
             label: "",
             placeholder: "",
@@ -52,9 +57,7 @@ defmodule AuroraUix.ResourceConfigUI do
             disabled: false,
             omitted: false
           }
-        ],
-        form_layout: [],
-        list_layout: []
+        ]
       }
   """
   @spec new(map | keyword) :: __MODULE__.t()
@@ -75,9 +78,7 @@ defmodule AuroraUix.ResourceConfigUI do
       %AuroraUix.ResourceConfigUI{
         schema: MySchema,
         context: MyContext,
-        fields: [],
-        form_layout: [],
-        list_layout: []
+        fields: []
       }
       iex> AuroraUix.ResourceConfigUI.change(metadata, context: nil, fields: [AuroraUix.Field.new(field: :reference)])
       %AuroraUix.ResourceConfigUI{
@@ -88,6 +89,7 @@ defmodule AuroraUix.ResourceConfigUI do
             field: :reference,
             html_type: nil,
             renderer: nil,
+            data: nil,
             name: "reference",
             label: "",
             placeholder: "",
@@ -100,9 +102,7 @@ defmodule AuroraUix.ResourceConfigUI do
             disabled: false,
             omitted: false
           }
-        ],
-        form_layout: [],
-        list_layout: []
+        ]
       }
 
       iex> metadata = %AuroraUix.ResourceConfigUI{schema: MySchema, fields: [AuroraUix.Field.new(field: :reference)]}
@@ -114,6 +114,7 @@ defmodule AuroraUix.ResourceConfigUI do
             field: :reference,
             html_type: nil,
             renderer: nil,
+            data: nil,
             name: "reference",
             label: "",
             placeholder: "",
@@ -126,9 +127,7 @@ defmodule AuroraUix.ResourceConfigUI do
             disabled: false,
             omitted: false
           }
-        ],
-        form_layout: [],
-        list_layout: []
+        ]
       }
       iex> AuroraUix.ResourceConfigUI.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
       %AuroraUix.ResourceConfigUI{
@@ -139,6 +138,7 @@ defmodule AuroraUix.ResourceConfigUI do
             field: :reference,
             html_type: nil,
             renderer: nil,
+            data: nil,
             name: "reference",
             label: "My reference",
             placeholder: "",
@@ -155,6 +155,7 @@ defmodule AuroraUix.ResourceConfigUI do
             field: :description,
             html_type: nil,
             renderer: nil,
+            data: nil,
             name: "description",
             label: "My description",
             placeholder: "",
@@ -167,9 +168,7 @@ defmodule AuroraUix.ResourceConfigUI do
             disabled: false,
             omitted: false
           }
-        ],
-        form_layout: [],
-        list_layout: []
+        ]
       }
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()

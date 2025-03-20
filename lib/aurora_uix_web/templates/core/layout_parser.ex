@@ -1,33 +1,73 @@
-defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
+defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   @moduledoc """
-  Provides functionality to parse and render layout structures for UI templates.
+  Advanced layout parsing and rendering system for dynamic UI template generation.
 
-  This module is responsible for generating HTML structures for layouts, groups, and fields
-  based on configuration and mode (`:form` or `:show`). It supports dynamic rendering of
-  fields, including custom renderers, and handles disabled or hidden fields appropriately.
+  ## Parsing Capabilities
+  Supports complex layout structures with multiple rendering modes:
+  - Form-based layouts
+  - Entity detail (show) layouts
+  - Nested section management
+  - Dynamic field rendering
 
-  ## Key Features
-  - Parses and renders layouts, groups, and fields into HTML.
-  - Supports inline and stacked field arrangements.
-  - Handles custom field renderers and default rendering logic.
-  - Skips disabled fields and manages hidden fields gracefully.
+  ## Layout Parsing Features
+  - Intelligent field rendering
+  - Custom renderer support
+  - Mode-specific (form/show) layout generation
+  - Nested section and group handling
+  - Responsive design considerations
+
+  ## Parsing Modes
+  - `:form`: Interactive data entry layouts
+  - `:show`: Read-only entity detail representations
+  - `:index`: Columnar data listing configurations
+
+  ## Rendering Strategies
+  1. Analyze layout configuration
+  2. Process layout tags
+  3. Render fields with intelligent defaults
+  4. Support custom rendering mechanisms
+  5. Generate semantically structured HTML
+
+  ## Key Rendering Components
+  - Inline and stacked field layouts
+  - Grouped field sections
+  - Hidden and read-only field handling
+  - Dynamic tab and section generation
+
+  ## Custom Rendering
+  Supports field-level custom renderers via function injection,
+  allowing complete customization of field appearance and behavior.
+
+  ## Design Principles
+  - Minimal configuration overhead
+  - Flexible rendering strategies
+  - Consistent UI generation
+  - Extensible field handling
   """
 
   @doc """
-  Parses a layout configuration and returns the corresponding HTML.
-
-  This function handles various layout configurations, including:
-  - Layouts (start and end).
-  - Groups (start and end).
-  - Inline fields (start and end).
-  - Stacked fields (start and end).
+  Parses layout configurations and generates corresponding HTML structure.
 
   ## Parameters
-  - `config` (`map`): A map containing layout configuration (e.g., `:tag`, `:state`, `:config`).
-  - `mode` (`atom`): The rendering mode (`:form` or `:show`).
+  - `config` (map): Layout configuration defining structure and rendering details
+  - `tag`: Layout type (:form, :show, :group, etc.)
+  - `state`: Rendering state (:start, :end)
+  - `name`: Optional layout identifier
+  - `config`: Detailed rendering configuration
+
+  - `mode` (atom): Rendering mode (:form, :show, :index)
 
   ## Returns
-  - `binary`: The generated HTML string.
+  HEEX - HTML string representing the parsed layout configuration
+
+  ## Supported Layout Tags
+  - `:form`: Form-based layouts
+  - `:show`: Entity detail layouts
+  - `:index`: Column based layout for rendering lists
+  - `:group`: Grouped field sections
+  - `:inline`: Inline field arrangements
+  - `:stacked`: Vertically stacked fields
+  - `:sections`: Tabbed content sections
   """
   @spec parse_layout(map, atom) :: binary
   def parse_layout(%{tag: mode, state: :start, name: name}, mode) when mode in [:form, :show] do
@@ -164,6 +204,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
 
   # Renders individual fields
   # Skip disabled fields
+  @spec render_field(AuroraUix.Field.t(), atom) :: binary
   defp render_field(%AuroraUix.Field{omitted: true}, _mode), do: ""
 
   defp render_field(%AuroraUix.Field{} = field, mode) do
@@ -173,6 +214,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
     end
   end
 
+  @spec default_field_render(AuroraUix.Field.t(), atom) :: binary
   defp default_field_render(field, mode) do
     input_classes = ~s"block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500
       focus:ring-indigo-500 sm:text-sm"
@@ -187,6 +229,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
     do_default_field_render(field, opts, mode)
   end
 
+  @spec do_default_field_render(AuroraUix.Field.t(), map, atom) :: binary
   defp do_default_field_render(%{hidden: true} = field, opts, :form = mode),
     do:
       ~s(<input type="hidden" id="#{opts.id}-#{mode}" name={@form[:#{field.field}].name} value={@form[:#{field.field}].value}  />)
@@ -196,6 +239,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
       ~s(<input type="hidden" id="#{opts.id}-#{mode}" name="#{field.field}" value={@_entity.#{field.field}} />)
 
   defp do_default_field_render(%{hidden: false} = field, opts, :form = mode) do
+    select_opts = get_select_options(field)
     input_field_classes = "flex flex-col"
     ~s(
       <div class="#{input_field_classes}">
@@ -204,6 +248,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
           field={@form[:#{field.field}]}
           type="#{field.html_type}"
           label="#{field.label}"
+          #{select_opts}
           #{opts.readonly}
           #{opts.disabled}
           class="#{opts.input_class}"/>
@@ -212,6 +257,7 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
   end
 
   defp do_default_field_render(%{hidden: false} = field, opts, :show = mode) do
+    select_opts = get_select_options(field)
     input_field_classes = "flex flex-col"
     ~s(
       <div class="#{input_field_classes}">
@@ -221,10 +267,28 @@ defmodule AuroraUixWeb.Templates.Basic.LayoutParser do
           type="#{field.html_type}"
           label="#{field.label}"
           value={@_entity.#{field.field}}
+          #{select_opts}
           #{opts.readonly}
           #{opts.disabled}
           class="#{opts.input_class}"/>
       </div>
       )
   end
+
+  @spec get_select_options(map) :: binary
+  defp get_select_options(%{html_type: :select, data: data}) do
+    opts =
+      data[:opts]
+      |> Enum.map_join(", ", fn {label, value} ->
+        ~s({"#{label}", "#{value}"})
+      end)
+      |> then(&"options={[#{&1}]}")
+
+    multiple = if data[:multiple], do: "multiple={true}", else: ""
+
+    ~s(#{opts}
+      #{multiple})
+  end
+
+  defp get_select_options(_field), do: ""
 end

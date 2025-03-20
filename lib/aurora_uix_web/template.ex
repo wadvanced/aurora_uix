@@ -1,15 +1,38 @@
 defmodule AuroraUixWeb.Template do
   @moduledoc """
-  Templates are expected to implement this behavior.
+  A core module for template generation and management in Aurora UIX, providing a standardized
+  behavior and utility functions for creating dynamic UI templates.
 
-  Template implementations are responsible for generating HEEx templates and handler code.
+  ## Key Responsibilities
+  - Define a behavior for template implementations
+  - Provide utility functions for template processing
+  - Support dynamic template generation with interpolation
+  - Validate and compile template modules
 
-  Most pre-processing occurs outside the template implementation,
-  so each function must strictly adhere to the specified parameter types and expected return values.
+  ## Template Behaviour Requirements
+  Templates must implement the following key callbacks:
+  - `generate_view/2`: Generate HTML code fragments
+  - `generate_module/3`: Generate handling code for UI components
+  - `parse_layout/2`: Create layout HTML code
 
-  Each callback includes detailed documentation to assist implementors.
+  ## Flow of Template Processing
+  1. Initialize template configuration
+  2. Parse layout and field definitions
+  3. Generate view components
+  4. Compile HEEx templates
+  5. Produce final handler code
 
-  ## Flow for UIX
+  ### Template Validation
+  The module ensures that template implementations:
+  - Implement the required behavior
+  - Provide all necessary callback functions
+  - Meet the specified interface contract
+
+  ### Interpolation Support
+  Supports simple string interpolation using `[[key]]` syntax, allowing dynamic
+  template generation based on provided configuration.
+
+  ### Flow processing view
 
   ```mermaid
   flowchart TD
@@ -55,13 +78,12 @@ defmodule AuroraUixWeb.Template do
   %% Assign styles
   class INIT_TITLE,PARSE_TITLE,GEN_TITLE,OUT_TITLE groupTitle;
 
-
   ```
   """
 
   alias AuroraUixWeb.Template
 
-  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Basic)
+  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Core)
   @uix_valid_types [:index, :form, :show]
 
   @doc """

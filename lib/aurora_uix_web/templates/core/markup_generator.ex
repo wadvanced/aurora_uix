@@ -1,44 +1,64 @@
-defmodule AuroraUixWeb.Templates.Basic.MarkupGenerator do
+defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   @moduledoc """
-  A module for generating basic HEEx templates for different UI component types.
+  Responsible for generating standardized HEEx template fragments for different UI component types.
 
-  This module provides the, `generate_view/2` function implementations,
-  which creates HEEx template fragments based on the specified type.
-  Currently, it supports the following types:
+  ## Template Generation Capabilities
+  Supports multiple UI template types with predefined structures:
+  - `:index`: Comprehensive listing view with tables, actions, and modals
+  - `:show`: Detailed entity view with dynamic sections and editing capabilities
+  - `:form`: Interactive form generation with validation and section management
 
-  - `:index`: Generates a template for a list.
-  - `:show`: Generates a template for showing an entity.
-  - `:form`: Generates a template for a form.
+  ## Key Features
+  - Dynamic template generation based on configuration
+  - Consistent UI component structure
+  - Integrated with Phoenix LiveView components
+  - Supports interpolation and custom configuration
+
+  ## Template Rendering Strategy
+  1. Accept configuration map
+  2. Apply interpolation via `Template.build_html/2`
+  3. Generate semantically structured HEEx templates
+  4. Support extensible rendering through parsed options
+
+  ## Supported Template Types
+  - Index Listings: Table-based views with CRUD actions
+  - Show Views: Detailed entity representation
+  - Form Views: Interactive data entry interfaces
+
+  ### Design Principles
+  - Minimal configuration overhead
+  - Consistent UI/UX across generated templates
+  - Flexible and extensible template generation
 
   ## Examples
 
   ```elixir
-  iex> AuroraUixWeb.Templates.Basic.MarkupGenerator.generate_view(:index, %{})
+  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:index, %{})
   # => "<h1>Base Template</h1>list"
 
-  iex> AuroraUixWeb.Templates.Basic.MarkupGenerator.generate_view(:index, %{})
+  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:index, %{})
   # => "<h1>Base Template</h1>card"
 
-  iex> AuroraUixWeb.Templates.Basic.MarkupGenerator.generate_view(:form, %{})
+  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:form, %{})
   # => "<h1>Base Template</h1>form"
   ```
+
+  Provides a standardized approach to generating complex UI templates
+  with minimal manual intervention.
   """
 
   alias AuroraUixWeb.Template
 
   @doc """
-  Generates a basic HEEx template fragment for the specified type.
+  Generates a HEEx template fragment for the specified UI component type.
 
   ## Parameters
 
-  - `type` (atom): Specifies the type of template to generate.
-    Supported values: `:index`, `:card`, `:form`.
-
-  - `parsed_opts` (map): A map of options (currently unused in this implementation).
+  - `type` (atom): Specifies the template type (:index, :show, :form)
+  - `parsed_opts` (map): Configuration options for template generation
 
   ## Returns
-
-  - `binary`: A HEEx template corresponding to the specified type.
+  A binary representing the HEEx template fragment
 
   ## Examples
 

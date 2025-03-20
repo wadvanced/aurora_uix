@@ -1,60 +1,102 @@
-defmodule AuroraUixWeb.Templates.Basic.LogicModulesGenerator do
+defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
   @moduledoc """
-  Provides functionality to dynamically generate LiveView modules for CRUD operations.
+  Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
-  This module generates LiveView modules for `:index`, `:show`, and `:edit` views, including
-  functions for rendering, mounting, handling events, and managing entity lifecycle operations
-  (e.g., listing, editing, creating, and deleting entities).
+  ## Module Generation Capabilities
+  Automatically generates complete LiveView modules with:
+  - Comprehensive CRUD operations
+  - Dynamic event handling
+  - Integrated form validation
+  - Flexible rendering strategies
 
-  ## Key Features
-  - Dynamically generates LiveView modules based on the provided context and schema.
-  - Supports standard CRUD operations for entities.
-  - Integrates with Ecto schemas and contexts for data access and manipulation.
-  - Provides customizable templates and behavior through parsed options.
+  ## Generation Strategies
+  Supports multiple UI component types:
+  - `:index`: Streamed entity listings
+  - `:show`: Detailed entity views
+  - `:form`: Interactive data entry and editing
 
-  ## Usage
-  Use `generate_module/3` to create LiveView modules for specific UI types (`:index`, `:show`, `:edit`).
-  The generated modules include:
-  - Streamed entity listing for `:index`.
-  - Entity detail views for `:show`.
-  - Forms for creating and editing entities for `:edit`.
+  ## Key Generation Features
+  - Automatic socket management
+  - Built-in event handlers
+  - Context-aware operations
+  - Metadata-driven module creation
 
+  ## Generation Workflow
+  1. Analyze provided modules and context
+  2. Dynamically create LiveView/LiveComponent modules
+  3. Implement standard CRUD lifecycle methods
+  4. Generate type-specific rendering logic
+
+  ## Context Requirements
+  Generated modules expect context modules to provide:
+  - `list_<source>/0`: Retrieve entity collections
+  - `get_<schema>!/1`: Fetch specific entities
+  - `change_<schema>/1-2`: Validate entity changes
+  - `create_<schema>/1`: Create new entities
+  - `update_<schema>/2`: Update existing entities
+
+  ## Design Principles
+  - Minimize boilerplate code
+  - Maintain consistent UI interaction patterns
+  - Support extensible module generation
+  - Provide type-safe implementations
+
+  ## Usage Example
+  ```elixir
+    generate_module(
+    %{
+      caller: MyAppWeb,
+      context: MyApp.Accounts,
+      module: MyApp.User,
+      web: MyAppWeb
+    },
+    :index,
+    %{source: "users", module: "User"}
+    )
+  ```
+  Transforms configuration into fully-functional, dynamically generated LiveView modules.
   """
 
   @doc """
-  Generates a LiveView module definition for the specified `type`, including functions for rendering,
-    mounting, and handling events and parameters.
-
-  Basically creates the necessary functions for:
-  - Initialize the socket with a streamed list of entities.
-  - Handling the navigation actions.
-  - Manage editing, creating, and listing views.
-  - Handling deletion of entities.
+  Dynamically generates a LiveView module for specified UI component type.
 
   ## Parameters
+  - `modules` (map): Configuration for module generation
+  - `caller`: The calling module
+  - `context`: Context module for data operations
+  - `module`: Schema/resource module
+  - `web`: Web module for LiveView integration
 
-    - `context` (`module`): The module that provides the data access functions, such as `list_`, `get_`, and `delete_`.
-    - `module` (`module`): The Ecto schema module or context module used for data operations.
-    - `type` (`atom`): Specifies the type of UI component to generate. Currently, only `:index` is supported.
-    - `opts` (`Keyword.t()`): A map of options passed to customize the generated LiveView module.
-    - `parsed_opts` (`map`): A map of parsed options containing precomputed values such as the source name,
-    module name, and titles for use in the generated module.
+  - `type` (atom): UI component type (:index, :show, :form)
+  - `parsed_opts` (map): Detailed generation options
 
   ## Returns
+  A quoted Elixir module definition ready for compilation
 
-      - (`Macro.t()`): A quoted expression representing the generated module definition.
+  ## Supported Types
+  - `:index`: Generates a listing LiveView
+  - `:show`: Generates a detail view LiveView
+  - `:form`: Generates a form LiveComponent
 
-  ## Generated Behavior
+  ## Example
+  ```elixir
+    generate_module(
+      %{caller: UserWeb, context: Users, module: User, web: Web},
+      :index,
+      %{source: "users", title: "User Management"}
+    )
+  ```
+  ## Generated Behaviour
 
   The function expects the provided context and module to have the following functions defined:
 
-  - `list_<source>()` - Returns a list of all entities for streaming.
-  - `get_<schema_module>!(id)` - Fetches a specific entity by its ID.
-  - `delete_<schema_module>(instance)` - Deletes a specific entity.
+  - `list_<source>/0` or `list_<schema_module>/0` - Should return a list of all entities for streaming.
+  - `get_<schema_module>!/1` - Fetches a specific entity by its ID (id is passed as the only argument).
+  - `delete_<schema_module>/1` - Deletes a specific entity by its ID (id is passed as the only argument).
 
   ## Notes
 
-  - The generated module provides standard LiveView functionality, including dynamic assignment
+  The generated module provides standard LiveView functionality, including dynamic assignment
   of page titles and CRUD operations for the specified schema or context module.
   """
   @spec generate_module(map, atom, map) :: Macro.t()

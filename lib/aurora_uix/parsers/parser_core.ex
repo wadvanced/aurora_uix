@@ -1,6 +1,16 @@
-defmodule AuroraUix.Parsers.BaseParser do
+defmodule AuroraUix.Parsers.ParserCore do
   @moduledoc """
-  Enables parser behaviour.
+  Provides a base implementation and macro for parser behaviors in the AuroraUix system.
+
+  This module defines common utilities and macros used across different parser modules,
+  including:
+  - Default option handling
+  - String capitalization helpers
+  - Standardized parsing behaviors
+
+  When used, it automatically adds:
+  - A default implementation of the `default_value/2` callback
+  - Utility functions for option manipulation
   """
 
   defmacro __using__(_opts) do

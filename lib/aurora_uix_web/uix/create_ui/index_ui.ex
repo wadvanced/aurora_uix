@@ -1,11 +1,19 @@
 defmodule AuroraUixWeb.Uix.CreateUI.IndexUI do
   @moduledoc """
-  Provides macros for defining index-based UI structures in AuroraUix.
+  Provides compile-time macros for defining and managing index-based UI structures.
 
-  This module allows defining and managing index views using compile-time attributes. It provides macros to
-  register index fields and compile them into a structured format for later use in UI generation.
+  ## Key Features
+  - Declarative index field configuration
+  - Compile-time field registration
+  - Flexible index view generation
+
+  ## Compilation Process
+  1. Fields are registered using `index_columns/2`
+  2. Module attributes are populated
+  3. Layout paths are automatically generated during compilation
+
   """
-
+  @doc false
   defmacro __using__(_) do
     quote do
       import AuroraUixWeb.Uix.CreateUI.IndexUI
@@ -14,6 +22,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.IndexUI do
     end
   end
 
+  @doc false
   defmacro __before_compile__(env) do
     env.module
     |> Module.get_attribute(:_auix_index_fields, %{})
@@ -38,17 +47,17 @@ defmodule AuroraUixWeb.Uix.CreateUI.IndexUI do
   end
 
   @doc """
-  Registers a set of fields for an index under the given `name`.
-
-  This macro stores the provided fields in the module attribute `:_auix_index_fields`,
-  allowing them to be processed later during compilation. The fields are accumulated,
-  meaning multiple calls to `index/2` with the same `name` will append the fields instead
-  of overwriting them.
+  Registers index columns for a specific resource.
 
   ## Parameters
+  - `name` (atom): Unique identifier for the index configuration
+  - `fields` (list): List of field names to display in the index view
 
-  - `name` (`atom`) - The identifier for the index (e.g., `:products`, `:users`).
-  - `fields` (`list(atom)`) - A list of field names to include in the index.
+  ## Behavior
+  - Accumulates fields for the specified resource name
+  - Allows multiple calls to append additional fields
+  - Processed during module compilation
+
   """
   @spec index_columns(atom, list) :: Macro.t()
   defmacro index_columns(name, fields) do

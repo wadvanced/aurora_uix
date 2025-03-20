@@ -1,9 +1,16 @@
 defmodule AuroraUix.Parsers.IndexParser do
   @moduledoc """
-  Parse common options and adds the module related values.
+  Specializes in parsing index and card-related configuration options for AuroraUix UI components.
+
+  Handles specific parsing requirements for:
+  - Defining rows and data sources
+  - Configuring default ordering
+  - Applying filtering conditions
+
+  Extends the base parsing behavior with index-specific logic.
   """
 
-  use AuroraUix.Parsers.BaseParser
+  use AuroraUix.Parsers.ParserCore
 
   @doc """
   Parse module and :index options.
