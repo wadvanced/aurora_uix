@@ -15,9 +15,9 @@ defmodule AuroraUix.Parsers.Common do
   @doc """
   Extracts schema metadata and merges common options.
 
-  ## PARAMETERS
+  ## Parameters
   - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-  - `module` (`module`) - Schema module to be used for gathering field information.
+  - `resource_config` (`map`) - contains all the modules' configuration.
   - `opts` (`Keyword.t()`) - Configuration options with keys:
     ### Common opts
     - `actions` - List of {position, function} tuples for UI actions
@@ -59,7 +59,7 @@ defmodule AuroraUix.Parsers.Common do
     ...>      timestamps()
     ...>    end
     ...>  end
-    iex> parsed = Common.parse(%{}, AuroraUix.GeneralLedger.Account, [])
+    iex> parsed = Common.parse(%{}, %{schema: AuroraUix.GeneralLedger.Account}, [])
     iex> parsed.name == "Account" # Name is taken from last part of the schema module name
     true
     iex> parsed.title == "Accounts" # Uses the capitalized schema source as the title.
@@ -73,55 +73,56 @@ defmodule AuroraUix.Parsers.Common do
     ...>     timestamps()
     ...>   end
     ...> end
-    iex> parsed = Common.parse(%{}, AuroraUix.GeneralLedger.AccountReceivable, [])
+    iex> parsed = Common.parse(%{}, %{schema: AuroraUix.GeneralLedger.AccountReceivable}, [])
     iex> parsed.title == "Account Receivables"  # Uses the capitalized schema source as the title
   """
-  @spec parse(map, module, Keyword.t()) :: map
-  def parse(parsed_opts, module, opts) do
+  @spec parse(map, map, Keyword.t()) :: map
+  def parse(parsed_opts, resource_config, opts) do
     parsed_opts
-    |> add_opt(module, opts, :module)
-    |> add_opt(module, opts, :module_name)
-    |> add_opt(module, opts, :link)
-    |> add_opt(module, opts, :name)
-    |> add_opt(module, opts, :source)
-    |> add_opt(module, opts, :title)
+    |> add_opt(resource_config, opts, :module)
+    |> add_opt(resource_config, opts, :module_name)
+    |> add_opt(resource_config, opts, :link)
+    |> add_opt(resource_config, opts, :name)
+    |> add_opt(resource_config, opts, :source)
+    |> add_opt(resource_config, opts, :title)
   end
 
   @doc """
   Resolves default values for schema-derived properties.
 
   ### Parameters
-    - `module` (`module`) -  Schema module.
+    - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
+    - `resource_config` (`map`) -  contains all the modules' configuration.
     - `key` (`atom`) -  Key value to produce the value from.
 
   """
-  @spec default_value(module, atom) :: any
+  @spec default_value(map, map, atom) :: any
 
-  def default_value(module, :module) do
+  def default_value(_parsed_opts, %{schema: module}, :module) do
     module
     |> Module.split()
     |> List.last()
     |> Macro.underscore()
   end
 
-  def default_value(module, :module_name) do
+  def default_value(_parsed_opts, %{schema: module}, :module_name) do
     module
     |> Module.split()
     |> List.last()
   end
 
-  def default_value(module, :name) do
+  def default_value(_parsed_opts, %{schema: module}, :name) do
     module
     |> Module.split()
     |> List.last()
     |> capitalize()
   end
 
-  def default_value(module, :source), do: module.__schema__(:source)
+  def default_value(_parsed_opts, %{schema: module}, :source), do: module.__schema__(:source)
 
-  def default_value(module, :link), do: module.__schema__(:source)
+  def default_value(_parsed_opts, %{schema: module}, :link), do: module.__schema__(:source)
 
-  def default_value(module, :title) do
+  def default_value(_parsed_opts, %{schema: module}, :title) do
     :source
     |> module.__schema__()
     |> capitalize()

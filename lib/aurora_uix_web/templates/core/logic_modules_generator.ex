@@ -104,9 +104,9 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
-    list_function = String.to_atom("list_#{parsed_opts.source}")
-    get_function = String.to_atom("get_#{parsed_opts.module}!")
-    delete_function = String.to_atom("delete_#{parsed_opts.module}")
+    list_function = parsed_opts.list_function
+    get_function = parsed_opts.get_function
+    delete_function = parsed_opts.delete_function
     index_module = module_name(modules, parsed_opts, ".Index")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
@@ -187,7 +187,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
   end
 
   def generate_module(modules, :show = type, parsed_opts) do
-    get_function = String.to_atom("get_#{parsed_opts.module}!")
+    get_function = parsed_opts.get_function
     show_module = module_name(modules, parsed_opts, ".Show")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
@@ -254,9 +254,9 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
   def generate_module(modules, :form = type, parsed_opts) do
     parsed_opts = remove_omitted_fields(parsed_opts)
 
-    change_function = String.to_atom("change_#{parsed_opts.module}")
-    update_function = String.to_atom("update_#{parsed_opts.module}")
-    create_function = String.to_atom("create_#{parsed_opts.module}")
+    change_function = parsed_opts.change_function
+    update_function = parsed_opts.update_function
+    create_function = parsed_opts.create_function
     form_component = module_name(modules, parsed_opts, ".FormComponent")
 
     quote do

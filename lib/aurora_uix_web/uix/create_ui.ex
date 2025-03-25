@@ -192,7 +192,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
       acc
     else
       parsed_opts =
-        resource_module
+        resource_config
         |> Parser.parse(opts)
         |> Map.put(:fields, resource_config.fields)
 

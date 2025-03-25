@@ -12,18 +12,20 @@ defmodule AuroraUix.Parser do
   """
 
   alias AuroraUix.Parsers.Common
+  alias AuroraUix.Parsers.ContextParser
   alias AuroraUix.Parsers.IndexParser
 
-  @callback default_value(module :: module, key :: atom) :: any
+  @callback default_value(parsed_opts :: map, resource_config :: map, key :: atom) :: any
 
   @doc """
   Parses schema and options into a structured configuration map.
 
   ## Parameters
-    - `module` (module) - Ecto schema module containing field definitions
+    - `resource_config` (map) - contains all the modules' configuration.
     - `opts` (Keyword.t()) - Configuration options. See full list in:
       - Common options: `AuroraUix.Parsers.Common.parse/3`
       - Index-specific options: `AuroraUix.Parsers.IndexParser.parse/3`
+      - Context specific options: `AuroraUix.Parsers.ContextParser.parse/3`
 
   ## Returns
   A map containing:
@@ -39,7 +41,7 @@ defmodule AuroraUix.Parser do
   ...>     field :reference, :string
   ...>   end
   ...> end
-  iex> AuroraUix.Parser.parse(MySchema)
+  iex> AuroraUix.Parser.parse(%{schema: MySchema})
   %{
     module: "my_schema",
     module_name: "MySchema",
@@ -50,12 +52,13 @@ defmodule AuroraUix.Parser do
     link: "my_schemas"
   }
   """
-  @spec parse(module, Keyword.t()) :: map
-  def parse(module, opts \\ []) do
+  @spec parse(map, Keyword.t()) :: map
+  def parse(resource_config, opts \\ []) do
     opts = List.flatten(opts)
 
     %{}
-    |> Common.parse(module, opts)
-    |> IndexParser.parse(module, opts)
+    |> Common.parse(resource_config, opts)
+    |> IndexParser.parse(resource_config, opts)
+    |> ContextParser.parse(resource_config, opts)
   end
 end

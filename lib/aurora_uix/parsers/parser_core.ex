@@ -17,10 +17,10 @@ defmodule AuroraUix.Parsers.ParserCore do
     quote do
       @behaviour AuroraUix.Parser
 
-      @spec add_opt(map, module, Keyword.t(), atom) :: map
-      defp add_opt(parsed_opts, module, opts, key) do
-        module
-        |> default_value(key)
+      @spec add_opt(map, map, Keyword.t(), atom) :: map
+      defp add_opt(parsed_opts, resource_config, opts, key) do
+        parsed_opts
+        |> default_value(resource_config, key)
         |> then(&Keyword.get(opts, key, &1))
         |> then(&Map.put_new(parsed_opts, key, &1))
       end
