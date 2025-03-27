@@ -63,7 +63,7 @@ defmodule AuroraUixTestWeb do
   @spec aurora_uix_for_test() :: Macro.t()
   def aurora_uix_for_test do
     quote do
-      Module.register_attribute(__MODULE__, :_auix_resource_configs,
+      Module.register_attribute(__MODULE__, :auix_resource_config,
         accumulate: true,
         persist: true
       )

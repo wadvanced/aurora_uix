@@ -12,7 +12,7 @@ defmodule AuroraUixTestWeb.SectionUILayoutTest do
 
     # When you define a link in a test, you must add a line to router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link: "section-ui-layout-products" do
+    auix_create_ui link_prefix: "section-ui-layout-" do
       edit_layout :product, [] do
         inline([:reference, :name, :description])
 

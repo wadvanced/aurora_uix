@@ -86,7 +86,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     quote do
       import AuroraUixWeb.Uix.DataConfigUI
 
-      Module.register_attribute(__MODULE__, :_auix_resource_configs, accumulate: true)
+      Module.register_attribute(__MODULE__, :auix_resource_config, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_fields, accumulate: true)
       Module.register_attribute(__MODULE__, :_auix_select_options, accumulate: true)
 
@@ -105,10 +105,40 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       |> Map.new()
 
     if !Enum.empty?(changes),
-      do: Module.put_attribute(env.module, :_auix_resource_configs, changes)
+      do: Module.put_attribute(env.module, :auix_resource_config, changes)
 
     Module.delete_attribute(env.module, :_auix_fields)
-    :ok
+
+    resources = Module.get_attribute(env.module, :auix_resource_config)
+
+    resource_functions =
+      resources
+      |> Kernel.||([])
+      |> List.flatten()
+      |> List.first(%{})
+      |> Enum.map(fn {resource_key, resource} ->
+        quote do
+          @doc """
+          Gets the config for a given resource.
+          """
+          @spec auix_resource(atom) :: map
+          def auix_resource(unquote(resource_key)) do
+            %{unquote(resource_key) => unquote(Macro.escape(resource))}
+          end
+        end
+      end)
+
+    quote do
+      @doc """
+      Gets all resources config.
+      """
+      @spec auix_resources() :: list
+      def auix_resources do
+        unquote(Macro.escape(resources))
+      end
+
+      unquote(resource_functions)
+    end
   end
 
   @doc """
@@ -409,6 +439,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   defp field_omitted(_field), do: false
 
   @spec put_option(map, Keyword.t(), atom) :: map
+
   defp put_option(resource_config, opts, key) do
     if Keyword.has_key?(opts, key),
       do: Map.put(resource_config, key, opts[key]),

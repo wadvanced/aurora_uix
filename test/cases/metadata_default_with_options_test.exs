@@ -25,4 +25,21 @@ defmodule AuroraUixTest.MetadataDefaultWithOptionsTest do
       product_id: %{html_type: :text, name: "product_id", length: 255}
     )
   end
+
+  test "Test the `auix_resource` function with multiple resources" do
+    product = __MODULE__.DefaultWithOptions.auix_resource(:product).product
+
+    assert product.schema == AuroraUixTest.Inventory.Product
+    assert product.context == AuroraUixTest.Inventory
+    assert product.fields != nil
+    assert product.fields != []
+
+    product_transaction =
+      __MODULE__.DefaultWithOptions.auix_resource(:product_transaction).product_transaction
+
+    assert product_transaction.schema == AuroraUixTest.Inventory.ProductTransaction
+    assert product_transaction.context == AuroraUixTest.Inventory
+    assert product_transaction.fields != nil
+    assert product_transaction.fields != []
+  end
 end

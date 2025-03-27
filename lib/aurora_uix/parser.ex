@@ -49,8 +49,14 @@ defmodule AuroraUix.Parser do
     title: "My Schemas",
     rows: [:streams, :my_schemas],
     source: "my_schemas",
-    link: "my_schemas"
-  }
+    link_prefix: "",
+    change_function: nil,
+    create_function: nil,
+    delete_function: nil,
+    get_function: nil,
+    list_function: nil,
+    update_function: nil
+   }
   """
   @spec parse(map, Keyword.t()) :: map
   def parse(resource_config, opts \\ []) do

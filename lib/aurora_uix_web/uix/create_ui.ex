@@ -67,10 +67,15 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
     Module.delete_attribute(module, :_auix_layout_paths)
 
-    module
-    |> Module.get_attribute(:_auix_resource_configs, %{})
-    |> List.first()
-    |> then(&CreateUI.build_ui(module, &1, layout_paths, opts))
+    modules =
+      module
+      |> Module.get_attribute(:auix_resource_config, %{})
+      |> map_resources()
+      |> then(&CreateUI.build_ui(module, &1, layout_paths, opts))
+
+    quote do
+      unquote(modules)
+    end
   end
 
   @doc """
@@ -143,13 +148,15 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   @spec build_ui(any, map | nil, list, keyword) :: list
   def build_ui(caller, auix_resource_configs_ui, layout_paths, opts) do
     if resource_config_name = opts[:for] do
-      build_index_form_layouts(
-        caller,
-        auix_resource_configs_ui,
-        resource_config_name,
-        layout_paths,
-        opts
-      )
+      [
+        build_index_form_layouts(
+          caller,
+          auix_resource_configs_ui,
+          resource_config_name,
+          layout_paths,
+          opts
+        )
+      ]
     else
       build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts)
     end
@@ -157,7 +164,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
   ## PRIVATE
 
-  @spec build_base_layouts(module, map | nil, list, keyword) :: list
+  @spec build_base_layouts(module, map | nil, list, keyword) :: [Macro.t()]
   defp build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts) do
     Enum.reduce(
       auix_resource_configs_ui,
@@ -173,7 +180,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     )
   end
 
-  @spec build_index_form_layouts(module, map | nil, atom, list, keyword, list) :: any
+  @spec build_index_form_layouts(module, map | nil, atom, list, keyword, list) :: [Macro.t()]
   defp build_index_form_layouts(
          caller,
          auix_resource_config,
@@ -341,4 +348,18 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   defp locate_field(configured_fields, field) do
     Enum.find(configured_fields, &(&1.field == field))
   end
+
+  defp map_resources(resource_configs) do
+    flatten_resource_configs = List.flatten(resource_configs)
+
+    if Enum.count(flatten_resource_configs) == 1,
+      do: List.first(flatten_resource_configs),
+      else: map_resources(flatten_resource_configs, %{})
+  end
+
+  defp map_resources([resource_config | rest], acc) do
+    map_resources(rest, Map.merge(acc, resource_config))
+  end
+
+  defp map_resources([], acc), do: acc
 end

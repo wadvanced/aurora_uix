@@ -46,5 +46,30 @@ defmodule AuroraUixTestWeb.Router do
       SpecialFieldsUITest.TestModule.Product,
       "special-fields-ui-products"
     )
+
+    AuroraUixTestWeb.register_crud(
+      SeparatedSingleResourceUITest.TestModule.Product,
+      "separated-single-resource-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      SeparatedMultipleResourcesUITest.TestModule.Product,
+      "separated-multiple-resources-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      SeparatedMultipleResourcesUITest.TestModule.ProductTransaction,
+      "separated-multiple-resources-product_transactions"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      UnseparatedMultipleResourcesUITest.TestModule.Product,
+      "unseparated-multiple-resources-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      UnseparatedMultipleResourcesUITest.TestModule.ProductTransaction,
+      "unseparated-multiple-resources-product_transactions"
+    )
   end
 end

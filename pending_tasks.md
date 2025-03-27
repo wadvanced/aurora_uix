@@ -10,7 +10,11 @@
 - [x] Implement select
 - [x] Default to stacked instead of inline
 - [x] Normalize context functions
-- [ ] Create macro for adding a schema to the context and produce all the required functions
+- [x] Create macro for adding a schema to the context and produce all the required functions
+- [x] Meta data configuration should provide a callback method for getting the configuration.
+    The idea is to be able to have a module containing all the metadata and be used 
+    in the create_ui macro in another module.
+- [ ] Implement associations
 - [ ] Implement @ fields (can read values from assigns)
 - [ ] Implement conditional bases on @ fields or functions
 - [ ] Implement switch

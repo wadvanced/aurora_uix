@@ -177,7 +177,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     auix_resource_config(:product, context: Inventory, schema: Product)
 
     
-    auix_create_ui link: "create-ui-layout-products" do
+    auix_create_ui link_prefix: "create-ui-layout-" do
       edit_layout :product, [] do
       #            ^^^^^^^
       #            |- (3) Resource name, will be used as a module name

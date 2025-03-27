@@ -81,23 +81,23 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
         <.header>
           Listing [[title]]
           <:actions>
-            <.link patch={~p"/[[link]]/new"} id="auix-new-[[source]]">
+            <.link patch={~p"/[[link_prefix]][[source]]/new"} id="auix-new-[[source]]">
               <.button>New [[title]]</.button>
             </.link>
           </:actions>
         </.header>
 
         <.table
-            id={"auix-list-[[link]]"}
+            id={"auix-list-[[link_prefix]][[source]]"}
             rows={get_in(assigns, @_uix.rows)}
-            row_click={fn {_id, row} -> JS.navigate(~p"/[[link]]/#{row}") end}
+            row_click={fn {_id, row} -> JS.navigate(~p"/[[link_prefix]][[source]]/#{row}") end}
         >
           [[index_columns]]
           <:action :let={{id, [[module]]}}>
             <div class="sr-only">
-              <.link navigate={~p"/[[link]]/#{[[module]]}"} id={"auix-show-#{id}"}>Show</.link>
+              <.link navigate={~p"/[[link_prefix]][[source]]/#{[[module]]}"} id={"auix-show-#{id}"}>Show</.link>
             </div>
-            <.link patch={~p"/[[link]]/#{[[module]]}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
+            <.link patch={~p"/[[link_prefix]][[source]]/#{[[module]]}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
           </:action>
           <:action :let={{id, _[[module]]}}>
             <.link
@@ -110,14 +110,14 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
           </:action>
         </.table>
 
-        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch(~p"/[[link]]")}>
+        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch(~p"/[[link_prefix]][[source]]")}>
           <.live_component
             module={[[module_name]]FormComponent}
             id={@_entity.id || :new}
             title={@page_title}
             action={@live_action}
             entity={@_entity}
-            patch={~p"/[[link]]"}
+            patch={~p"/[[link_prefix]][[source]]"}
           />
         </.modal>
       """
@@ -132,7 +132,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
         [[name]] {@_entity.id}
         <:subtitle>{@subtitle}</:subtitle>
         <:actions>
-          <.link patch={~p"/[[link]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
+          <.link patch={~p"/[[link_prefix]][[source]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
             <.button>Edit [[name]]</.button>
           </.link>
         </:actions>
@@ -140,12 +140,12 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
 
       [[show_fields]]
 
-      <.back navigate={~p"/[[link]]"}>Back to [[title]]</.back>
+      <.back navigate={~p"/[[link_prefix]][[source]]"}>Back to [[title]]</.back>
 
       <.modal :if={@live_action == :edit}
         id="auix-[[module]]-modal"
         show
-        on_cancel={JS.patch(~p"/[[link]]/#{@_entity}")}
+        on_cancel={JS.patch(~p"/[[link_prefix]][[source]]/#{@_entity}")}
       >
         <.live_component
           module={[[module_name]]FormComponent}
@@ -153,7 +153,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
           title={@page_title}
           action={@live_action}
           entity={@_entity}
-          patch={~p"/[[link]]/#{@_entity}"}
+          patch={~p"/[[link_prefix]][[source]]/#{@_entity}"}
         />
       </.modal>
       """
