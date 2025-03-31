@@ -11,7 +11,7 @@ defmodule AuroraUixWeb.Template do
 
   ## Template Behaviour Requirements
   Templates must implement the following key callbacks:
-  - `generate_view/2`: Generate HTML code fragments
+  - `generate_view/3`: Generate HTML code fragments
   - `generate_module/3`: Generate handling code for UI components
   - `parse_layout/2`: Create layout HTML code
 
@@ -84,7 +84,6 @@ defmodule AuroraUixWeb.Template do
   alias AuroraUixWeb.Template
 
   @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Core)
-  @uix_valid_types [:index, :form, :show]
 
   @doc """
   Generates a HTML code fragment for the specified type and options.
@@ -143,7 +142,9 @@ defmodule AuroraUixWeb.Template do
   - `mode` (atom): Indicates if the layout should be generated form based or entity based.
 
   """
-  @callback parse_layout(path :: map, mode :: atom) :: binary
+  @callback parse_layout(path :: map, parsed_opts :: map, type :: atom) :: binary
+
+  @callback common_modules() :: list
 
   @doc """
   Validates and return the configured uix template.
@@ -169,9 +170,70 @@ defmodule AuroraUixWeb.Template do
   @spec build_html(map, binary) :: binary
   def build_html(parsed_options, template), do: Enum.reduce(parsed_options, template, &replace/2)
 
-  defmacro compile_heex(module, type, parsed_opts) when type in @uix_valid_types do
-    module = Macro.expand(module, __CALLER__)
-    Code.ensure_compiled(module)
+  @doc """
+  Extracts the value of a specified field from an entity.
+
+  ## Parameters
+    - `{_id, entity}` (tuple): A tuple containing an ID and an entity map.
+    - `%{field: field}` (map): A map containing a field key that specifies which field to extract.
+
+  ## Returns
+    - `any`: The value of the specified field from the entity map, or nil if the field doesn't exist.
+
+  ## Examples
+
+      iex> field_row_value({123, %{name: "John", age: 30}}, %{field: :name})
+      "John"
+
+      iex> field_row_value({456, %{name: "Mary", age: 25}}, %{field: :age})
+      25
+
+      iex> field_row_value({789, %{name: "Bob"}}, %{field: :age})
+      nil
+  """
+  @spec field_row_value(tuple | struct | map, map) :: any
+  def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
+
+  def field_row_value(entity, %{field: field, field_type: field_type})
+      when field_type not in [:one_to_many_association, :many_to_one_association],
+      do: Map.get(entity, field, "")
+
+  def field_row_value(_auix_entity, %{field: field}), do: to_string(field)
+
+  @doc """
+  Safely converts a binary to an existing atom.
+  If the binary does not exist as an atom, it returns nil.
+  This function is useful for safely converting strings to atoms without
+  causing an error if the atom does not exist.
+  ## Parameters
+    - `name` (any | nil): The name to convert to an atom.
+  ## Returns
+    - `atom | nil`: The existing atom if it exists, or nil if it doesn't.
+  ## Examples
+    iex> safe_existing_atom("existing_atom")
+    :existing_atom
+
+    iex> safe_existing_atom("non_existing_atom")
+    nil
+
+    iex> safe_existing_atom(:existing_atom)
+    :existing_atom
+
+    iex> safe_existing_atom(nil)
+    nil
+  """
+  @spec safe_existing_atom(any | nil) :: atom | nil
+  def safe_existing_atom(name) when is_binary(name) do
+    String.to_existing_atom(name)
+  catch
+    _ -> nil
+  end
+
+  def safe_existing_atom(name) when is_atom(name), do: name
+
+  def safe_existing_atom(_name), do: nil
+
+  defmacro compile_heex(type, parsed_opts) do
     template = Template.uix_template().generate_view(type, parsed_opts)
 
     options = [
@@ -188,8 +250,10 @@ defmodule AuroraUixWeb.Template do
       var!(assigns) =
         assigns
         |> var!()
+        |> Map.get(:_auix, %{})
         # Inject the parsed_opts into assigns for template use
-        |> Map.put(:_uix, unquote(Macro.escape(parsed_opts)))
+        |> then(&Map.merge(unquote(Macro.escape(parsed_opts)), &1))
+        |> then(&(assigns |> var!() |> Map.put(:_auix, &1)))
 
       # Compile the template into Phoenix.LiveView.Rendered struct
       unquote(EEx.compile_string(template, options))
@@ -203,7 +267,7 @@ defmodule AuroraUixWeb.Template do
     Code.ensure_compiled!(module)
 
     functions_not_exported =
-      functions_not_exported(module, generate_view: 2, generate_module: 3, parse_layout: 2)
+      functions_not_exported(module, generate_view: 2, generate_module: 3, parse_layout: 3)
 
     message =
       case {behaviour_implemented?(module), functions_not_exported} do
@@ -235,6 +299,7 @@ defmodule AuroraUixWeb.Template do
     |> Enum.member?(__MODULE__)
   end
 
+  @spec functions_not_exported(module, keyword) :: list
   defp functions_not_exported(module, expected_functions) do
     expected_functions
     |> Enum.reject(&function_exported?(module, elem(&1, 0), elem(&1, 1)))

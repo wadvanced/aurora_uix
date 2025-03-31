@@ -455,6 +455,54 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   def build_default_layout_paths(paths, _resource_config_name, _parsed_opts, _mode), do: paths
 
   @doc """
+  Unpacks fields from a list of paths based on the specified mode.
+  ## Parameters
+  - `paths` (list): A list of path maps representing the layout structure.
+  - `mode` (atom): The mode of unpacking, such as `:index` or other modes.
+  ## Returns
+  - `list`: A list of unpacked paths with fields expanded.
+  ## Example
+    iex> paths = [
+      %{tag: :form, state: :start, config: [], opts: []},
+      %{tag: :inline, state: :start, config: {:fields, [:name, :email]}, opts: []},
+      %{tag: :inline, state: :end},
+      %{tag: :form, state: :end}
+    ]
+    iex> unpack_paths_fields(paths, :form)
+    [
+      %{tag: :form, state: :start, config: [], opts: []},
+      %{tag: :field, state: :start, config: :name, opts: []},
+      %{tag: :field, state: :end, config: :name, opts: []},
+      %{tag: :field, state: :start, config: :email, opts: []},
+      %{tag: :field, state: :end, config: :email, opts: []},
+      %{tag: :form, state: :end}
+    ]
+  """
+  @spec unpack_paths_fields(list, atom) :: list
+  def unpack_paths_fields(paths, :index), do: paths
+
+  def unpack_paths_fields(paths, _mode) do
+    paths
+    |> Enum.reduce([], &unpack_fields/2)
+    |> Enum.reverse()
+  end
+
+  @spec unpack_fields(map, list) :: list
+  defp unpack_fields(%{config: {:fields, fields}} = path, paths) do
+    paths = [Map.put(path, :config, []) | paths]
+    Enum.reduce(fields, paths, &unpack_field/2)
+  end
+
+  defp unpack_fields(path, paths), do: [path | paths]
+
+  @spec unpack_field(atom, list) :: list
+  defp unpack_field(field, paths) do
+    paths
+    |> then(&[%{tag: :field, state: :start, config: field, opts: []} | &1])
+    |> then(&[%{tag: :field, state: :end, config: field, opts: []} | &1])
+  end
+
+  @doc """
   Parses a list of paths to handle sections based on the given mode.
 
   ## Parameters
@@ -534,6 +582,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     end
   end
 
+  @spec unique_titled_id(binary | nil) :: binary
   defp unique_titled_id(nil), do: unique_titled_id("untitled")
   defp unique_titled_id(""), do: unique_titled_id("untitled")
 
@@ -551,6 +600,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     "#{slug}-#{unique_suffix}#{unique_int}"
   end
 
+  @spec normalize_title(binary) :: binary
   defp normalize_title(title) do
     title
     |> String.downcase()
@@ -759,6 +809,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   defp ensure_single_active_tab(paths, sections_id, _count),
     do: ensure_single_active_tab(paths, sections_id, 0)
 
+  @spec mark_active_tab(map, tuple, binary) :: tuple
   defp mark_active_tab(
          %{tag: :section, state: :start, config: config} = tab_path,
          {acc, active},

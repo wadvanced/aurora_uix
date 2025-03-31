@@ -37,12 +37,13 @@ defmodule AuroraUixTest.Inventory do
 
   @spec get_product!(binary) :: nil | Product.t()
   def get_product!(id) do
-    Repo.get!(Product, id)
+    Product |> Repo.get!(id) |> Repo.preload(product_transactions: [:product_location, :product])
   end
 
   @spec delete_product(Product.t()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def delete_product(%Product{} = product), do: Repo.delete(product)
 
+  auix_register_resource(Product)
   auix_register_resource(ProductTransaction)
   auix_register_resource(ProductLocation)
 end

@@ -19,11 +19,11 @@ defmodule AuroraUixTest.MetadataAssociationTest do
   #    resource_configs = resource_configs(ParseAssociations)
   #
   #    validate_schema(resource_configs, :product,
-  #      cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
+  #      cost: %{field_html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
   #    )
   #
   #    validate_schema(resource_configs, :product_transaction,
-  #      product_id: %{html_type: :text, name: "product_id", length: 255}
+  #      product_id: %{field_html_type: :text, name: "product_id", length: 255}
   #    )
   #  end
   #

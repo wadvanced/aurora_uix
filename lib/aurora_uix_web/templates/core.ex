@@ -21,7 +21,7 @@ defmodule AuroraUixWeb.Templates.Core do
   4. Combine generated components
 
   ### Key Delegations
-  - `parse_layout/2`: Delegates to `LayoutParser` for layout structure parsing
+  - `parse_layout/3`: Delegates to `LayoutParser` for layout structure parsing
   - `generate_module/3`: Delegates to `LogicModulesGenerator` for module creation
   - `generate_view/2`: Delegates to `MarkupGenerator` for template generation
 
@@ -39,7 +39,58 @@ defmodule AuroraUixWeb.Templates.Core do
   alias AuroraUixWeb.Templates.Core.LogicModulesGenerator
   alias AuroraUixWeb.Templates.Core.MarkupGenerator
 
-  defdelegate parse_layout(path, mode), to: LayoutParser
-  defdelegate generate_module(modules, type, parsed_opts), to: LogicModulesGenerator
+  @doc """
+  Parses the layout configuration for template generation.
+
+  ## Parameters
+    * path - map: The layout path configuration
+    * parsed_opts - map: Additional parsing options
+    * type - atom: The type of layout to parse
+
+  ## Returns
+    * binary: The parsed layout content
+  """
+  @spec parse_layout(map, map, atom) :: binary
+  defdelegate parse_layout(path, parsed_opts, type), to: LayoutParser
+
+  @doc """
+  Generates logic modules based on the provided configuration.
+
+  ## Parameters
+    * modules - [{atom, module}] | map: The module specifications
+    * type - atom: The type of module to generate
+    * parsed_opts - map: Additional generation options (optional)
+
+  ## Returns
+    * Macro.t(): The generated module as a macro
+  """
+  @spec generate_module([{atom, module}] | map, atom, map) :: Macro.t()
+  defdelegate generate_module(modules, type, parsed_opts \\ %{}), to: LogicModulesGenerator
+
+  @doc """
+  Generates view templates based on the specified type and options.
+
+  ## Parameters
+    * type - atom: The type of view to generate
+    * parsed_opts - map: View generation options
+
+  ## Returns
+    * binary: The generated view template
+  """
+  @spec generate_view(atom, map) :: binary
   defdelegate generate_view(type, parsed_opts), to: MarkupGenerator
+
+  @doc """
+  Returns a list of common modules used across the template system.
+
+  ## Returns
+    * [{atom, module}]: List of tuples containing module aliases and their corresponding modules
+  """
+  @spec common_modules :: [{atom, module}]
+  def common_modules do
+    [
+      {:aurora_core_helpers, AuroraUixWeb.Core.Helpers},
+      {:aurora_index_list, AuroraUixWeb.LiveComponents.AuroraIndexList}
+    ]
+  end
 end

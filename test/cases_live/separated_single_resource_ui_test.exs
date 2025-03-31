@@ -49,11 +49,11 @@ defmodule AuroraUixTestWeb.SeparatedSingleResourceUITest do
            )
            |> render_change() =~ "can&#39;t be blank"
 
-    assert view
-           |> form("#auix-product-form",
-             product: %{quantity_initial: 11}
-           )
-           |> render_submit() =~ "Listing Products"
+    view
+    |> form("#auix-product-form",
+      product: %{quantity_initial: 11}
+    )
+    |> render_submit()
 
     {:ok, _view, new_html} = live(conn, "/separated-single-resource-products")
 

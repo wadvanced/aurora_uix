@@ -37,7 +37,14 @@ defmodule AuroraUix.Parsers.IndexParser do
   """
   @spec parse(map, map, Keyword.t()) :: map
   def parse(parsed_opts, resource_config, opts) do
-    add_opt(parsed_opts, resource_config, opts, :rows)
+    parsed_opts
+    |> add_opt(resource_config, opts, :rows)
+    |> add_opt(resource_config, opts, :disable_index_new_link)
+    |> add_opt(resource_config, opts, :disable_index_row_click)
+    |> add_opt(resource_config, opts, :disable_index_show_entity_link)
+    |> add_opt(resource_config, opts, :index_new_link)
+    |> add_opt(resource_config, opts, :index_row_click)
+    |> add_opt(resource_config, opts, :index_show_entity_link)
   end
 
   @doc """
@@ -53,5 +60,25 @@ defmodule AuroraUix.Parsers.IndexParser do
     :source
     |> module.__schema__()
     |> then(&[:streams, String.to_atom(&1)])
+  end
+
+  def default_value(_parsed_opts, _resource_config, :disable_index_row_click), do: false
+  def default_value(_parsed_opts, _resource_config, :disable_index_new_link), do: false
+  def default_value(_parsed_opts, _resource_config, :disable_index_show_entity_link), do: false
+
+  def default_value(parsed_opts, _resource_config, :index_row_click) do
+    "#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/[[entity]]"
+  end
+
+  def default_value(parsed_opts, _resource_config, :index_new_link) do
+    if parsed_opts.disable_index_new_link,
+      do: "#",
+      else: "/#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/new"
+  end
+
+  def default_value(parsed_opts, _resource_config, :index_show_entity_link) do
+    if parsed_opts.disable_index_show_entity_link,
+      do: "#",
+      else: "#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/[[entity]]"
   end
 end

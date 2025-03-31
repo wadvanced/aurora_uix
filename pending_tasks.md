@@ -15,6 +15,10 @@
     The idea is to be able to have a module containing all the metadata and be used 
     in the create_ui macro in another module.
 - [ ] Implement associations
+  - [ ] One to Many (Children)
+    - [ ] Separate the index implementation in component and component user
+    - [ ] Implement dual rendering behaviour for the `index` macro: As a main list or as a component
+  - [ ] Many to One (reference)
 - [ ] Implement @ fields (can read values from assigns)
 - [ ] Implement conditional bases on @ fields or functions
 - [ ] Implement switch

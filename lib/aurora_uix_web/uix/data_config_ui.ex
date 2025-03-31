@@ -67,6 +67,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       auix_resource_config :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
+        field :products, resource: :product
       end
     end
   ```
@@ -97,11 +98,18 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   @doc false
   defmacro __before_compile__(env) do
     ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
+
+    resources =
+      env.module
+      |> Module.get_attribute(:_auix_fields)
+      |> Enum.filter(&(&1.tag == :resource and &1.state == :end and &1.config[:schema] != nil))
+      |> Enum.map(&{&1.name, &1.config[:schema]})
+
     changes =
       env.module
       |> Module.get_attribute(:_auix_fields)
       |> Enum.reverse()
-      |> parse_change(%{}, [])
+      |> parse_change(resources, %{}, [])
       |> Map.new()
 
     if !Enum.empty?(changes),
@@ -109,10 +117,10 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
     Module.delete_attribute(env.module, :_auix_fields)
 
-    resources = Module.get_attribute(env.module, :auix_resource_config)
+    resource_configs = Module.get_attribute(env.module, :auix_resource_config)
 
     resource_functions =
-      resources
+      resource_configs
       |> Kernel.||([])
       |> List.flatten()
       |> List.first(%{})
@@ -214,7 +222,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   The following options can be provided to configure the field:
 
   - `:field` (`atom`) - The referred field in the schema. This should be rarely changed.
-  - `:html_type`(`atom`) - The html type that best represent the current field elixir type.
+  - `:field_type`(`atom`) - The html type that best represent the current field elixir type.
   - `:label` (`binary`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary`) - Placeholder text for the field.
   - `:length`(`non_neg_integer`) - Display length of the field.
@@ -298,75 +306,82 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     %ResourceConfigUI{
       context: nil,
       schema: MyApp.Products.Product,
-      fields: [...]
+      fields: [...],
+      associations: [...]
     }
 
   """
-  @spec default_config(Keyword.t()) :: ResourceConfigUI.t()
-  def default_config(opts) do
+  @spec default_config(Keyword.t(), list) :: ResourceConfigUI.t()
+  def default_config(opts, resources) do
     schema = opts[:schema]
 
     %ResourceConfigUI{}
     |> put_option(opts, :context)
     |> put_option(opts, :schema)
-    |> struct(%{fields: parse_fields(schema)})
+    |> struct(%{fields: parse_fields(schema, resources)})
   end
 
   ## PRIVATE
 
-  @spec parse_change(list, map, list) :: map
-  defp parse_change([%{tag: :resource, state: :start} | rest], acc, _current) do
-    parse_change(rest, acc, [])
+  @spec parse_change(list, list, map, list) :: map
+  defp parse_change([%{tag: :resource, state: :start} | rest], resources, acc, _current) do
+    parse_change(rest, resources, acc, [])
   end
 
   defp parse_change(
          [%{tag: :resource, name: name, config: opts, state: :end} | rest],
+         resources,
          acc,
          current
        ) do
     resource =
       opts
-      |> default_config()
+      |> default_config(resources)
       |> ResourceConfigUI.change(fields: Enum.reverse(current))
 
-    parse_change(rest, Map.put(acc, name, resource), [])
+    parse_change(rest, resources, Map.put(acc, name, resource), [])
   end
 
-  defp parse_change([%{tag: :field, field: field, opts: opts} | rest], acc, current) do
-    parse_change(rest, acc, [{field, Map.new(opts)} | current])
+  defp parse_change([%{tag: :field, field: field, opts: opts} | rest], resources, acc, current) do
+    parse_change(rest, resources, acc, [{field, Map.new(opts)} | current])
   end
 
-  defp parse_change([], acc, _current), do: acc
+  defp parse_change([], _resources, acc, _current), do: acc
 
-  @spec parse_fields(module | nil) :: list
-  defp parse_fields(nil), do: []
+  @spec parse_fields(module | nil, list) :: list
+  defp parse_fields(nil, _resources), do: []
 
-  defp parse_fields(schema) do
+  defp parse_fields(schema, resources) do
     Code.ensure_compiled(schema)
 
     if function_exported?(schema, :__schema__, 1) do
       :fields
       |> schema.__schema__()
-      |> Enum.map(&parse_field(schema, &1))
+      |> Enum.map(&parse_field(schema, resources, &1))
+      |> add_associations(schema, resources)
     else
       []
     end
   end
 
-  @spec parse_field(module, atom) :: Field.t()
-  defp parse_field(module, field) do
+  @spec parse_field(module, list, atom) :: Field.t()
+  defp parse_field(module, resources, field) do
     type = module.__schema__(:type, field)
+    association = module.__schema__(:association, field)
 
     attrs = %{
       field: field,
       label: field_label(field),
       placeholder: field_placeholder(field, type),
-      html_type: field_html_type(type),
+      field_type: field_type(type, association),
+      field_html_type: field_html_type(type, association),
       length: field_length(type),
       precision: field_precision(type),
       scale: field_scale(type),
       disabled: field_disabled(field),
-      omitted: field_omitted(field)
+      omitted: field_omitted(field),
+      resource: field_resource(association, resources),
+      data: field_data(association)
     }
 
     Field.new(attrs)
@@ -388,21 +403,38 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   defp field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
   defp field_placeholder(name, _type), do: name |> to_string() |> String.capitalize()
 
-  @spec field_html_type(atom) :: atom
-  defp field_html_type(type) when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
-    do: :text
+  @spec field_type(atom, map | nil) :: atom
+  defp field_type(type, nil), do: type
 
-  defp field_html_type(type) when type in [:id, :integer, :float, :decimal], do: :number
+  defp field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
 
-  defp field_html_type(type)
+  defp field_type(nil, %{cardinality: :one} = _association),
+    do: :many_to_one_association
+
+  @spec field_html_type(atom, map | nil) :: atom
+  defp field_html_type(type, _association)
+       when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
+       do: :text
+
+  defp field_html_type(type, _association) when type in [:id, :integer, :float, :decimal],
+    do: :number
+
+  defp field_html_type(type, _association)
        when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
        do: :"datetime-local"
 
-  defp field_html_type(type) when type in [:time, :time_usec], do: :time
+  defp field_html_type(type, _association) when type in [:time, :time_usec], do: :time
 
-  defp field_html_type(:boolean), do: :checkbox
+  defp field_html_type(:boolean, _association), do: :checkbox
 
-  defp field_html_type(type), do: type
+  defp field_html_type(type, nil), do: type
+
+  defp field_html_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
+
+  defp field_html_type(nil, %{cardinality: :one} = _association),
+    do: :many_to_one_association
+
+  defp field_html_type(nil, _association), do: :unimplemented
 
   @spec field_length(atom) :: integer
   defp field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
@@ -422,7 +454,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   defp field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
   defp field_precision(_type), do: 0
 
-  @spec field_precision(atom) :: integer
+  @spec field_scale(atom) :: integer
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
@@ -438,11 +470,52 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   defp field_omitted(_field), do: false
 
-  @spec put_option(map, Keyword.t(), atom) :: map
+  @spec field_data(map | nil) :: map
+  defp field_data(nil), do: nil
 
+  defp field_data(association),
+    do: %{
+      related: association.related,
+      related_key: association.related_key,
+      owner_key: association.owner_key
+    }
+
+  @spec field_resource(map | nil, list) :: :atom
+  defp field_resource(nil, _resources), do: nil
+
+  defp field_resource(association, resources) do
+    resources
+    |> Enum.find({nil, nil}, &(elem(&1, 1) == association.related))
+    |> elem(0)
+  end
+
+  @spec put_option(map, Keyword.t(), atom) :: map
   defp put_option(resource_config, opts, key) do
     if Keyword.has_key?(opts, key),
       do: Map.put(resource_config, key, opts[key]),
       else: resource_config
+  end
+
+  @spec add_associations(list, module, list) :: list
+  defp add_associations(fields, schema, resources) do
+    :associations
+    |> schema.__schema__()
+    |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, resources, &1, &2))
+    |> Enum.reverse()
+  end
+
+  @spec parse_association(module, list, atom, list) :: list
+  defp parse_association(schema, resources, association_field, fields) do
+    :association
+    |> schema.__schema__(association_field)
+    |> then(
+      &Field.new(
+        field: association_field,
+        field_type: field_html_type(nil, &1),
+        data: field_data(&1),
+        resource: field_resource(&1, resources)
+      )
+    )
+    |> then(&[&1 | fields])
   end
 end

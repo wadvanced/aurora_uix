@@ -90,6 +90,7 @@ defmodule AuroraUix.Parsers.ContextParser do
     |> add_opt(resource_config, opts, :update_function)
     |> add_opt(resource_config, opts, :create_function)
     |> add_opt(resource_config, opts, :change_function)
+    |> add_opt(resource_config, opts, :new_function)
   end
 
   @doc """
@@ -126,8 +127,13 @@ defmodule AuroraUix.Parsers.ContextParser do
     filter_function(context, ["change_#{module}"], 2)
   end
 
+  def default_value(%{module: module}, %{context: context}, :new_function) do
+    filter_function(context, ["new_#{module}"], 1)
+  end
+
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
+  @spec filter_function(module, list, integer) :: atom
   defp filter_function(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions
@@ -141,6 +147,7 @@ defmodule AuroraUix.Parsers.ContextParser do
     |> to_atom()
   end
 
+  @spec to_atom(binary | nil) :: atom
   defp to_atom(nil), do: nil
   defp to_atom(function_name), do: String.to_atom(function_name)
 end

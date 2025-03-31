@@ -10,7 +10,7 @@ defmodule AuroraUixTestWeb.SpecialFieldsUITest do
 
     auix_resource_config :product, context: Inventory, schema: Product do
       field(:status,
-        html_type: :select,
+        field_html_type: :select,
         data: [
           opts: [
             "In stock": "in_stock",
@@ -49,6 +49,7 @@ defmodule AuroraUixTestWeb.SpecialFieldsUITest do
     assert_option_exists(view, :status, 4, "in_store_only")
   end
 
+  @spec assert_option_exists(Phoenix.LiveViewTest.View.t(), atom, integer, binary) :: any
   defp assert_option_exists(view, field_name, index, value) do
     element =
       view

@@ -114,7 +114,7 @@
           {Credo.Check.Readability.SeparateAliasRequire, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Readability.SinglePipe, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Readability.SpaceAfterCommas, []},
-          {Credo.Check.Readability.Specs, []}, ## PREVIOUSLY DISABLED
+          {Credo.Check.Readability.Specs, [include_defp: true]}, ## PREVIOUSLY DISABLED
           {Credo.Check.Readability.StrictModuleLayout, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Readability.StringSigils, []},
           {Credo.Check.Readability.TrailingBlankLine, []},

@@ -35,3 +35,4 @@ aurora_uix-*.tar
 
 /assets/
 /test/_priv/static/assets/
+/.vscode

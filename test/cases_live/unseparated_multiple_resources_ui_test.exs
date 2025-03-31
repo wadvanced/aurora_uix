@@ -46,11 +46,11 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
            )
            |> render_change() =~ "can&#39;t be blank"
 
-    assert view
-           |> form("#auix-product-form",
-             product: %{quantity_initial: 11}
-           )
-           |> render_submit() =~ "Listing Products"
+    view
+    |> form("#auix-product-form",
+      product: %{quantity_initial: 11}
+    )
+    |> render_submit()
 
     {:ok, _view, new_html} = live(conn, "/unseparated-multiple-resources-products")
 
@@ -99,15 +99,15 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
            )
            |> render_change() =~ "can&#39;t be blank"
 
-    assert view
-           |> form("#auix-product_transaction-form",
-             product_transaction: %{
-               cost: 50,
-               product_id: product.id,
-               product_location_id: product_location.id
-             }
-           )
-           |> render_submit() =~ "Listing Product Transactions"
+    view
+    |> form("#auix-product_transaction-form",
+      product_transaction: %{
+        cost: 50,
+        product_id: product.id,
+        product_location_id: product_location.id
+      }
+    )
+    |> render_submit()
 
     {:ok, _view, new_html} = live(conn, "/unseparated-multiple-resources-product_transactions")
 

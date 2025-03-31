@@ -48,6 +48,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   """
 
   alias AuroraUixWeb.Template
+  alias AuroraUixWeb.Templates.Core.LiveComponents.AuroraIndexList
 
   @doc """
   Generates a HEEx template fragment for the specified UI component type.
@@ -75,50 +76,54 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   """
   @spec generate_view(atom, map) :: binary
   def generate_view(:index, parsed_opts) do
+    parsed_opts = Map.update(parsed_opts, :index_columns, [], &:erlang.binary_to_term/1)
+
     Template.build_html(
       parsed_opts,
       ~S"""
-        <.header>
-          Listing [[title]]
-          <:actions>
-            <.link patch={~p"/[[link_prefix]][[source]]/new"} id="auix-new-[[source]]">
-              <.button>New [[title]]</.button>
-            </.link>
-          </:actions>
-        </.header>
-
-        <.table
-            id={"auix-list-[[link_prefix]][[source]]"}
-            rows={get_in(assigns, @_uix.rows)}
-            row_click={fn {_id, row} -> JS.navigate(~p"/[[link_prefix]][[source]]/#{row}") end}
-        >
-          [[index_columns]]
-          <:action :let={{id, [[module]]}}>
+        <.live_component
+          module={AuroraUixWeb.LiveComponents.AuroraIndexList}
+          id="[[source]]"
+          title="Listing [[title]]"
+          module_name="[[title]]"
+          rows={get_in(assigns, @_auix.rows)}
+          columns={[[index_columns]]}
+          row_id={fn {id, _auix_entity} -> id end}
+          new_link={@_auix[:index_new_link]}
+          row_click={@_auix[:index_row_click]}
+          >
+          <:action :let={{id, entity}}>
             <div class="sr-only">
-              <.link navigate={~p"/[[link_prefix]][[source]]/#{[[module]]}"} id={"auix-show-#{id}"}>Show</.link>
+              <.link navigate={index_show_entity_link(@_auix, entity)} id={"auix-show-#{id}"}>Show</.link>
             </div>
-            <.link patch={~p"/[[link_prefix]][[source]]/#{[[module]]}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
+            <.link patch={~p"/[[link_prefix]][[source]]/#{entity}/edit"} id={"auix-edit-#{id}"}>Edit</.link>
           </:action>
-          <:action :let={{id, _[[module]]}}>
+          <:action :let={{id, entity}}>
             <.link
-              phx-click={JS.push("delete", value: %{id: id}) |> hide("##{id}")}
+              phx-click={JS.push("delete", value: %{id: entity.id}) |> hide("##{id}")}
               data-confirm="Are you sure?"
               id={"auix-delete-#{id}"}
             >
               Delete
             </.link>
           </:action>
-        </.table>
+        </.live_component>
 
-        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch(~p"/[[link_prefix]][[source]]")}>
-          <.live_component
-            module={[[module_name]]FormComponent}
-            id={@_entity.id || :new}
-            title={@page_title}
-            action={@live_action}
-            entity={@_entity}
-            patch={~p"/[[link_prefix]][[source]]"}
-          />
+        <div class="hidden">
+          <a href={~p"/[[link_prefix]][[source]]"}>-</a>
+        </div>
+        <.modal :if={@live_action in [:new, :edit]} id="auix-[[module]]-modal" show on_cancel={JS.patch("/[[link_prefix]]#{@_auix_source}")}>
+          <div>
+            <.live_component
+              module={[[module_name]]FormComponent}
+              id={@auix_entity.id || :new}
+              title={@page_title}
+              source={@_auix_source}
+              action={@live_action}
+              auix_entity={@auix_entity}
+              patch={"/[[link_prefix]]#{@_auix_source}"}
+            />
+          </div>
         </.modal>
       """
     )
@@ -129,10 +134,10 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
       parsed_opts,
       ~S"""
       <.header>
-        [[name]] {@_entity.id}
+        [[name]] {@auix_entity.id}
         <:subtitle>{@subtitle}</:subtitle>
         <:actions>
-          <.link patch={~p"/[[link_prefix]][[source]]/#{@_entity}/show/edit"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
+          <.link patch={"/[[link_prefix]][[source]]/#{@auix_entity.id}/show/edit#{@_auix_source_link}"} phx-click={JS.push_focus()} id="auix-edit-[[source]]">
             <.button>Edit [[name]]</.button>
           </.link>
         </:actions>
@@ -140,20 +145,21 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
 
       [[show_fields]]
 
-      <.back navigate={~p"/[[link_prefix]][[source]]"}>Back to [[title]]</.back>
+      <.back navigate={"/[[link_prefix]]#{@_auix_source}"}>Back to [[title]]</.back>
 
       <.modal :if={@live_action == :edit}
         id="auix-[[module]]-modal"
         show
-        on_cancel={JS.patch(~p"/[[link_prefix]][[source]]/#{@_entity}")}
+        on_cancel={JS.patch("/[[link_prefix]]#{@_auix_source}/#{@auix_entity.id}")}
       >
         <.live_component
           module={[[module_name]]FormComponent}
-          id={@_entity.id}
+          id={@auix_entity.id}
           title={@page_title}
           action={@live_action}
-          entity={@_entity}
-          patch={~p"/[[link_prefix]][[source]]/#{@_entity}"}
+          source={@_auix_source}
+          auix_entity={@auix_entity}
+          patch={"/[[link_prefix]]#{@_auix_source}/#{@auix_entity.id}"}
         />
       </.modal>
       """
@@ -168,8 +174,12 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
           <.header>
             {@title}
             <:subtitle>Use this form to manage [[module]] records in your database.</:subtitle>
+
           </.header>
 
+          <.flash kind={:error} flash={@flash} title="Error!" />
+          HELLO WORLD!
+          {@source}
           <.simple_form
             for={@form}
             id="auix-[[module]]-form"
@@ -187,10 +197,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
     )
   end
 
-  def generate_view(:card, _parsed_opts) do
-    ~S"""
-      <h1>Base Template</h1>
-    card
-    """
+  def generate_view(:aurora_index_list = type, parsed_opts) do
+    AuroraIndexList.generate_view(type, parsed_opts)
   end
 end

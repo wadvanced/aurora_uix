@@ -23,6 +23,11 @@ defmodule AuroraUixTestWeb.Router do
 
     # Tests with required CRUD links for testing
     AuroraUixTestWeb.register_crud(
+      CreateUIDefaultLayoutTest.TestModule.Product,
+      "create-ui-default-layout-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
       CreateUILayoutTest.TestModule.Product,
       "create-ui-layout-products"
     )
@@ -70,6 +75,21 @@ defmodule AuroraUixTestWeb.Router do
     AuroraUixTestWeb.register_crud(
       UnseparatedMultipleResourcesUITest.TestModule.ProductTransaction,
       "unseparated-multiple-resources-product_transactions"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      AssociationMany2oneUILayoutTest.TestModule.Product,
+      "association-many-layout-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      AssociationMany2oneUILayoutTest.TestModule.ProductTransaction,
+      "association-many-layout-product_transactions"
+    )
+
+    AuroraUixTestWeb.register_crud(
+      AssociationMany2oneUILayoutTest.TestModule.ProductLocation,
+      "association-many-layout-product_locations"
     )
   end
 end

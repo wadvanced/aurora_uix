@@ -21,10 +21,14 @@ defmodule AuroraUixTestWeb.Inventory.Views do
     index_columns(:product, [:list_price])
 
     edit_layout :product, a: "a-test" do
-      inline(name: [], reference: [readonly: true], description: [])
+      stacked(name: [], reference: [], description: [])
 
       sections do
-        section "Prices", default: true do
+        section "Quantities", default: true do
+          stacked([:quantity_initial, :quantity_at_hand])
+        end
+
+        section "Prices" do
           inline([:list_price, :rrp])
           inline([:msrp])
         end

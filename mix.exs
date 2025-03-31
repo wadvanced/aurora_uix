@@ -53,6 +53,10 @@ defmodule AuroraUix.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ecto_sql, "~> 3.10"},
+      {:postgrex, ">= 0.0.0"},
+
+      ## Dev dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
@@ -60,7 +64,6 @@ defmodule AuroraUix.MixProject do
 
       ## Test only dependencies
       {:bandit, "~> 1.5", only: :test, runtime: false},
-      {:ecto_sql, "~> 3.10", only: :test, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:gettext, "~> 0.20", only: :test, runtime: false},
@@ -77,7 +80,6 @@ defmodule AuroraUix.MixProject do
       {:phoenix_ecto, "~> 4.5", only: :test, runtime: false},
       {:phoenix_html, "~> 4.2", only: :test, runtime: false},
       {:phoenix_live_view, "~> 1.0", override: true, only: :test, runtime: false},
-      {:postgrex, ">= 0.0.0", only: :test, runtime: false},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
   end

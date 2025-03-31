@@ -61,7 +61,7 @@ defmodule AuroraUixWeb.Uix do
       schema: MyApp.Accounts.User,
       context: MyApp.Accounts do
       field :email, placeholder: "user@example.com", required: true
-      field :password, html_type: :password, required: true
+      field :password, field_type: :password, required: true
     end
 
     # Generate a UI layout

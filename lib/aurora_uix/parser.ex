@@ -55,12 +55,20 @@ defmodule AuroraUix.Parser do
     delete_function: nil,
     get_function: nil,
     list_function: nil,
-    update_function: nil
+    update_function: nil,
+    new_function: nil,
+    disable_index_new_link: false,
+    disable_index_row_click: false,
+    disable_index_show_entity_link: false,
+    index_new_link: "/my_schemas/new",
+    index_row_click: "my_schemas/[[entity]]",
+    index_show_entity_link: "my_schemas/[[entity]]"
    }
   """
   @spec parse(map, Keyword.t()) :: map
   def parse(resource_config, opts \\ []) do
-    opts = List.flatten(opts)
+    opts =
+      List.flatten(opts)
 
     %{}
     |> Common.parse(resource_config, opts)

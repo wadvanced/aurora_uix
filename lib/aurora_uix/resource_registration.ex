@@ -141,61 +141,185 @@ defmodule AuroraUix.ResourceRegistration do
     create_changeset_function = get_option(opts, :create_changeset_function)
     changeset_function = get_option(opts, :changeset_function)
 
-    list_function = String.to_atom("list_#{source}")
-    create_function = String.to_atom("create_#{module}")
-    create_function! = String.to_atom("create_#{module}!")
-    get_function = String.to_atom("get_#{module}")
-    get_function! = String.to_atom("get_#{module}!")
-    delete_function = String.to_atom("delete_#{module}")
-    delete_function! = String.to_atom("delete_#{module}!")
-    change_function = String.to_atom("change_#{module}")
+    implemented_functions =
+      Enum.map(
+        [
+          %{type: :list_function, name: "list_#{source}", arity: 0},
+          %{type: :list_function, name: "list_#{source}", arity: 1},
+          %{type: :create_function, name: "create_#{module}", arity: 0},
+          %{type: :create_function, name: "create_#{module}", arity: 1},
+          %{type: :create_function!, name: "create_#{module}!", arity: 0},
+          %{type: :create_function!, name: "create_#{module}!", arity: 1},
+          %{type: :get_function, name: "get_#{module}", arity: 1},
+          %{type: :get_function, name: "get_#{module}", arity: 2},
+          %{type: :get_function!, name: "get_#{module}!", arity: 1},
+          %{type: :get_function!, name: "get_#{module}!", arity: 2},
+          %{type: :delete_function, name: "delete_#{module}", arity: 1},
+          %{type: :delete_function!, name: "delete_#{module}!", arity: 1},
+          %{type: :change_function, name: "change_#{module}", arity: 1},
+          %{type: :change_function, name: "change_#{module}", arity: 2},
+          %{type: :update_function, name: "update_#{module}", arity: 1},
+          %{type: :update_function, name: "update_#{module}", arity: 2},
+          %{type: :new_function, name: "new_#{module}", arity: 0},
+          %{type: :new_function, name: "new_#{module}", arity: 1},
+          %{type: :new_function, name: "new_#{module}", arity: 2}
+        ],
+        &Map.merge(&1, %{
+          repo_module: repo_module,
+          schema_module: schema_module,
+          create_changeset_function: create_changeset_function,
+          changeset_function: changeset_function,
+          name: String.to_atom(&1.name)
+        })
+      )
+
+    imports =
+      quote do
+        import Ecto.Query
+        alias AuroraUix.QueryHelper
+        alias AuroraUix.RepoHelper
+      end
+
+    functions =
+      implemented_functions
+      |> Enum.reject(&Module.defines?(context_module, {&1.name, &1.arity}, :def))
+      |> Enum.map(&generate_function/1)
 
     quote do
-      @doc false
-      def unquote(list_function)() do
-        unquote(repo_module).all(unquote(schema_module))
-      end
+      unquote(imports)
+      unquote(functions)
+    end
+  end
 
-      @doc false
-      def unquote(create_function)(attrs \\ %{}) do
-        %unquote(schema_module){}
-        |> unquote(schema_module).unquote(create_changeset_function)(attrs)
-        |> unquote(repo_module).insert()
-      end
+  ## PRIVATE
+  # Function templates
+  @spec generate_function(map) :: Macro.t()
+  defp generate_function(%{type: :list_function, arity: arity} = function) do
+    arg = if arity == 1, do: [quote(do: opts)], else: []
+    opts = if arity == 1, do: [quote(do: opts)], else: [quote(do: [])]
 
-      @doc false
-      def unquote(create_function!)(attrs \\ %{}) do
-        %unquote(schema_module){}
-        |> unquote(schema_module).unquote(create_changeset_function)(attrs)
-        |> unquote(repo_module).insert!()
-      end
-
-      @doc false
-      def unquote(get_function)(id) do
-        unquote(repo_module).get(unquote(schema_module), id)
-      end
-
-      @doc false
-      def unquote(get_function!)(id) do
-        unquote(repo_module).get!(unquote(schema_module), id)
-      end
-
-      @doc false
-      def unquote(delete_function)(id) do
-        unquote(repo_module).delete(unquote(schema_module), id)
-      end
-
-      @doc false
-      def unquote(delete_function!)(id) do
-        unquote(repo_module).delete!(unquote(schema_module), id)
-      end
-
-      @doc false
-      def unquote(change_function)(entity, attrs \\ %{}) do
-        unquote(schema_module).unquote(changeset_function)(entity, attrs)
+    quote do
+      def unquote(function.name)(unquote_splicing(arg)) do
+        unquote(function.schema_module)
+        |> from()
+        |> QueryHelper.options(unquote_splicing(opts))
+        |> unquote(function.repo_module).all()
       end
     end
   end
+
+  defp generate_function(%{type: type, arity: arity} = function)
+       when type in [:create_function, :create_function!] do
+    repo_function = repo_function(function, "insert")
+
+    arg = if arity == 1, do: [quote(do: attrs)], else: []
+    attrs = if arity == 1, do: [quote(do: attrs)], else: [nil]
+
+    quote do
+      def unquote(function.name)(unquote_splicing(arg)) do
+        %unquote(function.schema_module){}
+        |> unquote(function.schema_module).unquote(function.create_changeset_function)(
+          unquote_splicing(attrs) || %{}
+        )
+        |> unquote(function.repo_module).unquote(repo_function)()
+      end
+    end
+  end
+
+  defp generate_function(%{type: type, arity: arity} = function)
+       when type in [:get_function, :get_function!] do
+    repo_function = repo_function(function, "get")
+
+    arg = if arity == 2, do: [quote(do: id), quote(do: opts)], else: [quote(do: id)]
+    opts = if arity == 2, do: [quote(do: opts)], else: [[]]
+
+    quote do
+      @doc false
+      def unquote(function.name)(unquote_splicing(arg)) do
+        unquote(function.schema_module)
+        |> from()
+        |> QueryHelper.options(unquote_splicing(opts))
+        |> unquote(function.repo_module).unquote(repo_function)(id)
+      end
+    end
+  end
+
+  defp generate_function(%{type: type} = function)
+       when type in [:delete, :delete!] do
+    repo_function = repo_function(function, "delete")
+
+    quote do
+      @doc false
+      def unquote(function.name)(id) do
+        unquote(function.repo_module).unquote(repo_function)(unquote(function.schema_module), id)
+      end
+    end
+  end
+
+  defp generate_function(%{type: :change_function, arity: arity} = function) do
+    args = if arity > 1, do: [quote(do: entity), quote(do: attrs)], else: [quote(do: entity)]
+    entity = quote(do: entity)
+    attrs = if arity > 1, do: quote(do: attrs), else: nil
+
+    quote do
+      @doc false
+      def unquote(function.name)(unquote_splicing(args)) do
+        unquote(function.schema_module).unquote(function.changeset_function)(
+          unquote(entity),
+          unquote(attrs) || %{}
+        )
+      end
+    end
+  end
+
+  defp generate_function(%{type: :update_function, arity: arity} = function) do
+    repo_function = repo_function(function, "update")
+    args = if arity > 1, do: [quote(do: entity), quote(do: attrs)], else: [quote(do: entity)]
+    entity = quote(do: entity)
+    attrs = if arity == 2, do: quote(do: attrs), else: nil
+
+    quote do
+      @doc false
+      def unquote(function.name)(unquote(args)) do
+        unquote(entity)
+        |> unquote(function.schema_module).unquote(function.changeset_function)(
+          unquote(attrs) || %{}
+        )
+        |> unquote(function.repo_module).unquote(repo_function)()
+      end
+    end
+  end
+
+  defp generate_function(%{type: :new_function, arity: arity} = function) do
+    args = if arity > 0, do: [quote(do: opts)], else: []
+    opts = if arity > 0, do: quote(do: opts), else: quote(do: [])
+
+    quote do
+      @doc false
+      def unquote(function.name)(unquote_splicing(args)) do
+        RepoHelper.options(
+          %unquote(function.schema_module){},
+          unquote(function.repo_module),
+          unquote(opts)
+        )
+      end
+    end
+  end
+
+  defp generate_function(_func), do: quote(do: :ok)
+
+  @spec repo_function(map, binary) :: atom
+  defp repo_function(function, repo_function_name) do
+    function.name
+    |> to_string()
+    |> String.ends_with?("!")
+    |> maybe_add_bang(repo_function_name)
+    |> String.to_atom()
+  end
+
+  @spec maybe_add_bang(boolean, binary) :: binary
+  defp maybe_add_bang(true, repo_function_name), do: "#{repo_function_name}!"
+  defp maybe_add_bang(_, repo_function_name), do: "#{repo_function_name}"
 
   @spec get_repo_module(module, module | nil) :: module
   defp get_repo_module(context_module, nil) do

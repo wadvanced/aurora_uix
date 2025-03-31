@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb.CreateUILayoutTest do
+defmodule AuroraUixTestWeb.CreateUIDefaultLayoutTest do
   use AuroraUixTest.UICase, :phoenix_case
 
   defmodule TestModule do
@@ -12,13 +12,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
     # When you define a link in a test, you must add a line to router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "create-ui-layout-" do
-      edit_layout :product, [] do
-        inline([:reference, :name, :description])
-        inline([:quantity_at_hand, :quantity_initial])
-        inline([:list_price, :rrp])
-      end
-    end
+    auix_create_ui(link_prefix: "create-ui-default-layout-")
   end
 
   test "Test UI default with schema, context, basic layout", %{conn: conn} do
@@ -26,7 +20,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     index_module = Module.concat(test_module, Product.Index)
     assert true == Code.ensure_loaded?(index_module)
 
-    {:ok, view, html} = live(conn, "/create-ui-layout-products")
+    {:ok, view, html} = live(conn, "/create-ui-default-layout-products")
     assert html =~ "Listing Products"
     assert html =~ "New Products"
 
@@ -36,7 +30,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
+    {:ok, view, html} = live(conn, "/create-ui-default-layout-products/new")
 
     assert html =~ "New Product"
 
@@ -52,7 +46,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     )
     |> render_submit()
 
-    {:ok, _view, new_html} = live(conn, "/create-ui-layout-products")
+    {:ok, _view, new_html} = live(conn, "/create-ui-default-layout-products")
 
     assert new_html =~ "Listing Products"
     assert new_html =~ "test-first"
