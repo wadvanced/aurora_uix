@@ -12,7 +12,7 @@ defmodule AuroraUixTest.Inventory do
 
   @spec list_products() :: [Product.t()]
   def list_products do
-    Repo.all(Product)
+    Product |> Repo.all() |> Repo.preload(:product_transactions)
   end
 
   @spec create_product(map) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}

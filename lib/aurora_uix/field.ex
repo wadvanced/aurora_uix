@@ -5,11 +5,12 @@ defmodule AuroraUix.Field do
   This module defines a struct to represent field properties for UI components, such as:
     - `field` (`atom`) - The field reference in the schema.
     - `name` (`binary`) - The field's name as a binary.
-    - `html_type` (`atom`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
+    - `field_type` (`atom`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `renderer` (`function`) - A custom rendering function for the field.
     - `data` (`any`) - A general purpose field.
         Template parser expect specific format for this data, according to any of the field value.
         Refer to the template documentation to learn special fields data structure.
+    - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
     - `length` (`non_neg_integer`) - Maximum allowed length of input (used for validations).
@@ -26,9 +27,10 @@ defmodule AuroraUix.Field do
   """
   defstruct [
     :field,
-    :html_type,
+    :field_type,
     :renderer,
     :data,
+    :resource,
     name: "",
     label: "",
     placeholder: "",
@@ -44,9 +46,10 @@ defmodule AuroraUix.Field do
 
   @type t() :: %__MODULE__{
           field: atom | nil,
-          html_type: atom | nil,
+          field_type: atom | nil,
           renderer: function | nil,
           data: any | nil,
+          resource: module | nil,
           name: binary,
           label: binary,
           placeholder: binary,
@@ -70,12 +73,13 @@ defmodule AuroraUix.Field do
 
   ## Examples
 
-      iex> AuroraUix.Field.new(%{field: :age, html_type: :float, precision: 10, scale: 2})
+      iex> AuroraUix.Field.new(%{field: :age, field_type: :float, precision: 10, scale: 2})
       %AuroraUix.Field{
         field: :age,
-        html_type: :float,
+        field_type: :float,
         renderer: nil,
         data: nil,
+        resource: nil,
         name: "age",
         label: "",
         placeholder: "",
@@ -90,12 +94,13 @@ defmodule AuroraUix.Field do
       }
 
 
-      iex> AuroraUix.Field.new([field: :username, html_type: :text])
+      iex> AuroraUix.Field.new([field: :username, field_type: :text])
       %AuroraUix.Field{
         field: :username,
-        html_type: :text,
+        field_type: :text,
         renderer: nil,
         data: nil,
+        resource: nil,
         name: "username",
         label: "",
         placeholder: "",
@@ -126,9 +131,10 @@ defmodule AuroraUix.Field do
         iex> field = AuroraUix.Field.new(%{field: :age})
         %AuroraUix.Field{
           field: :age,
-          html_type: nil,
+          field_type: nil,
           renderer: nil,
           data: nil,
+          resource: nil,
           name: "age",
           label: "",
           placeholder: "",
@@ -141,12 +147,13 @@ defmodule AuroraUix.Field do
           disabled: false,
           omitted: false
         }
-        iex> AuroraUix.Field.change(field, %{html_type: :number, precision: 3})
+        iex> AuroraUix.Field.change(field, %{field_type: :number, precision: 3})
         %AuroraUix.Field{
           field: :age,
-          html_type: :number,
+          field_type: :number,
           renderer: nil,
           data: nil,
+          resource: nil,
           name: "age",
           label: "",
           placeholder: "",

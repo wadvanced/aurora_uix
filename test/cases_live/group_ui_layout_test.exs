@@ -49,6 +49,7 @@ defmodule AuroraUixTestWeb.GroupUILayoutTest do
     assert_group_field(view, "group-sale_prices", 2, "rrp")
   end
 
+  @spec assert_group_field(Phoenix.LiveViewTest.View.t(), binary, integer, binary) :: any
   defp assert_group_field(view, group_name, position, field_name) do
     element_html =
       view

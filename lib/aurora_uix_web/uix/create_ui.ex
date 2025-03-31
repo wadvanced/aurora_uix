@@ -145,58 +145,48 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Otherwise, generates base layouts for all configured resources
 
   """
-  @spec build_ui(any, map | nil, list, keyword) :: list
+  @spec build_ui(any, map, list, keyword) :: list
   def build_ui(caller, auix_resource_configs_ui, layout_paths, opts) do
     if resource_config_name = opts[:for] do
       [
-        build_index_form_layouts(
-          caller,
-          auix_resource_configs_ui,
-          resource_config_name,
-          layout_paths,
-          opts
-        )
+        auix_resource_configs_ui
+        |> build_resource_paths(resource_config_name, layout_paths, opts)
+        |> expand_associations()
+        |> build_resource_layouts(caller)
       ]
     else
-      build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts)
+      build_resources_layouts(caller, auix_resource_configs_ui, layout_paths, opts)
     end
   end
 
   ## PRIVATE
 
-  @spec build_base_layouts(module, map | nil, list, keyword) :: [Macro.t()]
-  defp build_base_layouts(caller, auix_resource_configs_ui, layout_paths, opts) do
-    Enum.reduce(
-      auix_resource_configs_ui,
+  @spec build_resources_layouts(module, map, list, keyword) :: [Macro.t()]
+  defp build_resources_layouts(caller, auix_resource_configs_ui, layout_paths, opts) do
+    auix_resource_configs_ui
+    |> Enum.reduce(
       [],
-      &build_index_form_layouts(
-        caller,
-        auix_resource_configs_ui,
-        elem(&1, 0),
-        layout_paths,
-        opts,
-        &2
-      )
+      &[build_resource_paths(auix_resource_configs_ui, elem(&1, 0), layout_paths, opts) | &2]
     )
+    |> Enum.reduce([], &[expand_associations(&1) | &2])
+    |> Enum.reduce([], &[build_resource_layouts(&1, caller) | &2])
+    |> List.flatten()
   end
 
-  @spec build_index_form_layouts(module, map | nil, atom, list, keyword, list) :: [Macro.t()]
-  defp build_index_form_layouts(
-         caller,
+  @spec build_resource_paths(map, atom, list, keyword) :: map
+  defp build_resource_paths(
          auix_resource_config,
          resource_config_name,
          layout_paths,
-         opts,
-         acc \\ []
+         opts
        ) do
     template = Template.uix_template()
-
     resource_config = Map.get(auix_resource_config, resource_config_name)
 
     resource_module = Map.get(resource_config, :schema)
 
     if is_nil(resource_module) do
-      acc
+      %{}
     else
       parsed_opts =
         resource_config
@@ -212,37 +202,69 @@ defmodule AuroraUixWeb.Uix.CreateUI do
         |> Map.new()
         |> fill_missing_paths(:form, :show)
 
-      parsed_opts =
+      defaulted_paths =
         layouts
-        |> Enum.map(&parse_template_paths(&1, paths, resource_config_name, parsed_opts, template))
+        |> Enum.map(fn {tag, _key} ->
+          paths
+          |> Map.get(tag)
+          |> LayoutConfigUI.build_default_layout_paths(resource_config_name, parsed_opts, tag)
+          |> LayoutConfigUI.parse_sections(tag)
+          |> then(&{tag, &1})
+        end)
         |> Map.new()
-        |> then(&Map.merge(parsed_opts, &1))
 
-      {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
-
-      modules = %{
-        caller: caller,
-        module: resource_module,
-        web: web,
-        context: resource_config.context
+      %{
+        resource_config: resource_config,
+        layouts: layouts,
+        parsed_opts: parsed_opts,
+        defaulted_paths: defaulted_paths,
+        template: template
       }
-
-      Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
-
-      Enum.reduce(
-        [:form, :index, :show],
-        acc,
-        &[template.generate_module(modules, &1, parsed_opts) | &2]
-      )
     end
   end
 
-  @spec parse_template_paths(tuple, map, atom, map, module) :: tuple
-  defp parse_template_paths({tag, key}, paths, resource_config_name, parsed_opts, template) do
+  @spec build_resource_layouts(map, module) :: list
+  defp build_resource_layouts(
+         %{
+           resource_config: resource_config,
+           layouts: layouts,
+           parsed_opts: parsed_opts,
+           defaulted_paths: defaulted_paths,
+           template: template
+         },
+         caller
+       ) do
+    {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
+    resource_module = Map.get(resource_config, :schema)
+
+    parsed_opts =
+      layouts
+      |> Enum.map(&parse_template_paths(&1, defaulted_paths, parsed_opts, template))
+      |> Map.new()
+      |> then(&Map.merge(parsed_opts, &1))
+
+    modules = %{
+      caller: caller,
+      module: resource_module,
+      web: web,
+      context: resource_config.context
+    }
+
+    Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
+
+    Enum.reduce(
+      [:form, :index, :show],
+      [],
+      &[template.generate_module(modules, &1, parsed_opts) | &2]
+    )
+  end
+
+  defp build_resource_layouts(%{}, _caller), do: []
+
+  @spec parse_template_paths(tuple, map, map, module) :: tuple
+  defp parse_template_paths({tag, key}, paths, parsed_opts, template) do
     paths
-    |> Map.get(tag)
-    |> LayoutConfigUI.build_default_layout_paths(resource_config_name, parsed_opts, tag)
-    |> LayoutConfigUI.parse_sections(tag)
+    |> Map.get(tag, %{})
     |> Enum.map_join(&parse_template_path(&1, parsed_opts, tag, template))
     |> then(&{key, &1})
   end
@@ -282,6 +304,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
   defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
 
+  @spec update_layout_path_tag(map, atom, atom) :: map
   defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
   defp update_layout_path_tag(path, _from, _to), do: path
 
@@ -349,6 +372,12 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     Enum.find(configured_fields, &(&1.field == field))
   end
 
+  @spec expand_associations(map) :: map
+  defp expand_associations(configuration) do
+    configuration
+  end
+
+  @spec map_resources(list) :: map
   defp map_resources(resource_configs) do
     flatten_resource_configs = List.flatten(resource_configs)
 
@@ -357,6 +386,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
       else: map_resources(flatten_resource_configs, %{})
   end
 
+  @spec map_resources(list, map) :: map
   defp map_resources([resource_config | rest], acc) do
     map_resources(rest, Map.merge(acc, resource_config))
   end

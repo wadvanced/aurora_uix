@@ -384,6 +384,16 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     )
   end
 
+  defmacro children_layout(name, child_module_name, opts, do_block \\ nil) do
+    register_layout_path_entry(
+      :children,
+      name,
+      [child_module_name: child_module_name],
+      opts,
+      do_block
+    )
+  end
+
   @doc """
   Generates a default path structure for rendering UI components based on the given mode.
 
@@ -534,6 +544,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     end
   end
 
+  @spec unique_titled_id(binary | nil) :: binary
   defp unique_titled_id(nil), do: unique_titled_id("untitled")
   defp unique_titled_id(""), do: unique_titled_id("untitled")
 
@@ -551,6 +562,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     "#{slug}-#{unique_suffix}#{unique_int}"
   end
 
+  @spec normalize_title(binary) :: binary
   defp normalize_title(title) do
     title
     |> String.downcase()
@@ -759,6 +771,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   defp ensure_single_active_tab(paths, sections_id, _count),
     do: ensure_single_active_tab(paths, sections_id, 0)
 
+  @spec mark_active_tab(map, tuple, binary) :: tuple
   defp mark_active_tab(
          %{tag: :section, state: :start, config: config} = tab_path,
          {acc, active},

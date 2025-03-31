@@ -193,7 +193,9 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   end
 
   def parse_layout(%{tag: :index, state: :start, config: {:fields, fields}}, :index) do
-    Enum.map_join(fields, "\n", fn field ->
+    fields
+    |> Enum.reject(&(&1.field_type in [:many_to_one_association, :one_to_many_association]))
+    |> Enum.map_join("\n", fn field ->
       "<:col :let={{_id, entity}} label=\"#{field.label}\">{entity.#{field.name}}</:col>"
     end)
   end
@@ -215,6 +217,11 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   end
 
   @spec default_field_render(AuroraUix.Field.t(), atom) :: binary
+
+  defp default_field_render(%{field_type: field_type} = field, _mode)
+       when field_type in [:many_to_one_association, :one_to_many_association],
+       do: "<div>ASSOCIATION: #{inspect(field.field)}</div>"
+
   defp default_field_render(field, mode) do
     input_classes = ~s"block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500
       focus:ring-indigo-500 sm:text-sm"
@@ -246,7 +253,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
         <.input
           id="#{opts.id}-#{mode}"
           field={@form[:#{field.field}]}
-          type="#{field.html_type}"
+          type="#{field.field_type}"
           label="#{field.label}"
           #{select_opts}
           #{opts.readonly}
@@ -264,7 +271,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
         <.input
           id="#{opts.id}-#{mode}"
           name="#{field.field}"
-          type="#{field.html_type}"
+          type="#{field.field_type}"
           label="#{field.label}"
           value={@_entity.#{field.field}}
           #{select_opts}
@@ -276,7 +283,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   end
 
   @spec get_select_options(map) :: binary
-  defp get_select_options(%{html_type: :select, data: data}) do
+  defp get_select_options(%{field_type: :select, data: data}) do
     opts =
       data[:opts]
       |> Enum.map_join(", ", fn {label, value} ->

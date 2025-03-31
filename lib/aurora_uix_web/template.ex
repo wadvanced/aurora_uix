@@ -235,6 +235,7 @@ defmodule AuroraUixWeb.Template do
     |> Enum.member?(__MODULE__)
   end
 
+  @spec functions_not_exported(module, keyword) :: list
   defp functions_not_exported(module, expected_functions) do
     expected_functions
     |> Enum.reject(&function_exported?(module, elem(&1, 0), elem(&1, 1)))

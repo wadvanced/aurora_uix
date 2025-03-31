@@ -42,7 +42,7 @@ defmodule AuroraUix.ResourceConfigUI do
         fields: [
           %AuroraUix.Field{
             field: :custom_field,
-            html_type: nil,
+            field_type: nil,
             renderer: nil,
             data: nil,
             name: "custom_field",
@@ -87,7 +87,7 @@ defmodule AuroraUix.ResourceConfigUI do
         fields: [
           %AuroraUix.Field{
             field: :reference,
-            html_type: nil,
+            field_type: nil,
             renderer: nil,
             data: nil,
             name: "reference",
@@ -112,7 +112,7 @@ defmodule AuroraUix.ResourceConfigUI do
         fields: [
           %AuroraUix.Field{
             field: :reference,
-            html_type: nil,
+            field_type: nil,
             renderer: nil,
             data: nil,
             name: "reference",
@@ -136,7 +136,7 @@ defmodule AuroraUix.ResourceConfigUI do
         fields: [
           %AuroraUix.Field{
             field: :reference,
-            html_type: nil,
+            field_type: nil,
             renderer: nil,
             data: nil,
             name: "reference",
@@ -153,7 +153,7 @@ defmodule AuroraUix.ResourceConfigUI do
           },
           %AuroraUix.Field{
             field: :description,
-            html_type: nil,
+            field_type: nil,
             renderer: nil,
             data: nil,
             name: "description",
@@ -191,6 +191,7 @@ defmodule AuroraUix.ResourceConfigUI do
   def change(resource_config, %{} = attrs), do: struct(resource_config, attrs)
 
   ## PRIVATE
+  @spec change_fields(__MODULE__.t(), list) :: __MODULE__.t()
   defp change_fields(%{fields: resource_config_fields} = resource_config, attrs)
        when is_list(attrs) do
     changed_fields =
@@ -208,6 +209,7 @@ defmodule AuroraUix.ResourceConfigUI do
   defp change_fields(resource_config, _attrs),
     do: resource_config
 
+  @spec change_field(map, list | map) :: map
   defp change_field(%{field: field_id} = resource_config_field, changed_fields)
        when is_list(changed_fields) or is_map(changed_fields) do
     changed_fields
@@ -220,6 +222,7 @@ defmodule AuroraUix.ResourceConfigUI do
 
   defp change_field(resource_config_field, _changed_fields), do: resource_config_field
 
+  @spec add_fields(__MODULE__.t(), list) :: __MODULE__.t()
   defp add_fields(%{fields: resource_config_fields} = resource_config, attrs) do
     keys = Enum.map(resource_config_fields, & &1.field)
 
@@ -239,6 +242,7 @@ defmodule AuroraUix.ResourceConfigUI do
     |> then(&struct(resource_config, %{fields: &1}))
   end
 
+  @spec create_field(tuple, list) :: list
   defp create_field({field, properties}, acc) do
     new_field =
       properties
@@ -252,6 +256,7 @@ defmodule AuroraUix.ResourceConfigUI do
   defp create_field(%{field: _field_id} = attrs, _acc), do: Field.new(attrs)
   defp create_field(_field, acc), do: acc
 
+  @spec filter(list, atom) :: list
   defp filter(attrs, key) do
     Enum.filter(attrs, fn
       {^key, _} -> true

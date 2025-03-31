@@ -128,6 +128,7 @@ defmodule AuroraUix.Parsers.ContextParser do
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
+  @spec filter_function(module, list, integer) :: atom
   defp filter_function(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions
@@ -141,6 +142,7 @@ defmodule AuroraUix.Parsers.ContextParser do
     |> to_atom()
   end
 
+  @spec to_atom(binary | nil) :: atom
   defp to_atom(nil), do: nil
   defp to_atom(function_name), do: String.to_atom(function_name)
 end
