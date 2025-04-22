@@ -18,7 +18,7 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu24
+    runs-on: ubuntu24.04
 
     steps:
     - uses: actions/checkout@v4
