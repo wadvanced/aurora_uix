@@ -48,7 +48,6 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   """
 
   alias AuroraUixWeb.Template
-  alias AuroraUixWeb.Templates.Core.LiveComponents.AuroraIndexList
 
   @doc """
   Generates a HEEx template fragment for the specified UI component type.
@@ -82,7 +81,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
       parsed_opts,
       ~S"""
         <.live_component
-          module={AuroraUixWeb.LiveComponents.AuroraIndexList}
+          module={AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList}
           id="[[source]]"
           title="Listing [[title]]"
           module_name="[[title]]"
@@ -195,9 +194,5 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
         </div>
       """
     )
-  end
-
-  def generate_view(:aurora_index_list = type, parsed_opts) do
-    AuroraIndexList.generate_view(type, parsed_opts)
   end
 end

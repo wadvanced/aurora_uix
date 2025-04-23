@@ -61,7 +61,6 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
   """
 
   alias AuroraUixWeb.Templates.Core.Helpers, as: AuroraCoreHelpers
-  alias AuroraUixWeb.Templates.Core.LiveComponents.AuroraIndexList
 
   require Logger
 
@@ -407,10 +406,6 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
 
   def generate_module(modules, :aurora_core_helpers = type, parsed_opts) do
     AuroraCoreHelpers.generate_module(modules, type, parsed_opts)
-  end
-
-  def generate_module(modules, :aurora_index_list = type, parsed_opts) do
-    AuroraIndexList.generate_module(modules, type, parsed_opts)
   end
 
   def generate_module(_modules, type, _parsed_opts) do

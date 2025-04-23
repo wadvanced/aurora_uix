@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb.CoreComponents do
+defmodule AuroraUixWeb.Templates.Core.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -14,11 +14,12 @@ defmodule AuroraUixTestWeb.CoreComponents do
 
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
+  use AuroraUixWeb.Gettext
   use Phoenix.Component
-  use Gettext, backend: AuroraUixTestWeb.Gettext
 
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.Rendered
 
   @doc """
   Renders a modal.
@@ -618,6 +619,13 @@ defmodule AuroraUixTestWeb.CoreComponents do
 
   ## JS Commands
 
+  @doc """
+  Shows an element by adding classes for a transition animation.
+
+  ## Examples
+
+      <button phx-click={show("#my-element")}>Show</button>
+  """
   @spec show(JS.t() | nil, binary) :: JS.t()
   def show(js \\ %JS{}, selector) do
     JS.show(js,
@@ -630,6 +638,13 @@ defmodule AuroraUixTestWeb.CoreComponents do
     )
   end
 
+  @doc """
+  Hides an element by adding classes for a transition animation.
+
+  ## Examples
+
+      <button phx-click={hide("#my-element")}>Hide</button>
+  """
   @spec hide(JS.t() | nil, binary) :: JS.t()
   def hide(js \\ %JS{}, selector) do
     JS.hide(js,
@@ -642,6 +657,15 @@ defmodule AuroraUixTestWeb.CoreComponents do
     )
   end
 
+  @doc """
+  Shows a modal with transition animations.
+  The modal must have a container with the given ID and child elements with IDs
+  suffixed with "-bg" and "-container".
+
+  ## Examples
+
+      <button phx-click={show_modal("confirm-modal")}>Open modal</button>
+  """
   @spec show_modal(JS.t() | nil, binary) :: JS.t()
   def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
@@ -656,6 +680,15 @@ defmodule AuroraUixTestWeb.CoreComponents do
     |> JS.focus_first(to: "##{id}-content")
   end
 
+  @doc """
+  Hides a modal with transition animations.
+  The modal must have a container with the given ID and child elements with IDs
+  suffixed with "-bg" and "-container".
+
+  ## Examples
+
+      <button phx-click={hide_modal("confirm-modal")}>Close modal</button>
+  """
   @spec hide_modal(JS.t() | nil, binary) :: JS.t()
   def hide_modal(js \\ %JS{}, id) do
     js
@@ -685,16 +718,16 @@ defmodule AuroraUixTestWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(AuroraUixTestWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(backend(), "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(AuroraUixTestWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(backend(), "errors", msg, opts)
     end
   end
 
   @doc """
   Translates the errors for a field from a keyword list of errors.
   """
-  @spec translate_errors(tuple, keyword) :: list
+  @spec translate_errors(list, keyword) :: list
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
