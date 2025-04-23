@@ -50,10 +50,23 @@ defmodule AuroraUix.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  # Mix deps.
   defp deps do
     [
       {:ecto_sql, "~> 3.10"},
+      {:bandit, "~> 1.5"},
+      {:gettext, "~> 0.20"},
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.1.1",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1},
+      {:phoenix, "~> 1.7"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_html, "~> 4.2"},
+      {:phoenix_live_view, "~> 1.0", override: true},
       {:postgrex, ">= 0.0.0"},
 
       ## Dev dependencies
@@ -61,25 +74,8 @@ defmodule AuroraUix.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-
-      ## Test only dependencies
-      {:bandit, "~> 1.5", only: :test, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
-      {:gettext, "~> 0.20", only: :test, runtime: false},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.1",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1,
-       only: :test,
-       runtime: false},
-      {:phoenix, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:phoenix_ecto, "~> 4.5", only: :test, runtime: false},
-      {:phoenix_html, "~> 4.2", only: :test, runtime: false},
-      {:phoenix_live_view, "~> 1.0", override: true, only: :test, runtime: false},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
   end

@@ -1,6 +1,3 @@
-Code.require_file("test/support/app_web/gettext.exs")
-Code.require_file("test/support/app_web/components/core_components.exs")
-
 defmodule AuroraUixTestWeb do
   @spec static_paths() :: [binary]
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
@@ -108,11 +105,12 @@ defmodule AuroraUixTestWeb do
   @spec html_helpers() :: Macro.t()
   defp html_helpers do
     quote do
+      use AuroraUixWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      import AuroraUixTestWeb.CoreComponents
-      import AuroraUixTestWeb.Gettext
+      import AuroraUixWeb.Templates.Core.CoreComponents
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

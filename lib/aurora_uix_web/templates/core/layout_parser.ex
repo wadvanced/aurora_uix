@@ -250,7 +250,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
 
     ~s"""
       <.live_component
-        module={AuroraUixWeb.LiveComponents.AuroraIndexList}
+        module={AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList}
         id="auix-#{parsed_opts.name}__#{field.field}"
         title="#{related_parsed_opts.title} Elements"
         module_name="#{related_parsed_opts.title}"

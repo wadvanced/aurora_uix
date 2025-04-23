@@ -1,5 +1,5 @@
 %Doctor.Config{
-  ignore_modules: [AuroraUix.ResourceRegistration, AuroraUixWeb.Uix.DataConfigUI, AuroraUixWeb.Templates.Base],
+  ignore_modules: [AuroraUixWeb.Templates.Base, AuroraUixWeb.Gettext, AuroraUixWeb.Uix.DataConfigUI, AuroraUix.ResourceRegistration],
   ignore_paths: [],
   min_module_doc_coverage: 100,
   min_module_spec_coverage: 100,

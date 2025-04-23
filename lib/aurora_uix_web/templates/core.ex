@@ -89,8 +89,7 @@ defmodule AuroraUixWeb.Templates.Core do
   @spec common_modules :: [{atom, module}]
   def common_modules do
     [
-      {:aurora_core_helpers, AuroraUixWeb.Core.Helpers},
-      {:aurora_index_list, AuroraUixWeb.LiveComponents.AuroraIndexList}
+      {:aurora_core_helpers, AuroraUixWeb.Core.Helpers}
     ]
   end
 end
