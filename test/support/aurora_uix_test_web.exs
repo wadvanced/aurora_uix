@@ -106,11 +106,11 @@ defmodule AuroraUixTestWeb do
   defp html_helpers do
     quote do
       use AuroraUixWeb.Gettext
+      use AuroraUixWeb.CoreComponents
 
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components and translation
-      import AuroraUixWeb.Templates.Core.CoreComponents
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
