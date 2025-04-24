@@ -147,13 +147,9 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   """
   @spec build_ui(any, map, list, keyword) :: list
   def build_ui(caller, resource_configs, layout_paths, opts) do
-    {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
-    template = Template.uix_template()
-
     resource_configs
     |> filter_resources(opts[:for])
     |> build_resources_layouts(caller, layout_paths, opts)
-    |> build_common_components(web, template)
   end
 
   ## PRIVATE
@@ -290,24 +286,6 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   end
 
   defp build_resource_layouts(%{}, _caller), do: []
-
-  @spec build_common_components(list, module, module) :: list
-  defp build_common_components(uis, web, template) do
-    Enum.reduce(
-      template.common_modules(),
-      uis,
-      &maybe_build_common_component(web, template, &1, &2)
-    )
-  end
-
-  @spec maybe_build_common_component(module, module, tuple, list) :: Macro.t()
-  defp maybe_build_common_component(web, template, {type, module}, uis) do
-    if Code.loaded?(module) do
-      uis
-    else
-      [template.generate_module(%{web: web}, type) | uis]
-    end
-  end
 
   @spec parse_template_paths(tuple, map, map, module) :: tuple
   defp parse_template_paths({tag, key}, paths, parsed_opts, template) do
