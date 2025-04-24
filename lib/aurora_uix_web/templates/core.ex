@@ -81,19 +81,6 @@ defmodule AuroraUixWeb.Templates.Core do
   defdelegate generate_view(type, parsed_opts), to: MarkupGenerator
 
   @doc """
-  Returns a list of common modules used across the template system.
-
-  ## Returns
-    * [{atom, module}]: List of tuples containing module aliases and their corresponding modules
-  """
-  @spec common_modules :: [{atom, module}]
-  def common_modules do
-    [
-      {:aurora_core_helpers, AuroraUixWeb.Core.Helpers}
-    ]
-  end
-
-  @doc """
   Returns the default core components module used in the template system.
   ## Returns
     * module: The default core components module

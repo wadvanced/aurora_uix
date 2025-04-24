@@ -60,8 +60,6 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
   Transforms configuration into fully-functional, dynamically generated LiveView modules.
   """
 
-  alias AuroraUixWeb.Templates.Core.Helpers, as: AuroraCoreHelpers
-
   require Logger
 
   @doc """
@@ -133,7 +131,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     index_module = module_name(modules, parsed_opts, ".Index")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
-    core_helpers = AuroraUixWeb.Core.Helpers
+    core_helpers = AuroraUixWeb.Templates.Core.Helpers
 
     quote do
       defmodule unquote(index_module) do
@@ -230,7 +228,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
     components = AuroraUixWeb.Components.AuroraCoreComponents
-    core_helpers = AuroraUixWeb.Core.Helpers
+    core_helpers = AuroraUixWeb.Templates.Core.Helpers
 
     quote do
       defmodule unquote(show_module) do
@@ -307,7 +305,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     update_function = parsed_opts.update_function
     create_function = parsed_opts.create_function
     form_component = module_name(modules, parsed_opts, ".FormComponent")
-    core_helpers = AuroraUixWeb.Core.Helpers
+    core_helpers = AuroraUixWeb.Templates.Core.Helpers
 
     quote do
       defmodule unquote(form_component) do
@@ -402,10 +400,6 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
         defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
       end
     end
-  end
-
-  def generate_module(modules, :aurora_core_helpers = type, parsed_opts) do
-    AuroraCoreHelpers.generate_module(modules, type, parsed_opts)
   end
 
   def generate_module(_modules, type, _parsed_opts) do

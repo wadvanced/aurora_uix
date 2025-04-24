@@ -144,8 +144,6 @@ defmodule AuroraUixWeb.Template do
   """
   @callback parse_layout(path :: map, parsed_opts :: map, type :: atom) :: binary
 
-  @callback common_modules() :: list
-
   @callback default_core_components() :: module
 
   @doc """
