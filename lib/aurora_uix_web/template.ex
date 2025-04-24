@@ -146,6 +146,8 @@ defmodule AuroraUixWeb.Template do
 
   @callback common_modules() :: list
 
+  @callback default_core_components() :: module
+
   @doc """
   Validates and return the configured uix template.
   """

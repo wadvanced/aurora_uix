@@ -92,4 +92,14 @@ defmodule AuroraUixWeb.Templates.Core do
       {:aurora_core_helpers, AuroraUixWeb.Core.Helpers}
     ]
   end
+
+  @doc """
+  Returns the default core components module used in the template system.
+  ## Returns
+    * module: The default core components module
+  """
+  @spec default_core_components() :: module
+  def default_core_components do
+    AuroraUixWeb.Templates.Core.CoreComponents
+  end
 end
