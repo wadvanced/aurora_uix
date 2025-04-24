@@ -1,0 +1,22 @@
+name: Delete Merged Branches
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  delete-branch:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install gh CLI
+        uses: actions/setup-cli@v1
+
+      - name: Authenticate CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+              
+      - name: Delete branch
+        run: |
+          gh pr delete-branch --confirm ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
