@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
+defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
@@ -211,8 +211,8 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
-      Module.register_attribute(__MODULE__, :_auix_layout_paths, accumulate: true)
+      import AuroraUixWeb.Uix.LayoutConfigUI
+      # Module.register_attribute(__MODULE__, :_auix_layout_paths, accumulate: true)
     end
   end
 
@@ -258,6 +258,32 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     register_layout_path_entry(:show, name, nil, opts, do_block)
   end
 
+
+  @doc """
+  Registers index columns for a specific resource.
+
+  ## Parameters
+  - `name` (atom): Unique identifier for the index configuration
+  - `fields` (list): List of field names to display in the index view
+
+  ## Behavior
+  - Accumulates fields for the specified resource name
+  - Allows multiple calls to append additional fields
+  - Processed during module compilation
+
+  """
+  @spec index_columns(atom, Keyword.t(), any) :: Macro.t()
+  defmacro index_columns(name, fields, do_block \\ nil) do
+    register_layout_path_entry(:index, name, {:fields, fields}, [], do_block)
+  end
+
+  @spec inline(keyword()) ::
+          atom()
+          | binary()
+          | list()
+          | number()
+          | {any(), any()}
+          | {atom() | {any(), list(), atom() | list()}, keyword(), atom() | list()}
   @doc """
   Defines an inline sub-layout that groups fields horizontally within a form or show container.
 
@@ -405,7 +431,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   ## Example
 
-    iex> AuroraUixWeb.Uix.CreateUI.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :index)
+    iex> AuroraUixWeb.Uix.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :index)
     [
       %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
       %{tag: :index, state: :end}
@@ -546,41 +572,29 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   def parse_sections(paths, _mode), do: paths
 
-  ## PRIVATE
-
   @spec register_layout_path_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
-  defp register_layout_path_entry(tag, name, config, opts, do_block) do
+  def register_layout_path_entry(tag, name, config, opts, do_block) do
     {block, opts} = Uix.extract_block_options(opts, do_block)
 
     registration =
       quote do
-        start_attribute =
-          %{
-            tag: unquote(tag),
-            name: unquote(name),
-            state: :start,
-            opts: unquote(opts),
-            config: unquote(config)
-          }
-
-        end_attribute =
-          %{
-            tag: unquote(tag),
-            name: unquote(name),
-            state: :end
-          }
-
-        Module.put_attribute(__MODULE__, :_auix_layout_paths, start_attribute)
-
-        unquote(block)
-
-        Module.put_attribute(__MODULE__, :_auix_layout_paths, end_attribute)
+        %{
+          tag: unquote(tag),
+          name: unquote(name),
+          opts: unquote(opts),
+          config: unquote(config),
+          inner_elements: unquote(Uix.prepare_block(block))
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
       end
 
     quote do
       unquote(registration)
     end
   end
+
+  ## PRIVATE
 
   @spec unique_titled_id(binary | nil) :: binary
   defp unique_titled_id(nil), do: unique_titled_id("untitled")

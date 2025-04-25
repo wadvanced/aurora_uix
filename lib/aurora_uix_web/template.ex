@@ -138,7 +138,7 @@ defmodule AuroraUixWeb.Template do
   ## Parameters
 
   - `path` (map): Contains the relevant information for a layout path.
-    See `AuroraUixWeb.Uix.CreateUI.LayoutConfigUI` for details on the path structure.
+    See `AuroraUixWeb.Uix.LayoutConfigUI` for details on the path structure.
   - `mode` (atom): Indicates if the layout should be generated form based or entity based.
 
   """

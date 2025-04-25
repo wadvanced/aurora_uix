@@ -40,6 +40,13 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
     assert html =~ "New Product"
 
+    floki =
+      view
+        |> render()
+        |> Floki.parse_document()
+
+    IO.inspect(floki, label: "**************** floki")
+
     assert view
            |> form("#auix-product-form",
              product: %{reference: "test-first", name: "This is the first test"}

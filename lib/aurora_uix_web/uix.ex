@@ -128,9 +128,29 @@ defmodule AuroraUixWeb.Uix do
   @spec extract_block_options(keyword, any) :: tuple
   def extract_block_options(opts, block \\ nil) do
     if is_nil(block) do
-      Keyword.pop(opts, :do, :ok)
+      Keyword.pop(opts, :do, [])
     else
-      {block, opts}
+      block
+      |> extract_block()
+      |> then(&{&1, opts})
     end
   end
+
+  def prepare_block(block) do
+    blocks =
+      case block do
+        {:__block__, _, separated_blocks} -> separated_blocks
+        single_block -> [single_block]
+      end
+    blocks
+    |> Enum.map(&quote(do: unquote(&1)))
+    |> reduce_blocks()
+  end
+
+  ## PRIVATE
+  defp reduce_blocks([[]]), do: []
+  defp reduce_blocks(blocks), do: blocks
+
+  defp extract_block(do: block), do: block
+  defp extract_block(block), do: block
 end

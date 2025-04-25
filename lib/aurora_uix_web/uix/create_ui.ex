@@ -43,13 +43,12 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   alias AuroraUixWeb.Template
   alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.CreateUI
-  alias AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
+  alias AuroraUixWeb.Uix.LayoutConfigUI
 
   defmacro __using__(_opts) do
     quote do
       import AuroraUixWeb.Uix.CreateUI
-      use AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
-      use AuroraUixWeb.Uix.CreateUI.IndexUI
+      use AuroraUixWeb.Uix.LayoutConfigUI
 
       @before_compile AuroraUixWeb.Uix.CreateUI
     end
@@ -112,7 +111,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     quote do
       use CreateUI
       Module.put_attribute(__MODULE__, :_auix_form_layouts_opts, unquote(opts))
-      unquote(block)
+      Module.put_attribute(__MODULE__, :_auix_layout_paths, unquote(Uix.prepare_block(block)))
     end
   end
 

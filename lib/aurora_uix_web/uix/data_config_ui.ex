@@ -191,7 +191,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
           name: unquote(name)
         })
 
-        unquote(block)
+        unquote(block) || []
 
         Module.put_attribute(__MODULE__, :_auix_fields, %{
           tag: :resource,
