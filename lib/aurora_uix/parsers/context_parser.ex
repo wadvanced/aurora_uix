@@ -37,7 +37,7 @@ defmodule AuroraUix.Parsers.ContextParser do
     ## Parameters
       - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
       - `resource_config` (map): Contains all the modules' configuration. Should have keys: :context and :schema
-      - `opts` (Keyword.t()): List of options for handling valid context.
+      - `opts` (keyword): List of options for handling valid context.
 
     ## Options
       - `:list_function` - Name of the function for reading all the elements of the resource.

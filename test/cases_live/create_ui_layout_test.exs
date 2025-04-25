@@ -42,10 +42,10 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
     floki =
       view
-        |> render()
-        |> Floki.parse_document()
+      |> render()
+      |> Floki.parse_document()
 
-    IO.inspect(floki, label: "**************** floki")
+    # IO.inspect(floki, label: "**************** floki")
 
     assert view
            |> form("#auix-product-form",

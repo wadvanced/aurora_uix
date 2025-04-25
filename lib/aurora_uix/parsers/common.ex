@@ -18,7 +18,7 @@ defmodule AuroraUix.Parsers.Common do
   ## Parameters
   - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
   - `resource_config` (`map`) - contains all the modules' configuration.
-  - `opts` (`Keyword.t()`) - Configuration options with keys:
+  - `opts` (`keyword`) - Configuration options with keys:
     ### Common opts
     - `actions` - List of {position, function} tuples for UI actions
     - `add_actions` - Additional actions to append
@@ -76,7 +76,7 @@ defmodule AuroraUix.Parsers.Common do
     iex> parsed = Common.parse(%{}, %{schema: AuroraUix.GeneralLedger.AccountReceivable}, [])
     iex> parsed.title == "Account Receivables"  # Uses the capitalized schema source as the title
   """
-  @spec parse(map, map, Keyword.t()) :: map
+  @spec parse(map, map, keyword) :: map
   def parse(parsed_opts, resource_config, opts) do
     parsed_opts
     |> add_opt(resource_config, opts, :module)

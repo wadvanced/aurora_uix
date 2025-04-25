@@ -39,9 +39,10 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Supports complex, nested layouts
   """
 
+  import AuroraUixWeb.Uix.Helper
+
   alias AuroraUix.Parser
   alias AuroraUixWeb.Template
-  alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.CreateUI
   alias AuroraUixWeb.Uix.LayoutConfigUI
 
@@ -62,6 +63,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     layout_paths =
       module
       |> Module.get_attribute(:_auix_layout_paths, [])
+      # |> IO.inspect(label: "************** paths")
       |> Enum.reverse()
 
     Module.delete_attribute(module, :_auix_layout_paths)
@@ -106,12 +108,14 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   """
   @spec auix_create_ui(keyword, any) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
-    {block, opts} = Uix.extract_block_options(opts, do_block)
+    {block, opts} = extract_block_options(opts, do_block)
+
+    create_ui = register_dsl_entry(:ui, :ui, [], opts, block)
 
     quote do
       use CreateUI
       Module.put_attribute(__MODULE__, :_auix_form_layouts_opts, unquote(opts))
-      Module.put_attribute(__MODULE__, :_auix_layout_paths, unquote(Uix.prepare_block(block)))
+      Module.put_attribute(__MODULE__, :_auix_layout_paths, unquote(create_ui))
     end
   end
 
