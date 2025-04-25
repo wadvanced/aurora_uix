@@ -37,7 +37,7 @@ defmodule AuroraUixTest.DataCase do
   @doc """
   Sets up the sandbox based on the test tags.
   """
-  @spec setup_sandbox(Keyword.t()) :: :ok
+  @spec setup_sandbox(keyword) :: :ok
   def setup_sandbox(tags) do
     pid = Sandbox.start_owner!(AuroraUixTest.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)

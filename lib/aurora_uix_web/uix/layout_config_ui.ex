@@ -206,7 +206,7 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
 
   """
 
-  alias AuroraUixWeb.Uix
+  import AuroraUixWeb.Uix.Helper
 
   @doc false
   defmacro __using__(_opts) do
@@ -235,9 +235,9 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     end
   ```
   """
-  @spec edit_layout(atom, Keyword.t(), any) :: Macro.t()
+  @spec edit_layout(atom, keyword, any) :: Macro.t()
   defmacro edit_layout(name, opts, do_block \\ nil) do
-    register_layout_path_entry(:form, name, nil, opts, do_block)
+    register_dsl_entry(:form, name, nil, opts, do_block)
   end
 
   @doc """
@@ -253,11 +253,10 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     end
   ```
   """
-  @spec show_layout(atom, Keyword.t(), any) :: Macro.t()
+  @spec show_layout(atom, keyword, any) :: Macro.t()
   defmacro show_layout(name, opts, do_block \\ nil) do
-    register_layout_path_entry(:show, name, nil, opts, do_block)
+    register_dsl_entry(:show, name, nil, opts, do_block)
   end
-
 
   @doc """
   Registers index columns for a specific resource.
@@ -272,18 +271,11 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   - Processed during module compilation
 
   """
-  @spec index_columns(atom, Keyword.t(), any) :: Macro.t()
+  @spec index_columns(atom, keyword, any) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do
-    register_layout_path_entry(:index, name, {:fields, fields}, [], do_block)
+    register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
   end
 
-  @spec inline(keyword()) ::
-          atom()
-          | binary()
-          | list()
-          | number()
-          | {any(), any()}
-          | {atom() | {any(), list(), atom() | list()}, keyword(), atom() | list()}
   @doc """
   Defines an inline sub-layout that groups fields horizontally within a form or show container.
 
@@ -309,10 +301,10 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     end
   ```
   """
-  @spec inline(Keyword.t(), any) :: Macro.t()
+  @spec inline(keyword, any) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
-    {block, fields} = Uix.extract_block_options(fields, do_block)
-    register_layout_path_entry(:inline, nil, {:fields, fields}, [], block)
+    {block, fields} = extract_block_options(fields, do_block)
+    register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -330,10 +322,10 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     stacked [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
   ```
   """
-  @spec stacked(Keyword.t(), any) :: Macro.t()
+  @spec stacked(keyword, any) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
-    {block, fields} = Uix.extract_block_options(fields, do_block)
-    register_layout_path_entry(:stacked, nil, {:fields, fields}, [], block)
+    {block, fields} = extract_block_options(fields, do_block)
+    register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -349,9 +341,9 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
     group "Identification", [:reference, :name, :description]
   ```
   """
-  @spec group(atom, Keyword.t(), any) :: Macro.t()
+  @spec group(atom, keyword, any) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :group,
       nil,
       [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
@@ -377,7 +369,7 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   """
   @spec sections(keyword, any) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :sections,
       nil,
       [sections_id: "auix-#{unique_titled_id("sections")}"],
@@ -401,7 +393,7 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   """
   @spec section(binary, keyword, any) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :section,
       nil,
       [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
@@ -572,27 +564,6 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
 
   def parse_sections(paths, _mode), do: paths
 
-  @spec register_layout_path_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
-  def register_layout_path_entry(tag, name, config, opts, do_block) do
-    {block, opts} = Uix.extract_block_options(opts, do_block)
-
-    registration =
-      quote do
-        %{
-          tag: unquote(tag),
-          name: unquote(name),
-          opts: unquote(opts),
-          config: unquote(config),
-          inner_elements: unquote(Uix.prepare_block(block))
-        }
-        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-        |> Map.new()
-      end
-
-    quote do
-      unquote(registration)
-    end
-  end
 
   ## PRIVATE
 
