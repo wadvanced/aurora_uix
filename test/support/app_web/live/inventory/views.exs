@@ -9,37 +9,37 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   alias AuroraUixTest.Inventory.Product
   alias AuroraUixTest.Inventory.ProductTransaction
 
-  # auix_resource_config(:product, context: Inventory, schema: Product) do
-  #   field(:reference, length: 100)
-  #   fields([:name, :description], length: 40)
-  # end
+  auix_resource_config(:product, context: Inventory, schema: Product) do
+    field(:reference, length: 100)
+    fields([:name, :description], length: 40)
+  end
 
-  # auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
+  auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  # auix_create_ui do
-  #   index_columns(:product, [:name, :description])
-  #   index_columns(:product, [:list_price])
+  auix_create_ui do
+    index_columns(:product, [:name, :description])
+    index_columns(:product, [:list_price])
 
-  #   edit_layout :product, a: "a-test" do
-  #     stacked(name: [], reference: [], description: [])
+    edit_layout :product, a: "a-test" do
+      stacked(name: [label: "P.Name"], reference: [], description: [])
 
-  #     sections do
-  #       section "Quantities", default: true do
-  #         stacked([:quantity_initial, :quantity_at_hand])
-  #       end
+      sections do
+        section "Quantities", default: true do
+          stacked([:quantity_initial, :quantity_at_hand])
+        end
 
-  #       section "Prices" do
-  #         inline([:list_price, :rrp])
-  #         inline([:msrp])
-  #       end
+        section "Prices" do
+          inline([:list_price, :rrp])
+          inline([:msrp])
+        end
 
-  #       section "Shipping Details" do
-  #         stacked do
-  #           inline([:length, :width, :height])
-  #           inline([:weight])
-  #         end
-  #       end
-  #     end
-  #   end
-  # end
+        section "Shipping Details" do
+          stacked do
+            inline([:length, :width, :height])
+            inline([:weight])
+          end
+        end
+      end
+    end
+  end
 end

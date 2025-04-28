@@ -12,7 +12,7 @@ defmodule AuroraUixTest.UICase do
     metadata = get_in(resource_configs, [schema, Access.key!(:fields)])
 
     Enum.each(fields_checks, fn {field_id, checks} ->
-      field = locate_field(metadata, field_id)
+      field = Map.get(metadata, field_id)
       validate_field(field, checks, field_id)
     end)
   end
@@ -32,14 +32,6 @@ defmodule AuroraUixTest.UICase do
     end)
   end
 
-  @spec locate_field(map, atom) :: map | nil
-  def locate_field(schema_config, field) do
-    Enum.find(schema_config, fn
-      %{field: ^field} -> true
-      _ -> false
-    end)
-  end
-
   @spec resource_configs(module) :: map
   def resource_configs(module) do
     attributes(module, :auix_resource_config)
@@ -53,6 +45,29 @@ defmodule AuroraUixTest.UICase do
     |> module.__info__()
     |> Keyword.get(attribute, [])
     |> List.first()
+  end
+
+  @spec assert_values_order([binary | atom], [binary | atom]) :: :ok
+  def assert_values_order(expected_values, current_values) do
+    case {expected_values, current_values} do
+      {[] = expected_values, current_values} when current_values != expected_values ->
+        raise(
+          "Expected values is empty, but current values is not: #{inspect(current_values, pretty: true)}"
+        )
+
+      {expected_values, [] = current_values} when current_values != expected_values ->
+        raise(
+          "Current values is empty, but expected values is not: #{inspect(expected_values, pretty: true)}"
+        )
+
+      _ ->
+        :ok
+    end
+
+    case assert_value_order(expected_values, current_values) do
+      {false, _} -> :ok
+      {true, result} -> raise("Unmatched order: \n#{result}")
+    end
   end
 
   @doc """
@@ -83,7 +98,37 @@ defmodule AuroraUixTest.UICase do
     quote do
       use AuroraUixTestWeb.ConnCase
       import Phoenix.LiveViewTest
+      import AuroraUixTest.UICase
       import AuroraUixTestWeb.SectionHelper
     end
   end
+
+  ## PRIVATE
+  @spec assert_value_order(list, list, boolean, list) :: {boolean, list}
+  defp assert_value_order(expected_values, current_values, unmatched? \\ false, result \\ [])
+
+  defp assert_value_order(_, [], unmatched?, result),
+    do: {unmatched?, result |> Enum.reverse() |> Enum.join("\n")}
+
+  defp assert_value_order(
+         [value_equal | expected_values],
+         [value_equal | current_values],
+         unmatched?,
+         result
+       ),
+       do:
+         assert_value_order(expected_values, current_values, unmatched?, [
+           "#{inspect(value_equal)} == #{inspect(value_equal)}" | result
+         ])
+
+  defp assert_value_order(
+         [expected_value | expected_values],
+         [current_value | current_values],
+         _unmatched?,
+         result
+       ),
+       do:
+         assert_value_order(expected_values, current_values, true, [
+           "#{inspect(expected_value)} != #{inspect(current_value)}" | result
+         ])
 end

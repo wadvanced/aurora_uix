@@ -10,7 +10,7 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
     auix_resource_config(:product, context: Inventory, schema: Product)
     auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-    # When you define a link in a test, you must add a line to router.exs
+    # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link_prefix: "unseparated-multiple-resources-" do
       edit_layout :product, [] do

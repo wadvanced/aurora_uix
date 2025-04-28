@@ -14,13 +14,13 @@ defmodule AuroraUix.ResourceConfigUI do
   """
   alias AuroraUix.Field
 
-  defstruct [:name, :schema, :context, fields: []]
+  defstruct [:name, :schema, :context, fields: [], fields_order: []]
 
   @type t() :: %__MODULE__{
           name: atom,
           schema: module,
           context: module | nil,
-          fields: list(Field.t())
+          fields: map | list
         }
 
   @doc """

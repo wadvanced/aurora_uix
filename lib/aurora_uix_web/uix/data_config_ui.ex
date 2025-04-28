@@ -90,7 +90,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     quote do
       import AuroraUixWeb.Uix.DataConfigUI
 
-      Module.register_attribute(__MODULE__, :auix_resource_config, accumulate: true)
+      Module.register_attribute(__MODULE__, :_auix_process_resource_config, accumulate: true)
 
       @before_compile AuroraUixWeb.Uix.DataConfigUI
     end
@@ -98,20 +98,15 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   @doc false
   defmacro __before_compile__(env) do
-    ## Field modifications (@_auix_fields) are returned in reversed creation order, too.
-
     resource_configs =
       env.module
-      |> Module.get_attribute(:auix_resource_config)
+      |> Module.get_attribute(:_auix_process_resource_config)
       |> configure_fields()
       |> add_associations()
+      |> convert_fields_to_map()
 
     resource_functions =
-      resource_configs
-      |> Kernel.||([])
-      |> List.flatten()
-      |> List.first(%{})
-      |> Enum.map(fn {resource_key, resource} ->
+      Enum.map(resource_configs, fn {resource_key, resource} ->
         quote do
           @doc """
           Gets the config for a given resource.
@@ -124,6 +119,12 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
       end)
 
     quote do
+      Module.put_attribute(
+        unquote(env.module),
+        :auix_resource_config,
+        unquote(Macro.escape(resource_configs))
+      )
+
       @doc """
       Gets all resources config.
       """
@@ -171,12 +172,17 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
     resource_config =
       quote do
-        %{tag: :resource, name: unquote(name), opts: unquote(opts), inner_elements: unquote(prepare_block(block))}
+        %{
+          tag: :resource,
+          name: unquote(name),
+          opts: unquote(opts),
+          inner_elements: unquote(prepare_block(block))
+        }
       end
 
     quote do
       use DataConfigUI
-      Module.put_attribute(__MODULE__, :auix_resource_config, unquote(resource_config))
+      Module.put_attribute(__MODULE__, :_auix_process_resource_config, unquote(resource_config))
     end
   end
 
@@ -241,7 +247,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     quotes =
       Enum.map(fields, fn field ->
         quote do
-          field unquote(field), unquote(opts)
+          field(unquote(field), unquote(opts))
         end
       end)
 
@@ -258,11 +264,9 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   # 3. Applying field changes from config
   # 4. Reordering fields according to config
   # Returns {resource_name, configured_struct} tuple
-  @spec configure_fields([map]) :: map
+  @spec configure_fields([map]) :: list
   defp configure_fields(resources) do
-    resources
-    |> Enum.map(&configure_resource_fields/1)
-    |> Map.new()
+    Enum.map(resources, &configure_resource_fields/1)
   end
 
   @spec configure_resource_fields(map) :: {atom, ResourceConfigUI.t()}
@@ -297,11 +301,10 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
     # Applies each opts to the field.
     fields
-    |> Enum.map(
-      fn field ->
-        changes
-        |> Map.get(field.field, [])
-        |> then(&Field.change(field, &1))
+    |> Enum.map(fn field ->
+      changes
+      |> Map.get(field.field, [])
+      |> then(&Field.change(field, &1))
     end)
     |> then(&struct(resource_struct, %{fields: &1}))
   end
@@ -311,20 +314,26 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
   @spec reorder_fields_by_changes(map, map) :: map
   defp reorder_fields_by_changes(resource_struct, %{inner_elements: []}), do: resource_struct
 
-  defp reorder_fields_by_changes(%{fields: fields} = resource_struct, %{inner_elements: field_changes}) do
+  defp reorder_fields_by_changes(%{fields: fields} = resource_struct, %{
+         inner_elements: field_changes
+       }) do
     # Creates a list of the field changes encountered within the resource config block.
     changes =
       field_changes
       |> List.flatten()
-      |> Enum.map(&(&1.name))
+      |> Enum.map(& &1.name)
       |> Enum.uniq()
 
     # Creates a list of Field.t() according to the changes order. New fields are added in this stage.
     first_fields =
-      changes
+      field_changes
+      |> List.flatten()
       |> Enum.map(fn field ->
-        fields
-        |> Enum.find(Field.new(), fn field_struct -> field_struct.field == field end)
+        Enum.find(
+          fields,
+          %{field: field.name} |> Field.new() |> Field.change(field.opts),
+          fn field_struct -> field_struct.field == field.name end
+        )
       end)
       |> Enum.reverse()
 
@@ -332,11 +341,35 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
     # In this way the order defined in the resource config is the one used leaving the
     # unmentioned fields at the bottom.
     fields
-      |> Enum.reject(&(&1.field in changes))
-      |> Enum.reduce(first_fields, &[&1 | &2])
-      |> Enum.reverse()
-      |> then(&struct(resource_struct, %{fields: &1}))
+    |> Enum.reject(&(&1.field in changes))
+    |> Enum.reduce(first_fields, &[&1 | &2])
+    |> Enum.reverse()
+    |> then(&struct(resource_struct, %{fields: &1}))
   end
+
+  @spec convert_fields_to_map(list) :: map
+  defp convert_fields_to_map(resources) do
+    resources
+    |> Enum.map(&convert_resource_fields_to_map/1)
+    |> Map.new()
+  end
+
+  @spec convert_resource_fields_to_map({atom, map}) :: {atom, map}
+  defp convert_resource_fields_to_map({resource_name, %{fields: fields} = resource})
+       when is_list(fields) do
+    fields_order =
+      fields
+      |> Enum.map(& &1.field)
+      |> Enum.uniq()
+
+    fields
+    |> Enum.map(&{&1.field, &1})
+    |> Map.new()
+    |> then(&Map.merge(resource, %{fields: &1, fields_order: fields_order}))
+    |> then(&{resource_name, &1})
+  end
+
+  defp convert_resource_fields_to_map(resource), do: resource
 
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
@@ -477,12 +510,14 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   # Finds the resource name that matches an association's related schema
   # Returns nil if no match found
-  @spec field_resource(map | nil, map) :: :atom
+  @spec field_resource(map | nil, list) :: atom | nil
   defp field_resource(nil, _resources), do: nil
 
   defp field_resource(association, resources) do
     resources
-    |> Enum.find({nil, nil}, fn {_resource_name, resource} -> resource.schema == association.related end)
+    |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
+      resource.schema == association.related
+    end)
     |> elem(0)
   end
 
@@ -497,15 +532,17 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   # Processes all resources to add their associations as fields
   # Returns updated resources map with associations included
-  @spec add_associations(map) :: map
+  @spec add_associations(list) :: list
   defp add_associations(resources) do
-    resources
-    |> Enum.map(&add_resource_associations(&1, resources))
-    |> Map.new()
+    Enum.map(resources, &add_resource_associations(&1, resources))
   end
 
   # Adds a resource's associations to its fields list
   # Maintains field order while prepending associations
+  @spec add_resource_associations({atom, map}, list) :: {atom, map}
+  defp add_resource_associations({name, %{schema: nil} = resource}, _resources),
+    do: {name, resource}
+
   defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
     :associations
     |> schema.__schema__()
@@ -517,7 +554,7 @@ defmodule AuroraUixWeb.Uix.DataConfigUI do
 
   # Converts a schema association into a Field struct
   # Includes association metadata and proper field type
-  @spec parse_association(module, map, atom, list) :: list
+  @spec parse_association(module, list, atom, map) :: list
   defp parse_association(schema, resources, association_field, fields) do
     :association
     |> schema.__schema__(association_field)

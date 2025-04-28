@@ -1,42 +1,22 @@
 defmodule AuroraUixWeb.Uix.Helper do
   @moduledoc """
-  Internal utilities for the AuroraUix UI DSL.
+  Helper module for AuroraUix UI DSL that provides utilities for processing HEEX markup and managing component state.
 
-  This module provides helper functions used to support the macros defined in `AuroraUixWeb.Uix`.
-  It focuses on extracting and transforming `do` blocks from macro invocations, building layout trees,
-  and preparing UI components for registration within the system.
-
-  These helpers are typically not used directly by end users, but they are critical for the internal
-  functioning of the UI layout and configuration macros.
+  Core functionalities:
+  - DSL block processing and normalization
+  - Component registration and configuration
+  - Unique identifier counter management
   """
 
   @doc """
-  Extracts the `:do` block from the given options list.
+  Extracts the `:do` block from options while preserving other options.
 
-  This function checks if a block is provided. If no block is given (`block == nil`),
-  it extracts the `:do` key from the `opts` keyword list, returning the block and
-  the remaining options. If a block is provided, it simply returns the block and
-  the original options.
+  Parameters:
+  - opts (keyword): Options list that may contain a :do key
+  - block (any): Optional explicit block value
 
-  ## Parameters
-
-    - `opts` (`keyword`): A keyword list of options that may contain a `:do` key.
-    - `block` (`any`, optional): An explicit block value. Defaults to `nil`.
-
-  ## Returns
-
-    - `{block, remaining_opts}` (`tuple`): A tuple where the first element is
-      the extracted block (either from `opts` or the explicitly provided `block`),
-      and the second element is the remaining options.
-
-  ## Examples
-
-      iex> extract_block_options([do: :some_block, other: :value])
-      {:some_block, [other: :value]}
-
-      iex> extract_block_options([other: :value], :explicit_block)
-      {:explicit_block, [other: :value]}
-
+  Returns:
+  - {block, opts} (tuple): Extracted block and remaining options
   """
   @spec extract_block_options(keyword, any) :: tuple
   def extract_block_options(opts, block \\ nil) do
@@ -50,20 +30,13 @@ defmodule AuroraUixWeb.Uix.Helper do
   end
 
   @doc """
-  Normalizes a quoted block into a list of quoted expressions.
+  Normalizes quoted blocks into a list of quoted expressions for HEEX processing.
 
-  This function ensures that both single expressions and multi-expression `do` blocks are
-  returned as a list of quoted expressions. This is useful for macros that expect a uniform
-  structure when processing layout or UI definitions.
+  Parameters:
+  - block (Macro.t()): Input block to be normalized
 
-  ## Examples
-
-      iex> prepare_block({:__block__, [], [:a, :b]})
-      [quote(do: :a), quote(do: :b)]
-
-      iex> prepare_block(:a)
-      [quote(do: :a)]
-
+  Returns:
+  - list(Macro.t()): List of normalized quoted expressions
   """
   @spec prepare_block(any) :: []
   def prepare_block(block) do
@@ -79,56 +52,17 @@ defmodule AuroraUixWeb.Uix.Helper do
   end
 
   @doc """
-  Transforms a DSL macro invocation into a standardized entry map.
+  Transforms DSL macro calls into standardized component entries for HEEX generation.
 
-  This helper is used by both resource- and UI-configuration macros to convert a macro call
-  into a uniform `%{tag, name, opts, config, inner_elements}` representation. That map can then
-  be aggregated and processed by the DSL engine to build your full configuration tree.
+  Parameters:
+  - tag (atom): Component type identifier
+  - name (atom): Component name
+  - config (keyword|tuple|nil): Static configuration or field definitions
+  - opts (keyword): Component options
+  - do_block (Macro.t()): Nested component definitions
 
-  ## Parameters
-
-    - `tag` (`atom`): The kind of DSL element (e.g. `:resource`, `:field`, `:ui`, etc.).
-    - `name` (`atom`): The identifier for this element.
-    - `config` (`any`): Any static or shorthand configuration (e.g. `{:fields, [...]}`) to carry through.
-    - `opts` (`keyword`): Options passed to the macro invocation.
-    - `do_block` (`Macro.t()`): An optional `do` block AST containing nested child elements.
-
-  ## Returns
-
-  A quoted expression that, when expanded, produces:
-
-  ```elixir
-  %{
-    tag: tag,
-    name: name,
-    opts: opts,
-    config: config,          # only if non-empty
-    inner_elements: [...]    # flattened list of nested blocks or children
-  }
-
-  Any keys with nil or empty values are automatically omitted from the resulting map.
-
-  ## Example
-  ```elixir
-    quote do
-      register_dsl_entry(
-        :field,
-        :price,
-        [],
-        [placeholder: "Enter price", required: true],
-        quote do
-          # no nested children in this example
-        end
-      )
-    end
-    |> Macro.expand_once(__ENV__)
-    #=> %{
-    #     tag: :field,
-    #     name: :price,
-    #     opts: [placeholder: "Enter price", required: true],
-    #     inner_elements: []
-    #   }
-  ```
+  Returns:
+  - map: Standardized component entry map
   """
   @spec register_dsl_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
   def register_dsl_entry(tag, name, config, opts, do_block) do
@@ -138,14 +72,13 @@ defmodule AuroraUixWeb.Uix.Helper do
       case config do
         {:fields, fields} ->
           fields
-          |> Enum.map(fn field ->
-            %{tag: :field, name: field, config: [], inner_elements: []}
-          end)
+          |> Enum.map(&create_field_tag/1)
           |> Macro.escape()
 
         _other ->
           []
       end
+
     config = if inner_elements == [], do: config, else: []
 
     registration =
@@ -155,7 +88,7 @@ defmodule AuroraUixWeb.Uix.Helper do
           name: unquote(name),
           opts: unquote(opts),
           config: unquote(config),
-          inner_elements: unquote(inner_elements) ++ unquote(prepare_block(block))
+          inner_elements: unquote(prepare_block(block)) ++ unquote(inner_elements)
         }
         |> Enum.reject(fn {_key, value} -> is_nil(value) end)
         |> Map.new()
@@ -166,10 +99,91 @@ defmodule AuroraUixWeb.Uix.Helper do
     end
   end
 
+  @doc """
+  Initializes a new counter for generating unique component identifiers.
+
+  Parameters:
+  - name (binary|atom|nil): Counter identifier
+  - initial (integer): Starting value for the counter
+
+  Returns:
+  - binary|atom|pid: Counter reference
+  """
+  @spec start_counter(binary | atom | nil, integer) :: binary | atom | pid
+  def start_counter(name \\ nil, initial \\ 0)
+
+  def start_counter(nil, initial) do
+    case Agent.start_link(fn -> initial end) do
+      {:ok, pid} -> pid
+      {:error, {:already_started, _}} -> reset_count(nil, initial)
+    end
+  end
+
+  def start_counter(name, initial) do
+    case Agent.start_link(fn -> initial end, name: name) do
+      {:ok, _} -> name
+      {:error, {:already_started, _}} -> reset_count(name, initial)
+    end
+  end
+
+  @doc """
+  Increments and returns the next value for a counter.
+
+  Parameters:
+  - name (atom|pid|{atom, any}|{:via, atom, any}): Counter reference
+
+  Returns:
+  - integer: Next counter value
+  """
+  @spec next_count(atom() | pid() | {atom(), any()} | {:via, atom(), any()}) :: any()
+  def next_count(name) do
+    Agent.get_and_update(name, fn state -> {state + 1, state + 1} end)
+  end
+
+  @doc """
+  Returns the current counter value without incrementing.
+
+  Parameters:
+  - name (binary|atom): Counter reference
+
+  Returns:
+  - integer: Current counter value
+  """
+  @spec peek_count(binary | atom) :: integer
+  def peek_count(name) do
+    Agent.get(name, fn state -> state end)
+  end
+
+  @doc """
+  Resets a counter to a specified value.
+
+  Parameters:
+  - name (binary|atom|pid): Counter reference
+  - initial (integer): Value to reset the counter to
+
+  Returns:
+  - binary|atom|pid: Counter reference
+  """
+  @spec reset_count(binary | atom | pid, integer) :: binary | atom | pid
+  def reset_count(name, initial) do
+    Agent.get_and_update(name, fn _state -> {name, initial} end)
+  end
+
   ## PRIVATE
+  @spec reduce_blocks(Macro.t()) :: Macro.t()
   defp reduce_blocks([[]]), do: []
   defp reduce_blocks(blocks), do: blocks
 
+  @spec extract_block(keyword | Macro.t()) :: Macro.t()
   defp extract_block(do: block), do: block
   defp extract_block(block), do: block
+
+  @spec create_field_tag(atom | {atom, keyword}) :: map
+  defp create_field_tag(field) when is_atom(field) do
+    %{tag: :field, name: field, config: [], inner_elements: []}
+  end
+
+  defp create_field_tag({field_name, opts}) do
+    %{tag: :field, name: field_name, config: opts, inner_elements: []}
+  end
 end

@@ -35,6 +35,7 @@ defmodule AuroraUixWeb.Templates.Core do
   """
   @behaviour AuroraUixWeb.Template
 
+  alias AuroraUix.Field
   alias AuroraUixWeb.Templates.Core.LayoutParser
   alias AuroraUixWeb.Templates.Core.LogicModulesGenerator
   alias AuroraUixWeb.Templates.Core.MarkupGenerator
@@ -43,26 +44,32 @@ defmodule AuroraUixWeb.Templates.Core do
   Parses the layout configuration for template generation.
 
   ## Parameters
-    * path - map: The layout path configuration
-    * parsed_opts - map: Additional parsing options
-    * type - atom: The type of layout to parse
+
+    - `paths` (map | list) - The layout path configuration
+    - `configurations` (%{required(atom()) => any()}) - Contains the overall configuration for all resources
+    - `parsed_opts` (%{optional(atom()) => any()}) - Additional parsing options
+    - `mode` (:index | :form | :show) - The type of layout to parse
 
   ## Returns
-    * binary: The parsed layout content
+
+    - `binary` - The parsed layout content as a string
   """
-  @spec parse_layout(map, map, atom) :: binary
-  defdelegate parse_layout(path, parsed_opts, type), to: LayoutParser
+  @spec parse_layout(map | list, map, map, atom, atom) :: binary
+  defdelegate parse_layout(paths, configurations, parsed_opts, resource_name, mode),
+    to: LayoutParser
 
   @doc """
   Generates logic modules based on the provided configuration.
 
   ## Parameters
-    * modules - [{atom, module}] | map: The module specifications
-    * type - atom: The type of module to generate
-    * parsed_opts - map: Additional generation options (optional)
+
+    - `modules` ([{atom(), module()}] | map()) - The module specifications
+    - `type` (:index | :form | :show) - The type of module to generate
+    - `parsed_opts` (%{optional(atom()) => any()}) - Additional generation options
 
   ## Returns
-    * Macro.t(): The generated module as a macro
+
+    - `Macro.t()` - The generated module as a macro
   """
   @spec generate_module([{atom, module}] | map, atom, map) :: Macro.t()
   defdelegate generate_module(modules, type, parsed_opts \\ %{}), to: LogicModulesGenerator
@@ -71,11 +78,13 @@ defmodule AuroraUixWeb.Templates.Core do
   Generates view templates based on the specified type and options.
 
   ## Parameters
-    * type - atom: The type of view to generate
-    * parsed_opts - map: View generation options
+
+    - `type` (:index | :form | :show) - The type of view to generate
+    - `parsed_opts` (%{optional(atom()) => any()}) - View generation options
 
   ## Returns
-    * binary: The generated view template
+
+    - `binary()` - The generated view template as a string
   """
   @spec generate_view(atom, map) :: binary
   defdelegate generate_view(type, parsed_opts), to: MarkupGenerator
@@ -83,10 +92,31 @@ defmodule AuroraUixWeb.Templates.Core do
   @doc """
   Returns the default core components module used in the template system.
   ## Returns
-    * module: The default core components module
+    - `module` - The default core components module
   """
   @spec default_core_components() :: module
   def default_core_components do
     AuroraUixWeb.Templates.Core.CoreComponents
+  end
+
+  @doc """
+  Retrieves and processes field configuration from the resource configurations.
+
+  Parameters:
+  - field: %{name: atom()} - Map containing the field name and options
+  - configurations: map - Global configurations for all resources
+  - resource_name: atom - The name of the resource the field belongs to
+
+  Returns:
+  - Field.t() - A Field struct containing the processed field configuration
+  """
+  @spec get_field(map, map, atom) :: Field.t()
+  def get_field(%{name: field_name} = field, configurations, resource_name) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:resource_config, %{})
+    |> Map.get(:fields, %{})
+    |> Map.get(field_name, Field.new(%{field: field_name}))
+    |> Field.change(Map.get(field, :opts, []))
   end
 end

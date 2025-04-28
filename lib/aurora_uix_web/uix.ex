@@ -89,6 +89,8 @@ defmodule AuroraUixWeb.Uix do
   @doc false
   defmacro __using__(_opts) do
     quote do
+      Module.register_attribute(__MODULE__, :auix_resource_config, accumulate: true)
+
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
 
@@ -96,5 +98,4 @@ defmodule AuroraUixWeb.Uix do
         only: [auix_resource_config: 1, auix_resource_config: 2, auix_resource_config: 3]
     end
   end
-
 end

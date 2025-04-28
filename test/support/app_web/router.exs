@@ -28,6 +28,11 @@ defmodule AuroraUixTestWeb.Router do
     )
 
     AuroraUixTestWeb.register_crud(
+      CreateUIDefaultLayoutInlineTest.TestModule.Product,
+      "create-ui-default-layout-inline-products"
+    )
+
+    AuroraUixTestWeb.register_crud(
       CreateUILayoutTest.TestModule.Product,
       "create-ui-layout-products"
     )
