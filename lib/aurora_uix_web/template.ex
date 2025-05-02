@@ -13,7 +13,7 @@ defmodule AuroraUixWeb.Template do
   Templates must implement the following key callbacks:
   - `generate_view/3`: Generate HTML code fragments
   - `generate_module/3`: Generate handling code for UI components
-  - `parse_layout/2`: Create layout HTML code
+  - `parse_layout/3`: Create layout HTML code
 
   ## Flow of Template Processing
   1. Initialize template configuration
@@ -81,16 +81,14 @@ defmodule AuroraUixWeb.Template do
   ```
   """
 
-  alias AuroraUixWeb.Template
-
   @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Core)
 
   @doc """
-  Generates a HTML code fragment for the specified type and options.
+  Generates a HTML code fragment for the specified mode and options.
 
   ## Parameters
 
-  - `type` (atom): Specifies the type of UI component to generate.
+  - `mode` (atom): Specifies the type of UI component to generate.
     The types implemented and supported by the library are: `:index`, `:form`, `:show`.
 
   - `parsed_opts` (map): A map with the customized value for generating HTML code.
@@ -109,10 +107,10 @@ defmodule AuroraUixWeb.Template do
   # => quote do: ~H"<div class=\"card\"><h1>User Info</h1><p><%= @user %></p></div>"
   ```
   """
-  @callback generate_view(type :: atom, parsed_opts :: map) :: binary
+  @callback generate_view(mode :: atom, parsed_opts :: map) :: binary
 
   @doc """
-  Generates the handling code for the given type.
+  Generates the handling code for the given mode.
 
   ## Parameters
   - `modules` (map): Map containing the involved modules:
@@ -122,10 +120,10 @@ defmodule AuroraUixWeb.Template do
       web: web, # The main web module. For example MyAppWeb.
       context: context # The module with the backend functions for creating, reading, updating and deleting elements of the struct.
     }
-  - `type` (atom): Specifies the type of UI component to generate.
+  - `mode` (atom): Specifies the type of UI component to generate.
   - `parsed_opts` (map): A map with the customized value for generating the handling code.
   """
-  @callback generate_module(modules :: map, type :: atom, parsed_opts :: map) :: Macro.t()
+  @callback generate_module(modules :: map, mode :: atom, parsed_opts :: map) :: Macro.t()
 
   @doc """
   Creates the layout HTML code.
@@ -138,11 +136,19 @@ defmodule AuroraUixWeb.Template do
   ## Parameters
 
   - `path` (map): Contains the relevant information for a layout path.
-    See `AuroraUixWeb.Uix.CreateUI.LayoutConfigUI` for details on the path structure.
-  - `mode` (atom): Indicates if the layout should be generated form based or entity based.
-
+    See `AuroraUixWeb.Uix.LayoutConfigUI` for details on the path structure.
+  - `configurations` (map): contains the overall configuration for all resources.
+  - `parsed_opts` (map): Additional parsing options
+  - `resource_name` (atom): Name of the resource that is going to be processed.
+  - `mode` (atom): Indicates if the type of layout to be generated.
   """
-  @callback parse_layout(path :: map, parsed_opts :: map, type :: atom) :: binary
+  @callback parse_layout(
+              paths :: map | list,
+              configurations :: map,
+              parsed_opts :: map,
+              resource_name :: atom,
+              mode :: atom
+            ) :: binary
 
   @callback default_core_components() :: module
 
@@ -233,8 +239,8 @@ defmodule AuroraUixWeb.Template do
 
   def safe_existing_atom(_name), do: nil
 
-  defmacro compile_heex(type, parsed_opts) do
-    template = Template.uix_template().generate_view(type, parsed_opts)
+  defmacro compile_heex(mode, parsed_opts) do
+    template = get_in(parsed_opts, [:templates, mode]) || ""
 
     options = [
       engine: Phoenix.LiveView.TagEngine,
@@ -267,7 +273,7 @@ defmodule AuroraUixWeb.Template do
     Code.ensure_compiled!(module)
 
     functions_not_exported =
-      functions_not_exported(module, generate_view: 2, generate_module: 3, parse_layout: 3)
+      functions_not_exported(module, generate_view: 2, generate_module: 3, parse_layout: 5)
 
     message =
       case {behaviour_implemented?(module), functions_not_exported} do

@@ -39,17 +39,17 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Supports complex, nested layouts
   """
 
+  import AuroraUixWeb.Uix.Helper
+
   alias AuroraUix.Parser
   alias AuroraUixWeb.Template
-  alias AuroraUixWeb.Uix
   alias AuroraUixWeb.Uix.CreateUI
-  alias AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
+  alias AuroraUixWeb.Uix.LayoutConfigUI
 
   defmacro __using__(_opts) do
     quote do
       import AuroraUixWeb.Uix.CreateUI
-      use AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
-      use AuroraUixWeb.Uix.CreateUI.IndexUI
+      use AuroraUixWeb.Uix.LayoutConfigUI
 
       @before_compile AuroraUixWeb.Uix.CreateUI
     end
@@ -58,20 +58,27 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
     module = env.module
-    opts = Module.get_attribute(module, :_auix_form_layouts_opts)
 
-    layout_paths =
+    {layout_paths, opts} =
       module
-      |> Module.get_attribute(:_auix_layout_paths, [])
-      |> Enum.reverse()
+      |> Module.get_attribute(:_auix_layout_paths, %{inner_elements: [], opts: []})
+      |> then(&{&1.inner_elements, &1.opts})
 
     Module.delete_attribute(module, :_auix_layout_paths)
 
+    ## Merge layout paths
+    merged_layout_paths =
+      layout_paths
+      |> Enum.group_by(&{&1.name, &1.tag})
+      |> Enum.map(&merge_layout_paths/1)
+
     modules =
       module
-      |> Module.get_attribute(:auix_resource_config, %{})
-      |> map_resources()
-      |> then(&CreateUI.build_ui(module, &1, layout_paths, opts))
+      |> Module.get_attribute(:auix_resource_config, [])
+      |> Enum.reduce(%{}, fn resource, acc ->
+        Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), elem(&1, 1)))
+      end)
+      |> build_ui(module, merged_layout_paths, opts)
 
     quote do
       unquote(modules)
@@ -107,12 +114,13 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   """
   @spec auix_create_ui(keyword, any) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
-    {block, opts} = Uix.extract_block_options(opts, do_block)
+    {block, opts} = extract_block_options(opts, do_block)
+
+    create_ui = register_dsl_entry(:ui, :ui, [], opts, block)
 
     quote do
       use CreateUI
-      Module.put_attribute(__MODULE__, :_auix_form_layouts_opts, unquote(opts))
-      unquote(block)
+      Module.put_attribute(__MODULE__, :_auix_layout_paths, unquote(create_ui))
     end
   end
 
@@ -145,14 +153,39 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Otherwise, generates base layouts for all configured resources
 
   """
-  @spec build_ui(any, map, list, keyword) :: list
-  def build_ui(caller, resource_configs, layout_paths, opts) do
+  @spec build_ui(map, any, list, keyword) :: list
+  def build_ui(resource_configs, caller, layout_paths, opts) do
     resource_configs
     |> filter_resources(opts[:for])
-    |> build_resources_layouts(caller, layout_paths, opts)
+    |> build_layouts(caller, layout_paths, opts)
   end
 
   ## PRIVATE
+
+  @spec merge_layout_paths(tuple) :: list
+  defp merge_layout_paths({_, paths}) do
+    Enum.reduce(paths, nil, &merge_layout_opts_inner_elements/2)
+  end
+
+  @spec merge_layout_opts_inner_elements(map, map | nil) :: map
+  defp merge_layout_opts_inner_elements(path, nil), do: path
+
+  defp merge_layout_opts_inner_elements(path, acc) do
+    opts = Keyword.merge(acc.opts, path.opts)
+
+    inner_elements =
+      acc.inner_elements
+      |> Enum.reverse()
+      |> then(
+        &Enum.reduce(path.inner_elements, &1, fn path_element, acc_elements ->
+          [path_element | acc_elements]
+        end)
+      )
+
+    acc
+    |> Map.put(:opts, opts)
+    |> Map.put(:inner_elements, inner_elements)
+  end
 
   @spec filter_resources(map, nil | atom | list) :: map
   defp filter_resources(resource_configs, nil), do: resource_configs
@@ -165,25 +198,26 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     Enum.filter(resource_configs, fn {key, _value} -> key in for end)
   end
 
-  # Returns a list of maps using the format of #build_resource_paths
-  @spec build_resources_layouts(map, module, list, keyword) :: [Macro.t()]
-  defp build_resources_layouts(resource_configs, caller, layout_paths, opts) do
+  # Returns a list of maps using the format of #build_configurations
+  @spec build_layouts(map, module, list, keyword) :: [Macro.t()]
+  defp build_layouts(resource_configs, caller, layout_paths, opts) do
     configurations =
-      Enum.reduce(
-        resource_configs,
+      resource_configs
+      |> Enum.reduce(
         [],
-        &[build_resource_paths(resource_configs, elem(&1, 0), layout_paths, opts) | &2]
+        &[build_configurations(&1, layout_paths, opts) | &2]
       )
+      |> Enum.reject(&is_nil/1)
+      |> Map.new()
 
-    resource_paths = extract_resources(configurations)
-
-    resource_preloads = extract_resource_preloads(resource_paths, opts)
+    resource_preloads = extract_resource_preloads(configurations)
 
     configurations
-    |> Enum.reduce([], &[expand_association_fields(&1, resource_paths) | &2])
     |> Enum.reduce([], &[build_resource_preload_option(&1, resource_preloads) | &2])
-    |> Enum.reduce([], &[build_resource_layouts(&1, caller) | &2])
-    |> List.flatten()
+    |> Map.new()
+    |> then(fn configurations ->
+      Enum.reduce(configurations, [], &[build_resource_layouts(&1, configurations, caller) | &2])
+    end)
   end
 
   # Returns a map with the following format:
@@ -195,30 +229,26 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   #    defaulted_paths: defaulted_paths, # Paths making up the UI.
   #    template: template, # Used template
   #  }
-  @spec build_resource_paths(map, atom, list, keyword) :: map
-  defp build_resource_paths(
-         auix_resource_config,
-         resource_config_name,
+  @spec build_configurations({atom, map}, list, keyword) :: map | nil
+  defp build_configurations(
+         {resource_config_name, resource_config},
          layout_paths,
          opts
        ) do
-    # PENDING: should be passed or taken from a @ module variable
+    # PENDING: The template should be passed or taken from a @ module variable
     template = Template.uix_template()
-    resource_config = Map.get(auix_resource_config, resource_config_name)
 
     resource_module = Map.get(resource_config, :schema)
 
     if is_nil(resource_module) do
-      %{}
+      nil
     else
-      parsed_opts =
-        resource_config
-        |> Parser.parse(opts)
-        |> Map.put(:fields, resource_config.fields)
+      parsed_opts = Parser.parse(resource_config, opts)
 
-      layouts = %{index: :index_columns, form: :form_fields, show: :show_fields}
+      layouts = [:index, :form, :show]
 
       # Get all layout paths
+
       paths =
         layouts
         |> Enum.map(&locate_layout_paths(&1, layout_paths, resource_config_name))
@@ -227,37 +257,39 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
       defaulted_paths =
         layouts
-        |> Enum.map(fn {tag, _key} ->
+        |> Enum.map(fn tag ->
           paths
           |> Map.get(tag)
-          |> LayoutConfigUI.build_default_layout_paths(resource_config_name, parsed_opts, tag)
-          |> LayoutConfigUI.unpack_paths_fields(tag)
+          |> LayoutConfigUI.build_default_layout_paths(resource_config, opts, tag)
           |> LayoutConfigUI.parse_sections(tag)
-          |> Enum.map(&expand_fields(&1, parsed_opts, %{disabled: tag == :show}))
+          |> disable_show_fields(tag)
           |> then(&{tag, &1})
         end)
         |> Map.new()
 
-      %{
-        resource_config_name: resource_config_name,
-        resource_config: resource_config,
-        layouts: layouts,
-        parsed_opts: parsed_opts,
-        defaulted_paths: defaulted_paths,
-        template: template
-      }
+      {resource_config_name,
+       %{
+         resource_config_name: resource_config_name,
+         resource_config: resource_config,
+         layouts: layouts,
+         parsed_opts: parsed_opts,
+         defaulted_paths: defaulted_paths,
+         template: template
+       }}
     end
   end
 
-  @spec build_resource_layouts(map, module) :: list
+  @spec build_resource_layouts(tuple, map, module) :: list
   defp build_resource_layouts(
-         %{
-           resource_config: resource_config,
-           layouts: layouts,
-           parsed_opts: parsed_opts,
-           defaulted_paths: defaulted_paths,
-           template: template
-         },
+         {_resource_config_name,
+          %{
+            resource_config: resource_config,
+            layouts: layouts,
+            parsed_opts: parsed_opts,
+            defaulted_paths: defaulted_paths,
+            template: template
+          }},
+         configurations,
          caller
        ) do
     {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
@@ -265,9 +297,11 @@ defmodule AuroraUixWeb.Uix.CreateUI do
 
     parsed_opts =
       layouts
-      |> Enum.map(&parse_template_paths(&1, defaulted_paths, parsed_opts, template))
+      |> Enum.map(
+        &parse_template_paths(&1, defaulted_paths, configurations, parsed_opts, template)
+      )
       |> Map.new()
-      |> then(&Map.merge(parsed_opts, &1))
+      |> then(&Map.merge(parsed_opts, %{templates: &1}))
 
     modules = %{
       caller: caller,
@@ -285,20 +319,20 @@ defmodule AuroraUixWeb.Uix.CreateUI do
     )
   end
 
-  defp build_resource_layouts(%{}, _caller), do: []
+  defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
-  @spec parse_template_paths(tuple, map, map, module) :: tuple
-  defp parse_template_paths({tag, key}, paths, parsed_opts, template) do
+  @spec parse_template_paths(atom, map, map, map, module) :: tuple
+  defp parse_template_paths(tag, paths, configurations, parsed_opts, template) do
     paths
-    |> Map.get(tag, %{})
-    |> Enum.map_join(&template.parse_layout(&1, parsed_opts, tag))
-    |> then(&{key, &1})
+    |> Map.get(tag, %{name: nil})
+    |> then(&template.parse_layout(&1, configurations, parsed_opts, &1.name, tag))
+    |> then(&{tag, &1})
   end
 
-  @spec locate_layout_paths(tuple, list, atom) :: tuple
-  defp locate_layout_paths({tag, _key}, layout_paths, resource_config_name) do
+  @spec locate_layout_paths(atom, list, atom) :: tuple
+  defp locate_layout_paths(tag, layout_paths, resource_config_name) do
     layout_paths
-    |> locate_layout_paths_by_resource(resource_config_name, tag)
+    |> Enum.filter(&(&1.tag == tag && &1.name == resource_config_name))
     |> then(&{tag, &1})
   end
 
@@ -321,269 +355,133 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
   defp update_layout_path_tag(path, _from, _to), do: path
 
-  @spec locate_layout_paths_by_resource(list, atom, atom) :: list
-  defp locate_layout_paths_by_resource(layout_paths, resource_config_name, tag) do
-    layout_paths
-    |> locate_layout_paths_recursive(resource_config_name, tag, [])
-    |> Enum.reverse()
+  @spec disable_show_fields(map, atom) :: map
+  defp disable_show_fields(%{inner_elements: inner_elements} = path, :show) do
+    inner_elements
+    |> add_global_overrides(disabled: true)
+    |> then(&Map.put(path, :inner_elements, &1))
   end
 
-  @spec locate_layout_paths_recursive(list, atom, atom, list) :: list
-  defp locate_layout_paths_recursive(
-         [%{tag: tag, name: resource_config_name, state: :start} = path | rest],
-         resource_config_name,
-         tag,
-         paths
+  defp disable_show_fields(path, _), do: path
+
+  @spec add_global_overrides(list, keyword, list) :: list
+  defp add_global_overrides(elements, global_overrides, result \\ [])
+
+  defp add_global_overrides([], _global_overrides, default), do: default
+
+  defp add_global_overrides(
+         [%{tag: :field, inner_elements: inner_elements} = element | elements],
+         global_overrides,
+         result
        ) do
-    append_layout_path(rest, tag, [path | paths])
+    new_opts =
+      element
+      |> Map.get(:opts, [])
+      |> then(&Keyword.merge(global_overrides, &1, fn _k, _global, opts -> opts end))
+
+    new_inner_elements = add_global_overrides(inner_elements, global_overrides)
+    new_element = Map.merge(element, %{opts: new_opts, inner_elements: new_inner_elements})
+
+    add_global_overrides(elements, global_overrides, [new_element | result])
   end
 
-  defp locate_layout_paths_recursive([_ | rest], resource_config_name, tag, _paths),
-    do: locate_layout_paths_recursive(rest, resource_config_name, tag, [])
-
-  defp locate_layout_paths_recursive([], _resource_config_name, _tag, _paths), do: []
-
-  @spec append_layout_path(list, atom, list) :: list
-  defp append_layout_path([%{tag: tag, state: :end} = path | _rest], tag, paths),
-    do: [path | paths]
-
-  defp append_layout_path([], _tag, paths), do: paths
-
-  defp append_layout_path([path | rest], tag, paths),
-    do: append_layout_path(rest, tag, [path | paths])
-
-  @spec expand_fields(map, map, map) :: map
-  defp expand_fields(
-         %{config: {:fields, fields}} = path,
-         %{fields: configured_fields},
-         global_overrides
+  defp add_global_overrides(
+         [%{inner_elements: inner_elements} = element | elements],
+         global_overrides,
+         result
        ) do
-    fields
-    |> Enum.map(&expand_field(&1, configured_fields, global_overrides))
-    |> then(&Map.put(path, :config, {:fields, &1}))
+    inner_elements
+    |> add_global_overrides(global_overrides)
+    |> then(&Map.put(element, :inner_elements, &1))
+    |> then(&add_global_overrides(elements, global_overrides, [&1 | result]))
   end
 
-  defp expand_fields(
-         %{tag: :field, config: field} = path,
-         %{fields: configured_fields},
-         global_overrides
-       ) do
-    field
-    |> expand_field(configured_fields, global_overrides)
-    |> then(&Map.put(path, :config, &1))
-  end
-
-  defp expand_fields(path, _parsed_opts, _global_overrides), do: path
-
-  @spec expand_field(tuple, list, map) :: map
-  defp expand_field(overrode_field, configured_fields, global_overrides)
-       when is_tuple(overrode_field) do
-    overrides = elem(overrode_field, 1)
-
-    overrode_field
-    |> elem(0)
-    |> then(&locate_field(configured_fields, &1))
-    |> struct(global_overrides)
-    |> struct(overrides)
-  end
-
-  defp expand_field(field, configured_fields, global_overrides),
-    do: configured_fields |> locate_field(field) |> struct(global_overrides)
-
-  @spec locate_field(list, atom) :: map
-  defp locate_field(configured_fields, field) do
-    Enum.find(configured_fields, &(&1.field == field))
-  end
-
-  # Its main purpose is to create a map where the resource is the key
-  # for a map containing all classified paths:
-  # :index, :form, :show
-  @spec extract_resources(list) :: map
-  defp extract_resources(configurations) do
+  @spec extract_resource_preloads(map) :: map
+  defp extract_resource_preloads(configurations) do
     configurations
-    |> Enum.map(&extract_resource/1)
-    |> List.flatten()
-    |> Map.new()
-  end
-
-  @spec extract_resource(map) :: list
-  defp extract_resource(configuration) do
-    configuration
-    |> Map.get(:defaulted_paths, [])
-    |> Enum.reduce(%{}, fn {tag, paths}, resources ->
-      first_path = List.first(paths)
-
-      resources
-      |> Map.get(first_path.name, %{})
-      |> Map.put(tag, paths)
-      |> then(&Map.put(resources, first_path.name, &1))
-      |> then(
-        &put_in(&1, [first_path.name, :parsed_opts], Map.get(configuration, :parsed_opts, %{}))
-      )
-    end)
-    |> Enum.map(& &1)
-  end
-
-  @spec expand_association_fields(map, map) :: map
-  defp expand_association_fields(
-         %{defaulted_paths: defaulted_paths} = configuration,
-         resource_paths
-       ) do
-    defaulted_paths
-    |> Enum.map(fn {key, paths} ->
-      {key, Enum.map(paths, &expand_association_field(&1, resource_paths))}
-    end)
-    |> Map.new()
-    |> then(&Map.put(configuration, :defaulted_paths, &1))
-  end
-
-  defp expand_association_fields(configuration, _resources), do: configuration
-
-  @spec expand_association_field(map, map) :: map
-  defp expand_association_field(
-         %{
-           tag: :field,
-           state: :start,
-           config: %{field_type: :one_to_many_association, resource: resource}
-         } = path,
-         resource_paths
-       ) do
-    resource_paths
-    |> get_in([resource, :index])
-    |> Kernel.||([])
-    |> List.first()
-    |> maybe_add_association_data_to_resource(path, resource_paths)
-  end
-
-  defp expand_association_field(path, _resources), do: path
-
-  @spec maybe_add_association_data_to_resource(map, map, map) :: map
-  defp maybe_add_association_data_to_resource(
-         %{name: resource, config: {:fields, fields}},
-         path,
-         resource_paths
-       ) do
-    put_in(path, [Access.key!(:config), Access.key!(:resource)], %{
-      resource: resource,
-      fields: fields,
-      parsed_opts: get_in(resource_paths, [resource, :parsed_opts]) || %{}
-    })
-  end
-
-  defp maybe_add_association_data_to_resource(_resource, path, _resource_paths), do: path
-
-  @spec extract_resource_preloads(map, keyword) :: map
-  defp extract_resource_preloads(resource_paths, opts) do
-    resource_paths
-    |> Enum.map(fn {resource_name, layouts} ->
-      layouts
-      |> Enum.map(&extract_resource_preload/1)
-      |> List.flatten()
+    |> Enum.map(fn {resource_name,
+                    %{resource_config: %{fields: fields}, defaulted_paths: defaulted_paths}} ->
+      defaulted_paths
+      |> Enum.filter(&(elem(&1, 0) in [:index, :form, :show]))
+      |> Enum.map(&elem(&1, 1))
+      |> extract_resource_fields(fields)
+      |> Enum.map(&{&1.name, &1.resource})
       |> Enum.uniq()
       |> then(&{resource_name, &1})
     end)
-    |> Map.new()
-    |> expand_preload(opts[:preload_depth] || 1)
+    |> expand_associations()
   end
 
-  @spec extract_resource_preload(tuple) :: list
-  defp extract_resource_preload({:parsed_opts, _}), do: []
+  @spec extract_resource_fields(list, map, list) :: list
+  defp extract_resource_fields(resources, fields, result \\ [])
 
-  defp extract_resource_preload({:index, paths}) do
-    paths
-    |> List.first()
-    |> Map.get(:config)
-    |> elem(1)
-    |> extract_resource_preload_from_paths()
+  defp extract_resource_fields([], _fields, result) do
+    result
   end
 
-  defp extract_resource_preload({_tag, paths}) do
-    paths
-    |> Enum.filter(&(&1.tag == :field && &1.state == :start))
-    |> Enum.map(fn path ->
-      path |> Map.get(:config) |> extract_resource_preload_from_paths()
+  defp extract_resource_fields(
+         [%{inner_elements: inner_elements} = resource | resources],
+         fields,
+         result
+       ) do
+    resource
+    |> maybe_add_association_info(fields)
+    |> then(&extract_resource_fields(inner_elements, fields, [&1]))
+    |> Enum.filter(
+      &(&1.tag == :field and &1.field_type in [:one_to_many_association, :many_to_one_association])
+    )
+    |> Enum.reduce(result, &[&1 | &2])
+    |> then(&extract_resource_fields(resources, fields, &1))
+  end
+
+  @spec maybe_add_association_info(map, map) :: map
+  defp maybe_add_association_info(%{tag: :field, name: name} = field, fields) do
+    fields
+    |> Map.get(name, %{field_type: nil, resource: nil})
+    |> then(
+      &Map.merge(field, %{field_type: &1.field_type, resource: &1.resource, inner_elements: []})
+    )
+  end
+
+  defp maybe_add_association_info(field, _fields), do: Map.put(field, :inner_elements, [])
+
+  @spec expand_associations(list) :: map
+  defp expand_associations(associations) do
+    parsed_associations = parse_association(associations)
+
+    associations
+    |> Enum.map(fn {resource_name, children} ->
+      children
+      |> Enum.map(fn {field, related_resource} ->
+        parsed_associations
+        |> Map.get(related_resource, [])
+        |> then(&{field, &1})
+      end)
+      |> then(&{resource_name, &1})
     end)
+    |> Map.new()
   end
 
-  @spec extract_resource_preload_from_paths(list) :: list
-  defp extract_resource_preload_from_paths(paths) when is_list(paths) do
-    paths
-    |> Enum.filter(&(&1.field_type in [:one_to_many_association, :many_to_one_association]))
-    |> Enum.map(&{&1.field, &1.resource})
-  end
-
-  defp extract_resource_preload_from_paths(path), do: extract_resource_preload_from_paths([path])
-
-  @spec expand_preload(map, integer) :: map
-  defp expand_preload(preload, depth) do
-    translations =
-      preload
-      |> Enum.map(fn {_parent_resource, field_resource} -> field_resource end)
-      |> List.flatten()
-      |> Enum.reject(fn {_parent_resource, resource} -> is_nil(resource) end)
-      |> Map.new()
-
-    preload
-    |> Enum.map(fn {parent_resource, fields} ->
-      fields
+  @spec parse_association(list) :: map
+  defp parse_association(associations) do
+    associations
+    |> Enum.map(fn {resource, children} ->
+      children
       |> Enum.map(&elem(&1, 0))
-      |> then(&{parent_resource, &1})
-    end)
-    |> Map.new()
-    |> expand_preload(translations, depth)
-  end
-
-  @spec expand_preload(map, map, integer) :: map
-  defp expand_preload(preload, translations, depth) do
-    preload
-    |> Enum.map(fn {parent, children} ->
-      {parent, expand_preload_children(preload, children, translations, 0, depth)}
+      |> then(&{resource, &1})
     end)
     |> Map.new()
   end
 
-  @spec expand_preload_children(map, list, map, integer, integer) :: tuple
-  defp expand_preload_children(preload, children, translations, current_depth, depth)
-       when current_depth < depth do
-    Enum.map(children, fn field ->
-      translations
-      |> Map.get(field, field)
-      |> then(&Map.get(preload, &1, []))
-      |> then(
-        &{field, expand_preload_children(preload, &1, translations, current_depth + 1, depth)}
-      )
-    end)
-  end
-
-  defp expand_preload_children(_preloads, children, _translations, _current_depth, _depth),
-    do: children
-
-  @spec build_resource_preload_option(map, map) :: map
+  @spec build_resource_preload_option(tuple, map) :: tuple
   defp build_resource_preload_option(
-         %{parsed_opts: parsed_opts} = configuration,
+         {resource_config_name, %{parsed_opts: parsed_opts} = configuration},
          resource_preloads
        ) do
     resource_preloads
-    |> Map.get(configuration.resource_config_name, [])
+    |> Map.get(resource_config_name, [])
     |> then(&Map.put(parsed_opts, :preload, &1))
     |> then(&Map.put(configuration, :parsed_opts, &1))
+    |> then(&{resource_config_name, &1})
   end
-
-  defp build_resource_preload_option(configuration, _resource_preloads), do: configuration
-
-  @spec map_resources(list) :: map
-  defp map_resources(resource_configs) do
-    flatten_resource_configs = List.flatten(resource_configs)
-
-    if Enum.count(flatten_resource_configs) == 1,
-      do: List.first(flatten_resource_configs),
-      else: map_resources(flatten_resource_configs, %{})
-  end
-
-  @spec map_resources(list, map) :: map
-  defp map_resources([resource_config | rest], acc) do
-    map_resources(rest, Map.merge(acc, resource_config))
-  end
-
-  defp map_resources([], acc), do: acc
 end

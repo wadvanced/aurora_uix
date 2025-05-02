@@ -18,7 +18,7 @@ defmodule AuroraUix.Parsers.IndexParser do
   ## Parameters
     - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
     - `resource_config` (map): Contains all the modules' configuration.
-    - `opts` (Keyword.t()): List of options, the available ones depends on the type of view.
+    - `opts` (keyword): List of options, the available ones depends on the type of view.
 
   ## Options
     - :index and :card opts
@@ -35,7 +35,7 @@ defmodule AuroraUix.Parsers.IndexParser do
       - `layout: Uix.Formatter`: Overrides the default layout by using a formatter. See details in the module.
 
   """
-  @spec parse(map, map, Keyword.t()) :: map
+  @spec parse(map, map, keyword) :: map
   def parse(parsed_opts, resource_config, opts) do
     parsed_opts
     |> add_opt(resource_config, opts, :rows)

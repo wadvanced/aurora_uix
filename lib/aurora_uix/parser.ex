@@ -22,7 +22,7 @@ defmodule AuroraUix.Parser do
 
   ## Parameters
     - `resource_config` (map) - contains all the modules' configuration.
-    - `opts` (Keyword.t()) - Configuration options. See full list in:
+    - `opts` (keyword) - Configuration options. See full list in:
       - Common options: `AuroraUix.Parsers.Common.parse/3`
       - Index-specific options: `AuroraUix.Parsers.IndexParser.parse/3`
       - Context specific options: `AuroraUix.Parsers.ContextParser.parse/3`
@@ -65,7 +65,7 @@ defmodule AuroraUix.Parser do
     index_show_entity_link: "my_schemas/[[entity]]"
    }
   """
-  @spec parse(map, Keyword.t()) :: map
+  @spec parse(map, keyword) :: map
   def parse(resource_config, opts \\ []) do
     opts =
       List.flatten(opts)

@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
+defmodule AuroraUixWeb.Uix.LayoutConfigUI do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
@@ -206,13 +206,12 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   """
 
-  alias AuroraUixWeb.Uix
+  import AuroraUixWeb.Uix.Helper
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import AuroraUixWeb.Uix.CreateUI.LayoutConfigUI
-      Module.register_attribute(__MODULE__, :_auix_layout_paths, accumulate: true)
+      import AuroraUixWeb.Uix.LayoutConfigUI
     end
   end
 
@@ -235,9 +234,9 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     end
   ```
   """
-  @spec edit_layout(atom, Keyword.t(), any) :: Macro.t()
+  @spec edit_layout(atom, keyword, any) :: Macro.t()
   defmacro edit_layout(name, opts, do_block \\ nil) do
-    register_layout_path_entry(:form, name, nil, opts, do_block)
+    register_dsl_entry(:form, name, nil, opts, do_block)
   end
 
   @doc """
@@ -253,9 +252,27 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     end
   ```
   """
-  @spec show_layout(atom, Keyword.t(), any) :: Macro.t()
+  @spec show_layout(atom, keyword, any) :: Macro.t()
   defmacro show_layout(name, opts, do_block \\ nil) do
-    register_layout_path_entry(:show, name, nil, opts, do_block)
+    register_dsl_entry(:show, name, nil, opts, do_block)
+  end
+
+  @doc """
+  Registers index columns for a specific resource.
+
+  ## Parameters
+  - `name` (atom): Unique identifier for the index configuration
+  - `fields` (list): List of field names to display in the index view
+
+  ## Behavior
+  - Accumulates fields for the specified resource name
+  - Allows multiple calls to append additional fields
+  - Processed during module compilation
+
+  """
+  @spec index_columns(atom, keyword, any) :: Macro.t()
+  defmacro index_columns(name, fields, do_block \\ nil) do
+    register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
   end
 
   @doc """
@@ -283,10 +300,10 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     end
   ```
   """
-  @spec inline(Keyword.t(), any) :: Macro.t()
+  @spec inline(keyword, any) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
-    {block, fields} = Uix.extract_block_options(fields, do_block)
-    register_layout_path_entry(:inline, nil, {:fields, fields}, [], block)
+    {block, fields} = extract_block_options(fields, do_block)
+    register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -304,10 +321,10 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     stacked [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
   ```
   """
-  @spec stacked(Keyword.t(), any) :: Macro.t()
+  @spec stacked(keyword, any) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
-    {block, fields} = Uix.extract_block_options(fields, do_block)
-    register_layout_path_entry(:stacked, nil, {:fields, fields}, [], block)
+    {block, fields} = extract_block_options(fields, do_block)
+    register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -323,9 +340,9 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     group "Identification", [:reference, :name, :description]
   ```
   """
-  @spec group(atom, Keyword.t(), any) :: Macro.t()
+  @spec group(atom, keyword, any) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :group,
       nil,
       [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
@@ -351,7 +368,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   """
   @spec sections(keyword, any) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :sections,
       nil,
       [sections_id: "auix-#{unique_titled_id("sections")}"],
@@ -375,7 +392,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   """
   @spec section(binary, keyword, any) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
-    register_layout_path_entry(
+    register_dsl_entry(
       :section,
       nil,
       [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
@@ -389,9 +406,7 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   ## Parameters
   - `paths` (list): An existing list of paths. If empty, default paths are generated.
-  - `resource_config_name` (atom): The resource configuration name.
-  - `parsed_opts` (map): A map containing parsed options, including:
-  - `:fields` (list): A list of field structures.
+  - `resource_config` (atom): The associated resource configuration.
   - `mode` (atom): The rendering mode (`:index`, `:form`, or `:show`).
 
   ## Returns
@@ -405,13 +420,13 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
 
   ## Example
 
-    iex> AuroraUixWeb.Uix.CreateUI.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :index)
+    iex> AuroraUixWeb.Uix.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
     [
       %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
       %{tag: :index, state: :end}
     ]
 
-    iex> build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, :form)
+    iex> build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :form)
     [
       %{tag: :form, state: :start, config: {:name, "product"}, opts: []},
       %{tag: :inline, state: :start, config: {:fields, [:name, :price]}, opts: []},
@@ -419,88 +434,51 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
       %{tag: :form, state: :end}
     ]
   """
-  @spec build_default_layout_paths(list, atom, map, atom) :: list
+  @spec build_default_layout_paths(list, map, keyword, atom) :: map
   def build_default_layout_paths(
         [],
-        resource_config_name,
-        %{fields: fields} = _parsed_opts,
+        resource_config,
+        _opts,
         :index
       ) do
-    columns = Enum.map(fields, & &1.field)
+    columns =
+      resource_config
+      |> Map.get(:fields_order, [])
+      |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
-    [
-      %{
-        tag: :index,
-        name: resource_config_name,
-        state: :start,
-        opts: [],
-        config: {:fields, columns}
-      },
-      %{tag: :index, name: resource_config_name, state: :end}
-    ]
+    %{
+      tag: :index,
+      name: resource_config.name,
+      config: [],
+      opts: [],
+      inner_elements: columns
+    }
   end
 
-  def build_default_layout_paths([], resource_config_name, %{fields: fields} = _parsed_opts, mode)
+  def build_default_layout_paths([], resource_config, opts, mode)
       when mode in [:form, :show] do
-    stacked = Enum.map(fields, & &1.field)
+    columns =
+      resource_config
+      |> Map.get(:fields_order, [])
+      |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
-    [
-      %{tag: mode, name: resource_config_name, state: :start, config: [], opts: []},
-      %{tag: :stacked, state: :start, config: {:fields, stacked}, opts: []},
-      %{tag: :stacked, state: :end},
-      %{tag: mode, name: resource_config_name, state: :end}
-    ]
+    fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)
+
+    fields_layout = %{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
+
+    %{
+      tag: mode,
+      name: resource_config.name,
+      config: [],
+      opts: [],
+      inner_elements: [fields_layout]
+    }
   end
 
-  def build_default_layout_paths(paths, _resource_config_name, _parsed_opts, _mode), do: paths
+  def build_default_layout_paths([], resource_config, _opts, mode),
+    do: %{name: resource_config.name, tag: mode, config: [], opts: [], inner_elements: []}
 
-  @doc """
-  Unpacks fields from a list of paths based on the specified mode.
-  ## Parameters
-  - `paths` (list): A list of path maps representing the layout structure.
-  - `mode` (atom): The mode of unpacking, such as `:index` or other modes.
-  ## Returns
-  - `list`: A list of unpacked paths with fields expanded.
-  ## Example
-    iex> paths = [
-      %{tag: :form, state: :start, config: [], opts: []},
-      %{tag: :inline, state: :start, config: {:fields, [:name, :email]}, opts: []},
-      %{tag: :inline, state: :end},
-      %{tag: :form, state: :end}
-    ]
-    iex> unpack_paths_fields(paths, :form)
-    [
-      %{tag: :form, state: :start, config: [], opts: []},
-      %{tag: :field, state: :start, config: :name, opts: []},
-      %{tag: :field, state: :end, config: :name, opts: []},
-      %{tag: :field, state: :start, config: :email, opts: []},
-      %{tag: :field, state: :end, config: :email, opts: []},
-      %{tag: :form, state: :end}
-    ]
-  """
-  @spec unpack_paths_fields(list, atom) :: list
-  def unpack_paths_fields(paths, :index), do: paths
-
-  def unpack_paths_fields(paths, _mode) do
-    paths
-    |> Enum.reduce([], &unpack_fields/2)
-    |> Enum.reverse()
-  end
-
-  @spec unpack_fields(map, list) :: list
-  defp unpack_fields(%{config: {:fields, fields}} = path, paths) do
-    paths = [Map.put(path, :config, []) | paths]
-    Enum.reduce(fields, paths, &unpack_field/2)
-  end
-
-  defp unpack_fields(path, paths), do: [path | paths]
-
-  @spec unpack_field(atom, list) :: list
-  defp unpack_field(field, paths) do
-    paths
-    |> then(&[%{tag: :field, state: :start, config: field, opts: []} | &1])
-    |> then(&[%{tag: :field, state: :end, config: field, opts: []} | &1])
-  end
+  def build_default_layout_paths([paths], _resource_config, _opts, _mode), do: paths
 
   @doc """
   Parses a list of paths to handle sections based on the given mode.
@@ -537,50 +515,19 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
     ]
 
   """
-  @spec parse_sections(list, atom) :: list
-  def parse_sections(paths, mode) when mode in [:form, :show] do
-    paths
-    |> associate_tabs(0, [], [], [], [], [])
-    |> parse_path([])
+  @spec parse_sections(map, atom) :: map
+  def parse_sections(path, mode) when mode in [:form, :show] do
+    pid = start_counter()
+
+    path
+    |> Map.get(:inner_elements, [])
+    |> normalize_sections_and_tabs(pid)
+    |> then(&Map.put(path, :inner_elements, &1))
   end
 
-  def parse_sections(paths, _mode), do: paths
+  def parse_sections(path, _mode), do: path
 
   ## PRIVATE
-
-  @spec register_layout_path_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
-  defp register_layout_path_entry(tag, name, config, opts, do_block) do
-    {block, opts} = Uix.extract_block_options(opts, do_block)
-
-    registration =
-      quote do
-        start_attribute =
-          %{
-            tag: unquote(tag),
-            name: unquote(name),
-            state: :start,
-            opts: unquote(opts),
-            config: unquote(config)
-          }
-
-        end_attribute =
-          %{
-            tag: unquote(tag),
-            name: unquote(name),
-            state: :end
-          }
-
-        Module.put_attribute(__MODULE__, :_auix_layout_paths, start_attribute)
-
-        unquote(block)
-
-        Module.put_attribute(__MODULE__, :_auix_layout_paths, end_attribute)
-      end
-
-    quote do
-      unquote(registration)
-    end
-  end
 
   @spec unique_titled_id(binary | nil) :: binary
   defp unique_titled_id(nil), do: unique_titled_id("untitled")
@@ -613,223 +560,209 @@ defmodule AuroraUixWeb.Uix.CreateUI.LayoutConfigUI do
   ## Sections parsing
   ## -------------------
 
-  @spec associate_tabs(list, integer, list, list, list, list, list) :: list
-  defp associate_tabs(
-         [%{tag: :sections, state: :start, config: config} = path | rest],
-         sections_index,
-         sections_index_stack,
-         sections_id_stack,
-         tab_index_stack,
-         tab_id_stack,
-         paths
-       ) do
-    new_sections_index = sections_index + 1
-    new_sections_index_stack = [new_sections_index | sections_index_stack]
-    new_sections_id_stack = [config[:sections_id] | sections_id_stack]
-    new_tab_index_stack = [0 | tab_index_stack]
+  # Recursively processes a list of layout elements to establish the hierarchy and relationships
+  # between sections and tabs. It maintains indices for sections and tabs while traversing the
+  # elements tree, ensuring proper nesting and parent-child relationships.
+  #
+  # Parameters:
+  # - elements: List of layout elements to process
+  # - sections_id: ID of the current sections container (nil for root level)
+  # - sections_index: Counter for section numbering (starts at 0 and never resets)
+  # - tab_parent_id: ID of the parent tab if any (nil for root level)
+  # - tab_index: Counter for tab numbering within a section (starts at 0 and resets when a sections container starts)
+  # - tab_active?: Indicates if a tab is already active within the sections.
+  # - result: Accumulator for processed elements
+  #
+  # Returns a tuple containing:
+  # - List of processed elements with updated configuration
+  # - Final section index
+  @spec normalize_sections_and_tabs(
+          list,
+          pid,
+          binary | nil,
+          integer,
+          binary | nil,
+          integer,
+          boolean,
+          list
+        ) :: list
+  defp normalize_sections_and_tabs(
+         elements,
+         counter_pid,
+         sections_id \\ nil,
+         sections_index \\ 0,
+         tab_parent_id \\ nil,
+         tab_index \\ 0,
+         tab_active? \\ false,
+         result \\ []
+       )
 
-    new_path =
-      config
-      |> Keyword.put(:sections_index, new_sections_index)
-      |> then(&Map.put(path, :config, &1))
-
-    new_paths = [new_path | paths]
-
-    associate_tabs(
-      rest,
-      new_sections_index,
-      new_sections_index_stack,
-      new_sections_id_stack,
-      new_tab_index_stack,
-      tab_id_stack,
-      new_paths
-    )
-  end
-
-  defp associate_tabs(
-         [%{tag: :sections, state: :end} = path | rest],
-         sections_index,
-         sections_index_stack,
-         sections_id_stack,
-         tab_index_stack,
-         tab_id_stack,
-         paths
-       ) do
-    {_, new_sections_index_stack} = List.pop_at(sections_index_stack, 0)
-    {_, new_sections_id_stack} = List.pop_at(sections_id_stack, 0)
-    {_, new_tab_index_stack} = List.pop_at(tab_index_stack, 0)
-    new_paths = [path | paths]
-
-    associate_tabs(
-      rest,
-      sections_index,
-      new_sections_index_stack,
-      new_sections_id_stack,
-      new_tab_index_stack,
-      tab_id_stack,
-      new_paths
-    )
-  end
-
-  defp associate_tabs(
-         [%{tag: :section, state: :start, config: config, opts: opts} = path | rest],
-         sections_index,
-         sections_index_stack,
-         sections_id_stack,
-         tab_index_stack,
-         tab_id_stack,
-         paths
-       ) do
-    {current_tab_index, stacked_index} = List.pop_at(tab_index_stack, 0)
-    new_tab_index_stack = [current_tab_index + 1 | stacked_index]
-    new_tab_id_stack = [config[:tab_id] | tab_id_stack]
-
-    new_path =
-      config
-      |> Keyword.merge(
-        sections_index: List.first(sections_index_stack),
-        sections_id: List.first(sections_id_stack),
-        tab_index: List.first(new_tab_index_stack),
-        tab_parent_id: List.first(tab_id_stack),
-        active: Keyword.get(opts, :default, false)
-      )
-      |> then(&Map.put(path, :config, &1))
-
-    associate_tabs(
-      rest,
-      sections_index,
-      sections_index_stack,
-      sections_id_stack,
-      new_tab_index_stack,
-      new_tab_id_stack,
-      [
-        new_path | paths
-      ]
-    )
-  end
-
-  defp associate_tabs(
-         [%{tag: :section, state: :end} = path | rest],
-         sections_index,
-         sections_index_stack,
-         sections_id_stack,
-         tab_index_stack,
-         tab_id_stack,
-         paths
-       ) do
-    {_, new_tab_id_stack} = List.pop_at(tab_id_stack, 0)
-
-    associate_tabs(
-      rest,
-      sections_index,
-      sections_index_stack,
-      sections_id_stack,
-      tab_index_stack,
-      new_tab_id_stack,
-      [path | paths]
-    )
-  end
-
-  defp associate_tabs(
-         [path | rest],
-         sections_index,
-         sections_index_stack,
-         sections_id_stack,
-         tab_index_stack,
-         tab_id_stack,
-         paths
-       ) do
-    associate_tabs(
-      rest,
-      sections_index,
-      sections_index_stack,
-      sections_id_stack,
-      tab_index_stack,
-      tab_id_stack,
-      [path | paths]
-    )
-  end
-
-  defp associate_tabs(
+  defp normalize_sections_and_tabs(
          [],
+         _counter_pid,
+         _sections_id,
+         _section_index,
+         _tab_parent_id,
+         _tab_index,
+         tab_active?,
+         result
+       ) do
+    result
+    |> Enum.reverse()
+    |> maybe_mark_first_tab(tab_active?)
+  end
+
+  defp normalize_sections_and_tabs(
+         [%{tag: :sections, config: config, inner_elements: inner_elements} = element | elements],
+         counter_pid,
+         _sections_id,
          _sections_index,
-         _sections_index_stack,
-         _sections_id_stack,
-         _tab_index_stack,
-         _tab_id_stack,
-         paths
-       ),
-       do: Enum.reverse(paths)
+         tab_parent_id,
+         _tab_index,
+         _tab_active?,
+         result
+       ) do
+    next_sections_index = next_count(counter_pid)
 
-  @spec parse_path(list, list) :: list
-  defp parse_path([%{tag: :sections, state: :start, config: config} = path | rest], paths) do
-    sections_id = config[:sections_id]
+    new_inner_elements =
+      normalize_sections_and_tabs(
+        inner_elements,
+        counter_pid,
+        config[:sections_id],
+        next_sections_index,
+        tab_parent_id
+      )
 
-    new_rest = ensure_single_active_tab(rest, sections_id)
-
-    tabs =
-      new_rest
-      |> Enum.filter(&filter_section?(&1, sections_id))
+    tabs_info =
+      new_inner_elements
+      |> Enum.filter(&(&1.tag == :section))
       |> Enum.map(&Map.new(&1.config))
 
-    new_path =
+    new_config =
       config
-      |> Keyword.put(:tabs, tabs)
-      |> then(&Map.put(path, :config, &1))
+      |> Keyword.put(:sections_index, next_sections_index)
+      |> Keyword.put(:tabs, tabs_info)
 
-    parse_path(new_rest, [new_path | paths])
+    new_element = Map.merge(element, %{config: new_config, inner_elements: new_inner_elements})
+
+    normalize_sections_and_tabs(
+      elements,
+      counter_pid,
+      config[:sections_id],
+      next_sections_index,
+      tab_parent_id,
+      0,
+      false,
+      [new_element | result]
+    )
   end
 
-  defp parse_path([path | rest], paths), do: parse_path(rest, [path | paths])
+  defp normalize_sections_and_tabs(
+         [
+           %{tag: :section, opts: opts, config: config, inner_elements: inner_elements} = element
+           | elements
+         ],
+         counter_pid,
+         sections_id,
+         sections_index,
+         tab_parent_id,
+         tab_index,
+         tab_active?,
+         result
+       ) do
+    next_tab_index = tab_index + 1
+    next_tab_active? = !tab_active? and opts[:default] == true
 
-  defp parse_path([], paths), do: Enum.reverse(paths)
+    new_inner_elements =
+      normalize_sections_and_tabs(
+        inner_elements,
+        counter_pid,
+        sections_id,
+        sections_index,
+        config[:tab_id],
+        next_tab_index
+      )
 
-  @spec filter_section?(map, binary) :: boolean
-  defp filter_section?(%{tag: :section, state: :start, config: config}, sections_id),
-    do: config[:sections_id] == sections_id
+    new_config =
+      Keyword.merge(config,
+        active: opts[:default] == true,
+        sections_id: sections_id,
+        sections_index: sections_index,
+        tab_parent_id: tab_parent_id,
+        tab_index: next_tab_index
+      )
 
-  defp filter_section?(_path, _sections_id), do: false
+    new_element = Map.merge(element, %{config: new_config, inner_elements: new_inner_elements})
 
-  @spec ensure_single_active_tab(list, binary) :: list
-  defp ensure_single_active_tab(paths, sections_id) do
-    active_count = Enum.count(paths, &accept_tab?(&1, sections_id))
-    ensure_single_active_tab(paths, sections_id, active_count)
+    normalize_sections_and_tabs(
+      elements,
+      counter_pid,
+      sections_id,
+      sections_index,
+      tab_parent_id,
+      next_tab_index,
+      next_tab_active?,
+      [new_element | result]
+    )
   end
 
-  @spec ensure_single_active_tab(list, binary, integer) :: list
-  defp ensure_single_active_tab(paths, sections_id, 0) do
-    paths
-    |> Enum.reduce({[], true}, &mark_active_tab(&1, &2, sections_id))
+  defp normalize_sections_and_tabs(
+         [%{inner_elements: inner_elements} = element | elements],
+         counter_pid,
+         sections_id,
+         sections_index,
+         tab_parent_id,
+         tab_index,
+         tab_active?,
+         result
+       ) do
+    new_inner_elements =
+      normalize_sections_and_tabs(
+        inner_elements,
+        counter_pid,
+        sections_id,
+        sections_index,
+        tab_parent_id,
+        tab_index,
+        tab_active?
+      )
+
+    new_element = Map.put(element, :inner_elements, new_inner_elements)
+
+    normalize_sections_and_tabs(
+      elements,
+      counter_pid,
+      sections_id,
+      sections_index,
+      tab_parent_id,
+      tab_index,
+      tab_active?,
+      [new_element | result]
+    )
+  end
+
+  @spec maybe_mark_first_tab(list, boolean) :: list
+  defp maybe_mark_first_tab(elements, true), do: elements
+
+  defp maybe_mark_first_tab(elements, _) do
+    elements
+    |> Enum.reduce(
+      {[], false},
+      fn
+        element, {acc, true} ->
+          {[element | acc], true}
+
+        %{tag: :section, config: config} = element, {acc, false} ->
+          config
+          |> Keyword.update(:active, true, fn _ -> true end)
+          |> then(&Map.put(element, :config, &1))
+          |> then(&{[&1 | acc], true})
+
+        element, {acc, tab_active?} ->
+          {[element | acc], tab_active?}
+      end
+    )
     |> elem(0)
     |> Enum.reverse()
   end
-
-  defp ensure_single_active_tab(paths, _sections_id, 1), do: paths
-
-  defp ensure_single_active_tab(paths, sections_id, _count),
-    do: ensure_single_active_tab(paths, sections_id, 0)
-
-  @spec mark_active_tab(map, tuple, binary) :: tuple
-  defp mark_active_tab(
-         %{tag: :section, state: :start, config: config} = tab_path,
-         {acc, active},
-         sections_id
-       ) do
-    if config[:sections_id] == sections_id do
-      config
-      |> Keyword.update!(:active, fn _ -> active end)
-      |> then(&Map.put(tab_path, :config, &1))
-      |> then(&{[&1 | acc], false})
-    else
-      {[tab_path | acc], active}
-    end
-  end
-
-  defp mark_active_tab(path, {acc, active}, _sections_id), do: {[path | acc], active}
-
-  @spec accept_tab?(map, binary) :: boolean
-  defp accept_tab?(%{tag: :section, state: :start, config: config}, sections_id),
-    do: config[:sections_id] == sections_id and config[:active]
-
-  defp accept_tab?(_tab, _sections_id), do: false
 end

@@ -44,6 +44,8 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   - Consistent UI generation
   - Extensible field handling
   """
+  import AuroraUixWeb.Templates.Core, only: [get_field: 3]
+  alias AuroraUixWeb.Templates.Core.Markups
 
   @doc """
   Parses layout configurations and generates corresponding HTML structure.
@@ -69,61 +71,96 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   - `:stacked`: Vertically stacked fields
   - `:sections`: Tabbed content sections
   """
-  @spec parse_layout(map, map, atom) :: binary
-  def parse_layout(%{tag: mode, state: :start, name: name}, _parsed_opts, mode)
-      when mode in [:form, :show] do
-    layout_classes = "auix-#{mode}-container p-4 border rounded-lg shadow bg-white"
-    ~s(<div class="#{layout_classes}" data-layout="#{name}">\n)
+
+  @spec parse_layout(map | list, map, map, atom, atom) :: binary
+  def parse_layout(elements, configurations, parsed_opts, resource_name, mode)
+      when is_list(elements) do
+    Enum.map_join(
+      elements,
+      " ",
+      &parse_layout(&1, configurations, parsed_opts, resource_name, mode)
+    )
   end
 
-  def parse_layout(%{tag: mode, state: :end}, _parsed_opts, mode) when mode in [:form, :show] do
-    "</div>\n"
+  def parse_layout(
+        %{tag: :form} = path,
+        configurations,
+        parsed_opts,
+        resource_name,
+        :form
+      ) do
+    Markups.FormLayout.parse_layout(path, configurations, parsed_opts, resource_name)
   end
 
-  def parse_layout(%{tag: :group, state: :start, config: config}, _parsed_opts, mode)
+  def parse_layout(
+        %{tag: :show} = path,
+        configurations,
+        parsed_opts,
+        resource_name,
+        :show
+      ) do
+    Markups.ShowLayout.parse_layout(path, configurations, parsed_opts, resource_name)
+  end
+
+  def parse_layout(path, configurations, parsed_opts, resource_name, :index) do
+    Markups.IndexLayout.parse_layout(path, configurations, parsed_opts, resource_name)
+  end
+
+  def parse_layout(
+        %{tag: :group, config: config} = path,
+        configurations,
+        parsed_opts,
+        resource_name,
+        mode
+      )
       when mode in [:form, :show] do
     group_classes = "p-3 border rounded-md bg-gray-100"
     group_title_classes = "font-semibold text-lg"
 
-    ~s(<div id="#{config[:group_id]}" class="#{group_classes}">\n  <h3 class="#{group_title_classes}">#{config[:title]}</h3>\n)
+    ~s(
+      <div id="#{config[:group_id]}" class="#{group_classes}">
+        <h3 class="#{group_title_classes}">#{config[:title]}</h3>
+        #{parse_layout(path.inner_elements, configurations, parsed_opts, resource_name, mode)}
+      </div>
+    )
   end
 
-  def parse_layout(%{tag: :group, state: :end}, _parsed_opts, mode) when mode in [:form, :show] do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :inline, state: :start}, _parsed_opts, mode)
+  def parse_layout(%{tag: :inline} = path, configurations, parsed_opts, resource_name, mode)
       when mode in [:form, :show] do
     fields_classes = "flex flex-col gap-2 sm:flex-row"
-    ~s(<div class="#{fields_classes}">\n)
+    ~s(
+      <div class="#{fields_classes}">
+        #{parse_layout(path.inner_elements, configurations, parsed_opts, resource_name, mode)}
+      </div>
+      )
   end
 
-  def parse_layout(%{tag: :inline, state: :end}, _parsed_opts, mode)
-      when mode in [:form, :show] do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :stacked, state: :start}, _parsed_opts, mode)
+  def parse_layout(%{tag: :stacked} = path, configurations, parsed_opts, resource_name, mode)
       when mode in [:form, :show] do
     fields_classes = "flex flex-col gap-2"
-    ~s(<div class="#{fields_classes}">\n)
+    ~s(
+      <div class="#{fields_classes}">
+        #{parse_layout(path.inner_elements, configurations, parsed_opts, resource_name, mode)}
+      </div>
+      )
   end
 
-  def parse_layout(%{tag: :stacked, state: :end}, _parsed_opts, mode)
-      when mode in [:form, :show] do
-    "</div>\n"
+  def parse_layout(%{tag: :field} = path, configurations, parsed_opts, resource_name, mode) do
+    field_html =
+      path
+      |> get_field(configurations, resource_name)
+      |> render_field(configurations, parsed_opts, mode)
+
+    "#{field_html}"
   end
 
-  def parse_layout(%{tag: :field, state: :start, config: field}, parsed_opts, mode) do
-    field_html = render_field(field, parsed_opts, mode)
-    ~s(#{field_html}\n)
-  end
-
-  def parse_layout(%{tag: :field, state: :end}, _parsed_opts, _mode) do
-    ""
-  end
-
-  def parse_layout(%{tag: :sections, state: :start, config: config}, _parsed_opts, mode)
+  def parse_layout(
+        %{tag: :sections, config: config} = path,
+        configurations,
+        parsed_opts,
+        resource_name,
+        mode
+      )
       when mode in [:form, :show] do
     target = if mode == :form, do: "phx-target={@myself}", else: ""
     unique = :erlang.unique_integer([:positive])
@@ -144,7 +181,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
       "auix-sections-content p-4 border border-gray-300 rounded-tr-lg rounded-br-lg rounded-bl-lg"
 
     buttons_html =
-      Enum.map_join(config[:tabs], "\n", fn tab_config ->
+      Enum.map_join(config[:tabs], " ", fn tab_config ->
         %{
           label: label,
           tab_id: tab_id,
@@ -166,18 +203,23 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
               #{target}>#{label}</button>)
       end)
 
-    ~s(<div id="sections-#{unique}-#{mode}" class="" data-sections-index="#{config[:index]}">\n
-        <div id="tabs-container-#{unique}-#{mode}"
-            class="#{button_container_classes}">\n#{buttons_html}</div>\n
-          <div id="sections-content-#{unique}-#{mode}" class="#{section_container_classes}">\n)
+    ~s(<div id="sections-#{unique}-#{mode}" class="" data-sections-index="#{config[:index]}">
+        <div id="tabs-container-#{unique}-#{mode}" class="#{button_container_classes}">
+          #{buttons_html}
+        </div>
+        <div id="sections-content-#{unique}-#{mode}" class="#{section_container_classes}">
+          #{parse_layout(path.inner_elements, configurations, parsed_opts, resource_name, mode)}
+        </div>
+      </div>)
   end
 
-  def parse_layout(%{tag: :sections, state: :end}, _parsed_opts, mode)
-      when mode in [:form, :show] do
-    "</div></div>\n"
-  end
-
-  def parse_layout(%{tag: :section, state: :start, config: config}, _parsed_opts, mode)
+  def parse_layout(
+        %{tag: :section, config: config} = path,
+        configurations,
+        parsed_opts,
+        resource_name,
+        mode
+      )
       when mode in [:form, :show] do
     active_state =
       ~s|if @_auix_sections["#{config[:sections_id]}"] == "#{config[:tab_id]}"
@@ -187,57 +229,62 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
       ~s|if @_auix_sections["#{config[:sections_id]}"] == "#{config[:tab_id]}"
           or (@_auix_sections["#{config[:sections_id]}"] == nil and #{config[:active] || false}), do: "active", else: "inactive"|
 
-    ~s(<div class={"auix-section-tab " <> #{active_state}}
-        id="#{config[:tab_id]}"
-        data-tab-label="#{config[:label]}"
-        data-tab-sections-id="#{config[:sections_id]}"
-        data-tab-parent-id="#{config[:tab_parent_id]}"
-        data-tab-sections-index="#{config[:sections_index]}"
-        data-tab-index="#{config[:tab_index]}"
-        data-tab-active={#{data_active_state}}
-        >\n)
+    ~s(
+      <div class={"auix-section-tab " <> #{active_state}}
+          id="#{config[:tab_id]}"
+          data-tab-label="#{config[:label]}"
+          data-tab-sections-id="#{config[:sections_id]}"
+          data-tab-parent-id="#{config[:tab_parent_id]}"
+          data-tab-sections-index="#{config[:sections_index]}"
+          data-tab-index="#{config[:tab_index]}"
+          data-tab-active={#{data_active_state}}>
+        #{parse_layout(path.inner_elements, configurations, parsed_opts, resource_name, mode)}
+      </div>
+        )
   end
 
-  def parse_layout(%{tag: :section, state: :end}, _parsed_opts, mode)
-      when mode in [:form, :show] do
-    "</div>\n"
-  end
-
-  def parse_layout(%{tag: :index, state: :start, config: {:fields, fields}}, _parsed_opts, :index) do
-    fields
-    |> Enum.reject(&(&1.field_type in [:many_to_one_association, :one_to_many_association]))
-    |> Enum.map(fn field ->
-      %{label: field.label, field: field.field, field_type: field.field_type}
-    end)
-    |> :erlang.term_to_binary()
-  end
-
-  def parse_layout(%{tag: :index, state: :end}, _parsed_opts, :index) do
-    ""
-  end
+  def parse_layout(_elements, _configurations, _parsed_opts, _resource_name, _mode), do: ""
 
   # Renders individual fields
   # Skip disabled fields
-  @spec render_field(AuroraUix.Field.t(), map, atom) :: binary
-  defp render_field(%AuroraUix.Field{omitted: true}, _parsed_opts, _mode), do: ""
+  @spec render_field(AuroraUix.Field.t(), map, map, atom) :: binary
+  defp render_field(%AuroraUix.Field{omitted: true}, _configurations, _parsed_opts, _mode), do: ""
 
-  defp render_field(%AuroraUix.Field{} = field, parsed_opts, mode) do
+  defp render_field(%AuroraUix.Field{} = field, configurations, parsed_opts, mode) do
     case field.renderer do
       custom_renderer when is_function(custom_renderer, 1) -> custom_renderer.(field)
-      _ -> default_field_render(field, parsed_opts, mode)
+      _ -> default_field_render(field, configurations, parsed_opts, mode)
     end
   end
 
-  @spec default_field_render(AuroraUix.Field.t(), map, atom) :: binary
+  @spec default_field_render(AuroraUix.Field.t(), map, map, atom) :: binary
+
+  defp default_field_render(
+         %{field_type: :one_to_many_association, resource: nil} = _field,
+         _configurations,
+         _parsed_opts,
+         _mode
+       ) do
+    ""
+  end
 
   defp default_field_render(
          %{
            field_type: :one_to_many_association,
-           resource: %{fields: resource_fields, parsed_opts: related_parsed_opts}
+           resource: resource_name
          } = field,
+         configurations,
          parsed_opts,
          _mode
        ) do
+    resource_fields =
+      configurations
+      |> get_in([resource_name, :defaulted_paths, :index, :inner_elements])
+      |> Enum.filter(&(&1.tag == :field))
+      |> Enum.map(&get_field(&1, configurations, resource_name))
+
+    related_parsed_opts = get_in(configurations, [resource_name, :parsed_opts])
+
     fields_html =
       Enum.map_join(
         resource_fields,
@@ -279,21 +326,14 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   end
 
   defp default_field_render(
-         %{field_type: :one_to_many_association, resource: nil} = _field,
-         _parsed_opts,
-         _mode
-       ) do
-    ""
-  end
-
-  defp default_field_render(
          %{field_type: :many_to_one_association, resource: _resource} = field,
+         _configurations,
          _parsed_opts,
          _mode
        ),
        do: "<div>ASSOCIATION: many_to_one_association #{inspect(field.field)}</div>"
 
-  defp default_field_render(field, parsed_opts, mode) do
+  defp default_field_render(field, _configurations, parsed_opts, mode) do
     input_classes = ~s"block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500
       focus:ring-indigo-500 sm:text-sm"
 

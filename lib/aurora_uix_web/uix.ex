@@ -89,48 +89,13 @@ defmodule AuroraUixWeb.Uix do
   @doc false
   defmacro __using__(_opts) do
     quote do
+      Module.register_attribute(__MODULE__, :auix_resource_config, accumulate: true)
+
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
 
       import DataConfigUI,
         only: [auix_resource_config: 1, auix_resource_config: 2, auix_resource_config: 3]
-    end
-  end
-
-  @doc """
-  Extracts the `:do` block from the given options list.
-
-  This function checks if a block is provided. If no block is given (`block == nil`),
-  it extracts the `:do` key from the `opts` keyword list, returning the block and
-  the remaining options. If a block is provided, it simply returns the block and
-  the original options.
-
-  ## Parameters
-
-    - `opts` (`keyword`): A keyword list of options that may contain a `:do` key.
-    - `block` (`any`, optional): An explicit block value. Defaults to `nil`.
-
-  ## Returns
-
-    - `{block, remaining_opts}` (`tuple`): A tuple where the first element is
-      the extracted block (either from `opts` or the explicitly provided `block`),
-      and the second element is the remaining options.
-
-  ## Examples
-
-      iex> extract_block_options([do: :some_block, other: :value])
-      {:some_block, [other: :value]}
-
-      iex> extract_block_options([other: :value], :explicit_block)
-      {:explicit_block, [other: :value]}
-
-  """
-  @spec extract_block_options(keyword, any) :: tuple
-  def extract_block_options(opts, block \\ nil) do
-    if is_nil(block) do
-      Keyword.pop(opts, :do, :ok)
-    else
-      {block, opts}
     end
   end
 end

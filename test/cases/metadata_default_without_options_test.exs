@@ -10,7 +10,6 @@ defmodule AuroraUixTest.MetadataWithoutOptionsTest do
 
   test "Test default without options - no schema, no context" do
     resource_configs = resource_configs(DefaultWithoutOptions)
-
     assert is_nil(Map.get(resource_configs, :product_transaction))
     product = Map.get(resource_configs, :product)
 

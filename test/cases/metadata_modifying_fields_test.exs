@@ -33,4 +33,23 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
       status: %{data: [:in_stock, :discontinued, :online_only, :in_store_only]}
     )
   end
+
+  test "Check fields order" do
+    FieldValuesModified
+    |> resource_configs()
+    |> get_in([Access.key!(:product), Access.key!(:fields_order)])
+    |> assert_values_order([
+      :inactive,
+      :inserted_at,
+      :weight,
+      :length,
+      :width,
+      :height,
+      :data_virtual,
+      :status,
+      :id,
+      :reference,
+      :name
+    ])
+  end
 end

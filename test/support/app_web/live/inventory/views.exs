@@ -21,7 +21,7 @@ defmodule AuroraUixTestWeb.Inventory.Views do
     index_columns(:product, [:list_price])
 
     edit_layout :product, a: "a-test" do
-      stacked(name: [], reference: [], description: [])
+      stacked(name: [label: "P.Name"], reference: [], description: [])
 
       sections do
         section "Quantities", default: true do
