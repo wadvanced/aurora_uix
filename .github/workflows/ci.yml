@@ -70,8 +70,8 @@ jobs:
 
     - name: create db and migration
       run: |
-        mix test.task ecto.create
-        mix test.task ecto.migrate 
+        mix uix.test.task ecto.create
+        mix uix.test.task ecto.migrate 
     
     - name: Run tests
       run: mix test

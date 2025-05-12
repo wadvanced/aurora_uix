@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Test.Setup do
+defmodule Mix.Tasks.Uix.Test.Setup do
   @shortdoc """
   Sets up the test environment and starts Phoenix, Ecto, and ExUnit.
   """

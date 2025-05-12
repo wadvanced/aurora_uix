@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Test.Task do
+defmodule Mix.Tasks.Uix.Test.Task do
   @moduledoc """
   A utility task to run Mix tasks in the `test` environment.
 
@@ -8,19 +8,19 @@ defmodule Mix.Tasks.Test.Task do
   ## Examples
     * Create the test database
     ```shell
-    ~$ mix test.task ecto.create
+    ~$ mix uix.test.task ecto.create
     ```
     * Run migrations in the test environment
     ```shell
-    ~$ mix test.task ecto.migrate
+    ~$ mix uix.test.task ecto.migrate
     ```
     * Run a custom task in the test environment
     ```shell
-    ~$ mix test.task my_custom_task
+    ~$ mix uix.test.task my_custom_task
     ```
     * Run a task silently (suppress output)
     ```shell
-    ~$ mix test.task ecto.create silent
+    ~$ mix uix.test.task ecto.create silent
     ```
   """
 
@@ -44,7 +44,7 @@ defmodule Mix.Tasks.Test.Task do
 
     into = if silent == [], do: IO.stream(:stdio, :line), else: ""
 
-    mix_tasks = ["do", "test.setup,"] ++ task_args
+    mix_tasks = ["do", "uix.test.setup,"] ++ task_args
 
     running = Enum.join(task_args, " ")
     IO.puts("Running mix task `#{running}`")
