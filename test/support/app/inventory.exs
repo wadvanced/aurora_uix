@@ -5,7 +5,7 @@ defmodule AuroraUixTest.Inventory do
   The context.
   """
 
-  use AuroraUix.ResourceRegistration
+  use Aurora.Ctx
 
   alias AuroraUixTest.Inventory.{Product, ProductLocation, ProductTransaction}
   alias AuroraUixTest.Repo
@@ -43,7 +43,7 @@ defmodule AuroraUixTest.Inventory do
   @spec delete_product(Product.t()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def delete_product(%Product{} = product), do: Repo.delete(product)
 
-  auix_register_resource(Product)
-  auix_register_resource(ProductTransaction)
-  auix_register_resource(ProductLocation)
+  ctx_register_schema(Product)
+  ctx_register_schema(ProductTransaction)
+  ctx_register_schema(ProductLocation)
 end

@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Test.Assets.Install do
+defmodule Mix.Tasks.Uix.Test.Assets.Install do
   @shortdoc "Installs Tailwind and Esbuild in the test environment if missing."
 
   @moduledoc """
@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Test.Assets.Install do
 
   ## Usage
     ```shell
-    ~$ mix test.assets.install
+    ~$ mix uix.test.assets.install
     13:22:58.414 [debug] Downloading tailwind from https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.6/tailwindcss-macos-arm64
 
     13:23:04.998 [debug] Downloading esbuild from https://registry.npmjs.org/@esbuild/darwin-arm64/0.23.0
@@ -28,8 +28,8 @@ defmodule Mix.Tasks.Test.Assets.Install do
   """
   @spec run(list | nil) :: any
   def run(_args) do
-    Mix.Task.run("test.task", ["tailwind.install", "--if-missing", "silent"])
-    Mix.Task.reenable("test.task")
-    Mix.Task.run("test.task", ["esbuild.install", "--if-missing", "silent"])
+    Mix.Task.run("uix.test.task", ["tailwind.install", "--if-missing", "silent"])
+    Mix.Task.reenable("uix.test.task")
+    Mix.Task.run("uix.test.task", ["esbuild.install", "--if-missing", "silent"])
   end
 end

@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Test.Assets.Build do
+defmodule Mix.Tasks.Uix.Test.Assets.Build do
   @shortdoc "Builds Tailwind and Esbuild assets in the test environment."
 
   @moduledoc """
@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Test.Assets.Build do
 
   ## Usage
     ```shell
-    ~$ mix test.assets.build
+    ~$ mix uix.test.assets.build
     Rebuilding...
 
     Done in 120ms.
@@ -34,15 +34,22 @@ defmodule Mix.Tasks.Test.Assets.Build do
   """
   @spec run(list | nil) :: any
   def run(_args) do
-    Mix.Task.run("test.task", ["tailwind", "aurora_uix", "silent"])
+    Mix.Task.run("uix.test.task", ["tailwind", "aurora_uix", "silent"])
 
-    Mix.Task.reenable("test.task")
-    Mix.Task.run("test.task", ["esbuild", "aurora_uix", "silent"])
+    Mix.Task.reenable("uix.test.task")
+    Mix.Task.run("uix.test.task", ["esbuild", "aurora_uix", "silent"])
 
-    Mix.Task.reenable("test.task")
-    Mix.Task.run("test.task", ["phx.digest", "test/_priv/static", "silent"])
+    Mix.Task.reenable("uix.test.task")
+    Mix.Task.run("uix.test.task", ["phx.digest", "test/_priv/static", "silent"])
 
-    Mix.Task.reenable("test.task")
-    Mix.Task.run("test.task", ["phx.digest.clean", "-o", "test/_priv/static", "--all", "silent"])
+    Mix.Task.reenable("uix.test.task")
+
+    Mix.Task.run("uix.test.task", [
+      "phx.digest.clean",
+      "-o",
+      "test/_priv/static",
+      "--all",
+      "silent"
+    ])
   end
 end

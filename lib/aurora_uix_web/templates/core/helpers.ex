@@ -68,7 +68,7 @@ defmodule AuroraUixWeb.Templates.Core.Helpers do
 
           parsed_opts
           |> Map.get(:index_row_click, "#")
-          |> String.replace("[[entity]]", id)
+          |> String.replace("[[entity]]", to_string(id))
           |> then(&navigate/1)
         end
 
@@ -102,7 +102,7 @@ defmodule AuroraUixWeb.Templates.Core.Helpers do
   def index_show_entity_link(auix, entity) do
     auix
     |> Map.get(:index_show_entity_link, "#")
-    |> String.replace("[[entity]]", Map.get(entity, :id))
+    |> String.replace("[[entity]]", entity |> Map.get(:id) |> to_string())
     |> then(fn link -> URI.decode("/#{link}") end)
   end
 

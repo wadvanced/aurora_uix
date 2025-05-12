@@ -22,7 +22,8 @@ defmodule AuroraUix.MixProject do
         maintainers: ["Federico Alcántara"],
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
-        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib)
+        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib),
+        exclude_patterns: [~r"/-local-.*"]
       ],
 
       # Docs
@@ -53,20 +54,14 @@ defmodule AuroraUix.MixProject do
   # Mix deps.
   defp deps do
     [
+      {:aurora_ctx, "~> 0.1"},
       {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
       {:gettext, "~> 0.20"},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.1",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
       {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.5"},
       {:phoenix_html, "~> 4.2"},
-      {:phoenix_live_view, "~> 1.0", override: true},
+      {:phoenix_live_view, "~> 1.0"},
       {:postgrex, ">= 0.0.0"},
 
       ## Dev dependencies

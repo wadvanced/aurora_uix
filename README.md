@@ -68,19 +68,19 @@ Here’s how to set up your development and testing environment.
 ```
 3. Install Tailwind and esbuild assets:
 ```shell
-~$ mix test.assets.install
+~$ mix uix.test.assets.install
 ```
 4. Build Tailwind and esbuild assets:
 ```shell
-~$ mix test.assets.build
+~$ mix uix.test.assets.build
 ```
 5. Create the test database:
 ```shell
-~$ mix test.task ecto.create
+~$ mix uix.test.task ecto.create
 ```
 6. Run migrations:
 ```shell
-~$ mix test.task ecto.migrate
+~$ mix uix.test.task ecto.migrate
 ```
 7. **(Optional)** Override the default test configuration:<br>
 If you need to customize the test environment, 
