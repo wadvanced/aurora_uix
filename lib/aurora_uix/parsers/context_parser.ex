@@ -1,4 +1,4 @@
-defmodule AuroraUix.Parsers.ContextParser do
+defmodule Aurora.Uix.Parsers.ContextParser do
   @moduledoc """
   Provides parsing functionality for context-based resource configurations in Elixir applications.
 
@@ -29,7 +29,7 @@ defmodule AuroraUix.Parsers.ContextParser do
 
       parsed_opts = ContextParser.parse(%{}, resource_config)
   """
-  use AuroraUix.Parsers.ParserCore
+  use Aurora.Uix.Parsers.ParserCore
 
   @doc """
     Parse module and :index options.

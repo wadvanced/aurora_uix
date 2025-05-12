@@ -1,13 +1,13 @@
-defmodule AuroraUixWeb.Templates.Core.Markups.FormLayout do
+defmodule Aurora.Uix.Web.Templates.Core.Markups.FormLayout do
   @moduledoc """
   Provides functionality for generating form layout markup in HEEX templates.
   This module handles the parsing and generation of form containers with proper styling
   and structure according to the Aurora UI specifications.
   """
 
-  import AuroraUixWeb.Templates.Core, only: [parse_layout: 5]
+  import Aurora.Uix.Web.Templates.Core, only: [parse_layout: 5]
 
-  alias AuroraUixWeb.Template
+  alias Aurora.Uix.Web.Template
 
   @doc """
   Parses the form layout configuration and generates the corresponding HEEX markup.

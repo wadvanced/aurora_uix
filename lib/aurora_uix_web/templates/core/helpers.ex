@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.Helpers do
+defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   @moduledoc """
   Helper functions for LiveView components.
   """
@@ -6,7 +6,7 @@ defmodule AuroraUixWeb.Templates.Core.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
-  import AuroraUixWeb.Template, only: [safe_existing_atom: 1]
+  import Aurora.Uix.Web.Template, only: [safe_existing_atom: 1]
 
   alias Phoenix.LiveView.JS
 

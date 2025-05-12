@@ -1,10 +1,10 @@
-defmodule AuroraUixWeb.CoreComponents do
+defmodule Aurora.Uix.Web.CoreComponents do
   @moduledoc """
   This module provides core components for the Aurora Uix web application.
   It includes helper functions and macros for building UI components
   and templates using Phoenix LiveView.
   """
-  alias AuroraUixWeb.Template
+  alias Aurora.Uix.Web.Template
 
   @spec __using__(keyword) :: Macro.t()
   @doc """

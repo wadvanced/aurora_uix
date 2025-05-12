@@ -1,6 +1,6 @@
-defmodule AuroraUixWeb.Uix.Helper do
+defmodule Aurora.Uix.Web.Uix.Helper do
   @moduledoc """
-  Helper module for AuroraUix UI DSL that provides utilities for processing HEEX markup and managing component state.
+  Helper module for Aurora.Uix UI DSL that provides utilities for processing HEEX markup and managing component state.
 
   Core functionalities:
   - DSL block processing and normalization

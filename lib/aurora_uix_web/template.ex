@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Template do
+defmodule Aurora.Uix.Web.Template do
   @moduledoc """
   A core module for template generation and management in Aurora UIX, providing a standardized
   behavior and utility functions for creating dynamic UI templates.
@@ -81,7 +81,7 @@ defmodule AuroraUixWeb.Template do
   ```
   """
 
-  @uix_template Application.compile_env(:aurora_uix, :template, AuroraUixWeb.Templates.Core)
+  @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Core)
 
   @doc """
   Generates a HTML code fragment for the specified mode and options.
@@ -136,7 +136,7 @@ defmodule AuroraUixWeb.Template do
   ## Parameters
 
   - `path` (map): Contains the relevant information for a layout path.
-    See `AuroraUixWeb.Uix.LayoutConfigUI` for details on the path structure.
+    See `Aurora.Uix.Web.Uix.LayoutConfigUI` for details on the path structure.
   - `configurations` (map): contains the overall configuration for all resources.
   - `parsed_opts` (map): Additional parsing options
   - `resource_name` (atom): Name of the resource that is going to be processed.
@@ -167,7 +167,7 @@ defmodule AuroraUixWeb.Template do
     - `parsed_options` (map): Options to use.
 
   ## Examples
-    iex> AuroraUixWeb.Template.build_html(%{title: "Aurora UIX builder"},
+    iex> Aurora.Uix.Web.Template.build_html(%{title: "Aurora UIX builder"},
     ... ~S\"""
     ... This application: [[title]]
     ... \""")

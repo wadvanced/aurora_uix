@@ -1,6 +1,6 @@
-defmodule AuroraUix.Field do
+defmodule Aurora.Uix.Field do
   @moduledoc """
-  A module representing a configurable field in the AuroraUix system.
+  A module representing a configurable field in the Aurora.Uix system.
 
   This module defines a struct to represent field properties for UI components, such as:
     - `field` (`atom`) - The field reference in the schema.
@@ -67,7 +67,7 @@ defmodule AuroraUix.Field do
         }
 
   @doc """
-  Creates a new `%AuroraUix.Field{}` struct with the given attributes.
+  Creates a new `%Aurora.Uix.Field{}` struct with the given attributes.
 
     ## Parameters
 
@@ -76,8 +76,8 @@ defmodule AuroraUix.Field do
 
   ## Examples
 
-      iex> AuroraUix.Field.new(%{field: :age, field_type: :float, field_html_type: :float, precision: 10, scale: 2})
-      %AuroraUix.Field{
+      iex> Aurora.Uix.Field.new(%{field: :age, field_type: :float, field_html_type: :float, precision: 10, scale: 2})
+      %Aurora.Uix.Field{
         field: :age,
         field_type: :float,
         field_html_type: :float,
@@ -98,8 +98,8 @@ defmodule AuroraUix.Field do
       }
 
 
-      iex> AuroraUix.Field.new([field: :username, field_type: :binary, field_html_type: :text])
-      %AuroraUix.Field{
+      iex> Aurora.Uix.Field.new([field: :username, field_type: :binary, field_html_type: :text])
+      %Aurora.Uix.Field{
         field: :username,
         field_type: :binary,
         field_html_type: :text,
@@ -123,7 +123,7 @@ defmodule AuroraUix.Field do
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `%AuroraUix.Field{}` struct with new attributes.
+  Updates an existing `%Aurora.Uix.Field{}` struct with new attributes.
 
     ## Parameters
 
@@ -133,8 +133,8 @@ defmodule AuroraUix.Field do
 
     ## Examples
 
-        iex> field = AuroraUix.Field.new(%{field: :age})
-        %AuroraUix.Field{
+        iex> field = Aurora.Uix.Field.new(%{field: :age})
+        %Aurora.Uix.Field{
           field: :age,
           field_type: nil,
           field_html_type: nil,
@@ -153,8 +153,8 @@ defmodule AuroraUix.Field do
           disabled: false,
           omitted: false
         }
-        iex> AuroraUix.Field.change(field, %{field_html_type: :number, precision: 3})
-        %AuroraUix.Field{
+        iex> Aurora.Uix.Field.change(field, %{field_html_type: :number, precision: 3})
+        %Aurora.Uix.Field{
           field: :age,
           field_type: nil,
           field_html_type: :number,

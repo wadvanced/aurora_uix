@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
+defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
@@ -131,7 +131,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     index_module = module_name(modules, parsed_opts, ".Index")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
-    core_helpers = AuroraUixWeb.Templates.Core.Helpers
+    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
 
     quote do
       defmodule unquote(index_module) do
@@ -140,7 +140,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_view
 
         import unquote(core_helpers)
-        import AuroraUixWeb.Template, only: [compile_heex: 2]
+        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -227,8 +227,8 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     show_module = module_name(modules, parsed_opts, ".Show")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
-    components = AuroraUixWeb.Components.AuroraCoreComponents
-    core_helpers = AuroraUixWeb.Templates.Core.Helpers
+    components = Aurora.Uix.Web.Components.AuroraCoreComponents
+    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
 
     quote do
       defmodule unquote(show_module) do
@@ -237,7 +237,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_view
 
         import unquote(core_helpers)
-        import AuroraUixWeb.Template, only: [compile_heex: 2]
+        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -305,7 +305,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
     update_function = parsed_opts.update_function
     create_function = parsed_opts.create_function
     form_component = module_name(modules, parsed_opts, ".FormComponent")
-    core_helpers = AuroraUixWeb.Templates.Core.Helpers
+    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
 
     quote do
       defmodule unquote(form_component) do
@@ -314,7 +314,7 @@ defmodule AuroraUixWeb.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_component
 
         import unquote(core_helpers)
-        import AuroraUixWeb.Template, only: [compile_heex: 2]
+        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias unquote(modules.context)
 
