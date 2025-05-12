@@ -1,12 +1,12 @@
-defmodule AuroraUixWeb.Templates.Core.Markups.IndexLayout do
+defmodule Aurora.Uix.Web.Templates.Core.Markups.IndexLayout do
   @moduledoc """
   Provides functionality for generating index view layout markup in HEEX templates.
   This module handles the parsing and generation of list views with sorting, filtering,
   and action buttons according to the Aurora UI specifications.
   """
 
-  import AuroraUixWeb.Templates.Core, only: [get_field: 3]
-  alias AuroraUixWeb.Template
+  import Aurora.Uix.Web.Templates.Core, only: [get_field: 3]
+  alias Aurora.Uix.Web.Template
 
   @doc """
   Parses the index layout configuration and generates the corresponding HEEX markup
@@ -42,7 +42,7 @@ defmodule AuroraUixWeb.Templates.Core.Markups.IndexLayout do
       parsed_opts,
       ~S"""
         <.live_component
-          module={AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList}
+          module={Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList}
           id="[[source]]"
           title="Listing [[title]]"
           module_name="[[title]]"

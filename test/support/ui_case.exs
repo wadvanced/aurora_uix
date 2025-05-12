@@ -5,7 +5,7 @@ defmodule AuroraUixTest.UICase do
   Support for testing schema metadata behaviour.
   """
 
-  alias AuroraUix.Field
+  alias Aurora.Uix.Field
 
   @spec validate_schema(map, atom, map) :: boolean
   def validate_schema(resource_configs, schema, fields_checks) do

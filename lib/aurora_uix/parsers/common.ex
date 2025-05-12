@@ -1,4 +1,4 @@
-defmodule AuroraUix.Parsers.Common do
+defmodule Aurora.Uix.Parsers.Common do
   @moduledoc """
   Handles common parsing logic for extracting metadata from Ecto schema modules.
 
@@ -10,7 +10,7 @@ defmodule AuroraUix.Parsers.Common do
   Supports a wide range of configuration options for customizing UI generation.
   """
 
-  use AuroraUix.Parsers.ParserCore
+  use Aurora.Uix.Parsers.ParserCore
 
   @doc """
   Extracts schema metadata and merges common options.
@@ -34,8 +34,8 @@ defmodule AuroraUix.Parsers.Common do
       Uses the function __schema__/1 passing :source as the argument.
     - `sub_title` -  Subtitle for the view, a :hide value will disallow its generation.
     - `template` -  Overrides the module that handles the generation.
-      By default, uses AuroraUixWeb.AuroraTemplate, which is a sophisticated and highly opinionated template.
-      There is also the AuroraUixWeb.PhoenixTemplate, which resembles the phoenix ui.
+      By default, uses Aurora.Uix.Web.AuroraTemplate, which is a sophisticated and highly opinionated template.
+      There is also the Aurora.Uix.Web.PhoenixTemplate, which resembles the phoenix ui.
       The template can also be configured, application wide, by adding :aurora_uix, template: Module.
       New templates can be authored.
     - `title` -  Title for the UI. Uses the capitalized schema source as the title.
@@ -50,8 +50,8 @@ defmodule AuroraUix.Parsers.Common do
       Title: "Account receivables"
 
   ## Example
-    iex> alias AuroraUix.Parsers.Common
-    iex> defmodule AuroraUix.GeneralLedger.Account do
+    iex> alias Aurora.Uix.Parsers.Common
+    iex> defmodule Aurora.Uix.GeneralLedger.Account do
     ...>    use Ecto.Schema
     ...>    schema "accounts" do
     ...>      field :description, :string
@@ -59,13 +59,13 @@ defmodule AuroraUix.Parsers.Common do
     ...>      timestamps()
     ...>    end
     ...>  end
-    iex> parsed = Common.parse(%{}, %{schema: AuroraUix.GeneralLedger.Account}, [])
+    iex> parsed = Common.parse(%{}, %{schema: Aurora.Uix.GeneralLedger.Account}, [])
     iex> parsed.name == "Account" # Name is taken from last part of the schema module name
     true
     iex> parsed.title == "Accounts" # Uses the capitalized schema source as the title.
 
-    iex> alias AuroraUix.Parsers.Common
-    iex> defmodule AuroraUix.GeneralLedger.AccountReceivable do
+    iex> alias Aurora.Uix.Parsers.Common
+    iex> defmodule Aurora.Uix.GeneralLedger.AccountReceivable do
     ...>   use Ecto.Schema
     ...>   schema "account_receivables" do
     ...>     field :description, :string
@@ -73,7 +73,7 @@ defmodule AuroraUix.Parsers.Common do
     ...>     timestamps()
     ...>   end
     ...> end
-    iex> parsed = Common.parse(%{}, %{schema: AuroraUix.GeneralLedger.AccountReceivable}, [])
+    iex> parsed = Common.parse(%{}, %{schema: Aurora.Uix.GeneralLedger.AccountReceivable}, [])
     iex> parsed.title == "Account Receivables"  # Uses the capitalized schema source as the title
   """
   @spec parse(map, map, keyword) :: map

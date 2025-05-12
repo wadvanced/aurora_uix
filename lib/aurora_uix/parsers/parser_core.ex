@@ -1,6 +1,6 @@
-defmodule AuroraUix.Parsers.ParserCore do
+defmodule Aurora.Uix.Parsers.ParserCore do
   @moduledoc """
-  Provides a base implementation and macro for parser behaviors in the AuroraUix system.
+  Provides a base implementation and macro for parser behaviors in the Aurora.Uix system.
 
   This module defines common utilities and macros used across different parser modules,
   including:
@@ -15,7 +15,7 @@ defmodule AuroraUix.Parsers.ParserCore do
 
   defmacro __using__(_opts) do
     quote do
-      @behaviour AuroraUix.Parser
+      @behaviour Aurora.Uix.Parser
 
       @spec add_opt(map, map, keyword, atom) :: map
       defp add_opt(parsed_opts, resource_config, opts, key) do

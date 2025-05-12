@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.CreateUI do
+defmodule Aurora.Uix.Web.Uix.CreateUI do
   @moduledoc """
   Provides a comprehensive framework for dynamically generating UI layouts and views in Phoenix/Elixir applications.
 
@@ -15,7 +15,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Support custom layout definitions
 
   ## Compilation Workflow
-  1. Module uses `use AuroraUixWeb.Uix.CreateUI`
+  1. Module uses `use Aurora.Uix.Web.Uix.CreateUI`
   2. Configurations are collected via module attributes
   3. `__before_compile__/1` macro triggers UI generation
   4. Modules are dynamically created based on configurations
@@ -23,7 +23,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   ## Examples
   ```elixir
     defmodule MyApp.ProductViews do
-      use AuroraUixWeb.Uix.CreateUI
+      use Aurora.Uix.Web.Uix.CreateUI
       auix_create_ui for: :product do
         index_columns :product, [:name, :price]
         edit_layout :product do
@@ -39,19 +39,19 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   - Supports complex, nested layouts
   """
 
-  import AuroraUixWeb.Uix.Helper
+  import Aurora.Uix.Web.Uix.Helper
 
-  alias AuroraUix.Parser
-  alias AuroraUixWeb.Template
-  alias AuroraUixWeb.Uix.CreateUI
-  alias AuroraUixWeb.Uix.LayoutConfigUI
+  alias Aurora.Uix.Parser
+  alias Aurora.Uix.Web.Template
+  alias Aurora.Uix.Web.Uix.CreateUI
+  alias Aurora.Uix.Web.Uix.LayoutConfigUI
 
   defmacro __using__(_opts) do
     quote do
-      import AuroraUixWeb.Uix.CreateUI
-      use AuroraUixWeb.Uix.LayoutConfigUI
+      import Aurora.Uix.Web.Uix.CreateUI
+      use Aurora.Uix.Web.Uix.LayoutConfigUI
 
-      @before_compile AuroraUixWeb.Uix.CreateUI
+      @before_compile Aurora.Uix.Web.Uix.CreateUI
     end
   end
 
@@ -223,7 +223,7 @@ defmodule AuroraUixWeb.Uix.CreateUI do
   # Returns a map with the following format:
   #  %{
   #    resource_config_name: resource_config_name, Name of the resource, being configured.
-  #    resource_config: resource_config, # Instance of AuroraUix.ResourceConfigUI struct.
+  #    resource_config: resource_config, # Instance of Aurora.Uix.ResourceConfigUI struct.
   #    layouts: layouts, # List of layouts map TODO: should be provided by the template
   #    parsed_opts: parsed_opts, # Parsed options for the layout.
   #    defaulted_paths: defaulted_paths, # Paths making up the UI.

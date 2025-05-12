@@ -1,5 +1,5 @@
 defmodule AuroraUixTest.Uix.ParsersDocTest do
   use ExUnit.Case, async: true
 
-  doctest AuroraUix.Parsers.Common
+  doctest Aurora.Uix.Parsers.Common
 end

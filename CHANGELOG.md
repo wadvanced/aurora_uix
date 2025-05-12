@@ -24,7 +24,7 @@ Compatible with Phoenix LiveView v1.0+
   - `sections/3` - Group content in tab-like structures
 
 * UI Generation
-  - Compile-time UI generation through `use AuroraUixWeb.Uix.CreateUI`
+  - Compile-time UI generation through `use Aurora.Uix.Web.Uix.CreateUI`
   - Dynamic template generation with HEEx support
   - Integrated i18n support via configurable Gettext backend
 

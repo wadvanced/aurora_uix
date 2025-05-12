@@ -1,4 +1,4 @@
-defmodule AuroraUix.MixProject do
+defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"

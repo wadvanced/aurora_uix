@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.LayoutParser do
+defmodule Aurora.Uix.Web.Templates.Core.LayoutParser do
   @moduledoc """
   Advanced layout parsing and rendering system for dynamic UI template generation.
 
@@ -44,8 +44,8 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
   - Consistent UI generation
   - Extensible field handling
   """
-  import AuroraUixWeb.Templates.Core, only: [get_field: 3]
-  alias AuroraUixWeb.Templates.Core.Markups
+  import Aurora.Uix.Web.Templates.Core, only: [get_field: 3]
+  alias Aurora.Uix.Web.Templates.Core.Markups
 
   @doc """
   Parses layout configurations and generates corresponding HTML structure.
@@ -247,17 +247,18 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
 
   # Renders individual fields
   # Skip disabled fields
-  @spec render_field(AuroraUix.Field.t(), map, map, atom) :: binary
-  defp render_field(%AuroraUix.Field{omitted: true}, _configurations, _parsed_opts, _mode), do: ""
+  @spec render_field(Aurora.Uix.Field.t(), map, map, atom) :: binary
+  defp render_field(%Aurora.Uix.Field{omitted: true}, _configurations, _parsed_opts, _mode),
+    do: ""
 
-  defp render_field(%AuroraUix.Field{} = field, configurations, parsed_opts, mode) do
+  defp render_field(%Aurora.Uix.Field{} = field, configurations, parsed_opts, mode) do
     case field.renderer do
       custom_renderer when is_function(custom_renderer, 1) -> custom_renderer.(field)
       _ -> default_field_render(field, configurations, parsed_opts, mode)
     end
   end
 
-  @spec default_field_render(AuroraUix.Field.t(), map, map, atom) :: binary
+  @spec default_field_render(Aurora.Uix.Field.t(), map, map, atom) :: binary
 
   defp default_field_render(
          %{field_type: :one_to_many_association, resource: nil} = _field,
@@ -297,7 +298,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
 
     ~s"""
       <.live_component
-        module={AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList}
+        module={Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList}
         id="auix-#{parsed_opts.name}__#{field.field}"
         title="#{related_parsed_opts.title} Elements"
         module_name="#{related_parsed_opts.title}"
@@ -347,7 +348,7 @@ defmodule AuroraUixWeb.Templates.Core.LayoutParser do
     do_default_field_render(field, opts, parsed_opts, mode)
   end
 
-  @spec do_default_field_render(AuroraUix.Field.t(), map, map, atom) :: binary
+  @spec do_default_field_render(Aurora.Uix.Field.t(), map, map, atom) :: binary
   defp do_default_field_render(%{hidden: true} = field, opts, _parsed_opts, :form = mode),
     do:
       ~s(<input type="hidden" id="#{opts.id}-#{mode}" name={@form[:#{field.field}].name} value={@form[:#{field.field}].value}  />)

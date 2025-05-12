@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Gettext do
+defmodule Aurora.Uix.Web.Gettext do
   @moduledoc """
   Provides dynamic gettext functionality where the backend is determined by an environment variable.
   """
@@ -8,18 +8,18 @@ defmodule AuroraUixWeb.Gettext do
 
   ## Options
 
-    * `:backend` - The Gettext backend module to use. Defaults to AuroraUixWeb.GettextBackend
+    * `:backend` - The Gettext backend module to use. Defaults to Aurora.Uix.Web.GettextBackend
 
   ## Examples
 
       # Basic usage with default backend
       defmodule MyApp.Gettext do
-        use AuroraUixWeb.Gettext
+        use Aurora.Uix.Web.Gettext
       end
 
       # With custom backend
       defmodule MyApp.Gettext do
-        use AuroraUixWeb.Gettext, backend: MyCustomBackend
+        use Aurora.Uix.Web.Gettext, backend: MyCustomBackend
       end
 
       # Usage in runtime
@@ -31,7 +31,7 @@ defmodule AuroraUixWeb.Gettext do
   """
   @spec __using__(keyword) :: Macro.t()
   defmacro __using__(opts) do
-    default_backend = opts[:backend] || AuroraUixWeb.GettextBackend
+    default_backend = opts[:backend] || Aurora.Uix.Web.GettextBackend
 
     backend_module =
       Application.get_env(:aurora_uix, :gettext_backend, default_backend)

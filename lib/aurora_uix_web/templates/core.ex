@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core do
+defmodule Aurora.Uix.Web.Templates.Core do
   @moduledoc """
   A centralized module for coordinating template generation processes in Aurora UIX,
   serving as the primary entry point for template-related functionality.
@@ -10,7 +10,7 @@ defmodule AuroraUixWeb.Templates.Core do
   - `MarkupGenerator`: Creates HEEx template fragments
 
   ## Responsibilities
-  - Implement the `AuroraUixWeb.Template` behavior
+  - Implement the `Aurora.Uix.Web.Template` behavior
   - Coordinate between different template generation components
   - Provide a unified interface for template creation
 
@@ -28,17 +28,17 @@ defmodule AuroraUixWeb.Templates.Core do
   ## Usage Example
   ```elixir
   # Automatic delegation happens through the Template behavior
-  AuroraUixWeb.Templates.Core.generate_view(:index, %{fields: [:name, :email]})
+  Aurora.Uix.Web.Templates.Core.generate_view(:index, %{fields: [:name, :email]})
   ```
   The module ensures a clean separation of concerns while providing a streamlined
   template generation process for different UI components.
   """
-  @behaviour AuroraUixWeb.Template
+  @behaviour Aurora.Uix.Web.Template
 
-  alias AuroraUix.Field
-  alias AuroraUixWeb.Templates.Core.LayoutParser
-  alias AuroraUixWeb.Templates.Core.LogicModulesGenerator
-  alias AuroraUixWeb.Templates.Core.MarkupGenerator
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Web.Templates.Core.LayoutParser
+  alias Aurora.Uix.Web.Templates.Core.LogicModulesGenerator
+  alias Aurora.Uix.Web.Templates.Core.MarkupGenerator
 
   @doc """
   Parses the layout configuration for template generation.
@@ -96,7 +96,7 @@ defmodule AuroraUixWeb.Templates.Core do
   """
   @spec default_core_components() :: module
   def default_core_components do
-    AuroraUixWeb.Templates.Core.CoreComponents
+    Aurora.Uix.Web.Templates.Core.CoreComponents
   end
 
   @doc """

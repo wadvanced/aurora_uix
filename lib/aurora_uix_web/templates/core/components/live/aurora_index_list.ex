@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList do
+defmodule Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList do
   @moduledoc """
   A specialized index list LiveComponent for displaying tabular data.
 
@@ -23,7 +23,7 @@ defmodule AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList do
   """
 
   use Phoenix.LiveComponent
-  use AuroraUixWeb.CoreComponents
+  use Aurora.Uix.Web.CoreComponents
 
   @impl true
   def update(assigns, socket) do

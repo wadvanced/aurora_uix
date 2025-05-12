@@ -62,7 +62,7 @@ defmodule AuroraUixTestWeb do
     quote do
       Module.register_attribute(__MODULE__, :auix_resource_config, persist: true)
 
-      use AuroraUixWeb.Uix
+      use Aurora.Uix.Web.Uix
     end
   end
 
@@ -97,8 +97,8 @@ defmodule AuroraUixTestWeb do
   @spec html_helpers() :: Macro.t()
   defp html_helpers do
     quote do
-      use AuroraUixWeb.Gettext
-      use AuroraUixWeb.CoreComponents
+      use Aurora.Uix.Web.Gettext
+      use Aurora.Uix.Web.CoreComponents
 
       # HTML escaping functionality
       import Phoenix.HTML

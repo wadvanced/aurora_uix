@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.CoreComponents do
+defmodule Aurora.Uix.Web.Templates.Core.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -14,7 +14,7 @@ defmodule AuroraUixWeb.Templates.Core.CoreComponents do
 
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
-  use AuroraUixWeb.Gettext
+  use Aurora.Uix.Web.Gettext
   use Phoenix.Component
 
   alias Phoenix.HTML.Form

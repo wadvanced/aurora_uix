@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Uix.LayoutConfigUI do
+defmodule Aurora.Uix.Web.Uix.LayoutConfigUI do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
@@ -206,12 +206,12 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
 
   """
 
-  import AuroraUixWeb.Uix.Helper
+  import Aurora.Uix.Web.Uix.Helper
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import AuroraUixWeb.Uix.LayoutConfigUI
+      import Aurora.Uix.Web.Uix.LayoutConfigUI
     end
   end
 
@@ -420,7 +420,7 @@ defmodule AuroraUixWeb.Uix.LayoutConfigUI do
 
   ## Example
 
-    iex> AuroraUixWeb.Uix.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
+    iex> Aurora.Uix.Web.Uix.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
     [
       %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
       %{tag: :index, state: :end}

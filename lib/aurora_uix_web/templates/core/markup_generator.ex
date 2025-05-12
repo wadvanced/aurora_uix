@@ -1,4 +1,4 @@
-defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
+defmodule Aurora.Uix.Web.Templates.Core.MarkupGenerator do
   @moduledoc """
   Responsible for generating standardized HEEx template fragments for different UI component types.
 
@@ -33,13 +33,13 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   ## Examples
 
   ```elixir
-  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:index, %{})
+  iex> Aurora.Uix.Web.Templates.Core.MarkupGenerator.generate_view(:index, %{})
   # => "<h1>Base Template</h1>list"
 
-  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:index, %{})
+  iex> Aurora.Uix.Web.Templates.Core.MarkupGenerator.generate_view(:index, %{})
   # => "<h1>Base Template</h1>card"
 
-  iex> AuroraUixWeb.Templates.Core.MarkupGenerator.generate_view(:form, %{})
+  iex> Aurora.Uix.Web.Templates.Core.MarkupGenerator.generate_view(:form, %{})
   # => "<h1>Base Template</h1>form"
   ```
 
@@ -47,7 +47,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
   with minimal manual intervention.
   """
 
-  alias AuroraUixWeb.Template
+  alias Aurora.Uix.Web.Template
 
   @doc """
   Generates a HEEx template fragment for the specified UI component type.
@@ -81,7 +81,7 @@ defmodule AuroraUixWeb.Templates.Core.MarkupGenerator do
       parsed_opts,
       ~S"""
         <.live_component
-          module={AuroraUixWeb.Templates.Core.Components.Live.AuroraIndexList}
+          module={Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList}
           id="[[source]]"
           title="Listing [[title]]"
           module_name="[[title]]"
