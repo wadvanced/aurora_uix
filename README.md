@@ -1,4 +1,10 @@
-# aurora-uix
+<p align="center">
+  <picture>
+    <img src="./guides/images/aurora_uix-logo.svg" height="200" />
+  </picture>
+</p>
+
+# Aurora UIX
 A low code UI for the elixir's Phoenix Framework.
 
 ---

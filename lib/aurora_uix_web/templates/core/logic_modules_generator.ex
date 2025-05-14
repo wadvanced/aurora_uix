@@ -145,12 +145,22 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
+        alias Aurora.Uix.Web.Templates.Core.Components.Parser
 
         @impl true
         def render(assigns) do
           # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
-          var!(assigns) = assigns
-          compile_heex(unquote(type), unquote(parsed_opts))
+          var!(assigns) =
+            assigns
+            |> var!()
+            |> Map.get(:_auix, %{})
+            # Inject the parsed_opts into assigns for template use
+            |> then(&Map.merge(unquote(Macro.escape(parsed_opts)), &1))
+            |> then(&(assigns |> var!() |> Map.put(:_auix, &1)))
+
+          ~H"""
+          <Parser.index path={@_auix}></Parser.index>
+          """
         end
 
         @impl true
