@@ -316,11 +316,12 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
       layouts,
       [],
       &[
-        template.generate_module(
+        generate_module(
           modules,
           Map.get(defaulted_paths, &1, %{}),
           configurations,
-          parsed_opts
+          parsed_opts,
+          template
         )
         | &2
       ]
@@ -335,6 +336,15 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
     |> Map.get(tag, %{name: nil})
     |> then(&template.parse_layout(&1, configurations, parsed_opts, &1.name, tag))
     |> then(&{tag, &1})
+  end
+
+  @spec generate_module(map, map, map, map, module) :: Macro.t()
+  defp generate_module(modules, path, configurations, parsed_opts, template) do
+    parsed_opts
+    |> Map.put(:_configurations, configurations)
+    |> Map.put(:_path, path)
+    |> Map.put(:_resource_name, path.name)
+    |> then(&template.generate_module(modules, &1))
   end
 
   @spec locate_layout_paths(atom, list, atom) :: tuple

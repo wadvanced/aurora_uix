@@ -69,6 +69,17 @@ defmodule Aurora.Uix.Web.Templates.Core.Components.Renderer do
     """
   end
 
+  def render(
+        %{
+          _auix: %{
+            _path: %{tag: :show} = path,
+            _configurations: configurations,
+            _resource_name: resource_name
+          }
+        } = assigns
+      ) do
+  end
+
   def render(assigns) do
     ~H"""
     """

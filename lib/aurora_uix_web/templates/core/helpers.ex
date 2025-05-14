@@ -39,11 +39,12 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   ## Parameters
     * `socket` - The LiveView socket.
     * `params` - A map that may contain a "source" key.
-    * `default_source` - The default source value to use when no source is provided.
   """
-  @spec assign_source(Phoenix.LiveView.Socket.t(), map, binary) ::
+  @spec assign_source(Phoenix.LiveView.Socket.t(), map) ::
           Phoenix.LiveView.Socket.t()
-  def assign_source(socket, params, default_source) do
+  def assign_source(%{assigns: assigns} = socket, params) do
+    default_source = get_in(assigns, [:_auix, :source]) || ""
+
     params
     |> Map.get("source")
     |> __maybe_set_different_source_and_link__(socket, default_source)
@@ -55,11 +56,12 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   ## Parameters
     * `socket` - The LiveView socket.
     * `_params` - Unused parameters map.
-    * `parsed_opts` - Options map containing :disable_index_row_click and :index_row_click settings.
   """
-  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map, map) ::
+  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map) ::
           Phoenix.LiveView.Socket.t()
-  def assign_index_row_click(socket, _params, parsed_opts) do
+  def assign_index_row_click(%{assigns: assigns} = socket, _params) do
+    parsed_opts = Map.get(assigns, :_auix, %{})
+
     index_row_click =
       if parsed_opts[:disable_index_row_click],
         do: nil,
@@ -73,6 +75,13 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
         end
 
     assign_auix(socket, :index_row_click, index_row_click)
+  end
+
+  def assign_parsed_opts(socket, parsed_opts) do
+    socket.assigns
+    |> Map.get(:_auix, %{})
+    |> then(&Map.merge(parsed_opts, &1))
+    |> then(&assign(socket, :_auix, &1))
   end
 
   @doc """

@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Web.Templates.Core do
 
   ### Key Delegations
   - `parse_layout/3`: Delegates to `LayoutParser` for layout structure parsing
-  - `generate_module/4`: Delegates to `LogicModulesGenerator` for module creation
+  - `generate_module/2`: Delegates to `LogicModulesGenerator` for module creation
   - `generate_view/2`: Delegates to `MarkupGenerator` for template generation
 
   ## Usage Example
@@ -72,8 +72,8 @@ defmodule Aurora.Uix.Web.Templates.Core do
 
     - `Macro.t()` - The generated module as a macro
   """
-  @spec generate_module([{atom, module}] | map, map, map, map) :: Macro.t()
-  defdelegate generate_module(modules, layout, configurations, parsed_opts \\ %{}),
+  @spec generate_module([{atom, module}] | map, map) :: Macro.t()
+  defdelegate generate_module(modules, parsed_opts \\ %{}),
     to: LogicModulesGenerator
 
   @doc """
