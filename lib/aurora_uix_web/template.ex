@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Web.Template do
   ## Template Behaviour Requirements
   Templates must implement the following key callbacks:
   - `generate_view/3`: Generate HTML code fragments
-  - `generate_module/3`: Generate handling code for UI components
+  - `generate_module/4`: Generate handling code for UI components
   - `parse_layout/3`: Create layout HTML code
 
   ## Flow of Template Processing
@@ -120,10 +120,15 @@ defmodule Aurora.Uix.Web.Template do
       web: web, # The main web module. For example MyAppWeb.
       context: context # The module with the backend functions for creating, reading, updating and deleting elements of the struct.
     }
-  - `mode` (atom): Specifies the type of UI component to generate.
+  - `layout` (map): Specifies the type of UI component to generate.
   - `parsed_opts` (map): A map with the customized value for generating the handling code.
   """
-  @callback generate_module(modules :: map, mode :: atom, parsed_opts :: map) :: Macro.t()
+  @callback generate_module(
+              modules :: map,
+              layout :: map,
+              configurations :: map,
+              parsed_opts :: map
+            ) :: Macro.t()
 
   @doc """
   Creates the layout HTML code.
@@ -273,7 +278,7 @@ defmodule Aurora.Uix.Web.Template do
     Code.ensure_compiled!(module)
 
     functions_not_exported =
-      functions_not_exported(module, generate_view: 2, generate_module: 3, parse_layout: 5)
+      functions_not_exported(module, generate_view: 2, generate_module: 4, parse_layout: 5)
 
     message =
       case {behaviour_implemented?(module), functions_not_exported} do

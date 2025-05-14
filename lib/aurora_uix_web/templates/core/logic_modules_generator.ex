@@ -53,7 +53,18 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
       module: MyApp.User,
       web: MyAppWeb
     },
-    :index,
+    %{
+      name: :product,
+      tag: :index,
+      config: [],
+      opts: [],
+      inner_elements: [
+        %{name: :reference, tag: :field, opts: [], inner_elements: []},
+        %{name: :name, tag: :field, opts: [], inner_elements: []},
+        %{name: :description, tag: :field, opts: [], inner_elements: []},
+      ]
+    },
+    %{}, # configurations
     %{source: "users", module: "User"}
     )
   ```
@@ -99,7 +110,18 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
   ```elixir
     generate_module(
       %{caller: UserWeb, context: Users, module: User, web: Web},
-      :index,
+      %{
+        name: :product,
+        tag: :index,
+        config: [],
+        opts: [],
+        inner_elements: [
+          %{name: :reference, tag: :field, opts: [], inner_elements: []},
+          %{name: :name, tag: :field, opts: [], inner_elements: []},
+          %{name: :description, tag: :field, opts: [], inner_elements: []},
+        ]
+      },
+      %{}, # configurations
       %{source: "users", title: "User Management"}
     )
   ```
@@ -119,8 +141,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
   The generated module provides standard LiveView functionality, including dynamic assignment
   of page titles, CRUD operations, and section navigation for multi-part forms or detail views.
   """
-  @spec generate_module(map, atom, map) :: Macro.t()
-  def generate_module(modules, :index = type, parsed_opts) do
+  @spec generate_module(map, map, map, map) :: Macro.t()
+  def generate_module(modules, %{tag: :index = _type} = path, configurations, parsed_opts) do
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
@@ -145,23 +167,17 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
-        alias Aurora.Uix.Web.Templates.Core.Components.Parser
 
-        @impl true
-        def render(assigns) do
-          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
-          var!(assigns) =
-            assigns
-            |> var!()
-            |> Map.get(:_auix, %{})
-            # Inject the parsed_opts into assigns for template use
-            |> then(&Map.merge(unquote(Macro.escape(parsed_opts)), &1))
-            |> then(&(assigns |> var!() |> Map.put(:_auix, &1)))
+        alias Aurora.Uix.Web.Templates.Core.Components.Renderer
 
-          ~H"""
-          <Parser.index path={@_auix}></Parser.index>
-          """
-        end
+        # @impl true
+        # def render(assigns) do
+        #   # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
+        #   var!(assigns) = assigns
+        #   ~H"""
+        #   <Parser.index path={@_auix}></Parser.index>
+        #   """
+        # end
 
         @impl true
         def mount(_params, _session, socket) do
@@ -178,6 +194,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
           {:noreply,
            socket
            |> assign_index_row_click(params, unquote(Macro.escape(parsed_opts)))
+           |> update_auix()
+           |> render_with(&Renderer.render/1)
            |> apply_action(socket.assigns.live_action, params)}
         end
 
@@ -228,11 +246,22 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
           |> assign(:page_title, "Listing #{unquote(parsed_opts.title)}")
           |> assign(:auix_entity, nil)
         end
+
+        defp update_auix(%{assigns: assigns} = socket) do
+          assigns
+          |> Map.get(:_auix, %{})
+          |> then(&Map.merge(unquote(Macro.escape(parsed_opts)), &1))
+          |> Map.put_new(:_path, unquote(Macro.escape(path)))
+          |> Map.put_new(:_configurations, unquote(Macro.escape(configurations)))
+          |> Map.put_new(:_resource_name, unquote(path.name))
+          |> Map.put_new(:_form_component, unquote(form_component))
+          |> then(&assign(socket, :_auix, &1))
+        end
       end
     end
   end
 
-  def generate_module(modules, :show = type, parsed_opts) do
+  def generate_module(modules, %{tag: :show = type}, _configurations, parsed_opts) do
     get_function = parsed_opts.get_function
     show_module = module_name(modules, parsed_opts, ".Show")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
@@ -308,7 +337,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     end
   end
 
-  def generate_module(modules, :form = type, parsed_opts) do
+  def generate_module(modules, %{tag: :form}, _configurations, parsed_opts) do
+    type = :form
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     change_function = parsed_opts.change_function
@@ -412,7 +442,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     end
   end
 
-  def generate_module(_modules, type, _parsed_opts) do
+  def generate_module(_modules, %{tag: type}, _configurations, _parsed_opts) do
     Logger.error("The logic for `#{inspect(type)} is not implemented.")
 
     quote do

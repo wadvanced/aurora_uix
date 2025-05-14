@@ -6,15 +6,16 @@ defmodule Aurora.Uix.Web.CoreComponents do
   """
   alias Aurora.Uix.Web.Template
 
-  @spec __using__(keyword) :: Macro.t()
   @doc """
   When used, dispatch to the appropriate component or helper functions.
   """
+  @spec __using__(keyword) :: Macro.t()
   defmacro __using__(opts) do
     template = Template.uix_template()
     core_components = opts[:core_components] || template.default_core_components()
 
     quote do
+      import Phoenix.Component
       import unquote(core_components)
     end
   end
