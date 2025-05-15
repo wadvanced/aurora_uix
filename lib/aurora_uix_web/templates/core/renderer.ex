@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
       <.flash kind={:error} flash={@flash} title="Error!" />
 
       <.simple_form
-        for={@form}
+        for={@_auix._form}
         id={"auix-#{@_auix.module}-form"}
         phx-target={@myself}
         phx-change="validate"
@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
     ~H"""
     <div id={@_auix._path.config[:group_id]} class="p-3 border rounded-md bg-gray-100">
       <h3 class="font-semibold text-lg"><%= @_auix._path.config[:title] %></h3>
-      <%= render_inner_elements(%{_auix: @_auix, auix_entity: @auix_entity}) %>
+      <.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
     </div>
     """
   end

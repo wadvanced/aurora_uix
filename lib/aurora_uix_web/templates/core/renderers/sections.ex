@@ -6,7 +6,6 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
 
   use Aurora.Uix.Web.CoreComponents
   alias Aurora.Uix.Web.Templates.Core.Renderer
-  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a tabbed section container with dynamic tabs and content.
@@ -18,8 +17,12 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
     - Phoenix.LiveView.Rendered.t()
   """
   def render(assigns) do
-    active_classes = "auix-tab-button active px-4 py-2 text-sm font-semibold transition-all duration-200 text-zinc-800 bg-zinc-100 border-b-2 border-transparent rounded-t-md"
-    inactive_classes = "auix-tab-button px-4 py-2 text-sm font-medium transition-all duration-200 text-zinc-400 bg-zinc-50 hover:bg-zinc-200 border-b-2 border-transparent rounded-t-md"
+    active_classes =
+      "auix-tab-button active px-4 py-2 text-sm font-semibold transition-all duration-200 text-zinc-800 bg-zinc-100 border-b-2 border-transparent rounded-t-md"
+
+    inactive_classes =
+      "auix-tab-button px-4 py-2 text-sm font-medium transition-all duration-200 text-zinc-400 bg-zinc-50 hover:bg-zinc-200 border-b-2 border-transparent rounded-t-md"
+
     unique_id = :erlang.unique_integer([:positive])
 
     assigns = assign(assigns, :active_classes, active_classes)
@@ -27,16 +30,16 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
     assigns = assign(assigns, :unique_id, unique_id)
 
     ~H"""
-    <div id={"sections-#{@unique_id}-#{@_auix.mode}"} class="" data-sections-index={@path.config[:index]}>
+    <div id={"sections-#{@unique_id}-#{@_auix._mode}"} class="" data-sections-index={@_auix._path.config[:index]}>
       <div class="auix-button-tabs-container mt-2 flex flex-col sm:flex-row">
-        <%= for tab <- @path.config[:tabs] do %>
+        <%= for tab <- @_auix._path.config[:tabs] do %>
           <button type="button"
-            class={"tab-button " <> if @_auix_sections[tab.sections_id] == tab.tab_id or (@_auix_sections[tab.sections_id] == nil and tab.active), do: @active_classes, else: @inactive_classes}
+            class={"tab-button " <> if @_auix._sections[tab.sections_id] == tab.tab_id or (@_auix._sections[tab.sections_id] == nil and tab.active), do: @active_classes, else: @inactive_classes}
             data-button-sections-index={tab.sections_index}
             data-button-tab-index={tab.tab_index}
             phx-click="switch_section"
             phx-value-tab-id={Jason.encode!(%{sections_id: tab.sections_id, tab_id: tab.tab_id})}
-            {if @_auix.mode == :form, do: %{"phx-target": "{@myself}"}, else: %{}}>
+            {if @_auix._mode == :form, do: %{"phx-target": "{@myself}"}, else: %{}}>
             <%= tab.label %>
           </button>
         <% end %>
@@ -57,14 +60,14 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
   def section(assigns) do
     ~H"""
     <div
-      class={"auix-section-tab " <> if @_auix_sections[@path.config.sections_id] == @path.config.tab_id or (@_auix_sections[@path.config.sections_id] == nil and @path.config.active), do: "", else: "hidden"}
-      id={@path.config.tab_id}
-      data-tab-label={@path.config.label}
-      data-tab-sections-id={@path.config.sections_id}
-      data-tab-parent-id={@path.config.tab_parent_id}
-      data-tab-sections-index={@path.config.sections_index}
-      data-tab-index={@path.config.tab_index}
-      data-tab-active={if @_auix_sections[@path.config.sections_id] == @path.config.tab_id or (@_auix_sections[@path.config.sections_id] == nil and @path.config.active), do: "active", else: "inactive"}>
+      class={"auix-section-tab " <> if @_auix._sections[@_auix._path.config[:sections_id]] == @_auix._path.config[:tab_id] or (@_auix._sections[@_auix._path.config[:sections_id]] == nil and @_auix._path.config[:active]), do: "", else: "hidden"}
+      id={@_auix._path.config[:tab_id]}
+      data-tab-label={@_auix._path.config[:label]}
+      data-tab-sections-id={@_auix._path.config[:sections_id]}
+      data-tab-parent-id={@_auix._path.config[:tab_parent_id]}
+      data-tab-sections-index={@_auix._path.config[:sections_index]}
+      data-tab-index={@_auix._path.config[:tab_index]}
+      data-tab-active={if @_auix._sections[@_auix._path.config[:sections_id]] == @_auix._path.config[:tab_id] or (@_auix._sections[@_auix._path.config[:sections_id]] == nil and @_auix._path.config[:active]), do: "active", else: "inactive"}>
       <Renderer.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
     </div>
     """

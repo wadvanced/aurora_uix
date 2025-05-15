@@ -140,7 +140,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
   of page titles, CRUD operations, and section navigation for multi-part forms or detail views.
   """
   @spec generate_module(map, map) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :index = _type}} = parsed_opts) do
+  def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
@@ -162,11 +162,10 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         import unquote(core_helpers)
         import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
+        alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
-
-        alias Aurora.Uix.Web.Templates.Core.Renderer
 
         @impl true
         def mount(_params, _session, socket) do
@@ -240,7 +239,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     end
   end
 
-  def generate_module(modules, %{_path: %{tag: :show = type}} = parsed_opts) do
+  def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
     get_function = parsed_opts.get_function
     show_module = module_name(modules, parsed_opts, ".Show")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
@@ -257,11 +256,11 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         import unquote(core_helpers)
         import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
+        alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
         alias unquote(components)
-        alias Aurora.Uix.Web.Templates.Core.Renderer
 
         @impl true
         def mount(_params, _session, socket) do
@@ -277,8 +276,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
              page_title(socket.assigns.live_action, unquote(parsed_opts.name))
            )
            |> assign(:subtitle, " Detail")
-           |> assign_new(:_auix_sections, fn -> %{} end)
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+           |> assign_auix_new(:_sections, %{})
            |> assign_source(params)
            |> assign(
              :auix_entity,
@@ -287,6 +286,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
                [preload: unquote(Macro.escape(parsed_opts.preload))]
              ])
            )
+           |> assign_auix(:_form_component, unquote(form_component))
            |> render_with(&Renderer.render/1)}
         end
 
@@ -294,12 +294,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         def handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
           %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
 
-          {:noreply,
-           assign(
-             socket,
-             :_auix_sections,
-             Map.put(socket.assigns._auix_sections, sections_id, tab_id)
-           )}
+          {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
         end
 
         defp page_title(action, suffix) do
@@ -313,7 +308,6 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
   end
 
   def generate_module(modules, %{_path: %{tag: :form}} = parsed_opts) do
-    type = :form
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     change_function = parsed_opts.change_function
@@ -331,14 +325,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         import unquote(core_helpers)
         import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
+        alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
-
-        @impl true
-        def render(assigns) do
-          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
-          var!(assigns) = assigns
-          compile_heex(unquote(type), unquote(parsed_opts))
-        end
 
         @impl true
         def update(%{:auix_entity => entity} = assigns, socket) do
@@ -350,8 +338,10 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
           {:ok,
            socket
            |> assign(assigns)
-           |> assign_new(:form, fn -> form end)
-           |> assign_new(:_auix_sections, fn -> %{} end)}
+           |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+           |> assign_auix_new(:_form, form)
+           |> assign_auix_new(:_sections, %{})
+           |> render_with(&Renderer.render/1)}
         end
 
         @impl true
@@ -364,7 +354,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
               entity_params
             ])
 
-          {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+          {:noreply, assign_auix(socket, :_form, to_form(changeset, action: :validate))}
         end
 
         def handle_event("save", %{unquote(parsed_opts.module) => entity_params}, socket) do
@@ -378,12 +368,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
 
           socket = Phoenix.LiveView.clear_flash(socket)
 
-          {:noreply,
-           assign(
-             socket,
-             :_auix_sections,
-             Map.put(socket.assigns._auix_sections, sections_id, tab_id)
-           )}
+          {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
         end
 
         defp save(socket, action, entity_params) do
@@ -397,7 +382,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
                |> push_navigate(to: socket.assigns.patch)}
 
             {:error, %Ecto.Changeset{} = changeset} ->
-              {:noreply, assign(socket, form: to_form(changeset))}
+              {:noreply, assign_auix(socket, :_form, to_form(changeset))}
           end
         end
 
@@ -417,7 +402,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     end
   end
 
-  def generate_module(_modules, %{_path: %{tag: type}} = parsed_opts) do
+  def generate_module(_modules, %{_path: %{tag: type}}) do
     Logger.error("The logic for `#{inspect(type)} is not implemented.")
 
     quote do

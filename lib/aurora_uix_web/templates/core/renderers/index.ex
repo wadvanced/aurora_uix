@@ -15,15 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
   Renders an index page with a table listing of entities.
 
   ## Parameters
-    - assigns (map()) - The assigns map containing:
-      - _auix: A map with configuration details including:
-        - _path: Index path configuration with inner_elements
-        - _configurations: General configurations
-        - _resource_name: Name of the resource being listed
-        - title: Title to display in the header
-        - name: Resource name for the "New" button
-        - source: Source identifier for the table
-        - rows: Path to access the rows data
+    - assigns (map()) - The assigns map (Aurora UIX context)
 
   Returns:
     - Phoenix.LiveView.Rendered.t()
@@ -42,7 +34,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
       path.inner_elements
       |> Enum.filter(&(&1.tag == :field))
       |> Enum.map(&get_field(&1, configurations, resource_name))
-      |> Enum.reject(& &1.field_type in [:one_to_many_association, :many_to_one_association])
+      |> Enum.reject(&(&1.field_type in [:one_to_many_association, :many_to_one_association]))
       |> then(&Map.put(assigns, :index_fields, &1))
 
     ~H"""

@@ -33,5 +33,4 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Layout do
     </div>
     """
   end
-
 end

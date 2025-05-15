@@ -13,11 +13,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
   Renders a form field based on its type and configuration.
 
   ## Parameters
-    - assigns (map()) - The assigns map containing:
-      - path: Field path configuration
-      - configurations: General configurations
-      - parsed_opts: Parsed options
-      - resource_name: Name of the resource
+    - assigns (map()) - The assigns map (Aurora UIX context)
 
   Returns:
     - Phoenix.LiveView.Rendered.t()
@@ -47,7 +43,9 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
     """
   end
 
-  def default_render(%{field: %{field_type: :one_to_many_association} = field, _auix: auix} = assigns) do
+  def default_render(
+        %{field: %{field_type: :one_to_many_association} = field, _auix: auix} = assigns
+      ) do
     resource_fields = get_association_fields(field, auix._configurations)
     related_parsed_opts = get_in(auix._configurations, [field.resource, :parsed_opts])
     related_path = build_related_path(auix.source, field.data)
@@ -87,7 +85,10 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
   end
 
   def default_render(assigns) do
-    input_classes = "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+
+    input_classes =
+      "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+
     field_id = "auix-field-#{assigns.field.field}"
 
     assigns =
@@ -98,16 +99,16 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
 
     ~H"""
     <%= if @field.hidden do %>
-      <input type="hidden" id={"#{@field_id}-#{@_auix.mode}"}
-        {if @_auix.mode == :form, do: %{name: @form[@field.field].name, value: @form[@field.field].value},
+      <input type="hidden" id={"#{@field_id}-#{@_auix._mode}"}
+        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.field].name, value: @_auix._form[@field.field].value},
          else: %{name: @field.field, value: @auix_entity[@field.field]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
-          id={"#{@field_id}-#{@_auix.mode}"}
-          {if @_auix.mode == :form,
-            do: %{field: @form[@field.field]},
-            else: %{name: @field.field, value: @auix_entity[@field.field]}}
+          id={"#{@field_id}-#{@_auix._mode}"}
+          {if @_auix._mode == :form,
+            do: %{field: @_auix._form[@field.field]},
+            else: %{name: @field.field, value: Map.get(@auix_entity, @field.field)}}
           type={@field.field_html_type}
           label={@field.label}
           {@select_opts}
@@ -133,8 +134,9 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
     "source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}"
   end
 
-  defp build_new_link(opts, path) do
-    "#{opts.index_new_link}?\#{related_path("#{opts.source}", @auix_entity, :#{opts.data.related_key}, :#{opts.data.owner_key})}"
+  defp build_new_link(opts, _path) do
+    # {opts.source}", @auix_entity, :#{opts.data.related_key}, :#{opts.data.owner_key})}"
+    "#{opts.index_new_link}?\#{related_path("
   end
 
   defp build_row_click(opts, path) do

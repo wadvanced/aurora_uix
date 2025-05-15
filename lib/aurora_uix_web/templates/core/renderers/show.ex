@@ -15,19 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Show do
   Renders a show page for an individual entity.
 
   ## Parameters
-    - assigns (map()) - The assigns map containing:
-      - _auix: A map with configuration details including:
-        - _path: Show path configuration with inner_elements
-        - _configurations: General configurations
-        - _resource_name: Name of the resource being displayed
-        - name: Resource name for display
-        - source: Source identifier
-        - link_prefix: URL prefix for links
-        - _form_component: Module for the edit form component
-      - auix_entity: The entity being displayed
-      - subtitle: Optional subtitle for the header
-      - live_action: Current live action (:edit when modal is shown)
-
+    - assigns (map()) - The assigns map (Aurora UIX context)
   Returns:
     - Phoenix.LiveView.Rendered.t()
   """
@@ -39,7 +27,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Show do
       <:subtitle>{@subtitle}</:subtitle>
       <:actions>
         <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit#{@_auix_source_link}"} phx-click={JS.push_focus()} id={"auix-edit-#{@_auix.source}"}>
-          <.button>Edit #{@_auix.name}</.button>
+          <.button>Edit {@_auix.name}</.button>
         </.link>
       </:actions>
     </.header>
