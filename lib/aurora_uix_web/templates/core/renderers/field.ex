@@ -85,7 +85,6 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
   end
 
   def default_render(assigns) do
-
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 
@@ -109,9 +108,10 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
           {if @_auix._mode == :form,
             do: %{field: @_auix._form[@field.field]},
             else: %{name: @field.field, value: Map.get(@auix_entity, @field.field)}}
-          type={@field.field_html_type}
+          type={"#{@field.field_html_type}"}
           label={@field.label}
-          {@select_opts}
+          options={@select_opts[:options]}
+          multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
           disabled={@field.disabled}
           class={@input_classes}

@@ -28,10 +28,10 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
     {:ok, view, html} = live(conn, "/create-ui-layout-products")
     assert html =~ "Listing Products"
-    assert html =~ "New Products"
+    assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-products")
+           |> element("#auix-new-product")
            |> render_click() =~ "New Product"
   end
 
@@ -39,13 +39,6 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
 
     assert html =~ "New Product"
-
-    floki =
-      view
-      |> render()
-      |> Floki.parse_document()
-
-    # IO.inspect(floki, label: "**************** floki")
 
     assert view
            |> form("#auix-product-form",

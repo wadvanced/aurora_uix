@@ -101,6 +101,5 @@ defmodule AuroraUixTestWeb.Router do
       LocalLayoutTest.TestModule.Product,
       "local-layout-products"
     )
-
   end
 end

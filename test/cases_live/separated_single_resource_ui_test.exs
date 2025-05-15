@@ -31,10 +31,10 @@ defmodule AuroraUixTestWeb.SeparatedSingleResourceUITest do
 
     {:ok, view, html} = live(conn, "/separated-single-resource-products")
     assert html =~ "Listing Products"
-    assert html =~ "New Products"
+    assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-products")
+           |> element("#auix-new-product")
            |> render_click() =~ "New Product"
   end
 

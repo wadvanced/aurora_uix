@@ -38,8 +38,9 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
             data-button-sections-index={tab.sections_index}
             data-button-tab-index={tab.tab_index}
             phx-click="switch_section"
+            phx-target={if @_auix._mode == :form, do: @_auix._myself}
             phx-value-tab-id={Jason.encode!(%{sections_id: tab.sections_id, tab_id: tab.tab_id})}
-            {if @_auix._mode == :form, do: %{"phx-target": "{@myself}"}, else: %{}}>
+            >
             <%= tab.label %>
           </button>
         <% end %>

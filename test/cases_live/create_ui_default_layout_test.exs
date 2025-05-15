@@ -22,10 +22,10 @@ defmodule AuroraUixTestWeb.CreateUIDefaultLayoutTest do
 
     {:ok, view, html} = live(conn, "/create-ui-default-layout-products")
     assert html =~ "Listing Products"
-    assert html =~ "New Products"
+    assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-products")
+           |> element("#auix-new-product")
            |> render_click() =~ "New Product"
   end
 

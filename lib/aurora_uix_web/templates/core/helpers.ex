@@ -116,7 +116,8 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
     |> then(&assign(socket, :_auix, &1))
   end
 
-  @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary, binary) :: Phoenix.LiveView.Socket.t()
+  @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary, binary) ::
+          Phoenix.LiveView.Socket.t()
   def assign_auix_sections(%{assigns: assigns} = socket, sections_id, tab_id) do
     assigns._auix
     |> Map.get(:_sections)

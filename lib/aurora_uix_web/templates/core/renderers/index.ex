@@ -41,7 +41,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
     <.header>
       Listing {@_auix.title}
       <:actions>
-        <.link patch={"#{@_auix[:index_new_link]}"}>
+        <.link patch={"#{@_auix[:index_new_link]}"} id={"auix-new-#{@_auix.module}"}>
           <.button>New {@_auix.name}</.button>
         </.link>
       </:actions>

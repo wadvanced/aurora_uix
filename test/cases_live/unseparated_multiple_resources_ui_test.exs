@@ -28,10 +28,10 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
 
     {:ok, view, html} = live(conn, "/unseparated-multiple-resources-products")
     assert html =~ "Listing Products"
-    assert html =~ "New Products"
+    assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-products")
+           |> element("#auix-new-product")
            |> render_click() =~ "New Product"
   end
 
@@ -67,11 +67,11 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
 
     {:ok, view, html} = live(conn, "/unseparated-multiple-resources-product_transactions")
     assert html =~ "Listing Product Transactions"
-    assert html =~ "New Product Transactions"
+    assert html =~ "New Product Transaction"
 
     assert view
-           |> element("#auix-new-product_transactions")
-           |> render_click() =~ "New Product Transactions"
+           |> element("#auix-new-product_transaction")
+           |> render_click() =~ "New Product Transaction"
   end
 
   test "Test CREATE new, context, basic layout for product_transactions", %{conn: conn} do
@@ -91,7 +91,7 @@ defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
 
     {:ok, view, html} = live(conn, "/unseparated-multiple-resources-product_transactions/new")
 
-    assert html =~ "New Product Transactions"
+    assert html =~ "New Product Transaction"
 
     assert view
            |> form("#auix-product_transaction-form",

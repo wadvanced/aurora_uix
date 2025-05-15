@@ -341,6 +341,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_form, form)
            |> assign_auix_new(:_sections, %{})
+           |> assign_auix(:_myself, socket.assigns.myself)
            |> render_with(&Renderer.render/1)}
         end
 
@@ -369,6 +370,12 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
           socket = Phoenix.LiveView.clear_flash(socket)
 
           {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
+        end
+
+        def handle_event(event, params, socket) do
+          MIO.inspect(event, label: "*************** handle_event")
+          MIO.inspect(params, label: "*************** handle_event")
+          raise "NO event handled"
         end
 
         defp save(socket, action, entity_params) do
