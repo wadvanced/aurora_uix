@@ -42,6 +42,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
       path.inner_elements
       |> Enum.filter(&(&1.tag == :field))
       |> Enum.map(&get_field(&1, configurations, resource_name))
+      |> Enum.reject(& &1.field_type in [:one_to_many_association, :many_to_one_association])
       |> then(&Map.put(assigns, :index_fields, &1))
 
     ~H"""
@@ -59,7 +60,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
       rows={get_in(assigns, @_auix.rows)}
       row_click={fn {_id, entity} -> JS.navigate("/#{@_auix.source}/#{entity.id}") end}
     >
-      <:col :let={{_id, entity}} :for={field <- @index_fields} label="#{@field.label}">{Map.get(entity, field.field)}</:col>
+      <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}>{Map.get(entity, field.field)}</:col>
 
       <:action :let={{_id, entity}}>
         <div class="sr-only">

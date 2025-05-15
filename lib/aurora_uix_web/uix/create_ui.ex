@@ -344,6 +344,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
     |> Map.put(:_configurations, configurations)
     |> Map.put(:_path, path)
     |> Map.put(:_resource_name, path.name)
+    |> Map.put(:_mode, path.tag)
     |> then(&template.generate_module(modules, &1))
   end
 

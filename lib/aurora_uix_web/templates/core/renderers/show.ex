@@ -45,7 +45,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Show do
     </.header>
 
     <div class="auix-show-container p-4 border rounded-lg shadow bg-white" data-layout="#{name}">
-        <Renderer.render _auix={Map.put(@_auix, :_path, inner_path)} :for={inner_path <- @_auix._path.inner_elements} />
+      <Renderer.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
     </div>
 
     <.modal :if={@live_action == :edit} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}")}>
