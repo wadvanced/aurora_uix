@@ -1,9 +1,33 @@
-defmodule Aurora.Uix.Web.Templates.Core.Components.Renderer do
+defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
+  @moduledoc """
+  Renderer module for index pages in Aurora UIX.
+
+  This module handles the rendering of index (listing) pages, providing a table view
+  of entities with actions for show, edit, and delete operations.
+  """
+
   use Aurora.Uix.Web.CoreComponents
   import Aurora.Uix.Web.Templates.Core, only: [get_field: 3]
 
   alias Phoenix.LiveView.JS
 
+  @doc """
+  Renders an index page with a table listing of entities.
+
+  ## Parameters
+    - assigns (map()) - The assigns map containing:
+      - _auix: A map with configuration details including:
+        - _path: Index path configuration with inner_elements
+        - _configurations: General configurations
+        - _resource_name: Name of the resource being listed
+        - title: Title to display in the header
+        - name: Resource name for the "New" button
+        - source: Source identifier for the table
+        - rows: Path to access the rows data
+
+  Returns:
+    - Phoenix.LiveView.Rendered.t()
+  """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(
         %{
@@ -66,22 +90,6 @@ defmodule Aurora.Uix.Web.Templates.Core.Components.Renderer do
         />
       </div>
     </.modal>
-    """
-  end
-
-  def render(
-        %{
-          _auix: %{
-            _path: %{tag: :show} = path,
-            _configurations: configurations,
-            _resource_name: resource_name
-          }
-        } = assigns
-      ) do
-  end
-
-  def render(assigns) do
-    ~H"""
     """
   end
 end

@@ -166,16 +166,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
 
-        alias Aurora.Uix.Web.Templates.Core.Components.Renderer
-
-        # @impl true
-        # def render(assigns) do
-        #   # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
-        #   var!(assigns) = assigns
-        #   ~H"""
-        #   <Parser.index path={@_auix}></Parser.index>
-        #   """
-        # end
+        alias Aurora.Uix.Web.Templates.Core.Renderer
 
         @impl true
         def mount(_params, _session, socket) do
@@ -270,17 +261,11 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
         alias unquote(components)
+        alias Aurora.Uix.Web.Templates.Core.Renderer
 
         @impl true
         def mount(_params, _session, socket) do
           {:ok, socket}
-        end
-
-        @impl true
-        def render(assigns) do
-          # Ensure `assigns` is in scope for Phoenix's HEEx engine, macro hygienic won't pass assigns from caller.
-          var!(assigns) = assigns
-          compile_heex(unquote(type), unquote(parsed_opts))
         end
 
         @impl true
@@ -301,7 +286,8 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
                id,
                [preload: unquote(Macro.escape(parsed_opts.preload))]
              ])
-           )}
+           )
+           |> render_with(&Renderer.render/1)}
         end
 
         @impl true

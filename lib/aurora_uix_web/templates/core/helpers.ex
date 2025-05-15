@@ -101,6 +101,22 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   end
 
   @doc """
+  Assigns a value to the _auix assigns map in the socket only if it does not exists.
+
+  ## Parameters
+    * `socket` - The LiveView socket.
+    * `key` - The key under which to store the value in _auix.
+    * `value` - The value to store.
+  """
+  @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
+  def assign_auix_new(socket, key, value) do
+    socket.assigns
+    |> Map.get(:_auix, %{})
+    |> Map.put_new(key, value)
+    |> then(&assign(socket, :_auix, &1))
+  end
+
+  @doc """
   Generates a link for showing an entity in the index view.
 
   ## Parameters
