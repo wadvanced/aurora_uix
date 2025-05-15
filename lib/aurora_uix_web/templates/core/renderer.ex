@@ -12,7 +12,18 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
   Renders a template based on its tag type.
 
   ## Parameters
-    - assigns (map()) - The assigns map (Aurora UIX context)
+    - assigns (map()) - Aurora UIX context map with _path and tag information
+
+  ## Tag Types
+    - :index - List view of entities
+    - :show - Detailed entity view
+    - :form - Data entry form
+    - :group - Content grouping with title
+    - :inline - Horizontal layout container
+    - :stacked - Vertical layout container
+    - :sections - Tab-based section container
+    - :section - Individual section content
+    - :field - Form field rendering
 
   Returns:
     - Phoenix.LiveView.Rendered.t()
@@ -22,35 +33,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
   # Top-level renderers
   def render(%{_auix: %{_path: %{tag: :index}}} = assigns), do: Renderers.Index.render(assigns)
   def render(%{_auix: %{_path: %{tag: :show}}} = assigns), do: Renderers.Show.render(assigns)
-
-  # Form renderer
-  def render(%{_auix: %{_path: %{tag: :form}}} = assigns) do
-    ~H"""
-    <div>
-      <.header>
-        {@title}
-        <:subtitle>Use this form to manage {@_auix.title} records in your database.</:subtitle>
-      </.header>
-
-      <.flash kind={:error} flash={@flash} title="Error!" />
-
-      <.simple_form
-        for={@_auix._form}
-        id={"auix-#{@_auix.module}-form"}
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <div class="auix-form-container p-4 border rounded-lg shadow bg-white" data-layout={@_auix._path.name}>
-          <.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
-        </div>
-        <:actions>
-          <.button phx-disable-with="Saving..." id={"auix-save-#{@_auix.source}"}>Save {@_auix.name}</.button>
-        </:actions>
-      </.simple_form>
-    </div>
-    """
-  end
+  def render(%{_auix: %{_path: %{tag: :form}}} = assigns), do: Renderers.Form.render(assigns)
 
   # Group renderer
   def render(%{_auix: %{_path: %{tag: :group}}} = assigns) do
@@ -62,12 +45,21 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
     """
   end
 
+  # Layout renderers
   def render(%{_auix: %{_path: %{tag: :inline}}} = assigns) do
-    Renderers.Layout.inline(assigns)
+    ~H"""
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
+    </div>
+    """
   end
 
   def render(%{_auix: %{_path: %{tag: :stacked}}} = assigns) do
-    Renderers.Layout.stacked(assigns)
+    ~H"""
+    <div class="flex flex-col gap-2">
+      <.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
+    </div>
+    """
   end
 
   # Section renderers
@@ -92,12 +84,14 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
 
   @doc """
   Renders inner elements of a component maintaining the _auix context.
-  Used by layout components to render their inner content.
 
   ## Parameters
-    - assigns (map()) - The assigns map containing:
-      - _auix: The Aurora UIX context including inner_elements to render
+    - assigns (map()) - Aurora UIX assigns map with _auix context and inner_elements
+
+  Returns:
+    - Phoenix.LiveView.Rendered.t()
   """
+  @spec render_inner_elements(map()) :: Phoenix.LiveView.Rendered.t()
   def render_inner_elements(assigns) do
     ~H"""
     <.render _auix={Map.put(@_auix, :_path, inner_path)} auix_entity={@auix_entity} :for={inner_path <- @_auix._path.inner_elements} />

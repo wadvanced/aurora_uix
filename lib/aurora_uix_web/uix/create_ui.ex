@@ -295,14 +295,6 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
     {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
     resource_module = Map.get(resource_config, :schema)
 
-    parsed_opts =
-      layouts
-      |> Enum.map(
-        &parse_template_paths(&1, defaulted_paths, configurations, parsed_opts, template)
-      )
-      |> Map.new()
-      |> then(&Map.merge(parsed_opts, %{templates: &1}))
-
     modules = %{
       caller: caller,
       module: resource_module,
@@ -329,14 +321,6 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   end
 
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
-
-  @spec parse_template_paths(atom, map, map, map, module) :: tuple
-  defp parse_template_paths(tag, paths, configurations, parsed_opts, template) do
-    paths
-    |> Map.get(tag, %{name: nil})
-    |> then(&template.parse_layout(&1, configurations, parsed_opts, &1.name, tag))
-    |> then(&{tag, &1})
-  end
 
   @spec generate_module(map, map, map, map, module) :: Macro.t()
   defp generate_module(modules, path, configurations, parsed_opts, template) do

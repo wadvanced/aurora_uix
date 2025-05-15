@@ -36,27 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Core do
   @behaviour Aurora.Uix.Web.Template
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Web.Templates.Core.LayoutParser
   alias Aurora.Uix.Web.Templates.Core.LogicModulesGenerator
-  alias Aurora.Uix.Web.Templates.Core.MarkupGenerator
-
-  @doc """
-  Parses the layout configuration for template generation.
-
-  ## Parameters
-
-    - `paths` (map | list) - The layout path configuration
-    - `configurations` (%{required(atom()) => any()}) - Contains the overall configuration for all resources
-    - `parsed_opts` (%{optional(atom()) => any()}) - Additional parsing options
-    - `mode` (:index | :form | :show) - The type of layout to parse
-
-  ## Returns
-
-    - `binary` - The parsed layout content as a string
-  """
-  @spec parse_layout(map | list, map, map, atom, atom) :: binary
-  defdelegate parse_layout(paths, configurations, parsed_opts, resource_name, mode),
-    to: LayoutParser
 
   @doc """
   Generates logic modules based on the provided configuration.
@@ -73,23 +53,8 @@ defmodule Aurora.Uix.Web.Templates.Core do
     - `Macro.t()` - The generated module as a macro
   """
   @spec generate_module([{atom, module}] | map, map) :: Macro.t()
-  defdelegate generate_module(modules, parsed_opts \\ %{}),
+  defdelegate generate_module(modules, parsed_opts),
     to: LogicModulesGenerator
-
-  @doc """
-  Generates view templates based on the specified type and options.
-
-  ## Parameters
-
-    - `type` (:index | :form | :show) - The type of view to generate
-    - `parsed_opts` (%{optional(atom()) => any()}) - View generation options
-
-  ## Returns
-
-    - `binary()` - The generated view template as a string
-  """
-  @spec generate_view(atom, map) :: binary
-  defdelegate generate_view(type, parsed_opts), to: MarkupGenerator
 
   @doc """
   Returns the default core components module used in the template system.

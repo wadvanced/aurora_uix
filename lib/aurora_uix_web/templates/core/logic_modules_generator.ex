@@ -160,7 +160,6 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_view
 
         import unquote(core_helpers)
-        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
@@ -254,7 +253,6 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_view
 
         import unquote(core_helpers)
-        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
@@ -323,7 +321,6 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
         use unquote(modules.web), :live_component
 
         import unquote(core_helpers)
-        import Aurora.Uix.Web.Template, only: [compile_heex: 2]
 
         alias Aurora.Uix.Web.Templates.Core.Renderer
         alias unquote(modules.context)
