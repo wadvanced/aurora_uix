@@ -18,7 +18,7 @@ defmodule AuroraUixTestWeb.CreateUIDefaultLayoutInlineTest do
     )
   end
 
-  test "Check field, stacked order", %{conn: conn} do
+  test "Check field, inline order", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/create-ui-default-layout-inline-products/new")
 
     TestModule

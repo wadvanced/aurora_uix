@@ -84,32 +84,6 @@ defmodule Aurora.Uix.Web.Template do
   @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Core)
 
   @doc """
-  Generates a HTML code fragment for the specified mode and options.
-
-  ## Parameters
-
-  - `mode` (atom): Specifies the type of UI component to generate.
-    The types implemented and supported by the library are: `:index`, `:form`, `:show`.
-
-  - `parsed_opts` (map): A map with the customized value for generating HTML code.
-
-  ## Returns
-
-  - `binary`: The html code fragment.
-
-  ## Examples
-
-  ```elixir
-  generate_view(:index, %{fields: [:name, :email})
-  # => quote do: ~H"<ul><li><%= @name %></li><li><%= @email %></li></ul>"
-
-  generate_view(:card, %{title: "User Info", content: ~H"<p><%= @user %></p>"})
-  # => quote do: ~H"<div class=\"card\"><h1>User Info</h1><p><%= @user %></p></div>"
-  ```
-  """
-  @callback generate_view(mode :: atom, parsed_opts :: map) :: binary
-
-  @doc """
   Generates the handling code for the given mode.
 
   ## Parameters
@@ -141,13 +115,14 @@ defmodule Aurora.Uix.Web.Template do
   - `resource_name` (atom): Name of the resource that is going to be processed.
   - `mode` (atom): Indicates if the type of layout to be generated.
   """
-  @callback parse_layout(
-              paths :: map | list,
-              configurations :: map,
-              parsed_opts :: map,
-              resource_name :: atom,
-              mode :: atom
-            ) :: binary
+
+  # @callback parse_layout(
+  #             paths :: map | list,
+  #             configurations :: map,
+  #             parsed_opts :: map,
+  #             resource_name :: atom,
+  #             mode :: atom
+  #           ) :: binary
 
   @callback default_core_components() :: module
 
@@ -156,24 +131,6 @@ defmodule Aurora.Uix.Web.Template do
   """
   @spec uix_template() :: module
   def uix_template, do: validate(@uix_template)
-
-  @doc """
-  Replaces [[key]] with the string value found in the parsed_options.
-  If the key value is not found, then the [[key]] is not replaced.
-
-  ## Parameters
-    - `template` (binary): The template to apply the interpolation.
-    - `parsed_options` (map): Options to use.
-
-  ## Examples
-    iex> Aurora.Uix.Web.Template.build_html(%{title: "Aurora UIX builder"},
-    ... ~S\"""
-    ... This application: [[title]]
-    ... \""")
-    "this application: Aurora UIX builder\n"
-  """
-  @spec build_html(map, binary) :: binary
-  def build_html(parsed_options, template), do: Enum.reduce(parsed_options, template, &replace/2)
 
   @doc """
   Extracts the value of a specified field from an entity.
@@ -238,33 +195,6 @@ defmodule Aurora.Uix.Web.Template do
 
   def safe_existing_atom(_name), do: nil
 
-  defmacro compile_heex(mode, parsed_opts) do
-    template = get_in(parsed_opts, [:templates, mode]) || ""
-
-    options = [
-      engine: Phoenix.LiveView.TagEngine,
-      tag_handler: Phoenix.LiveView.HTMLEngine,
-      file: __CALLER__.file,
-      line: __CALLER__.line + 1,
-      caller: __CALLER__,
-      source: template
-    ]
-
-    quote do
-      # Ensure `assigns` is in scope for Phoenix's HEEx engine
-      var!(assigns) =
-        assigns
-        |> var!()
-        |> Map.get(:_auix, %{})
-        # Inject the parsed_opts into assigns for template use
-        |> then(&Map.merge(unquote(Macro.escape(parsed_opts)), &1))
-        |> then(&(assigns |> var!() |> Map.put(:_auix, &1)))
-
-      # Compile the template into Phoenix.LiveView.Rendered struct
-      unquote(EEx.compile_string(template, options))
-    end
-  end
-
   ## PRIVATE FUNCTIONS
 
   @spec validate(module) :: module
@@ -272,7 +202,7 @@ defmodule Aurora.Uix.Web.Template do
     Code.ensure_compiled!(module)
 
     functions_not_exported =
-      functions_not_exported(module, generate_view: 2, generate_module: 2, parse_layout: 5)
+      functions_not_exported(module, generate_module: 2)
 
     message =
       case {behaviour_implemented?(module), functions_not_exported} do
@@ -310,10 +240,4 @@ defmodule Aurora.Uix.Web.Template do
     |> Enum.reject(&function_exported?(module, elem(&1, 0), elem(&1, 1)))
     |> Enum.map(&inspect/1)
   end
-
-  @spec replace(tuple, binary) :: binary
-  defp replace({key, value}, template) when is_binary(value),
-    do: String.replace(template, "[[#{key}]]", value)
-
-  defp replace({key, value}, template), do: replace({key, inspect(value)}, template)
 end

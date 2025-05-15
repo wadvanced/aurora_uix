@@ -50,19 +50,20 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
     <.table
       id={@_auix.source}
       rows={get_in(assigns, @_auix.rows)}
-      row_click={fn {_id, entity} -> JS.navigate("/#{@_auix.source}/#{entity.id}") end}
+      row_click={fn {_id, entity} -> JS.navigate("/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}") end}
     >
       <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}>{Map.get(entity, field.field)}</:col>
 
       <:action :let={{_id, entity}}>
         <div class="sr-only">
-          <.link navigate={"/#{@_auix.source}/#{entity.id}"}>Show</.link>
+          <.link navigate={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}"} name={"show-#{@_auix.module}"}>Show</.link>
         </div>
-        <.link patch={"/#{@_auix.source}/#{entity.id}/edit"}>Edit</.link>
+        <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}/edit"} name={"edit-#{@_auix.module}"}>Edit</.link>
       </:action>
       <:action :let={{id, entity}}>
         <.link
           phx-click={JS.push("delete", value: %{id: entity.id}) |> hide("##{id}")}
+          name={"delete-#{@_auix.module}"}
           data-confirm="Are you sure?"
         >
           Delete

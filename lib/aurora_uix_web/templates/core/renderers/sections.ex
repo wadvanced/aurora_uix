@@ -11,11 +11,12 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
   Renders a tabbed section container with dynamic tabs and content.
 
   ## Parameters
-    - assigns (map()) - The assigns map (Aurora UIX context)
+    - assigns (map()) - Contains _auix context with tab configuration
 
   Returns:
     - Phoenix.LiveView.Rendered.t()
   """
+  @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     active_classes =
       "auix-tab-button active px-4 py-2 text-sm font-semibold transition-all duration-200 text-zinc-800 bg-zinc-100 border-b-2 border-transparent rounded-t-md"
@@ -25,9 +26,11 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
 
     unique_id = :erlang.unique_integer([:positive])
 
-    assigns = assign(assigns, :active_classes, active_classes)
-    assigns = assign(assigns, :inactive_classes, inactive_classes)
-    assigns = assign(assigns, :unique_id, unique_id)
+    assigns =
+      assigns
+      |> assign(:active_classes, active_classes)
+      |> assign(:inactive_classes, inactive_classes)
+      |> assign(:unique_id, unique_id)
 
     ~H"""
     <div id={"sections-#{@unique_id}-#{@_auix._mode}"} class="" data-sections-index={@_auix._path.config[:index]}>
@@ -56,8 +59,12 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Sections do
   Renders a single section within a tabbed container.
 
   ## Parameters
-    - assigns (map()) - The assigns map containing section configuration
+    - assigns (map()) - Contains _auix context with section configuration
+
+  Returns:
+    - Phoenix.LiveView.Rendered.t()
   """
+  @spec section(map()) :: Phoenix.LiveView.Rendered.t()
   def section(assigns) do
     ~H"""
     <div
