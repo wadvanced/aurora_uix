@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix.CreateUI do
+defmodule Aurora.Uix.CreateUI do
   @moduledoc """
   Provides a comprehensive framework for dynamically generating UI layouts and views in Phoenix/Elixir applications.
 
@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   - Support custom layout definitions
 
   ## Compilation Workflow
-  1. Module uses `use Aurora.Uix.Web.Uix.CreateUI`
+  1. Module uses `use Aurora.Uix.CreateUI`
   2. Configurations are collected via module attributes
   3. `__before_compile__/1` macro triggers UI generation
   4. Modules are dynamically created based on configurations
@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   ## Examples
   ```elixir
     defmodule MyApp.ProductViews do
-      use Aurora.Uix.Web.Uix.CreateUI
+      use Aurora.Uix.CreateUI
       auix_create_ui for: :product do
         index_columns :product, [:name, :price]
         edit_layout :product do
@@ -39,19 +39,19 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   - Supports complex, nested layouts
   """
 
-  import Aurora.Uix.Web.Uix.Helper
+  import Aurora.Uix.Helper
 
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Web.Template
-  alias Aurora.Uix.Web.Uix.CreateUI
-  alias Aurora.Uix.Web.Uix.LayoutConfigUI
+  alias Aurora.Uix.CreateUI
+  alias Aurora.Uix.LayoutConfigUI
 
   defmacro __using__(_opts) do
     quote do
-      import Aurora.Uix.Web.Uix.CreateUI
-      use Aurora.Uix.Web.Uix.LayoutConfigUI
+      import Aurora.Uix.CreateUI
+      use Aurora.Uix.LayoutConfigUI
 
-      @before_compile Aurora.Uix.Web.Uix.CreateUI
+      @before_compile Aurora.Uix.CreateUI
     end
   end
 

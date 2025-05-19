@@ -62,7 +62,7 @@ defmodule AuroraUixTestWeb do
     quote do
       Module.register_attribute(__MODULE__, :auix_resource_config, persist: true)
 
-      use Aurora.Uix.Web.Uix
+      use Aurora.Uix
     end
   end
 

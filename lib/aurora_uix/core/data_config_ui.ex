@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix.DataConfigUI do
+defmodule Aurora.Uix.DataConfigUI do
   @moduledoc """
   Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
@@ -80,19 +80,19 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
   - Extensible through custom parsing and rendering strategies
   """
 
-  import Aurora.Uix.Web.Uix.Helper
+  import Aurora.Uix.Helper
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.ResourceConfigUI
-  alias Aurora.Uix.Web.Uix.DataConfigUI
+  alias Aurora.Uix.DataConfigUI
 
   defmacro __using__(_opts) do
     quote do
-      import Aurora.Uix.Web.Uix.DataConfigUI
+      import Aurora.Uix.DataConfigUI
 
       Module.register_attribute(__MODULE__, :_auix_process_resource_config, accumulate: true)
 
-      @before_compile Aurora.Uix.Web.Uix.DataConfigUI
+      @before_compile Aurora.Uix.DataConfigUI
     end
   end
 

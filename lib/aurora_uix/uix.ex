@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix do
+defmodule Aurora.Uix do
   @moduledoc """
   Provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
 
@@ -22,11 +22,11 @@ defmodule Aurora.Uix.Web.Uix do
 
   ## Getting Started
 
-  To use `Aurora.Uix.Web.Uix`, simply `use` it in your module:
+  To use `Aurora.Uix`, simply `use` it in your module:
 
   ```elixir
   defmodule MyAppWeb.ProductView do
-    use Aurora.Uix.Web.Uix
+    use Aurora.Uix
 
     # Define schema configuration
     auix_resource_config :product,
@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Web.Uix do
 
   ```elixir
   defmodule MyAppWeb.UserView do
-    use Aurora.Uix.Web.Uix
+    use Aurora.Uix
 
     # Configure schema metadata
     auix_resource_config :user,
@@ -81,8 +81,8 @@ defmodule Aurora.Uix.Web.Uix do
 
   While it provides flexibility for customization, it works best when embracing its conventions.
   """
-  alias Aurora.Uix.Web.Uix.CreateUI
-  alias Aurora.Uix.Web.Uix.DataConfigUI
+  alias Aurora.Uix.CreateUI
+  alias Aurora.Uix.DataConfigUI
 
   require Logger
 

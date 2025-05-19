@@ -109,7 +109,7 @@ defmodule Aurora.Uix.Web.Template do
   ## Parameters
 
   - `path` (map): Contains the relevant information for a layout path.
-    See `Aurora.Uix.Web.Uix.LayoutConfigUI` for details on the path structure.
+    See `Aurora.Uix.LayoutConfigUI` for details on the path structure.
   - `configurations` (map): contains the overall configuration for all resources.
   - `parsed_opts` (map): Additional parsing options
   - `resource_name` (atom): Name of the resource that is going to be processed.
