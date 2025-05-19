@@ -22,10 +22,14 @@ Use dash for arguments list.
 Include options details, also with dashes.
 Include the expected return.
 
+## @callback
+Document @callback.
+
 ## @spec
-Add the missing @spec to each of the functions and MACROS. DO NOT touch existing @spec.
-Use only 'map()' for map types.
+Add the missing @spec to each of the functions and MACROS. 
+DO NOT change existing @spec, except for changing types from their simple name to the one with '()'. Example: 'map' to 'map()', 'keyword' to 'keyword()'.
 Avoid using any().
+Do not use the :: notation for function arguments.
 
 ## private functions
 For complex private functions, add a common comment '#' with a description of the expected behaviour.

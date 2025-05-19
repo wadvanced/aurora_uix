@@ -17,167 +17,35 @@ defmodule Aurora.Uix.Resource do
   defstruct [:name, :schema, :context, fields: [], fields_order: []]
 
   @type t() :: %__MODULE__{
-          name: atom,
-          schema: module,
-          context: module | nil,
-          fields: map | list
+          name: atom(),
+          schema: module(),
+          context: module() | nil,
+          fields: map() | list()
         }
 
   @doc """
   Creates a new `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
+    - attrs (map() | keyword()) - Initial attributes with :name, :schema, :context, and :fields keys
 
-  - `attrs` (map | keyword): A map or keyword containing the attributes to initialize the metadata.
-    The allowed keys are `:name`, `:schema`, `:context`, and `:fields`.
-
-  ## Examples
-
-      iex> Aurora.Uix.Resource.new()
-      %Aurora.Uix.Resource{name: nil, schema: nil, context: nil, fields: []}
-
-      iex> Aurora.Uix.Resource.new(%{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :custom_field)]})
-      %Aurora.Uix.Resource{
-        name: :my_schema,
-        schema: MySchema,
-        context: nil,
-        fields: [
-          %Aurora.Uix.Field{
-            field: :custom_field,
-            field_type: nil,
-            renderer: nil,
-            data: nil,
-            name: "custom_field",
-            label: "",
-            placeholder: "",
-            length: 0,
-            precision: 0,
-            scale: 0,
-            hidden: false,
-            readonly: false,
-            required: false,
-            disabled: false,
-            omitted: false
-          }
-        ]
-      }
+  Returns:
+    - t() - A new resource struct
   """
-  @spec new(map | keyword) :: __MODULE__.t()
+  @spec new(map() | keyword()) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `Aurora.Uix.Resource` struct with the given attributes.
+  Updates an existing resource struct with the given attributes.
 
   ## Parameters
+    - resource_config (t()) - Existing resource struct to update
+    - attrs (map() | keyword()) - Attributes to update with :name, :schema, :context, and :fields keys
 
-  - `metadata`: The existing `Aurora.Uix.Resource` struct to be updated.
-  - `attrs`: A map or keyword containing the attributes to update the metadata.
-    The allowed keys are `:name`, `:schema`, `:context`, and `:fields`.
-
-  ## Examples
-
-      iex> metadata = %Aurora.Uix.Resource{name: :my_schema, schema: MySchema, context: MyContext}
-      %Aurora.Uix.Resource{
-          name: :my_schema,
-          schema: MySchema,
-        context: MyContext,
-        fields: []
-      }
-      iex> Aurora.Uix.Resource.change(metadata, context: nil, fields: [Aurora.Uix.Field.new(field: :reference)])
-      %Aurora.Uix.Resource{
-        name: :my_schema,
-        schema: MySchema,
-        context: nil,
-        fields: [
-          %Aurora.Uix.Field{
-            field: :reference,
-            field_type: nil,
-            renderer: nil,
-            data: nil,
-            name: "reference",
-            label: "",
-            placeholder: "",
-            length: 0,
-            precision: 0,
-            scale: 0,
-            hidden: false,
-            readonly: false,
-            required: false,
-            disabled: false,
-            omitted: false
-          }
-        ]
-      }
-
-      iex> metadata = %Aurora.Uix.Resource{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :reference)]}
-      %Aurora.Uix.Resource{
-        name: :my_schema,
-        schema: MySchema,
-        context: nil,
-        fields: [
-          %Aurora.Uix.Field{
-            field: :reference,
-            field_type: nil,
-            renderer: nil,
-            data: nil,
-            name: "reference",
-            label: "",
-            placeholder: "",
-            length: 0,
-            precision: 0,
-            scale: 0,
-            hidden: false,
-            readonly: false,
-            required: false,
-            disabled: false,
-            omitted: false
-          }
-        ]
-      }
-      iex> Aurora.Uix.Resource.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
-      %Aurora.Uix.Resource{
-        name: :my_schema,
-        schema: MySchema,
-        context: MyContext,
-        fields: [
-          %Aurora.Uix.Field{
-            field: :reference,
-            field_type: nil,
-            renderer: nil,
-            data: nil,
-            name: "reference",
-            label: "My reference",
-            placeholder: "",
-            length: 0,
-            precision: 0,
-            scale: 0,
-            hidden: false,
-            readonly: false,
-            required: false,
-            disabled: false,
-            omitted: false
-          },
-          %Aurora.Uix.Field{
-            field: :description,
-            field_type: nil,
-            renderer: nil,
-            data: nil,
-            name: "description",
-            label: "My description",
-            placeholder: "",
-            length: 0,
-            precision: 0,
-            scale: 0,
-            hidden: false,
-            readonly: false,
-            required: false,
-            disabled: false,
-            omitted: false
-          }
-        ]
-      }
+  Returns:
+    - t() - Updated resource struct
   """
-  @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
+  @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
   def change(resource_config, attrs) when is_list(attrs) do
     keys =
       %__MODULE__{}
@@ -197,7 +65,9 @@ defmodule Aurora.Uix.Resource do
   def change(resource_config, %{} = attrs), do: struct(resource_config, attrs)
 
   ## PRIVATE
-  @spec change_fields(__MODULE__.t(), list) :: __MODULE__.t()
+
+  # Updates fields in the resource config with provided changes
+  @spec change_fields(__MODULE__.t(), list()) :: __MODULE__.t()
   defp change_fields(%{fields: resource_config_fields} = resource_config, attrs)
        when is_list(attrs) do
     changed_fields =
@@ -215,7 +85,8 @@ defmodule Aurora.Uix.Resource do
   defp change_fields(resource_config, _attrs),
     do: resource_config
 
-  @spec change_field(map, list | map) :: map
+  # Updates a single field with provided changes
+  @spec change_field(map(), list() | map()) :: map()
   defp change_field(%{field: field_id} = resource_config_field, changed_fields)
        when is_list(changed_fields) or is_map(changed_fields) do
     changed_fields
@@ -228,7 +99,8 @@ defmodule Aurora.Uix.Resource do
 
   defp change_field(resource_config_field, _changed_fields), do: resource_config_field
 
-  @spec add_fields(__MODULE__.t(), list) :: __MODULE__.t()
+  # Adds new fields to the resource config that don't already exist
+  @spec add_fields(__MODULE__.t(), list()) :: __MODULE__.t()
   defp add_fields(%{fields: resource_config_fields} = resource_config, attrs) do
     keys = Enum.map(resource_config_fields, & &1.field)
 
@@ -248,7 +120,8 @@ defmodule Aurora.Uix.Resource do
     |> then(&struct(resource_config, %{fields: &1}))
   end
 
-  @spec create_field(tuple, list) :: list
+  # Creates a new field from a tuple or map specification
+  @spec create_field(tuple() | map(), list()) :: list()
   defp create_field({field, properties}, acc) do
     new_field =
       properties
@@ -262,7 +135,8 @@ defmodule Aurora.Uix.Resource do
   defp create_field(%{field: _field_id} = attrs, _acc), do: Field.new(attrs)
   defp create_field(_field, acc), do: acc
 
-  @spec filter(list, atom) :: list
+  # Filters attributes list by key
+  @spec filter(list(), atom()) :: list()
   defp filter(attrs, key) do
     Enum.filter(attrs, fn
       {^key, _} -> true

@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Web.CoreComponentsImporter do
   Core UI component provider for Aurora Uix. Imports appropriate component
   and helper functions based on configured templates.
   """
-  alias Aurora.Uix.Web.Template
+  alias Aurora.Uix.Template
 
   @doc """
   Imports component and helper functions from configured templates.

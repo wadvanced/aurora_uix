@@ -41,10 +41,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   import Aurora.Uix.Layout.Helper
 
-  alias Aurora.Uix.Parser
-  alias Aurora.Uix.Web.Template
-  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Blueprint
+  alias Aurora.Uix.Layout.CreateUI
+  alias Aurora.Uix.Parser
+  alias Aurora.Uix.Template
 
   defmacro __using__(_opts) do
     quote do

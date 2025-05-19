@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Template do
+defmodule Aurora.Uix.Template do
   @moduledoc """
   A core module for template generation and management in Aurora UIX, providing a standardized
   behavior and utility functions for creating dynamic UI templates.
@@ -87,44 +87,42 @@ defmodule Aurora.Uix.Web.Template do
   Generates the handling code for the given mode.
 
   ## Parameters
-  - `modules` (map): Map containing the involved modules:
-    %{
-      caller: caller, # The caller module.
-      module: resource_module, # The struct module representing the resource. For example the schema module.
-      web: web, # The main web module. For example MyAppWeb.
-      context: context # The module with the backend functions for creating, reading, updating and deleting elements of the struct.
-    }
-  - `parsed_opts` (map): A map with the customized value for generating the handling code.
+    - modules (map()) - Map with caller, module, web and context modules
+    - parsed_opts (map()) - Customization options for code generation
+
+  Returns:
+    - Macro.t() - Generated module code
   """
-  @callback generate_module(modules :: map, parsed_opts :: map) :: Macro.t()
+  @callback generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()
 
   @doc """
-  Creates the layout HTML code.
-
-  The implementer will receive a call per each path of the layout.
-
-  At the end of the process, the UIX will add the field `form_fields` to parsed_opts and will be part of the
-  parameters to be sent to the downstream function.
+  Creates the layout HTML code for a given path and resource configuration.
 
   ## Parameters
+    - paths (map() | list()) - Layout path information
+    - configurations (map()) - Overall resource configurations
+    - parsed_opts (map()) - Additional parsing options
+    - resource_name (atom()) - Resource being processed
+    - mode (atom()) - Layout type to generate
 
-  - `path` (map): Contains the relevant information for a layout path.
-    See `Aurora.Uix.Layout.Blueprint` for details on the path structure.
-  - `configurations` (map): contains the overall configuration for all resources.
-  - `parsed_opts` (map): Additional parsing options
-  - `resource_name` (atom): Name of the resource that is going to be processed.
-  - `mode` (atom): Indicates if the type of layout to be generated.
+  Returns:
+    - binary() - Generated HTML code
   """
+  @callback parse_layout(
+              paths :: map() | list(),
+              configurations :: map(),
+              parsed_opts :: map(),
+              resource_name :: atom(),
+              mode :: atom()
+            ) :: binary()
 
-  # @callback parse_layout(
-  #             paths :: map | list,
-  #             configurations :: map,
-  #             parsed_opts :: map,
-  #             resource_name :: atom,
-  #             mode :: atom
-  #           ) :: binary
+  @doc """
+  Returns the default core components module.
 
-  @callback default_core_components_module() :: module
+  Returns:
+    - module() - The module containing core UI components
+  """
+  @callback default_core_components_module() :: module()
 
   @doc """
   Validates and return the configured uix template.
@@ -136,24 +134,13 @@ defmodule Aurora.Uix.Web.Template do
   Extracts the value of a specified field from an entity.
 
   ## Parameters
-    - `{_id, entity}` (tuple): A tuple containing an ID and an entity map.
-    - `%{field: field}` (map): A map containing a field key that specifies which field to extract.
+    - entity (tuple() | struct() | map()) - Entity containing field values
+    - field_config (map()) - Field configuration with field key
 
-  ## Returns
-    - `any`: The value of the specified field from the entity map, or nil if the field doesn't exist.
-
-  ## Examples
-
-      iex> field_row_value({123, %{name: "John", age: 30}}, %{field: :name})
-      "John"
-
-      iex> field_row_value({456, %{name: "Mary", age: 25}}, %{field: :age})
-      25
-
-      iex> field_row_value({789, %{name: "Bob"}}, %{field: :age})
-      nil
+  Returns:
+    - term() - Value of the specified field or nil if not found
   """
-  @spec field_row_value(tuple | struct | map, map) :: any
+  @spec field_row_value(tuple() | struct() | map(), map()) :: term()
   def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
 
   def field_row_value(entity, %{field: field, field_type: field_type})
@@ -164,27 +151,14 @@ defmodule Aurora.Uix.Web.Template do
 
   @doc """
   Safely converts a binary to an existing atom.
-  If the binary does not exist as an atom, it returns nil.
-  This function is useful for safely converting strings to atoms without
-  causing an error if the atom does not exist.
+
   ## Parameters
-    - `name` (any | nil): The name to convert to an atom.
-  ## Returns
-    - `atom | nil`: The existing atom if it exists, or nil if it doesn't.
-  ## Examples
-    iex> safe_existing_atom("existing_atom")
-    :existing_atom
+    - name (term() | nil) - The name to convert to an atom
 
-    iex> safe_existing_atom("non_existing_atom")
-    nil
-
-    iex> safe_existing_atom(:existing_atom)
-    :existing_atom
-
-    iex> safe_existing_atom(nil)
-    nil
+  Returns:
+    - atom() | nil - The existing atom if it exists, otherwise nil
   """
-  @spec safe_existing_atom(any | nil) :: atom | nil
+  @spec safe_existing_atom(term() | nil) :: atom() | nil
   def safe_existing_atom(name) when is_binary(name) do
     String.to_existing_atom(name)
   catch
@@ -197,12 +171,13 @@ defmodule Aurora.Uix.Web.Template do
 
   ## PRIVATE FUNCTIONS
 
-  @spec validate(module) :: module
+  # Validates that a module implements the required behavior and exports expected functions
+  @spec validate(module()) :: module()
   defp validate(module) do
     Code.ensure_compiled!(module)
 
     functions_not_exported =
-      functions_not_exported(module, generate_module: 2)
+      functions_not_exported(module, generate_module: 2, default_core_components_module: 0)
 
     message =
       case {behaviour_implemented?(module), functions_not_exported} do

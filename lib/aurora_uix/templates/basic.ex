@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   - `MarkupGenerator`: Creates HEEx template fragments
 
   ## Responsibilities
-  - Implement the `Aurora.Uix.Web.Template` behavior
+  - Implement the `Aurora.Uix.Template` behavior
   - Coordinate between different template generation components
   - Provide a unified interface for template creation
 
@@ -21,9 +21,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   4. Combine generated components
 
   ### Key Delegations
-  - `parse_layout/3`: Delegates to `LayoutParser` for layout structure parsing
   - `generate_module/2`: Delegates to `LogicModulesGenerator` for module creation
-  - `generate_view/2`: Delegates to `MarkupGenerator` for template generation
 
   ## Usage Example
   ```elixir
@@ -33,7 +31,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   The module ensures a clean separation of concerns while providing a streamlined
   template generation process for different UI components.
   """
-  @behaviour Aurora.Uix.Web.Template
+  @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Web.Templates.Basic.LogicModulesGenerator

@@ -83,8 +83,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   import Aurora.Uix.Layout.Helper
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Resource
   alias Aurora.Uix.Layout.ResourceMetadata
+  alias Aurora.Uix.Resource
 
   defmacro __using__(_opts) do
     quote do

@@ -15,57 +15,33 @@ defmodule Aurora.Uix.Parser do
   alias Aurora.Uix.Parsers.ContextParser
   alias Aurora.Uix.Parsers.IndexParser
 
-  @callback default_value(parsed_opts :: map, resource_config :: map, key :: atom) :: any
+  @doc """
+  Returns a default value for a given configuration key.
+
+  ## Parameters
+    - parsed_opts (map()) - Parsed configuration options
+    - resource_config (map()) - Module configuration info
+    - key (atom()) - Configuration key to get default value for
+
+  Returns:
+    - term() - The default value for the given key
+  """
+  @callback default_value(parsed_opts :: map(), resource_config :: map(), key :: atom()) :: term()
 
   @doc """
   Parses schema and options into a structured configuration map.
 
   ## Parameters
-    - `resource_config` (map) - contains all the modules' configuration.
-    - `opts` (keyword) - Configuration options. See full list in:
-      - Common options: `Aurora.Uix.Parsers.Common.parse/3`
-      - Index-specific options: `Aurora.Uix.Parsers.IndexParser.parse/3`
-      - Context specific options: `Aurora.Uix.Parsers.ContextParser.parse/3`
+    - resource_config (map()) - Module configuration info
+    - opts (keyword()) - Optional config settings:
+      - Aurora.Uix.Parsers.Common.parse/3: Source and schema options
+      - Aurora.Uix.Parsers.IndexParser.parse/3: Index view customization
+      - Aurora.Uix.Parsers.ContextParser.parse/3: Default context functions
 
-  ## Returns
-  A map containing:
-    - Schema metadata (module name, source table, display names)
-    - Field configuration
-    - View-specific settings (rows configuration for index views)
-    - Template rendering options
-
-  ## Example
-  iex> defmodule MySchema do
-  ...>   use Ecto.Schema
-  ...>   schema "my_schemas" do
-  ...>     field :reference, :string
-  ...>   end
-  ...> end
-  iex> Aurora.Uix.Parser.parse(%{schema: MySchema})
-  %{
-    module: "my_schema",
-    module_name: "MySchema",
-    name: "My Schema",
-    title: "My Schemas",
-    rows: [:streams, :my_schemas],
-    source: "my_schemas",
-    link_prefix: "",
-    change_function: nil,
-    create_function: nil,
-    delete_function: nil,
-    get_function: nil,
-    list_function: nil,
-    update_function: nil,
-    new_function: nil,
-    disable_index_new_link: false,
-    disable_index_row_click: false,
-    disable_index_show_entity_link: false,
-    index_new_link: "/my_schemas/new",
-    index_row_click: "my_schemas/[[entity]]",
-    index_show_entity_link: "my_schemas/[[entity]]"
-   }
+  Returns:
+    - map() with schema metadata, fields config and template settings
   """
-  @spec parse(map, keyword) :: map
+  @spec parse(map(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do
     opts =
       List.flatten(opts)

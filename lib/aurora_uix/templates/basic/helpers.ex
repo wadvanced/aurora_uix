@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
-  import Aurora.Uix.Web.Template, only: [safe_existing_atom: 1]
+  import Aurora.Uix.Template, only: [safe_existing_atom: 1]
 
   alias Phoenix.LiveView.JS
 
