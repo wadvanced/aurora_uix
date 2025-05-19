@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList do
+defmodule Aurora.Uix.Web.Templates.Basic.Components.Live.AuroraIndexList do
   @moduledoc """
   A specialized index list LiveComponent for displaying tabular data.
 

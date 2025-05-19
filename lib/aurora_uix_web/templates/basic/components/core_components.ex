@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.CoreComponents do
+defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   @moduledoc """
   Provides core UI components.
 

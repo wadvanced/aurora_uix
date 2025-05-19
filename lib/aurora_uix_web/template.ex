@@ -81,7 +81,7 @@ defmodule Aurora.Uix.Web.Template do
   ```
   """
 
-  @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Core)
+  @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Basic)
 
   @doc """
   Generates the handling code for the given mode.

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Renderers.Show do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
   @moduledoc """
   Renderer module for show pages in Aurora UIX.
 
@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Show do
 
   use Aurora.Uix.Web.CoreComponents
 
-  alias Aurora.Uix.Web.Templates.Core.Renderer
+  alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
 
   @doc """

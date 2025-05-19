@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Renderer do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @moduledoc """
   Main entry point for Aurora UIX template rendering.
   Dispatches rendering to specialized renderer modules based on the template tag.
@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderer do
 
   use Aurora.Uix.Web.CoreComponents
 
-  alias Aurora.Uix.Web.Templates.Core.Renderers
+  alias Aurora.Uix.Web.Templates.Basic.Renderers
 
   @doc """
   Renders a template based on its tag type.

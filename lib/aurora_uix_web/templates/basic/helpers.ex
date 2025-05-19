@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Helpers do
+defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @moduledoc """
   Helper functions for LiveView components.
   """

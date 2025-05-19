@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Renderers.Form do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Form do
   @moduledoc """
   Renderer module for form views in Aurora UIX.
 
@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Form do
 
   use Aurora.Uix.Web.CoreComponents
 
-  alias Aurora.Uix.Web.Templates.Core.Renderer
+  alias Aurora.Uix.Web.Templates.Basic.Renderer
 
   @doc """
   Renders a form view for creating or editing entities.

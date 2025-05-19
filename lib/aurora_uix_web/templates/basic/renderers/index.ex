@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
   @moduledoc """
   Renderer module for index pages in Aurora UIX.
 
@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Index do
   """
 
   use Aurora.Uix.Web.CoreComponents
-  import Aurora.Uix.Web.Templates.Core, only: [get_field: 3]
+  import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
 
   alias Phoenix.LiveView.JS
 

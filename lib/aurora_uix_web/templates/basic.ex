@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core do
+defmodule Aurora.Uix.Web.Templates.Basic do
   @moduledoc """
   A centralized module for coordinating template generation processes in Aurora UIX,
   serving as the primary entry point for template-related functionality.
@@ -28,7 +28,7 @@ defmodule Aurora.Uix.Web.Templates.Core do
   ## Usage Example
   ```elixir
   # Automatic delegation happens through the Template behavior
-  Aurora.Uix.Web.Templates.Core.generate_view(:index, %{fields: [:name, :email]})
+  Aurora.Uix.Web.Templates.Basic.generate_view(:index, %{fields: [:name, :email]})
   ```
   The module ensures a clean separation of concerns while providing a streamlined
   template generation process for different UI components.
@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Core do
   @behaviour Aurora.Uix.Web.Template
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Web.Templates.Core.LogicModulesGenerator
+  alias Aurora.Uix.Web.Templates.Basic.LogicModulesGenerator
 
   @doc """
   Generates logic modules based on the provided configuration.
@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Web.Templates.Core do
   """
   @spec default_core_components() :: module
   def default_core_components do
-    Aurora.Uix.Web.Templates.Core.CoreComponents
+    Aurora.Uix.Web.Templates.Basic.CoreComponents
   end
 
   @doc """

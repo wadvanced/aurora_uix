@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   @moduledoc """
   Field renderer module for Aurora UIX forms.
 
@@ -10,9 +10,9 @@ defmodule Aurora.Uix.Web.Templates.Core.Renderers.Field do
   """
 
   use Aurora.Uix.Web.CoreComponents
-  import Aurora.Uix.Web.Templates.Core, only: [get_field: 3]
+  import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
 
-  alias Aurora.Uix.Web.Templates.Core.Components.Live.AuroraIndexList
+  alias Aurora.Uix.Web.Templates.Basic.Components.Live.AuroraIndexList
   alias Phoenix.LiveView.JS
 
   @doc """

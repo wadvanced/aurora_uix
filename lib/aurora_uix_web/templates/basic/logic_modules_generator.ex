@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
+defmodule Aurora.Uix.Web.Templates.Basic.LogicModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
@@ -151,7 +151,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     index_module = module_name(modules, parsed_opts, ".Index")
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
-    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
+    core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
 
     quote do
       defmodule unquote(index_module) do
@@ -161,7 +161,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
 
         import unquote(core_helpers)
 
-        alias Aurora.Uix.Web.Templates.Core.Renderer
+        alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
@@ -244,7 +244,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
     components = Aurora.Uix.Web.Components.AuroraCoreComponents
-    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
+    core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
 
     quote do
       defmodule unquote(show_module) do
@@ -254,7 +254,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
 
         import unquote(core_helpers)
 
-        alias Aurora.Uix.Web.Templates.Core.Renderer
+        alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
         alias unquote(form_component), as: unquote(alias_form_component)
@@ -312,7 +312,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
     update_function = parsed_opts.update_function
     create_function = parsed_opts.create_function
     form_component = module_name(modules, parsed_opts, ".FormComponent")
-    core_helpers = Aurora.Uix.Web.Templates.Core.Helpers
+    core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
 
     quote do
       defmodule unquote(form_component) do
@@ -322,7 +322,7 @@ defmodule Aurora.Uix.Web.Templates.Core.LogicModulesGenerator do
 
         import unquote(core_helpers)
 
-        alias Aurora.Uix.Web.Templates.Core.Renderer
+        alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
 
         @impl true
