@@ -3,5 +3,5 @@ defmodule AuroraUixTest.Uix.DocTest do
 
   doctest Aurora.Uix.Field
   doctest Aurora.Uix.Parser
-  doctest Aurora.Uix.ResourceConfigUI
+  doctest Aurora.Uix.Resource
 end

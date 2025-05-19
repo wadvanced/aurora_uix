@@ -180,7 +180,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     
     auix_create_ui link_prefix: "create-ui-layout-" do

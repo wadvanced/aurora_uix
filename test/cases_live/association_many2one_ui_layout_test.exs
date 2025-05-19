@@ -10,9 +10,9 @@ defmodule AuroraUixTestWeb.AssociationMany2oneUILayoutTest do
     alias AuroraUixTest.Inventory.ProductLocation
     alias AuroraUixTest.Inventory.ProductTransaction
 
-    auix_resource_config(:product_location, context: Inventory, schema: ProductLocation)
-    auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
+    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.

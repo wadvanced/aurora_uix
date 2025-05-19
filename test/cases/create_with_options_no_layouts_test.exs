@@ -8,7 +8,7 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     auix_create_ui()
   end

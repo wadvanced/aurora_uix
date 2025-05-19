@@ -9,8 +9,8 @@ defmodule AuroraUixTest.MetadataDefaultWithOptionsTest do
     alias AuroraUixTest.Inventory.Product
     alias AuroraUixTest.Inventory.ProductTransaction
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
-    auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
   end
 
   test "Test default with options schema and context" do

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.ResourceConfigUI do
+defmodule Aurora.Uix.Resource do
   @moduledoc """
   Manages comprehensive metadata configuration for schemas and their associated UI representations.
 
@@ -24,7 +24,7 @@ defmodule Aurora.Uix.ResourceConfigUI do
         }
 
   @doc """
-  Creates a new `Aurora.Uix.ResourceConfigUI` struct with the given attributes.
+  Creates a new `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
 
@@ -33,11 +33,11 @@ defmodule Aurora.Uix.ResourceConfigUI do
 
   ## Examples
 
-      iex> Aurora.Uix.ResourceConfigUI.new()
-      %Aurora.Uix.ResourceConfigUI{name: nil, schema: nil, context: nil, fields: []}
+      iex> Aurora.Uix.Resource.new()
+      %Aurora.Uix.Resource{name: nil, schema: nil, context: nil, fields: []}
 
-      iex> Aurora.Uix.ResourceConfigUI.new(%{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :custom_field)]})
-      %Aurora.Uix.ResourceConfigUI{
+      iex> Aurora.Uix.Resource.new(%{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :custom_field)]})
+      %Aurora.Uix.Resource{
         name: :my_schema,
         schema: MySchema,
         context: nil,
@@ -66,25 +66,25 @@ defmodule Aurora.Uix.ResourceConfigUI do
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `Aurora.Uix.ResourceConfigUI` struct with the given attributes.
+  Updates an existing `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
 
-  - `metadata`: The existing `Aurora.Uix.ResourceConfigUI` struct to be updated.
+  - `metadata`: The existing `Aurora.Uix.Resource` struct to be updated.
   - `attrs`: A map or keyword containing the attributes to update the metadata.
     The allowed keys are `:name`, `:schema`, `:context`, and `:fields`.
 
   ## Examples
 
-      iex> metadata = %Aurora.Uix.ResourceConfigUI{name: :my_schema, schema: MySchema, context: MyContext}
-      %Aurora.Uix.ResourceConfigUI{
+      iex> metadata = %Aurora.Uix.Resource{name: :my_schema, schema: MySchema, context: MyContext}
+      %Aurora.Uix.Resource{
           name: :my_schema,
           schema: MySchema,
         context: MyContext,
         fields: []
       }
-      iex> Aurora.Uix.ResourceConfigUI.change(metadata, context: nil, fields: [Aurora.Uix.Field.new(field: :reference)])
-      %Aurora.Uix.ResourceConfigUI{
+      iex> Aurora.Uix.Resource.change(metadata, context: nil, fields: [Aurora.Uix.Field.new(field: :reference)])
+      %Aurora.Uix.Resource{
         name: :my_schema,
         schema: MySchema,
         context: nil,
@@ -109,8 +109,8 @@ defmodule Aurora.Uix.ResourceConfigUI do
         ]
       }
 
-      iex> metadata = %Aurora.Uix.ResourceConfigUI{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :reference)]}
-      %Aurora.Uix.ResourceConfigUI{
+      iex> metadata = %Aurora.Uix.Resource{name: :my_schema, schema: MySchema, fields: [Aurora.Uix.Field.new(field: :reference)]}
+      %Aurora.Uix.Resource{
         name: :my_schema,
         schema: MySchema,
         context: nil,
@@ -134,8 +134,8 @@ defmodule Aurora.Uix.ResourceConfigUI do
           }
         ]
       }
-      iex> Aurora.Uix.ResourceConfigUI.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
-      %Aurora.Uix.ResourceConfigUI{
+      iex> Aurora.Uix.Resource.change(metadata, context: MyContext, fields: [reference: %{label: "My reference"}, description: %{label: "My description"}])
+      %Aurora.Uix.Resource{
         name: :my_schema,
         schema: MySchema,
         context: MyContext,

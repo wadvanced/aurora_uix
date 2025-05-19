@@ -9,12 +9,12 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   alias AuroraUixTest.Inventory.Product
   alias AuroraUixTest.Inventory.ProductTransaction
 
-  auix_resource_config(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata(:product, context: Inventory, schema: Product) do
     field(:reference, length: 100)
     fields([:name, :description], length: 40)
   end
 
-  auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
+  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
   auix_create_ui do
     index_columns(:product, [:name, :description])

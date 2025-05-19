@@ -7,15 +7,15 @@ defmodule AuroraUixTestWeb.SeparatedMultipleResourcesUITest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
     alias AuroraUixTest.Inventory.ProductTransaction
-    auix_resource_config(:product, context: Inventory, schema: Product)
-    auix_resource_config(:product_transaction, context: Inventory, schema: ProductTransaction)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
   end
 
   defmodule TestModule do
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    @auix_resource_config TestResources.auix_resource(:product)
-    @auix_resource_config TestResources.auix_resource(:product_transaction)
+    @auix_resource_metadata TestResources.auix_resource(:product)
+    @auix_resource_metadata TestResources.auix_resource(:product_transaction)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.

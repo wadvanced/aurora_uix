@@ -8,7 +8,7 @@ defmodule AuroraUixTestWeb.SpecialFieldsUITest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config :product, context: Inventory, schema: Product do
+    auix_resource_metadata :product, context: Inventory, schema: Product do
       field(:status,
         field_html_type: :select,
         data: [

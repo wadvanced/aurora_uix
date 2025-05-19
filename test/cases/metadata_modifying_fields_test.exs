@@ -7,7 +7,7 @@ defmodule AuroraUixTest.MetadataModifyingFieldsTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product) do
+    auix_resource_metadata(:product, context: Inventory, schema: Product) do
       field(:inactive, length: 10)
       field(:inserted_at, hidden: true)
       fields([:weight, :length, :width, :height], precision: 16, scale: 3)

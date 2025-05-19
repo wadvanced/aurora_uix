@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.LayoutConfigUI do
+defmodule Aurora.Uix.Layout.Blueprint do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
@@ -59,7 +59,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui
     end
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         index_columns :product, [:reference, :name]
@@ -91,7 +91,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         edit_layout :product do
@@ -117,7 +117,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         edit_layout :product do
@@ -140,7 +140,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         index_columns :product, [:reference, name: [renderer: &upcase_text/1]]
@@ -158,7 +158,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         edit_layout :product do
@@ -179,7 +179,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
       alias MyApp.Inventory
       alias MyApp.Inventory.Product
 
-      auix_resource_config(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
         edit_layout :product do
@@ -206,12 +206,12 @@ defmodule Aurora.Uix.LayoutConfigUI do
 
   """
 
-  import Aurora.Uix.Helper
+  import Aurora.Uix.Layout.Helper
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import Aurora.Uix.LayoutConfigUI
+      import Aurora.Uix.Layout.Blueprint
     end
   end
 
@@ -420,7 +420,7 @@ defmodule Aurora.Uix.LayoutConfigUI do
 
   ## Example
 
-    iex> Aurora.Uix.LayoutConfigUI.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
+    iex> Aurora.Uix.Layout.Blueprint.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
     [
       %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
       %{tag: :index, state: :end}

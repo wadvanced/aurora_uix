@@ -60,7 +60,7 @@ defmodule AuroraUixTestWeb do
   @spec aurora_uix_for_test() :: Macro.t()
   def aurora_uix_for_test do
     quote do
-      Module.register_attribute(__MODULE__, :auix_resource_config, persist: true)
+      Module.register_attribute(__MODULE__, :auix_resource_metadata, persist: true)
 
       use Aurora.Uix
     end
