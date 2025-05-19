@@ -98,7 +98,7 @@ defmodule AuroraUixTestWeb do
   defp html_helpers do
     quote do
       use Aurora.Uix.Web.Gettext
-      use Aurora.Uix.Web.CoreComponents
+      use Aurora.Uix.Web.CoreComponentsImporter
 
       # HTML escaping functionality
       import Phoenix.HTML

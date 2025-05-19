@@ -124,7 +124,7 @@ defmodule Aurora.Uix.Web.Template do
   #             mode :: atom
   #           ) :: binary
 
-  @callback default_core_components() :: module
+  @callback default_core_components_module() :: module
 
   @doc """
   Validates and return the configured uix template.

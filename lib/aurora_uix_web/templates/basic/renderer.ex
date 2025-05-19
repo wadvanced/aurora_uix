@@ -4,7 +4,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   Dispatches rendering to specialized renderer modules based on the template tag.
   """
 
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
 
   alias Aurora.Uix.Web.Templates.Basic.Renderers
 

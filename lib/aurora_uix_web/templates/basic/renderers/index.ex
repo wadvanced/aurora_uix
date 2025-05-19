@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
   of entities with actions for show, edit, and delete operations.
   """
 
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
   import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
 
   alias Phoenix.LiveView.JS

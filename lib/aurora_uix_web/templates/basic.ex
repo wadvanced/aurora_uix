@@ -61,8 +61,8 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   ## Returns
     - `module` - The default core components module
   """
-  @spec default_core_components() :: module
-  def default_core_components do
+  @spec default_core_components_module() :: module
+  def default_core_components_module do
     Aurora.Uix.Web.Templates.Basic.CoreComponents
   end
 

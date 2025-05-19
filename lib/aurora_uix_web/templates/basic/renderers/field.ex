@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   - Standard form inputs with validation
   """
 
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
   import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
 
   alias Aurora.Uix.Web.Templates.Basic.Components.Live.AuroraIndexList

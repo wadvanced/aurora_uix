@@ -4,7 +4,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Sections do
   Handles rendering of dynamic tabs and their content sections.
   """
 
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
   alias Aurora.Uix.Web.Templates.Basic.Renderer
 
   @doc """

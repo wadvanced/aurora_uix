@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Components.Live.AuroraIndexList do
   """
 
   use Phoenix.LiveComponent
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
 
   @impl true
   def update(assigns, socket) do

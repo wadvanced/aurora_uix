@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
   an edit modal and layout-aware content rendering.
   """
 
-  use Aurora.Uix.Web.CoreComponents
+  use Aurora.Uix.Web.CoreComponentsImporter
 
   alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
