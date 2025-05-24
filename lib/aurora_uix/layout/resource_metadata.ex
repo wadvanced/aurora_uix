@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix.DataConfigUI do
+defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
   Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
@@ -60,13 +60,13 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
     end
 
     defmodule MyAppWeb.Inventory.Views do
-      auix_resource_config :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
       end
 
-      auix_resource_config :category, schema: MyApp.Category do
+      auix_resource_metadata :category, schema: MyApp.Category do
         field :id, readonly: true
         field :name, max_length: 20, required: true
         field :products, resource: :product
@@ -80,19 +80,19 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
   - Extensible through custom parsing and rendering strategies
   """
 
-  import Aurora.Uix.Web.Uix.Helper
+  import Aurora.Uix.Layout.Helper
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.ResourceConfigUI
-  alias Aurora.Uix.Web.Uix.DataConfigUI
+  alias Aurora.Uix.Layout.ResourceMetadata
+  alias Aurora.Uix.Resource
 
   defmacro __using__(_opts) do
     quote do
-      import Aurora.Uix.Web.Uix.DataConfigUI
+      import Aurora.Uix.Layout.ResourceMetadata
 
       Module.register_attribute(__MODULE__, :_auix_process_resource_config, accumulate: true)
 
-      @before_compile Aurora.Uix.Web.Uix.DataConfigUI
+      @before_compile Aurora.Uix.Layout.ResourceMetadata
     end
   end
 
@@ -121,7 +121,7 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
     quote do
       Module.put_attribute(
         unquote(env.module),
-        :auix_resource_config,
+        :auix_resource_metadata,
         unquote(Macro.escape(resource_configs))
       )
 
@@ -155,7 +155,7 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
 
   ## Example
     ```elixir
-      auix_resource_config :product, schema: MyApp.Product, context: MyApp.Inventory do
+      auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
         field :id, hidden: true
         field :name, placeholder: "Product name", max_length: 40, required: true
         field :price, placeholder: "Price", precision: 12, scale: 2
@@ -167,7 +167,7 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
   - Allows nested field configuration
   - Generates default configurations based on schema metadata
   """
-  defmacro auix_resource_config(name, opts \\ [], do_block \\ nil) do
+  defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
     {block, opts} = extract_block_options(opts, do_block)
 
     resource_config =
@@ -181,7 +181,7 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
       end
 
     quote do
-      use DataConfigUI
+      use ResourceMetadata
       Module.put_attribute(__MODULE__, :_auix_process_resource_config, unquote(resource_config))
     end
   end
@@ -269,12 +269,12 @@ defmodule Aurora.Uix.Web.Uix.DataConfigUI do
     Enum.map(resources, &configure_resource_fields/1)
   end
 
-  @spec configure_resource_fields(map) :: {atom, ResourceConfigUI.t()}
+  @spec configure_resource_fields(map) :: {atom, Resource.t()}
   defp configure_resource_fields(resource) do
     schema = resource.opts[:schema]
 
     resource =
-      %ResourceConfigUI{name: resource.name}
+      %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{fields: parse_fields(schema, resource.name)})

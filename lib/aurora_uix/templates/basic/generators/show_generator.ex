@@ -1,0 +1,95 @@
+defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
+  @moduledoc """
+  Generator for show view LiveView modules in the Basic template.
+
+  Provides functionality for:
+  - Detail view generation
+  - Dynamic section switching
+  - Entity data display
+  - Integration with form components
+  """
+
+  import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
+    only: [module_name: 3, remove_omitted_fields: 1]
+
+  @doc """
+  Generates a show view LiveView module with detail display and section handling.
+
+  ## Parameters
+    - modules (map()) - Map containing web, context modules and component references
+    - parsed_opts (map()) - Show view configuration with tag: :show
+
+  Returns:
+    - Macro.t() - Generated show view module
+  """
+  @spec generate_module(map(), map()) :: Macro.t()
+  def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
+    parsed_opts = remove_omitted_fields(parsed_opts)
+
+    get_function = parsed_opts.get_function
+    show_module = module_name(modules, parsed_opts, ".Show")
+    form_component = module_name(modules, parsed_opts, ".FormComponent")
+    alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
+    components = Aurora.Uix.Web.Components.AuroraCoreComponents
+    core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
+
+    quote do
+      defmodule unquote(show_module) do
+        @moduledoc false
+
+        use unquote(modules.web), :live_view
+
+        import unquote(core_helpers)
+
+        alias Aurora.Uix.Web.Templates.Basic.Renderer
+        alias unquote(modules.context)
+        alias unquote(modules.module)
+        alias unquote(form_component), as: unquote(alias_form_component)
+        alias unquote(components)
+
+        @impl true
+        def mount(_params, _session, socket) do
+          {:ok, socket}
+        end
+
+        @impl true
+        def handle_params(%{"id" => id} = params, _, socket) do
+          {:noreply,
+           socket
+           |> assign(
+             :page_title,
+             page_title(socket.assigns.live_action, unquote(parsed_opts.name))
+           )
+           |> assign(:subtitle, " Detail")
+           |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+           |> assign_auix_new(:_sections, %{})
+           |> assign_source(params)
+           |> assign(
+             :auix_entity,
+             apply(unquote(modules.context), unquote(get_function), [
+               id,
+               [preload: unquote(Macro.escape(parsed_opts.preload))]
+             ])
+           )
+           |> assign_auix(:_form_component, unquote(form_component))
+           |> render_with(&Renderer.render/1)}
+        end
+
+        @impl true
+        def handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
+          %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
+
+          {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
+        end
+
+        # Formats page title by combining capitalized action with suffix
+        defp page_title(action, suffix) do
+          action
+          |> to_string()
+          |> String.capitalize()
+          |> Kernel.<>(" #{suffix}")
+        end
+      end
+    end
+  end
+end

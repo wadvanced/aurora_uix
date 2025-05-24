@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Core.Helpers do
+defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @moduledoc """
   Helper functions for LiveView components.
   """
@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
-  import Aurora.Uix.Web.Template, only: [safe_existing_atom: 1]
+  import Aurora.Uix.Template, only: [safe_existing_atom: 1]
 
   alias Phoenix.LiveView.JS
 
@@ -14,10 +14,14 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   Assigns a new entity to the socket based on related parameters.
 
   ## Parameters
-    * `socket` - The LiveView socket.
-    * `params` - A map containing optional "related_key" and "parent_id" keys for relationship setup.
-    * `default` - The default entity struct to use when creating a new entity.
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - params (map()) - Contains optional related_key and parent_id for relationships
+    - default (struct()) - Default entity struct for new records
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
   """
+  @spec assign_new_entity(Phoenix.Socket.t(), map, map) :: Phoenix.Socket.t()
   def assign_new_entity(
         socket,
         %{"related_key" => related_key, "parent_id" => parent_id},
@@ -28,7 +32,6 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
     |> __maybe_set_related_to_new_entity__(socket, parent_id, default)
   end
 
-  @spec assign_new_entity(Phoenix.Socket.t(), map, map) :: Phoenix.Socket.t()
   def assign_new_entity(socket, _params, default) do
     assign(socket, :auix_entity, default)
   end
@@ -37,13 +40,17 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   Assigns source-related data to the socket based on provided parameters.
 
   ## Parameters
-    * `socket` - The LiveView socket.
-    * `params` - A map that may contain a "source" key.
-    * `default_source` - The default source value to use when no source is provided.
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - params (map()) - Contains optional source configuration
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_source(Phoenix.LiveView.Socket.t(), map, binary) ::
+  @spec assign_source(Phoenix.LiveView.Socket.t(), map) ::
           Phoenix.LiveView.Socket.t()
-  def assign_source(socket, params, default_source) do
+  def assign_source(%{assigns: assigns} = socket, params) do
+    default_source = get_in(assigns, [:_auix, :source]) || ""
+
     params
     |> Map.get("source")
     |> __maybe_set_different_source_and_link__(socket, default_source)
@@ -53,13 +60,17 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   Assigns click handler for index rows based on parsed options.
 
   ## Parameters
-    * `socket` - The LiveView socket.
-    * `_params` - Unused parameters map.
-    * `parsed_opts` - Options map containing :disable_index_row_click and :index_row_click settings.
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - _params (map()) - Unused parameters map
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map, map) ::
+  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map) ::
           Phoenix.LiveView.Socket.t()
-  def assign_index_row_click(socket, _params, parsed_opts) do
+  def assign_index_row_click(%{assigns: assigns} = socket, _params) do
+    parsed_opts = Map.get(assigns, :_auix, %{})
+
     index_row_click =
       if parsed_opts[:disable_index_row_click],
         do: nil,
@@ -76,12 +87,33 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   end
 
   @doc """
+  Assigns parsed options to the _auix assigns map in the socket.
+
+  ## Parameters
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - parsed_opts (map()) - Options to merge with existing _auix assigns
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
+  """
+  @spec assign_parsed_opts(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
+  def assign_parsed_opts(socket, parsed_opts) do
+    socket.assigns
+    |> Map.get(:_auix, %{})
+    |> then(&Map.merge(parsed_opts, &1))
+    |> then(&assign(socket, :_auix, &1))
+  end
+
+  @doc """
   Assigns a value to the _auix assigns map in the socket.
 
   ## Parameters
-    * `socket` - The LiveView socket.
-    * `key` - The key under which to store the value in _auix.
-    * `value` - The value to store.
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - key (atom()) - Key for storing in _auix map
+    - value (term()) - Value to store
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
   """
   @spec assign_auix(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix(socket, key, value) do
@@ -92,11 +124,53 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   end
 
   @doc """
+  Assigns a value to the _auix assigns map in the socket only if it does not exist.
+
+  ## Parameters
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - key (atom()) - Key for storing in _auix map
+    - value (term()) - Value to store
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
+  """
+  @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
+  def assign_auix_new(socket, key, value) do
+    socket.assigns
+    |> Map.get(:_auix, %{})
+    |> Map.put_new(key, value)
+    |> then(&assign(socket, :_auix, &1))
+  end
+
+  @doc """
+  Assigns section configuration to _auix assigns map.
+
+  ## Parameters
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - sections_id (binary()) - Identifier for the sections group
+    - tab_id (binary()) - Identifier for the active tab
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
+  """
+  @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary(), binary()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_auix_sections(%{assigns: assigns} = socket, sections_id, tab_id) do
+    assigns._auix
+    |> Map.get(:_sections)
+    |> Map.put(sections_id, tab_id)
+    |> then(&assign_auix(socket, :_sections, &1))
+  end
+
+  @doc """
   Generates a link for showing an entity in the index view.
 
   ## Parameters
-    * `auix` - The auix configuration map containing :index_show_entity_link.
-    * `entity` - The entity map containing the :id field.
+    - auix (map()) - Configuration map with index_show_entity_link setting
+    - entity (map()) - Entity data with id field
+
+  Returns:
+    - binary()
   """
   @spec index_show_entity_link(map, map) :: binary
   def index_show_entity_link(auix, entity) do
@@ -110,10 +184,13 @@ defmodule Aurora.Uix.Web.Templates.Core.Helpers do
   Generates a path string for related entities.
 
   ## Parameters
-    * `source` - The source identifier.
-    * `auix_entity` - The entity map containing :id and owner key value.
-    * `related_key` - The key identifying the relation.
-    * `owner_key` - The key identifying the owner field.
+    - source (binary()) - The source identifier
+    - auix_entity (map()) - Entity with id and owner key value
+    - related_key (atom()) - Key identifying the relation
+    - owner_key (atom()) - Key identifying the owner field
+
+  Returns:
+    - binary()
   """
   @spec related_path(binary, map, atom, atom) :: binary
   def related_path(_source, _auix_entity, nil, _owner_key), do: ""

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix do
+defmodule Aurora.Uix do
   @moduledoc """
   Provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
 
@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Web.Uix do
 
   ## Key Features
 
-  ### 1. Schema Configuration (`auix_resource_config`)
+  ### 1. Schema Configuration (`auix_resource_metadata`)
   - Attaches UI-specific metadata to schemas or structured data.
   - Enables consistent rendering of forms, lists, and detail views.
   - Supports customization of field labels, placeholders, validation rules, and more.
@@ -22,14 +22,14 @@ defmodule Aurora.Uix.Web.Uix do
 
   ## Getting Started
 
-  To use `Aurora.Uix.Web.Uix`, simply `use` it in your module:
+  To use `Aurora.Uix`, simply `use` it in your module:
 
   ```elixir
   defmodule MyAppWeb.ProductView do
-    use Aurora.Uix.Web.Uix
+    use Aurora.Uix
 
     # Define schema configuration
-    auix_resource_config :product,
+    auix_resource_metadata :product,
       schema: MyApp.Product,
       context: MyApp.Products do
       field :name, placeholder: "Product name", max_length: 40, required: true
@@ -54,10 +54,10 @@ defmodule Aurora.Uix.Web.Uix do
 
   ```elixir
   defmodule MyAppWeb.UserView do
-    use Aurora.Uix.Web.Uix
+    use Aurora.Uix
 
     # Configure schema metadata
-    auix_resource_config :user,
+    auix_resource_metadata :user,
       schema: MyApp.Accounts.User,
       context: MyApp.Accounts do
       field :email, placeholder: "user@example.com", required: true
@@ -81,21 +81,21 @@ defmodule Aurora.Uix.Web.Uix do
 
   While it provides flexibility for customization, it works best when embracing its conventions.
   """
-  alias Aurora.Uix.Web.Uix.CreateUI
-  alias Aurora.Uix.Web.Uix.DataConfigUI
+  alias Aurora.Uix.Layout.CreateUI
+  alias Aurora.Uix.Layout.ResourceMetadata
 
   require Logger
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      Module.register_attribute(__MODULE__, :auix_resource_config, accumulate: true)
+      Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
 
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
 
-      import DataConfigUI,
-        only: [auix_resource_config: 1, auix_resource_config: 2, auix_resource_config: 3]
+      import ResourceMetadata,
+        only: [auix_resource_metadata: 1, auix_resource_metadata: 2, auix_resource_metadata: 3]
     end
   end
 end

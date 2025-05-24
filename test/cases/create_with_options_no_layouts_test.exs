@@ -8,7 +8,7 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     auix_create_ui()
   end
@@ -19,7 +19,6 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
 
     index_functions = index_module.__info__(:functions)
     assert {:__live__, 0} in index_functions
-    assert {:render, 1} in index_functions
     assert {:handle_params, 3} in index_functions
     assert {:handle_event, 3} in index_functions
     assert {:handle_info, 2} in index_functions
@@ -28,7 +27,6 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
     form_functions = form_module.__info__(:functions)
     assert {:__live__, 0} in form_functions
     assert {:__components__, 0} in form_functions
-    assert {:render, 1} in form_functions
     assert {:update, 2} in form_functions
     assert {:handle_event, 3} in form_functions
   end

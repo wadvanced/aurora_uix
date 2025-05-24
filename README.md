@@ -1,4 +1,10 @@
-# aurora-uix
+<p align="center">
+  <picture>
+    <img src="./guides/images/aurora_uix-logo.svg" height="200" />
+  </picture>
+</p>
+
+# Aurora UIX
 A low code UI for the elixir's Phoenix Framework.
 
 ---
@@ -174,7 +180,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     
     auix_create_ui link_prefix: "create-ui-layout-" do

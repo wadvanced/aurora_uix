@@ -28,19 +28,7 @@ defmodule Aurora.Uix.MixProject do
 
       # Docs
       name: "Aurora UIX",
-      docs: [
-        source_ref: @version,
-        extra_section: "GUIDES",
-        source_url: @source_url,
-        extras: [
-          "guides/introduction/getting_started.md",
-          "CHANGELOG.md"
-        ],
-        groups_for_extras: [
-          Introduction: ~r(guides/introduction/.?)
-        ],
-        before_closing_body_tag: &before_closing_body_tag/1
-      ]
+      docs: &docs/0
     ]
   end
 
@@ -68,7 +56,7 @@ defmodule Aurora.Uix.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
@@ -90,4 +78,20 @@ defmodule Aurora.Uix.MixProject do
   defp before_closing_body_tag(_),
     do:
       ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
+
+  defp docs do
+    [
+      source_ref: @version,
+      extra_section: "GUIDES",
+      source_url: @source_url,
+      extras: [
+        "guides/introduction/getting_started.md",
+        "CHANGELOG.md"
+      ],
+      groups_for_extras: [
+        Introduction: ~r(guides/introduction/.?)
+      ],
+      before_closing_body_tag: &before_closing_body_tag/1
+    ]
+  end
 end

@@ -9,7 +9,7 @@ Compatible with Phoenix LiveView v1.0+
 
 ### Features
 * Resource Configuration
-  - `auix_resource_config/3` - Define schema-based resource configurations with field customizations
+  - `auix_resource_metadata/3` - Define schema-based resource configurations with field customizations
   - `auix_register_resource/3` - Register resources for automatic CRUD function generation
 
 * Layout System
@@ -24,7 +24,7 @@ Compatible with Phoenix LiveView v1.0+
   - `sections/3` - Group content in tab-like structures
 
 * UI Generation
-  - Compile-time UI generation through `use Aurora.Uix.Web.Uix.CreateUI`
+  - Compile-time UI generation through `use Aurora.Uix.Layout.CreateUI`
   - Dynamic template generation with HEEx support
   - Integrated i18n support via configurable Gettext backend
 

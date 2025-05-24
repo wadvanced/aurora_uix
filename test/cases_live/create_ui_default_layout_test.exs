@@ -8,7 +8,7 @@ defmodule AuroraUixTestWeb.CreateUIDefaultLayoutTest do
     alias AuroraUixTest.Inventory
     alias AuroraUixTest.Inventory.Product
 
-    auix_resource_config(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
@@ -22,10 +22,10 @@ defmodule AuroraUixTestWeb.CreateUIDefaultLayoutTest do
 
     {:ok, view, html} = live(conn, "/create-ui-default-layout-products")
     assert html =~ "Listing Products"
-    assert html =~ "New Products"
+    assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-products")
+           |> element("#auix-new-product")
            |> render_click() =~ "New Product"
   end
 

@@ -34,7 +34,7 @@ defmodule AuroraUixTest.UICase do
 
   @spec resource_configs(module) :: map
   def resource_configs(module) do
-    attributes(module, :auix_resource_config)
+    attributes(module, :auix_resource_metadata)
   end
 
   @spec attributes(module, atom) :: map

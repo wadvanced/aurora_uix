@@ -67,112 +67,75 @@ defmodule Aurora.Uix.Field do
         }
 
   @doc """
-  Creates a new `%Aurora.Uix.Field{}` struct with the given attributes.
+  Creates a new Field struct with the given attributes.
 
-    ## Parameters
+  ## Parameters
+    - attrs (map() | keyword()) - Initial attributes for the field struct
 
-    - `attrs` (map | keyword): A map or keyword of attributes to initialize the struct.
-      Keys not present in the struct are ignored. Default is an empty map.
+  The name attribute is automatically derived from the field value.
 
-  ## Examples
-
-      iex> Aurora.Uix.Field.new(%{field: :age, field_type: :float, field_html_type: :float, precision: 10, scale: 2})
+  ## Example
+      iex> Aurora.Uix.Field.new(%{field: :user_name})
       %Aurora.Uix.Field{
-        field: :age,
-        field_type: :float,
-        field_html_type: :float,
-        renderer: nil,
+        field: :user_name,
+        name: "user_name",
         data: nil,
-        resource: nil,
-        name: "age",
-        label: "",
-        placeholder: "",
-        length: 0,
-        precision: 10,
-        scale: 2,
-        hidden: false,
-        readonly: false,
-        required: false,
         disabled: false,
-        omitted: false
-      }
-
-
-      iex> Aurora.Uix.Field.new([field: :username, field_type: :binary, field_html_type: :text])
-      %Aurora.Uix.Field{
-        field: :username,
-        field_type: :binary,
-        field_html_type: :text,
-        renderer: nil,
-        data: nil,
-        resource: nil,
-        name: "username",
+        field_html_type: nil,
+        field_type: nil,
+        hidden: false,
         label: "",
-        placeholder: "",
         length: 0,
+        omitted: false,
+        placeholder: "",
         precision: 0,
-        scale: 0,
-        hidden: false,
         readonly: false,
+        renderer: nil,
         required: false,
-        disabled: false,
-        omitted: false
+        resource: nil,
+        scale: 0
       }
+
+  Returns:
+    - Aurora.Uix.Field.t()
   """
   @spec new(map | keyword) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing `%Aurora.Uix.Field{}` struct with new attributes.
+  Updates an existing Field struct with new attributes.
 
-    ## Parameters
+  ## Parameters
+    - field (t()) - The existing field struct
+    - attrs (map() | keyword()) - Attributes to update in the struct
 
-      - `field` (t()): The existing field struct.
-      - `attrs` (map | keyword): A map or keyword of attributes to update the struct.
-        Keys not present in the struct are ignored.
+  The name attribute is updated when field value changes.
 
-    ## Examples
+  ## Example
+      iex> field = Aurora.Uix.Field.new()
+      iex> Aurora.Uix.Field.change(field, %{field: :email})
+      %Aurora.Uix.Field{
+              field: :email,
+              name: "email",
+              data: nil,
+              disabled: false,
+              field_html_type: nil,
+              field_type: nil,
+              hidden: false,
+              label: "",
+              length: 0,
+              omitted: false,
+              placeholder: "",
+              precision: 0,
+              readonly: false,
+              renderer: nil,
+              required: false,
+              resource: nil,
+              scale: 0
+            }
 
-        iex> field = Aurora.Uix.Field.new(%{field: :age})
-        %Aurora.Uix.Field{
-          field: :age,
-          field_type: nil,
-          field_html_type: nil,
-          renderer: nil,
-          data: nil,
-          resource: nil,
-          name: "age",
-          label: "",
-          placeholder: "",
-          length: 0,
-          precision: 0,
-          scale: 0,
-          hidden: false,
-          readonly: false,
-          required: false,
-          disabled: false,
-          omitted: false
-        }
-        iex> Aurora.Uix.Field.change(field, %{field_html_type: :number, precision: 3})
-        %Aurora.Uix.Field{
-          field: :age,
-          field_type: nil,
-          field_html_type: :number,
-          renderer: nil,
-          data: nil,
-          resource: nil,
-          name: "age",
-          label: "",
-          placeholder: "",
-          length: 0,
-          precision: 3,
-          scale: 0,
-          hidden: false,
-          readonly: false,
-          required: false,
-          disabled: false,
-          omitted: false
-        }
+  Returns:
+    - Aurora.Uix.Field.t()
   """
   @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
   def change(field, attrs) when is_list(attrs) do

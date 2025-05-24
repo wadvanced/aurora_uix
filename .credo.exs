@@ -129,7 +129,7 @@
           {Credo.Check.Refactor.AppendSingleItem, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Refactor.Apply, []},
           {Credo.Check.Refactor.CondStatements, []},
-          {Credo.Check.Refactor.CyclomaticComplexity, files: %{excluded: ["lib/aurora_uix_web/templates/**/*.ex"]}},
+          {Credo.Check.Refactor.CyclomaticComplexity, files: %{excluded: ["lib/aurora_uix/templates/basic/generators/*.ex"]}},
           {Credo.Check.Refactor.DoubleBooleanNegation, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Refactor.FilterCount, []},
           {Credo.Check.Refactor.FilterFilter, []},

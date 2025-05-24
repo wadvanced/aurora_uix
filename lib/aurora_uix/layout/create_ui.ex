@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Uix.CreateUI do
+defmodule Aurora.Uix.Layout.CreateUI do
   @moduledoc """
   Provides a comprehensive framework for dynamically generating UI layouts and views in Phoenix/Elixir applications.
 
@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   - Support custom layout definitions
 
   ## Compilation Workflow
-  1. Module uses `use Aurora.Uix.Web.Uix.CreateUI`
+  1. Module uses `use Aurora.Uix.Layout.CreateUI`
   2. Configurations are collected via module attributes
   3. `__before_compile__/1` macro triggers UI generation
   4. Modules are dynamically created based on configurations
@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   ## Examples
   ```elixir
     defmodule MyApp.ProductViews do
-      use Aurora.Uix.Web.Uix.CreateUI
+      use Aurora.Uix.Layout.CreateUI
       auix_create_ui for: :product do
         index_columns :product, [:name, :price]
         edit_layout :product do
@@ -39,19 +39,19 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   - Supports complex, nested layouts
   """
 
-  import Aurora.Uix.Web.Uix.Helper
+  import Aurora.Uix.Layout.Helper
 
+  alias Aurora.Uix.Layout.Blueprint
+  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Parser
-  alias Aurora.Uix.Web.Template
-  alias Aurora.Uix.Web.Uix.CreateUI
-  alias Aurora.Uix.Web.Uix.LayoutConfigUI
+  alias Aurora.Uix.Template
 
   defmacro __using__(_opts) do
     quote do
-      import Aurora.Uix.Web.Uix.CreateUI
-      use Aurora.Uix.Web.Uix.LayoutConfigUI
+      import Aurora.Uix.Layout.CreateUI
+      use Aurora.Uix.Layout.Blueprint
 
-      @before_compile Aurora.Uix.Web.Uix.CreateUI
+      @before_compile Aurora.Uix.Layout.CreateUI
     end
   end
 
@@ -74,7 +74,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
 
     modules =
       module
-      |> Module.get_attribute(:auix_resource_config, [])
+      |> Module.get_attribute(:auix_resource_metadata, [])
       |> Enum.reduce(%{}, fn resource, acc ->
         Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), elem(&1, 1)))
       end)
@@ -223,7 +223,7 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
   # Returns a map with the following format:
   #  %{
   #    resource_config_name: resource_config_name, Name of the resource, being configured.
-  #    resource_config: resource_config, # Instance of Aurora.Uix.ResourceConfigUI struct.
+  #    resource_config: resource_config, # Instance of Aurora.Uix.Resource struct.
   #    layouts: layouts, # List of layouts map TODO: should be provided by the template
   #    parsed_opts: parsed_opts, # Parsed options for the layout.
   #    defaulted_paths: defaulted_paths, # Paths making up the UI.
@@ -260,8 +260,8 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
         |> Enum.map(fn tag ->
           paths
           |> Map.get(tag)
-          |> LayoutConfigUI.build_default_layout_paths(resource_config, opts, tag)
-          |> LayoutConfigUI.parse_sections(tag)
+          |> Blueprint.build_default_layout_paths(resource_config, opts, tag)
+          |> Blueprint.parse_sections(tag)
           |> disable_show_fields(tag)
           |> then(&{tag, &1})
         end)
@@ -295,14 +295,6 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
     {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
     resource_module = Map.get(resource_config, :schema)
 
-    parsed_opts =
-      layouts
-      |> Enum.map(
-        &parse_template_paths(&1, defaulted_paths, configurations, parsed_opts, template)
-      )
-      |> Map.new()
-      |> then(&Map.merge(parsed_opts, %{templates: &1}))
-
     modules = %{
       caller: caller,
       module: resource_module,
@@ -313,20 +305,31 @@ defmodule Aurora.Uix.Web.Uix.CreateUI do
     Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
 
     Enum.reduce(
-      [:form, :index, :show],
+      layouts,
       [],
-      &[template.generate_module(modules, &1, parsed_opts) | &2]
+      &[
+        generate_module(
+          modules,
+          Map.get(defaulted_paths, &1, %{}),
+          configurations,
+          parsed_opts,
+          template
+        )
+        | &2
+      ]
     )
   end
 
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
-  @spec parse_template_paths(atom, map, map, map, module) :: tuple
-  defp parse_template_paths(tag, paths, configurations, parsed_opts, template) do
-    paths
-    |> Map.get(tag, %{name: nil})
-    |> then(&template.parse_layout(&1, configurations, parsed_opts, &1.name, tag))
-    |> then(&{tag, &1})
+  @spec generate_module(map, map, map, map, module) :: Macro.t()
+  defp generate_module(modules, path, configurations, parsed_opts, template) do
+    parsed_opts
+    |> Map.put(:_configurations, configurations)
+    |> Map.put(:_path, path)
+    |> Map.put(:_resource_name, path.name)
+    |> Map.put(:_mode, path.tag)
+    |> then(&template.generate_module(modules, &1))
   end
 
   @spec locate_layout_paths(atom, list, atom) :: tuple

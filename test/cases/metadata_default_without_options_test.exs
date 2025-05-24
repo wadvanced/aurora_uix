@@ -5,7 +5,7 @@ defmodule AuroraUixTest.MetadataWithoutOptionsTest do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    auix_resource_config(:product)
+    auix_resource_metadata(:product)
   end
 
   test "Test default without options - no schema, no context" do
