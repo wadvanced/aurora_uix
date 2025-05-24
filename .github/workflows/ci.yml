@@ -74,4 +74,4 @@ jobs:
         mix uix.test.task ecto.migrate 
     
     - name: Run tests
-      run: mix test
+      run: mix test --trace
