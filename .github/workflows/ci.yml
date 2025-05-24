@@ -61,7 +61,13 @@ jobs:
       run: |
         mix deps.get
         mix deps.compile
-
+        
+    - name: temporal recompiling    
+      run: |
+        mix deps.clean --all
+        mix deps.get
+        mix deps.compile
+      
     - name: Compile app
       run: mix compile --force
 
@@ -74,4 +80,4 @@ jobs:
         mix uix.test.task ecto.migrate 
     
     - name: Run tests
-      run: mix test
+      run: mix test --trace
