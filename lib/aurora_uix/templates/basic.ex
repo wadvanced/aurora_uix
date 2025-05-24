@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   ## Architecture
   This module acts as a facade, delegating specific template generation tasks to specialized components:
   - `LayoutParser`: Handles complex layout structure parsing
-  - `LogicModulesGenerator`: Generates business logic and LiveView modules
+  - `ModulesGenerator`: Generates business logic and LiveView modules
   - `MarkupGenerator`: Creates HEEx template fragments
 
   ## Responsibilities
@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   4. Combine generated components
 
   ### Key Delegations
-  - `generate_module/2`: Delegates to `LogicModulesGenerator` for module creation
+  - `generate_module/2`: Delegates to `ModulesGenerator` for module creation
 
   ## Usage Example
   ```elixir
@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Web.Templates.Basic.LogicModulesGenerator
+  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates logic modules based on the provided configuration.
@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   """
   @spec generate_module([{atom, module}] | map, map) :: Macro.t()
   defdelegate generate_module(modules, parsed_opts),
-    to: LogicModulesGenerator
+    to: ModulesGenerator
 
   @doc """
   Returns the default core components module used in the template system.

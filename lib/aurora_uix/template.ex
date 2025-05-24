@@ -96,27 +96,6 @@ defmodule Aurora.Uix.Template do
   @callback generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()
 
   @doc """
-  Creates the layout HTML code for a given path and resource configuration.
-
-  ## Parameters
-    - paths (map() | list()) - Layout path information
-    - configurations (map()) - Overall resource configurations
-    - parsed_opts (map()) - Additional parsing options
-    - resource_name (atom()) - Resource being processed
-    - mode (atom()) - Layout type to generate
-
-  Returns:
-    - binary() - Generated HTML code
-  """
-  @callback parse_layout(
-              paths :: map() | list(),
-              configurations :: map(),
-              parsed_opts :: map(),
-              resource_name :: atom(),
-              mode :: atom()
-            ) :: binary()
-
-  @doc """
   Returns the default core components module.
 
   Returns:
