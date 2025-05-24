@@ -96,10 +96,5 @@ defmodule AuroraUixTestWeb.Router do
       AssociationMany2oneUILayoutTest.TestModule.ProductLocation,
       "association-many-layout-product_locations"
     )
-
-    AuroraUixTestWeb.register_crud(
-      LocalLayoutTest.TestModule.Product,
-      "local-layout-products"
-    )
   end
 end
