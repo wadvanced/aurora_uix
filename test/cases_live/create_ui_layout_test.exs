@@ -62,9 +62,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
     view
     |> tap(&assert has_element?(&1, "#auix-new-product"))
-    |> tap(&assert has_element?(&1, "table"))
-    |> tap(&assert has_element?(&1, "tr"))
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)"))
+    |> tap(&assert has_element?(&1, "tr[id^='products'] a[name='show-product']"))
     |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1) a[name='show-product']"))
     |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1) a[name='edit-product']"))
     |> tap(
