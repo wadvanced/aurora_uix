@@ -1,7 +1,19 @@
 defmodule AuroraUixTestWeb.SectionHelper do
+  @moduledoc """
+  Helper module for testing sections in Aurora UIX components.
+  Provides utilities for interacting with and asserting section states, buttons, and fields.
+  """
+
   use AuroraUixTestWeb.ConnCase
   import Phoenix.LiveViewTest
 
+  @doc """
+  Converts a section or tab index to integer.
+
+  - index: string() | atom() - The index to convert
+
+  Returns: integer()
+  """
   @spec auix_index(binary | atom) :: integer
   def auix_index(index) do
     index
@@ -11,16 +23,40 @@ defmodule AuroraUixTestWeb.SectionHelper do
     |> String.to_integer()
   end
 
+  @doc """
+  Generates a CSS selector for a section button.
+
+  - section_index: integer() - The section index
+  - tab_index: integer() - The tab index
+
+  Returns: string() - CSS selector
+  """
   @spec auix_button_selector(atom, integer) :: binary
   def auix_button_selector(section_index, tab_index) do
     ~s|button[data-button-sections-index="#{auix_index(section_index)}"][data-button-tab-index="#{auix_index(tab_index)}"]|
   end
 
+  @doc """
+  Generates a CSS selector for a section.
+
+  - section_index: integer() - The section index
+  - tab_index: integer() - The tab index
+
+  Returns: string() - CSS selector
+  """
   @spec auix_section_selector(atom, integer) :: binary
   def auix_section_selector(section_index, tab_index) do
     ~s|div[data-tab-sections-index="#{auix_index(section_index)}"][data-tab-index="#{auix_index(tab_index)}"]|
   end
 
+  @doc """
+  Extracts a phx-value from an element's HTML.
+
+  - element_html: string() - The HTML content
+  - value_name: atom() - The value name to extract
+
+  Returns: decoded JSON value
+  """
   @spec auix_phx_value(binary, atom) :: any
   def auix_phx_value(element_html, value_name) do
     parsed_value_name = value_name |> to_string() |> String.replace("_", "-")
@@ -32,6 +68,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     |> Jason.decode!()
   end
 
+  @doc """
+  Clicks a section button and verifies it is active.
+
+  - view: LiveView - The LiveView instance
+  - section_title: string() - The section title
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: string() - The rendered HTML
+  """
   @spec click_section_button(
           Phoenix.LiveViewTest.View,
           binary,
@@ -48,6 +94,15 @@ defmodule AuroraUixTestWeb.SectionHelper do
     |> render_click()
   end
 
+  @doc """
+  Gets the parent section ID for a given section.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: string() - Parent section ID
+  """
   @spec parent_section_id(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
           binary
   def parent_section_id(view, section_index \\ :section_1, tab_index) do
@@ -58,7 +113,17 @@ defmodule AuroraUixTestWeb.SectionHelper do
     |> to_string()
   end
 
-  @spec section_tab_id(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) :: binary
+  @doc """
+  Gets the section tab ID and parsed HTML for a given section.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: {Floki.html_tree(), string()} - Tuple with parsed HTML and tab ID
+  """
+  @spec section_tab_id(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
+          {Floki.html_tree(), binary}
   def section_tab_id(view, section_index \\ :section_1, tab_index) do
     section_index = auix_index(section_index)
 
@@ -75,6 +140,14 @@ defmodule AuroraUixTestWeb.SectionHelper do
     {floki, tab_id}
   end
 
+  @doc """
+  Checks if a section is active based on its HTML attributes.
+
+  - floki: Floki.html_tree() - Parsed HTML tree
+  - section_id: string() - The section ID to check
+
+  Returns: boolean() - Whether the section is active
+  """
   @spec section_active?(Floki.html_tree(), binary) :: boolean
   def section_active?(_floki, ""), do: true
 
@@ -95,6 +168,15 @@ defmodule AuroraUixTestWeb.SectionHelper do
     end
   end
 
+  @doc """
+  Asserts that a section is active. Fails the test if the section is not active.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec assert_section_is_active(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
           Macro.t()
   def assert_section_is_active(view, section_index \\ :section_1, tab_index) do
@@ -106,6 +188,15 @@ defmodule AuroraUixTestWeb.SectionHelper do
     )
   end
 
+  @doc """
+  Refutes that a section is active. Fails the test if the section is active.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec refute_section_is_active(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
           Macro.t()
   def refute_section_is_active(view, section_index \\ :section_1, tab_index) do
@@ -117,6 +208,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     )
   end
 
+  @doc """
+  Asserts that any parent section of the given section is active.
+  Fails the test if none of the parent sections are active.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: :ok | no_return() - Assertion result
+  """
   @spec assert_parent_section_is_active(
           Phoenix.LiveViewTest.View,
           atom | integer | nil,
@@ -133,6 +234,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     )
   end
 
+  @doc """
+  Refutes that any parent section of the given section is active.
+  Fails the test if any of the parent sections are active.
+
+  - view: LiveView - The LiveView instance
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: :ok | no_return() - Assertion result
+  """
   @spec refute_parent_section_is_active(
           Phoenix.LiveViewTest.View,
           atom | integer | nil,
@@ -149,6 +260,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     )
   end
 
+  @doc """
+  Asserts that one or more section buttons are active.
+
+  - view: LiveView - The LiveView instance
+  - section_title: string() | [string()] - The section title(s)
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec assert_section_button_is_active(
           Phoenix.LiveViewTest.View,
           atom | binary | list,
@@ -183,6 +304,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     assert_parent_section_is_active(view, section_index, tab_index)
   end
 
+  @doc """
+  Refutes that one or more section buttons are active.
+
+  - view: LiveView - The LiveView instance
+  - section_title: string() | [string()] - The section title(s)
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec refute_section_button_is_active(
           Phoenix.LiveViewTest.View,
           atom | binary | list,
@@ -223,6 +354,16 @@ defmodule AuroraUixTestWeb.SectionHelper do
     )
   end
 
+  @doc """
+  Asserts that one or more fields are visible in a section.
+
+  - view: LiveView - The LiveView instance
+  - field_names: string() | [string()] - The field name(s)
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec assert_field_is_visible_in_section(
           Phoenix.LiveViewTest.View,
           atom | binary | list,
@@ -257,13 +398,28 @@ defmodule AuroraUixTestWeb.SectionHelper do
     assert_section_is_active(view, section_index, tab_index)
   end
 
+  @doc """
+  Refutes that one or more fields are visible in a section.
+
+  - view: LiveView - The LiveView instance
+  - field_names: string() | [string()] - The field name(s)
+  - section_index: atom() | integer() - The section index, defaults to :section_1
+  - tab_index: atom() | integer() - The tab index
+
+  Returns: Macro.t()
+  """
   @spec refute_field_is_visible_in_section(
           Phoenix.LiveViewTest.View,
           atom | binary | list,
           atom | integer | nil,
           atom | integer
         ) :: Macro.t()
-  def refute_field_is_visible_in_section(view, field_name, section_index \\ :section_1, tab_index)
+  def refute_field_is_visible_in_section(
+        view,
+        field_names,
+        section_index \\ :section_1,
+        tab_index
+      )
 
   def refute_field_is_visible_in_section(view, field_names, section_index, tab_index)
       when is_list(field_names) do

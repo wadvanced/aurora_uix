@@ -4,31 +4,20 @@ defmodule Aurora.Uix.Test.Support.Helper do
   Provides utilities to create sample records for testing purposes.
   """
 
-  alias AuroraUixTest.Repo
   alias AuroraUixTest.Inventory.Product
+  alias AuroraUixTest.Repo
 
   require Logger
 
   @doc """
   Creates a sequence of sample products with incremental IDs.
 
-  ## Parameters
-    * `context` - The context module containing product CRUD functions
-    * `to` - Number of products to create (integer)
+  - context: module() - The context module containing product CRUD functions
+  - to: integer() - Number of products to create
 
-  ## Returns
-    Map of product IDs with atom keys in the format `id_n`
-
-  ## Example
-      # Create 3 sample products
-      products = create_sample_products(MyApp.Inventory, 3)
-
-      # Access product IDs
-      products.id_1  # => 1
-      products.id_2  # => 2
-      products.id_3  # => 3
+  Returns: map() - Map of product IDs with atom keys in the format `id_n`
   """
-  @spec create_sample_products(integer) :: list()
+  @spec create_sample_products(integer) :: map()
   def create_sample_products(to) do
     length = to |> to_string() |> String.length()
 
@@ -48,6 +37,7 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> Map.new()
   end
 
+  @doc false
   @spec reference_id(integer, integer) :: binary
   defp reference_id(index, length) do
     index
