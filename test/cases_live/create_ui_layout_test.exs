@@ -59,6 +59,8 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test main links", %{conn: conn} do
+    create_sample_products(5)
+
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
@@ -86,6 +88,8 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test main show link", %{conn: conn} do
+    create_sample_products(5)
+
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
@@ -99,6 +103,8 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test show link - edit link", %{conn: conn} do
+    create_sample_products(5)
+
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
@@ -113,6 +119,8 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   end
 
   test "Test main edit link", %{conn: conn} do
+    create_sample_products(5)
+
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
@@ -124,6 +132,8 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
   test "Test main delete link", %{conn: conn} do
     # Can only test up to the data-confirm existance
+    create_sample_products(5)
+
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view

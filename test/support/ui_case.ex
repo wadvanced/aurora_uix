@@ -1,5 +1,3 @@
-Code.require_file("test/support/conn_case.exs")
-
 defmodule AuroraUixTest.UICase do
   @moduledoc """
   Support for testing schema metadata behaviour.
@@ -93,11 +91,10 @@ defmodule AuroraUixTest.UICase do
   @doc false
   @spec phoenix_case() :: Macro.t()
   def phoenix_case do
-    Code.require_file("test/support/section_helper.exs")
-
     quote do
       use AuroraUixTestWeb.ConnCase
       import Phoenix.LiveViewTest
+      import Aurora.Uix.Test.Support.Helper
       import AuroraUixTest.UICase
       import AuroraUixTestWeb.SectionHelper
     end

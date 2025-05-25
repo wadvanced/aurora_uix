@@ -11,6 +11,7 @@ defmodule Aurora.Uix.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         plt_add_apps: [:eex, :mix]
       ],
@@ -62,6 +63,9 @@ defmodule Aurora.Uix.MixProject do
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp aliases do
     [

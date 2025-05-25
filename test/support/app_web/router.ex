@@ -1,5 +1,3 @@
-Code.require_file("test/support/aurora_uix_test_web.exs")
-
 defmodule AuroraUixTestWeb.Router do
   use AuroraUixTestWeb, :router
 
