@@ -8,4 +8,4 @@ Esbuild.start(nil, nil)
 Code.require_file("test/start_test_app.exs")
 
 ExUnit.start()
-AuroraUixTest.AppLoader.load_modules(["test", "cases_live"])
+Aurora.Uix.Test.AppLoader.load_modules(["test", "cases_live"])

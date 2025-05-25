@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.DataCase do
+defmodule Aurora.Uix.Test.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -10,7 +10,7 @@ defmodule AuroraUixTest.DataCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use AuroraUixTest.DataCase, async: true`, although
+  by setting `use Aurora.Uix.Test.DataCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -20,17 +20,17 @@ defmodule AuroraUixTest.DataCase do
 
   using do
     quote do
-      alias AuroraUixTest.Repo
+      alias Aurora.Uix.Test.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import AuroraUixTest.DataCase
+      import Aurora.Uix.Test.DataCase
     end
   end
 
   setup tags do
-    AuroraUixTest.DataCase.setup_sandbox(tags)
+    Aurora.Uix.Test.DataCase.setup_sandbox(tags)
     :ok
   end
 
@@ -39,7 +39,7 @@ defmodule AuroraUixTest.DataCase do
   """
   @spec setup_sandbox(keyword) :: :ok
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(AuroraUixTest.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(Aurora.Uix.Test.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 

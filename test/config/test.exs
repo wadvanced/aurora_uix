@@ -2,10 +2,10 @@ import Config
 
 ### Repo
 config :aurora_uix,
-  ecto_repos: [AuroraUixTest.Repo]
+  ecto_repos: [Aurora.Uix.Test.Repo]
 
 ### Postgres environment configuration
-config :aurora_uix, AuroraUixTest.Repo,
+config :aurora_uix, Aurora.Uix.Test.Repo,
   username: "postgres",
   password: "postgres",
   database: "aurora_uix_test",

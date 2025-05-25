@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.Inventory.Product do
+defmodule Aurora.Uix.Test.Inventory.Product do
   @moduledoc """
   Represents a product in the inventory.
 
@@ -62,7 +62,7 @@ defmodule AuroraUixTest.Inventory.Product do
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
-    has_many(:product_transactions, AuroraUixTest.Inventory.ProductTransaction)
+    has_many(:product_transactions, Aurora.Uix.Test.Inventory.ProductTransaction)
 
     timestamps()
   end

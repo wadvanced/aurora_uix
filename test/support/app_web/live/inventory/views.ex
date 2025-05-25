@@ -16,9 +16,9 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   # Makes the modules attributes persistent.
   use AuroraUixTestWeb, :aurora_uix_for_test
 
-  alias AuroraUixTest.Inventory
-  alias AuroraUixTest.Inventory.Product
-  alias AuroraUixTest.Inventory.ProductTransaction
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Test.Inventory.ProductTransaction
 
   # Product metadata configuration with field constraints
   auix_resource_metadata(:product, context: Inventory, schema: Product) do

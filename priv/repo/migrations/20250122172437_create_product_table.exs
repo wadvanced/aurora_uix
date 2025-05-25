@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.Repo.Migrations.CreateProductTable do
+defmodule Aurora.Uix.Test.Repo.Migrations.CreateProductTable do
   use Ecto.Migration
 
   def change do

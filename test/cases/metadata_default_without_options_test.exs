@@ -1,5 +1,5 @@
-defmodule AuroraUixTest.MetadataWithoutOptionsTest do
-  use AuroraUixTest.UICase
+defmodule Aurora.Uix.Test.MetadataWithoutOptionsTest do
+  use Aurora.Uix.Test.UICase
 
   defmodule DefaultWithoutOptions do
     # Makes the modules attributes persistent.

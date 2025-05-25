@@ -1,14 +1,14 @@
 defmodule AuroraUixTestWeb.AssociationMany2oneUILayoutTest do
-  use AuroraUixTest.UICase, :phoenix_case
+  use Aurora.Uix.Test.UICase, :phoenix_case
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    alias AuroraUixTest.Inventory
-    alias AuroraUixTest.Inventory.Product
-    alias AuroraUixTest.Inventory.ProductLocation
-    alias AuroraUixTest.Inventory.ProductTransaction
+    alias Aurora.Uix.Test.Inventory
+    alias Aurora.Uix.Test.Inventory.Product
+    alias Aurora.Uix.Test.Inventory.ProductLocation
+    alias Aurora.Uix.Test.Inventory.ProductTransaction
 
     auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
     auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)

@@ -32,7 +32,7 @@ defmodule AuroraUixTestWeb.ConnCase do
   end
 
   setup tags do
-    AuroraUixTest.DataCase.setup_sandbox(tags)
+    Aurora.Uix.Test.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

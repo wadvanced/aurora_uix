@@ -1,12 +1,12 @@
 defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
-  use AuroraUixTest.UICase
+  use Aurora.Uix.Test.UICase
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    alias AuroraUixTest.Inventory
-    alias AuroraUixTest.Inventory.Product
+    alias Aurora.Uix.Test.Inventory
+    alias Aurora.Uix.Test.Inventory.Product
 
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
@@ -34,8 +34,8 @@ defmodule AuroraUixTestWeb.CreateWithOptionsNoLayoutsTest do
   test "Test the `auix_resource` function with a single resource" do
     product = __MODULE__.TestModule.auix_resource(:product).product
 
-    assert product.schema == AuroraUixTest.Inventory.Product
-    assert product.context == AuroraUixTest.Inventory
+    assert product.schema == Aurora.Uix.Test.Inventory.Product
+    assert product.context == Aurora.Uix.Test.Inventory
     assert product.fields != nil
     assert product.fields != []
   end

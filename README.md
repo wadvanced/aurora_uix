@@ -100,10 +100,10 @@ import Config
 
 ### Repo
 config :aurora_uix,
-  ecto_repos: [AuroraUixTest.Repo]
+  ecto_repos: [Aurora.Uix.Test.Repo]
   
 ### Postgres environment configuration
-config :aurora_uix, AuroraUixTest.Repo,
+config :aurora_uix, Aurora.Uix.Test.Repo,
   username: "postgres",
   password: "postgres",
   database: "aurora_uix_test",
@@ -170,15 +170,15 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   #       |                ^^^^^^^^^^^^^^^^^^
   #       |                |- (1) This is part of the module to use in router.exs
   #       |- This is omitted    
-  use AuroraUixTest.UICase, :phoenix_case
+  use Aurora.Uix.Test.UICase, :phoenix_case
 
   defmodule TestModule do
   #         ^^^^^^^^^^
   #         |- (2) This is also part of the module name to be used in router.exs
     use AuroraUixTestWeb, :aurora_uix_for_test
 
-    alias AuroraUixTest.Inventory
-    alias AuroraUixTest.Inventory.Product
+    alias Aurora.Uix.Test.Inventory
+    alias Aurora.Uix.Test.Inventory.Product
 
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
