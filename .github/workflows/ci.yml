@@ -62,12 +62,6 @@ jobs:
         mix deps.get
         mix deps.compile
         
-    - name: temporal recompiling    
-      run: |
-        mix deps.clean --all
-        mix deps.get
-        mix deps.compile
-      
     - name: Compile app
       run: mix compile --force
 
