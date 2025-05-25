@@ -1,5 +1,3 @@
-Code.require_file("test/support/app_web/router.exs")
-
 defmodule AuroraUixTestWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :aurora_uix
 

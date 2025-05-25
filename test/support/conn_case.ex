@@ -1,5 +1,3 @@
-Code.require_file("test/support/data_case.exs")
-
 defmodule AuroraUixTestWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by

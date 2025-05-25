@@ -1,7 +1,18 @@
-Code.require_file("test/support/aurora_uix_test_web.exs")
-Code.require_file("test/support/app_web/router.exs")
-
 defmodule AuroraUixTestWeb.Inventory.Views do
+  @moduledoc """
+  UI configuration for Inventory management.
+
+  Defines:
+  - Product metadata with field length constraints
+  - ProductTransaction metadata linkage
+  - Index column configurations for products
+  - Edit form layout with sections for:
+    - Basic information (stacked)
+    - Quantities (default section)
+    - Prices (inline fields)
+    - Shipping details (mixed layout)
+  """
+
   # Makes the modules attributes persistent.
   use AuroraUixTestWeb, :aurora_uix_for_test
 
@@ -9,13 +20,16 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   alias AuroraUixTest.Inventory.Product
   alias AuroraUixTest.Inventory.ProductTransaction
 
+  # Product metadata configuration with field constraints
   auix_resource_metadata(:product, context: Inventory, schema: Product) do
     field(:reference, length: 100)
     fields([:name, :description], length: 40)
   end
 
+  # Product transaction metadata configuration
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
+  # UI layout configuration for product management
   auix_create_ui do
     index_columns(:product, [:name, :description])
     index_columns(:product, [:list_price])

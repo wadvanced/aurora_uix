@@ -1,4 +1,9 @@
 defmodule AuroraUixTest.Inventory.ProductLocation do
+  @moduledoc """
+  Schema for Product Locations in the inventory system.
+  Tracks product quantities, location details and inventory movements.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -35,8 +40,15 @@ defmodule AuroraUixTest.Inventory.ProductLocation do
           updated_at: DateTime.t() | nil
         }
 
-  @doc false
-  @spec changeset(ProductLocation.t() | Ecto.Changeset.t(), map) :: Ecto.Changeset.t()
+  @doc """
+  Creates a changeset for ProductLocation.
+
+  - product_location: ProductLocation.t() | Ecto.Changeset.t() - The struct or changeset to update
+  - attrs: map() - The attributes to apply
+
+  Returns: Ecto.Changeset.t() - The resulting changeset
+  """
+  @spec changeset(ProductLocation.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def changeset(product_location, attrs) do
     product_location
     |> cast(attrs, [

@@ -1,5 +1,3 @@
-Code.require_file("test/support/app/repo.exs")
-
 defmodule AuroraUixTest.Inventory do
   @moduledoc """
   The context.
