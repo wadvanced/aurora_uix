@@ -60,7 +60,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 
   test "Test main links", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
-    assert render_async(view) =~ "auix-new-product"
+    Process.sleep(500)
     view
     |> tap(&assert has_element?(&1, "#auix-new-product"))
     |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='show-product']"))
