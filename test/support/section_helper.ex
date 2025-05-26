@@ -4,7 +4,7 @@ defmodule AuroraUixTestWeb.SectionHelper do
   Provides utilities for interacting with and asserting section states, buttons, and fields.
   """
 
-  use AuroraUixTestWeb.ConnCase
+  use Aurora.Uix.Web.Test.ConnCase
   import Phoenix.LiveViewTest
 
   @doc """

@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Test.UICase do
   @spec test_case() :: Macro.t()
   def test_case do
     quote do
-      use AuroraUixTestWeb.ConnCase
+      use Aurora.Uix.Web.Test.ConnCase
       import Aurora.Uix.Test.UICase
     end
   end
@@ -92,7 +92,7 @@ defmodule Aurora.Uix.Test.UICase do
   @spec phoenix_case() :: Macro.t()
   def phoenix_case do
     quote do
-      use AuroraUixTestWeb.ConnCase
+      use Aurora.Uix.Web.Test.ConnCase
       import Phoenix.LiveViewTest
       import Aurora.Uix.Test.Support.Helper
       import Aurora.Uix.Test.UICase
