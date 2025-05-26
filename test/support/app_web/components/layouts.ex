@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.TestLayouts do
+defmodule Aurora.Uix.Web.Test.Layouts do
   @moduledoc """
   This module holds different layouts used by your application.
 
