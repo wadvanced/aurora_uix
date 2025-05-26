@@ -4,8 +4,8 @@ defmodule Aurora.Uix.Test.Support.Helper do
   Provides utilities to create sample records for testing purposes.
   """
 
-  alias AuroraUixTest.Inventory.Product
-  alias AuroraUixTest.Repo
+  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Test.Repo
 
   require Logger
 

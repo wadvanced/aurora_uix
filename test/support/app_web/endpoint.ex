@@ -1,5 +1,7 @@
-defmodule AuroraUixTestWeb.Endpoint do
+defmodule Aurora.Uix.Test.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :aurora_uix
+
+  alias Aurora.Uix.Test.Web
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -17,7 +19,7 @@ defmodule AuroraUixTestWeb.Endpoint do
     at: "/",
     from: "test/_priv/static",
     gzip: false,
-    only: AuroraUixTestWeb.static_paths()
+    only: Web.static_paths()
   )
 
   plug(Plug.RequestId)
@@ -32,5 +34,5 @@ defmodule AuroraUixTestWeb.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
-  plug(AuroraUixTestWeb.Router)
+  plug(Web.Router)
 end

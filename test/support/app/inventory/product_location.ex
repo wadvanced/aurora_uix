@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.Inventory.ProductLocation do
+defmodule Aurora.Uix.Test.Inventory.ProductLocation do
   @moduledoc """
   Schema for Product Locations in the inventory system.
   Tracks product quantities, location details and inventory movements.
@@ -7,7 +7,7 @@ defmodule AuroraUixTest.Inventory.ProductLocation do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias AuroraUixTest.Inventory.Product
+  alias Aurora.Uix.Test.Inventory.Product
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -35,7 +35,7 @@ defmodule AuroraUixTest.Inventory.ProductLocation do
           quantity_entries: Decimal.t() | nil,
           quantity_exits: Decimal.t() | nil,
           product_id: Ecto.UUID.t() | nil,
-          product: AuroraUixTest.Product.t() | Ecto.Association.NotLoaded.t(),
+          product: Aurora.Uix.Test.Product.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

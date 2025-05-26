@@ -20,17 +20,18 @@ defmodule Aurora.Uix.Layout.CreateUI do
   3. `__before_compile__/1` macro triggers UI generation
   4. Modules are dynamically created based on configurations
 
-  ## Examples
+  ## Example
   ```elixir
-    defmodule MyApp.ProductViews do
-      use Aurora.Uix.Layout.CreateUI
-      auix_create_ui for: :product do
-        index_columns :product, [:name, :price]
-        edit_layout :product do
-          inline [:name, :price]
-        end
+  defmodule MyApp.ProductViews do
+    use Aurora.Uix.Layout.CreateUI
+
+    auix_create_ui for: :product do
+      index_columns [:name, :price]
+      edit_layout do
+        inline [:name, :price]
       end
     end
+  end
   ```
 
   ## Performance Considerations
@@ -89,30 +90,26 @@ defmodule Aurora.Uix.Layout.CreateUI do
   Configures and initiates UI generation for a specific module.
 
   ## Parameters
-  - `opts` (keyword): Configuration options for UI generation
-  - `:for` - Specify the target resource
-  - `do_block` (optional): Custom configuration block for advanced layouts
+  - opts (keyword()) - Configuration options for UI generation
+  - do_block (Macro.t() | nil) - Optional configuration block for advanced layouts
 
   ## Options
-  - `for: :resource_name` - Generates UI specifically for the named resource
-  - Custom layout blocks using macros like `index_columns/2`, `edit_layout/2`
+  - for: atom() - Target resource name to generate UI for
 
-  ## Examples
+  ## Returns
+  - Macro.t() - Generated UI configuration macro
+
+  ## Example
   ```elixir
-    auix_create_ui for: :user do
-      index_columns [:name, :email]
-      edit_layout do
-        inline [:name, :email, :role]
-      end
+  auix_create_ui for: :product do
+    index_columns [:name, :price]
+    edit_layout do
+      inline [:name, :price]
     end
+  end
   ```
-
-  ## Compile-Time Behavior
-    - Registers module attributes
-    - Prepares for UI generation via @before_compile hook
-
   """
-  @spec auix_create_ui(keyword, any) :: Macro.t()
+  @spec auix_create_ui(keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
     {block, opts} = extract_block_options(opts, do_block)
 
@@ -127,33 +124,19 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @doc """
   Builds UI layouts based on resource configurations.
 
-  This function is the main entry point for dynamic UI generation. It is typically
-  invoked during the compile phase via the `@before_compile` callback. Depending on the
-  options provided, it either builds index and form layouts for a specific schema (using
-  the `:for` option) or creates base layouts for all provided schema configurations.
-
   ## Parameters
-
-    - `caller` (module): The module initiating UI generation.
-    - `auix_resource_configs_ui` (map | nil): A map containing schema configuration(s).
-    - `layout_paths` (list): A list of layout path definitions accumulated from the module.
-    - `opts` (keyword): A list of options. If the `:for` key is present, only the layouts
-      for the specified schema are generated; otherwise, base layouts for all schemas are created.
+  - resource_configs (map()) - Map of resource configurations
+  - caller (module()) - The calling module
+  - layout_paths (list()) - List of layout path definitions
+  - opts (keyword()) - Configuration options
 
   ## Options
-    - :for - Generate UI for a specific resource
-    - Other resource-specific customization options
+  - for: atom() | list() - Generate UI for specific resource(s)
 
   ## Returns
-
-  A list of generated UI layout modules.
-
-  ## Behavior
-  - If :for is provided, generates layouts for the specific resource
-  - Otherwise, generates base layouts for all configured resources
-
+  - list() - Generated UI layout modules
   """
-  @spec build_ui(map, any, list, keyword) :: list
+  @spec build_ui(map(), module(), list(), keyword()) :: list()
   def build_ui(resource_configs, caller, layout_paths, opts) do
     resource_configs
     |> filter_resources(opts[:for])
@@ -162,12 +145,14 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   ## PRIVATE
 
-  @spec merge_layout_paths(tuple) :: list
+  # Merges layout paths by their name and tag, combining inner elements and options
+  @spec merge_layout_paths(tuple()) :: list()
   defp merge_layout_paths({_, paths}) do
     Enum.reduce(paths, nil, &merge_layout_opts_inner_elements/2)
   end
 
-  @spec merge_layout_opts_inner_elements(map, map | nil) :: map
+  # Merges the inner elements and options of two layout paths
+  @spec merge_layout_opts_inner_elements(map(), map() | nil) :: map()
   defp merge_layout_opts_inner_elements(path, nil), do: path
 
   defp merge_layout_opts_inner_elements(path, acc) do
@@ -187,7 +172,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:inner_elements, inner_elements)
   end
 
-  @spec filter_resources(map, nil | atom | list) :: map
+  # Filters resource configurations based on the :for option
+  @spec filter_resources(map(), nil | atom() | list()) :: map()
   defp filter_resources(resource_configs, nil), do: resource_configs
 
   defp filter_resources(resource_configs, for) when is_atom(for) do
@@ -292,7 +278,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
          configurations,
          caller
        ) do
-    {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
+    web = find_web_module(caller)
+
     resource_module = Map.get(resource_config, :schema)
 
     modules = %{
@@ -487,4 +474,28 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&Map.put(configuration, :parsed_opts, &1))
     |> then(&{resource_config_name, &1})
   end
+
+  @spec find_web_module(module()) :: module() | nil
+  defp find_web_module(caller) do
+    caller
+    |> Module.split()
+    |> Enum.reverse()
+    |> check_web_module()
+  end
+
+  @spec check_web_module(list()) :: module() | nil
+  defp check_web_module([]), do: nil
+
+  defp check_web_module([_ | module_paths]) do
+    module_paths
+    |> Enum.reverse()
+    |> Module.concat()
+    |> Code.ensure_compiled()
+    |> extract_web_module(module_paths)
+  end
+
+  @spec extract_web_module(tuple(), list()) :: module() | nil
+  defp extract_web_module({:module, module}, _module_paths), do: module
+
+  defp extract_web_module(_, module_paths), do: check_web_module(module_paths)
 end

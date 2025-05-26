@@ -1,9 +1,9 @@
-defmodule AuroraUixTest.MetadataWithoutOptionsTest do
-  use AuroraUixTest.UICase
+defmodule Aurora.Uix.Test.MetadataWithoutOptionsTest do
+  use Aurora.Uix.Test.Web.UICase
 
   defmodule DefaultWithoutOptions do
     # Makes the modules attributes persistent.
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
     auix_resource_metadata(:product)
   end

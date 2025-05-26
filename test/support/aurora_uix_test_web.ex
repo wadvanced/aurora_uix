@@ -1,8 +1,10 @@
-defmodule AuroraUixTestWeb do
+defmodule Aurora.Uix.Test.Web do
   @moduledoc """
   The entrypoint for defining web interface components and routes for Aurora UIX tests.
   Provides convenience functions for controllers, views, and components.
   """
+
+  alias Aurora.Uix.Test.Web
 
   @doc """
   Returns a list of static asset paths.
@@ -38,7 +40,7 @@ defmodule AuroraUixTestWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {AuroraUixTestWeb.Layout, :app}
+        layout: {Web.Layouts, :app}
 
       unquote(html_helpers())
     end
@@ -67,9 +69,9 @@ defmodule AuroraUixTestWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: AuroraUixTestWeb.Endpoint,
-        router: AuroraUixTestWeb.Router,
-        statics: AuroraUixTestWeb.static_paths()
+        endpoint: Web.Endpoint,
+        router: Web.Router,
+        statics: Web.static_paths()
     end
   end
 

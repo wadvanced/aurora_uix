@@ -1,12 +1,12 @@
-defmodule AuroraUixTest.Inventory do
+defmodule Aurora.Uix.Test.Inventory do
   @moduledoc """
   The context.
   """
 
   use Aurora.Ctx
 
-  alias AuroraUixTest.Inventory.{Product, ProductLocation, ProductTransaction}
-  alias AuroraUixTest.Repo
+  alias Aurora.Uix.Test.Inventory.{Product, ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Test.Repo
 
   @spec list_products() :: [Product.t()]
   def list_products do
@@ -41,7 +41,7 @@ defmodule AuroraUixTest.Inventory do
   @spec delete_product(Product.t()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def delete_product(%Product{} = product), do: Repo.delete(product)
 
-  ctx_register_schema(Product)
-  ctx_register_schema(ProductTransaction)
-  ctx_register_schema(ProductLocation)
+  ctx_register_schema(Product, Repo)
+  ctx_register_schema(ProductTransaction, Repo)
+  ctx_register_schema(ProductLocation, Repo)
 end

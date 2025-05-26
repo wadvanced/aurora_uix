@@ -1,10 +1,10 @@
-defmodule AuroraUixTestWeb.SectionHelper do
+defmodule Aurora.Uix.Test.Web.SectionHelper do
   @moduledoc """
   Helper module for testing sections in Aurora UIX components.
   Provides utilities for interacting with and asserting section states, buttons, and fields.
   """
 
-  use AuroraUixTestWeb.ConnCase
+  use Aurora.Uix.Test.Web.ConnCase
   import Phoenix.LiveViewTest
 
   @doc """

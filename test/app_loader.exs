@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.AppLoader do
+defmodule Aurora.Uix.Test.AppLoader do
   @moduledoc """
     Helps loading the app files
   """
@@ -68,4 +68,4 @@ defmodule AuroraUixTest.AppLoader do
   end
 end
 
-AuroraUixTest.AppLoader.load_app()
+Aurora.Uix.Test.AppLoader.load_app()

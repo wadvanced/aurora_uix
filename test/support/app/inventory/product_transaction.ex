@@ -1,4 +1,4 @@
-defmodule AuroraUixTest.Inventory.ProductTransaction do
+defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
   @moduledoc """
   Represents a transaction for a product in the inventory.
   """
@@ -6,7 +6,7 @@ defmodule AuroraUixTest.Inventory.ProductTransaction do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias AuroraUixTest.Inventory.{Product, ProductLocation}
+  alias Aurora.Uix.Test.Inventory.{Product, ProductLocation}
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),

@@ -2,10 +2,10 @@ import Config
 
 ### Repo
 config :aurora_uix,
-  ecto_repos: [AuroraUixTest.Repo]
+  ecto_repos: [Aurora.Uix.Test.Repo]
 
 ### Postgres environment configuration
-config :aurora_uix, AuroraUixTest.Repo,
+config :aurora_uix, Aurora.Uix.Test.Repo,
   username: "postgres",
   password: "postgres",
   database: "aurora_uix_test",
@@ -15,7 +15,7 @@ config :aurora_uix, AuroraUixTest.Repo,
   migration_timestamps: [type: :utc_datetime]
 
 ### Phoenix environment default configuration
-config :aurora_uix, AuroraUixTestWeb.Endpoint,
+config :aurora_uix, Aurora.Uix.Test.Web.Endpoint,
   http: [port: 4001],
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

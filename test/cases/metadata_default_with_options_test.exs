@@ -1,13 +1,13 @@
-defmodule AuroraUixTest.MetadataDefaultWithOptionsTest do
-  use AuroraUixTest.UICase
+defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
+  use Aurora.Uix.Test.Web.UICase
 
   defmodule DefaultWithOptions do
     # Makes the modules attributes persistent.
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
-    alias AuroraUixTest.Inventory
-    alias AuroraUixTest.Inventory.Product
-    alias AuroraUixTest.Inventory.ProductTransaction
+    alias Aurora.Uix.Test.Inventory
+    alias Aurora.Uix.Test.Inventory.Product
+    alias Aurora.Uix.Test.Inventory.ProductTransaction
 
     auix_resource_metadata(:product, context: Inventory, schema: Product)
     auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
@@ -29,16 +29,16 @@ defmodule AuroraUixTest.MetadataDefaultWithOptionsTest do
   test "Test the `auix_resource` function with multiple resources" do
     product = __MODULE__.DefaultWithOptions.auix_resource(:product).product
 
-    assert product.schema == AuroraUixTest.Inventory.Product
-    assert product.context == AuroraUixTest.Inventory
+    assert product.schema == Aurora.Uix.Test.Inventory.Product
+    assert product.context == Aurora.Uix.Test.Inventory
     assert product.fields != nil
     assert product.fields != []
 
     product_transaction =
       __MODULE__.DefaultWithOptions.auix_resource(:product_transaction).product_transaction
 
-    assert product_transaction.schema == AuroraUixTest.Inventory.ProductTransaction
-    assert product_transaction.context == AuroraUixTest.Inventory
+    assert product_transaction.schema == Aurora.Uix.Test.Inventory.ProductTransaction
+    assert product_transaction.context == Aurora.Uix.Test.Inventory
     assert product_transaction.fields != nil
     assert product_transaction.fields != []
   end
