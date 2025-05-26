@@ -112,7 +112,7 @@ config :aurora_uix, Aurora.Uix.Test.Repo,
   pool_size: 10,
   migration_timestamps: [type: :utc_datetime]
 
-config :aurora_uix, AuroraUixTestWeb.Endpoint,
+config :aurora_uix, Aurora.Uix.Web.TestEndpoint,
   http: [port: 4001],
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,

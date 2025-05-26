@@ -67,7 +67,7 @@ defmodule AuroraUixTestWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: AuroraUixTestWeb.Endpoint,
+        endpoint: Aurora.Uix.Web.TestEndpoint,
         router: Aurora.Uix.Web.TestRouter,
         statics: AuroraUixTestWeb.static_paths()
     end

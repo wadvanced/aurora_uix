@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb.Endpoint do
+defmodule Aurora.Uix.Web.TestEndpoint do
   use Phoenix.Endpoint, otp_app: :aurora_uix
 
   # The session will be stored in the cookie and signed,

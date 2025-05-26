@@ -7,6 +7,6 @@ Code.require_file("test/app_loader.exs")
 {:ok, _} = Application.ensure_all_started(:ecto_sql)
 
 Aurora.Uix.Test.Repo.start_link()
-AuroraUixTestWeb.Endpoint.start_link()
+Aurora.Uix.Web.TestEndpoint.start_link()
 
 Ecto.Adapters.SQL.Sandbox.mode(Aurora.Uix.Test.Repo, :auto)
