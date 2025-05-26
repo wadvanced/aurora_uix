@@ -1,15 +1,15 @@
-defmodule Aurora.Uix.Web.Test.SeparatedSingleResourceUITest do
-  use Aurora.Uix.Test.UICase, :phoenix_case
+defmodule Aurora.Uix.Test.Web.SeparatedSingleResourceUITest do
+  use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
   defmodule TestResources do
-    use Aurora.Uix.Web.Test, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
     auix_resource_metadata(:product, context: Inventory, schema: Product)
   end
 
   defmodule TestModule do
-    use Aurora.Uix.Web.Test, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
     @auix_resource_metadata TestResources.auix_resource(:product)
 

@@ -1,9 +1,9 @@
-defmodule Aurora.Uix.Web.Test.CreateWithOptionsNoLayoutsTest do
-  use Aurora.Uix.Test.UICase
+defmodule Aurora.Uix.Test.Web.CreateWithOptionsNoLayoutsTest do
+  use Aurora.Uix.Test.Web.UICase
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
-    use Aurora.Uix.Web.Test, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product

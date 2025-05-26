@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Web.Test.ErrorView do
+defmodule Aurora.Uix.Test.Web.ErrorView do
   @moduledoc """
-  This module is responsible for rendering error views in the defmodule Aurora.Uix.Web.Test application.
+  This module is responsible for rendering error views in the defmodule Aurora.Uix.Test.Web application.
 
   It provides a fallback mechanism for rendering error templates and associated data
   when an error occurs in the application. The `render/2` function is used to format

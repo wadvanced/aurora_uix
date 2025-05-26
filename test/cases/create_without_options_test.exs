@@ -1,9 +1,9 @@
 defmodule Aurora.Uix.Test.Cases.CreateWithoutOptions do
-  use Aurora.Uix.Test.UICase
+  use Aurora.Uix.Test.Web.UICase
 
   defmodule DefaultWithoutOptions do
     # Makes the modules attributes persistent.
-    use Aurora.Uix.Web.Test, :aurora_uix_for_test
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
     auix_resource_metadata(:product)
     auix_create_ui()

@@ -15,7 +15,7 @@ config :aurora_uix, Aurora.Uix.Test.Repo,
   migration_timestamps: [type: :utc_datetime]
 
 ### Phoenix environment default configuration
-config :aurora_uix, Aurora.Uix.Web.Test.Endpoint,
+config :aurora_uix, Aurora.Uix.Test.Web.Endpoint,
   http: [port: 4001],
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
