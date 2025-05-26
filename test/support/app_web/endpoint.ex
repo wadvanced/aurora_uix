@@ -32,5 +32,5 @@ defmodule AuroraUixTestWeb.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
-  plug(AuroraUixTestWeb.Router)
+  plug(Aurora.Uix.Web.TestRouter)
 end

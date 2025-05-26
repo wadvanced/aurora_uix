@@ -15,7 +15,7 @@ defmodule AuroraUixTestWeb do
   @doc """
   Defines Phoenix router configuration.
 
-  Returns: Macro.t() - Router configuration quote
+  Returns: Macro.t() - TestRouter configuration quote
   """
   @spec router() :: Macro.t()
   def router do
@@ -68,7 +68,7 @@ defmodule AuroraUixTestWeb do
     quote do
       use Phoenix.VerifiedRoutes,
         endpoint: AuroraUixTestWeb.Endpoint,
-        router: AuroraUixTestWeb.Router,
+        router: Aurora.Uix.Web.TestRouter,
         statics: AuroraUixTestWeb.static_paths()
     end
   end

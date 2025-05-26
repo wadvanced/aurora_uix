@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb.Router do
+defmodule Aurora.Uix.Web.TestRouter do
   use AuroraUixTestWeb, :router
 
   pipeline :browser do
