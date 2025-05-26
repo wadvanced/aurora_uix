@@ -1,5 +1,6 @@
 defmodule Aurora.Uix.Web.Test.SeparatedMultipleResourcesUITest do
   use Aurora.Uix.Test.UICase, :phoenix_case
+  alias Aurora.Uix.Test.Inventory
 
   defmodule TestResources do
     use Aurora.Uix.Web.Test, :aurora_uix_for_test
@@ -83,14 +84,14 @@ defmodule Aurora.Uix.Web.Test.SeparatedMultipleResourcesUITest do
 
   test "Test CREATE new, context, basic layout for product_transactions", %{conn: conn} do
     {:ok, product} =
-      Aurora.Uix.Test.Inventory.create_product(%{
+      Inventory.create_product(%{
         reference: "test-product-001",
         name: "For testing product_transactions",
         quantity_initial: 99
       })
 
     {:ok, product_location} =
-      Aurora.Uix.Test.Inventory.create_product_location(%{
+      Inventory.create_product_location(%{
         reference: "location-001",
         name: "For testing product_transactions",
         type: "dry"

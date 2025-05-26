@@ -4,6 +4,8 @@ defmodule Aurora.Uix.Web.Test do
   Provides convenience functions for controllers, views, and components.
   """
 
+  alias Aurora.Uix.Web.Test
+
   @doc """
   Returns a list of static asset paths.
 
@@ -38,7 +40,7 @@ defmodule Aurora.Uix.Web.Test do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {Aurora.Uix.Web.Test.Layouts, :app}
+        layout: {Test.Layouts, :app}
 
       unquote(html_helpers())
     end
@@ -67,9 +69,9 @@ defmodule Aurora.Uix.Web.Test do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Aurora.Uix.Web.Test.Endpoint,
-        router: Aurora.Uix.Web.Test.Router,
-        statics: Aurora.Uix.Web.Test.static_paths()
+        endpoint: Test.Endpoint,
+        router: Test.Router,
+        statics: Test.static_paths()
     end
   end
 

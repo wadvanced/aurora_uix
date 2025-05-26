@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.DataCase do
+defmodule Aurora.Uix.Web.Test.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,6 +16,9 @@ defmodule Aurora.Uix.Test.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias Aurora.Uix.Test.Repo
+  alias Aurora.Uix.Web.Test.DataCase
+
   alias Ecto.Adapters.SQL.Sandbox
 
   using do
@@ -30,7 +33,7 @@ defmodule Aurora.Uix.Test.DataCase do
   end
 
   setup tags do
-    Aurora.Uix.Test.DataCase.setup_sandbox(tags)
+    DataCase.setup_sandbox(tags)
     :ok
   end
 
@@ -39,7 +42,7 @@ defmodule Aurora.Uix.Test.DataCase do
   """
   @spec setup_sandbox(keyword) :: :ok
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(Aurora.Uix.Test.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 
