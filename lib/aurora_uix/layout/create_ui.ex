@@ -292,7 +292,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
          configurations,
          caller
        ) do
-    {web, _} = caller |> Module.split() |> List.first() |> Code.eval_string()
+
+    web = find_web_module(caller)
+
     resource_module = Map.get(resource_config, :schema)
 
     modules = %{
@@ -487,4 +489,25 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&Map.put(configuration, :parsed_opts, &1))
     |> then(&{resource_config_name, &1})
   end
+
+  defp find_web_module(caller) do
+    caller
+    |> Module.split()
+    |> Enum.reverse()
+    |> check_web_module()
+  end
+
+  defp check_web_module([]), do: nil
+
+  defp check_web_module([_ | module_paths]) do
+    module_paths
+    |> Enum.reverse()
+    |> Module.concat()
+    |> Code.ensure_compiled()
+    |> extract_web_module(module_paths)
+  end
+
+  defp extract_web_module({:module, module}, _module_paths), do: module
+
+  defp extract_web_module(_, module_paths), do: check_web_module(module_paths)
 end

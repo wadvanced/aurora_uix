@@ -1,8 +1,8 @@
-defmodule AuroraUixTestWeb.UnseparatedMultipleResourcesUITest do
+defmodule Aurora.Uix.Web.Test.UnseparatedMultipleResourcesUITest do
   use Aurora.Uix.Test.UICase, :phoenix_case
 
   defmodule TestModule do
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product

@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb do
+defmodule Aurora.Uix.Web.Test do
   @moduledoc """
   The entrypoint for defining web interface components and routes for Aurora UIX tests.
   Provides convenience functions for controllers, views, and components.
@@ -69,7 +69,7 @@ defmodule AuroraUixTestWeb do
       use Phoenix.VerifiedRoutes,
         endpoint: Aurora.Uix.Web.Test.Endpoint,
         router: Aurora.Uix.Web.Test.Router,
-        statics: AuroraUixTestWeb.static_paths()
+        statics: Aurora.Uix.Web.Test.static_paths()
     end
   end
 

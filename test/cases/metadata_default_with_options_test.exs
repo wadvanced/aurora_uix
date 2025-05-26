@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
 
   defmodule DefaultWithOptions do
     # Makes the modules attributes persistent.
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product

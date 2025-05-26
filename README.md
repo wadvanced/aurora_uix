@@ -165,7 +165,7 @@ The test app is under the test/support/app and the test/support/app_web folders.
 The following steps are needed.
 1. The create ui, in the test, must have a unique link option:
 ```elixir
-defmodule AuroraUixTestWeb.CreateUILayoutTest do
+defmodule Aurora.Uix.Web.Test.CreateUILayoutTest do
   #       ^^^^^^^^^^^^^^^^
   #       |                ^^^^^^^^^^^^^^^^^^
   #       |                |- (1) This is part of the module to use in router.exs
@@ -175,7 +175,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
   defmodule TestModule do
   #         ^^^^^^^^^^
   #         |- (2) This is also part of the module name to be used in router.exs
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
@@ -207,7 +207,7 @@ defmodule AuroraUixTestWeb.CreateUILayoutTest do
 2. Include the routes for the test in router.exs. There is a macro helper for creating all CRUD entries.<br>
 The module is compose of the path of the test 
 ```elixir
-AuroraUixTestWeb.register_crud(CreateUILayoutTest.TestModule.Product, "create-ui-layout-products")
+defmodule Aurora.Uix.Web.Test.register_crud(CreateUILayoutTest.TestModule.Product, "create-ui-layout-products")
 ```
 3. All the cases_live are started in the server by using the following command:
 ```shell

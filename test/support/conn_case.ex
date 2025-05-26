@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Web.Test.ConnCase do
       # The default endpoint for testing
       @endpoint Aurora.Uix.Web.Test.Endpoint
 
-      use AuroraUixTestWeb, :verified_routes
+      use Aurora.Uix.Web.Test, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn, except: [assign: 3]

@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Web.Test.Endpoint do
     at: "/",
     from: "test/_priv/static",
     gzip: false,
-    only: AuroraUixTestWeb.static_paths()
+    only: Aurora.Uix.Web.Test.static_paths()
   )
 
   plug(Plug.RequestId)

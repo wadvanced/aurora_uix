@@ -2,7 +2,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
   use Aurora.Uix.Test.UICase
 
   defmodule FieldValuesModified do
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product

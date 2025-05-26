@@ -1,4 +1,4 @@
-defmodule AuroraUixTestWeb.Inventory.Views do
+defmodule Aurora.Uix.Web.Test.Inventory.Views do
   @moduledoc """
   UI configuration for Inventory management.
 
@@ -14,7 +14,7 @@ defmodule AuroraUixTestWeb.Inventory.Views do
   """
 
   # Makes the modules attributes persistent.
-  use AuroraUixTestWeb, :aurora_uix_for_test
+  use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product

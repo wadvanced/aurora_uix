@@ -96,7 +96,7 @@ defmodule Aurora.Uix.Test.UICase do
       import Phoenix.LiveViewTest
       import Aurora.Uix.Test.Support.Helper
       import Aurora.Uix.Test.UICase
-      import AuroraUixTestWeb.SectionHelper
+      import Aurora.Uix.Web.Test.SectionHelper
     end
   end
 

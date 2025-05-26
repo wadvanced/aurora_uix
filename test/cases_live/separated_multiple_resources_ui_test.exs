@@ -1,8 +1,8 @@
-defmodule AuroraUixTestWeb.SeparatedMultipleResourcesUITest do
+defmodule Aurora.Uix.Web.Test.SeparatedMultipleResourcesUITest do
   use Aurora.Uix.Test.UICase, :phoenix_case
 
   defmodule TestResources do
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
@@ -12,7 +12,7 @@ defmodule AuroraUixTestWeb.SeparatedMultipleResourcesUITest do
   end
 
   defmodule TestModule do
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     @auix_resource_metadata TestResources.auix_resource(:product)
     @auix_resource_metadata TestResources.auix_resource(:product_transaction)

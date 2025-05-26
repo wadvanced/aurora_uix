@@ -1,9 +1,9 @@
-defmodule AuroraUixTestWeb.CreateUIDefaultLayoutTest do
+defmodule Aurora.Uix.Web.Test.CreateUIDefaultLayoutTest do
   use Aurora.Uix.Test.UICase, :phoenix_case
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
-    use AuroraUixTestWeb, :aurora_uix_for_test
+    use Aurora.Uix.Web.Test, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
