@@ -20,7 +20,7 @@ defmodule AuroraUixTestWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint Aurora.Uix.Web.TestEndpoint
+      @endpoint Aurora.Uix.Web.Test.Endpoint
 
       use AuroraUixTestWeb, :verified_routes
 
