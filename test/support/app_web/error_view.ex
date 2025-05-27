@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.ErrorView do
+defmodule Aurora.ErrorView do
   @moduledoc """
   This module is responsible for rendering error views in the defmodule Aurora.Uix.Test.Web application.
 

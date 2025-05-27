@@ -12,7 +12,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   use Aurora.Uix.Web.CoreComponentsImporter
   import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
 
-  alias Aurora.Uix.Web.Templates.Basic.Components.Live.AuroraIndexList
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -63,35 +62,72 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   defp default_render(
          %{field: %{field_type: :one_to_many_association} = field, _auix: auix} = assigns
        ) do
-    resource_fields = get_association_fields(field, auix._configurations)
+    related_fields =
+      field
+      |> get_association_fields(auix._configurations)
+      |> Enum.reject(&(&1.field == auix._resource_name))
+
     related_parsed_opts = get_in(auix._configurations, [field.resource, :parsed_opts])
+    related_resource_config = get_in(auix._configurations, [field.resource, :resource_config])
     related_path = build_related_path(auix.source, field.data)
+
+    related_class =
+      "w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4"
+
+    parsed_opts = get_in(auix._configurations, [auix._resource_name, :parsed_opts])
 
     assigns =
       assigns
       |> Map.put(:related_parsed_opts, related_parsed_opts)
+      |> Map.put(:related_resource_config, related_resource_config)
       |> Map.put(:related_path, related_path)
-      |> Map.put(:resource_fields, resource_fields)
+      |> Map.put(:related_class, related_class)
+      |> Map.put(:related_fields, related_fields)
+      |> Map.put(:parsed_opts, parsed_opts)
 
     ~H"""
-    <.live_component
-      module={AuroraIndexList}
-      id={"auix-#{@parsed_opts.name}__#{@field.field}"}
-      title={"#{@related_parsed_opts.title} Elements"}
-      module_name={@related_parsed_opts.title}
-      rows={@auix_entity[@field.field]}
-      columns={@resource_fields}
-      row_id={fn child -> child.id end}
-      new_link={if @related_parsed_opts.disable_index_new_link, do: nil, else: build_new_link(@related_parsed_opts, @related_path)}
-      row_click={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
-    >
-      <:action :let={entity}>
-        <div class="sr-only">
-          <.link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}?#{@related_path}"} id={"auix-show-#{entity.id}"}>Show</.link>
-        </div>
-        <.link patch={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit?#{@related_path}"} id={"auix-edit-#{entity.id}"}>Edit</.link>
-      </:action>
-    </.live_component>
+    <div class="flex flex-col">
+      <div class="flex-row gap-4">
+        <.label for={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
+            <.link
+                patch={if @related_parsed_opts.disable_index_new_link, do: nil, else: build_new_link(@related_parsed_opts, @related_path)}
+                id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
+              <.icon name="hero-plus" />
+            </.link>
+        </.label>
+      </div>
+      <div id={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
+        <.table
+          id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}
+          rows={Map.get(@auix_entity, @field.field)}
+          row_click={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
+        >
+          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}>{Map.get(entity, related_field.field)}</:col>
+          <:action :let={entity}>
+            <div class="sr-only">
+              <.link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}?#{@related_path}"} id={"auix-show-#{entity.id}"}>Show</.link>
+            </div>
+            <.link patch={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit?#{@related_path}"} id={"auix-edit-#{entity.id}"}><.icon name="hero-pencil" /></.link>
+          </:action>
+
+          <:action :let={entity}>
+            <.link
+              phx-click={JS.push("delete",
+                  value: %{id: entity.id,
+                    context: @related_resource_config.context,
+                    get_function: @related_parsed_opts.get_function,
+                    delete_function: @related_parsed_opts.delete_function}
+                )
+                |> hide("##{entity.id}")}
+              name={"delete-#{@related_parsed_opts.name}"}
+              data-confirm="Are you sure?"
+            >
+              <.icon name="hero-trash" />
+            </.link>
+          </:action>
+        </.table>
+      </div>
+    </div>
     """
   end
 
