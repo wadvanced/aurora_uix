@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
         end
 
         @impl true
-        def handle_params(%{"id" => id} = params, current_uri, socket) do
+        def handle_params(%{"id" => id} = params, url, socket) do
           {:noreply,
            socket
            |> assign(
@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            |> assign(:subtitle, " Detail")
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_sections, %{})
-           |> assign_source(params)
+           |> assign_auix_back_path(params)
            |> assign(
              :auix_entity,
              apply(unquote(modules.context), unquote(get_function), [
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
              ])
            )
            |> assign_auix(:_form_component, unquote(form_component))
-           |> assign_auix(:_current_uri, current_uri |> URI.parse() |> Map.get(:path))
+           |> assign_auix_current_path(url)
            |> render_with(&Renderer.render/1)}
         end
 
@@ -100,7 +100,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
                  {:ok, _changeset} <- apply(context, delete_function, [entity]) do
               socket
               |> put_flash(:info, "Item deleted successfully")
-              |> push_navigate(to: socket.assigns._auix._current_uri)
+              |> push_navigate(to: socket.assigns._auix[:_current_path])
             else
               _ -> socket
             end

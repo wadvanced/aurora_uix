@@ -357,7 +357,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec add_global_overrides(list, keyword, list) :: list
   defp add_global_overrides(elements, global_overrides, result \\ [])
 
-  defp add_global_overrides([], _global_overrides, default), do: default
+  defp add_global_overrides([], _global_overrides, result), do: Enum.reverse(result)
 
   defp add_global_overrides(
          [%{tag: :field, inner_elements: inner_elements} = element | elements],

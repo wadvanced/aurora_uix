@@ -103,7 +103,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
                |> push_navigate(to: socket.assigns.patch)}
 
             {:error, %Ecto.Changeset{} = changeset} ->
-              {:noreply, assign_auix(socket, :_form, to_form(changeset))}
+              {:noreply,
+               socket
+               |> put_flash(:error, inspect(changeset.errors))
+               |> assign_auix(:_form, to_form(changeset))}
           end
         end
 

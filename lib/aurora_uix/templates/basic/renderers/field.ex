@@ -90,7 +90,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
       <div class="flex-row gap-4">
         <.label for={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
             <.link
-                patch={if @related_parsed_opts.disable_index_new_link, do: nil, else: build_new_link(@related_parsed_opts, @related_path)}
+                patch={if @related_parsed_opts.disable_index_new_link,
+                  do: nil,
+                  else: "#{related_parsed_opts.index_new_link}?related_key=#{@field.data.related_key}&parent_id=#{Map.get(@auix_entity, @field.data.owner_key)}&back_path=#{@_auix[:_current_path]}"}
                 id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
               <.icon name="hero-plus" />
             </.link>
@@ -98,7 +100,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
       </div>
       <div id={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
         <.table
-          id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}
+          id={"#{@parsed_opts.name}__#{@field.field}"}
           rows={Map.get(@auix_entity, @field.field)}
           row_click={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
@@ -193,12 +195,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   @spec build_related_path(binary(), map()) :: binary()
   defp build_related_path(source, data) do
     "source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}"
-  end
-
-  # Generates new link for related entities
-  @spec build_new_link(map(), binary()) :: binary()
-  defp build_new_link(opts, _path) do
-    "#{opts.index_new_link}?\#{related_path("
   end
 
   # Builds click handler for row interactions

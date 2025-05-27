@@ -23,6 +23,14 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2oneUILayoutTest do
     end
   end
 
-  test "Test UI default with schema, context, basic layout", %{conn: _conn} do
+  test "Test UI default with schema, context, basic layout", %{conn: conn} do
+    create_sample_products_with_transactions(3, 3, :test)
+
+    {:ok, view, _html} = live(conn, "/association-many-layout-products")
+
+    view
+    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='show-product']"))
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='show-product']")
+    |> render_click()
   end
 end

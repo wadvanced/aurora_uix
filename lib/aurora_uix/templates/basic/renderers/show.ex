@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
       {@_auix.name} {@auix_entity.id}
       <:subtitle>{@subtitle}</:subtitle>
       <:actions>
-        <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit#{@_auix_source_link}"} phx-click={JS.push_focus()} id={"auix-edit-#{@_auix.module}"}>
+        <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} phx-click={JS.push_focus()} id={"auix-edit-#{@_auix.module}"}>
           <.button>Edit {@_auix.name}</.button>
         </.link>
       </:actions>
@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
     </div>
 
     <div id="auix-show-navigate-back">
-      <.back navigate={"/#{@_auix.link_prefix}#{@_auix_source}"}>Back to {@_auix.title}</.back>
+      <.back navigate={"/#{@_auix._back_path}"}>Back to {@_auix.title}</.back>
     </div>
 
     <.modal :if={@live_action == :edit} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}")}>
