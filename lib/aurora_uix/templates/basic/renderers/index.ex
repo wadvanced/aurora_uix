@@ -41,7 +41,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
     <.header>
       Listing {@_auix.title}
       <:actions>
-        <.link patch={"#{@_auix[:index_new_link]}"} id={"auix-new-#{@_auix.module}"}>
+        <.link patch={"#{@_auix[:index_new_link]}?back_path=#{@_auix[:_current_path]}"} id={"auix-new-#{@_auix.module}"}>
           <.button>New {@_auix.name}</.button>
         </.link>
       </:actions>
@@ -71,7 +71,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
       </:action>
     </.table>
 
-    <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("/#{@_auix.link_prefix}#{@_auix.source}")}>
+    <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("#{@_auix._back_path}")}>
       <div>
         <.live_component
           module={@_auix._form_component}
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
           source={@_auix.source}
           action={@live_action}
           auix_entity={@auix_entity}
-          patch={"/#{@_auix.link_prefix}#{@_auix.source}"}
+          patch={"#{@_auix._back_path}"}
         />
       </div>
     </.modal>

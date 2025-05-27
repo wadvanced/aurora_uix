@@ -60,12 +60,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         end
 
         @impl true
-        def handle_params(params, _url, socket) do
+        def handle_params(params, url, socket) do
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
+           |> assign_auix_current_path(url)
            |> render_with(&Renderer.render/1)
            |> apply_action(socket.assigns.live_action, params)}
         end
@@ -90,7 +91,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         defp apply_action(socket, :edit, %{"id" => id} = params) do
           socket
           |> assign(:page_title, "Edit #{unquote(parsed_opts.name)}")
-          |> assign_source(params)
+          |> assign_auix_back_path(params)
           |> assign(
             :auix_entity,
             apply(unquote(modules.context), unquote(get_function), [
@@ -103,10 +104,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         defp apply_action(socket, :new, params) do
           socket
           |> assign(:page_title, "New #{unquote(parsed_opts.name)}")
-          |> assign_source(params)
+          |> assign_auix_back_path(params)
           |> assign_new_entity(
             params,
             apply(unquote(modules.context), unquote(new_function), [
+              %{},
               [preload: unquote(Macro.escape(parsed_opts.preload))]
             ])
           )
@@ -116,6 +118,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           socket
           |> assign(:page_title, "Listing #{unquote(parsed_opts.title)}")
           |> assign(:auix_entity, nil)
+          |> assign_auix_back_path(%{})
         end
       end
     end

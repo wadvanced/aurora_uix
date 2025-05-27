@@ -24,7 +24,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec assign_new_entity(Phoenix.Socket.t(), map, map) :: Phoenix.Socket.t()
   def assign_new_entity(
         socket,
-        %{"related_key" => related_key, "parent_id" => parent_id},
+        %{
+          "related_key" => related_key,
+          "parent_id" => parent_id
+        },
         default
       ) do
     related_key
@@ -34,26 +37,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   def assign_new_entity(socket, _params, default) do
     assign(socket, :auix_entity, default)
-  end
-
-  @doc """
-  Assigns source-related data to the socket based on provided parameters.
-
-  ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - params (map()) - Contains optional source configuration
-
-  Returns:
-    - Phoenix.LiveView.Socket.t()
-  """
-  @spec assign_source(Phoenix.LiveView.Socket.t(), map) ::
-          Phoenix.LiveView.Socket.t()
-  def assign_source(%{assigns: assigns} = socket, params) do
-    default_source = get_in(assigns, [:_auix, :source]) || ""
-
-    params
-    |> Map.get("source")
-    |> __maybe_set_different_source_and_link__(socket, default_source)
   end
 
   @doc """
@@ -163,6 +146,40 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
+  Extracts and assigns the current path out of the current url, to the _auix map.
+
+  ## Parameters
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - url (binary()) - Actual url.
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
+  """
+  @spec assign_auix_current_path(Phoenix.LiveView.Socket.t(), binary() | URI.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_auix_current_path(socket, url) do
+    assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
+  end
+
+  @doc """
+  Assigns the path to navigate back.
+
+  ## Parameters
+    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+    - params (map()) - Contains optiona back_path value
+
+  Returns:
+    - Phoenix.LiveView.Socket.t()
+  """
+  @spec assign_auix_back_path(Phoenix.LiveView.Socket.t(), map) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_auix_back_path(socket, %{"back_path" => back_path}),
+    do: assign_auix(socket, :_back_path, back_path)
+
+  def assign_auix_back_path(socket, _params),
+    do: assign_auix(socket, :_back_path, Map.get(socket.assigns._auix, :_current_path, ""))
+
+  @doc """
   Generates a link for showing an entity in the index view.
 
   ## Parameters
@@ -219,24 +236,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     default
     |> struct(%{related_key => parent_id})
     |> then(&assign(socket, :auix_entity, &1))
-  end
-
-  @doc false
-  @spec __maybe_set_different_source_and_link__(
-          binary | nil,
-          Phoenix.LiveView.Socket.t(),
-          binary | nil
-        ) :: Phoenix.LiveView.Socket.t()
-  def __maybe_set_different_source_and_link__(nil, socket, default_source) do
-    socket
-    |> assign(:_auix_source, default_source)
-    |> assign(:_auix_source_link, "")
-  end
-
-  def __maybe_set_different_source_and_link__(source, socket, _default_source) do
-    socket
-    |> assign(:_auix_source, source)
-    |> assign(:_auix_source_link, "?source=#{source}")
   end
 
   ## PRIVATE
