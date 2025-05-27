@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
         end
 
         @impl true
-        def handle_params(%{"id" => id} = params, _, socket) do
+        def handle_params(%{"id" => id} = params, current_uri, socket) do
           {:noreply,
            socket
            |> assign(
@@ -72,6 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
              ])
            )
            |> assign_auix(:_form_component, unquote(form_component))
+           |> assign_auix(:_current_uri, current_uri |> URI.parse() |> Map.get(:path))
            |> render_with(&Renderer.render/1)}
         end
 
@@ -80,6 +81,31 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
           %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
 
           {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
+        end
+
+        def handle_event("delete", params, socket) do
+          %{
+            "id" => id,
+            "context" => context_string,
+            "get_function" => get_function_string,
+            "delete_function" => delete_function_string
+          } = params
+
+          context = String.to_existing_atom(context_string)
+          get_function = String.to_existing_atom(get_function_string)
+          delete_function = String.to_existing_atom(delete_function_string)
+
+          socket =
+            with %{} = entity <- apply(context, get_function, [id]),
+                 {:ok, _changeset} <- apply(context, delete_function, [entity]) do
+              socket
+              |> put_flash(:info, "Item deleted successfully")
+              |> push_navigate(to: socket.assigns._auix._current_uri)
+            else
+              _ -> socket
+            end
+
+          {:noreply, socket}
         end
 
         # Formats page title by combining capitalized action with suffix

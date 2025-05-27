@@ -34,7 +34,7 @@ config :tailwind,
       "--input=css/app.css",
       "--output=../_priv/static/assets/app.css"
     ],
-    cd: Path.expand("assets", __DIR__)
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # esbuild environment
@@ -49,7 +49,7 @@ config :esbuild,
       "--external:/fonts/*",
       "--external:/images/*"
     ],
-    cd: Path.expand("assets", __DIR__),
+    cd: Path.expand("../assets", __DIR__),
     env: %{
       "NODE_PATH" => "../../deps"
     }

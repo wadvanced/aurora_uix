@@ -1,3 +1,5 @@
+# ADD a GUIDE indicating the max-w-2xl to be removed from app.html.heex
+
 <p align="center">
   <picture>
     <img src="./guides/images/aurora_uix-logo.svg" height="200" />

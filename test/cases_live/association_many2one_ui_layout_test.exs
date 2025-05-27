@@ -19,17 +19,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2oneUILayoutTest do
     auix_create_ui(link_prefix: "association-many-layout-") do
       edit_layout :product do
         stacked([:reference, :name, :description, :product_transactions])
-        #        many :product_transactions do
-        #          columns [:type, :quantity, :cost, [:product_location, :quantity_at_hand]]
-        #          edition do
-        #            stacked [:type, :quantity, :cost]
-        #          end
-        #        end
       end
-
-      #      edit_layout :product_transaction do
-      #        stacked [:type, :quantity, :cost, [:product_location, :quantity_at_hand]]
-      #      end
     end
   end
 
