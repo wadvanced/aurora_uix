@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Form do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
   @moduledoc """
   Renderer module for form views in Aurora UIX.
 

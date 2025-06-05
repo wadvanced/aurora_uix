@@ -83,18 +83,18 @@ defmodule Aurora.Uix.Test.Web.Router do
     )
 
     Web.register_crud(
-      AssociationMany2oneUILayoutTest.TestModule.Product,
-      "association-many-layout-products"
+      AssociationOne2ManyUILayoutTest.TestModule.Product,
+      "association-one2many-layout-products"
     )
 
     Web.register_crud(
-      AssociationMany2oneUILayoutTest.TestModule.ProductTransaction,
-      "association-many-layout-product_transactions"
+      AssociationOne2ManyUILayoutTest.TestModule.ProductTransaction,
+      "association-one2many-layout-product_transactions"
     )
 
     Web.register_crud(
-      AssociationMany2oneUILayoutTest.TestModule.ProductLocation,
-      "association-many-layout-product_locations"
+      AssociationOne2ManyUILayoutTest.TestModule.ProductLocation,
+      "association-one2many-layout-product_locations"
     )
   end
 end

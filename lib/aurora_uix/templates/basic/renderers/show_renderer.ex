@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   @moduledoc """
   Renderer module for show pages in Aurora UIX.
 
@@ -7,6 +7,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
+  import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
@@ -26,9 +27,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
       {@_auix.name} {@auix_entity.id}
       <:subtitle>{@subtitle}</:subtitle>
       <:actions>
-        <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} phx-click={JS.push_focus()} id={"auix-edit-#{@_auix.module}"}>
+        <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@_auix.module}"}>
           <.button>Edit {@_auix.name}</.button>
-        </.link>
+        </.auix_link>
       </:actions>
     </.header>
 
@@ -37,19 +38,18 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Show do
     </div>
 
     <div id="auix-show-navigate-back">
-      <.back navigate={"/#{@_auix._back_path}"}>Back to {@_auix.title}</.back>
+      <.auix_back>Back to {@_auix.title}</.auix_back>
     </div>
 
-    <.modal :if={@live_action == :edit} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}")}>
+    <.modal :if={@live_action == :edit} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
       <div>
         <.live_component
           module={@_auix._form_component}
           id={@auix_entity.id || :new}
           title={@page_title}
-          source={@_auix.source}
           action={@live_action}
           auix_entity={@auix_entity}
-          patch={"/#{@_auix.link_prefix}#{@_auix.source}"}
+          auix_routing_stack={@_auix._routing_stack}
         />
       </div>
     </.modal>
