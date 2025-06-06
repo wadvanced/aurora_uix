@@ -12,6 +12,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
     only: [module_name: 3, remove_omitted_fields: 1]
 
+  alias Aurora.Uix.Web.Templates.Basic.Helpers
+
   @doc """
   Generates a LiveComponent module for form handling.
 
@@ -27,10 +29,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
     parsed_opts = remove_omitted_fields(parsed_opts)
 
     change_function = parsed_opts.change_function
-    update_function = parsed_opts.update_function
     create_function = parsed_opts.create_function
+    get_function = parsed_opts.get_function
+    update_function = parsed_opts.update_function
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
+
+    one2many_preload = Helpers.one_to_many_preload(parsed_opts)
+
+    one2many_rendered? =
+      parsed_opts
+      |> Map.get(:_path)
+      |> Helpers.flat_paths()
+      |> Enum.filter(&(&1.tag == :field and &1.name in one2many_preload))
+      |> Enum.empty?()
+      |> Kernel.not()
 
     quote do
       defmodule unquote(form_component) do
@@ -79,8 +92,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         end
 
         def handle_event("save", %{unquote(parsed_opts.module) => entity_params}, socket) do
-          socket = Phoenix.LiveView.clear_flash(socket)
-          save(socket, socket.assigns.action, entity_params)
+          socket
+          |> Phoenix.LiveView.clear_flash()
+          |> save(entity_params)
         end
 
         @impl true
@@ -101,15 +115,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         end
 
         # Handles entity saving process and updates the UI accordingly
-        defp save(socket, action, entity_params) do
+        defp save(%{assigns: %{action: action}} = socket, entity_params) do
           case save_entity(socket, action, entity_params) do
             {:ok, entity} ->
               notify_parent({:saved, entity})
 
+              new_entity =
+                apply(unquote(modules.context), unquote(get_function), [
+                  entity.id,
+                  [preload: unquote(Macro.escape(parsed_opts.preload))]
+                ])
+
               {:noreply,
                socket
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
-               |> auix_route_back()}
+               |> assign(:auix_entity, new_entity)
+               |> assign(:action, :edit)
+               |> maybe_route_back(action, unquote(one2many_rendered?))}
 
             {:error, %Ecto.Changeset{} = changeset} ->
               {:noreply,
@@ -130,6 +152,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         defp save_entity(socket, :new, entity_params) do
           apply(unquote(modules.context), unquote(create_function), [entity_params])
         end
+
+        defp maybe_route_back(socket, :new, true), do: socket
+        defp maybe_route_back(socket, _action, _one2many_rendered?), do: auix_route_back(socket)
 
         # Sends a message to the parent LiveView with the operation result
         defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

@@ -300,6 +300,51 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Field.change(Map.get(field, :opts, []))
   end
 
+  @doc """
+  Gets one-to-many association fields from preload configuration.
+
+  ## Parameters
+  - parsed_opts (map()) - Configuration map containing preload and resource settings
+
+  ## Returns
+  - list() - List of one-to-many association field names
+  """
+  @spec one_to_many_preload(map()) :: list()
+  def one_to_many_preload(parsed_opts) do
+    parsed_opts
+    |> Map.get(:preload)
+    |> List.flatten()
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.uniq()
+    |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
+    |> Enum.filter(&(&1.field_type == :one_to_many_association))
+    |> Enum.map(& &1.field)
+  end
+
+  @doc """
+  Flattens a nested structure of elements into a list of paths.
+
+  ## Parameters
+  - elements (map() | list()) - Nested structure containing inner_elements and tags
+  - result (list()) - Accumulated result, defaults to empty list
+
+  ## Returns
+  - list() - Flattened list of maps containing tag and name information
+  """
+  @spec flat_paths(map() | list(), list()) :: list()
+  def flat_paths(elements, result \\ [])
+  def flat_paths([], result), do: result
+
+  def flat_paths(%{inner_elements: inner_elements} = path, result) do
+    flat_paths(inner_elements, [%{tag: path.tag, name: path[:name]} | result])
+  end
+
+  def flat_paths([%{inner_elements: inner_elements} | rest], result) do
+    inner_elements
+    |> Enum.reduce(result, &flat_paths(&1.inner_elements, [%{tag: &1.tag, name: &1[:name]} | &2]))
+    |> then(&flat_paths(rest, &1))
+  end
+
   ## Non imported
   @doc false
   @spec __maybe_set_related_to_new_entity__(
@@ -391,9 +436,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   # Appends the routing stack to the path as a query parameter
   @spec route_path_with_stack(binary(), map()) :: binary()
   defp route_path_with_stack(path, routing_stack) do
+    query_parameter_separator = if String.contains?(path, "?"), do: "&", else: "?"
+
     routing_stack
     |> encode_routing_stack()
-    |> then(&"#{path}?routing_stack=#{&1}")
+    |> then(&"#{path}#{query_parameter_separator}routing_stack=#{&1}")
   end
 
   @spec encode_routing_stack(struct()) :: binary()

@@ -84,14 +84,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       |> Map.put(:related_path, related_path)
       |> Map.put(:related_class, related_class)
       |> Map.put(:related_fields, related_fields)
+      |> Map.put(:related_key, field.data.related_key)
+      |> Map.put(:owner_key, field.data.owner_key)
       |> Map.put(:parsed_opts, parsed_opts)
 
+    # source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
         <.label for={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix_entity.id != nil}
-                navigate={@related_parsed_opts.index_new_link}
+            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @_auix[:_mode] == :form && @auix_entity.id != nil}
+                navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
                 id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
               <.icon name="hero-plus" />
             </.auix_link>
