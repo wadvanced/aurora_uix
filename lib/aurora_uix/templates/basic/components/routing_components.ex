@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.RoutingComponents do
     ~H"""
     <a
       phx-click="auix_route_forward"
-      phx-value-route_type={:to}
+      phx-value-route_type={:navigate}
       phx-value-route_path={@navigate}
       phx-no-format
       {@rest}

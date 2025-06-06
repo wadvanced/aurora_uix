@@ -763,7 +763,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   defp evaluate_phx_click(_assigns, _row), do: nil
 
   @spec evaluate_route_type(map()) :: atom() | nil
-  defp evaluate_route_type(%{row_click_navigate: _row_click_navigate}), do: :to
+  defp evaluate_route_type(%{row_click_navigate: _row_click_navigate}), do: :navigate
   defp evaluate_route_type(%{row_click_patch: _row_click_navigate}), do: :patch
   defp evaluate_route_type(_assigns), do: nil
 

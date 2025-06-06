@@ -72,7 +72,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            )
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_current_path(url)
-           |> assign_auix_routing_stack(params)
+           |> assign_auix_routing_stack(params,  %{
+             type: :navigate,
+             path: "/#{unquote(parsed_opts.link_prefix)}#{unquote(parsed_opts.source)}"
+           })
            |> render_with(&Renderer.render/1)}
         end
 
@@ -110,7 +113,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
         def handle_event(
               "auix_route_forward",
-              %{"route_type" => "to", "route_path" => path},
+              %{"route_type" => "navigate", "route_path" => path},
               socket
             ) do
           {:noreply, auix_route_forward(socket, to: path)}

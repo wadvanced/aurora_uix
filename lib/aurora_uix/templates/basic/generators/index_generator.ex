@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         def handle_event(
               "auix_route_forward",
-              %{"route_type" => "to", "route_path" => path},
+              %{"route_type" => "navigate", "route_path" => path},
               socket
             ) do
           {:noreply, auix_route_forward(socket, to: path)}

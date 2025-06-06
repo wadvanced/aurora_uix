@@ -205,7 +205,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - navigation (keyword()) - Navigation options with :to or :patch key
+  - navigation (keyword()) - Navigation options with :navigate or :patch key
 
   ## Returns
   - Phoenix.LiveView.Socket.t()
@@ -363,9 +363,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   defp add_forward_path(socket, _path, _navigation), do: socket
 
-  # Routes to a new path considering the navigation type (:to or :patch)
+  # Routes to a new path considering the navigation type (:navigate or :patch)
   @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
-  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{type: :to, path: path}) do
+  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{type: :navigate, path: path}) do
     push_navigate(socket, to: route_path_with_stack(path, stack))
   end
 
@@ -376,13 +376,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     push_patch(socket, to: route_path_with_stack(path, stack))
   end
 
-  defp route_to(socket, to: path), do: route_to(socket, %{type: :to, path: path})
+  defp route_to(socket, to: path), do: route_to(socket, %{type: :navigate, path: path})
 
   defp route_to(socket, patch: path), do: route_to(socket, %{type: :patch, path: path})
 
   # Determines the type of routing based on the navigation options
   @spec route_type(keyword()) :: atom()
-  defp route_type(to: _path), do: :to
+  defp route_type(to: _path), do: :navigate
   defp route_type(patch: _path), do: :patch
 
   # Appends the routing stack to the path as a query parameter
