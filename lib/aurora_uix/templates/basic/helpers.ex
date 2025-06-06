@@ -185,7 +185,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
         _default_route
       ) do
     encoded_routing_stack
-    |> Jason.decode!()
+    |> decode_routing_stack()
     |> Map.get("values", [])
     |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
     |> Stack.new()
@@ -365,7 +365,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   # Routes to a new path considering the navigation type (:navigate or :patch)
   @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
-  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{type: :navigate, path: path}) do
+  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{
+         type: :navigate,
+         path: path
+       }) do
     push_navigate(socket, to: route_path_with_stack(path, stack))
   end
 
@@ -389,8 +392,25 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec route_path_with_stack(binary(), map()) :: binary()
   defp route_path_with_stack(path, routing_stack) do
     routing_stack
+    |> encode_routing_stack()
+    |> then(&"#{path}?routing_stack=#{&1}")
+  end
+
+  @spec encode_routing_stack(struct()) :: binary()
+  defp encode_routing_stack(routing_stack) do
+    routing_stack
     |> Map.from_struct()
     |> Jason.encode!()
-    |> then(&"#{path}?routing_stack=#{&1}")
+    |> :zlib.compress()
+    |> Base.encode64()
+    |> URI.encode_www_form()
+  end
+
+  @spec decode_routing_stack(binary()) :: map()
+  defp decode_routing_stack(obfuscated) do
+    obfuscated
+    |> Base.decode64!()
+    |> :zlib.uncompress()
+    |> Jason.decode!()
   end
 end

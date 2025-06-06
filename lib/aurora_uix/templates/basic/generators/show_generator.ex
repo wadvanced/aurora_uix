@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            )
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_current_path(url)
-           |> assign_auix_routing_stack(params,  %{
+           |> assign_auix_routing_stack(params, %{
              type: :navigate,
              path: "/#{unquote(parsed_opts.link_prefix)}#{unquote(parsed_opts.source)}"
            })
