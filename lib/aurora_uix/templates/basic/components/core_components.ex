@@ -767,6 +767,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   defp evaluate_route_type(%{row_click_patch: _row_click_navigate}), do: :patch
   defp evaluate_route_type(_assigns), do: nil
 
+  @spec evaluate_route_path(map(), function() | nil) :: any()
   defp evaluate_route_path(%{row_click_navigate: row_click_navigate}, row)
        when is_function(row_click_navigate),
        do: row_click_navigate.(row)

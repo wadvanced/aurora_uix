@@ -40,6 +40,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
         import unquote(core_helpers)
 
+        alias Aurora.Uix.Stack
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
 
@@ -59,7 +60,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
            |> assign_auix(:_myself, socket.assigns.myself)
            |> assign_auix(
              :_routing_stack,
-             Map.get(assigns, :auix_routing_stack, Aurora.Uix.Stack.new())
+             Map.get(assigns, :auix_routing_stack, Stack.new())
            )
            |> render_with(&Renderer.render/1)}
         end

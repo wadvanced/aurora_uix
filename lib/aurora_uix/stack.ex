@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Stack do
     - t() - An empty stack
   """
   @spec new() :: t()
-  def new() do
+  def new do
     %__MODULE__{}
   end
 

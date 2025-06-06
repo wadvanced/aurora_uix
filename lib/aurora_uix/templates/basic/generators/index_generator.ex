@@ -67,7 +67,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_current_path(url)
-           |> assign_auix_routing_stack(params, %{type: :patch, path: "/#{unquote(parsed_opts.link_prefix)}#{unquote(parsed_opts.source)}"})
+           |> assign_auix_routing_stack(params, %{
+             type: :patch,
+             path: "/#{unquote(parsed_opts.link_prefix)}#{unquote(parsed_opts.source)}"
+           })
            |> render_with(&Renderer.render/1)
            |> apply_action(socket.assigns.live_action, params)}
         end
