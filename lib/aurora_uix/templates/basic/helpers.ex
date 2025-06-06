@@ -301,24 +301,25 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
-  Gets one-to-many association fields from preload configuration.
+  Extracts association fields from preload configuration grouped by association type.
 
   ## Parameters
   - parsed_opts (map()) - Configuration map containing preload and resource settings
 
   ## Returns
-  - list() - List of one-to-many association field names
+  - map() - Map with association field types (:one_to_many, :many_to_one) as keys and lists of field names as values
   """
-  @spec one_to_many_preload(map()) :: list()
-  def one_to_many_preload(parsed_opts) do
+  @spec extract_association_preload(map()) :: map()
+  def extract_association_preload(parsed_opts) do
     parsed_opts
     |> Map.get(:preload)
     |> List.flatten()
     |> Enum.map(&elem(&1, 0))
     |> Enum.uniq()
     |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
-    |> Enum.filter(&(&1.field_type == :one_to_many_association))
-    |> Enum.map(& &1.field)
+    |> Enum.filter(&(&1.field_type in [:many_to_one_association, :one_to_many_association]))
+    |> Enum.map(&{&1.field_type, &1.field})
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
   end
 
   @doc """
@@ -383,7 +384,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   ## PRIVATE
-  # Private helper to navigate using JavaScript
+  # Performs JavaScript navigation to a given URI, ensuring proper decode and formatting
   @spec js_navigate(binary()) :: JS.t()
   defp js_navigate(uri) do
     "/#{uri}"
@@ -391,7 +392,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> JS.navigate()
   end
 
-  # Adds a new path to the forward navigation stack
+  # Adds a path to the forward navigation stack and updates last route path in assigns
   @spec add_forward_path(Phoenix.LiveView.Socket.t(), binary(), keyword()) ::
           Phoenix.LiveView.Socket.t()
   defp add_forward_path(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, path, navigation) do
@@ -408,7 +409,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   defp add_forward_path(socket, _path, _navigation), do: socket
 
-  # Routes to a new path considering the navigation type (:navigate or :patch)
+  # Handles route changes based on navigation type and current routing stack
   @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
   defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{
          type: :navigate,
@@ -428,12 +429,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   defp route_to(socket, patch: path), do: route_to(socket, %{type: :patch, path: path})
 
-  # Determines the type of routing based on the navigation options
+  # Converts navigation keyword options to route type atoms
   @spec route_type(keyword()) :: atom()
   defp route_type(to: _path), do: :navigate
   defp route_type(patch: _path), do: :patch
 
-  # Appends the routing stack to the path as a query parameter
+  # Builds a complete path with routing stack encoded as a query parameter
   @spec route_path_with_stack(binary(), map()) :: binary()
   defp route_path_with_stack(path, routing_stack) do
     query_parameter_separator = if String.contains?(path, "?"), do: "&", else: "?"
@@ -443,6 +444,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> then(&"#{path}#{query_parameter_separator}routing_stack=#{&1}")
   end
 
+  # Encodes routing stack into a compressed, Base64 URL-safe string
   @spec encode_routing_stack(struct()) :: binary()
   defp encode_routing_stack(routing_stack) do
     routing_stack
@@ -453,6 +455,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> URI.encode_www_form()
   end
 
+  # Decodes an obfuscated routing stack string back into a map
   @spec decode_routing_stack(binary()) :: map()
   defp decode_routing_stack(obfuscated) do
     obfuscated

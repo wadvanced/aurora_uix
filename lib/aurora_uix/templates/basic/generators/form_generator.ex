@@ -35,7 +35,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
     form_component = module_name(modules, parsed_opts, ".FormComponent")
     core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
 
-    one2many_preload = Helpers.one_to_many_preload(parsed_opts)
+    one2many_preload =
+      parsed_opts
+      |> Helpers.extract_association_preload()
+      |> Map.get(:one_to_many_association, [])
 
     one2many_rendered? =
       parsed_opts
