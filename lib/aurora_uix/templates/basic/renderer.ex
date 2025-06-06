@@ -31,9 +31,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
 
   # Top-level renderers
-  def render(%{_auix: %{_path: %{tag: :index}}} = assigns), do: Renderers.Index.render(assigns)
-  def render(%{_auix: %{_path: %{tag: :show}}} = assigns), do: Renderers.Show.render(assigns)
-  def render(%{_auix: %{_path: %{tag: :form}}} = assigns), do: Renderers.Form.render(assigns)
+  def render(%{_auix: %{_path: %{tag: :index}}} = assigns),
+    do: Renderers.IndexRenderer.render(assigns)
+
+  def render(%{_auix: %{_path: %{tag: :show}}} = assigns),
+    do: Renderers.ShowRenderer.render(assigns)
+
+  def render(%{_auix: %{_path: %{tag: :form}}} = assigns),
+    do: Renderers.FormRenderer.render(assigns)
 
   # Group renderer
   def render(%{_auix: %{_path: %{tag: :group}}} = assigns) do
@@ -64,16 +69,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
 
   # Section renderers
   def render(%{_auix: %{_path: %{tag: :sections}}} = assigns) do
-    Renderers.Sections.render(assigns)
+    Renderers.SectionsRenderer.render(assigns)
   end
 
   def render(%{_auix: %{_path: %{tag: :section}}} = assigns) do
-    Renderers.Sections.section(assigns)
+    Renderers.SectionsRenderer.section(assigns)
   end
 
   # Field renderer
   def render(%{_auix: %{_path: %{tag: :field}}} = assigns) do
-    Renderers.Field.render(assigns)
+    Renderers.FieldRenderer.render(assigns)
   end
 
   # Default empty renderer for unhandled cases

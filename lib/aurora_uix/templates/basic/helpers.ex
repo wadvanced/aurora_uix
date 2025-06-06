@@ -1,6 +1,8 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @moduledoc """
-  Helper functions for LiveView components.
+  Helper functions for LiveView components providing routing, assignment management, and entity-related utilities.
+  Includes functions for managing navigation stacks, assigning values to LiveView sockets, and handling
+  entity relationships.
   """
 
   use Phoenix.Component
@@ -8,20 +10,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   import Aurora.Uix.Template, only: [safe_existing_atom: 1]
 
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
 
   @doc """
   Assigns a new entity to the socket based on related parameters.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - params (map()) - Contains optional related_key and parent_id for relationships
-    - default (struct()) - Default entity struct for new records
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - params (map()) - Map containing optional related_key and parent_id for relationships
+  - default (struct()) - Default entity struct for new records
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_new_entity(Phoenix.Socket.t(), map, map) :: Phoenix.Socket.t()
+  @spec assign_new_entity(Phoenix.Socket.t(), map(), struct()) :: Phoenix.Socket.t()
   def assign_new_entity(
         socket,
         %{
@@ -43,14 +47,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns click handler for index rows based on parsed options.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - _params (map()) - Unused parameters map
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - params (map()) - Parameters map
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   def assign_index_row_click(%{assigns: assigns} = socket, _params) do
     parsed_opts = Map.get(assigns, :_auix, %{})
 
@@ -63,7 +66,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
           parsed_opts
           |> Map.get(:index_row_click, "#")
           |> String.replace("[[entity]]", to_string(id))
-          |> then(&navigate/1)
+          |> then(&js_navigate/1)
         end
 
     assign_auix(socket, :index_row_click, index_row_click)
@@ -73,11 +76,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns parsed options to the _auix assigns map in the socket.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - parsed_opts (map()) - Options to merge with existing _auix assigns
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - parsed_opts (map()) - Options to merge with existing _auix assigns
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
   @spec assign_parsed_opts(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   def assign_parsed_opts(socket, parsed_opts) do
@@ -91,12 +94,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns a value to the _auix assigns map in the socket.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - key (atom()) - Key for storing in _auix map
-    - value (term()) - Value to store
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - key (atom()) - Key for storing in _auix map
+  - value (term()) - Value to store
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
   @spec assign_auix(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix(socket, key, value) do
@@ -110,12 +113,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns a value to the _auix assigns map in the socket only if it does not exist.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - key (atom()) - Key for storing in _auix map
-    - value (term()) - Value to store
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - key (atom()) - Key for storing in _auix map
+  - value (term()) - Value to store
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
   @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix_new(socket, key, value) do
@@ -129,12 +132,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns section configuration to _auix assigns map.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - sections_id (binary()) - Identifier for the sections group
-    - tab_id (binary()) - Identifier for the active tab
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - sections_id (binary()) - Identifier for the sections group
+  - tab_id (binary()) - Identifier for the active tab
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
   @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary(), binary()) ::
           Phoenix.LiveView.Socket.t()
@@ -149,11 +152,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Extracts and assigns the current path out of the current url, to the _auix map.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - url (binary()) - Actual url.
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - url (binary()) - Actual url.
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
   @spec assign_auix_current_path(Phoenix.LiveView.Socket.t(), binary() | URI.t()) ::
           Phoenix.LiveView.Socket.t()
@@ -162,32 +165,88 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
-  Assigns the path to navigate back.
+  Assigns routing stack to the socket. Decodes stack from params or uses default route.
 
   ## Parameters
-    - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-    - params (map()) - Contains optiona back_path value
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - params (map()) - Parameters containing encoded routing stack
+  - default_route (map() | nil) - Optional default route if no stack exists
 
-  Returns:
-    - Phoenix.LiveView.Socket.t()
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_auix_back_path(Phoenix.LiveView.Socket.t(), map) ::
+  @spec assign_auix_routing_stack(Phoenix.LiveView.Socket.t(), map(), map() | nil) ::
           Phoenix.LiveView.Socket.t()
-  def assign_auix_back_path(socket, %{"back_path" => back_path}),
-    do: assign_auix(socket, :_back_path, back_path)
+  def assign_auix_routing_stack(socket, params, default_route \\ nil)
 
-  def assign_auix_back_path(socket, _params),
-    do: assign_auix(socket, :_back_path, Map.get(socket.assigns._auix, :_current_path, ""))
+  def assign_auix_routing_stack(
+        socket,
+        %{"routing_stack" => encoded_routing_stack},
+        _default_route
+      ) do
+    encoded_routing_stack
+    |> Jason.decode!()
+    |> Map.get("values", [])
+    |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
+    |> Stack.new()
+    |> then(&assign_auix(socket, :_routing_stack, &1))
+  end
+
+  def assign_auix_routing_stack(socket, _params, %{} = default_route) do
+    default_route
+    |> Stack.new()
+    |> then(&assign_auix(socket, :_routing_stack, &1))
+  end
+
+  def assign_auix_routing_stack(socket, _params, _default_route), do: socket
+
+  @doc """
+  Handles forward navigation by updating the routing stack and navigating to the new path.
+
+  ## Parameters
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+  - navigation (keyword()) - Navigation options with :navigate or :patch key
+
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
+  """
+  @spec auix_route_forward(Phoenix.LiveView.Socket.t(), keyword()) :: Phoenix.LiveView.Socket.t()
+  def auix_route_forward(
+        %{assigns: %{_auix: %{_current_path: current_path}}} = socket,
+        navigation
+      ) do
+    socket
+    |> add_forward_path(current_path, navigation)
+    |> route_to(navigation)
+  end
+
+  @doc """
+  Handles backward navigation by popping the last route from the stack.
+
+  ## Parameters
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  ## Returns
+  - Phoenix.LiveView.Socket.t()
+  """
+  @spec auix_route_back(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
+  def auix_route_back(%{assigns: %{_auix: %{_routing_stack: routing_stack}}} = socket) do
+    {new_navigation_stack, back_path} = Stack.pop!(routing_stack)
+
+    socket
+    |> assign_auix(:_routing_stack, new_navigation_stack)
+    |> route_to(Map.new(back_path))
+  end
 
   @doc """
   Generates a link for showing an entity in the index view.
 
   ## Parameters
-    - auix (map()) - Configuration map with index_show_entity_link setting
-    - entity (map()) - Entity data with id field
+  - auix (map()) - Configuration map with index_show_entity_link setting
+  - entity (map()) - Entity data with id field
 
-  Returns:
-    - binary()
+  ## Returns
+  - binary()
   """
   @spec index_show_entity_link(map, map) :: binary
   def index_show_entity_link(auix, entity) do
@@ -201,13 +260,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Generates a path string for related entities.
 
   ## Parameters
-    - source (binary()) - The source identifier
-    - auix_entity (map()) - Entity with id and owner key value
-    - related_key (atom()) - Key identifying the relation
-    - owner_key (atom()) - Key identifying the owner field
+  - source (binary()) - The source identifier
+  - auix_entity (map()) - Entity with id and owner key value
+  - related_key (atom()) - Key identifying the relation
+  - owner_key (atom()) - Key identifying the owner field
 
-  Returns:
-    - binary()
+  ## Returns
+  - binary()
   """
   @spec related_path(binary, map, atom, atom) :: binary
   def related_path(_source, _auix_entity, nil, _owner_key), do: ""
@@ -219,6 +278,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   def related_path(_parsed_opts, _auix_entity, _related_key, _owner_key), do: ""
+
+  @doc """
+  Retrieves and processes field configuration from the resource configurations.
+
+  Parameters:
+  - field: %{name: atom()} - Map containing the field name and options
+  - configurations: map - Global configurations for all resources
+  - resource_name: atom - The name of the resource the field belongs to
+
+  Returns:
+  - Field.t() - A Field struct containing the processed field configuration
+  """
+  @spec get_field(map, map, atom) :: Field.t()
+  def get_field(%{name: field_name} = field, configurations, resource_name) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:resource_config, %{})
+    |> Map.get(:fields, %{})
+    |> Map.get(field_name, Field.new(%{field: field_name}))
+    |> Field.change(Map.get(field, :opts, []))
+  end
 
   ## Non imported
   @doc false
@@ -238,11 +318,79 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> then(&assign(socket, :auix_entity, &1))
   end
 
+  @doc """
+  A helper that transforms changeset errors into a map of messages.
+
+      assert {:error, changeset} = Accounts.create_user(%{password: "short"})
+      assert "password is too short" in errors_on(changeset).password
+      assert %{password: ["password is too short"]} = errors_on(changeset)
+
+  """
+  @spec format_changeset_errors(Ecto.Changeset.t()) :: binary
+  def format_changeset_errors(changeset) do
+    changeset
+    |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
+      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+    |> Enum.map_join("<br>", &"#{elem(&1, 0)}: #{elem(&1, 1)}")
+  end
+
   ## PRIVATE
-  @spec navigate(binary) :: JS.t()
-  defp navigate(uri) do
+  # Private helper to navigate using JavaScript
+  @spec js_navigate(binary()) :: JS.t()
+  defp js_navigate(uri) do
     "/#{uri}"
     |> URI.decode()
     |> JS.navigate()
+  end
+
+  # Adds a new path to the forward navigation stack
+  @spec add_forward_path(Phoenix.LiveView.Socket.t(), binary(), keyword()) ::
+          Phoenix.LiveView.Socket.t()
+  defp add_forward_path(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, path, navigation) do
+    navigation_entry =
+      navigation
+      |> route_type()
+      |> then(&%{type: &1, path: path})
+
+    stack
+    |> Stack.push(navigation_entry)
+    |> then(&assign_auix(socket, :_routing_stack, &1))
+    |> assign_auix(:_last_route_path, path)
+  end
+
+  defp add_forward_path(socket, _path, _navigation), do: socket
+
+  # Routes to a new path considering the navigation type (:navigate or :patch)
+  @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
+  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{type: :navigate, path: path}) do
+    push_navigate(socket, to: route_path_with_stack(path, stack))
+  end
+
+  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{
+         type: :patch,
+         path: path
+       }) do
+    push_patch(socket, to: route_path_with_stack(path, stack))
+  end
+
+  defp route_to(socket, to: path), do: route_to(socket, %{type: :navigate, path: path})
+
+  defp route_to(socket, patch: path), do: route_to(socket, %{type: :patch, path: path})
+
+  # Determines the type of routing based on the navigation options
+  @spec route_type(keyword()) :: atom()
+  defp route_type(to: _path), do: :navigate
+  defp route_type(patch: _path), do: :patch
+
+  # Appends the routing stack to the path as a query parameter
+  @spec route_path_with_stack(binary(), map()) :: binary()
+  defp route_path_with_stack(path, routing_stack) do
+    routing_stack
+    |> Map.from_struct()
+    |> Jason.encode!()
+    |> then(&"#{path}?routing_stack=#{&1}")
   end
 end

@@ -40,6 +40,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
         import unquote(core_helpers)
 
+        alias Aurora.Uix.Stack
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
 
@@ -57,6 +58,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
            |> assign_auix_new(:_form, form)
            |> assign_auix_new(:_sections, %{})
            |> assign_auix(:_myself, socket.assigns.myself)
+           |> assign_auix(
+             :_routing_stack,
+             Map.get(assigns, :auix_routing_stack, Stack.new())
+           )
            |> render_with(&Renderer.render/1)}
         end
 
@@ -87,6 +92,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
           {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
         end
 
+        def handle_event("auix_route_back", _params, socket) do
+          {:noreply, auix_route_back(socket)}
+        end
+
         def handle_event(event, params, socket) do
           raise "Event not handled. event: #{inspect(event)}. params: #{inspect(params)}"
         end
@@ -100,12 +109,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
               {:noreply,
                socket
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
-               |> push_navigate(to: socket.assigns.patch)}
+               |> auix_route_back()}
 
             {:error, %Ecto.Changeset{} = changeset} ->
               {:noreply,
                socket
-               |> put_flash(:error, inspect(changeset.errors))
+               |> put_flash(:error, format_changeset_errors(changeset))
                |> assign_auix(:_form, to_form(changeset))}
           end
         end

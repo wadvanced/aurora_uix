@@ -6,7 +6,7 @@ description: 'Preferences for module documentation'
 Modify only the focused module.
 
 ## Formatting
-parameters, maps, list are to be edited into one line, when they do not exceed the 98 characters limit.
+parameters, maps, list are to be edited into one line, when the resulting text do not exceed the 98 characters limit.
 
 ## @moduledoc
 Create or update the @moduledoc according to the implementation respecting existing documentation

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.AssociationMany2oneUILayoutTest do
+defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
   defmodule TestModule do
@@ -16,9 +16,9 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2oneUILayoutTest do
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui(link_prefix: "association-many-layout-") do
+    auix_create_ui(link_prefix: "association-one2many-layout-") do
       edit_layout :product do
-        stacked([:reference, :name, :description, :product_transactions])
+        stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
       end
     end
   end
@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2oneUILayoutTest do
   test "Test UI default with schema, context, basic layout", %{conn: conn} do
     create_sample_products_with_transactions(3, 3, :test)
 
-    {:ok, view, _html} = live(conn, "/association-many-layout-products")
+    {:ok, view, _html} = live(conn, "/association-one2many-layout-products")
 
     view
     |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='show-product']"))

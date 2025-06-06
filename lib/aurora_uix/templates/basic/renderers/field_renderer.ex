@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
   Field renderer module for Aurora UIX forms.
 
@@ -10,7 +10,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
+  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
+  import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   alias Phoenix.LiveView.JS
 
@@ -89,27 +90,25 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
     <div class="flex flex-col">
       <div class="flex-row gap-4">
         <.label for={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.link
-                patch={if @related_parsed_opts.disable_index_new_link,
-                  do: nil,
-                  else: "#{related_parsed_opts.index_new_link}?related_key=#{@field.data.related_key}&parent_id=#{Map.get(@auix_entity, @field.data.owner_key)}&back_path=#{@_auix[:_current_path]}"}
+            <.auix_link :if={!@related_parsed_opts.disable_index_new_link}
+                navigate={@related_parsed_opts.index_new_link}
                 id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
               <.icon name="hero-plus" />
-            </.link>
+            </.auix_link>
         </.label>
       </div>
       <div id={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.name}__#{@field.field}"}
           rows={Map.get(@auix_entity, @field.field)}
-          row_click={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
+          row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
-          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}>{Map.get(entity, related_field.field)}</:col>
+          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.field)}</.auix_link></:col>
           <:action :let={entity}>
             <div class="sr-only">
-              <.link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}?#{@related_path}"} id={"auix-show-#{entity.id}"}>Show</.link>
+              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} id={"auix-show-#{entity.id}"}>Show</.auix_link>
             </div>
-            <.link patch={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit?#{@related_path}"} id={"auix-edit-#{entity.id}"}><.icon name="hero-pencil" /></.link>
+            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} id={"auix-edit-#{entity.id}"}><.icon name="hero-pencil" /></.auix_link>
           </:action>
 
           <:action :let={entity}>
@@ -205,8 +204,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Field do
       |> Map.get(:id)
       |> to_string()
       |> then(&String.replace("#{opts.index_row_click}?#{path}", "[[entity]]", &1))
-      |> URI.decode()
-      |> JS.navigate()
     end
   end
 

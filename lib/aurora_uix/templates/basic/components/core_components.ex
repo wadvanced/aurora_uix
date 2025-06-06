@@ -471,6 +471,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
   attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
 
+  attr(:row_click_navigate, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
+  attr(:row_click_patch, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
   attr(:row_item, :any,
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
@@ -508,7 +518,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
             <td
               :for={{col, i} <- Enum.with_index(@col)}
-              phx-click={@row_click && @row_click.(row)}
+              phx-click={evaluate_phx_click(assigns, row)}
+              phx-value-route_type={evaluate_route_type(assigns)}
+              phx-value-route_path={evaluate_route_path(assigns, row)}
               class={["relative p-0", @row_click && "hover:cursor-pointer"]}
             >
               <div class="block py-4 pr-6">
@@ -731,4 +743,38 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  ## PRIVATE
+  @spec evaluate_phx_click(map(), function() | nil) :: any()
+  defp evaluate_phx_click(%{row_click: row_click}, row) when is_function(row_click) do
+    row_click.(row)
+  end
+
+  defp evaluate_phx_click(%{row_click_navigate: row_click_navigate}, _row)
+       when is_function(row_click_navigate) do
+    "auix_route_forward"
+  end
+
+  defp evaluate_phx_click(%{row_click_patch: row_click_patch}, _row)
+       when is_function(row_click_patch) do
+    "auix_route_forward"
+  end
+
+  defp evaluate_phx_click(_assigns, _row), do: nil
+
+  @spec evaluate_route_type(map()) :: atom() | nil
+  defp evaluate_route_type(%{row_click_navigate: _row_click_navigate}), do: :navigate
+  defp evaluate_route_type(%{row_click_patch: _row_click_navigate}), do: :patch
+  defp evaluate_route_type(_assigns), do: nil
+
+  @spec evaluate_route_path(map(), function() | nil) :: any()
+  defp evaluate_route_path(%{row_click_navigate: row_click_navigate}, row)
+       when is_function(row_click_navigate),
+       do: row_click_navigate.(row)
+
+  defp evaluate_route_path(%{row_click_patch: row_click_patch}, row)
+       when is_function(row_click_patch),
+       do: row_click_patch.(row)
+
+  defp evaluate_route_path(_assigns, _row), do: nil
 end

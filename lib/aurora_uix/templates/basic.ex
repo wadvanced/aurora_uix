@@ -33,7 +33,6 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   """
   @behaviour Aurora.Uix.Template
 
-  alias Aurora.Uix.Field
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
@@ -62,26 +61,5 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   @spec default_core_components_module() :: module
   def default_core_components_module do
     Aurora.Uix.Web.Templates.Basic.CoreComponents
-  end
-
-  @doc """
-  Retrieves and processes field configuration from the resource configurations.
-
-  Parameters:
-  - field: %{name: atom()} - Map containing the field name and options
-  - configurations: map - Global configurations for all resources
-  - resource_name: atom - The name of the resource the field belongs to
-
-  Returns:
-  - Field.t() - A Field struct containing the processed field configuration
-  """
-  @spec get_field(map, map, atom) :: Field.t()
-  def get_field(%{name: field_name} = field, configurations, resource_name) do
-    configurations
-    |> Map.get(resource_name, %{})
-    |> Map.get(:resource_config, %{})
-    |> Map.get(:fields, %{})
-    |> Map.get(field_name, Field.new(%{field: field_name}))
-    |> Field.change(Map.get(field, :opts, []))
   end
 end

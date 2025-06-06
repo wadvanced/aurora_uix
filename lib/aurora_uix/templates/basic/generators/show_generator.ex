@@ -63,7 +63,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            |> assign(:subtitle, " Detail")
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_sections, %{})
-           |> assign_auix_back_path(params)
            |> assign(
              :auix_entity,
              apply(unquote(modules.context), unquote(get_function), [
@@ -73,6 +72,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            )
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_current_path(url)
+           |> assign_auix_routing_stack(params,  %{
+             type: :navigate,
+             path: "/#{unquote(parsed_opts.link_prefix)}#{unquote(parsed_opts.source)}"
+           })
            |> render_with(&Renderer.render/1)}
         end
 
@@ -106,6 +109,26 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
             end
 
           {:noreply, socket}
+        end
+
+        def handle_event(
+              "auix_route_forward",
+              %{"route_type" => "navigate", "route_path" => path},
+              socket
+            ) do
+          {:noreply, auix_route_forward(socket, to: path)}
+        end
+
+        def handle_event(
+              "auix_route_forward",
+              %{"route_type" => "patch", "route_path" => path},
+              socket
+            ) do
+          {:noreply, auix_route_forward(socket, patch: path)}
+        end
+
+        def handle_event("auix_route_back", _params, socket) do
+          {:noreply, auix_route_back(socket)}
         end
 
         # Formats page title by combining capitalized action with suffix

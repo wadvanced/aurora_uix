@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
+defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
   @moduledoc """
   Renderer module for index pages in Aurora UIX.
 
@@ -7,7 +7,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic, only: [get_field: 3]
+  import Aurora.Uix.Web.Templates.Basic.RoutingComponents
+  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
 
   alias Phoenix.LiveView.JS
 
@@ -41,24 +42,24 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
     <.header>
       Listing {@_auix.title}
       <:actions>
-        <.link patch={"#{@_auix[:index_new_link]}?back_path=#{@_auix[:_current_path]}"} id={"auix-new-#{@_auix.module}"}>
+        <.auix_link patch={"#{@_auix[:index_new_link]}"} id={"auix-new-#{@_auix.module}"}>
           <.button>New {@_auix.name}</.button>
-        </.link>
+        </.auix_link>
       </:actions>
     </.header>
 
     <.table
       id={@_auix.source}
       rows={get_in(assigns, @_auix.rows)}
-      row_click={fn {_id, entity} -> JS.navigate("/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}") end}
+      row_click_navigate={fn {_id, entity} -> "/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}" end}
     >
-      <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}>{Map.get(entity, field.field)}</:col>
+      <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}"}>{Map.get(entity, field.field)}</.auix_link></:col>
 
       <:action :let={{_id, entity}}>
         <div class="sr-only">
-          <.link navigate={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}"} name={"show-#{@_auix.module}"}>Show</.link>
+          <.auix_link navigate={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}"} name={"show-#{@_auix.module}"}>Show</.auix_link>
         </div>
-        <.link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}/edit"} name={"edit-#{@_auix.module}"}>Edit</.link>
+        <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}/edit"} name={"edit-#{@_auix.module}"}>Edit</.auix_link>
       </:action>
       <:action :let={{id, entity}}>
         <.link
@@ -71,16 +72,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.Index do
       </:action>
     </.table>
 
-    <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.patch("#{@_auix._back_path}")}>
+    <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
       <div>
         <.live_component
           module={@_auix._form_component}
           id={@auix_entity.id || :new}
           title={@page_title}
-          source={@_auix.source}
           action={@live_action}
           auix_entity={@auix_entity}
-          patch={"#{@_auix._back_path}"}
+          auix_routing_stack={@_auix._routing_stack}
         />
       </div>
     </.modal>
