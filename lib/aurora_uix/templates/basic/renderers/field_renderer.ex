@@ -89,15 +89,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
-        <.label for={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.auix_link :if={!@related_parsed_opts.disable_index_new_link}
+        <.label for={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
+            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix_entity.id != nil}
                 navigate={@related_parsed_opts.index_new_link}
                 id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
               <.icon name="hero-plus" />
             </.auix_link>
         </.label>
       </div>
-      <div id={"auix-many2one-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
+      <div id={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.name}__#{@field.field}"}
           rows={Map.get(@auix_entity, @field.field)}
