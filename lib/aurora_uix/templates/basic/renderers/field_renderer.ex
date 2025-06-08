@@ -2,11 +2,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
   Field renderer module for Aurora UIX forms.
 
-  Handles rendering of form fields with support for:
-  - Custom field renderers
-  - Association fields (one-to-many, many-to-one)
-  - Hidden fields
+  Provides specialized rendering for different field types:
   - Standard form inputs with validation
+  - One-to-many associations with embedded tables
+  - Many-to-one associations
+  - Hidden fields
+  - Custom field renderers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
@@ -18,13 +19,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @doc """
   Renders a form field based on its type and configuration.
 
-  - assigns (map()) - Map containing:
-    - _auix (map()) - Aurora UIX context with configurations
-    - auix_entity (map()) - Entity being rendered
-    - field (map()) - Field configuration and metadata
+  ## Parameters
+  - assigns (map()) - LiveView assigns containing:
+    - _auix: Aurora UIX context with configurations
+    - auix_entity: Entity being rendered
+    - field: Field configuration and metadata
 
-  Returns:
-    - Phoenix.LiveView.Rendered.t() - The rendered field component
+  ## Returns
+  - Phoenix.LiveView.Rendered.t() - The rendered field component
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{_auix: auix} = assigns) do
@@ -53,7 +55,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     field.renderer.(assigns)
   end
 
-  # Default rendering for various field types
+  # Renders different field types with appropriate HTML structure and components
   @spec default_render(map()) :: Phoenix.LiveView.Rendered.t()
   defp default_render(%{field: %{field_type: :one_to_many_association, resource: nil}} = assigns) do
     ~H"""
@@ -103,6 +105,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       <div id={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.name}__#{@field.field}"}
+          auix_css_classes={@_auix._css_classes}
           rows={Map.get(@auix_entity, @field.field)}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
@@ -178,9 +181,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     """
   end
 
-  # Helper functions
-
-  # Extracts fields configuration for association rendering
+  # Gets field configurations for associations from the resource configurations
   @spec get_association_fields(map(), map()) :: list(map())
   defp get_association_fields(field, configurations) do
     configurations
@@ -193,13 +194,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     end)
   end
 
-  # Builds the path for related entity operations
+  # Builds the URL path template for related entity operations
   @spec build_related_path(binary(), map()) :: binary()
   defp build_related_path(source, data) do
     "source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}"
   end
 
-  # Builds click handler for row interactions
+  # Creates a click handler function for row interactions in tables
   @spec build_row_click(map(), binary()) :: (map() -> JS.t())
   defp build_row_click(opts, path) do
     fn row ->
@@ -210,7 +211,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     end
   end
 
-  # Gets select field options if applicable
+  # Returns select field options and multiple selection flag if applicable
   @spec get_select_options(map()) :: map()
   defp get_select_options(%{field_html_type: :select, data: data}) do
     options = for {label, value} <- data[:opts], do: {label, value}
