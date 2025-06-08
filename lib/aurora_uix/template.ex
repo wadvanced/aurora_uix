@@ -87,37 +87,48 @@ defmodule Aurora.Uix.Template do
   Generates the handling code for the given mode.
 
   ## Parameters
-    - modules (map()) - Map with caller, module, web and context modules
-    - parsed_opts (map()) - Customization options for code generation
+  - modules (map()) - Map with caller, module, web and context modules
+  - parsed_opts (map()) - Customization options for code generation
 
-  Returns:
-    - Macro.t() - Generated module code
+  ## Returns
+  - Macro.t() - Generated module code
   """
   @callback generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()
 
   @doc """
   Returns the default core components module.
 
-  Returns:
-    - module() - The module containing core UI components
+  ## Returns
+  - module() - The module containing core UI components
   """
   @callback default_core_components_module() :: module()
 
   @doc """
-  Validates and return the configured uix template.
+  Returns CSS class mappings for different template components.
+
+  ## Returns
+  - map() - A map with component categories as keys and CSS class mappings as values
   """
-  @spec uix_template() :: module
+  @callback css_classes() :: %{atom() => map()}
+
+  @doc """
+  Validates and returns the configured UIX template module.
+
+  ## Returns
+  - module() - The validated template module
+  """
+  @spec uix_template() :: module()
   def uix_template, do: validate(@uix_template)
 
   @doc """
   Extracts the value of a specified field from an entity.
 
   ## Parameters
-    - entity (tuple() | struct() | map()) - Entity containing field values
-    - field_config (map()) - Field configuration with field key
+  - entity (tuple() | struct() | map()) - Entity containing field values
+  - field_config (map()) - Field configuration with field key
 
-  Returns:
-    - term() - Value of the specified field or nil if not found
+  ## Returns
+  - term() - Value of the specified field or nil if not found
   """
   @spec field_row_value(tuple() | struct() | map(), map()) :: term()
   def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
@@ -148,9 +159,10 @@ defmodule Aurora.Uix.Template do
 
   def safe_existing_atom(_name), do: nil
 
-  ## PRIVATE FUNCTIONS
+  ## PRIVATE
 
   # Validates that a module implements the required behavior and exports expected functions
+  # Raises ArgumentError if validation fails
   @spec validate(module()) :: module()
   defp validate(module) do
     Code.ensure_compiled!(module)
@@ -180,7 +192,8 @@ defmodule Aurora.Uix.Template do
     module
   end
 
-  @spec behaviour_implemented?(module) :: boolean
+  # Checks if the module implements the Template behavior
+  @spec behaviour_implemented?(module()) :: boolean()
   defp behaviour_implemented?(module) do
     :attributes
     |> module.__info__()
@@ -188,7 +201,8 @@ defmodule Aurora.Uix.Template do
     |> Enum.member?(__MODULE__)
   end
 
-  @spec functions_not_exported(module, keyword) :: list
+  # Returns a list of expected functions that are not exported by the module
+  @spec functions_not_exported(module(), keyword()) :: list()
   defp functions_not_exported(module, expected_functions) do
     expected_functions
     |> Enum.reject(&function_exported?(module, elem(&1, 0), elem(&1, 1)))
