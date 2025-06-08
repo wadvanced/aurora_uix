@@ -94,7 +94,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
-        <.label for={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
+        <.label for={"auix-one_to_many-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
             <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @_auix[:_mode] == :form && @auix_entity.id != nil}
                 navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
                 id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
             </.auix_link>
         </.label>
       </div>
-      <div id={"auix-one2many-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
+      <div id={"auix-one_to_many-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.name}__#{@field.field}"}
           auix_css_classes={@_auix._css_classes}
