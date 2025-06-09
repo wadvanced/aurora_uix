@@ -90,21 +90,20 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       |> Map.put(:owner_key, field.data.owner_key)
       |> Map.put(:parsed_opts, parsed_opts)
 
-    # source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
-        <.label for={"auix-one_to_many-#{@parsed_opts.name}__#{@field.field}"}>{"#{@related_parsed_opts.title} Elements"}
+        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}>{"#{@related_parsed_opts.title} Elements"}
             <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @_auix[:_mode] == :form && @auix_entity.id != nil}
                 navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
-                id={"auix-new-#{@parsed_opts.name}__#{@field.field}"}>
+                id={"auix-new-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}>
               <.icon name="hero-plus" />
             </.auix_link>
         </.label>
       </div>
-      <div id={"auix-one_to_many-#{@parsed_opts.name}__#{@field.field}"} class={@related_class}>
+      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"} class={@related_class}>
         <.table
-          id={"#{@parsed_opts.name}__#{@field.field}"}
+          id={"#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}
           auix_css_classes={@_auix._css_classes}
           rows={Map.get(@auix_entity, @field.field)}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
@@ -112,9 +111,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
           <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.field)}</.auix_link></:col>
           <:action :let={entity}>
             <div class="sr-only">
-              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} id={"auix-show-#{entity.id}"}>Show</.auix_link>
+              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} name={"auix-show-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-show-#{entity.id}-#{@_auix._mode}"}>Show</.auix_link>
             </div>
-            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} id={"auix-edit-#{entity.id}"}><.icon name="hero-pencil" /></.auix_link>
+            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} name={"auix-edit-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-edit-#{entity.id}-#{@_auix._mode}"}><.icon name="hero-pencil" /></.auix_link>
           </:action>
 
           <:action :let={entity}>
@@ -126,7 +125,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
                     delete_function: @related_parsed_opts.delete_function}
                 )
                 |> hide("##{entity.id}")}
-              name={"delete-#{@related_parsed_opts.name}"}
+              name={"auix-delete-#{@parsed_opts.module}__#{@related_parsed_opts.module}"}
               data-confirm="Are you sure?"
             >
               <.icon name="hero-trash" />

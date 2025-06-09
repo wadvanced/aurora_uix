@@ -33,7 +33,7 @@ defmodule Aurora.Uix.Test.Support.Helper do
       %Product{reference: reference, name: name, description: description, cost: cost}
       |> Repo.insert()
       |> elem(1)
-      |> then(&{String.to_atom("id_#{reference_id}"), &1})
+      |> then(&{"id_#{reference_id}", &1})
     end)
     |> Map.new()
   end
