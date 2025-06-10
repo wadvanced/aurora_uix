@@ -76,6 +76,33 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         end
 
         @impl true
+        def handle_event(
+              "delete",
+              %{
+                "id" => id,
+                "context" => context_name,
+                "get_function" => get_function_name,
+                "delete_function" => delete_function_name
+              },
+              socket
+            ) do
+          context = String.to_existing_atom(context_name)
+          get_function = String.to_existing_atom(get_function_name)
+          delete_function = String.to_existing_atom(delete_function_name)
+
+          socket =
+            with %{} = entity <- apply(context, get_function, [id]),
+                 {:ok, _changeset} <- apply(context, delete_function, [entity]) do
+              socket
+              |> put_flash(:info, "Item deleted successfully")
+              |> push_patch(to: socket.assigns._auix[:_current_path])
+            else
+              _ -> socket
+            end
+
+          {:noreply, socket}
+        end
+
         def handle_event("delete", %{"id" => id}, socket) do
           instance = apply(unquote(modules.context), unquote(get_function), [id])
 
