@@ -9,6 +9,8 @@ defmodule Aurora.Uix.Test.Inventory.Product do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Aurora.Uix.Test.Inventory.{ProductLocation, ProductTransaction}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
@@ -17,6 +19,7 @@ defmodule Aurora.Uix.Test.Inventory.Product do
           reference: String.t() | nil,
           name: String.t() | nil,
           description: String.t() | nil,
+          product_location_id: Ecto.UUID.t() | nil,
           quantity_at_hand: Decimal.t() | nil,
           quantity_initial: Decimal.t() | nil,
           quantity_entries: Decimal.t() | nil,
@@ -36,7 +39,8 @@ defmodule Aurora.Uix.Test.Inventory.Product do
           deleted: boolean() | nil,
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,
-          updated_at: DateTime.t() | nil
+          updated_at: DateTime.t() | nil,
+          product_transactions: list(ProductTransaction.t()) | Ecto.Association.NotLoaded.t()
         }
 
   schema "products" do
@@ -62,7 +66,8 @@ defmodule Aurora.Uix.Test.Inventory.Product do
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
-    has_many(:product_transactions, Aurora.Uix.Test.Inventory.ProductTransaction)
+    has_many(:product_transactions, ProductTransaction)
+    belongs_to(:product_location, ProductLocation, type: :binary_id)
 
     timestamps()
   end
@@ -77,6 +82,7 @@ defmodule Aurora.Uix.Test.Inventory.Product do
       :reference,
       :name,
       :description,
+      :product_location_id,
       :status,
       :quantity_at_hand,
       :quantity_initial,
@@ -110,5 +116,6 @@ defmodule Aurora.Uix.Test.Inventory.Product do
     |> validate_number(:length, greater_than_or_equal_to: 0)
     |> validate_number(:width, greater_than_or_equal_to: 0)
     |> validate_number(:height, greater_than_or_equal_to: 0)
+    |> foreign_key_constraint(:product_location_id)
   end
 end

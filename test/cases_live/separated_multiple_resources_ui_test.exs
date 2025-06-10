@@ -90,13 +90,6 @@ defmodule Aurora.Uix.Test.Web.SeparatedMultipleResourcesUITest do
         quantity_initial: 99
       })
 
-    {:ok, product_location} =
-      Inventory.create_product_location(%{
-        reference: "location-001",
-        name: "For testing product_transactions",
-        type: "dry"
-      })
-
     {:ok, view, html} = live(conn, "/separated-multiple-resources-product_transactions/new")
 
     assert html =~ "New Product Transaction"
@@ -111,8 +104,7 @@ defmodule Aurora.Uix.Test.Web.SeparatedMultipleResourcesUITest do
     |> form("#auix-product_transaction-form",
       product_transaction: %{
         cost: 50,
-        product_id: product.id,
-        product_location_id: product_location.id
+        product_id: product.id
       }
     )
     |> render_submit()
