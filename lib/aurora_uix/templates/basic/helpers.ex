@@ -186,19 +186,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       ) do
     encoded_routing_stack
     |> decode_routing_stack()
-    |> Map.get("values", [])
-    |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
-    |> Stack.new()
+    # |> Map.get("values", [])
+    # |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
+    # |> Stack.new()
     |> then(&assign_auix(socket, :_routing_stack, &1))
   end
 
-  def assign_auix_routing_stack(socket, _params, %{} = default_route) do
+  def assign_auix_routing_stack(socket, _params, nil) do
+    assign_auix(socket, :_routing_stack, Stack.new())
+  end
+
+  def assign_auix_routing_stack(socket, _params, default_route) do
     default_route
     |> Stack.new()
     |> then(&assign_auix(socket, :_routing_stack, &1))
   end
-
-  def assign_auix_routing_stack(socket, _params, _default_route), do: socket
 
   @doc """
   Handles forward navigation by updating the routing stack and navigating to the new path.
@@ -450,17 +452,20 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     routing_stack
     |> Map.from_struct()
     |> Jason.encode!()
-    |> :zlib.compress()
-    |> Base.encode64()
+    # |> :zlib.compress()
+    # |> Base.encode64()
     |> URI.encode_www_form()
   end
 
-  # Decodes an obfuscated routing stack string back into a map
-  @spec decode_routing_stack(binary()) :: map()
+  # Decodes an obfuscated routing stack string back into a stack struct
+  @spec decode_routing_stack(binary()) :: struct()
   defp decode_routing_stack(obfuscated) do
     obfuscated
-    |> Base.decode64!()
-    |> :zlib.uncompress()
+    # |> Base.decode64!()
+    # |> :zlib.uncompress()s
     |> Jason.decode!()
+    |> Map.get("values", [])
+    |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
+    |> Stack.new()
   end
 end

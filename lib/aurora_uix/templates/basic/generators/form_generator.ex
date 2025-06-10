@@ -134,7 +134,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
                |> assign(:auix_entity, new_entity)
                |> assign(:action, :edit)
-               |> maybe_route_back(action, unquote(one2many_rendered?))}
+               |> conditional_route_back(action, unquote(one2many_rendered?))}
 
             {:error, %Ecto.Changeset{} = changeset} ->
               {:noreply,
@@ -156,8 +156,31 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
           apply(unquote(modules.context), unquote(create_function), [entity_params])
         end
 
-        defp maybe_route_back(socket, :new, true), do: socket
-        defp maybe_route_back(socket, _action, _one2many_rendered?), do: auix_route_back(socket)
+        defp conditional_route_back(
+               %{assigns: %{_auix: %{_routing_stack: routing_stack}, auix_entity: entity}} =
+                 socket,
+               :new,
+               true
+             ) do
+          {new_routing_stack, original_path} = Stack.pop!(routing_stack)
+
+          original_path
+          |> Map.get(:path)
+          |> URI.parse()
+          |> Map.get(:path)
+          |> then(&"#{&1}/#{Map.get(entity, :id)}/edit")
+          |> then(
+            &assign_auix(
+              socket,
+              :_routing_stack,
+              Stack.push(new_routing_stack, %{type: :navigate, path: &1})
+            )
+          )
+          |> auix_route_back()
+        end
+
+        defp conditional_route_back(socket, _action, _one2many_rendered?),
+          do: auix_route_back(socket)
 
         # Sends a message to the parent LiveView with the operation result
         defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

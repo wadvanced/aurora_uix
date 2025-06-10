@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       </.header>
 
       <.table
-        id={@_auix.source}
+        id={"auix-table-#{@_auix.link_prefix}#{@_auix.source}-index"}
         auix_css_classes={@_auix._css_classes}
         rows={get_in(assigns, @_auix.rows)}
         row_click_navigate={fn {_id, entity} -> "/#{@_auix.link_prefix}#{@_auix.source}/#{entity.id}" end}

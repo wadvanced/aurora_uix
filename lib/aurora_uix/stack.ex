@@ -1,6 +1,7 @@
 defmodule Aurora.Uix.Stack do
   @moduledoc """
-  Provides a stack data structure implementation with standard stack operations.
+  Provides a stack data structure implementation with standard stack operations: push, pop, peek, and empty checks.
+  Includes both safe (error tuple) and bang (raising) variants of operations.
   """
 
   alias Aurora.Uix.Stack.EmptyStackError
@@ -8,7 +9,7 @@ defmodule Aurora.Uix.Stack do
   defstruct values: []
 
   @type t() :: %__MODULE__{
-          values: list(any())
+          values: list(term())
         }
 
   @doc """
@@ -23,13 +24,13 @@ defmodule Aurora.Uix.Stack do
   end
 
   @doc """
-  Creates a new stack with an initial value.
+  Creates a new stack with initial value(s).
 
   Parameters:
-    - value: term() - The initial value to push onto the stack
+    - value: term() | list(term()) - A single value or list of values to initialize the stack
 
   Returns:
-    - t() - A stack containing the value
+    - t() - A stack containing the value(s)
   """
   @spec new(any()) :: t()
   def new(values) when is_list(values) do
@@ -55,6 +56,27 @@ defmodule Aurora.Uix.Stack do
     %__MODULE__{
       values: [value | stack.values]
     }
+  end
+
+  @doc """
+  Replaces the top value of the stack with a new value.
+
+  Parameters:
+    - stack: t() - The stack to modify
+    - value: term() - The new value to replace the top value with
+
+  Returns:
+    - t() - A stack with the top value replaced
+
+  Raises:
+    - EmptyStackError - When the stack is empty
+  """
+  @spec push_replace(t(), any()) :: t()
+  def push_replace(%__MODULE__{} = stack, value) do
+    stack
+    |> pop!()
+    |> elem(0)
+    |> push(value)
   end
 
   @doc """

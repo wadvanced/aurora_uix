@@ -24,6 +24,7 @@ Include options details, also with dashes.
 Include the expected return.
 Remove duplicated or unmeaningful or naive examples.
 Fix wrong examples.
+If the functions raise any kind of exception, document it.
 
 ## @callback
 Document the @callback declarations
