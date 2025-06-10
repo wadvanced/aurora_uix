@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     assert html =~ "Listing Products"
 
     # Verify index shows the products
-    assert has_element?(view, "tr[id^='products']")
+    assert has_element?(view, "#auix-table-association-one_to_many-layout-products-index")
 
     {conn, view}
   end
