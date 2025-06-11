@@ -14,13 +14,15 @@ defmodule Aurora.Uix.Resource do
   """
   alias Aurora.Uix.Field
 
-  defstruct [:name, :schema, :context, fields: [], fields_order: []]
+  defstruct [:name, :schema, :context, fields: [], fields_order: [], inner_elements: []]
 
   @type t() :: %__MODULE__{
           name: atom(),
           schema: module(),
           context: module() | nil,
-          fields: map() | list()
+          fields: map() | list(),
+          fields_order: list(),
+          inner_elements: list()
         }
 
   @doc """

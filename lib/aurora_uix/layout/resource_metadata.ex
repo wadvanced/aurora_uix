@@ -98,7 +98,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   @doc false
   defmacro __before_compile__(env) do
-    resource_configs =
+    resources_metadata =
       env.module
       |> Module.get_attribute(:_auix_process_resource_config)
       |> configure_fields()
@@ -106,7 +106,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> convert_fields_to_map()
 
     resource_functions =
-      Enum.map(resource_configs, fn {resource_key, resource} ->
+      Enum.map(resources_metadata, fn {resource_key, resource} ->
         quote do
           @doc """
           Gets the config for a given resource.
@@ -122,7 +122,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       Module.put_attribute(
         unquote(env.module),
         :auix_resource_metadata,
-        unquote(Macro.escape(resource_configs))
+        unquote(Macro.escape(resources_metadata))
       )
 
       @doc """
@@ -130,7 +130,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       """
       @spec auix_resources() :: list
       def auix_resources do
-        unquote(Macro.escape(resource_configs))
+        unquote(Macro.escape(resources_metadata))
       end
 
       unquote(resource_functions)
@@ -222,7 +222,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   field :price, precision: 12, scale: 2, label: "Price ($)"
   ```
   """
-  @spec field(atom, keyword) :: Macro.t()
+  @spec field(atom(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     register_dsl_entry(:field, field, [], opts, nil)
   end
@@ -242,7 +242,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   fields [:msrp, :rrp, :list_price], precision: 10, scale: 2
   ```
   """
-  @spec fields([atom], keyword) :: Macro.t()
+  @spec fields([atom()], keyword()) :: Macro.t()
   defmacro fields(fields, opts \\ []) do
     quotes =
       Enum.map(fields, fn field ->
@@ -264,7 +264,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # 3. Applying field changes from config
   # 4. Reordering fields according to config
   # Returns {resource_name, configured_struct} tuple
-  @spec configure_fields([map]) :: list
+  @spec configure_fields([map()]) :: list()
   defp configure_fields(resources) do
     Enum.map(resources, &configure_resource_fields/1)
   end
@@ -277,9 +277,10 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
-      |> struct(%{fields: parse_fields(schema, resource.name)})
-      |> apply_field_changes(resource)
-      |> reorder_fields_by_changes(resource)
+      |> struct(%{
+        fields: parse_fields(schema, resource.name),
+        inner_elements: resource.inner_elements
+      })
 
     {resource.name, resource}
   end
@@ -347,7 +348,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(&struct(resource_struct, %{fields: &1}))
   end
 
-  @spec convert_fields_to_map(list) :: map
+  @spec convert_fields_to_map(list()) :: map()
   defp convert_fields_to_map(resources) do
     resources
     |> Enum.map(&convert_resource_fields_to_map/1)
@@ -415,7 +416,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     Field.new(attrs)
   end
 
-  @spec field_label(atom) :: binary
+  @spec field_label(atom()) :: binary()
   defp field_label(nil), do: ""
 
   defp field_label(name),
@@ -534,7 +535,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Returns updated resources map with associations included
   @spec add_associations(list) :: list
   defp add_associations(resources) do
-    Enum.map(resources, &add_resource_associations(&1, resources))
+    Enum.map(resources, fn resource ->
+      resource
+      |> add_resource_associations(resources)
+      |> then(&{elem(&1, 0), &1 |> elem(1) |> struct(%{inner_elements: []})})
+    end)
   end
 
   # Adds a resource's associations to its fields list
@@ -549,6 +554,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, resources, &1, &2))
     |> Enum.reverse()
     |> then(&struct(resource, %{fields: &1}))
+    |> apply_field_changes(resource)
+    |> reorder_fields_by_changes(resource)
     |> then(&{name, &1})
   end
 

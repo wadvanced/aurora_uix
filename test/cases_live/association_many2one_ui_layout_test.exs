@@ -12,7 +12,10 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneUILayoutTest do
     alias Aurora.Uix.Test.Inventory.ProductLocation
     alias Aurora.Uix.Test.Inventory.ProductTransaction
 
-    auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
+    auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
+      field(:products, omitted: true)
+    end
+
     auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
@@ -20,7 +23,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneUILayoutTest do
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui(link_prefix: "association-many_to_one-layout-") do
       edit_layout :product do
-        stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
+        stacked([:reference, :name, :description, :quantity_initial, :product_location])
       end
     end
   end

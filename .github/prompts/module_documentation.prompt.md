@@ -3,7 +3,7 @@ mode: 'agent'
 tools: ['codebase']
 description: 'Preferences for module documentation'
 ---
-Modify only the focused module.
+Modify only the focused module. Do not CHANGE any code.
 
 ## Formatting
 parameters, maps, list are to be edited into one line, when the resulting text do not exceed the 98 characters limit.
