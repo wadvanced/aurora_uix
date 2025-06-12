@@ -86,6 +86,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
+  @spec __using__(any()) ::
+          {:__block__, [], [{:@ | :import | {any(), any(), any()}, [...], [...]}, ...]}
   defmacro __using__(_opts) do
     quote do
       import Aurora.Uix.Layout.ResourceMetadata
@@ -201,7 +203,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   The following options can be provided to configure the field:
 
-  - `:field` (`atom`) - The referred field in the schema. This should be rarely changed.
+  - `:field` (`atom` | `tuple`) - The referred field in the schema. This should be rarely changed.
   - `:field_type`(`atom`) - The html type that best represent the current field elixir type.
   - `:label` (`binary`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary`) - Placeholder text for the field.
@@ -222,7 +224,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   field :price, precision: 12, scale: 2, label: "Price ($)"
   ```
   """
-  @spec field(atom(), keyword()) :: Macro.t()
+  @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     register_dsl_entry(:field, field, [], opts, nil)
   end
@@ -234,7 +236,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   and promoting consistent field settings across multiple attributes.
 
   ## Parameters
-  - `fields` (list of atoms): Fields to be configured
+  - `fields` (list of atoms or tuples): Fields to be configured
   - `opts` (keyword): Configuration options applied to all specified fields
 
   ## Example
@@ -242,7 +244,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   fields [:msrp, :rrp, :list_price], precision: 10, scale: 2
   ```
   """
-  @spec fields([atom()], keyword()) :: Macro.t()
+  @spec fields([atom() | tuple()], keyword()) :: Macro.t()
   defmacro fields(fields, opts \\ []) do
     quotes =
       Enum.map(fields, fn field ->

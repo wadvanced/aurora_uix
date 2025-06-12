@@ -4,6 +4,7 @@ tools: ['codebase']
 description: 'Preferences for module documentation'
 ---
 Modify only the focused module. Do not CHANGE any code.
+DO NOT change code
 
 ## Formatting
 parameters, maps, list are to be edited into one line, when the resulting text do not exceed the 98 characters limit.
@@ -11,7 +12,7 @@ parameters, maps, list are to be edited into one line, when the resulting text d
 ## @moduledoc
 Create or update the @moduledoc according to the implementation respecting existing documentation
 On existing @moduledoc do not overdo, if the semantics are right DO NOT modify it.
-Add missing elements and remove non existing ones.
+Add missing documentation elements and remove the ones that shouldn't be mentioned.
 Remove duplicated or unmeaningful or naive examples.
 Fix wrong examples.
 
