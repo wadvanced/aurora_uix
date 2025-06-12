@@ -9,8 +9,6 @@ defmodule Aurora.Uix.Test.Repo.Migrations.CreateProductInputTable do
       add :type, :string, size: 20
       add :quantity, :numeric, precision: 14, scale: 6
       add :cost, :numeric, precision: 14, scale: 6
-      add :product_id, references("products", type: :uuid, on_delete: :delete_all)
-      add :product_location_id, references("product_locations", type: :uuid, on_delete: :nilify_all)
       timestamps()
     end
   end

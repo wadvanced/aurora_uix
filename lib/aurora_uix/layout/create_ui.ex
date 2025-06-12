@@ -72,6 +72,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       layout_paths
       |> Enum.group_by(&{&1.name, &1.tag})
       |> Enum.map(&merge_layout_paths/1)
+      |> break_compound_fields()
 
     modules =
       module
@@ -170,6 +171,37 @@ defmodule Aurora.Uix.Layout.CreateUI do
     acc
     |> Map.put(:opts, opts)
     |> Map.put(:inner_elements, inner_elements)
+  end
+
+  @spec break_compound_fields(list()) :: list()
+  defp break_compound_fields(paths) do
+    Enum.map(paths, &break_compound_field/1)
+  end
+
+  @spec break_compound_field(map()) :: map()
+  defp break_compound_field(
+         %{
+           tag: :field,
+           name: {parent, child_field},
+           config: config,
+           inner_elements: inner_elements
+         } = path
+       ) do
+    inner_elements
+    |> break_compound_fields()
+    |> then(
+      &Map.merge(path, %{
+        name: parent,
+        config: Keyword.put(config, :child_field, child_field),
+        inner_elements: &1
+      })
+    )
+  end
+
+  defp break_compound_field(%{inner_elements: inner_elements} = path) do
+    inner_elements
+    |> break_compound_fields()
+    |> then(&Map.merge(path, %{inner_elements: &1}))
   end
 
   # Filters resource configurations based on the :for option

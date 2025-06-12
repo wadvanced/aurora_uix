@@ -183,6 +183,10 @@ defmodule Aurora.Uix.Layout.Helper do
     %{tag: :field, name: field, config: [], inner_elements: []}
   end
 
+  defp create_field_tag(field) when is_tuple(field) do
+    %{tag: :field, name: field, config: [], inner_elements: []}
+  end
+
   defp create_field_tag({field_name, opts}) do
     %{tag: :field, name: field_name, config: opts, inner_elements: []}
   end

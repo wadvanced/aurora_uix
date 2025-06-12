@@ -31,6 +31,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{_auix: auix} = assigns) do
     field = get_field(auix._path, auix._configurations, auix._resource_name)
+
     assigns = assign(assigns, :field, field)
 
     case field do
@@ -137,23 +138,72 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     """
   end
 
-  defp default_render(%{field: %{field_type: :many_to_one_association}} = assigns) do
+  defp default_render(
+         %{field: %{field_type: :many_to_one_association, child_field: child_field}} = assigns
+       )
+       when is_nil(child_field) do
     ~H"""
-    <div>ASSOCIATION: many_to_one_association <%= inspect(@field.field) %></div>
+      Case of many_to_one_association not implemented<br>
+      <br>
+      {inspect(@field)}
     """
   end
 
-  defp default_render(assigns) do
+  defp default_render(
+         %{field: %{field_type: :many_to_one_association} = field_struct, _auix: auix} = assigns
+       ) do
+    field_struct = get_association_field(field_struct, auix._configurations)
+
+    association_name = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 
-    field_id = "auix-field-#{assigns.field.field}"
+    field_id = "auix-field-#{field_struct.field}_#{field_struct.child_field}"
+
+    assigns =
+      assigns
+      |> assign(:field, field_struct)
+      |> assign(:input_classes, input_classes)
+      |> assign(:field_id, field_id)
+      |> assign(:association_name, association_name)
+      |> assign(:select_opts, get_select_options(field_struct))
+
+    ~H"""
+    <%= if @field.hidden do %>
+      <input type="hidden" id={"#{@field_id}-#{@_auix._mode}"}
+        name={"#{@field.field}__#{@field.child_field}"}
+        value={get_in(@auix_entity, [Access.key!(@field.field), Access.key!(@field.child_field)]) || ""} />
+    <% else %>
+      <div class="flex flex-col">
+        <.input
+          id={"#{@field_id}-#{@_auix._mode}"}
+          name={"#{@field.field}__#{@field.child_field}"}
+          value={get_in(@auix_entity, [Access.key!(@field.field), Access.key!(@field.child_field)]) || ""}
+          type={"#{@field.field_html_type}"}
+          label={"#{@association_name} - #{@field.label}"}
+          options={@select_opts[:options]}
+          multiple={@select_opts[:multiple]}
+          readonly={true}
+          disabled={@field.disabled}
+          class={@input_classes}
+        />
+      </div>
+    <% end %>
+    """
+  end
+
+  defp default_render(%{field: field_struct} = assigns) do
+    input_classes =
+      "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+
+    field_id = "auix-field-#{field_struct.field}"
 
     assigns =
       assigns
       |> assign(:input_classes, input_classes)
       |> assign(:field_id, field_id)
-      |> assign(:select_opts, get_select_options(assigns.field))
+      |> assign(:select_opts, get_select_options(field_struct))
 
     ~H"""
     <%= if @field.hidden do %>
@@ -191,6 +241,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       |> get_field(configurations, field.resource)
       |> then(&%{label: &1.label, field: &1.field, field_type: &1.field_type})
     end)
+  end
+
+  @spec get_association_field(map(), map()) :: map()
+  defp get_association_field(%{child_field: child_field} = field_struct, configurations) do
+    configurations
+    |> get_in([field_struct.resource, :resource_config, Access.key!(:fields)])
+    |> Kernel.||(%{})
+    |> Map.get(child_field, field_struct)
+    |> Map.from_struct()
+    |> delete_association_keys([:field, :child_field])
+    |> then(&struct(field_struct, &1))
+  end
+
+  @spec delete_association_keys(map(), list()) :: map()
+  defp delete_association_keys(association_field, keys) do
+    Enum.reduce(keys, association_field, &Map.delete(&2, &1))
   end
 
   # Builds the URL path template for related entity operations

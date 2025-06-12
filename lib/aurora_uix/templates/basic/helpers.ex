@@ -299,7 +299,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Map.get(:resource_config, %{})
     |> Map.get(:fields, %{})
     |> Map.get(field_name, Field.new(%{field: field_name}))
-    |> Field.change(Map.get(field, :opts, []))
+    |> Field.change(Map.get(field, :config, []))
   end
 
   @doc """
