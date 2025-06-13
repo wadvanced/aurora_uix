@@ -147,15 +147,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
          } = assigns
        )
        when is_nil(child_field) do
-    inner_elements = get_association_paths(field_struct, auix._configurations)
-    association_name = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+    inner_elements = get_association_paths(field_struct, auix._configurations, :show)
+    association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
 
     assigns
     |> put_in([:_auix, :_path], %{
       tag: :group,
-      config: [group_id: "auix-field-#{field_struct.field}", title: association_name],
+      config: [group_id: "auix-field-#{field_struct.field}", title: association_label],
       inner_elements: inner_elements
     })
+    |> put_in([:_auix, :_ignore_association_label], true)
     |> Renderer.render()
   end
 
@@ -164,7 +165,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
        ) do
     field_struct = get_association_field(field_struct, auix._configurations)
 
-    association_name = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+    association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
 
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -176,7 +177,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       |> assign(:field, field_struct)
       |> assign(:input_classes, input_classes)
       |> assign(:field_id, field_id)
-      |> assign(:association_name, association_name)
+      |> assign(:association_label, association_label)
+      |> assign(:ignore_association_label, Map.get(auix, :_ignore_association_label, false))
       |> assign(:select_opts, get_select_options(field_struct))
 
     ~H"""
@@ -191,7 +193,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
           name={"#{@field.field}__#{@field.child_field}"}
           value={get_in(@auix_entity, [Access.key!(@field.field), Access.key!(@field.child_field)]) || ""}
           type={"#{@field.field_html_type}"}
-          label={"#{@association_name} - #{@field.label}"}
+          label={many_to_one_label(@association_label, @field.label, @ignore_association_label)}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={true}
@@ -264,33 +266,33 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> then(&struct(field_struct, &1))
   end
 
-  @spec get_association_paths(map(), map()) :: list()
-  defp get_association_paths(field_struct, configurations) do
+  @spec get_association_paths(map(), map(), atom()) :: list()
+  defp get_association_paths(field_struct, configurations, path_type) do
     configurations
-    |> get_in([field_struct.resource, :defaulted_paths, :show, :inner_elements])
+    |> get_in([field_struct.resource, :defaulted_paths, path_type, :inner_elements])
     |> Kernel.||([])
-    |> convert_association_paths(field_struct.field)
+    |> convert_to_many_to_one_paths(field_struct.field)
   end
 
-  @spec convert_association_paths(list(), atom()) :: list()
-  defp convert_association_paths(paths, parent_field) do
-    Enum.map(paths, &convert_association_path(&1, parent_field))
+  @spec convert_to_many_to_one_paths(list(), atom()) :: list()
+  defp convert_to_many_to_one_paths(paths, parent_field) do
+    Enum.map(paths, &convert_to_many_to_one_path(&1, parent_field))
   end
 
-  @spec convert_association_path(map(), atom()) :: map()
-  defp convert_association_path(
+  @spec convert_to_many_to_one_path(map(), atom()) :: map()
+  defp convert_to_many_to_one_path(
          %{tag: :field, name: field_name, inner_elements: inner_elements} = path,
          parent_field
        ) do
     Map.merge(path, %{
       name: parent_field,
       config: [child_field: field_name],
-      inner_elements: convert_association_paths(inner_elements, parent_field)
+      inner_elements: convert_to_many_to_one_paths(inner_elements, parent_field)
     })
   end
 
-  defp convert_association_path(%{inner_elements: inner_elements} = path, parent_field) do
-    Map.put(path, :inner_elements, convert_association_paths(inner_elements, parent_field))
+  defp convert_to_many_to_one_path(%{inner_elements: inner_elements} = path, parent_field) do
+    Map.put(path, :inner_elements, convert_to_many_to_one_paths(inner_elements, parent_field))
   end
 
   @spec delete_association_keys(map(), list()) :: map()
@@ -323,4 +325,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   defp get_select_options(_field), do: %{}
+
+  @spec many_to_one_label(binary(), binary(), boolean()) :: binary()
+  defp many_to_one_label(association_label, field_label, false = _ignore_association_label),
+    do: "#{association_label} - #{field_label}"
+
+  defp many_to_one_label(_association_label, field_label, true = _ignore_association_label),
+    do: field_label
 end
