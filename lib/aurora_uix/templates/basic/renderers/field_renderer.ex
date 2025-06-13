@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
   import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
+  alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -139,14 +140,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   defp default_render(
-         %{field: %{field_type: :many_to_one_association, child_field: child_field}} = assigns
+         %{
+           field:
+             %{field_type: :many_to_one_association, child_field: child_field} = field_struct,
+           _auix: auix
+         } = assigns
        )
        when is_nil(child_field) do
-    ~H"""
-      Case of many_to_one_association not implemented<br>
-      <br>
-      {inspect(@field)}
-    """
+    inner_elements = get_association_paths(field_struct, auix._configurations)
+    association_name = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+
+    assigns
+    |> put_in([:_auix, :_path], %{
+      tag: :group,
+      config: [group_id: "auix-field-#{field_struct.field}", title: association_name],
+      inner_elements: inner_elements
+    })
+    |> Renderer.render()
   end
 
   defp default_render(
@@ -252,6 +262,35 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> Map.from_struct()
     |> delete_association_keys([:field, :child_field])
     |> then(&struct(field_struct, &1))
+  end
+
+  @spec get_association_paths(map(), map()) :: list()
+  defp get_association_paths(field_struct, configurations) do
+    configurations
+    |> get_in([field_struct.resource, :defaulted_paths, :show, :inner_elements])
+    |> Kernel.||([])
+    |> convert_association_paths(field_struct.field)
+  end
+
+  @spec convert_association_paths(list(), atom()) :: list()
+  defp convert_association_paths(paths, parent_field) do
+    Enum.map(paths, &convert_association_path(&1, parent_field))
+  end
+
+  @spec convert_association_path(map(), atom()) :: map()
+  defp convert_association_path(
+         %{tag: :field, name: field_name, inner_elements: inner_elements} = path,
+         parent_field
+       ) do
+    Map.merge(path, %{
+      name: parent_field,
+      config: [child_field: field_name],
+      inner_elements: convert_association_paths(inner_elements, parent_field)
+    })
+  end
+
+  defp convert_association_path(%{inner_elements: inner_elements} = path, parent_field) do
+    Map.put(path, :inner_elements, convert_association_paths(inner_elements, parent_field))
   end
 
   @spec delete_association_keys(map(), list()) :: map()
