@@ -43,7 +43,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         use unquote(modules.web), :live_view
 
         import unquote(core_helpers)
-        import Aurora.Uix.Layout.Helper, only: [start_counter: 1]
 
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
@@ -62,8 +61,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         @impl true
         def handle_params(params, url, socket) do
-          start_counter(:auix)
-
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))

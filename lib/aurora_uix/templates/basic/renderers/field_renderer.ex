@@ -11,7 +11,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Layout.Helper, only: [next_count: 1]
   import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
   import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
@@ -192,23 +191,20 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 
-    field_id = "auix-field-#{field_struct.field}"
-
     assigns =
       assigns
       |> assign(:input_classes, input_classes)
-      |> assign(:field_id, field_id)
       |> assign(:select_opts, get_select_options(field_struct))
 
     ~H"""
     <%= if @field.hidden do %>
-      <input type="hidden" id={"#{@field_id}-#{@_auix._mode}"}
+      <input type="hidden" id={"#{@field.html_id}-#{@_auix._mode}"}
         {if @_auix._mode == :form, do: %{name: @_auix._form[@field.field].name, value: @_auix._form[@field.field].value},
          else: %{name: @field.field, value: @auix_entity[@field.field]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
-          id={"#{@field_id}-#{@_auix._mode}-#{next_count(:auix)}"}
+          id={"#{@field.html_id}-#{@_auix._mode}"}
           {if @_auix._mode == :form,
             do: %{field: @_auix._form[@field.field]},
             else: %{name: @field.field, value: Map.get(@auix_entity, @field.field)}}
