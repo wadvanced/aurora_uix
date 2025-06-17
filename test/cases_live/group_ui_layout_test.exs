@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Test.Web.GroupUILayoutTest do
       |> render()
 
     assert(
-      element_html =~ "auix-field-#{field_name}-form",
+      element_html =~ "auix-field-#{field_name}-",
       "Field: `#{field_name}` not in group `#{group_name}` at #{position}\n#{element_html}"
     )
   end

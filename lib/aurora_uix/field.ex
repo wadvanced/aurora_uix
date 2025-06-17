@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Field do
     - `name` (`binary`) - The field's name as a binary.
     - `field_type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
     - `field_html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
-    - `child_field` (`atom`) - If the field represents a many to one association, this is the sub field.
+    - `html_id` (`binary`) - A unique html id for the field.
     - `renderer` (`function`) - A custom rendering function for the field.
     - `data` (`any`) - A general purpose field.
         Template parser expect specific format for this data, according to any of the field value.
@@ -31,7 +31,6 @@ defmodule Aurora.Uix.Field do
     :field,
     :field_type,
     :field_html_type,
-    :child_field,
     :renderer,
     :data,
     :resource,
@@ -41,6 +40,7 @@ defmodule Aurora.Uix.Field do
     length: 0,
     precision: 0,
     scale: 0,
+    html_id: "",
     hidden: false,
     readonly: false,
     required: false,
@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Field do
           field: atom | nil,
           field_type: atom | nil,
           field_html_type: atom | binary | nil,
-          child_field: atom | nil,
+          html_id: binary,
           renderer: function | nil,
           data: any | nil,
           resource: module | nil,
@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Field do
         disabled: false,
         field_html_type: nil,
         field_type: nil,
-        child_field: nil,
+        html_id: "",
         hidden: false,
         label: "",
         length: 0,
@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Field do
               disabled: false,
               field_html_type: nil,
               field_type: nil,
-              child_field: nil,
+              html_id: "",
               hidden: false,
               label: "",
               length: 0,

@@ -268,6 +268,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Returns {resource_name, configured_struct} tuple
   @spec configure_fields([map()]) :: list()
   defp configure_fields(resources) do
+    start_counter(:auix_fields)
     Enum.map(resources, &configure_resource_fields/1)
   end
 
@@ -332,11 +333,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       field_changes
       |> List.flatten()
       |> Enum.map(fn field ->
-        Enum.find(
-          fields,
+        fields
+        |> Enum.find(
           %{field: field.name} |> Field.new() |> Field.change(field.opts),
           fn field_struct -> field_struct.field == field.name end
         )
+        |> set_field_id()
       end)
       |> Enum.reverse()
 
@@ -415,7 +417,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       data: field_data(association)
     }
 
-    Field.new(attrs)
+    attrs |> Field.new() |> set_field_id()
   end
 
   @spec field_label(atom()) :: binary()
@@ -537,6 +539,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Returns updated resources map with associations included
   @spec add_associations(list) :: list
   defp add_associations(resources) do
+    start_counter(:auix_fields)
+
     Enum.map(resources, fn resource ->
       resource
       |> add_resource_associations(resources)
@@ -575,6 +579,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         resource: field_resource(&1, resources)
       )
     )
+    |> set_field_id()
     |> then(&[&1 | fields])
   end
 end

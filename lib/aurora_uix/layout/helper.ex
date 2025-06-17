@@ -8,6 +8,8 @@ defmodule Aurora.Uix.Layout.Helper do
   - Unique identifier counter management
   """
 
+  alias Aurora.Uix.Field
+
   @doc """
   Extracts the `:do` block from options while preserving other options.
 
@@ -169,15 +171,38 @@ defmodule Aurora.Uix.Layout.Helper do
     Agent.get_and_update(name, fn _state -> {name, initial} end)
   end
 
+  @doc """
+  Generates or returns a unique HTML ID for a field.
+
+  Parameters:
+    - field: Field.t() - The field struct requiring an ID
+
+  Returns:
+    - Field.t() - Field with updated html_id if empty, or unchanged if ID exists
+  """
+  @spec set_field_id(Field.t()) :: Field.t()
+  def set_field_id(%Field{html_id: "", field: field_name} = field) do
+    struct(field, %{html_id: "auix-field-#{field_name}-#{next_count(:auix_fields)}"})
+  end
+
+  def set_field_id(field), do: field
+
   ## PRIVATE
+
+  # Normalizes block structure by removing empty blocks and preserving non-empty ones
+  # Used in block preparation for HEEX template generation
   @spec reduce_blocks(Macro.t()) :: Macro.t()
   defp reduce_blocks([[]]), do: []
   defp reduce_blocks(blocks), do: blocks
 
+  # Extracts block content from either a keyword list with :do key or direct block
+  # Used to handle both inline and do-block syntax in DSL macros
   @spec extract_block(keyword | Macro.t()) :: Macro.t()
   defp extract_block(do: block), do: block
   defp extract_block(block), do: block
 
+  # Creates a standardized field tag structure from various field specifications
+  # Handles atom fields, tuple fields, and fields with options
   @spec create_field_tag(atom | {atom, keyword}) :: map
   defp create_field_tag(field) when is_atom(field) do
     %{tag: :field, name: field, config: [], inner_elements: []}
