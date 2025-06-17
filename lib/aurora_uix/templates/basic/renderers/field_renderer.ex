@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
+  import Aurora.Uix.Layout.Helper, only: [next_count: 1]
   import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
   import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
@@ -31,7 +32,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{_auix: auix} = assigns) do
-    field = get_field(auix._path, auix._configurations, auix._resource_name)
+    field = get_field_info(auix)
 
     assigns = assign(assigns, :field, field)
 
@@ -43,6 +44,26 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   ## PRIVATE
+  @spec get_field_info(map()) :: map()
+  defp get_field_info(%{
+         _path: %{name: name} = path,
+         _configurations: configurations,
+         _resource_name: resource_name
+       })
+       when is_tuple(name) do
+    name
+    |> elem(0)
+    |> then(&Map.put(path, :name, &1))
+    |> get_field(configurations, resource_name)
+  end
+
+  defp get_field_info(%{
+         _path: path,
+         _configurations: configurations,
+         _resource_name: resource_name
+       }) do
+    get_field(path, configurations, resource_name)
+  end
 
   # Renders an empty component for omitted fields
   @spec empty_render(map()) :: Phoenix.LiveView.Rendered.t()
@@ -141,12 +162,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   defp default_render(
          %{
-           field:
-             %{field_type: :many_to_one_association, child_field: child_field} = field_struct,
-           _auix: auix
+           field: %{field_type: :many_to_one_association} = field_struct,
+           _auix: %{_path: %{name: field_name}} = auix
          } = assigns
        )
-       when is_nil(child_field) do
+       when is_atom(field_name) do
     inner_elements = get_association_paths(field_struct, auix._configurations, :show)
     association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
 
@@ -160,49 +180,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> Renderer.render()
   end
 
-  defp default_render(
-         %{field: %{field_type: :many_to_one_association} = field_struct, _auix: auix} = assigns
-       ) do
-    field_struct = get_association_field(field_struct, auix._configurations)
-
-    association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
-
-    input_classes =
-      "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-
-    field_id = "auix-field-#{field_struct.field}_#{field_struct.child_field}"
-
-    assigns =
-      assigns
-      |> assign(:field, field_struct)
-      |> assign(:input_classes, input_classes)
-      |> assign(:field_id, field_id)
-      |> assign(:association_label, association_label)
-      |> assign(:ignore_association_label, Map.get(auix, :_ignore_association_label, false))
-      |> assign(:select_opts, get_select_options(field_struct))
-
-    ~H"""
-    <%= if @field.hidden do %>
-      <input type="hidden" id={"#{@field_id}-#{@_auix._mode}"}
-        name={"#{@field.field}__#{@field.child_field}"}
-        value={get_in(@auix_entity, [Access.key!(@field.field), Access.key!(@field.child_field)]) || ""} />
-    <% else %>
-      <div class="flex flex-col">
-        <.input
-          id={"#{@field_id}-#{@_auix._mode}"}
-          name={"#{@field.field}__#{@field.child_field}"}
-          value={get_in(@auix_entity, [Access.key!(@field.field), Access.key!(@field.child_field)]) || ""}
-          type={"#{@field.field_html_type}"}
-          label={many_to_one_label(@association_label, @field.label, @ignore_association_label)}
-          options={@select_opts[:options]}
-          multiple={@select_opts[:multiple]}
-          readonly={true}
-          disabled={@field.disabled}
-          class={@input_classes}
-        />
-      </div>
-    <% end %>
-    """
+  defp default_render(%{field: %{field_type: :many_to_one_association}} = assigns) do
+    assigns
+    |> parse_many_to_one_value()
+    |> set_many_to_one_resource()
+    |> trim_path()
+    |> render()
   end
 
   defp default_render(%{field: field_struct} = assigns) do
@@ -225,7 +208,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     <% else %>
       <div class="flex flex-col">
         <.input
-          id={"#{@field_id}-#{@_auix._mode}"}
+          id={"#{@field_id}-#{@_auix._mode}-#{next_count(:auix)}"}
           {if @_auix._mode == :form,
             do: %{field: @_auix._form[@field.field]},
             else: %{name: @field.field, value: Map.get(@auix_entity, @field.field)}}
@@ -242,6 +225,90 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     """
   end
 
+  @spec parse_many_to_one_value(map()) :: map()
+  defp parse_many_to_one_value(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name),
+    do: assigns
+
+  defp parse_many_to_one_value(
+         %{_auix: %{_path: %{name: names}, _mode: :show}, auix_entity: entity} = assigns
+       )
+       when is_tuple(names) do
+    names
+    |> Tuple.to_list()
+    |> delete_last()
+    |> Enum.reduce(entity, &Map.get(&2, &1, %{}))
+    |> then(&Map.put(assigns, :auix_entity, &1))
+  end
+
+  defp parse_many_to_one_value(
+         %{_auix: %{_path: %{name: names}, _form: form, _mode: :form} = auix} = assigns
+       )
+       when is_tuple(names) do
+    names
+    |> Tuple.to_list()
+    |> delete_last()
+    |> Enum.reduce(form, & &2[&1].form)
+    |> then(&Map.put(auix, :_form, &1))
+    |> then(&Map.put(assigns, :_auix, &1))
+  end
+
+  @spec trim_path(map()) :: map()
+  defp trim_path(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name), do: assigns
+
+  defp trim_path(%{_auix: %{_path: %{name: names}}} = assigns) do
+    names
+    |> Tuple.to_list()
+    |> List.last()
+    |> then(&put_in(assigns, [:_auix, :_path, :name], &1))
+  end
+
+  @spec set_many_to_one_resource(map()) :: map()
+  defp set_many_to_one_resource(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name),
+    do: assigns
+
+  defp set_many_to_one_resource(
+         %{
+           _auix: %{_path: %{name: names}, _configurations: configurations},
+           field: parent_field_struct
+         } = assigns
+       ) do
+    field_struct =
+      configurations
+      |> get_in([parent_field_struct.resource, :parsed_opts, :name])
+      |> then(&Map.put(parent_field_struct, :label, &1))
+
+    field =
+      names
+      |> Tuple.delete_at(0)
+      |> Tuple.to_list()
+      |> Enum.reduce(field_struct, &get_many_to_one_field(&1, &2, configurations))
+
+    assigns
+    |> put_in(
+      [
+        :_auix,
+        :_configurations,
+        field.resource,
+        :resource_config,
+        Access.key!(:fields),
+        field.field
+      ],
+      field
+    )
+    |> put_in([:_auix, :_resource_name], field.resource)
+  end
+
+  @spec get_many_to_one_field(atom(), map(), map()) :: map()
+  defp get_many_to_one_field(
+         field_name,
+         %{resource: resource_name, label: parent_label} = _parent_field,
+         configurations
+       ) do
+    %{name: field_name}
+    |> get_field(configurations, resource_name)
+    |> Map.update(:label, "", &"#{parent_label} #{&1}")
+  end
+
   # Gets field configurations for associations from the resource configurations
   @spec get_association_fields(map(), map()) :: list(map())
   defp get_association_fields(field, configurations) do
@@ -253,17 +320,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       |> get_field(configurations, field.resource)
       |> then(&%{label: &1.label, field: &1.field, field_type: &1.field_type})
     end)
-  end
-
-  @spec get_association_field(map(), map()) :: map()
-  defp get_association_field(%{child_field: child_field} = field_struct, configurations) do
-    configurations
-    |> get_in([field_struct.resource, :resource_config, Access.key!(:fields)])
-    |> Kernel.||(%{})
-    |> Map.get(child_field, field_struct)
-    |> Map.from_struct()
-    |> delete_association_keys([:field, :child_field])
-    |> then(&struct(field_struct, &1))
   end
 
   @spec get_association_paths(map(), map(), atom()) :: list()
@@ -295,11 +351,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     Map.put(path, :inner_elements, convert_to_many_to_one_paths(inner_elements, parent_field))
   end
 
-  @spec delete_association_keys(map(), list()) :: map()
-  defp delete_association_keys(association_field, keys) do
-    Enum.reduce(keys, association_field, &Map.delete(&2, &1))
-  end
-
   # Builds the URL path template for related entity operations
   @spec build_related_path(binary(), map()) :: binary()
   defp build_related_path(source, data) do
@@ -326,10 +377,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   defp get_select_options(_field), do: %{}
 
-  @spec many_to_one_label(binary(), binary(), boolean()) :: binary()
-  defp many_to_one_label(association_label, field_label, false = _ignore_association_label),
-    do: "#{association_label} - #{field_label}"
+  @spec delete_last(list()) :: list()
+  defp delete_last([]), do: []
 
-  defp many_to_one_label(_association_label, field_label, true = _ignore_association_label),
-    do: field_label
+  defp delete_last(list) do
+    list
+    |> Enum.reverse()
+    |> then(fn [_first | rest] -> rest end)
+    |> Enum.reverse()
+  end
 end

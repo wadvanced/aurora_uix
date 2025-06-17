@@ -41,6 +41,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
         import unquote(core_helpers)
 
+        import Aurora.Uix.Layout.Helper, only: [start_counter: 1]
+
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -54,6 +56,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
         @impl true
         def handle_params(%{"id" => id} = params, url, socket) do
+          start_counter(:auix)
+
           {:noreply,
            socket
            |> assign(
