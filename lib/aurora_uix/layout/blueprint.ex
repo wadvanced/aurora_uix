@@ -444,6 +444,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
     columns =
       resource_config
       |> Map.get(:fields_order, [])
+      |> Enum.reject(
+        &(get_in(resource_config, [
+            Access.key!(:fields),
+            Access.key!(&1),
+            Access.key!(:field_type)
+          ]) in [:many_to_one_association, :one_to_many_association])
+      )
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
     %{
@@ -460,6 +467,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
     columns =
       resource_config
       |> Map.get(:fields_order, [])
+      |> Enum.reject(
+        &(get_in(resource_config, [
+            Access.key!(:fields),
+            Access.key!(&1),
+            Access.key!(:field_type)
+          ]) in [:many_to_one_association, :one_to_many_association])
+      )
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
     fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)

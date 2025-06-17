@@ -268,10 +268,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   defp set_many_to_one_resource(
          %{
-           _auix: %{_path: %{name: names}, _configurations: configurations},
+           _auix: %{_path: %{name: names}, _configurations: configurations} = auix,
            field: parent_field_struct
          } = assigns
        ) do
+    ignore_association_label? = Map.get(auix, :_ignore_association_label, false)
+
     field_struct =
       configurations
       |> get_in([parent_field_struct.resource, :parsed_opts, :name])
@@ -281,7 +283,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
       names
       |> Tuple.delete_at(0)
       |> Tuple.to_list()
-      |> Enum.reduce(field_struct, &get_many_to_one_field(&1, &2, configurations))
+      |> Enum.reduce(field_struct, fn field_name, parent_field ->
+        parent_field
+        |> maybe_ignore_parent_label(ignore_association_label?)
+        |> get_many_to_one_field(field_name, configurations)
+      end)
 
     assigns
     |> put_in(
@@ -298,15 +304,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> put_in([:_auix, :_resource_name], field.resource)
   end
 
-  @spec get_many_to_one_field(atom(), map(), map()) :: map()
+  @spec get_many_to_one_field(map(), atom(), map()) :: map()
   defp get_many_to_one_field(
-         field_name,
          %{resource: resource_name, label: parent_label} = _parent_field,
+         field_name,
          configurations
        ) do
     %{name: field_name}
     |> get_field(configurations, resource_name)
-    |> Map.update(:label, "", &"#{parent_label} #{&1}")
+    |> Map.update(:label, "", &"#{parent_label}#{&1}")
   end
 
   # Gets field configurations for associations from the resource configurations
@@ -341,8 +347,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
          parent_field
        ) do
     Map.merge(path, %{
-      name: parent_field,
-      config: [child_field: field_name],
+      name: {parent_field, field_name},
       inner_elements: convert_to_many_to_one_paths(inner_elements, parent_field)
     })
   end
@@ -386,4 +391,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> then(fn [_first | rest] -> rest end)
     |> Enum.reverse()
   end
+
+  @spec maybe_ignore_parent_label(map(), boolean()) :: map()
+  defp maybe_ignore_parent_label(%{label: label} = parent_field, false),
+    do: Map.put(parent_field, :label, "#{label} ")
+
+  defp maybe_ignore_parent_label(parent_field, true), do: Map.put(parent_field, :label, "")
 end
