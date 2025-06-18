@@ -426,6 +426,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   @spec maybe_add_association_info(map, map) :: map
+
+  defp maybe_add_association_info(%{tag: :field, name: names} = field, fields)
+       when is_tuple(names) do
+    names
+    |> Tuple.to_list()
+    |> List.first()
+    |> then(&Map.put(field, :name, &1))
+    |> maybe_add_association_info(fields)
+  end
+
   defp maybe_add_association_info(%{tag: :field, name: name} = field, fields) do
     fields
     |> Map.get(name, %{field_type: nil, resource: nil})
@@ -443,10 +453,14 @@ defmodule Aurora.Uix.Layout.CreateUI do
     associations
     |> Enum.map(fn {resource_name, children} ->
       children
-      |> Enum.map(fn {field, related_resource} ->
-        parsed_associations
-        |> Map.get(related_resource, [])
-        |> then(&{field, &1})
+      |> Enum.map(fn
+        {field, ^resource_name} ->
+          {field, []}
+
+        {field, related_resource} ->
+          parsed_associations
+          |> Map.get(related_resource, [])
+          |> then(&{field, &1})
       end)
       |> then(&{resource_name, &1})
     end)

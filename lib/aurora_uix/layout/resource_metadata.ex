@@ -128,9 +128,23 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       )
 
       @doc """
-      Gets all resources config.
+      Gets the configuration for all configured resources.
+
+      Returns all resource metadata configurations.
+
+      Returns a list of resource configurations.
       """
-      @spec auix_resources() :: list
+      @spec auix_resources() :: list()
+
+      @doc """
+      Gets the configuration for a specific resource.
+
+      Returns a map containing just that resource's configuration.
+
+      Returns a map with the resource key and its config.
+      """
+      @spec auix_resource(atom()) :: map()
+
       def auix_resources do
         unquote(Macro.escape(resources_metadata))
       end
@@ -140,35 +154,31 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   @doc """
-  Defines a declarative UI configuration for a specific resource (schema).
-
-  Enables comprehensive UI metadata management for structured data, supporting
-  dynamic configuration of fields, associations, and rendering strategies.
+  Defines UI configuration for a schema.
 
   ## Parameters
-  - `name` (atom): A unique identifier for the resource configuration
-  - `opts` (keyword): Configuration options for the resource
-  - `do_block` block (optional): Contains field-level UI configuration for the resource
+  - name (atom) - Resource identifier
+  - opts (keyword) - Configuration options
+  - do_block (block) - Field configurations
 
   ## Options
-  - `:schema` (module, required): The Ecto schema or data structure being configured
-  - `:context` (module, optional): Context module containing data access functions
-  - `:include_associations` (boolean, default: false): Automatically configure associations
+  - :schema (module) - Required. Ecto schema/data structure module
+  - :context (module) - Optional. Context module with data functions
+  - :include_associations (boolean) - Optional. Auto-configure associations
 
   ## Example
-    ```elixir
-      auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
-        field :id, hidden: true
-        field :name, placeholder: "Product name", max_length: 40, required: true
-        field :price, placeholder: "Price", precision: 12, scale: 2
-      end
-    ```
 
-  ## Behaviour
-  - Initializes a new resource configuration block
-  - Allows nested field configuration
-  - Generates default configurations based on schema metadata
+  ```elixir
+  auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
+    field :name, placeholder: "Product name", max_length: 40, required: true
+    field :price, placeholder: "Price", precision: 12, scale: 2
+  end
+  ```
+
+  ## Returns
+  Generates configured metadata block for the resource.
   """
+  @spec auix_resource_metadata(atom, keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
     {block, opts} = extract_block_options(opts, do_block)
 
@@ -260,19 +270,22 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   ## PRIVATE
 
-  # Configures UI fields for a resource by:
-  # 1. Initializing base struct with schema/context
+  # Process initial field configuration for resources:
+  # 1. Initializes base struct with schema/context
   # 2. Parsing schema fields into Field structs
   # 3. Applying field changes from config
-  # 4. Reordering fields according to config
-  # Returns {resource_name, configured_struct} tuple
+  # 4. Reordering fields by configuration order
   @spec configure_fields([map()]) :: list()
   defp configure_fields(resources) do
     start_counter(:auix_fields)
     Enum.map(resources, &configure_resource_fields/1)
   end
 
-  @spec configure_resource_fields(map) :: {atom, Resource.t()}
+  # Configure fields for a single resource:
+  # - Sets up basic struct with schema and context
+  # - Processes field metadata from schema
+  # - Returns {name, resource} tuple
+  @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
   defp configure_resource_fields(resource) do
     schema = resource.opts[:schema]
 
@@ -288,9 +301,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     {resource.name, resource}
   end
 
-  # Applies field changes from config to existing fields.
-  # Merges duplicate changes (last one wins) and updates each field's options.
-  @spec apply_field_changes(map, map) :: map
+  # Apply field changes from resource config block:
+  # - Merges changes with existing fields
+  # - Later changes override earlier ones
+  # - Preserves field order
+  @spec apply_field_changes(map(), map()) :: map()
   defp apply_field_changes(%{fields: fields} = resource_struct, %{inner_elements: field_changes}) do
     # Creates a MAP of {field_name, opts}. The opts are merged discarding previous duplicated options changes.
     changes =
@@ -313,12 +328,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(&struct(resource_struct, %{fields: &1}))
   end
 
-  # Reorders fields putting configured fields first, keeping original order for others.
-  # Unchanged fields appear after explicitly configured ones.
-  @spec reorder_fields_by_changes(map, map) :: map
+  # Reorder fields based on config block order:
+  # - Keeps configured fields in order of appearance
+  # - Appends unconfigured fields at end
+  # - Maintains field associations
+  @spec reorder_fields_by_changes(map(), map()) :: map()
   defp reorder_fields_by_changes(resource_struct, %{inner_elements: []}), do: resource_struct
 
-  defp reorder_fields_by_changes(%{fields: fields} = resource_struct, %{
+  defp reorder_fields_by_changes(%{fields: fields, name: resource_name} = resource_struct, %{
          inner_elements: field_changes
        }) do
     # Creates a list of the field changes encountered within the resource config block.
@@ -335,7 +352,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> Enum.map(fn field ->
         fields
         |> Enum.find(
-          %{field: field.name} |> Field.new() |> Field.change(field.opts),
+          %{field: field.name, resource: resource_name}
+          |> Field.new()
+          |> Field.change(field.opts),
           fn field_struct -> field_struct.field == field.name end
         )
         |> set_field_id()
@@ -359,6 +378,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> Map.new()
   end
 
+  # Converts a resource's fields list to a map format for faster access.
+  # Also maintains fields order in a separate list for consistent iteration.
   @spec convert_resource_fields_to_map({atom, map}) :: {atom, map}
   defp convert_resource_fields_to_map({resource_name, %{fields: fields} = resource})
        when is_list(fields) do
@@ -397,7 +418,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - HTML input type
   # - Validation constraints
   # - Association data (if applicable)
-  @spec parse_field(module, atom, atom) :: Field.t()
+  @spec parse_field(module(), atom(), atom()) :: Field.t()
   defp parse_field(module, resource_name, field) do
     type = module.__schema__(:type, field)
     association = module.__schema__(:association, field)
@@ -420,13 +441,17 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     attrs |> Field.new() |> set_field_id()
   end
 
+  # Formats a display label from a field name
+  # Capitalizes and converts underscores to spaces
   @spec field_label(atom()) :: binary()
   defp field_label(nil), do: ""
 
   defp field_label(name),
     do: name |> to_string() |> String.replace("_", " ") |> String.capitalize()
 
-  @spec field_placeholder(atom, atom) :: binary
+  # Determines default placeholder text for a field
+  # Based on the field's Elixir type
+  @spec field_placeholder(atom(), atom()) :: binary
   defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
 
   defp field_placeholder(_, type)
@@ -436,7 +461,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
   defp field_placeholder(name, _type), do: name |> to_string() |> String.capitalize()
 
-  @spec field_type(atom, map | nil) :: atom
+  # Maps an Elixir type to a field type
+  # Handles both basic types and associations
+  @spec field_type(atom(), map() | nil) :: atom
   defp field_type(type, nil), do: type
 
   defp field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
@@ -444,7 +471,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp field_type(nil, %{cardinality: :one} = _association),
     do: :many_to_one_association
 
-  @spec field_html_type(atom, map | nil) :: atom
+  # Maps an Elixir type to an HTML input type
+  # Provides appropriate HTML5 input types based on data type
+  @spec field_html_type(atom(), map() | nil) :: atom
   defp field_html_type(type, _association)
        when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
        do: :text
@@ -469,7 +498,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   defp field_html_type(nil, _association), do: :unimplemented
 
-  @spec field_length(atom) :: integer
+  # Determines display length for a field
+  # Sets sensible defaults based on data type
+  @spec field_length(atom()) :: integer
   defp field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
   defp field_length(type) when type in [:id, :integer], do: 10
   defp field_length(type) when type in [:float, :decimal], do: 12
@@ -483,27 +514,37 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp field_length(:boolean), do: 5
   defp field_length(_type), do: 50
 
-  @spec field_precision(atom) :: integer
+  # Gets numeric precision for number fields
+  # Returns 0 for non-numeric fields
+  @spec field_precision(atom()) :: integer
   defp field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
   defp field_precision(_type), do: 0
 
-  @spec field_scale(atom) :: integer
+  # Gets numeric scale for decimal/float fields
+  # Returns 0 for non-decimal fields
+  @spec field_scale(atom()) :: integer
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
-  @spec field_disabled(atom) :: boolean
+  # Checks if a field should be disabled
+  # Disabled fields: id, deleted, inactive
+  @spec field_disabled(atom()) :: boolean
   defp field_disabled(field) when field in [:id, :deleted, :inactive],
     do: true
 
   defp field_disabled(_field), do: false
 
-  @spec field_omitted(atom) :: boolean
+  # Checks if a field should be omitted
+  # Omitted fields: inserted_at, updated_at
+  @spec field_omitted(atom()) :: boolean
   defp field_omitted(field) when field in [:inserted_at, :updated_at],
     do: true
 
   defp field_omitted(_field), do: false
 
-  @spec field_data(map | nil) :: map
+  # Extracts metadata for associations
+  # Returns nil for non-association fields
+  @spec field_data(map() | nil) :: map() | nil
   defp field_data(nil), do: nil
 
   defp field_data(association),
@@ -513,9 +554,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       owner_key: association.owner_key
     }
 
-  # Finds the resource name that matches an association's related schema
-  # Returns nil if no match found
-  @spec field_resource(map | nil, list) :: atom | nil
+  # Finds matching resource for an association
+  # Returns resource name if found, nil if not
+  @spec field_resource(map() | nil, list()) :: atom() | nil
   defp field_resource(nil, _resources), do: nil
 
   defp field_resource(association, resources) do
@@ -526,18 +567,18 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> elem(0)
   end
 
-  # Conditionally adds a key to the map if it exists in the options
-  # Returns the unchanged map if key not present
-  @spec put_option(map, keyword, atom) :: map
+  # Updates map with an option if present in opts
+  # Returns original map if option not present
+  @spec put_option(map(), keyword(), atom()) :: map
   defp put_option(resource_config, opts, key) do
     if Keyword.has_key?(opts, key),
       do: Map.put(resource_config, key, opts[key]),
       else: resource_config
   end
 
-  # Processes all resources to add their associations as fields
-  # Returns updated resources map with associations included
-  @spec add_associations(list) :: list
+  # Processes and adds schema associations
+  # Adds each association as a field with proper metadata
+  @spec add_associations(list()) :: list
   defp add_associations(resources) do
     start_counter(:auix_fields)
 
@@ -548,16 +589,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     end)
   end
 
-  # Adds a resource's associations to its fields list
-  # Maintains field order while prepending associations
-  @spec add_resource_associations({atom, map}, list) :: {atom, map}
+  # Adds associations to a single resource
+  # Maintains proper field ordering
+  @spec add_resource_associations({atom(), map()}, list()) :: {atom(), map()}
   defp add_resource_associations({name, %{schema: nil} = resource}, _resources),
     do: {name, resource}
 
   defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
     :associations
     |> schema.__schema__()
-    |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, resources, &1, &2))
+    |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, name, resources, &1, &2))
     |> Enum.reverse()
     |> then(&struct(resource, %{fields: &1}))
     |> apply_field_changes(resource)
@@ -567,16 +608,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Converts a schema association into a Field struct
   # Includes association metadata and proper field type
-  @spec parse_association(module, list, atom, map) :: list
-  defp parse_association(schema, resources, association_field, fields) do
+  @spec parse_association(module(), atom(), list(), atom(), map()) :: list
+  defp parse_association(schema, resource_name, resources, association_field, fields) do
     :association
     |> schema.__schema__(association_field)
     |> then(
       &Field.new(
         field: association_field,
         field_type: field_html_type(nil, &1),
-        data: field_data(&1),
-        resource: field_resource(&1, resources)
+        data: Map.put(field_data(&1), :resource, field_resource(&1, resources)),
+        resource: resource_name
       )
     )
     |> set_field_id()

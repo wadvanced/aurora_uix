@@ -72,10 +72,17 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
     refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
     refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    assert_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+    assert_field_is_visible_in_section(
+      view,
+      :product,
+      [:reference, :name],
+      :sections_index_1,
+      :tab_index_1
+    )
 
     assert_field_is_visible_in_section(
       view,
+      :product,
       [:description, :status],
       :sections_index_2,
       :tab_index_1
@@ -83,6 +90,7 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:width, :height, :length],
       :sections_index_2,
       :tab_index_2
@@ -90,12 +98,19 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:quantity_at_hand, :quantity_initial],
       :sections_index_3,
       :tab_index_1
     )
 
-    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:list_price, :rrp],
+      :sections_index_3,
+      :tab_index_2
+    )
 
     click_section_button(view, "information", 2)
     refute_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
@@ -105,10 +120,17 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
     refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
     assert_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    refute_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:reference, :name],
+      :sections_index_1,
+      :tab_index_1
+    )
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:description, :status],
       :sections_index_2,
       :tab_index_1
@@ -116,6 +138,7 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:width, :height, :length],
       :sections_index_2,
       :tab_index_2
@@ -123,12 +146,19 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:quantity_at_hand, :quantity_initial],
       :sections_index_3,
       :tab_index_1
     )
 
-    assert_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+    assert_field_is_visible_in_section(
+      view,
+      :product,
+      [:list_price, :rrp],
+      :sections_index_3,
+      :tab_index_2
+    )
 
     click_section_button(view, "quantities", :sections_index_3, :tab_index_1)
     refute_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
@@ -138,10 +168,17 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
     assert_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
     refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    refute_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:reference, :name],
+      :sections_index_1,
+      :tab_index_1
+    )
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:description, :status],
       :sections_index_2,
       :tab_index_1
@@ -149,6 +186,7 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:width, :height, :length],
       :sections_index_2,
       :tab_index_2
@@ -156,12 +194,19 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     assert_field_is_visible_in_section(
       view,
+      :product,
       [:quantity_at_hand, :quantity_initial],
       :sections_index_3,
       :tab_index_1
     )
 
-    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:list_price, :rrp],
+      :sections_index_3,
+      :tab_index_2
+    )
 
     click_section_button(view, "references", :sections_index_1, :tab_index_1)
     assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
@@ -179,10 +224,17 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
     refute_section_button_is_active(view, "quantities", :sections_index_3, :tab_index_1)
     refute_section_button_is_active(view, "sale_prices", :sections_index_3, :tab_index_2)
 
-    assert_field_is_visible_in_section(view, [:reference, :name], :sections_index_1, :tab_index_1)
+    assert_field_is_visible_in_section(
+      view,
+      :product,
+      [:reference, :name],
+      :sections_index_1,
+      :tab_index_1
+    )
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:description, :status],
       :sections_index_2,
       :tab_index_1
@@ -190,6 +242,7 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     assert_field_is_visible_in_section(
       view,
+      :product,
       [:width, :height, :length],
       :sections_index_2,
       :tab_index_2
@@ -197,11 +250,18 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
 
     refute_field_is_visible_in_section(
       view,
+      :product,
       [:quantity_at_hand, :quantity_initial],
       :sections_index_3,
       :tab_index_1
     )
 
-    refute_field_is_visible_in_section(view, [:list_price, :rrp], :sections_index_3, :tab_index_2)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:list_price, :rrp],
+      :sections_index_3,
+      :tab_index_2
+    )
   end
 end

@@ -364,32 +364,48 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
 
   Returns: Macro.t()
   """
+
   @spec assert_field_is_visible_in_section(
           Phoenix.LiveViewTest.View,
+          atom | binary,
           atom | binary | list,
           atom | integer | nil,
           atom | integer
         ) :: Macro.t()
   def assert_field_is_visible_in_section(
         view,
+        resource_name,
         field_names,
         section_index \\ :section_1,
         tab_index
       )
 
-  def assert_field_is_visible_in_section(view, field_names, section_index, tab_index)
+  def assert_field_is_visible_in_section(
+        view,
+        resource_name,
+        field_names,
+        section_index,
+        tab_index
+      )
       when is_list(field_names) do
     Enum.each(
       field_names,
-      &assert_field_is_visible_in_section(view, &1, section_index, tab_index)
+      &assert_field_is_visible_in_section(view, resource_name, &1, section_index, tab_index)
     )
   end
 
-  def assert_field_is_visible_in_section(view, field_name, section_index, tab_index) do
+  def assert_field_is_visible_in_section(
+        view,
+        resource_name,
+        field_name,
+        section_index,
+        tab_index
+      ) do
     field = field_name |> to_string() |> Macro.underscore()
+    resource = if is_nil(resource_name) or resource_name == "", do: "", else: "#{resource_name}-"
 
     field_selector =
-      ~s|#{auix_section_selector(section_index, tab_index)} [id^="auix-field-#{field}-"]|
+      ~s|#{auix_section_selector(section_index, tab_index)} [id^="auix-field-#{resource}#{field}-"]|
 
     assert view
            |> element(field_selector)
@@ -410,30 +426,45 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
   """
   @spec refute_field_is_visible_in_section(
           Phoenix.LiveViewTest.View,
+          atom | binary,
           atom | binary | list,
           atom | integer | nil,
           atom | integer
         ) :: Macro.t()
   def refute_field_is_visible_in_section(
         view,
+        resource_name,
         field_names,
         section_index \\ :section_1,
         tab_index
       )
 
-  def refute_field_is_visible_in_section(view, field_names, section_index, tab_index)
+  def refute_field_is_visible_in_section(
+        view,
+        resource_name,
+        field_names,
+        section_index,
+        tab_index
+      )
       when is_list(field_names) do
     Enum.each(
       field_names,
-      &refute_field_is_visible_in_section(view, &1, section_index, tab_index)
+      &refute_field_is_visible_in_section(view, resource_name, &1, section_index, tab_index)
     )
   end
 
-  def refute_field_is_visible_in_section(view, field_name, section_index, tab_index) do
+  def refute_field_is_visible_in_section(
+        view,
+        resource_name,
+        field_name,
+        section_index,
+        tab_index
+      ) do
     field = field_name |> to_string() |> Macro.underscore()
+    resource = if is_nil(resource_name) or resource_name == "", do: "", else: "#{resource_name}-"
 
     field_selector =
-      ~s|#{auix_section_selector(section_index, tab_index)} [id^="auix-field-#{field}-"]|
+      ~s|#{auix_section_selector(section_index, tab_index)} [id^="auix-field-#{resource}#{field}-"]|
 
     assert view
            |> element(field_selector)
