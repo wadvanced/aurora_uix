@@ -175,7 +175,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     assigns
     |> put_in([:_auix, :_path], %{
       tag: :group,
-      config: [group_id: "auix-field-#{field_struct.field}", title: association_label],
+      config: [group_id: "#{field_struct.html_id}", title: association_label],
       inner_elements: inner_elements
     })
     |> put_in([:_auix, :_ignore_association_label], true)
@@ -343,7 +343,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @spec get_association_paths(map(), map(), atom()) :: list()
   defp get_association_paths(field_struct, configurations, path_type) do
     configurations
-    |> get_in([field_struct.resource, :defaulted_paths, path_type, :inner_elements])
+    |> get_in([field_struct.data.resource, :defaulted_paths, path_type, :inner_elements])
     |> Kernel.||([])
     |> convert_to_many_to_one_paths(field_struct.field)
   end

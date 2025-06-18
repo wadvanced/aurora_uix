@@ -84,6 +84,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneUILayoutTest do
            |> Floki.find("[name='product[name]']")
            |> Enum.count() == 1
 
+    refute has_element?(view, "div[id^='auix-field-product-product_location-'] h3", "Product")
+
     assert view
            |> element("input[id^='auix-field-product_location-name-'][id$='-show']")
            |> render() =~ "test-name-1"
