@@ -52,6 +52,7 @@ defmodule Aurora.Uix.Test.Support.Helper do
     1..locations_count
     |> Enum.map(fn index ->
       %ProductLocation{
+        reference: "test-reference-#{index}",
         name: "test-name-#{index}",
         type: "test-type-#{index}"
       }
