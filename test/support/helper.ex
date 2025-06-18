@@ -5,6 +5,7 @@ defmodule Aurora.Uix.Test.Support.Helper do
   """
 
   alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Test.Inventory.ProductLocation
   alias Aurora.Uix.Test.Inventory.ProductTransaction
   alias Aurora.Uix.Test.Repo
 
@@ -18,8 +19,8 @@ defmodule Aurora.Uix.Test.Support.Helper do
 
   Returns: map() - Map of product IDs with atom keys in the format `id_n`
   """
-  @spec create_sample_products(integer(), atom() | nil) :: map()
-  def create_sample_products(count, prefix \\ nil) do
+  @spec create_sample_products(integer(), atom() | nil, map()) :: map()
+  def create_sample_products(count, prefix \\ nil, attrs \\ %{}) do
     length = count |> to_string() |> String.length()
 
     1..count
@@ -31,6 +32,7 @@ defmodule Aurora.Uix.Test.Support.Helper do
       cost = index / 100 + 123
 
       %Product{reference: reference, name: name, description: description, cost: cost}
+      |> struct(attrs)
       |> Repo.insert()
       |> elem(1)
       |> then(&{"id_#{reference_id}", &1})
@@ -43,6 +45,21 @@ defmodule Aurora.Uix.Test.Support.Helper do
     product_count
     |> create_sample_products(prefix)
     |> Enum.map(&create_sample_product_transactions(&1, transactions_count))
+  end
+
+  @spec create_sample_product_locations(integer()) :: list(ProductLocation.t())
+  def create_sample_product_locations(locations_count) do
+    1..locations_count
+    |> Enum.map(fn index ->
+      %ProductLocation{
+        name: "test-name-#{index}",
+        type: "test-type-#{index}"
+      }
+      |> Repo.insert()
+      |> elem(1)
+      |> then(&{"id_#{index}", &1})
+    end)
+    |> Map.new()
   end
 
   @spec create_sample_product_transactions(Ecto.Schema.t(), integer()) :: Ecto.Schema.t()

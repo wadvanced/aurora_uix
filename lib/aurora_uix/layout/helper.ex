@@ -181,8 +181,13 @@ defmodule Aurora.Uix.Layout.Helper do
     - Field.t() - Field with updated html_id if empty, or unchanged if ID exists
   """
   @spec set_field_id(Field.t()) :: Field.t()
-  def set_field_id(%Field{html_id: "", field: field_name} = field) do
+  def set_field_id(%Field{html_id: "", field: field_name, resource: resource} = field)
+      when is_nil(resource) do
     struct(field, %{html_id: "auix-field-#{field_name}-#{next_count(:auix_fields)}"})
+  end
+
+  def set_field_id(%Field{html_id: "", field: field_name, resource: resource} = field) do
+    struct(field, %{html_id: "auix-field-#{resource}-#{field_name}-#{next_count(:auix_fields)}"})
   end
 
   def set_field_id(field), do: field

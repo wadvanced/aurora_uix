@@ -148,7 +148,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
         assert has_element?(new_view, "#auix-product_transaction-modal")
 
         assert new_view
-               |> element("[id^='auix-field-product_id-'][id$='-form']")
+               |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")
                |> render() =~
                  "#{product_id}"
 
@@ -171,7 +171,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
       assert has_element?(
                new_view,
                "#auix-one_to_many-product__product_transactions-#{suffix} table tr",
-               "#{transaction.quantity}.000"
+               "#{transaction.cost}"
              )
     end)
 
@@ -201,7 +201,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     assert has_element?(edit_view, "#auix-product_transaction-modal")
 
     assert edit_view
-           |> element("[id^='auix-field-product_id-'][id$='-form']")
+           |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")
            |> render() =~
              "#{product_id}"
 

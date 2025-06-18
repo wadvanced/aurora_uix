@@ -42,17 +42,27 @@ defmodule Aurora.Uix.Test.Web.SectionUILayoutTest do
     assert_section_button_is_active(view, "quantities", :tab_index_1)
     refute_section_button_is_active(view, "sale_prices", :tab_index_2)
 
-    assert_field_is_visible_in_section(view, [:quantity_at_hand, :quantity_initial], :tab_index_1)
+    assert_field_is_visible_in_section(
+      view,
+      :product,
+      [:quantity_at_hand, :quantity_initial],
+      :tab_index_1
+    )
 
-    refute_field_is_visible_in_section(view, [:list_price, :rrp], :tab_index_2)
+    refute_field_is_visible_in_section(view, :product, [:list_price, :rrp], :tab_index_2)
 
     click_section_button(view, "sale_prices", :tab_index_2)
 
     assert_section_button_is_active(view, "quantities", :tab_index_1)
     assert_section_button_is_active(view, "sale_prices", :tab_index_2)
 
-    refute_field_is_visible_in_section(view, [:quantity_at_hand, :quantity_initial], :tab_index_1)
+    refute_field_is_visible_in_section(
+      view,
+      :product,
+      [:quantity_at_hand, :quantity_initial],
+      :tab_index_1
+    )
 
-    assert_field_is_visible_in_section(view, [:list_price, :rrp], :tab_index_2)
+    assert_field_is_visible_in_section(view, :product, [:list_price, :rrp], :tab_index_2)
   end
 end

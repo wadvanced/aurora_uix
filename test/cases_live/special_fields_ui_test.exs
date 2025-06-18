@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     {:ok, view, _html} = live(conn, "/special-fields-ui-products/new")
 
     assert view
-           |> element("[id^='auix-field-status-'][id$='-form']")
+           |> element("[id^='auix-field-product-status-'][id$='-form']")
            |> has_element?()
 
     assert_option_exists(view, :status, 1, "in_stock")
@@ -53,7 +53,9 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
   defp assert_option_exists(view, field_name, index, value) do
     element =
       view
-      |> element("[id^='auix-field-#{field_name}-'][id$='-form'] option:nth-of-type(#{index})")
+      |> element(
+        "[id^='auix-field-product-#{field_name}-'][id$='-form'] option:nth-of-type(#{index})"
+      )
       |> render()
 
     assert element =~ value,
