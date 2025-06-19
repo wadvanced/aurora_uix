@@ -36,9 +36,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     assigns = assign(assigns, :field, field)
 
     case field do
-      %{omitted: true} -> empty_render(assigns)
-      %{renderer: f} when is_function(f, 1) -> custom_render(assigns)
-      _field -> default_render(assigns)
+      %{omitted: true} ->
+        empty_render(assigns)
+
+      %{renderer: custom_renderer} when is_function(custom_renderer, 1) ->
+        custom_renderer.(assigns)
+
+      _field ->
+        default_render(assigns)
     end
   end
 
@@ -69,12 +74,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   defp empty_render(assigns) do
     ~H"""
     """
-  end
-
-  # Renders a field using its custom renderer function
-  @spec custom_render(map()) :: Phoenix.LiveView.Rendered.t()
-  defp custom_render(%{field: field} = assigns) do
-    field.renderer.(assigns)
   end
 
   # Renders different field types with appropriate HTML structure and components
@@ -190,14 +189,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> render()
   end
 
-  defp default_render(%{field: field_struct} = assigns) do
+  defp default_render(assigns) do
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
 
     assigns =
       assigns
       |> assign(:input_classes, input_classes)
-      |> assign(:select_opts, get_select_options(field_struct))
+      |> assign(:select_opts, get_select_options(assigns))
 
     ~H"""
     <%= if @field.hidden do %>
@@ -387,12 +386,44 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   # Returns select field options and multiple selection flag if applicable
   @spec get_select_options(map()) :: map()
-  defp get_select_options(%{field_html_type: :select, data: data}) do
-    options = for {label, value} <- data[:opts], do: {label, value}
-    %{options: options, multiple: data[:multiple] || false}
+  defp get_select_options(%{
+         field: %{
+           field_html_type: :select,
+           data: %{resource: resource_name, related_key: related_key}
+         }
+       })
+       when is_nil(resource_name) or is_nil(related_key),
+       do: %{options: [], multiple: false}
+
+  # Select options for Many to one
+  defp get_select_options(%{
+         field: %{
+           field_html_type: :select,
+           data: %{resource: resource_name, related_key: related_key}
+         },
+         _auix: %{_configurations: configurations}
+       }) do
+    context = get_in(configurations, [resource_name, :resource_config, Access.key!(:context)])
+    list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
+
+    context
+    |> apply(list_function, [])
+    |> Enum.map(&{&1 |> Map.get(related_key) |> to_string(), Map.get(&1, related_key)})
+    |> then(&%{options: &1, multiple: false})
   end
 
-  defp get_select_options(_field), do: %{}
+  defp get_select_options(%{field: %{field_html_type: :select, data: select}}) do
+    case select[:opts] do
+      nil ->
+        %{options: [], multiple: false}
+
+      opts ->
+        options = for {label, value} <- opts, do: {label, value}
+        %{options: options, multiple: select[:multiple] || false}
+    end
+  end
+
+  defp get_select_options(_assigns), do: %{options: [], multiple: false}
 
   @spec delete_last(list()) :: list()
   defp delete_last([]), do: []

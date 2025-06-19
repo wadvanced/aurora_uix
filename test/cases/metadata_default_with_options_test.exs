@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
     )
 
     validate_schema(resource_configs, :product_transaction,
-      product_id: %{field_html_type: :text, name: "product_id", length: 255}
+      product_id: %{field_html_type: :select, name: "product_id", length: 255}
     )
   end
 
