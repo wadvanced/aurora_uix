@@ -18,7 +18,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
 
     auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
+    auix_resource_metadata(:product, context: Inventory, schema: Product) do
+    end
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.

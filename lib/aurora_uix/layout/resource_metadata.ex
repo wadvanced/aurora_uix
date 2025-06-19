@@ -645,8 +645,15 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
        when field_type in [:many_to_one_association, :one_to_many_association],
        do: field
 
-  defp replace_related_field_data(%{field: field_name} = field, {field_name, changes}) do
-    Field.change(field, changes)
+  defp replace_related_field_data(
+         %{field: field_name, label: label} = field,
+         {field_name, changes}
+       ) do
+    label
+    |> Kernel.||("")
+    |> String.replace_suffix(" id", "")
+    |> then(&Map.put(changes, :label, &1))
+    |> then(&Field.change(field, &1))
   end
 
   defp replace_related_field_data(field, _related_changes), do: field

@@ -7,8 +7,8 @@ defmodule Aurora.Uix.Layout.Helper do
   - Component registration and configuration
   - Unique identifier counter management
   """
-
   alias Aurora.Uix.Field
+  require Logger
 
   @doc """
   Extracts the `:do` block from options while preserving other options.
@@ -116,15 +116,23 @@ defmodule Aurora.Uix.Layout.Helper do
 
   def start_counter(nil, initial) do
     case Agent.start_link(fn -> initial end) do
-      {:ok, pid} -> pid
-      {:error, {:already_started, _}} -> reset_count(nil, initial)
+      {:ok, pid} ->
+        pid
+
+      {:error, {:already_started, _}} ->
+        Logger.warning("Counter was previously started")
+        reset_count(nil, initial)
     end
   end
 
   def start_counter(name, initial) do
     case Agent.start_link(fn -> initial end, name: name) do
-      {:ok, _} -> name
-      {:error, {:already_started, _}} -> reset_count(name, initial)
+      {:ok, _} ->
+        name
+
+      {:error, {:already_started, _}} ->
+        Logger.warning("Counter named: `#{name}`, was previously started")
+        name
     end
   end
 
