@@ -126,5 +126,20 @@ defmodule Aurora.Uix.Test.Web.Router do
       AssociationMany2OneParentUILayoutTest.TestModule.ProductLocation,
       "association-many_to_one_parent-layout-product_locations"
     )
+
+    Web.register_crud(
+      AssociationMany2OneSelectorUILayoutTest.TestModule.Product,
+      "association-many_to_one_selector-layout-products"
+    )
+
+    Web.register_crud(
+      AssociationMany2OneSelectorUILayoutTest.TestModule.ProductTransaction,
+      "association-many_to_one_selector-layout-product_transactions"
+    )
+
+    Web.register_crud(
+      AssociationMany2OneSelectorUILayoutTest.TestModule.ProductLocation,
+      "association-many_to_one_selector-layout-product_locations"
+    )
   end
 end

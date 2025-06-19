@@ -601,6 +601,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, name, resources, &1, &2))
     |> Enum.reverse()
     |> then(&struct(resource, %{fields: &1}))
+    |> configure_many_to_one_selectors()
     |> apply_field_changes(resource)
     |> reorder_fields_by_changes(resource)
     |> then(&{name, &1})
@@ -608,7 +609,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Converts a schema association into a Field struct
   # Includes association metadata and proper field type
-  @spec parse_association(module(), atom(), list(), atom(), map()) :: list
+  @spec parse_association(module(), atom(), list(Resource.t()), atom(), map()) ::
+          list(Resource.t())
   defp parse_association(schema, resource_name, resources, association_field, fields) do
     :association
     |> schema.__schema__(association_field)
@@ -623,4 +625,29 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> set_field_id()
     |> then(&[&1 | fields])
   end
+
+  @spec configure_many_to_one_selectors(Resource.t()) :: Resource.t()
+  defp configure_many_to_one_selectors(%{fields: fields} = resource) do
+    fields
+    |> Enum.filter(&(&1.field_type == :many_to_one_association))
+    |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
+    |> Enum.map(&{&1.data.owner_key, %{field_html_type: :select, data: &1.data}})
+    |> Enum.reduce(fields, &replace_related_field/2)
+    |> then(&struct(resource, %{fields: &1}))
+  end
+
+  @spec replace_related_field(tuple(), list(Field.t())) :: list(Field.t())
+  defp replace_related_field(related_changes, fields),
+    do: Enum.map(fields, &replace_related_field_data(&1, related_changes))
+
+  @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
+  defp replace_related_field_data(%{ield_type: field_type} = field, _related_changes)
+       when field_type in [:many_to_one_association, :one_to_many_association],
+       do: field
+
+  defp replace_related_field_data(%{field: field_name} = field, {field_name, changes}) do
+    Field.change(field, changes)
+  end
+
+  defp replace_related_field_data(field, _related_changes), do: field
 end
