@@ -13,10 +13,9 @@ permissions:
 
 jobs:
   build:
-
     name: Build and test
     runs-on: ubuntu-latest
-
+    if: ${{ !github.event.pull_request.draft }}
     strategy:
       matrix: 
         elixir: ['1.17.3']

@@ -323,10 +323,26 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> Enum.map(fn field ->
       changes
       |> Map.get(field.field, [])
-      |> then(&Field.change(field, &1))
+      |> apply_field_change(field)
     end)
     |> then(&struct(resource_struct, %{fields: &1}))
   end
+
+  @spec apply_field_change(keyword(), Field.t()) :: Field.t()
+  defp apply_field_change(change, field) do
+    change
+    |> Enum.map(&maybe_add_option_to_data(&1, field))
+    |> then(&Field.change(field, &1))
+  end
+
+  @spec maybe_add_option_to_data(tuple(), Field.t()) :: tuple()
+  defp maybe_add_option_to_data({:option_label, option_label}, field) do
+    field
+    |> Map.get(:data, %{})
+    |> then(&{:data, Map.put(&1, :option_label, option_label)})
+  end
+
+  defp maybe_add_option_to_data(option, _field), do: option
 
   # Reorder fields based on config block order:
   # - Keeps configured fields in order of appearance
@@ -645,8 +661,15 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
        when field_type in [:many_to_one_association, :one_to_many_association],
        do: field
 
-  defp replace_related_field_data(%{field: field_name} = field, {field_name, changes}) do
-    Field.change(field, changes)
+  defp replace_related_field_data(
+         %{field: field_name, label: label} = field,
+         {field_name, changes}
+       ) do
+    label
+    |> Kernel.||("")
+    |> String.replace_suffix(" id", "")
+    |> then(&Map.put(changes, :label, &1))
+    |> then(&Field.change(field, &1))
   end
 
   defp replace_related_field_data(field, _related_changes), do: field

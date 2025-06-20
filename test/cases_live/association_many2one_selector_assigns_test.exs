@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
+defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAssignsTest do
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
@@ -12,18 +12,24 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
     alias Aurora.Uix.Test.Inventory.ProductLocation
     alias Aurora.Uix.Test.Inventory.ProductTransaction
 
+    @spec option_label(map(), term()) :: binary()
+    def option_label(assigns, entity), do: "#{assigns._auix._mode}: #{entity.name}"
+
     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
       field(:products, omitted: true)
     end
 
-    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
+    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction) do
+      field(:product, option_label: :name)
+    end
 
     auix_resource_metadata(:product, context: Inventory, schema: Product) do
+      field(:product_location_id, option_label: &TestModule.option_label/2)
     end
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui(link_prefix: "association-many_to_one_selector-layout-") do
+    auix_create_ui(link_prefix: "association-many_to_one_selector-assigns-") do
       edit_layout :product_location do
         inline([:reference, :name, :type])
       end
@@ -34,8 +40,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
           :name,
           :description,
           :quantity_initial,
-          :product_location_id,
-          :product_location
+          :product_location_id
         ])
       end
     end
@@ -45,7 +50,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
     {:ok, _view, html} =
       live(
         conn,
-        "/association-many_to_one_selector-layout-products"
+        "/association-many_to_one_selector-assigns-products"
       )
 
     assert html =~ "Listing Products"
@@ -63,15 +68,14 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
     {:ok, view, html} =
       live(
         conn,
-        "/association-many_to_one_selector-layout-products/#{product_id}"
+        "/association-many_to_one_selector-assigns-products/#{product_id}"
       )
 
     assert html =~ "Show Product"
 
     assert has_element?(
              view,
-             "select[id^='auix-field-product-product_location_id-'][id$='-show'] option[selected]",
-             location_id
+             "select[id^='auix-field-product-product_location_id-'][id$='-show'] option[selected][value='#{location_id}']"
            )
   end
 
@@ -79,6 +83,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
     locations = create_sample_product_locations(5)
     location_id_1 = get_in(locations, ["id_1", Access.key!(:id)])
     location_id_2 = get_in(locations, ["id_2", Access.key!(:id)])
+    name_1 = get_in(locations, ["id_1", Access.key!(:name)])
+    name_2 = get_in(locations, ["id_2", Access.key!(:name)])
 
     product_id =
       1
@@ -88,15 +94,15 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
     {:ok, view, html} =
       live(
         conn,
-        "/association-many_to_one_selector-layout-products/#{product_id}/edit"
+        "/association-many_to_one_selector-assigns-products/#{product_id}/edit"
       )
 
     assert html =~ "Edit Product"
 
     assert has_element?(
              view,
-             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected]",
-             location_id_1
+             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value=#{location_id_1}]",
+             "form: #{name_1}"
            )
 
     view
@@ -107,8 +113,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
 
     assert has_element?(
              view,
-             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected]",
-             location_id_2
+             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value='#{location_id_2}']",
+             "form: #{name_2}"
            )
   end
 end

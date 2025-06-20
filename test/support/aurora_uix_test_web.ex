@@ -147,6 +147,23 @@ defmodule Aurora.Uix.Test.Web do
     end
   end
 
+  @spec register_product_crud(module, binary) :: Macro.t()
+  defmacro register_product_crud(module, prefix) do
+    quote do
+      unquote(module)
+      |> Module.concat(TestModule.Product)
+      |> Web.register_crud("#{unquote(prefix)}products")
+
+      unquote(module)
+      |> Module.concat(TestModule.ProductTransaction)
+      |> Web.register_crud("#{unquote(prefix)}product_transactions")
+
+      unquote(module)
+      |> Module.concat(TestModule.ProductLocation)
+      |> Web.register_crud("#{unquote(prefix)}product_locations")
+    end
+  end
+
   ## PRIVATE
   # Helper function to define common HTML functionality for components
   @spec html_helpers() :: Macro.t()
