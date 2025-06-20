@@ -94,5 +94,10 @@ defmodule Aurora.Uix.Test.Web.Router do
       AssociationMany2OneSelectorAtomTest,
       "association-many_to_one_selector-atom-"
     )
+
+    Web.register_product_crud(
+      AssociationMany2OneSelectorFunctionTest,
+      "association-many_to_one_selector-function-"
+    )
   end
 end
