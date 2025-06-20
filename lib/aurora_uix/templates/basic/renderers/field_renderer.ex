@@ -396,19 +396,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
        do: %{options: [], multiple: false}
 
   # Select options for Many to one
-  defp get_select_options(%{
-         field: %{
-           field_html_type: :select,
-           data: %{resource: resource_name, related_key: related_key}
-         },
-         _auix: %{_configurations: configurations}
-       }) do
+  defp get_select_options(
+         %{
+           field: %{
+             field_html_type: :select,
+             data: %{resource: resource_name}
+           },
+           _auix: %{_configurations: configurations}
+         } = assigns
+       ) do
     context = get_in(configurations, [resource_name, :resource_config, Access.key!(:context)])
     list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
 
     context
     |> apply(list_function, [])
-    |> Enum.map(&{&1 |> Map.get(related_key) |> to_string(), Map.get(&1, related_key)})
+    |> Enum.map(&get_many_to_one_select_option(assigns, &1))
     |> then(&%{options: &1, multiple: false})
   end
 
@@ -424,6 +426,19 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   defp get_select_options(_assigns), do: %{options: [], multiple: false}
+
+  @spec get_many_to_one_select_option(map(), term()) :: tuple()
+  defp get_many_to_one_select_option(
+         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
+         entity
+       )
+       when is_atom(option_label) do
+    {Map.get(entity, option_label), Map.get(entity, related_key)}
+  end
+
+  defp get_many_to_one_select_option(%{field: %{data: %{related_key: related_key}}}, entity) do
+    {entity |> Map.get(related_key) |> to_string(), Map.get(entity, related_key)}
+  end
 
   @spec delete_last(list()) :: list()
   defp delete_last([]), do: []
