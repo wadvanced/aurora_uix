@@ -444,6 +444,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     {option_label.(entity), Map.get(entity, related_key)}
   end
 
+  defp get_many_to_one_select_option(
+         %{field: %{data: %{option_label: option_label, related_key: related_key}}} = assigns,
+         entity
+       )
+       when is_function(option_label, 2) do
+    {option_label.(assigns, entity), Map.get(entity, related_key)}
+  end
+
   defp get_many_to_one_select_option(%{field: %{data: %{related_key: related_key}}}, entity) do
     {entity |> Map.get(related_key) |> to_string(), Map.get(entity, related_key)}
   end
