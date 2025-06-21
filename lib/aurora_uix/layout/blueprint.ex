@@ -206,6 +206,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
 
+  alias Aurora.Uix.CounterAgent
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
   @doc false
@@ -531,7 +532,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec parse_sections(map, atom) :: map
   def parse_sections(path, mode) when mode in [:form, :show] do
-    pid = LayoutHelpers.start_counter()
+    pid = CounterAgent.start_counter()
 
     path
     |> Map.get(:inner_elements, [])
@@ -636,7 +637,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
          _tab_active?,
          result
        ) do
-    next_sections_index = LayoutHelpers.next_count(counter_pid)
+    next_sections_index = CounterAgent.next_count(counter_pid)
 
     new_inner_elements =
       normalize_sections_and_tabs(

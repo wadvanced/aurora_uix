@@ -14,7 +14,6 @@ defmodule Aurora.Uix.Resource do
   """
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
   defstruct [:name, :schema, :context, fields: [], fields_order: [], inner_elements: []]
 
@@ -131,7 +130,6 @@ defmodule Aurora.Uix.Resource do
       properties
       |> Map.put(:field, field)
       |> Field.new()
-      |> LayoutHelpers.set_field_id()
 
     [new_field | acc]
   end
@@ -139,7 +137,7 @@ defmodule Aurora.Uix.Resource do
   defp create_field(%Field{} = field, acc), do: [field | acc]
 
   defp create_field(%{field: _field_id} = attrs, _acc),
-    do: attrs |> Field.new() |> LayoutHelpers.set_field_id()
+    do: Field.new(attrs)
 
   defp create_field(_field, acc), do: acc
 

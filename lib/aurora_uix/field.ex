@@ -27,6 +27,9 @@ defmodule Aurora.Uix.Field do
       It is equivalent to not having the field at all.
 
   """
+
+  alias Aurora.Uix.CounterAgent
+
   defstruct [
     :field,
     :field_type,
@@ -78,7 +81,7 @@ defmodule Aurora.Uix.Field do
   The name attribute is automatically derived from the field value.
 
   ## Example
-      iex> Aurora.Uix.Field.new(%{field: :user_name})
+      iex> Aurora.Uix.Field.new(%{field: :user_name}) |> struct(%{html_id: ""})
       %Aurora.Uix.Field{
         field: :user_name,
         name: "user_name",
@@ -86,7 +89,6 @@ defmodule Aurora.Uix.Field do
         disabled: false,
         field_html_type: nil,
         field_type: nil,
-        html_id: "",
         hidden: false,
         label: "",
         length: 0,
@@ -97,7 +99,8 @@ defmodule Aurora.Uix.Field do
         renderer: nil,
         required: false,
         resource: nil,
-        scale: 0
+        scale: 0,
+        html_id: ""
       }
 
   Returns:
@@ -117,7 +120,7 @@ defmodule Aurora.Uix.Field do
 
   ## Example
       iex> field = Aurora.Uix.Field.new()
-      iex> Aurora.Uix.Field.change(field, %{field: :email})
+      iex> Aurora.Uix.Field.change(field, %{field: :email}) |> struct(%{html_id: ""})
       %Aurora.Uix.Field{
               field: :email,
               name: "email",
@@ -125,7 +128,6 @@ defmodule Aurora.Uix.Field do
               disabled: false,
               field_html_type: nil,
               field_type: nil,
-              html_id: "",
               hidden: false,
               label: "",
               length: 0,
@@ -136,7 +138,8 @@ defmodule Aurora.Uix.Field do
               renderer: nil,
               required: false,
               resource: nil,
-              scale: 0
+              scale: 0,
+              html_id: ""
             }
 
   Returns:
@@ -151,6 +154,7 @@ defmodule Aurora.Uix.Field do
     |> Map.new()
     |> then(&struct(field, &1))
     |> update_name()
+    |> set_field_id()
   end
 
   def change(field, %{} = attrs), do: field |> struct(attrs) |> update_name()
@@ -158,8 +162,33 @@ defmodule Aurora.Uix.Field do
   ## PRIVATE
   @spec update_name(__MODULE__.t()) :: __MODULE__.t()
   defp update_name(%{field: field} = field_struct) when is_atom(field),
-    do: struct(field_struct, %{name: to_string(field)})
+    do: field_struct |> struct(%{name: to_string(field)}) |> set_field_id()
 
   defp update_name(%{field: {parent, field}} = field_struct),
-    do: struct(field_struct, %{name: "#{parent} #{field}"})
+    do: field_struct |> struct(%{name: "#{parent} #{field}"}) |> set_field_id()
+
+  @doc """
+  Generates or returns a unique HTML ID for a field.
+
+  Parameters:
+    - field: Field.t() - The field struct requiring an ID
+
+  Returns:
+    - Field.t() - Field with updated html_id if empty, or unchanged if ID exists
+  """
+  @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
+  def set_field_id(%__MODULE__{field: field_name} = field) when is_nil(field_name), do: field
+
+  def set_field_id(%__MODULE__{html_id: "", field: field_name, resource: resource} = field)
+      when is_nil(resource) do
+    struct(field, %{html_id: "auix-field-#{field_name}-#{CounterAgent.next_count(:auix_fields)}"})
+  end
+
+  def set_field_id(%__MODULE__{html_id: "", field: field_name, resource: resource} = field) do
+    struct(field, %{
+      html_id: "auix-field-#{resource}-#{field_name}-#{CounterAgent.next_count(:auix_fields)}"
+    })
+  end
+
+  def set_field_id(field), do: field
 end

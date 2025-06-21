@@ -62,8 +62,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         @impl true
         def handle_params(params, url, socket) do
-          LayoutHelpers.start_counter(:auix_fields)
-
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))

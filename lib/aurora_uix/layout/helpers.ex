@@ -7,7 +7,6 @@ defmodule Aurora.Uix.Layout.Helpers do
   - Component registration and configuration
   - Unique identifier counter management
   """
-  alias Aurora.Uix.Field
   require Logger
 
   @doc """
@@ -100,105 +99,6 @@ defmodule Aurora.Uix.Layout.Helpers do
       unquote(registration)
     end
   end
-
-  @doc """
-  Initializes a new counter for generating unique component identifiers.
-
-  Parameters:
-  - name (binary|atom|nil): Counter identifier
-  - initial (integer): Starting value for the counter
-
-  Returns:
-  - binary|atom|pid: Counter reference
-  """
-  @spec start_counter(binary | atom | nil, integer) :: binary | atom | pid
-  def start_counter(name \\ nil, initial \\ 0)
-
-  def start_counter(nil, initial) do
-    case Agent.start_link(fn -> initial end) do
-      {:ok, pid} ->
-        pid
-
-      {:error, {:already_started, _}} ->
-        Logger.warning("Counter was previously started")
-        reset_count(nil, initial)
-    end
-  end
-
-  def start_counter(name, initial) do
-    case Agent.start_link(fn -> initial end, name: name) do
-      {:ok, _} ->
-        name
-
-      {:error, {:already_started, _}} ->
-        Logger.warning("Counter named: `#{name}`, was previously started")
-        name
-    end
-  end
-
-  @doc """
-  Increments and returns the next value for a counter.
-
-  Parameters:
-  - name (atom|pid|{atom, any}|{:via, atom, any}): Counter reference
-
-  Returns:
-  - integer: Next counter value
-  """
-  @spec next_count(atom() | pid() | {atom(), any()} | {:via, atom(), any()}) :: any()
-  def next_count(name) do
-    Agent.get_and_update(name, fn state -> {state + 1, state + 1} end)
-  end
-
-  @doc """
-  Returns the current counter value without incrementing.
-
-  Parameters:
-  - name (binary|atom): Counter reference
-
-  Returns:
-  - integer: Current counter value
-  """
-  @spec peek_count(binary | atom) :: integer
-  def peek_count(name) do
-    Agent.get(name, fn state -> state end)
-  end
-
-  @doc """
-  Resets a counter to a specified value.
-
-  Parameters:
-  - name (binary|atom|pid): Counter reference
-  - initial (integer): Value to reset the counter to
-
-  Returns:
-  - binary|atom|pid: Counter reference
-  """
-  @spec reset_count(binary | atom | pid, integer) :: binary | atom | pid
-  def reset_count(name, initial) do
-    Agent.get_and_update(name, fn _state -> {name, initial} end)
-  end
-
-  @doc """
-  Generates or returns a unique HTML ID for a field.
-
-  Parameters:
-    - field: Field.t() - The field struct requiring an ID
-
-  Returns:
-    - Field.t() - Field with updated html_id if empty, or unchanged if ID exists
-  """
-  @spec set_field_id(Field.t()) :: Field.t()
-  def set_field_id(%Field{html_id: "", field: field_name, resource: resource} = field)
-      when is_nil(resource) do
-    struct(field, %{html_id: "auix-field-#{field_name}-#{next_count(:auix_fields)}"})
-  end
-
-  def set_field_id(%Field{html_id: "", field: field_name, resource: resource} = field) do
-    struct(field, %{html_id: "auix-field-#{resource}-#{field_name}-#{next_count(:auix_fields)}"})
-  end
-
-  def set_field_id(field), do: field
 
   ## PRIVATE
 
