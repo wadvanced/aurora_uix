@@ -9,9 +9,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.LiveComponent
 
   import Aurora.Uix.Template, only: [safe_existing_atom: 1]
-  import Aurora.Uix.Layout.Helpers, only: [set_field_id: 1]
 
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
 
@@ -301,7 +301,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Map.get(:fields, %{})
     |> Map.get(field_name, Field.new(%{field: field_name, resource: resource_name}))
     |> Field.change(Map.get(field, :config, []))
-    |> set_field_id()
+    |> LayoutHelpers.set_field_id()
   end
 
   @doc """
