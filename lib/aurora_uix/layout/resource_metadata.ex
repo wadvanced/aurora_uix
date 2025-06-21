@@ -80,9 +80,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - Extensible through custom parsing and rendering strategies
   """
 
-  import Aurora.Uix.Layout.Helpers
-
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
@@ -180,7 +179,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
   @spec auix_resource_metadata(atom, keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
-    {block, opts} = extract_block_options(opts, do_block)
+    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
     resource_config =
       quote do
@@ -188,7 +187,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
           tag: :resource,
           name: unquote(name),
           opts: unquote(opts),
-          inner_elements: unquote(prepare_block(block))
+          inner_elements: unquote(LayoutHelpers.prepare_block(block))
         }
       end
 
@@ -236,7 +235,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
   @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
-    register_dsl_entry(:field, field, [], opts, nil)
+    LayoutHelpers.register_dsl_entry(:field, field, [], opts, nil)
   end
 
   @doc """
@@ -277,7 +276,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # 4. Reordering fields by configuration order
   @spec configure_fields([map()]) :: list()
   defp configure_fields(resources) do
-    start_counter(:auix_fields)
+    LayoutHelpers.start_counter(:auix_fields)
     Enum.map(resources, &configure_resource_fields/1)
   end
 
@@ -373,7 +372,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
           |> Field.change(field.opts),
           fn field_struct -> field_struct.field == field.name end
         )
-        |> set_field_id()
+        |> LayoutHelpers.set_field_id()
       end)
       |> Enum.reverse()
 
@@ -454,7 +453,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       data: field_data(association)
     }
 
-    attrs |> Field.new() |> set_field_id()
+    attrs |> Field.new() |> LayoutHelpers.set_field_id()
   end
 
   # Formats a display label from a field name
@@ -596,7 +595,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Adds each association as a field with proper metadata
   @spec add_associations(list()) :: list
   defp add_associations(resources) do
-    start_counter(:auix_fields)
+    LayoutHelpers.start_counter(:auix_fields)
 
     Enum.map(resources, fn resource ->
       resource
@@ -638,7 +637,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         resource: resource_name
       )
     )
-    |> set_field_id()
+    |> LayoutHelpers.set_field_id()
     |> then(&[&1 | fields])
   end
 
