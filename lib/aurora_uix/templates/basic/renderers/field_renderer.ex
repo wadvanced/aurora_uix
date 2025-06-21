@@ -1,13 +1,12 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
-  Field renderer module for Aurora UIX forms.
+  Renders form fields for Aurora UIX, supporting standard, one-to-many, many-to-one, hidden, and custom field types.
 
-  Provides specialized rendering for different field types:
-  - Standard form inputs with validation
-  - One-to-many associations with embedded tables
-  - Many-to-one associations
-  - Hidden fields
+  Handles:
+  - Dynamic field rendering based on type and configuration
+  - Delegation to association renderers
   - Custom field renderers
+  - Omitted and hidden fields
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
@@ -20,10 +19,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   Renders a form field based on its type and configuration.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns containing:
-    - _auix: Aurora UIX context with configurations
-    - auix_entity: Entity being rendered
-    - field: Field configuration and metadata
+  - assigns (map()) - LiveView assigns; must include:
+    - _auix (map()) - Aurora UIX context
+    - auix_entity (map()) - Entity being rendered
+    - field (map()) - Field configuration and metadata
 
   ## Returns
   - Phoenix.LiveView.Rendered.t() - The rendered field component
@@ -47,6 +46,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   ## PRIVATE
+  # Returns field info for rendering, handling tuple and atom names
   @spec get_field_info(map()) :: map()
   defp get_field_info(%{
          _path: %{name: name} = path,
@@ -76,15 +76,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   end
 
   @spec default_render(map()) :: Phoenix.LiveView.Rendered.t()
-  # Delegates one to many association rendering
+  # Delegates one-to-many association rendering
   defp default_render(%{field: %{field_type: :one_to_many_association}} = assigns),
     do: OneToMany.render(assigns)
 
-  # Delegates one to many association rendering
+  # Delegates many-to-one association rendering
   defp default_render(%{field: %{field_type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
 
-  # Renders different field types with appropriate HTML structure and components
+  # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do
     input_classes =
       "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

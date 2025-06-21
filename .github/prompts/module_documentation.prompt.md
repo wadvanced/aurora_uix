@@ -37,7 +37,9 @@ Avoid using any(), try your best to replace any() appropriately if found in exis
 Do not use the :: notation for function arguments.
 
 ## private functions
-For complex private functions, add a common comment '#' with a description of the expected behaviour.
+- All private functions are at the end of the file after a comment '## PRIVATE', DO NOT remove this comment, add the comment if it is missed, ensure is written as described here.
+- Move private functions to the proper place.
+- For complex private functions, add a common comment '#' with a description of the expected behaviour.
 Only add parameters descriptions if needed.
 
 
