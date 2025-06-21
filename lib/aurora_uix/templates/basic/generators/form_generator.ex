@@ -63,8 +63,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
         @impl true
         def update(%{:auix_entity => entity} = assigns, socket) do
-          LayoutHelpers.start_counter(:auix_fields)
-
           form =
             unquote(modules.context)
             |> apply(unquote(change_function), [entity])
