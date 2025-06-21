@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.LiveComponent
 
   import Aurora.Uix.Template, only: [safe_existing_atom: 1]
-  import Aurora.Uix.Layout.Helper, only: [set_field_id: 1]
+  import Aurora.Uix.Layout.Helpers, only: [set_field_id: 1]
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Stack

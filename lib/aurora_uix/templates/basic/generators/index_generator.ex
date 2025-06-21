@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         import unquote(core_helpers)
 
-        alias Aurora.Uix.Layout.Helper, as: LayoutHelper
+        alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
         alias unquote(modules.module)
@@ -62,7 +62,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         @impl true
         def handle_params(params, url, socket) do
-          LayoutHelper.start_counter(:auix_fields)
+          LayoutHelpers.start_counter(:auix_fields)
 
           {:noreply,
            socket

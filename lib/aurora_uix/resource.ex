@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Resource do
   - Integrates with other Aurora.Uix parsing components
   """
 
-  import Aurora.Uix.Layout.Helper, only: [set_field_id: 1]
+  import Aurora.Uix.Layout.Helpers, only: [set_field_id: 1]
 
   alias Aurora.Uix.Field
 

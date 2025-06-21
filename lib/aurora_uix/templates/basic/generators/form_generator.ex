@@ -56,14 +56,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
         import unquote(core_helpers)
 
-        alias Aurora.Uix.Layout.Helper, as: LayoutHelper
+        alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
         alias Aurora.Uix.Stack
         alias Aurora.Uix.Web.Templates.Basic.Renderer
         alias unquote(modules.context)
 
         @impl true
         def update(%{:auix_entity => entity} = assigns, socket) do
-          LayoutHelper.start_counter(:auix_fields)
+          LayoutHelpers.start_counter(:auix_fields)
 
           form =
             unquote(modules.context)

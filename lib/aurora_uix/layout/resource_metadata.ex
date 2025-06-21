@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - Extensible through custom parsing and rendering strategies
   """
 
-  import Aurora.Uix.Layout.Helper
+  import Aurora.Uix.Layout.Helpers
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.ResourceMetadata

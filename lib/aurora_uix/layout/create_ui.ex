@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - Supports complex, nested layouts
   """
 
-  import Aurora.Uix.Layout.Helper
+  import Aurora.Uix.Layout.Helpers
 
   alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.CreateUI
