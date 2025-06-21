@@ -40,10 +40,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - Supports complex, nested layouts
   """
 
-  import Aurora.Uix.Layout.Helper
-
   alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.CreateUI
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Template
 
@@ -111,9 +110,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   """
   @spec auix_create_ui(keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
-    {block, opts} = extract_block_options(opts, do_block)
+    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
-    create_ui = register_dsl_entry(:ui, :ui, [], opts, block)
+    create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block)
 
     quote do
       use CreateUI

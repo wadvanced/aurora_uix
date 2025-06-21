@@ -13,9 +13,8 @@ defmodule Aurora.Uix.Resource do
   - Integrates with other Aurora.Uix parsing components
   """
 
-  import Aurora.Uix.Layout.Helper, only: [set_field_id: 1]
-
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
   defstruct [:name, :schema, :context, fields: [], fields_order: [], inner_elements: []]
 
@@ -132,13 +131,16 @@ defmodule Aurora.Uix.Resource do
       properties
       |> Map.put(:field, field)
       |> Field.new()
-      |> set_field_id()
+      |> LayoutHelpers.set_field_id()
 
     [new_field | acc]
   end
 
   defp create_field(%Field{} = field, acc), do: [field | acc]
-  defp create_field(%{field: _field_id} = attrs, _acc), do: attrs |> Field.new() |> set_field_id()
+
+  defp create_field(%{field: _field_id} = attrs, _acc),
+    do: attrs |> Field.new() |> LayoutHelpers.set_field_id()
+
   defp create_field(_field, acc), do: acc
 
   # Filters attributes list by key

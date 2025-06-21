@@ -206,7 +206,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
 
-  import Aurora.Uix.Layout.Helper
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
   @doc false
   defmacro __using__(_opts) do
@@ -236,7 +236,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec edit_layout(atom, keyword, any) :: Macro.t()
   defmacro edit_layout(name, opts, do_block \\ nil) do
-    register_dsl_entry(:form, name, nil, opts, do_block)
+    LayoutHelpers.register_dsl_entry(:form, name, nil, opts, do_block)
   end
 
   @doc """
@@ -254,7 +254,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec show_layout(atom, keyword, any) :: Macro.t()
   defmacro show_layout(name, opts, do_block \\ nil) do
-    register_dsl_entry(:show, name, nil, opts, do_block)
+    LayoutHelpers.register_dsl_entry(:show, name, nil, opts, do_block)
   end
 
   @doc """
@@ -272,7 +272,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec index_columns(atom, keyword, any) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do
-    register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
+    LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
   end
 
   @doc """
@@ -302,8 +302,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec inline(keyword, any) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
-    {block, fields} = extract_block_options(fields, do_block)
-    register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
+    {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
+    LayoutHelpers.register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -323,8 +323,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec stacked(keyword, any) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
-    {block, fields} = extract_block_options(fields, do_block)
-    register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
+    {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
+    LayoutHelpers.register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
   end
 
   @doc """
@@ -342,7 +342,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec group(atom, keyword, any) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
-    register_dsl_entry(
+    LayoutHelpers.register_dsl_entry(
       :group,
       nil,
       [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
@@ -368,7 +368,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec sections(keyword, any) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
-    register_dsl_entry(
+    LayoutHelpers.register_dsl_entry(
       :sections,
       nil,
       [sections_id: "auix-#{unique_titled_id("sections")}"],
@@ -392,7 +392,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec section(binary, keyword, any) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
-    register_dsl_entry(
+    LayoutHelpers.register_dsl_entry(
       :section,
       nil,
       [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
@@ -531,7 +531,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec parse_sections(map, atom) :: map
   def parse_sections(path, mode) when mode in [:form, :show] do
-    pid = start_counter()
+    pid = LayoutHelpers.start_counter()
 
     path
     |> Map.get(:inner_elements, [])
@@ -636,7 +636,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
          _tab_active?,
          result
        ) do
-    next_sections_index = next_count(counter_pid)
+    next_sections_index = LayoutHelpers.next_count(counter_pid)
 
     new_inner_elements =
       normalize_sections_and_tabs(
