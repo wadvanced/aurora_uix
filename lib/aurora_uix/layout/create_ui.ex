@@ -247,7 +247,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
           |> Map.get(tag)
           |> Blueprint.build_default_layout_paths(resource_config, opts, tag)
           |> Blueprint.parse_sections(tag)
-          |> disable_show_fields(tag)
           |> then(&{tag, &1})
         end)
         |> Map.new()
@@ -344,47 +343,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec update_layout_path_tag(map, atom, atom) :: map
   defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
   defp update_layout_path_tag(path, _from, _to), do: path
-
-  @spec disable_show_fields(map, atom) :: map
-  defp disable_show_fields(%{inner_elements: inner_elements} = path, :show) do
-    inner_elements
-    |> add_global_overrides(disabled: true)
-    |> then(&Map.put(path, :inner_elements, &1))
-  end
-
-  defp disable_show_fields(path, _), do: path
-
-  @spec add_global_overrides(list, keyword, list) :: list
-  defp add_global_overrides(elements, global_overrides, result \\ [])
-
-  defp add_global_overrides([], _global_overrides, result), do: Enum.reverse(result)
-
-  defp add_global_overrides(
-         [%{tag: :field, inner_elements: inner_elements} = element | elements],
-         global_overrides,
-         result
-       ) do
-    new_opts =
-      element
-      |> Map.get(:opts, [])
-      |> then(&Keyword.merge(global_overrides, &1, fn _k, _global, opts -> opts end))
-
-    new_inner_elements = add_global_overrides(inner_elements, global_overrides)
-    new_element = Map.merge(element, %{opts: new_opts, inner_elements: new_inner_elements})
-
-    add_global_overrides(elements, global_overrides, [new_element | result])
-  end
-
-  defp add_global_overrides(
-         [%{inner_elements: inner_elements} = element | elements],
-         global_overrides,
-         result
-       ) do
-    inner_elements
-    |> add_global_overrides(global_overrides)
-    |> then(&Map.put(element, :inner_elements, &1))
-    |> then(&add_global_overrides(elements, global_overrides, [&1 | result]))
-  end
 
   @spec extract_resource_preloads(map) :: map
   defp extract_resource_preloads(configurations) do
