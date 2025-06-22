@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to **Aurora UIX**! This guide will help you set up the library and build your first UI.
+Welcome to **Aurora UIX**! This guide helps you add Aurora UIX to your Phoenix project and build your first CRUD UI with minimal code.
 
 ## Installation
 
@@ -20,9 +20,9 @@ Fetch dependencies:
 mix deps.get
 ```
 
-## Tailwind and Assets
+## Tailwind Configuration
 
-Add Aurora UIX to your `tailwind.config.js`:
+Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included:
 
 ```js
 module.exports = {
@@ -32,42 +32,63 @@ module.exports = {
     "../lib/aurora_uix_demo_web/**/*.*ex",
     "../dev/aurora_uix/**/*.ex"
   ],
-  // ...existing code...
+  theme: {
+    extend: {},
+  },
+  plugins: [],
 }
 ```
 
-Install Tailwind and esbuild assets:
+## Basic Usage
 
-```shell
-mix uix.test.assets.install
-mix uix.test.assets.build
+1. **Define Resource Metadata**
+
+Describe your schema and UI options using the DSL:
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix
+
+  alias MyApp.Inventory
+  alias MyApp.Inventory.Product
+
+  auix_resource_metadata :product, context: Inventory, schema: Product do
+    field :name, placeholder: "Product name", max_length: 40, required: true
+    field :description, max_length: 255
+    field :price, precision: 12, scale: 2, readonly: true
+  end
+end
 ```
 
-## Database Setup
+2. **Generate UI Layout**
 
-Ensure PostgreSQL is running and the `uuid-ossp` extension is enabled:
+Use the layout DSL to define your UI (or rely on sensible defaults):
 
-```sql
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```elixir
+auix_create_ui do
+  index_columns :product, [:name, :price]
+  edit_layout :product do
+    inline [:name, :price, :description]
+  end
+end
 ```
 
-Create and migrate the test database:
+3. **Add to Router**
 
-```shell
-mix uix.test.task ecto.create
-mix uix.test.task ecto.migrate
+Add the generated LiveView modules to your router:
+
+```elixir
+live "/products", MyAppWeb.ProductViews.Product.Index
+live "/products/new", MyAppWeb.ProductViews.Product.Index, :new
+live "/products/:id/edit", MyAppWeb.ProductViews.Product.Index, :edit
+
+live "/products/:id", MyAppWeb.ProductViews.Product.Show, :show
+live "/products/:id/show/edit", MyAppWeb.ProductViews.Product.Show, :edit
+
 ```
 
-## Running the Test App
+4. **Run Your App**
 
-Start the test app:
+Start your Phoenix server and visit `/products` to see your UI.
 
-```shell
-MIX_ENV=test iex --dot-iex "test/start_test_app.exs" -S mix
-```
-
-Visit [http://localhost:4001/products](http://localhost:4001/products) to see the UI.
-
-## Next Steps
-- [Customizing Fields](../../guides/core/fields.md)
-- [Resource Metadata](../../guides/core/resource_metadata.md)
+For more details on field options and advanced layouts, see the [Resource Metadata guide](../../guides/core/resource_metadata.md).
