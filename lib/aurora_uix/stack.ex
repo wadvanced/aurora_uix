@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Stack do
   Creates a new empty stack.
 
   Returns:
-    - t() - An empty stack
+    - __MODULE__.t() - An empty stack
   """
   @spec new() :: t()
   def new do
@@ -45,11 +45,11 @@ defmodule Aurora.Uix.Stack do
   Pushes a new value onto the top of the stack.
 
   Parameters:
-    - stack: t() - The stack to push onto
+    - stack: __MODULE__.t() - The stack to push onto
     - value: term() - The value to push
 
   Returns:
-    - t() - A stack with the value pushed on top
+    - __MODULE__.t() - A stack with the value pushed on top
   """
   @spec push(t(), any()) :: t()
   def push(stack, value) do
@@ -62,11 +62,11 @@ defmodule Aurora.Uix.Stack do
   Replaces the top value of the stack with a new value.
 
   Parameters:
-    - stack: t() - The stack to modify
+    - stack: __MODULE__.t() - The stack to modify
     - value: term() - The new value to replace the top value with
 
   Returns:
-    - t() - A stack with the top value replaced
+    - __MODULE__.t() - A stack with the top value replaced
 
   Raises:
     - EmptyStackError - When the stack is empty
@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Stack do
   Returns the top value of the stack.
 
   Parameters:
-    - stack: t() - The stack to peek
+    - stack: `Aurora.Uix.Stack.t()` - The stack to peek
 
   Returns:
     - term() - The top value of the stack
@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Stack do
   Raises:
     - EmptyStackError - When the stack is empty
   """
-  @spec peek!(t()) :: any()
+  @spec peek!(__MODULE__.t()) :: any()
   def peek!(%__MODULE__{values: []}), do: raise(EmptyStackError)
 
   def peek!(%__MODULE__{values: [head | _tail]}), do: head
@@ -100,13 +100,13 @@ defmodule Aurora.Uix.Stack do
   Returns the top value of the stack in a safe way.
 
   Parameters:
-    - stack: t() - The stack to peek
+    - stack: `Aurora.Uix.Stack.t()` - The stack to peek
 
   Returns:
-    - {:ok, term()} - A tuple with :ok and the top value if stack is not empty
-    - {:error, t()} - A tuple with :error and the stack if empty
+    - `{:ok, term()}` - A tuple with :ok and the top value if stack is not empty
+    - `{:error, Aurora.Uix.Stack.t()}` - A tuple with :error and the stack if empty
   """
-  @spec peek(t()) :: {:ok, any()} | {:error, t()}
+  @spec peek(__MODULE__.t()) :: {:ok, any()} | {:error, __MODULE__.t()}
   def peek(%__MODULE__{values: []} = stack), do: {:error, stack}
 
   def peek(%__MODULE__{values: [head | _tail]}), do: {:ok, head}
@@ -115,15 +115,15 @@ defmodule Aurora.Uix.Stack do
   Removes and returns the top value from the stack.
 
   Parameters:
-    - stack: t() - The stack to pop from
+    - stack: `Aurora.Uix.Stack.t()` - The stack to pop from
 
   Returns:
-    - {t(), term()} - A tuple with the new stack and the popped value
+    - `{Aurora.Uix.Stack.t(), term()}` - A tuple with the new stack and the popped value
 
   Raises:
     - EmptyStackError - When the stack is empty
   """
-  @spec pop!(t()) :: {t(), any()}
+  @spec pop!(__MODULE__.t()) :: {__MODULE__.t(), term()}
   def pop!(%__MODULE__{values: []}), do: raise(EmptyStackError)
 
   def pop!(%__MODULE__{values: [head | tail]}), do: {%__MODULE__{values: tail}, head}
@@ -131,14 +131,14 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Removes and returns the top value from the stack in a safe way.
 
-  Parameters:
-    - stack: t() - The stack to pop from
+  ## Parameters
+    - `stack` - `Aurora.Uix.Stack.t()` - The stack to pop from
 
-  Returns:
-    - {:ok, t(), term()} - A tuple with :ok, the new stack, and the popped value if not empty
-    - {:error, t()} - A tuple with :error and the stack if empty
+  ## Returns
+    - `{:ok, Aurora.Uix.Stack.t(), term()}` - A tuple with `:ok`, the new stack, and the popped value if not empty
+    - `{:error, Aurora.Uix.Stack.t()}` - A tuple with `:error` and the stack if empty
   """
-  @spec pop(t()) :: {:ok, t(), any()} | {:error, t()}
+  @spec pop(__MODULE__.t()) :: {:ok, __MODULE__.t(), term()} | {:error, __MODULE__.t()}
   def pop(%__MODULE__{values: []} = stack), do: {:error, stack}
 
   def pop(%__MODULE__{values: [head | tail]}), do: {:ok, %__MODULE__{values: tail}, head}
@@ -147,12 +147,12 @@ defmodule Aurora.Uix.Stack do
   Checks if the stack is empty.
 
   Parameters:
-    - stack: t() - The stack to check
+    - stack: __MODULE__.t() - The stack to check
 
   Returns:
     - boolean() - true if stack is empty, false otherwise
   """
-  @spec empty?(t()) :: boolean
+  @spec empty?(__MODULE__.t()) :: boolean
   def empty?(%__MODULE__{values: []}), do: true
   def empty?(_stack), do: false
 end

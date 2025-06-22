@@ -1,0 +1,83 @@
+# Resource Metadata
+
+Aurora UIX uses resource metadata to describe your data models and their UI behavior.
+
+## Defining Resource Metadata
+
+Use the `auix_resource_metadata/3` macro in your module:
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix
+
+  alias MyApp.Inventory
+  alias MyApp.Inventory.Product
+
+  auix_resource_metadata :product, context: Inventory, schema: Product do
+    field :name, placeholder: "Product name", max_length: 40, required: true
+    field :description, max_length: 255
+    field :price, precision: 12, scale: 2, readonly: true
+  end
+end
+```
+
+## Field Options
+
+- `placeholder`: Placeholder text for inputs.
+- `max_length`: Maximum allowed length.
+- `required`: Marks the field as required.
+- `readonly`: Field is not editable.
+- `precision`, `scale`: For numeric fields.
+
+## Custom Field Types
+
+You can specify field types and custom renderers:
+
+```elixir
+field :status, field_type: :select, options: ["active", "archived"]
+field :avatar, field_type: :image, renderer: &MyAppWeb.Helpers.avatar/1
+```
+
+## Associations
+
+Aurora UIX supports two types of associations: **many-to-one** (`belongs_to`) and **one-to-many** (`has_many`). You can configure their behavior in the resource metadata.
+
+### Many-to-One
+
+The `option_label` option is used **only** for many-to-one associations rendered as select dropdowns. It controls what is shown as the label for each option in the dropdown. By default, the related key (usually an ID) is shown, but you can specify a field (atom), a function, or a function with arity 2 for more advanced labeling.
+
+**Usage:**
+
+- As an atom (field name):
+  ```elixir
+  field :category_id, field_html_type: :select, option_label: :name
+  ```
+  This will use the `:name` field of the related entity as the label in the dropdown.
+
+- As a function (arity 1):
+  ```elixir
+  field :category_id, field_html_type: :select, option_label: &MyApp.Category.label/1
+  ```
+  The function receives the entity and should return a string label.
+
+- As a function (arity 2):
+  ```elixir
+  field :category_id, field_html_type: :select, option_label: fn assigns, entity -> "#{entity.code} - #{entity.name}" end
+  ```
+  The function receives the assigns and the entity, and should return a string label.
+
+**Example:**
+
+```elixir
+auix_resource_metadata :product, schema: MyApp.Product do
+  field :category_id, field_html_type: :select, option_label: :name
+end
+```
+
+### One-to-Many
+
+For **one-to-many associations** (`has_many`), the `option_label` option is not applicable.
+
+## Next Steps
+- [Layout System](layouts.md)
+- [Advanced Usage](../advanced/advanced_usage.md)

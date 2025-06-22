@@ -10,6 +10,21 @@
 A low code UI for the elixir's Phoenix Framework.
 
 ---
+## Guides
+
+Aurora UIX provides a set of guides to help you get started and master the library:
+
+- [Getting Started](./guides/introduction/getting_started.md): Installation, setup, and first steps.
+- [Resource Metadata](./guides/core/resource_metadata.md): How to configure resources and fields.
+- [Layout System](./guides/core/layouts.md): Defining layouts for forms, lists, and detail views.
+- [Customizing Fields](./guides/core/fields.md): Field options, overrides, and custom renderers.
+- [LiveView Integration](./guides/core/liveview.md): Using Aurora UIX with Phoenix LiveView.
+- [Advanced Topics](./guides/advanced/advanced_usage.md): Extending and customizing Aurora UIX.
+- [Troubleshooting](./guides/advanced/troubleshooting.md): Common issues and solutions.
+
+You can find all guides in the [`guides/`](./guides/) directory.
+
+---
 ## For Users
 ### Installation
 Add `aurora_uix` to your `mix.exs` dependencies:

@@ -1,52 +1,79 @@
 ---
 mode: 'agent'
 tools: ['codebase']
-description: 'Preferences for module documentation'
+description: 'Generate ex_doc-compatible documentation'
 ---
-## Ground rules
-- DO NOT change the code logic
-- Modify only the focused module. Do not CHANGE any code.
+## Ground Rules
+- NEVER alter code logic/behavior. Only modify documentation/specs.
+- Scope strictly to the target module. Ignore other files/modules.
+- Preserve existing docs if semantically correct. Only enhance/fix deficiencies.
 
-## Formatting
-- Parameters, maps, list are to be edited into one line, when the resulting text do not exceed the 98 characters limit.
+## @moduledoc Requirements
+1. Position: Must be the first module attribute.
+2. Content:
+   - Add missing summaries/descriptions
+   - Remove redundant/incorrect examples
+   - Correct outdated references
+   - Delete trivial examples (e.g., add(2, 2) → 4)
+   - Explicitly state module purpose and key constraints
+3. Format: Markdown-compatible. Use code blocks for examples.
 
-## @moduledoc
-- It should be the first one inside a module definition.
-- Create or update the @moduledoc according to the implementation respecting existing documentation
-- On existing @moduledoc do not overdo, if the semantics are right DO NOT modify it.
-- Add missing documentation elements and remove the ones that shouldn't be mentioned.
-- Remove duplicated or unmeaningful or naive examples.
-- Fix wrong examples.
+## @doc Requirements
+### Function/Macro Documentation
+- Structure:
+    ```elixir
+        Short description ending with dot.
 
-## @doc
-- Create or update the @doc for each of the public functions.
-- Include parameters with their type. DO NOT include map expected contents.
-- Parameters descriptions should end with a dot.
-- Returns descriptions should end with a dot.
-- Use the () for the common typings.
-- Use dash for arguments list.
-- Include options details, also with dashes.
-- Include the expected return.
-- Remove duplicated or unmeaningful or naive examples.
-- Fix wrong examples.
-- If the functions raise any kind of exception, document it.
+        ## Parameters
+        - `arg1` (type()) - Description ending with dot.
+        - `opts` (Keyword.t()) - Options:
+        * `:option` (type()) - Description.
 
+        ## Returns
+        type() - Description ending with dot.
 
-## @callback
-- Document the @callback declarations
+        ## Raises
+        ExceptionType - Reason.
 
-## @spec
-- Add the missing @spec to each of the functions and MACROS. 
-- DO NOT change existing @spec, except for changing types from their simple name to the one with '()'. Example: 'map' to 'map()', 'keyword' to 'keyword()'.
-- Avoid using any(), try your best to replace any() appropriately if found in existing declarations.
-- Do not use the :: notation for function arguments.
+        ## Examples
+        ```elixir
+         # Meaningful example showing edge cases
+        ```
+    ```
 
-## private functions
-- All private functions are at the end of the file after a comment '## PRIVATE', DO NOT remove this comment, add the comment if it is missed, ensure is written as described here.
-- DO NOT add a ## PRIVATE line if there are no private functions.
-- Move private functions to the proper place.
-- For complex private functions, add a common comment '#' with a description of the expected behaviour.
-- Only add parameters descriptions if needed.
+- Type Enforcement:
+  - Always use parentheses: map() not map, MyStruct.t() not MyStruct
+  - Never use any() – replace with concrete types
+  - Never document internal map structures
+  - Enclose in backticks structs, tuple or maps to make it compatible with ex_doc generation
+- Examples:
+  - Remove naive/trivial examples
+  - Fix incorrect examples
+  - Add complex examples showing error/edge cases
+  - Ensure examples compile and return shown results
 
+### Callback Documentation
+- Document every @callback using same rules as @doc
+- Include parameter/return types and descriptions
 
+## @spec Requirements
+- Add missing specs for all public functions/macros
+- Modify existing specs only:
+  - Add parentheses: keyword → keyword()
+  - Replace any() with specific types
+- Never use :: in arguments (invalid: arg :: type())
 
+## Private Functions Handling
+1. Positioning:
+   - Place after ## PRIVATE comment at module end
+   - Only add ## PRIVATE if private functions exist
+2. Documentation:
+   - No @doc attributes allowed
+   - Add # Descriptive comment above complex functions
+   - Parameter descriptions only when non-obvious
+
+## Formatting Rules
+- Line length: Max 98 chars
+- Types: Always parenthesized (e.g., list(String.t()))
+- Options: Use bullet points under parameter description
+- Returns: Explicit return type before description
