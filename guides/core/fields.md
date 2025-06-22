@@ -44,7 +44,3 @@ See [Resource Metadata: Associations](../resource_metadata.md#associations) for 
 ### One-to-Many
 
 For **one-to-many associations** (`has_many`), the `option_label` option is not applicable.
-
-## Next Steps
-- [Resource Metadata](../../guides/core/resource_metadata.md)
-- [Layout System](../../guides/core/layouts.md)
