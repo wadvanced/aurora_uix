@@ -21,6 +21,8 @@ description: 'Preferences for module documentation'
 ## @doc
 - Create or update the @doc for each of the public functions.
 - Include parameters with their type. DO NOT include map expected contents.
+- Parameters descriptions should end with a dot.
+- Returns descriptions should end with a dot.
 - Use the () for the common typings.
 - Use dash for arguments list.
 - Include options details, also with dashes.
@@ -28,6 +30,7 @@ description: 'Preferences for module documentation'
 - Remove duplicated or unmeaningful or naive examples.
 - Fix wrong examples.
 - If the functions raise any kind of exception, document it.
+
 
 ## @callback
 - Document the @callback declarations
