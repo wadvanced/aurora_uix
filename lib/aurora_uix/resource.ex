@@ -1,14 +1,11 @@
 defmodule Aurora.Uix.Resource do
   @moduledoc """
-  Manages metadata configuration for schemas and their associated UI representations.
+  Manages comprehensive metadata configuration for schemas and their associated UI representations.
 
-  ## Purpose
-  - Provides a flexible struct and utility functions for schema-specific UI configuration.
-  - Supports dynamic field definitions and complex UI generation scenarios.
-
-  ## Key Constraints
-  - Integrates with Aurora.Uix.Field and parsing components.
-  - Not intended for direct use outside Aurora.Uix internals.
+  This module provides a flexible struct and utility functions for:
+  - Defining schema-specific UI configurations
+  - Managing dynamic field definitions
+  - Supporting complex UI generation scenarios
 
   Key features:
   - Supports custom field configurations

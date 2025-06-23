@@ -1,25 +1,26 @@
 defmodule Aurora.Uix.Layout.Helpers do
   @moduledoc """
-  Helper module for Aurora.Uix UI DSL that provides utilities for processing HEEX markup and managing component state.
+  Helper utilities for Aurora.Uix UI DSL,
+  providing functions for processing HEEX markup and managing component state.
 
-  Core functionalities:
-  - DSL block processing and normalization
-  - Component registration and configuration
-  - Unique identifier counter management
+  ## Purpose
+  - Supports DSL block processing, normalization, and component registration for UI layout macros.
+  - Manages unique identifier counters and component configuration for dynamic UI generation.
+
   """
   require Logger
 
   @doc """
   Extracts the `:do` block from options while preserving other options.
 
-  Parameters:
-  - opts (keyword): Options list that may contain a :do key
-  - block (any): Optional explicit block value
+  ## Parameters
+  - `opts` (`keyword()`) - Options list that may contain a :do key.
+  - `block` (`any()`) - Optional explicit block value.
 
-  Returns:
-  - {block, opts} (tuple): Extracted block and remaining options
+  ## Returns
+  `{block, opts}` (`tuple()`) - Extracted block and remaining options.
   """
-  @spec extract_block_options(keyword, any) :: tuple
+  @spec extract_block_options(keyword(), any()) :: tuple()
   def extract_block_options(opts, block \\ nil) do
     if is_nil(block) do
       Keyword.pop(opts, :do, [])
@@ -33,13 +34,13 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Normalizes quoted blocks into a list of quoted expressions for HEEX processing.
 
-  Parameters:
-  - block (Macro.t()): Input block to be normalized
+  ## Parameters
+  - `block` (`Macro.t()`) - Input block to be normalized.
 
-  Returns:
-  - list(Macro.t()): List of normalized quoted expressions
+  ## Returns
+  `list(Macro.t())` - List of normalized quoted expressions.
   """
-  @spec prepare_block(any) :: []
+  @spec prepare_block(any()) :: list()
   def prepare_block(block) do
     blocks =
       case block do
@@ -55,17 +56,17 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Transforms DSL macro calls into standardized component entries for HEEX generation.
 
-  Parameters:
-  - tag (atom): Component type identifier
-  - name (atom): Component name
-  - config (keyword|tuple|nil): Static configuration or field definitions
-  - opts (keyword): Component options
-  - do_block (Macro.t()): Nested component definitions
+  ## Parameters
+  - `tag` (`atom()`) - Component type identifier.
+  - `name` (`atom()`) - Component name.
+  - `config` (`keyword()` | `tuple()` | `nil`) - Static configuration or field definitions.
+  - `opts` (`keyword()`) - Component options.
+  - `do_block` (`Macro.t()`) - Nested component definitions.
 
-  Returns:
-  - map: Standardized component entry map
+  ## Returns
+  `map()` - Standardized component entry map.
   """
-  @spec register_dsl_entry(atom, atom, keyword | tuple | nil, keyword, any) :: Macro.t()
+  @spec register_dsl_entry(atom(), atom(), keyword() | tuple() | nil, keyword(), any()) :: Macro.t()
   def register_dsl_entry(tag, name, config, opts, do_block) do
     {block, opts} = extract_block_options(opts, do_block)
 

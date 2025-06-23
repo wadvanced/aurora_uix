@@ -1,8 +1,10 @@
 defmodule Aurora.Uix.Application do
   @moduledoc """
-  Aurora.Uix.Application is the internal OTP application module for Aurora UIX.
+  Application entry point for Aurora UIX.
 
-  ## Purpose
+  Starts the supervision tree, including the CounterAgent process.
+
+  ## Key Features
   - Defines the supervision tree for internal processes required by Aurora UIX.
   - Not intended for direct use by end users or application developers.
 

@@ -1,15 +1,6 @@
 defmodule Aurora.Uix.Field do
   @moduledoc """
-  Aurora.Uix.Field represents a configurable field for UI components in the Aurora.Uix system.
-
-  ## Purpose
-  - Encapsulates field properties for UI rendering and configuration.
-  - Supports metadata for validation, display, and interaction in forms and tables.
-
-  ## Key Constraints
-  - Field struct is used by template and resource modules for dynamic UI generation.
-  - Some fields (e.g., `data`) may require special structure as expected by template parsers.
-  - Not intended for direct use outside Aurora.Uix internals.
+  A module representing a configurable field in the Aurora.Uix system.
 
   This module defines a struct to represent field properties for UI components, such as:
     - `field` (`atom`) - The field reference in the schema.
@@ -34,6 +25,15 @@ defmodule Aurora.Uix.Field do
     - `disabled` (`boolean`) - If true, the field should not participate in form interaction.
     - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
       It is equivalent to not having the field at all.
+
+  ## Purpose
+  - Encapsulates field properties for UI rendering and configuration.
+  - Supports metadata for validation, display, and interaction in forms and tables.
+
+  ## Key Constraints
+  - Field struct is used by template and resource modules for dynamic UI generation.
+  - Some fields (e.g., `data`) may require special structure as expected by template parsers.
+  - Not intended for direct use outside Aurora.Uix internals.
 
   """
 

@@ -1,35 +1,83 @@
 defmodule Aurora.Uix.Template do
   @moduledoc """
-  Defines the behavior and utilities for template modules in Aurora UIX,
-  enforcing a standard interface for dynamic UI template generation and management.
+  A core module for template generation and management in Aurora UIX, providing a standardized
+  behavior and utility functions for creating dynamic UI templates.
 
-  ## Purpose
-  - Specify required callbacks for template modules.
-  - Provide utility functions for field extraction and safe atom conversion.
-  - Validate template modules at compile time for contract compliance.
+  ## Key Responsibilities
+  - Define a behavior for template implementations
+  - Provide utility functions for template processing
+  - Support dynamic template generation with interpolation
+  - Validate and compile template modules
 
-  ## Key Constraints
-  - All template modules must implement the required callbacks.
-  - Validation is performed at compile time; missing callbacks or contract violations raise errors.
-  - Not intended for direct use outside Aurora UIX internals.
+  ## Template Behaviour Requirements
+  Templates must implement the following key callbacks:
+  - `generate_view/3`: Generate HTML code fragments
+  - `generate_module/2`: Generate handling code for UI components
+  - `parse_layout/3`: Create layout HTML code
 
-  ## Required Callbacks
-  Template modules must implement:
+  ## Flow of Template Processing
+  1. Initialize template configuration
+  2. Parse layout and field definitions
+  3. Generate view components
+  4. Compile HEEx templates
+  5. Produce final handler code
 
-  - `generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()`
-    Generates the handling code for the given mode and options.
+  ### Template Validation
+  The module ensures that template implementations:
+  - Implement the required behavior
+  - Provide all necessary callback functions
+  - Meet the specified interface contract
 
-  - `default_core_components_module() :: module()`
-    Returns the module containing the default core UI components.
+  ### Interpolation Support
+  Supports simple string interpolation using `[[key]]` syntax, allowing dynamic
+  template generation based on provided configuration.
 
-  - `css_classes() :: %{atom() => map()}`
-    Returns a map of CSS class mappings for template components.
+  ### Flow processing view
 
-  ## Utilities
-  - `uix_template/0`: Returns the validated template module.
-  - `field_row_value/2`: Extracts a field value from an entity.
-  - `safe_existing_atom/1`: Safely converts a binary to an existing atom.
+  ```mermaid
+  flowchart TD
+  %% Grouping with subgraphs
+  subgraph Initialization [ ]
+    INIT_TITLE["Initialization"]:::groupTitle
+    INIT_TITLE --> A[Initialize map parsed_opts with resource config]:::initFill
+  end
 
+  subgraph Parsing [ ]
+    PARSE_TITLE["Parsing"]:::groupTitle
+    PARSE_TITLE --> B[Add fields info and required modules]:::parseFill
+    B --> C[Parse layout definition and update parsed_opts]:::parseFill
+    C --> D[Parse field list and update parsed_opts]:::parseFill
+  end
+
+  subgraph Generation [ ]
+    GEN_TITLE["Generation"]:::groupTitle
+    GEN_TITLE --> E[Pass parsed_opts to generate_module]:::genFill
+    E --> F[Invoke generate_view to create UI components and generate HTML binary]:::genFill
+  end
+
+  subgraph Output [ ]
+    OUT_TITLE["Output"]:::groupTitle
+    OUT_TITLE --> G[Compile generated HTML with EEx]:::outFill
+    G --> H[Produce compiled HEEx AST and final handler code]:::outFill
+  end
+
+  %% Flow connections between groups
+  A --> PARSE_TITLE
+  D --> GEN_TITLE
+  F --> OUT_TITLE
+
+  %% Define custom styles for group title nodes
+  classDef groupTitle fill:#ddd,stroke:#333,stroke-width:2px,font-weight:bold;
+
+  %% Define colors for process nodes
+  classDef initFill fill:#f9f,stroke:#333,stroke-width:2px;
+  classDef parseFill fill:#ccf,stroke:#333,stroke-width:2px;
+  classDef genFill fill:#cfc,stroke:#333,stroke-width:2px;
+  classDef outFill fill:#fcf,stroke:#333,stroke-width:2px;
+
+  %% Assign styles
+  class INIT_TITLE,PARSE_TITLE,GEN_TITLE,OUT_TITLE groupTitle;
+  ```
   """
 
   @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Basic)

@@ -1,6 +1,7 @@
 defmodule Aurora.Uix.Stack do
   @moduledoc """
-  Provides a stack data structure with standard stack operations for Aurora UIX internals.
+  Provides a stack data structure implementation with standard stack operations: push, pop, peek, and empty checks.
+  Includes both safe (error tuple) and bang (raising) variants of operations.
 
   ## Purpose
   - Implements push, pop, peek, and empty checks for stack-based algorithms.

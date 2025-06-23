@@ -2,12 +2,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
   Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
-  ## Overview
-  This module enables rich, metadata-driven UI configuration for data structures, with a focus on:
-  - Flexible field-level UI metadata management
-  - Seamless integration with Phoenix LiveView
-  - Type-aware default generation
-  - Cross-structure configuration inheritance
+  ## Purpose
+  - Enables rich, metadata-driven UI configuration for data structures.
+  - Focuses on flexible field-level UI metadata management and seamless integration with Phoenix LiveView.
+
+  ## Key Constraints
+  - Supports Ecto schemas and custom data structures.
+  - Designed for compile-time configuration generation with minimal runtime overhead.
+  - Not intended for direct use outside Aurora.Uix internals.
 
   ## Key Capabilities
   - Declarative field configuration (labels, placeholders, validation)
@@ -156,28 +158,19 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   Defines UI configuration for a schema.
 
   ## Parameters
-  - name (atom) - Resource identifier
-  - opts (keyword) - Configuration options
-  - do_block (block) - Field configurations
+  - `name` (atom()) - Resource identifier.
+  - `opts` (keyword()) - Configuration options.
+  - `do_block` (Macro.t() | nil) - Field configurations block.
 
   ## Options
-  - :schema (module) - Required. Ecto schema/data structure module
-  - :context (module) - Optional. Context module with data functions
-  - :include_associations (boolean) - Optional. Auto-configure associations
-
-  ## Example
-
-  ```elixir
-  auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
-    field :name, placeholder: "Product name", max_length: 40, required: true
-    field :price, placeholder: "Price", precision: 12, scale: 2
-  end
-  ```
+  - `:schema` (module()) - Required. Ecto schema/data structure module.
+  - `:context` (module()) - Optional. Context module with data functions.
+  - `:include_associations` (boolean()) - Optional. Auto-configure associations.
 
   ## Returns
-  Generates configured metadata block for the resource.
+  `Macro.t()` - Configured metadata block for the resource.
   """
-  @spec auix_resource_metadata(atom, keyword(), Macro.t() | nil) :: Macro.t()
+  @spec auix_resource_metadata(atom(), keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 

@@ -13,10 +13,13 @@ description: 'Generate ex_doc-compatible documentation'
 2. Content:
    - Do not start the description with the module name
    - Add missing summaries/descriptions
-   - Remove redundant/incorrect examples
+   - Remove redundant/incorrect examplesq
    - Correct outdated references
    - Delete trivial examples (e.g., add(2, 2) → 4)
-   - Explicitly state module purpose and key constraints
+   - Explicitly state modules' (when applicable)
+      - 'key features'
+      - 'key constraints'
+      - '
 3. Format: Markdown-compatible. Use code blocks for examples.
 
 ## @doc Requirements

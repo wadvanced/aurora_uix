@@ -1,14 +1,9 @@
 defmodule Aurora.Uix.Parser do
   @moduledoc """
-  Provides utilities for transforming schema modules into configuration maps for UI rendering.
+  Provides parsing utilities for transforming schema modules into configuration maps for UI rendering.
 
-  ## Purpose
-  - Serves as the primary interface for converting Ecto schema modules into structured configuration maps.
-  - Enables dynamic UI generation across the Aurora.Uix system.
-
-  ## Key Constraints
-  - Only works with compatible resource configuration maps and Ecto schemas.
-  - Not intended for direct use outside Aurora.Uix internals.
+  This module serves as the primary interface for converting Ecto schema modules into structured
+  configuration maps, enabling dynamic UI generation across the Aurora.Uix system.
 
   Key responsibilities:
   - Extract metadata from schema modules

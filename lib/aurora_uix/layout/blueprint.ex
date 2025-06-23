@@ -2,15 +2,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
+  ## Purpose
+  - Enables declarative, nested, and flexible UI structure definition for Phoenix LiveView.
+  - Supports compile-time layout generation and field arrangement for index, form, and show views.
+
   ## Layout Hierarchy
   - Container Layouts: Index, Form, Show
   - Sub-Layouts: Inline, Stacked, Group, Sections
-
-  ## Key Features
-  - Declarative UI structure definition
-  - Nested layout support
-  - Compile-time layout generation
-  - Flexible field arrangement
 
   ## Layout Containers
   1. **Index**: Horizontal field arrangement
@@ -25,7 +23,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Layout Path Structure
 
-  Internally, each layout is represented by a list of maps (called “paths”), where each entry contains the following keys:
+  Internally, each layout is represented by a list of maps (called "paths"), where each entry contains the following keys:
 
   - **`:tag` (atom):**
     The layout command. Possible values include:

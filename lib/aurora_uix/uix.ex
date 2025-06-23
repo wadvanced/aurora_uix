@@ -1,10 +1,10 @@
 defmodule Aurora.Uix do
   @moduledoc """
-  Aurora.Uix provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
+  Provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
 
-  ## Purpose
-  - Simplifies UI development by offering declarative tools for schema configuration and UI composition.
-  - Reduces boilerplate code while maintaining flexibility for customization.
+  This module simplifies UI development by offering declarative tools for schema configuration
+  and UI composition. It is designed to reduce boilerplate code while maintaining flexibility
+  for customization.
 
   ## Key Constraints
   - Designed for use with Phoenix and Ecto schemas, but supports any structured data format.

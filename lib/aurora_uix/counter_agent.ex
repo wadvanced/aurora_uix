@@ -1,17 +1,15 @@
 defmodule Aurora.Uix.CounterAgent do
   @moduledoc """
-  Provides process-safe, agent-based counters for generating unique component identifiers in Aurora UIX.
+  Agent-based counter utility for generating unique component identifiers in Aurora UIX.
 
-  ## Purpose
-  - Start, increment, peek, and reset named or unnamed counters for UI component identification.
-  - Ensure unique identifiers across dynamic or concurrent operations in Aurora UIX.
+  Provides functions to start, increment, peek, and reset named or unnamed counters.
 
   ## Key Constraints
   - Counter names must be unique if using named counters.
   - All operations are process-safe via Elixir's Agent.
   - Not intended for general-purpose counting outside UIX internals.
 
-  ## Features
+  ## Key Features
   - Start a default or named counter agent
   - Increment and retrieve the next value atomically
   - Peek at the current value without incrementing
