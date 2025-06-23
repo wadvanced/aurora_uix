@@ -6,7 +6,7 @@ description: 'Generate ex_doc-compatible documentation'
 ## Ground Rules
 - NEVER alter code logic/behavior. Only modify documentation/specs.
 - Scope strictly to the target module. Ignore other files/modules.
-- Preserve existing docs if semantically correct. Only enhance/fix deficiencies.
+- Preserve existing docs if semantically correct. Only enhance/fix deficiencies. Avoid stylistic or unsubstantiated changes.
 
 ## @moduledoc Requirements
 1. Position: Must be the first module attribute.

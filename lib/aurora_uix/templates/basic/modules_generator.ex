@@ -2,50 +2,28 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
-  Generates complete LiveView modules with:
-  - Comprehensive CRUD operations
-  - Dynamic event handling
-  - Integrated form validation
-  - Flexible rendering strategies
+  ## Purpose
+  This module transforms configuration maps into fully-functional, dynamically generated LiveView modules for CRUD operations.
+  It supports multiple UI component types and delegates code generation to specialized sub-generators.
 
-  Supports components:
-  - `:index`: Streamed entity listings
-  - `:show`: Detailed entity views
-  - `:form`: Interactive data forms
-  - `:aurora_index_list`: Advanced listings
+  ## Key Features
+  - Generates LiveView modules for index, show, and form UI components
+  - Integrates event handling, form validation, and flexible rendering
+  - Supports advanced listing and custom component types
+  - Requires context modules to implement standard CRUD functions
 
+  ## Required Context Functions
   Context modules must provide:
-  - `list_<source>/0`: List entities
-  - `get_<schema>!/1`: Get entity
-  - `change_<schema>/1-2`: Validate changes
-  - `create_<schema>/1`: Create entity
-  - `update_<schema>/2`: Update entity
-  - `delete_<schema>/1`: Delete entity
+  - `list_<source>/0` – List entities
+  - `get_<schema>!/1` – Get entity by ID
+  - `change_<schema>/1-2` – Validate changes
+  - `create_<schema>/1` – Create entity
+  - `update_<schema>/2` – Update entity
+  - `delete_<schema>/1` – Delete entity
 
-  ## Usage Example
-  ```elixir
-    generate_module(
-    %{
-      caller: MyAppWeb,
-      context: MyApp.Accounts,
-      module: MyApp.User,
-      web: MyAppWeb
-    },
-    %{
-      name: :product,
-      tag: :index,
-      config: [],
-      opts: [],
-      inner_elements: [
-        %{name: :reference, tag: :field, opts: [], inner_elements: []},
-        %{name: :name, tag: :field, opts: [], inner_elements: []},
-        %{name: :description, tag: :field, opts: [], inner_elements: []},
-      ]
-    },
-    %{source: "users", module: "User"}
-    )
-  ```
-  Transforms configuration into fully-functional, dynamically generated LiveView modules.
+  ## Constraints
+  - Only modules with the required context functions are supported
+  - All code generation is performed at compile time
   """
 
   alias Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator
@@ -57,13 +35,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   Generates a LiveView module for the specified UI component type.
 
   ## Parameters
-    - modules (map()) - Configuration with caller, context, module and web references
-    - parsed_opts (map()) - Generation options with _path.tag and component configuration
+  - `modules` (map()) - Configuration with caller, context, module, and web references.
+  - `parsed_opts` (map()) - Generation options with `_path.tag` and component configuration.
 
-  Returns:
-    - Macro.t() - Generated LiveView module code
+  ## Returns
+  - `Macro.t()` - The generated LiveView module code.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.generate_module(
+    %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb},
+    %{_path: %{tag: :index}, name: :product}
+  )
+  ```
+  If the tag is not implemented, returns a quoted block with no generation logic.
   """
-  @spec generate_module(map, map) :: Macro.t()
+  @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do
     IndexGenerator.generate_module(modules, parsed_opts)
   end
@@ -88,10 +75,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   Removes fields marked as omitted from the parsed options.
 
   ## Parameters
-    - parsed_options (map()) - Options with fields to filter
+  - `parsed_options` (map()) - Options with fields to filter.
 
-  Returns:
-    - map() - Options with omitted fields removed
+  ## Returns
+  - `map()` - Options with omitted fields removed.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.remove_omitted_fields(%{
+    fields: [
+      %{name: :foo, omitted: true},
+      %{name: :bar, omitted: false}
+    ]
+  })
+  # => %{fields: [%{name: :bar, omitted: false}]}
+  ```
   """
   @spec remove_omitted_fields(map()) :: map()
   def remove_omitted_fields(parsed_options) do
@@ -102,15 +100,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   end
 
   @doc """
-  Generates a module name by concatenating the caller, module name and suffix.
+  Generates a module name by concatenating the caller, module name, and suffix.
 
   ## Parameters
-    - modules (map()) - Module configuration with caller reference
-    - parsed_opts (map()) - Options containing module_name
-    - suffix (binary()) - String to append to module name
+  - `modules` (map()) - Module configuration with caller reference.
+  - `parsed_opts` (map()) - Options containing `module_name`.
+  - `suffix` (binary()) - String to append to module name.
 
-  Returns:
-    - module() - Generated module name
+  ## Returns
+  - `module()` - The generated module name.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.module_name(
+    %{caller: MyAppWeb}, %{module_name: "User"}, ".Index"
+  )
+  # => MyAppWeb.User.Index
+  ```
   """
   @spec module_name(map(), map(), binary()) :: module()
   def module_name(modules, parsed_opts, suffix) do
