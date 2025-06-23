@@ -4,16 +4,41 @@ This guide covers advanced topics for customizing and extending Aurora UIX.
 
 ## Custom Templates
 
-You can provide your own template modules by implementing the `Aurora.Uix.Template` behaviour.
+You can provide your own template modules by implementing the `Aurora.Uix.Template` behaviour. Your module must implement the following required callbacks:
 
-## Overriding Components
+- `generate_module/2`: Generates the handling code (LiveView modules, components, etc.) for a given mode and configuration.
+- `default_core_components_module/0`: Returns the module containing your core UI components (such as forms, tables, modals).
+- `css_classes/0`: Returns a map of CSS class mappings for different template components.
 
-Override default components by passing custom modules or functions in your configuration.
+These callbacks allow you to control how UI modules and markup are generated for your application.
 
-## Extending the DSL
+Aurora UIX provides a built-in basic template implementation at `Aurora.Uix.Web.Templates.Basic`, which you can use as a reference or starting point for your own templates.
 
-You can extend the layout DSL by defining your own macros or helpers.
+## Overriding Core Components
 
-## Integration with Other Libraries
+You can override the default core components by passing a custom module when using the `Aurora.Uix.Web.CoreComponentsImporter`:
 
-Aurora UIX works well with other Phoenix and Ecto extensions. Use standard Elixir patterns for integration.
+```elixir
+use Aurora.Uix.Web.CoreComponentsImporter, core_components_module: MyAppWeb.MyCoreComponents
+```
+
+Alternatively, you can set the default core components module globally using your `config.exs` or environment-specific config file:
+
+```elixir
+config :aurora_uix, :core_components_module, MyAppWeb.MyCoreComponents
+```
+
+When this config is set, Aurora UIX will use your custom core components module throughout the application, unless a different module is explicitly passed to `CoreComponentsImporter`.
+
+## Template Utilities
+
+Aurora UIX provides several utility functions for working with templates:
+
+- `Aurora.Uix.Template.uix_template/0`: Returns the validated template module based on your configuration.
+- `Aurora.Uix.Template.field_row_value/2`: Extracts a field value from an entity for rendering.
+- `Aurora.Uix.Template.safe_existing_atom/1`: Safely converts a binary to an existing atom, or returns nil if not found.
+
+## Notes
+
+- Only the callbacks listed above are required by the core behavior and present in the default template implementation. If you need custom markup or layout parsing, you can add additional functions to your own template modules.
+- The built-in templates and helpers are designed for extensibility. You can create your own helpers or override any part of the rendering pipeline by providing your own modules.
