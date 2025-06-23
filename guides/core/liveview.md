@@ -16,10 +16,3 @@ live "/products", MyAppWeb.ProductViews.Product.Index
 
 Aurora UIX handles standard CRUD events and navigation. You can add custom event handlers as needed.
 
-## Debugging
-
-Enable LiveView debug tools in the browser console:
-
-```js
-window.liveSocket.enableDebug()
-```
