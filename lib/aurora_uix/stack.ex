@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Stack do
   Provides a stack data structure implementation with standard stack operations: push, pop, peek, and empty checks.
   Includes both safe (error tuple) and bang (raising) variants of operations.
 
-  ## Purpose
+  ## Key Features
   - Implements push, pop, peek, and empty checks for stack-based algorithms.
   - Supports both safe (error tuple) and bang (raising) variants of operations.
 

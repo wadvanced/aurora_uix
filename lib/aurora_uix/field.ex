@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Field do
     - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
       It is equivalent to not having the field at all.
 
-  ## Purpose
+  ## Key Features
   - Encapsulates field properties for UI rendering and configuration.
   - Supports metadata for validation, display, and interaction in forms and tables.
 
@@ -61,24 +61,24 @@ defmodule Aurora.Uix.Field do
   ]
 
   @type t() :: %__MODULE__{
-          field: atom | nil,
-          field_type: atom | nil,
-          field_html_type: atom | binary | nil,
-          html_id: binary,
-          renderer: function | nil,
-          data: any | nil,
-          resource: module | nil,
-          name: binary,
-          label: binary,
-          placeholder: binary,
-          length: non_neg_integer,
-          precision: non_neg_integer,
-          scale: non_neg_integer,
-          hidden: boolean,
-          readonly: boolean,
-          required: boolean,
-          disabled: boolean,
-          omitted: boolean
+          field: atom() | nil,
+          field_type: atom() | nil,
+          field_html_type: atom() | binary() | nil,
+          html_id: binary(),
+          renderer: function() | nil,
+          data: any() | nil,
+          resource: module() | nil,
+          name: binary(),
+          label: binary(),
+          placeholder: binary(),
+          length: non_neg_integer(),
+          precision: non_neg_integer(),
+          scale: non_neg_integer(),
+          hidden: boolean(),
+          readonly: boolean(),
+          required: boolean(),
+          disabled: boolean(),
+          omitted: boolean()
         }
 
   @doc """

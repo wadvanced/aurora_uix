@@ -184,7 +184,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Returns a list of maps using the format of #build_configurations
-  @spec build_layouts(map, module, list, keyword) :: [Macro.t()]
+  @spec build_layouts(map(), module(), list(), keyword()) :: [Macro.t()]
   defp build_layouts(resource_configs, caller, layout_paths, opts) do
     configurations =
       resource_configs
@@ -214,7 +214,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   #    defaulted_paths: defaulted_paths, # Paths making up the UI.
   #    template: template, # Used template
   #  }
-  @spec build_configurations({atom, map}, list, keyword) :: map | nil
+  @spec build_configurations({atom(), map()}, list(), keyword()) :: map() | nil
   defp build_configurations(
          {resource_config_name, resource_config},
          layout_paths,
@@ -263,7 +263,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
-  @spec build_resource_layouts(tuple, map, module) :: list
+  @spec build_resource_layouts(tuple(), map(), module()) :: list()
   defp build_resource_layouts(
          {_resource_config_name,
           %{
@@ -307,7 +307,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
-  @spec generate_module(map, map, map, map, module) :: Macro.t()
+  @spec generate_module(map(), map(), map(), map(), module()) :: Macro.t()
   defp generate_module(modules, path, configurations, parsed_opts, template) do
     parsed_opts
     |> Map.put(:_configurations, configurations)
@@ -318,14 +318,14 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&template.generate_module(modules, &1))
   end
 
-  @spec locate_layout_paths(atom, list, atom) :: tuple
+  @spec locate_layout_paths(atom(), list(), atom()) :: tuple()
   defp locate_layout_paths(tag, layout_paths, resource_config_name) do
     layout_paths
     |> Enum.filter(&(&1.tag == tag && &1.name == resource_config_name))
     |> then(&{tag, &1})
   end
 
-  @spec fill_missing_paths(map, atom, atom) :: map
+  @spec fill_missing_paths(map(), atom(), atom()) :: map()
   defp fill_missing_paths(layout_paths, from, to) do
     layout_paths
     |> Map.get(from, [])
@@ -333,18 +333,18 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&Map.put(layout_paths, to, &1))
   end
 
-  @spec fill_missing_paths_recursive(list, list, atom, atom) :: list
+  @spec fill_missing_paths_recursive(list(), list(), atom(), atom()) :: list()
   defp fill_missing_paths_recursive(from_paths, to_paths, from, to)
        when is_nil(to_paths) or to_paths == [],
        do: Enum.map(from_paths, &update_layout_path_tag(&1, from, to))
 
   defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
 
-  @spec update_layout_path_tag(map, atom, atom) :: map
+  @spec update_layout_path_tag(map(), atom(), atom()) :: map()
   defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
   defp update_layout_path_tag(path, _from, _to), do: path
 
-  @spec extract_resource_preloads(map) :: map
+  @spec extract_resource_preloads(map()) :: map()
   defp extract_resource_preloads(configurations) do
     configurations
     |> Enum.map(fn {resource_name,
@@ -360,7 +360,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> expand_associations()
   end
 
-  @spec extract_resource_fields(list, map, list) :: list
+  @spec extract_resource_fields(list(), map(), list()) :: list()
   defp extract_resource_fields(resources, fields, result \\ [])
 
   defp extract_resource_fields([], _fields, result) do
@@ -382,7 +382,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&extract_resource_fields(resources, fields, &1))
   end
 
-  @spec maybe_add_association_info(map, map) :: map
+  @spec maybe_add_association_info(map(), map()) :: map()
 
   defp maybe_add_association_info(%{tag: :field, name: names} = field, fields)
        when is_tuple(names) do
@@ -403,7 +403,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp maybe_add_association_info(field, _fields), do: Map.put(field, :inner_elements, [])
 
-  @spec expand_associations(list) :: map
+  @spec expand_associations(list()) :: map()
   defp expand_associations(associations) do
     parsed_associations = parse_association(associations)
 
@@ -424,7 +424,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.new()
   end
 
-  @spec parse_association(list) :: map
+  @spec parse_association(list()) :: map()
   defp parse_association(associations) do
     associations
     |> Enum.map(fn {resource, children} ->
@@ -435,7 +435,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.new()
   end
 
-  @spec build_resource_preload_option(tuple, map) :: tuple
+  @spec build_resource_preload_option(tuple(), map()) :: tuple()
   defp build_resource_preload_option(
          {resource_config_name, %{parsed_opts: parsed_opts} = configuration},
          resource_preloads

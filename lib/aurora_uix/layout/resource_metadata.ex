@@ -2,7 +2,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
   Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
-  ## Purpose
+  ## Key Features
   - Enables rich, metadata-driven UI configuration for data structures.
   - Focuses on flexible field-level UI metadata management and seamless integration with Phoenix LiveView.
 
@@ -114,7 +114,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
           @doc """
           Gets the config for a given resource.
           """
-          @spec auix_resource(atom) :: map
+          @spec auix_resource(atom()) :: map()
           def auix_resource(unquote(resource_key)) do
             %{unquote(resource_key) => unquote(Macro.escape(resource))}
           end
@@ -198,26 +198,26 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   individual fields.
 
   ## Parameters
-  - `field` (atom): The name of the field to configure
-  - `opts` (keyword): Field-specific configuration options
+  - `field` (atom() | tuple()): The name of the field to configure
+  - `opts` (keyword()): Field-specific configuration options
 
   ## Options
 
   The following options can be provided to configure the field:
 
-  - `:field` (`atom` | `tuple`) - The referred field in the schema. This should be rarely changed.
-  - `:field_type`(`atom`) - The html type that best represent the current field elixir type.
-  - `:label` (`binary`) - A custom label for the field. (auto-generated from field name if omitted).
-  - `:placeholder` (`binary`) - Placeholder text for the field.
-  - `:length`(`non_neg_integer`) - Display length of the field.
-  - `:precision` (`integer`) - The numeric precision for decimal or float fields.
-  - `:scale` (`integer`) - The numeric scale for decimal or float fields.
-  - `:readonly` (`boolean`) - Marks the field as read-only.
-  - `:hidden` (`boolean`) - Hides the field.
-  - `:renderer` (`function`) - Custom rendering function/component.
-  - `:required` (`boolean`) - Marks the field as required.
-  - `:disabled` (`boolean`) - If true, the field should not participate in form interaction.
-  - `:omitted` (`boolean`) - If true, the field will be entirely excluded from the UI and configuration.
+  - `:field` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
+  - `:field_type`(`atom()`) - The html type that best represent the current field elixir type.
+  - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
+  - `:placeholder` (`binary()`) - Placeholder text for the field.
+  - `:length`(`non_neg_integer()`) - Display length of the field.
+  - `:precision` (`integer()`) - The numeric precision for decimal or float fields.
+  - `:scale` (`integer()`) - The numeric scale for decimal or float fields.
+  - `:readonly` (`boolean()`) - Marks the field as read-only.
+  - `:hidden` (`boolean()`) - Hides the field.
+  - `:renderer` (`function()`) - Custom rendering function/component.
+  - `:required` (`boolean()`) - Marks the field as required.
+  - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
+  - `:omitted` (`boolean()`) - If true, the field will be entirely excluded from the UI and configuration.
 
   ## Example
 
@@ -238,8 +238,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   and promoting consistent field settings across multiple attributes.
 
   ## Parameters
-  - `fields` (list of atoms or tuples): Fields to be configured
-  - `opts` (keyword): Configuration options applied to all specified fields
+  - `fields` (list() of atoms or tuples): Fields to be configured
+  - `opts` (keyword()): Configuration options applied to all specified fields
 
   ## Example
   ```elixir
