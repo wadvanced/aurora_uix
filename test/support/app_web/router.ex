@@ -110,5 +110,14 @@ defmodule Aurora.Uix.Test.Web.Router do
       "basic-demo-"
     )
 
+    ## You can create a file test/cases_live/-local-demo_test.exs
+    ## With Aurora.Uix.Test.Web.LocalDemoTest module
+    ## And then test its output in /local-demo-products
+    ## You can use
+    Web.register_product_crud(
+      LocalDemoTest,
+      "local-demo-"
+    )
+
   end
 end

@@ -23,8 +23,3 @@ Enable LiveView debug tools in the browser console:
 ```js
 window.liveSocket.enableDebug()
 ```
-
-## Next Steps
-
-- [Advanced Usage](../advanced/advanced_usage.md)
-- [Troubleshooting](../advanced/troubleshooting.md)

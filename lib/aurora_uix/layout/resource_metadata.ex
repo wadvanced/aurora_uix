@@ -393,11 +393,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Converts a resource's fields list to a map format for faster access.
   # Also maintains fields order in a separate list for consistent iteration.
-  @spec convert_resource_fields_to_map({atom, map}) :: {atom, map}
+  @spec convert_resource_fields_to_map({atom(), map()}) :: {atom(), map()}
   defp convert_resource_fields_to_map({resource_name, %{fields: fields} = resource})
        when is_list(fields) do
     fields_order =
       fields
+      |> Enum.reject(& &1.omitted)
       |> Enum.map(& &1.field)
       |> Enum.uniq()
 
@@ -412,7 +413,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module | nil, atom) :: list
+  @spec parse_fields(module() | nil, atom()) :: list()
   defp parse_fields(nil, _resource_name), do: []
 
   defp parse_fields(schema, resource_name) do
@@ -447,6 +448,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       scale: field_scale(type),
       disabled: field_disabled(field),
       omitted: field_omitted(field),
+      hidden: field_hidden(field),
       resource: resource_name,
       data: field_data(association)
     }
@@ -464,7 +466,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Determines default placeholder text for a field
   # Based on the field's Elixir type
-  @spec field_placeholder(atom(), atom()) :: binary
+  @spec field_placeholder(atom(), atom()) :: binary()
   defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
 
   defp field_placeholder(_, type)
@@ -476,7 +478,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Maps an Elixir type to a field type
   # Handles both basic types and associations
-  @spec field_type(atom(), map() | nil) :: atom
+  @spec field_type(atom(), map() | nil) :: atom()
   defp field_type(type, nil), do: type
 
   defp field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
@@ -486,7 +488,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Maps an Elixir type to an HTML input type
   # Provides appropriate HTML5 input types based on data type
-  @spec field_html_type(atom(), map() | nil) :: atom
+  @spec field_html_type(atom(), map() | nil) :: atom()
   defp field_html_type(type, _association)
        when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
        do: :text
@@ -513,7 +515,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Determines display length for a field
   # Sets sensible defaults based on data type
-  @spec field_length(atom()) :: integer
+  @spec field_length(atom()) :: integer()
   defp field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
   defp field_length(type) when type in [:id, :integer], do: 10
   defp field_length(type) when type in [:float, :decimal], do: 12
@@ -529,19 +531,19 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Gets numeric precision for number fields
   # Returns 0 for non-numeric fields
-  @spec field_precision(atom()) :: integer
+  @spec field_precision(atom()) :: integer()
   defp field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
   defp field_precision(_type), do: 0
 
   # Gets numeric scale for decimal/float fields
   # Returns 0 for non-decimal fields
-  @spec field_scale(atom()) :: integer
+  @spec field_scale(atom()) :: integer()
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
   # Checks if a field should be disabled
   # Disabled fields: id, deleted, inactive
-  @spec field_disabled(atom()) :: boolean
+  @spec field_disabled(atom()) :: boolean()
   defp field_disabled(field) when field in [:id, :deleted, :inactive],
     do: true
 
@@ -549,11 +551,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Checks if a field should be omitted
   # Omitted fields: inserted_at, updated_at
-  @spec field_omitted(atom()) :: boolean
+  @spec field_omitted(atom()) :: boolean()
   defp field_omitted(field) when field in [:inserted_at, :updated_at],
     do: true
 
   defp field_omitted(_field), do: false
+
+  @spec field_hidden(atom()) :: boolean()
+  defp field_hidden(_field), do: false
 
   # Extracts metadata for associations
   # Returns nil for non-association fields

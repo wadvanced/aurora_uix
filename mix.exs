@@ -32,10 +32,10 @@ defmodule Aurora.Uix.MixProject do
       docs: [
         main: "overview",
         logo: "./guides/images/aurora_uix-icon.png",
-        assets: %{"./guides/images/" => "assets"},
+        assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
         extras: [
           "CHANGELOG.md",
-          "guides/overview.md",
+          "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
           "guides/core/fields.md",
           "guides/core/resource_metadata.md",

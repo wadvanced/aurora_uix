@@ -70,13 +70,13 @@ end
 Will produce the whole UI interface for **C**reating, **R**eading (showing), **U**pdating (editing) and **D**eleting along with validation, association handling. The following images shows part of the automatically generated UI:
 
 #### Index listing
-<img src="./assets/screenshots/index.png" width="600"/>
+<img src="images/index.png" width="600"/>
 
 #### Record showing
-<img src="./assets/screenshots/show.png" width="600"/>
+<img src="images/show.png" width="600"/>
 
 #### Record editing
-<img src="./assets/screenshots/edit.png" width="600"/>
+<img src="images/edit.png" width="600"/>
 
 ## When to Use Aurora UIX
 

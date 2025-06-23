@@ -17,7 +17,3 @@ You can extend the layout DSL by defining your own macros or helpers.
 ## Integration with Other Libraries
 
 Aurora UIX works well with other Phoenix and Ecto extensions. Use standard Elixir patterns for integration.
-
-## Next Steps
-
-- [Troubleshooting](troubleshooting.md)
