@@ -1,8 +1,14 @@
 defmodule Aurora.Uix.Application do
   @moduledoc """
-  Internal OTP application module for Aurora UIX.
+  Aurora.Uix.Application is the internal OTP application module for Aurora UIX.
 
-  Defines the supervision tree for internal processes. Not intended for direct use.
+  ## Purpose
+  - Defines the supervision tree for internal processes required by Aurora UIX.
+  - Not intended for direct use by end users or application developers.
+
+  ## Key Constraints
+  - This module should only be started by the BEAM as part of the library's OTP application lifecycle.
+  - Supervision tree is limited to internal Aurora UIX processes.
   """
 
   use Application
@@ -10,7 +16,7 @@ defmodule Aurora.Uix.Application do
   alias Aurora.Uix.CounterAgent
 
   @doc """
-  Callback for starting the Aurora UIX supervision tree (internal use only).
+  Starts the Aurora UIX supervision tree.
 
   This function is invoked automatically by the BEAM when the library is included as a dependency in an OTP application. It is not intended to be called directly by users.
 
@@ -19,10 +25,8 @@ defmodule Aurora.Uix.Application do
   - `_args` (term()) - The start arguments (ignored).
 
   ## Returns
-  - `{:ok, pid()}` - On success, returns a tuple with the supervisor PID.
-  - `{:error, term()}` - On failure, returns a tuple with the error reason.
+  `{:ok, pid()}` | `{:error, term()}` - On success, returns a tuple with the supervisor PID. On failure, returns a tuple with the error reason.
   """
-
   @spec start(term(), term()) :: {:ok, pid()} | {:error, term()}
   @impl true
   def start(_type, _args) do

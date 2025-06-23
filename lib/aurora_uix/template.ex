@@ -1,12 +1,17 @@
 defmodule Aurora.Uix.Template do
   @moduledoc """
-  Defines the behavior and utilities for template modules in Aurora UIX, enforcing a standard
-  interface for dynamic UI template generation and management.
+  Defines the behavior and utilities for template modules in Aurora UIX,
+  enforcing a standard interface for dynamic UI template generation and management.
 
   ## Purpose
   - Specify required callbacks for template modules.
   - Provide utility functions for field extraction and safe atom conversion.
   - Validate template modules at compile time for contract compliance.
+
+  ## Key Constraints
+  - All template modules must implement the required callbacks.
+  - Validation is performed at compile time; missing callbacks or contract violations raise errors.
+  - Not intended for direct use outside Aurora UIX internals.
 
   ## Required Callbacks
   Template modules must implement:
@@ -19,10 +24,6 @@ defmodule Aurora.Uix.Template do
 
   - `css_classes() :: %{atom() => map()}`
     Returns a map of CSS class mappings for template components.
-
-  ## Key Constraints
-  - All template modules must implement the above callbacks.
-  - Validation is performed at compile time; missing callbacks or contract violations raise errors.
 
   ## Utilities
   - `uix_template/0`: Returns the validated template module.
@@ -37,11 +38,11 @@ defmodule Aurora.Uix.Template do
   Generates the handling code for the given mode.
 
   ## Parameters
-  - modules (map()) - Map with caller, module, web and context modules
-  - parsed_opts (map()) - Customization options for code generation
+  - `modules` (`map()`) - Map with caller, module, web and context modules.
+  - `parsed_opts` (`map()`) - Customization options for code generation.
 
   ## Returns
-  - Macro.t() - Generated module code
+  `Macro.t()` - Generated module code.
   """
   @callback generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()
 
@@ -49,7 +50,7 @@ defmodule Aurora.Uix.Template do
   Returns the default core components module.
 
   ## Returns
-  - module() - The module containing core UI components
+  `module()` - The module containing core UI components.
   """
   @callback default_core_components_module() :: module()
 
@@ -57,7 +58,7 @@ defmodule Aurora.Uix.Template do
   Returns CSS class mappings for different template components.
 
   ## Returns
-  - map() - A map with component categories as keys and CSS class mappings as values
+  `map()` - A map with component categories as keys and CSS class mappings as values.
   """
   @callback css_classes() :: %{atom() => map()}
 
@@ -65,7 +66,13 @@ defmodule Aurora.Uix.Template do
   Validates and returns the configured UIX template module.
 
   ## Returns
-  - module() - The validated template module
+  `module()` - The validated template module.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Template.uix_template()
+  # => Aurora.Uix.Web.Templates.Basic
+  ```
   """
   @spec uix_template() :: module()
   def uix_template, do: validate(@uix_template)
@@ -74,11 +81,21 @@ defmodule Aurora.Uix.Template do
   Extracts the value of a specified field from an entity.
 
   ## Parameters
-  - entity (tuple() | struct() | map()) - Entity containing field values
-  - field_config (map()) - Field configuration with field key
+  - `entity` (`tuple()` | `struct()` | `map()`) - Entity containing field values.
+  - `field_config` (`map()`) - Field configuration with field key.
 
   ## Returns
-  - term() - Value of the specified field or nil if not found
+  `term()` - Value of the specified field or nil if not found.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Template.field_row_value({1, %{foo: 42}}, %{field: :foo})
+  # => 42
+  Aurora.Uix.Template.field_row_value(%{bar: "baz"}, %{field: :bar, field_type: :string})
+  # => "baz"
+  Aurora.Uix.Template.field_row_value(%{}, %{field: :id})
+  # => "id"
+  ```
   """
   @spec field_row_value(tuple() | struct() | map(), map()) :: term()
   def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
@@ -93,10 +110,20 @@ defmodule Aurora.Uix.Template do
   Safely converts a binary to an existing atom.
 
   ## Parameters
-    - name (term() | nil) - The name to convert to an atom
+  - `name` (`term()` | `nil`) - The name to convert to an atom.
 
-  Returns:
-    - atom() | nil - The existing atom if it exists, otherwise nil
+  ## Returns
+  `atom()` | `nil` - The existing atom if it exists, otherwise nil.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Template.safe_existing_atom("foo")
+  # => :foo (if :foo exists)
+  Aurora.Uix.Template.safe_existing_atom(:bar)
+  # => :bar
+  Aurora.Uix.Template.safe_existing_atom("nonexistent")
+  # => nil
+  ```
   """
   @spec safe_existing_atom(term() | nil) :: atom() | nil
   def safe_existing_atom(name) when is_binary(name) do

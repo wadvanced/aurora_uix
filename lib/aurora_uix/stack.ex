@@ -1,7 +1,14 @@
 defmodule Aurora.Uix.Stack do
   @moduledoc """
-  Provides a stack data structure implementation with standard stack operations: push, pop, peek, and empty checks.
-  Includes both safe (error tuple) and bang (raising) variants of operations.
+  Provides a stack data structure with standard stack operations for Aurora UIX internals.
+
+  ## Purpose
+  - Implements push, pop, peek, and empty checks for stack-based algorithms.
+  - Supports both safe (error tuple) and bang (raising) variants of operations.
+
+  ## Key Constraints
+  - Not intended for general-purpose use outside Aurora UIX internals.
+  - Raises Aurora.Uix.Stack.EmptyStackError on invalid bang operations.
   """
 
   alias Aurora.Uix.Stack.EmptyStackError
@@ -15,8 +22,14 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Creates a new empty stack.
 
-  Returns:
-    - __MODULE__.t() - An empty stack
+  ## Returns
+  `Aurora.Uix.Stack.t()` - An empty stack.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Stack.new()
+  # => %Aurora.Uix.Stack{values: []}
+  ```
   """
   @spec new() :: t()
   def new do
@@ -26,13 +39,22 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Creates a new stack with initial value(s).
 
-  Parameters:
-    - value: term() | list(term()) - A single value or list of values to initialize the stack
+  ## Parameters
+  - `values` (`list(term())` | `term()`) - A single value or list of values to initialize the stack.
 
-  Returns:
-    - t() - A stack containing the value(s)
+  ## Returns
+  `Aurora.Uix.Stack.t()` - A stack containing the value(s).
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Stack.new([1, 2, 3])
+  # => %Aurora.Uix.Stack{values: [1, 2, 3]}
+  Aurora.Uix.Stack.new(:foo)
+  # => %Aurora.Uix.Stack{values: [:foo]}
+  ```
   """
-  @spec new(any()) :: t()
+  @spec new(list(term())) :: t()
+  @spec new(term()) :: t()
   def new(values) when is_list(values) do
     %__MODULE__{values: values}
   end
@@ -44,14 +66,21 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Pushes a new value onto the top of the stack.
 
-  Parameters:
-    - stack: __MODULE__.t() - The stack to push onto
-    - value: term() - The value to push
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to push onto.
+  - `value` (`term()`) - The value to push.
 
-  Returns:
-    - __MODULE__.t() - A stack with the value pushed on top
+  ## Returns
+  `Aurora.Uix.Stack.t()` - A stack with the value pushed on top.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([1, 2])
+  Aurora.Uix.Stack.push(stack, 3)
+  # => %Aurora.Uix.Stack{values: [3, 1, 2]}
+  ```
   """
-  @spec push(t(), any()) :: t()
+  @spec push(t(), term()) :: t()
   def push(stack, value) do
     %__MODULE__{
       values: [value | stack.values]
@@ -61,17 +90,24 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Replaces the top value of the stack with a new value.
 
-  Parameters:
-    - stack: __MODULE__.t() - The stack to modify
-    - value: term() - The new value to replace the top value with
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to modify.
+  - `value` (`term()`) - The new value to replace the top value with.
 
-  Returns:
-    - __MODULE__.t() - A stack with the top value replaced
+  ## Returns
+  `Aurora.Uix.Stack.t()` - A stack with the top value replaced.
 
-  Raises:
-    - EmptyStackError - When the stack is empty
+  ## Raises
+  Aurora.Uix.Stack.EmptyStackError - When the stack is empty.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([1, 2])
+  Aurora.Uix.Stack.push_replace(stack, :foo)
+  # => %Aurora.Uix.Stack{values: [:foo, 2]}
+  ```
   """
-  @spec push_replace(t(), any()) :: t()
+  @spec push_replace(t(), term()) :: t()
   def push_replace(%__MODULE__{} = stack, value) do
     stack
     |> pop!()
@@ -82,16 +118,23 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Returns the top value of the stack.
 
-  Parameters:
-    - stack: `Aurora.Uix.Stack.t()` - The stack to peek
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to peek.
 
-  Returns:
-    - term() - The top value of the stack
+  ## Returns
+  `term()` - The top value of the stack.
 
-  Raises:
-    - EmptyStackError - When the stack is empty
+  ## Raises
+  Aurora.Uix.Stack.EmptyStackError - When the stack is empty.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([:a, :b])
+  Aurora.Uix.Stack.peek!(stack)
+  # => :a
+  ```
   """
-  @spec peek!(__MODULE__.t()) :: any()
+  @spec peek!(t()) :: term()
   def peek!(%__MODULE__{values: []}), do: raise(EmptyStackError)
 
   def peek!(%__MODULE__{values: [head | _tail]}), do: head
@@ -99,14 +142,22 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Returns the top value of the stack in a safe way.
 
-  Parameters:
-    - stack: `Aurora.Uix.Stack.t()` - The stack to peek
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to peek.
 
-  Returns:
-    - `{:ok, term()}` - A tuple with :ok and the top value if stack is not empty
-    - `{:error, Aurora.Uix.Stack.t()}` - A tuple with :error and the stack if empty
+  ## Returns
+  `{:ok, term()}` | `{:error, Aurora.Uix.Stack.t()}` - Tuple with :ok and the top value if stack is not empty, or :error and the stack if empty.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([:a, :b])
+  Aurora.Uix.Stack.peek(stack)
+  # => {:ok, :a}
+  Aurora.Uix.Stack.peek(Aurora.Uix.Stack.new())
+  # => {:error, %Aurora.Uix.Stack{values: []}}
+  ```
   """
-  @spec peek(__MODULE__.t()) :: {:ok, any()} | {:error, __MODULE__.t()}
+  @spec peek(t()) :: {:ok, term()} | {:error, t()}
   def peek(%__MODULE__{values: []} = stack), do: {:error, stack}
 
   def peek(%__MODULE__{values: [head | _tail]}), do: {:ok, head}
@@ -114,16 +165,23 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Removes and returns the top value from the stack.
 
-  Parameters:
-    - stack: `Aurora.Uix.Stack.t()` - The stack to pop from
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to pop from.
 
-  Returns:
-    - `{Aurora.Uix.Stack.t(), term()}` - A tuple with the new stack and the popped value
+  ## Returns
+  `{Aurora.Uix.Stack.t(), term()}` - Tuple with the new stack and the popped value.
 
-  Raises:
-    - EmptyStackError - When the stack is empty
+  ## Raises
+  Aurora.Uix.Stack.EmptyStackError - When the stack is empty.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([:a, :b])
+  Aurora.Uix.Stack.pop!(stack)
+  # => {%Aurora.Uix.Stack{values: [:b]}, :a}
+  ```
   """
-  @spec pop!(__MODULE__.t()) :: {__MODULE__.t(), term()}
+  @spec pop!(t()) :: {t(), term()}
   def pop!(%__MODULE__{values: []}), do: raise(EmptyStackError)
 
   def pop!(%__MODULE__{values: [head | tail]}), do: {%__MODULE__{values: tail}, head}
@@ -132,13 +190,21 @@ defmodule Aurora.Uix.Stack do
   Removes and returns the top value from the stack in a safe way.
 
   ## Parameters
-    - `stack` - `Aurora.Uix.Stack.t()` - The stack to pop from
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to pop from.
 
   ## Returns
-    - `{:ok, Aurora.Uix.Stack.t(), term()}` - A tuple with `:ok`, the new stack, and the popped value if not empty
-    - `{:error, Aurora.Uix.Stack.t()}` - A tuple with `:error` and the stack if empty
+  `{:ok, Aurora.Uix.Stack.t(), term()}` | `{:error, Aurora.Uix.Stack.t()}` - Tuple with :ok, the new stack, and the popped value if not empty, or :error and the stack if empty.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([:a, :b])
+  Aurora.Uix.Stack.pop(stack)
+  # => {:ok, %Aurora.Uix.Stack{values: [:b]}, :a}
+  Aurora.Uix.Stack.pop(Aurora.Uix.Stack.new())
+  # => {:error, %Aurora.Uix.Stack{values: []}}
+  ```
   """
-  @spec pop(__MODULE__.t()) :: {:ok, __MODULE__.t(), term()} | {:error, __MODULE__.t()}
+  @spec pop(t()) :: {:ok, t(), term()} | {:error, t()}
   def pop(%__MODULE__{values: []} = stack), do: {:error, stack}
 
   def pop(%__MODULE__{values: [head | tail]}), do: {:ok, %__MODULE__{values: tail}, head}
@@ -146,13 +212,21 @@ defmodule Aurora.Uix.Stack do
   @doc """
   Checks if the stack is empty.
 
-  Parameters:
-    - stack: __MODULE__.t() - The stack to check
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to check.
 
-  Returns:
-    - boolean() - true if stack is empty, false otherwise
+  ## Returns
+  `boolean()` - true if stack is empty, false otherwise.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Stack.empty?(Aurora.Uix.Stack.new())
+  # => true
+  Aurora.Uix.Stack.empty?(Aurora.Uix.Stack.new([1]))
+  # => false
+  ```
   """
-  @spec empty?(__MODULE__.t()) :: boolean
+  @spec empty?(t()) :: boolean()
   def empty?(%__MODULE__{values: []}), do: true
   def empty?(_stack), do: false
 end

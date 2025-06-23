@@ -11,6 +11,7 @@ description: 'Generate ex_doc-compatible documentation'
 ## @moduledoc Requirements
 1. Position: Must be the first module attribute.
 2. Content:
+   - Do not start the description with the module name
    - Add missing summaries/descriptions
    - Remove redundant/incorrect examples
    - Correct outdated references

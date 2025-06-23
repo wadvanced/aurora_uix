@@ -1,11 +1,14 @@
 defmodule Aurora.Uix.Resource do
   @moduledoc """
-  Manages comprehensive metadata configuration for schemas and their associated UI representations.
+  Manages metadata configuration for schemas and their associated UI representations.
 
-  This module provides a flexible struct and utility functions for:
-  - Defining schema-specific UI configurations
-  - Managing dynamic field definitions
-  - Supporting complex UI generation scenarios
+  ## Purpose
+  - Provides a flexible struct and utility functions for schema-specific UI configuration.
+  - Supports dynamic field definitions and complex UI generation scenarios.
+
+  ## Key Constraints
+  - Integrates with Aurora.Uix.Field and parsing components.
+  - Not intended for direct use outside Aurora.Uix internals.
 
   Key features:
   - Supports custom field configurations
@@ -30,10 +33,16 @@ defmodule Aurora.Uix.Resource do
   Creates a new `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
-    - attrs (map() | keyword()) - Initial attributes with :name, :schema, :context, and :fields keys
+  - `attrs` (`map()` | `keyword()`) - Initial attributes with :name, :schema, :context, and :fields keys.
 
-  Returns:
-    - t() - A new resource struct
+  ## Returns
+  `Aurora.Uix.Resource.t()` - A new resource struct.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Resource.new(name: :user, schema: MyApp.User)
+  # => %Aurora.Uix.Resource{name: :user, schema: MyApp.User, ...}
+  ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
@@ -42,11 +51,18 @@ defmodule Aurora.Uix.Resource do
   Updates an existing resource struct with the given attributes.
 
   ## Parameters
-    - resource_config (t()) - Existing resource struct to update
-    - attrs (map() | keyword()) - Attributes to update with :name, :schema, :context, and :fields keys
+  - `resource_config` (`Aurora.Uix.Resource.t()`) - Existing resource struct to update.
+  - `attrs` (`map()` | `keyword()`) - Attributes to update with :name, :schema, :context, and :fields keys.
 
-  Returns:
-    - t() - Updated resource struct
+  ## Returns
+  `Aurora.Uix.Resource.t()` - Updated resource struct.
+
+  ## Examples
+  ```elixir
+  resource = Aurora.Uix.Resource.new(name: :user)
+  Aurora.Uix.Resource.change(resource, %{schema: MyApp.User})
+  # => %Aurora.Uix.Resource{name: :user, schema: MyApp.User, ...}
+  ```
   """
   @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
   def change(resource_config, attrs) when is_list(attrs) do
