@@ -8,8 +8,14 @@ description: 'Generate ex_doc-compatible documentation'
 - Scope strictly to the target module. Ignore other files/modules.
 - Preserve existing docs if semantically correct. Only enhance/fix deficiencies. Avoid stylistic or unsubstantiated changes.
 
+## @shortdoc Requirements
+1. Usage: only to be use on modules implementing Mix.Task behaviour.
+2. Position: Right before the @moduledoc
+3. Content:
+   - It is a short description, therefore it should be a single phrase indicating the overall purpose of the task.   
+
 ## @moduledoc Requirements
-1. Position: Must be the first module attribute.
+1. Position: Must be the first module attribute or right after the @shortdoc when applicable.
 2. Content:
    - Do not start the description with the module name
    - Add missing summaries/descriptions
@@ -19,8 +25,8 @@ description: 'Generate ex_doc-compatible documentation'
    - Explicitly state modules' (when applicable)
       - 'key features'
       - 'key constraints'
-      - '
 3. Format: Markdown-compatible. Use code blocks for examples.
+4. Modules implementing Mix.Task behaviour should have examples.
 
 ## @doc Requirements
 ### Function/Macro Documentation

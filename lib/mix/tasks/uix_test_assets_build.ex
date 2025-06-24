@@ -4,35 +4,36 @@ defmodule Mix.Tasks.Uix.Test.Assets.Build do
   @moduledoc """
   Compiles frontend assets for the test environment.
 
-  Runs Tailwind, Esbuild, and Phoenix digest tasks after setting up `test.env`.
+  This task runs Tailwind, Esbuild, and Phoenix digest tasks after setting up the test environment.
 
-  Equivalent to:
-    ```shell
-      mix do test.env, tailwind aurora_uix, esbuild aurora_uix, phx.digest test/_priv/static, phx.digest.clean -o test/_priv/static --all
-    ```
+  ## Key Features
+  - Compiles Tailwind and Esbuild assets for testing.
+  - Runs digest and clean tasks for static assets.
+  - Ensures assets are up-to-date for test runs and CI.
 
-  ## Usage
-    ```shell
-    ~$ mix uix.test.assets.build
-    Rebuilding...
-
-    Done in 120ms.
-
-    ../_priv/static/assets/app.js  260.1kb
-
-    ⚡ Done in 10ms
-    Check your digested files at "test/_priv/static"
-    Clean complete for "test/_priv/static"
-
-    ```
+  ## Example
+  Build all assets for testing:
+  ```shell
+  mix uix.test.assets.build
+  ```
   """
 
   use Mix.Task
 
   @doc """
   Sets up the test environment and compiles assets.
+
+  ## Parameters
+  - `args` (list(binary())) - Arguments for the task (not used).
+
+  ## Returns
+  - `:ok` - Always returns :ok after running all asset tasks.
+
+  ## Example
+      iex> Mix.Tasks.Uix.Test.Assets.Build.run([])
+      :ok
   """
-  @spec run(list | nil) :: any
+  @spec run(list(binary())) :: :ok
   def run(_args) do
     Mix.Task.run("uix.test.task", ["tailwind", "aurora_uix", "silent"])
 
