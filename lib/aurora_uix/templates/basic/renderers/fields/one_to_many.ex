@@ -1,12 +1,15 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   @moduledoc """
-  Renders one-to-many association fields in Phoenix LiveView templates.
+  Renders one-to-many association fields in Phoenix LiveView templates for Aurora UIX.
 
-  Handles display and interactions for collections of associated records, including:
-  - List display with sortable columns
-  - Actions for each record (show, edit, delete)
+  ## Key Features
+
+  - Displays and manages collections of associated records
+  - Provides list display with sortable columns
+  - Supports actions for each record (show, edit, delete)
   - Links to create new associated records
-  - Filtering and relationship management
+  - Enables filtering and relationship management
+  - Integrates with Aurora UIX context and helpers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

@@ -2,11 +2,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   @moduledoc """
   Renders many-to-one association fields for Aurora UIX in Phoenix LiveView templates.
 
-  Handles display and interaction for single associated records, including:
-  - Grouping and labeling of associated fields
-  - Nested rendering of related fields
-  - Proper handling of form and show modes
-  - Label and path management for associations
+  ## Key Features
+
+  - Displays and manages single associated records
+  - Groups and labels associated fields
+  - Supports nested rendering of related fields
+  - Handles both form and show modes
+  - Manages label and path configuration for associations
+  - Integrates with Aurora UIX context and helpers
   """
 
   import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
