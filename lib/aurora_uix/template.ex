@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Template do
   ```elixir
   Aurora.Uix.Template.field_row_value({1, %{foo: 42}}, %{field: :foo})
   # => 42
-  Aurora.Uix.Template.field_row_value(%{bar: "baz"}, %{field: :bar, field_type: :string})
+  Aurora.Uix.Template.field_row_value(%{bar: "baz"}, %{field: :bar, type: :string})
   # => "baz"
   Aurora.Uix.Template.field_row_value(%{}, %{field: :id})
   # => "id"
@@ -148,8 +148,8 @@ defmodule Aurora.Uix.Template do
   @spec field_row_value(tuple() | struct() | map(), map()) :: term()
   def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
 
-  def field_row_value(entity, %{field: field, field_type: field_type})
-      when field_type not in [:one_to_many_association, :many_to_one_association],
+  def field_row_value(entity, %{field: field, type: type})
+      when type not in [:one_to_many_association, :many_to_one_association],
       do: Map.get(entity, field, "")
 
   def field_row_value(_auix_entity, %{field: field}), do: to_string(field)

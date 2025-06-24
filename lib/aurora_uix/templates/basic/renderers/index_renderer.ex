@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       path.inner_elements
       |> Enum.filter(&(&1.tag == :field))
       |> Enum.map(&get_field(&1, configurations, resource_name))
-      |> Enum.reject(&(&1.field_type in [:one_to_many_association, :many_to_one_association]))
+      |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
       |> then(&Map.put(assigns, :index_fields, &1))
 
     ~H"""

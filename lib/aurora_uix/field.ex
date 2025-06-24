@@ -5,7 +5,7 @@ defmodule Aurora.Uix.Field do
   This module defines a struct to represent field properties for UI components, such as:
     - `field` (`atom`) - The field reference in the schema.
     - `name` (`binary`) - The field's name as a binary.
-    - `field_type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
+    - `type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
     - `field_html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `html_id` (`binary`) - A unique html id for the field.
     - `renderer` (`function`) - A custom rendering function for the field.
@@ -41,7 +41,7 @@ defmodule Aurora.Uix.Field do
 
   defstruct [
     :field,
-    :field_type,
+    :type,
     :field_html_type,
     :renderer,
     :data,
@@ -62,7 +62,7 @@ defmodule Aurora.Uix.Field do
 
   @type t() :: %__MODULE__{
           field: atom() | nil,
-          field_type: atom() | nil,
+          type: atom() | nil,
           field_html_type: atom() | binary() | nil,
           html_id: binary(),
           renderer: function() | nil,

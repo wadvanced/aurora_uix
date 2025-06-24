@@ -206,7 +206,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   The following options can be provided to configure the field:
 
   - `:field` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
-  - `:field_type`(`atom()`) - The html type that best represent the current field elixir type.
+  - `:type`(`atom()`) - The html type that best represent the current field elixir type.
   - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary()`) - Placeholder text for the field.
   - `:length`(`non_neg_integer()`) - Display length of the field.
@@ -434,7 +434,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       field: field,
       label: field_label(field),
       placeholder: field_placeholder(field, type),
-      field_type: field_type(type, association),
+      type: field_type(type, association),
       field_html_type: field_html_type(type, association),
       length: field_length(type),
       precision: field_precision(type),
@@ -626,7 +626,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(
       &Field.new(
         field: association_field,
-        field_type: field_html_type(nil, &1),
+        field_html_type: field_html_type(nil, &1),
+        type: field_type(nil, &1),
         data: Map.put(field_data(&1), :resource, field_resource(&1, resources)),
         resource: resource_name
       )
@@ -637,7 +638,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec configure_many_to_one_selectors(Resource.t()) :: Resource.t()
   defp configure_many_to_one_selectors(%{fields: fields} = resource) do
     fields
-    |> Enum.filter(&(&1.field_type == :many_to_one_association))
+    |> Enum.filter(&(&1.type == :many_to_one_association))
     |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
     |> Enum.map(&{&1.data.owner_key, %{field_html_type: :select, data: &1.data}})
     |> Enum.reduce(fields, &replace_related_field/2)
@@ -649,8 +650,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     do: Enum.map(fields, &replace_related_field_data(&1, related_changes))
 
   @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
-  defp replace_related_field_data(%{ield_type: field_type} = field, _related_changes)
-       when field_type in [:many_to_one_association, :one_to_many_association],
+  defp replace_related_field_data(%{ield_type: type} = field, _related_changes)
+       when type in [:many_to_one_association, :one_to_many_association],
        do: field
 
   defp replace_related_field_data(

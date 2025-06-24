@@ -376,7 +376,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> maybe_add_association_info(fields)
     |> then(&extract_resource_fields(inner_elements, fields, [&1]))
     |> Enum.filter(
-      &(&1.tag == :field and &1.field_type in [:one_to_many_association, :many_to_one_association])
+      &(&1.tag == :field and &1.type in [:one_to_many_association, :many_to_one_association])
     )
     |> Enum.reduce(result, &[&1 | &2])
     |> then(&extract_resource_fields(resources, fields, &1))
@@ -395,9 +395,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp maybe_add_association_info(%{tag: :field, name: name} = field, fields) do
     fields
-    |> Map.get(name, %{field_type: nil, resource: nil})
+    |> Map.get(name, %{type: nil, resource: nil})
     |> then(
-      &Map.merge(field, %{field_type: &1.field_type, resource: &1.resource, inner_elements: []})
+      &Map.merge(field, %{type: &1.type, resource: &1.resource, inner_elements: []})
     )
   end
 

@@ -38,8 +38,8 @@ end
 You can specify field types and custom renderers:
 
 ```elixir
-field :status, field_type: :select, options: ["active", "archived"]
-field :avatar, field_type: :image, renderer: &MyAppWeb.Helpers.avatar/1
+field :status, type: :select, options: ["active", "archived"]
+field :avatar, type: :image, renderer: &MyAppWeb.Helpers.avatar/1
 ```
 
 ## Associations

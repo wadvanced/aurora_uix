@@ -79,11 +79,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   @spec default_render(map()) :: Phoenix.LiveView.Rendered.t()
   # Delegates one-to-many association rendering
-  defp default_render(%{field: %{field_type: :one_to_many_association}} = assigns),
+  defp default_render(%{field: %{type: :one_to_many_association}} = assigns),
     do: OneToMany.render(assigns)
 
   # Delegates many-to-one association rendering
-  defp default_render(%{field: %{field_type: :many_to_one_association}} = assigns),
+  defp default_render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
 
   # Renders standard field types with appropriate HTML structure

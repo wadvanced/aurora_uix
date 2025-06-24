@@ -324,8 +324,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Enum.map(&elem(&1, 0))
     |> Enum.uniq()
     |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
-    |> Enum.filter(&(&1.field_type in [:many_to_one_association, :one_to_many_association]))
-    |> Enum.map(&{&1.field_type, &1.field})
+    |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
+    |> Enum.map(&{&1.type, &1.field})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
   end
 

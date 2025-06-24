@@ -35,12 +35,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   ```
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{field: %{field_type: :one_to_many_association, resource: nil}} = assigns) do
+  def render(%{field: %{type: :one_to_many_association, resource: nil}} = assigns) do
     ~H"""
     """
   end
 
-  def render(%{field: %{field_type: :one_to_many_association} = field, _auix: auix} = assigns) do
+  def render(%{field: %{type: :one_to_many_association} = field, _auix: auix} = assigns) do
     related_fields =
       field
       |> get_association_fields(auix._configurations)
@@ -145,7 +145,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     |> Enum.map(fn path_field ->
       path_field
       |> get_field(configurations, field.data.resource)
-      |> then(&%{label: &1.label, field: &1.field, field_type: &1.field_type})
+      |> then(&%{label: &1.label, field: &1.field, type: &1.type})
     end)
   end
 end
