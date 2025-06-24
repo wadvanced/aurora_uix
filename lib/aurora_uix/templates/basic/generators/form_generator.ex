@@ -2,11 +2,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   @moduledoc """
   Generates form component modules for the Basic template implementation.
 
-  Provides functionality for:
-  - Form validation and submission
-  - Entity creation and updates
-  - Dynamic section switching
-  - Parent component notifications
+  This module provides a macro to generate LiveComponent modules for handling forms in Aurora UIX Basic templates.
+
+  ## Key Features
+
+  - Generates LiveComponent modules for form handling
+  - Supports form validation and submission
+  - Handles entity creation and updates
+  - Enables dynamic section switching
+  - Notifies parent components of changes
+  - Integrates with Aurora UIX context and helpers
   """
 
   import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
@@ -18,11 +23,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   Generates a LiveComponent module for form handling.
 
   ## Parameters
-    - modules (map()) - Map containing web, context modules and component references
-    - parsed_opts (map()) - Form configuration with tag: :form and function references
+  - `modules` (`map()`) – Map containing web, context modules, and component references
+  - `parsed_opts` (`map()`) – Form configuration with `tag: :form` and function references
 
-  Returns:
-    - Macro.t() - Generated form component module
+  ## Returns
+  - `Macro.t()` – The generated form component module as quoted code
+
   """
   @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :form}} = parsed_opts) do
