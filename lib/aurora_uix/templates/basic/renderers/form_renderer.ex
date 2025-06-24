@@ -1,6 +1,13 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
   @moduledoc """
-  Renderer module for form views in Aurora UIX.
+  Renders form live components for creating or editing entities in Aurora UIX.
+
+  ## Key Features
+
+  - Renders form containers and headers
+  - Handles validation and submission
+  - Integrates with Aurora UIX context and helpers
+  - Supports customizable form layouts and actions
 
   This module handles the rendering of form components, including the form container,
   header, validation, and submission handling.

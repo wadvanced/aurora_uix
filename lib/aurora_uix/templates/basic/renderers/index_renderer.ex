@@ -1,14 +1,16 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
   @moduledoc """
-  Renderer for index pages in Aurora UIX, providing table-based entity listings with CRUD actions.
+  Renders index view pages with table-based entity listings and CRUD actions in Aurora UIX.
 
-  Features:
+  ## Key Features
+
   - Table view with sortable columns
   - New entity creation button
   - Show/Edit/Delete actions per row
   - Modal forms for entity operations
   - Row click navigation
   - Entity field filtering
+  - Integrates with Aurora UIX context and helpers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

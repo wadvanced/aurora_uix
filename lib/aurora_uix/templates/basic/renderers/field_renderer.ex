@@ -2,11 +2,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
   Renders form fields for Aurora UIX, supporting standard, one-to-many, many-to-one, hidden, and custom field types.
 
-  Handles:
-  - Dynamic field rendering based on type and configuration
-  - Delegation to association renderers
-  - Custom field renderers
-  - Omitted and hidden fields
+  ## Key Features
+
+  - Dynamically renders fields based on type and configuration
+  - Delegates to association renderers for one-to-many and many-to-one fields
+  - Supports custom field renderers
+  - Handles omitted and hidden fields gracefully
+  - Integrates with Aurora UIX context and helpers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

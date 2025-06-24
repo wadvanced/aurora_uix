@@ -1,13 +1,15 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   @moduledoc """
-  Renderer for detail views of individual entities in Aurora UIX.
+  Renders detail (show) views for individual entities in Aurora UIX.
 
-  Features:
-  - Entity attribute display with layout support
-  - Inline edit functionality via modal
+  ## Key Features
+
+  - Displays entity attributes with layout support
+  - Provides edit functionality via modal popup form
   - Consistent navigation with back button
-  - CSS class customization
+  - Supports CSS class customization
   - Layout-aware content rendering
+  - Integrates with Aurora UIX context and helpers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
