@@ -1,7 +1,13 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @moduledoc """
   Main entry point for Aurora UIX template rendering.
-  Dispatches rendering to specialized renderer modules based on the template tag.
+  Dispatches rendering to specialized renderer modules based on the template tag and
+  provides helpers for rendering inner elements in LiveView components.
+
+  ## Key Features
+  - Delegates rendering to specialized renderer modules based on tag type (index, show, form, group, inline, stacked, sections, section, field).
+  - Provides a default empty renderer for unhandled cases.
+  - Includes a helper for rendering inner elements while maintaining context.
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

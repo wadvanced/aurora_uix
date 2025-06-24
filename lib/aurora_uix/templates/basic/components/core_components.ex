@@ -1,18 +1,24 @@
 defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   @moduledoc """
-  Provides core UI components.
+  Provides the core set of reusable UI components for Aurora UIX, including modals, tables, forms, flash messages, and more.
 
-  At first glance, this module may seem daunting, but its goal is to provide
-  core building blocks for your application, such as modals, tables, and
-  forms. The components consist mostly of markup and are well-documented
-  with doc strings and declarative assigns. You may customize and style
-  them in any way you want, based on your application growth and needs.
+  Most functions in this module are equivalent to those in the original Phoenix Framework's `core_components.ex`,
+  with some stylistic changes for Aurora UIX, but retaining 100% compatibility with the Phoenix API and usage patterns.
 
-  The default components use Tailwind CSS, a utility-first CSS framework.
-  See the [Tailwind CSS documentation](https://tailwindcss.com) to learn
-  how to customize them or feel free to swap in another framework altogether.
+  ## Key Features
+  - Provides modal, table, form, flash, and input components for LiveView UIs.
+  - All components are built with Tailwind CSS utility classes for easy customization.
+    See the [Tailwind CSS documentation](https://tailwindcss.com).
+  - Includes icon support via [Heroicons](https://heroicons.com). See `icon/1` for usage.
+  - Designed for extensibility and override in your own application.
+  - Well-documented with doc strings and declarative assigns for each component.
+  - All components are compatible with Phoenix LiveView and Phoenix.Component.
 
-  Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
+  > #### Note {: .info}
+  > This module may be injected as the core components module depending on the Aurora UIX template configuration.
+  > Dynamic selection and import of the core components module is handled via `use Aurora.Uix.Web.CoreComponentsImporter`,
+  > which will import either this module or a custom one as configured in your application or template.
+
   """
   use Aurora.Uix.Web.Gettext
   use Phoenix.Component

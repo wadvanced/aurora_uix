@@ -2,28 +2,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
-  ## Purpose
-  This module transforms configuration maps into fully-functional, dynamically generated LiveView modules for CRUD operations.
-  It supports multiple UI component types and delegates code generation to specialized sub-generators.
-
   ## Key Features
-  - Generates LiveView modules for index, show, and form UI components
-  - Integrates event handling, form validation, and flexible rendering
-  - Supports advanced listing and custom component types
-  - Requires context modules to implement standard CRUD functions
+  - Transforms configuration maps into fully-functional, dynamically generated LiveView modules for CRUD operations.
+  - Generates LiveView modules for index view, show view, and form UI components.
+  - Integrates event handling, form validation, and flexible rendering.
+  - Supports advanced listing and custom component types.
+  - Delegates code generation to specialized sub-generators.
+  - All code generation is performed at compile time.
 
-  ## Required Context Functions
-  Context modules must provide:
-  - `list_<source>/0` – List entities
-  - `get_<schema>!/1` – Get entity by ID
-  - `change_<schema>/1-2` – Validate changes
-  - `create_<schema>/1` – Create entity
-  - `update_<schema>/2` – Update entity
-  - `delete_<schema>/1` – Delete entity
-
-  ## Constraints
-  - Only modules with the required context functions are supported
-  - All code generation is performed at compile time
+  ## Key Constraints
+  - Requires context modules to implement standard CRUD functions.
+  - Only modules with the required context functions are supported.
   """
 
   alias Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator

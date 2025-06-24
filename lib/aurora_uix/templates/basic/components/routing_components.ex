@@ -1,9 +1,12 @@
 defmodule Aurora.Uix.Web.Templates.Basic.RoutingComponents do
   @moduledoc """
-  Provides routing-related components for handling navigation in Phoenix LiveView applications.
+  Provides routing-related UI components for navigation in Phoenix LiveView applications using Aurora UIX. These components enable navigation and back actions that integrate with Aurora's routing system.
 
-  These components facilitate navigation through the application by providing customized link
-  components that work with Aurora's routing system.
+  ## Key Features
+  - Provides navigation link components that trigger forward or back navigation events.
+  - Supports both standard and styled back navigation links.
+  - Designed for use with Phoenix LiveView and Aurora UIX routing.
+  - Accepts custom HTML attributes and content slots for flexible usage.
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

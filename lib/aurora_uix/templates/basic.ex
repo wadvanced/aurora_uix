@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   Central module for template generation in Aurora UIX, implementing the `Aurora.Uix.Template`
   behavior and providing a unified interface for template creation and coordination.
 
-  ## Purpose
+  ## Key Features
   - Implements the `Aurora.Uix.Template` behavior for standardized template modules.
   - Delegates template generation tasks to specialized components:
     - `LayoutParser`: Parses layout structures.
@@ -12,26 +12,11 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   - Coordinates between different template generation components.
   - Provides utility functions for core component access and CSS class mapping.
 
-  ## Required Callbacks (from `Aurora.Uix.Template`)
-  - `generate_module(modules :: map(), parsed_opts :: map()) :: Macro.t()`
-    Generates the handling code for the given mode and options.
-  - `default_core_components_module() :: module()`
-    Returns the module containing the default core UI components.
-  - `css_classes() :: %{atom() => map()}`
-    Returns a map of CSS class mappings for template components.
-
   ## Generation Flow
   1. Parse layout configurations.
   2. Generate logic modules.
   3. Create markup templates.
   4. Combine generated components.
-
-  ## Key Delegations
-  - `generate_module/2`: Delegates to `ModulesGenerator` for module creation.
-
-  ## Utilities
-  - `default_core_components_module/0`: Returns the default core components module.
-  - `css_classes/0`: Returns CSS class mappings for template components.
 
   ## Example
   ```elixir
