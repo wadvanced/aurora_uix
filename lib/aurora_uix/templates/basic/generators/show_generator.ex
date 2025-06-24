@@ -1,12 +1,14 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   @moduledoc """
-  Generator for show view LiveView modules in the Basic template.
+  Provides a macro to generate LiveView modules for detail (show) pages in Aurora UIX Basic templates.
 
-  Provides functionality for:
-  - Detail view generation
-  - Dynamic section switching
-  - Entity data display
-  - Integration with form components
+  ## Key Features
+
+  - Generates LiveView modules for detail (show) views
+  - Supports dynamic section switching
+  - Displays entity data with preload support
+  - Integrates with form components
+  - Integrates with Aurora UIX context and helpers
   """
 
   import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
@@ -16,11 +18,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   Generates a show view LiveView module with detail display and section handling.
 
   ## Parameters
-    - modules (map()) - Map containing web, context modules and component references
-    - parsed_opts (map()) - Show view configuration with tag: :show
+  - `modules` (`map()`) – Map containing web, context modules, and component references
+  - `parsed_opts` (`map()`) – Show view configuration with `tag: :show`
 
-  Returns:
-    - Macro.t() - Generated show view module
+  ## Returns
+  - `Macro.t()` – The generated show view module as quoted code.
+
   """
   @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do

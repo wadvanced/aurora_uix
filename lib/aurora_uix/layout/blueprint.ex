@@ -2,15 +2,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
+  ## Key Features
+  - Enables declarative, nested, and flexible UI structure definition for Phoenix LiveView.
+  - Supports compile-time layout generation and field arrangement for index, form, and show views.
+
   ## Layout Hierarchy
   - Container Layouts: Index, Form, Show
   - Sub-Layouts: Inline, Stacked, Group, Sections
-
-  ## Key Features
-  - Declarative UI structure definition
-  - Nested layout support
-  - Compile-time layout generation
-  - Flexible field arrangement
 
   ## Layout Containers
   1. **Index**: Horizontal field arrangement
@@ -25,7 +23,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Layout Path Structure
 
-  Internally, each layout is represented by a list of maps (called “paths”), where each entry contains the following keys:
+  Internally, each layout is represented by a list of maps (called "paths"), where each entry contains the following keys:
 
   - **`:tag` (atom):**
     The layout command. Possible values include:
@@ -220,8 +218,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Defines a layout for resource editing.
 
   ## Parameters
-  - `name` (atom): Resource configuration name
-  - `opts` (keyword, optional): Additional layout options
+  - `name` (atom()): Resource configuration name
+  - `opts` (keyword(), optional): Additional layout options
   - `do_block` (optional): Layout definition block
 
   ## Options
@@ -235,7 +233,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     end
   ```
   """
-  @spec edit_layout(atom, keyword, any) :: Macro.t()
+  @spec edit_layout(atom(), keyword(), any()) :: Macro.t()
   defmacro edit_layout(name, opts, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(:form, name, nil, opts, do_block)
   end
@@ -253,7 +251,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     end
   ```
   """
-  @spec show_layout(atom, keyword, any) :: Macro.t()
+  @spec show_layout(atom(), keyword(), any()) :: Macro.t()
   defmacro show_layout(name, opts, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(:show, name, nil, opts, do_block)
   end
@@ -262,8 +260,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Registers index columns for a specific resource.
 
   ## Parameters
-  - `name` (atom): Unique identifier for the index configuration
-  - `fields` (list): List of field names to display in the index view
+  - `name` (atom()): Unique identifier for the index configuration
+  - `fields` (list()): List of field names to display in the index view
 
   ## Behavior
   - Accumulates fields for the specified resource name
@@ -271,7 +269,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - Processed during module compilation
 
   """
-  @spec index_columns(atom, keyword, any) :: Macro.t()
+  @spec index_columns(atom(), keyword(), any()) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
   end
@@ -283,7 +281,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   It is used to arrange fields side-by-side, either as a standalone block or as part of a larger layout.
 
   ## Parameters
-  - `fields` (list): A list of field identifiers or keyword options for field-specific UI customizations.
+  - `fields` (list()): A list of field identifiers or keyword options for field-specific UI customizations.
   - `block`: An optional `do` block containing nested layout definitions.
 
   ## Examples
@@ -301,7 +299,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     end
   ```
   """
-  @spec inline(keyword, any) :: Macro.t()
+  @spec inline(keyword(), any()) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
     LayoutHelpers.register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
@@ -314,7 +312,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   It is typically used to arrange fields one below the other, creating a vertical grouping that aids in visual organization.
 
   ## Parameters
-  - `fields` (list): A list of field identifiers or keyword options for UI customizations.
+  - `fields` (list()): A list of field identifiers or keyword options for UI customizations.
   - `block`: An optional `do` block containing nested layout definitions.
 
   ## Example
@@ -322,7 +320,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     stacked [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
   ```
   """
-  @spec stacked(keyword, any) :: Macro.t()
+  @spec stacked(keyword(), any()) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
     LayoutHelpers.register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
@@ -332,8 +330,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Defines a group sub-layout to visually segment related fields under a common title.
 
   ## Parameters
-  - `title` (string): The title of the group.
-  - `opts` (keyword): Additional options for the group layout.
+  - `title` (string()): The title of the group.
+  - `opts` (keyword()): Additional options for the group layout.
   - `block`: An optional `do` block containing nested layout definitions.
 
   ## Example
@@ -341,7 +339,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     group "Identification", [:reference, :name, :description]
   ```
   """
-  @spec group(atom, keyword, any) :: Macro.t()
+  @spec group(atom(), keyword(), any()) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(
       :group,
@@ -356,7 +354,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Defines a sections container that groups multiple section entries into tab-like structures.
 
   ## Parameters
-  - `opts` (keyword): Additional options for configuring the sections container.
+  - `opts` (keyword()): Additional options for configuring the sections container.
   - `block`: A `do` block containing one or more `section` definitions.
 
   ## Example
@@ -367,7 +365,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     end
   ```
   """
-  @spec sections(keyword, any) :: Macro.t()
+  @spec sections(keyword(), any()) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(
       :sections,
@@ -382,8 +380,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Defines a section within a sections container, representing a tab that contains a specific set of fields.
 
   ## Parameters
-  - `label` (string): The label for the section.
-  - `opts` (keyword): Additional options for the section layout.
+  - `label` (string()): The label for the section.
+  - `opts` (keyword()): Additional options for the section layout.
   - `block`: An optional `do` block for nested layout definitions.
 
   ## Example
@@ -391,7 +389,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     section "Details", [:reference, :name, :description]
   ```
   """
-  @spec section(binary, keyword, any) :: Macro.t()
+  @spec section(binary(), keyword(), any()) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(
       :section,
@@ -406,12 +404,12 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Generates a default path structure for rendering UI components based on the given mode.
 
   ## Parameters
-  - `paths` (list): An existing list of paths. If empty, default paths are generated.
-  - `resource_config` (atom): The associated resource configuration.
-  - `mode` (atom): The rendering mode (`:index`, `:form`, or `:show`).
+  - `paths` (list()): An existing list of paths. If empty, default paths are generated.
+  - `resource_config` (atom()): The associated resource configuration.
+  - `mode` (atom()): The rendering mode (`:index`, `:form`, or `:show`).
 
   ## Returns
-  - `list`: A list of tagged maps representing the UI structure.
+  - `map()`: A map representing the UI structure.
 
   ## Modes and Behaviour
 
@@ -435,7 +433,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       %{tag: :form, state: :end}
     ]
   """
-  @spec build_default_layout_paths(list, map, keyword, atom) :: map
+  @spec build_default_layout_paths(list(), map(), keyword(), atom()) :: map()
   def build_default_layout_paths(
         [],
         resource_config,
@@ -499,11 +497,11 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Parses a list of paths to handle sections based on the given mode.
 
   ## Parameters
-  - `paths` (list): A list of path maps representing the layout structure.
-  - `mode` (atom): The mode of parsing, such as `:index` or other modes.
+  - `paths` (list()): A list of path maps representing the layout structure.
+  - `mode` (atom()): The mode of parsing, such as `:index` or other modes.
 
   ## Returns
-  - `list`: A list of parsed paths with sections processed according to the mode.
+  - `list()`: A list of parsed paths with sections processed according to the mode.
 
   ## Examples
     iex> paths = [
@@ -530,7 +528,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     ]
 
   """
-  @spec parse_sections(map, atom) :: map
+  @spec parse_sections(map(), atom()) :: map()
   def parse_sections(path, mode) when mode in [:form, :show] do
     pid = CounterAgent.start_counter()
 
@@ -544,7 +542,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## PRIVATE
 
-  @spec unique_titled_id(binary | nil) :: binary
+  @spec unique_titled_id(binary() | nil) :: binary()
   defp unique_titled_id(nil), do: unique_titled_id("untitled")
   defp unique_titled_id(""), do: unique_titled_id("untitled")
 
@@ -562,7 +560,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     "#{slug}-#{unique_suffix}#{unique_int}"
   end
 
-  @spec normalize_title(binary) :: binary
+  @spec normalize_title(binary()) :: binary()
   defp normalize_title(title) do
     title
     |> String.downcase()
@@ -592,15 +590,15 @@ defmodule Aurora.Uix.Layout.Blueprint do
   # - List of processed elements with updated configuration
   # - Final section index
   @spec normalize_sections_and_tabs(
-          list,
-          pid,
-          binary | nil,
-          integer,
-          binary | nil,
-          integer,
-          boolean,
-          list
-        ) :: list
+          list(),
+          pid(),
+          binary() | nil,
+          integer(),
+          binary() | nil,
+          integer(),
+          boolean(),
+          list()
+        ) :: list()
   defp normalize_sections_and_tabs(
          elements,
          counter_pid,
@@ -756,7 +754,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     )
   end
 
-  @spec maybe_mark_first_tab(list, boolean) :: list
+  @spec maybe_mark_first_tab(list(), boolean()) :: list()
   defp maybe_mark_first_tab(elements, true), do: elements
 
   defp maybe_mark_first_tab(elements, _) do

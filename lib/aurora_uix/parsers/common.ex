@@ -16,9 +16,9 @@ defmodule Aurora.Uix.Parsers.Common do
   Extracts schema metadata and merges common options.
 
   ## Parameters
-  - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-  - `resource_config` (`map`) - contains all the modules' configuration.
-  - `opts` (`keyword`) - Configuration options with keys:
+  - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+  - `resource_config` (`map()`) - contains all the modules' configuration.
+  - `opts` (`keyword()`) - Configuration options with keys:
     ### Common opts
     - `actions` - List of {position, function} tuples for UI actions
     - `add_actions` - Additional actions to append
@@ -76,7 +76,7 @@ defmodule Aurora.Uix.Parsers.Common do
     iex> parsed = Common.parse(%{}, %{schema: Aurora.Uix.GeneralLedger.AccountReceivable}, [])
     iex> parsed.title == "Account Receivables"  # Uses the capitalized schema source as the title
   """
-  @spec parse(map, map, keyword) :: map
+  @spec parse(map(), map(), keyword()) :: map()
   def parse(parsed_opts, resource_config, opts) do
     parsed_opts
     |> add_opt(resource_config, opts, :module)
@@ -91,12 +91,12 @@ defmodule Aurora.Uix.Parsers.Common do
   Resolves default values for schema-derived properties.
 
   ### Parameters
-    - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-    - `resource_config` (`map`) -  contains all the modules' configuration.
-    - `key` (`atom`) -  Key value to produce the value from.
+    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `resource_config` (`map()`) -  contains all the modules' configuration.
+    - `key` (`atom()`) -  Key value to produce the value from.
 
   """
-  @spec default_value(map, map, atom) :: any
+  @spec default_value(map(), map(), atom()) :: any()
 
   def default_value(_parsed_opts, %{schema: module}, :module) do
     module

@@ -2,12 +2,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
   Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
 
-  ## Overview
-  This module enables rich, metadata-driven UI configuration for data structures, with a focus on:
-  - Flexible field-level UI metadata management
-  - Seamless integration with Phoenix LiveView
-  - Type-aware default generation
-  - Cross-structure configuration inheritance
+  ## Key Features
+  - Enables rich, metadata-driven UI configuration for data structures.
+  - Focuses on flexible field-level UI metadata management and seamless integration with Phoenix LiveView.
+
+  ## Key Constraints
+  - Supports Ecto schemas and custom data structures.
+  - Designed for compile-time configuration generation with minimal runtime overhead.
+  - Not intended for direct use outside Aurora.Uix internals.
 
   ## Key Capabilities
   - Declarative field configuration (labels, placeholders, validation)
@@ -112,7 +114,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
           @doc """
           Gets the config for a given resource.
           """
-          @spec auix_resource(atom) :: map
+          @spec auix_resource(atom()) :: map()
           def auix_resource(unquote(resource_key)) do
             %{unquote(resource_key) => unquote(Macro.escape(resource))}
           end
@@ -156,28 +158,19 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   Defines UI configuration for a schema.
 
   ## Parameters
-  - name (atom) - Resource identifier
-  - opts (keyword) - Configuration options
-  - do_block (block) - Field configurations
+  - `name` (atom()) - Resource identifier.
+  - `opts` (keyword()) - Configuration options.
+  - `do_block` (Macro.t() | nil) - Field configurations block.
 
   ## Options
-  - :schema (module) - Required. Ecto schema/data structure module
-  - :context (module) - Optional. Context module with data functions
-  - :include_associations (boolean) - Optional. Auto-configure associations
-
-  ## Example
-
-  ```elixir
-  auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
-    field :name, placeholder: "Product name", max_length: 40, required: true
-    field :price, placeholder: "Price", precision: 12, scale: 2
-  end
-  ```
+  - `:schema` (module()) - Required. Ecto schema/data structure module.
+  - `:context` (module()) - Optional. Context module with data functions.
+  - `:include_associations` (boolean()) - Optional. Auto-configure associations.
 
   ## Returns
-  Generates configured metadata block for the resource.
+  `Macro.t()` - Configured metadata block for the resource.
   """
-  @spec auix_resource_metadata(atom, keyword(), Macro.t() | nil) :: Macro.t()
+  @spec auix_resource_metadata(atom(), keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
@@ -205,26 +198,26 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   individual fields.
 
   ## Parameters
-  - `field` (atom): The name of the field to configure
-  - `opts` (keyword): Field-specific configuration options
+  - `field` (atom() | tuple()): The name of the field to configure
+  - `opts` (keyword()): Field-specific configuration options
 
   ## Options
 
   The following options can be provided to configure the field:
 
-  - `:field` (`atom` | `tuple`) - The referred field in the schema. This should be rarely changed.
-  - `:field_type`(`atom`) - The html type that best represent the current field elixir type.
-  - `:label` (`binary`) - A custom label for the field. (auto-generated from field name if omitted).
-  - `:placeholder` (`binary`) - Placeholder text for the field.
-  - `:length`(`non_neg_integer`) - Display length of the field.
-  - `:precision` (`integer`) - The numeric precision for decimal or float fields.
-  - `:scale` (`integer`) - The numeric scale for decimal or float fields.
-  - `:readonly` (`boolean`) - Marks the field as read-only.
-  - `:hidden` (`boolean`) - Hides the field.
-  - `:renderer` (`function`) - Custom rendering function/component.
-  - `:required` (`boolean`) - Marks the field as required.
-  - `:disabled` (`boolean`) - If true, the field should not participate in form interaction.
-  - `:omitted` (`boolean`) - If true, the field will be entirely excluded from the UI and configuration.
+  - `:field` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
+  - `:field_type`(`atom()`) - The html type that best represent the current field elixir type.
+  - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
+  - `:placeholder` (`binary()`) - Placeholder text for the field.
+  - `:length`(`non_neg_integer()`) - Display length of the field.
+  - `:precision` (`integer()`) - The numeric precision for decimal or float fields.
+  - `:scale` (`integer()`) - The numeric scale for decimal or float fields.
+  - `:readonly` (`boolean()`) - Marks the field as read-only.
+  - `:hidden` (`boolean()`) - Hides the field.
+  - `:renderer` (`function()`) - Custom rendering function/component.
+  - `:required` (`boolean()`) - Marks the field as required.
+  - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
+  - `:omitted` (`boolean()`) - If true, the field will be entirely excluded from the UI and configuration.
 
   ## Example
 
@@ -245,8 +238,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   and promoting consistent field settings across multiple attributes.
 
   ## Parameters
-  - `fields` (list of atoms or tuples): Fields to be configured
-  - `opts` (keyword): Configuration options applied to all specified fields
+  - `fields` (list() of atoms or tuples): Fields to be configured
+  - `opts` (keyword()): Configuration options applied to all specified fields
 
   ## Example
   ```elixir
@@ -393,11 +386,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Converts a resource's fields list to a map format for faster access.
   # Also maintains fields order in a separate list for consistent iteration.
-  @spec convert_resource_fields_to_map({atom, map}) :: {atom, map}
+  @spec convert_resource_fields_to_map({atom(), map()}) :: {atom(), map()}
   defp convert_resource_fields_to_map({resource_name, %{fields: fields} = resource})
        when is_list(fields) do
     fields_order =
       fields
+      |> Enum.reject(& &1.omitted)
       |> Enum.map(& &1.field)
       |> Enum.uniq()
 
@@ -412,7 +406,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module | nil, atom) :: list
+  @spec parse_fields(module() | nil, atom()) :: list()
   defp parse_fields(nil, _resource_name), do: []
 
   defp parse_fields(schema, resource_name) do
@@ -447,6 +441,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       scale: field_scale(type),
       disabled: field_disabled(field),
       omitted: field_omitted(field),
+      hidden: field_hidden(field),
       resource: resource_name,
       data: field_data(association)
     }
@@ -464,7 +459,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Determines default placeholder text for a field
   # Based on the field's Elixir type
-  @spec field_placeholder(atom(), atom()) :: binary
+  @spec field_placeholder(atom(), atom()) :: binary()
   defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
 
   defp field_placeholder(_, type)
@@ -476,7 +471,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Maps an Elixir type to a field type
   # Handles both basic types and associations
-  @spec field_type(atom(), map() | nil) :: atom
+  @spec field_type(atom(), map() | nil) :: atom()
   defp field_type(type, nil), do: type
 
   defp field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
@@ -486,7 +481,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Maps an Elixir type to an HTML input type
   # Provides appropriate HTML5 input types based on data type
-  @spec field_html_type(atom(), map() | nil) :: atom
+  @spec field_html_type(atom(), map() | nil) :: atom()
   defp field_html_type(type, _association)
        when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
        do: :text
@@ -513,7 +508,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Determines display length for a field
   # Sets sensible defaults based on data type
-  @spec field_length(atom()) :: integer
+  @spec field_length(atom()) :: integer()
   defp field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
   defp field_length(type) when type in [:id, :integer], do: 10
   defp field_length(type) when type in [:float, :decimal], do: 12
@@ -529,19 +524,19 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Gets numeric precision for number fields
   # Returns 0 for non-numeric fields
-  @spec field_precision(atom()) :: integer
+  @spec field_precision(atom()) :: integer()
   defp field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
   defp field_precision(_type), do: 0
 
   # Gets numeric scale for decimal/float fields
   # Returns 0 for non-decimal fields
-  @spec field_scale(atom()) :: integer
+  @spec field_scale(atom()) :: integer()
   defp field_scale(type) when type in [:float, :decimal], do: 2
   defp field_scale(_type), do: 0
 
   # Checks if a field should be disabled
   # Disabled fields: id, deleted, inactive
-  @spec field_disabled(atom()) :: boolean
+  @spec field_disabled(atom()) :: boolean()
   defp field_disabled(field) when field in [:id, :deleted, :inactive],
     do: true
 
@@ -549,11 +544,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Checks if a field should be omitted
   # Omitted fields: inserted_at, updated_at
-  @spec field_omitted(atom()) :: boolean
+  @spec field_omitted(atom()) :: boolean()
   defp field_omitted(field) when field in [:inserted_at, :updated_at],
     do: true
 
   defp field_omitted(_field), do: false
+
+  @spec field_hidden(atom()) :: boolean()
+  defp field_hidden(_field), do: false
 
   # Extracts metadata for associations
   # Returns nil for non-association fields

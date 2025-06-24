@@ -26,6 +26,15 @@ defmodule Aurora.Uix.Field do
     - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
       It is equivalent to not having the field at all.
 
+  ## Key Features
+  - Encapsulates field properties for UI rendering and configuration.
+  - Supports metadata for validation, display, and interaction in forms and tables.
+
+  ## Key Constraints
+  - Field struct is used by template and resource modules for dynamic UI generation.
+  - Some fields (e.g., `data`) may require special structure as expected by template parsers.
+  - Not intended for direct use outside Aurora.Uix internals.
+
   """
 
   alias Aurora.Uix.CounterAgent
@@ -52,100 +61,62 @@ defmodule Aurora.Uix.Field do
   ]
 
   @type t() :: %__MODULE__{
-          field: atom | nil,
-          field_type: atom | nil,
-          field_html_type: atom | binary | nil,
-          html_id: binary,
-          renderer: function | nil,
-          data: any | nil,
-          resource: module | nil,
-          name: binary,
-          label: binary,
-          placeholder: binary,
-          length: non_neg_integer,
-          precision: non_neg_integer,
-          scale: non_neg_integer,
-          hidden: boolean,
-          readonly: boolean,
-          required: boolean,
-          disabled: boolean,
-          omitted: boolean
+          field: atom() | nil,
+          field_type: atom() | nil,
+          field_html_type: atom() | binary() | nil,
+          html_id: binary(),
+          renderer: function() | nil,
+          data: any() | nil,
+          resource: module() | nil,
+          name: binary(),
+          label: binary(),
+          placeholder: binary(),
+          length: non_neg_integer(),
+          precision: non_neg_integer(),
+          scale: non_neg_integer(),
+          hidden: boolean(),
+          readonly: boolean(),
+          required: boolean(),
+          disabled: boolean(),
+          omitted: boolean()
         }
 
   @doc """
-  Creates a new Field struct with the given attributes.
+  Creates a new `Aurora.Uix.Field` struct with the given attributes.
 
   ## Parameters
-    - attrs (map() | keyword()) - Initial attributes for the field struct
+  - `attrs` (map() | keyword()) - Initial attributes for the field struct.
 
-  The name attribute is automatically derived from the field value.
+  ## Returns
+  `Aurora.Uix.Field.t()` - New field struct with derived name and html_id.
 
-  ## Example
-      iex> Aurora.Uix.Field.new(%{field: :user_name}) |> struct(%{html_id: ""})
-      %Aurora.Uix.Field{
-        field: :user_name,
-        name: "user_name",
-        data: nil,
-        disabled: false,
-        field_html_type: nil,
-        field_type: nil,
-        hidden: false,
-        label: "",
-        length: 0,
-        omitted: false,
-        placeholder: "",
-        precision: 0,
-        readonly: false,
-        renderer: nil,
-        required: false,
-        resource: nil,
-        scale: 0,
-        html_id: ""
-      }
-
-  Returns:
-    - Aurora.Uix.Field.t()
+  ## Examples
+  ```elixir
+  Aurora.Uix.Field.new(%{field: :user_name, label: "User"})
+  # => %Aurora.Uix.Field{field: :user_name, name: "user_name", label: "User", ...}
+  ```
   """
-  @spec new(map | keyword) :: __MODULE__.t()
+  @spec new(map() | keyword()) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
 
   @doc """
-  Updates an existing Field struct with new attributes.
+  Updates an existing `Aurora.Uix.Field` struct with new attributes.
 
   ## Parameters
-    - field (t()) - The existing field struct
-    - attrs (map() | keyword()) - Attributes to update in the struct
+  - `field` (`Aurora.Uix.Field.t()`) - The existing field struct.
+  - `attrs` (map() | keyword()) - Attributes to update in the struct.
 
-  The name attribute is updated when field value changes.
+  ## Returns
+  `Aurora.Uix.Field.t()` - Updated field struct with new name/html_id if field changes.
 
-  ## Example
-      iex> field = Aurora.Uix.Field.new()
-      iex> Aurora.Uix.Field.change(field, %{field: :email}) |> struct(%{html_id: ""})
-      %Aurora.Uix.Field{
-              field: :email,
-              name: "email",
-              data: nil,
-              disabled: false,
-              field_html_type: nil,
-              field_type: nil,
-              hidden: false,
-              label: "",
-              length: 0,
-              omitted: false,
-              placeholder: "",
-              precision: 0,
-              readonly: false,
-              renderer: nil,
-              required: false,
-              resource: nil,
-              scale: 0,
-              html_id: ""
-            }
-
-  Returns:
-    - Aurora.Uix.Field.t()
+  ## Examples
+  ```elixir
+  field = Aurora.Uix.Field.new(%{field: :email})
+  Aurora.Uix.Field.change(field, %{label: "Email Address"})
+  # => %Aurora.Uix.Field{field: :email, label: "Email Address", ...}
+  ```
   """
-  @spec change(__MODULE__.t(), map | keyword) :: __MODULE__.t()
+  @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
   def change(field, attrs) when is_list(attrs) do
     keys = Map.keys(%__MODULE__{})
 
@@ -170,11 +141,18 @@ defmodule Aurora.Uix.Field do
   @doc """
   Generates or returns a unique HTML ID for a field.
 
-  Parameters:
-    - field: Field.t() - The field struct requiring an ID
+  ## Parameters
+  - `field` (`Aurora.Uix.Field.t()`) - The field struct requiring an ID.
 
-  Returns:
-    - Field.t() - Field with updated html_id if empty, or unchanged if ID exists
+  ## Returns
+  `Aurora.Uix.Field.t()` - Field with updated html_id if empty, or unchanged if ID exists.
+
+  ## Examples
+  ```elixir
+  field = Aurora.Uix.Field.new(%{field: :foo})
+  Aurora.Uix.Field.set_field_id(field)
+  # => %Aurora.Uix.Field{html_id: "auix-field-foo-1", ...}
+  ```
   """
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
   def set_field_id(%__MODULE__{field: field_name} = field) when is_nil(field_name), do: field

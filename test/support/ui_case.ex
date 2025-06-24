@@ -1,11 +1,26 @@
 defmodule Aurora.Uix.Test.Web.UICase do
   @moduledoc """
   Support for testing schema metadata behaviour.
+
+  ## Key Features
+  - Provides helpers for validating schema metadata in tests.
+  - Includes macros for test case setup and assertions.
   """
 
   alias Aurora.Uix.Field
 
-  @spec validate_schema(map, atom, map) :: boolean
+  @doc """
+  Validates schema fields against expected checks.
+
+  ## Parameters
+  - `resource_configs` (map()) - Resource configuration map.
+  - `schema` (atom()) - Schema name.
+  - `fields_checks` (map()) - Map of field IDs to check values.
+
+  ## Returns
+  boolean() - Returns true if all checks pass, otherwise raises.
+  """
+  @spec validate_schema(map(), atom(), map()) :: boolean()
   def validate_schema(resource_configs, schema, fields_checks) do
     metadata = get_in(resource_configs, [schema, Access.key!(:fields)])
 
@@ -15,7 +30,18 @@ defmodule Aurora.Uix.Test.Web.UICase do
     end)
   end
 
-  @spec validate_field(Field.t(), map, atom) :: :ok
+  @doc """
+  Validates a field's value against expected checks.
+
+  ## Parameters
+  - `field` (Field.t() | nil) - The field struct or nil.
+  - `checks` (map()) - Map of expected key-value pairs.
+  - `field_id` (atom()) - Field identifier.
+
+  ## Returns
+  :ok - Returns :ok if all checks pass, otherwise raises.
+  """
+  @spec validate_field(Field.t() | nil, map(), atom()) :: :ok
   def validate_field(nil, _checks, field_id), do: raise("Field `#{field_id}` was not found")
 
   def validate_field(field, checks, field_id) do
@@ -30,12 +56,31 @@ defmodule Aurora.Uix.Test.Web.UICase do
     end)
   end
 
-  @spec resource_configs(module) :: map
+  @doc """
+  Returns resource configs for a module.
+
+  ## Parameters
+  - `module` (module()) - The module to fetch configs for.
+
+  ## Returns
+  map() - Resource configuration map.
+  """
+  @spec resource_configs(module()) :: map()
   def resource_configs(module) do
     attributes(module, :auix_resource_metadata)
   end
 
-  @spec attributes(module, atom) :: map
+  @doc """
+  Returns attributes for a module.
+
+  ## Parameters
+  - `module` (module()) - The module.
+  - `attribute` (atom()) - The attribute name.
+
+  ## Returns
+  map() - Attribute value.
+  """
+  @spec attributes(module(), atom()) :: map()
   def attributes(module, attribute) do
     Code.ensure_compiled(module)
 
@@ -45,7 +90,17 @@ defmodule Aurora.Uix.Test.Web.UICase do
     |> List.first()
   end
 
-  @spec assert_values_order([binary | atom], [binary | atom]) :: :ok
+  @doc """
+  Asserts that two lists of values are in the expected order.
+
+  ## Parameters
+  - `expected_values` (list(binary() | atom())) - The expected values.
+  - `current_values` (list(binary() | atom())) - The current values.
+
+  ## Returns
+  :ok - Returns :ok if order matches, otherwise raises.
+  """
+  @spec assert_values_order([binary() | atom()], [binary() | atom()]) :: :ok
   def assert_values_order(expected_values, current_values) do
     case {expected_values, current_values} do
       {[] = expected_values, current_values} when current_values != expected_values ->
@@ -69,7 +124,13 @@ defmodule Aurora.Uix.Test.Web.UICase do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/live_view/etc.
+  Macro for dispatching to the appropriate controller/live_view/etc.
+
+  ## Parameters
+  - `which` (atom()) - The component type to dispatch to.
+
+  ## Returns
+  Macro.t() - The quoted macro for the specified component.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
@@ -79,7 +140,6 @@ defmodule Aurora.Uix.Test.Web.UICase do
     apply(__MODULE__, :test_case, [])
   end
 
-  @doc false
   @spec test_case() :: Macro.t()
   def test_case do
     quote do
@@ -88,7 +148,6 @@ defmodule Aurora.Uix.Test.Web.UICase do
     end
   end
 
-  @doc false
   @spec phoenix_case() :: Macro.t()
   def phoenix_case do
     quote do
@@ -101,7 +160,8 @@ defmodule Aurora.Uix.Test.Web.UICase do
   end
 
   ## PRIVATE
-  @spec assert_value_order(list, list, boolean, list) :: {boolean, list}
+  # Asserts that the order of values matches the expected order.
+  @spec assert_value_order(list(), list(), boolean(), list()) :: {boolean(), list()}
   defp assert_value_order(expected_values, current_values, unmatched? \\ false, result \\ [])
 
   defp assert_value_order(_, [], unmatched?, result),

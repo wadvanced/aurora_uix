@@ -1,36 +1,30 @@
 defmodule Aurora.Uix.Web.Templates.Basic do
   @moduledoc """
-  A centralized module for coordinating template generation processes in Aurora UIX,
-  serving as the primary entry point for template-related functionality.
+  Central module for template generation in Aurora UIX, implementing the `Aurora.Uix.Template`
+  behavior and providing a unified interface for template creation and coordination.
 
-  ## Architecture
-  This module acts as a facade, delegating specific template generation tasks to specialized components:
-  - `LayoutParser`: Handles complex layout structure parsing
-  - `ModulesGenerator`: Generates business logic and LiveView modules
-  - `MarkupGenerator`: Creates HEEx template fragments
-
-  ## Responsibilities
-  - Implement the `Aurora.Uix.Template` behavior
-  - Coordinate between different template generation components
-  - Provide a unified interface for template creation
+  ## Key Features
+  - Implements the `Aurora.Uix.Template` behavior for standardized template modules.
+  - Delegates template generation tasks to specialized components:
+    - `LayoutParser`: Parses layout structures.
+    - `ModulesGenerator`: Generates business logic and LiveView modules.
+    - `MarkupGenerator`: Creates HEEx template fragments.
+  - Coordinates between different template generation components.
+  - Provides utility functions for core component access and CSS class mapping.
 
   ## Generation Flow
-  1. Parse layout configurations
-  2. Generate logic modules
-  3. Create markup templates
-  4. Combine generated components
+  1. Parse layout configurations.
+  2. Generate logic modules.
+  3. Create markup templates.
+  4. Combine generated components.
 
-  ### Key Delegations
-  - `generate_module/2`: Delegates to `ModulesGenerator` for module creation
-
-  ## Usage Example
+  ## Example
   ```elixir
   # Automatic delegation happens through the Template behavior
-  Aurora.Uix.Web.Templates.Basic.generate_view(:index, %{fields: [:name, :email]})
+  Aurora.Uix.Web.Templates.Basic.generate_module(%{caller: MyApp, module: MyMod}, %{fields: [:name, :email]})
   ```
-  The module ensures a clean separation of concerns while providing a streamlined
-  template generation process for different UI components.
   """
+
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator

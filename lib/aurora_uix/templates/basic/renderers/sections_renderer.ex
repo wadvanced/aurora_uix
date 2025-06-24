@@ -1,7 +1,13 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.SectionsRenderer do
   @moduledoc """
-  Renderer for tabbed sections in Aurora UIX.
-  Handles rendering of dynamic tabs and their content sections.
+  Renders tabbed sections and dynamic content areas in Aurora UIX.
+
+  ## Key Features
+
+  - Renders dynamic tabbed sections and their content
+  - Supports flexible tab and section configuration
+  - Integrates with Aurora UIX context and helpers
+  - Provides section-level rendering for custom layouts
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter

@@ -1,35 +1,48 @@
 defmodule Aurora.Uix.Web.Gettext do
   @moduledoc """
-  Provides dynamic gettext functionality where the backend is determined by an environment variable.
+  Provides dynamic Gettext functionality for Aurora UIX, allowing the backend to be determined by
+  an environment variable or application configuration.
+
+  ## Purpose
+  Enables internationalization (I18n) in Aurora UIX-based applications by injecting Gettext support
+  with a configurable backend. This allows for flexible language translation strategies and easy
+  integration with custom or default Gettext backends.
+
+  ## Key Constraints
+  - The backend can be set via the `:backend` option or the `:gettext_backend` application config.
+  - If no backend is specified, defaults to `Aurora.Uix.Web.GettextBackend`.
   """
 
   @doc """
   Injects Gettext functionality with configurable backend support.
 
-  ## Options
+  ## Parameters
+  - `opts` (keyword()) - Options for configuring the backend. Options:
+    * `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
+      `Aurora.Uix.Web.GettextBackend`.
 
-    * `:backend` - The Gettext backend module to use. Defaults to Aurora.Uix.Web.GettextBackend
+  ## Returns
+  - `Macro.t()` - A quoted expression that injects Gettext or imports the configured backend.
 
   ## Examples
+  ```elixir
+  defmodule MyApp.Gettext do
+    use Aurora.Uix.Web.Gettext
+  end
 
-      # Basic usage with default backend
-      defmodule MyApp.Gettext do
-        use Aurora.Uix.Web.Gettext
-      end
+  defmodule MyApp.Gettext do
+    use Aurora.Uix.Web.Gettext, backend: MyCustomBackend
+  end
 
-      # With custom backend
-      defmodule MyApp.Gettext do
-        use Aurora.Uix.Web.Gettext, backend: MyCustomBackend
-      end
+  # Usage in runtime
+  MyApp.Gettext.gettext("Hello") # => "Hola" (depending on locale)
 
-      # Usage in runtime
-      MyApp.Gettext.gettext("Hello") # => "Hola" (depending on locale)
-
-  The backend can also be configured via application config:
-
-      config :aurora_uix, :gettext_backend, MyCustomBackend
+  # The backend can also be configured via application config:
+  #
+  #   config :aurora_uix, :gettext_backend, MyCustomBackend
+  ```
   """
-  @spec __using__(keyword) :: Macro.t()
+  @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
     default_backend = opts[:backend] || Aurora.Uix.Web.GettextBackend
 

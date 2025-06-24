@@ -1,32 +1,38 @@
 defmodule Mix.Tasks.Uix.Test.Assets.Install do
-  @shortdoc "Installs Tailwind and Esbuild in the test environment if missing."
+  @shortdoc "Installs Tailwind and Esbuild dependencies in the test environment."
 
   @moduledoc """
-  Ensures Tailwind and Esbuild are installed within the test environment.
+  Installs frontend asset dependencies for the test environment in Aurora UIX projects.
 
-  This task first loads `test.env`, then installs Tailwind and Esbuild if needed.
-  Equivalent to:
+  This task runs the installation steps for Tailwind and Esbuild in the test environment.
 
-    ```shell
-      mix do test.env, tailwind.install --if-missing, esbuild.install --if-missing
-    ```
+  ## Key Features
+  - Installs Tailwind and Esbuild dependencies for testing.
+  - Ensures all required assets are available for test runs and CI.
 
-  ## Usage
-    ```shell
-    ~$ mix uix.test.assets.install
-    13:22:58.414 [debug] Downloading tailwind from https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.6/tailwindcss-macos-arm64
-
-    13:23:04.998 [debug] Downloading esbuild from https://registry.npmjs.org/@esbuild/darwin-arm64/0.23.0
-    ```
-
+  ## Example
+  Install all asset dependencies for testing:
+  ```shell
+  mix uix.test.assets.install
+  ```
   """
 
   use Mix.Task
 
   @doc """
-  Installs missing frontend assets.
+  Installs asset dependencies for the test environment.
+
+  ## Parameters
+  - `args` (list(binary())) - Arguments for the task (not used).
+
+  ## Returns
+  - `:ok` - Always returns :ok after running all install tasks.
+
+  ## Example
+      iex> Mix.Tasks.Uix.Test.Assets.Install.run([])
+      :ok
   """
-  @spec run(list | nil) :: any
+  @spec run(list(binary())) :: :ok
   def run(_args) do
     Mix.Task.run("uix.test.task", ["tailwind.install", "--if-missing", "silent"])
     Mix.Task.reenable("uix.test.task")

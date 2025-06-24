@@ -104,5 +104,19 @@ defmodule Aurora.Uix.Test.Web.Router do
       AssociationMany2OneSelectorAssignsTest,
       "association-many_to_one_selector-assigns-"
     )
+
+    Web.register_product_crud(
+      BasicDemoTest,
+      "basic-demo-"
+    )
+
+    ## You can create a file test/cases_live/-local-demo_test.exs
+    ## With Aurora.Uix.Test.Web.LocalDemoTest module
+    ## And then test its output in /local-demo-products
+    ## You can use
+    Web.register_product_crud(
+      LocalDemoTest,
+      "local-demo-"
+    )
   end
 end

@@ -1,26 +1,37 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
   @moduledoc """
-  Generator for index view LiveView modules in the Basic template.
+  Generates index view LiveView modules for the Basic template implementation.
 
-  Provides functionality to generate index view modules with:
-  - Stream-based data loading
-  - CRUD operations handling
-  - Dynamic component mounting
-  - Responsive event handling
+  This module provides a macro to generate LiveView modules for index (listing) pages in Aurora UIX Basic templates.
+
+  ## Key Features
+
+  - Generates LiveView modules for index (listing) views
+  - Supports stream-based data loading
+  - Handles CRUD operations (create, read, update, delete)
+  - Dynamically mounts components
+  - Provides responsive event handling
+  - Integrates with Aurora UIX context and helpers
+
   """
 
   import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
     only: [module_name: 3, remove_omitted_fields: 1]
 
   @doc """
-  Generates an index view LiveView module with standard CRUD operations.
+  Generates an index view LiveView module with standard CRUD operations in Aurora UIX.
 
   ## Parameters
-    - modules (map()) - Map containing web, context, and schema module references
-    - parsed_opts (map()) - Index view configuration with tag: :index
+  - `modules` (`map()`) – Map containing web, context, and schema module references
+  - `parsed_opts` (`map()`) – Index view configuration with `tag: :index`
 
-  Returns:
-    - Macro.t() - Generated module code
+  ## Returns
+  - `Macro.t()` – The generated index view module as quoted code
+
+  ## Example
+
+      iex> IndexGenerator.generate_module(%{web: MyAppWeb, context: MyApp.Context, module: MyApp.Entity}, %{_path: %{tag: :index}, source: "entities", ...})
+      #=> {:module, ...}
   """
   @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do

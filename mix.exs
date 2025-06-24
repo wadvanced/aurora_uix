@@ -29,7 +29,28 @@ defmodule Aurora.Uix.MixProject do
 
       # Docs
       name: "Aurora UIX",
-      docs: &docs/0
+      docs: [
+        main: "overview",
+        logo: "./guides/images/aurora_uix-icon.png",
+        assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
+        extras: [
+          "CHANGELOG.md",
+          "guides/overview/overview.md",
+          "guides/introduction/getting_started.md",
+          "guides/core/fields.md",
+          "guides/core/resource_metadata.md",
+          "guides/core/layouts.md",
+          "guides/core/liveview.md",
+          "guides/advanced/advanced_usage.md",
+          "guides/advanced/troubleshooting.md"
+        ],
+        groups_for_extras: [
+          Introduction: ~r{guides/introduction/.*},
+          Core: ~r{guides/core/.*},
+          Advanced: ~r{guides/advanced/.*}
+        ],
+        before_closing_body_tag: &before_closing_body_tag/1
+      ]
     ]
   end
 
@@ -83,20 +104,4 @@ defmodule Aurora.Uix.MixProject do
   defp before_closing_body_tag(_),
     do:
       ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
-
-  defp docs do
-    [
-      source_ref: @version,
-      extra_section: "GUIDES",
-      source_url: @source_url,
-      extras: [
-        "guides/introduction/getting_started.md",
-        "CHANGELOG.md"
-      ],
-      groups_for_extras: [
-        Introduction: ~r(guides/introduction/.?)
-      ],
-      before_closing_body_tag: &before_closing_body_tag/1
-    ]
-  end
 end

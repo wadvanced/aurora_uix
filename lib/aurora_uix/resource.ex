@@ -30,10 +30,16 @@ defmodule Aurora.Uix.Resource do
   Creates a new `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
-    - attrs (map() | keyword()) - Initial attributes with :name, :schema, :context, and :fields keys
+  - `attrs` (`map()` | `keyword()`) - Initial attributes with :name, :schema, :context, and :fields keys.
 
-  Returns:
-    - t() - A new resource struct
+  ## Returns
+  `Aurora.Uix.Resource.t()` - A new resource struct.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Resource.new(name: :user, schema: MyApp.User)
+  # => %Aurora.Uix.Resource{name: :user, schema: MyApp.User, ...}
+  ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
   def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
@@ -42,11 +48,18 @@ defmodule Aurora.Uix.Resource do
   Updates an existing resource struct with the given attributes.
 
   ## Parameters
-    - resource_config (t()) - Existing resource struct to update
-    - attrs (map() | keyword()) - Attributes to update with :name, :schema, :context, and :fields keys
+  - `resource_config` (`Aurora.Uix.Resource.t()`) - Existing resource struct to update.
+  - `attrs` (`map()` | `keyword()`) - Attributes to update with :name, :schema, :context, and :fields keys.
 
-  Returns:
-    - t() - Updated resource struct
+  ## Returns
+  `Aurora.Uix.Resource.t()` - Updated resource struct.
+
+  ## Examples
+  ```elixir
+  resource = Aurora.Uix.Resource.new(name: :user)
+  Aurora.Uix.Resource.change(resource, %{schema: MyApp.User})
+  # => %Aurora.Uix.Resource{name: :user, schema: MyApp.User, ...}
+  ```
   """
   @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
   def change(resource_config, attrs) when is_list(attrs) do

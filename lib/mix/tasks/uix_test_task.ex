@@ -1,38 +1,39 @@
 defmodule Mix.Tasks.Uix.Test.Task do
+  @shortdoc "Runs a Mix task in the Aurora UIX test environment."
+
   @moduledoc """
-  A utility task to run Mix tasks in the `test` environment.
+  Runs a specified Mix task in the Aurora UIX test environment.
 
-  This task simplifies running Mix tasks like `ecto.create`, `ecto.migrate`, or any custom task
-  within the `test` environment without manually setting the `MIX_ENV` variable.
+  This task is used internally by other test Mix tasks to execute commands in a controlled test context.
 
-  ## Examples
-    * Create the test database
-    ```shell
-    ~$ mix uix.test.task ecto.create
-    ```
-    * Run migrations in the test environment
-    ```shell
-    ~$ mix uix.test.task ecto.migrate
-    ```
-    * Run a custom task in the test environment
-    ```shell
-    ~$ mix uix.test.task my_custom_task
-    ```
-    * Run a task silently (suppress output)
-    ```shell
-    ~$ mix uix.test.task ecto.create silent
-    ```
+  ## Key Features
+  - Runs any Mix task with arguments in the test environment.
+  - Used as a utility for asset and setup tasks.
+  - Returns the exit code and output of the executed task.
+
+  ## Example
+  Run a custom Mix task in the test environment:
+  ```shell
+  mix uix.test.task phx.digest test/_priv/static silent
+  ```
   """
 
   use Mix.Task
 
   @doc """
-  Executes the specified Mix task in the test environment.
+  Runs the given Mix task with arguments in the test environment.
 
-  ## Arguments
-    - `args`: A list of arguments passed to the task. If there is a `silent` argument, the output is suppressed.
+  ## Parameters
+  - `args` (list(binary())) - The Mix task and its arguments to run.
+
+  ## Returns
+  - `{integer(), binary()}` - The exit code and output of the executed task.
+
+  ## Example
+      iex> Mix.Tasks.Uix.Test.Task.run(["phx.digest", "test/_priv/static", "silent"])
+      {0, "...output..."}
   """
-  @spec run(list) :: any
+  @spec run(list(binary())) :: term()
   def run(args) do
     mix_cmd =
       case :os.type() do

@@ -1,13 +1,15 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   @moduledoc """
-  Renderer for detail views of individual entities in Aurora UIX.
+  Renders detail (show) views for individual entities in Aurora UIX.
 
-  Features:
-  - Entity attribute display with layout support
-  - Inline edit functionality via modal
+  ## Key Features
+
+  - Displays entity attributes with layout support
+  - Provides edit functionality via modal popup form
   - Consistent navigation with back button
-  - CSS class customization
+  - Supports CSS class customization
   - Layout-aware content rendering
+  - Integrates with Aurora UIX context and helpers
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
@@ -35,7 +37,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
     ~H"""
     <div class={get_in(@_auix._css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
-        {@_auix.name} {@auix_entity.id}
+        {@_auix.name} Details
         <:subtitle>{@subtitle}</:subtitle>
         <:actions>
           <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@_auix.module}"}>

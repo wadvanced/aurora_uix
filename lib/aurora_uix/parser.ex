@@ -19,27 +19,27 @@ defmodule Aurora.Uix.Parser do
   Returns a default value for a given configuration key.
 
   ## Parameters
-    - parsed_opts (map()) - Parsed configuration options
-    - resource_config (map()) - Module configuration info
-    - key (atom()) - Configuration key to get default value for
+  - `parsed_opts` (`map()`) - Parsed configuration options.
+  - `resource_config` (`map()`) - Module configuration info.
+  - `key` (`atom()`) - Configuration key to get default value for.
 
-  Returns:
-    - term() - The default value for the given key
+  ## Returns
+  `term()` - The default value for the given key.
   """
   @callback default_value(parsed_opts :: map(), resource_config :: map(), key :: atom()) :: term()
 
   @doc """
-  Parses schema and options into a structured configuration map.
+  Parses schema and options into a structured configuration map for UI rendering.
 
   ## Parameters
-    - resource_config (map()) - Module configuration info
-    - opts (keyword()) - Optional config settings:
-      - Aurora.Uix.Parsers.Common.parse/3: Source and schema options
-      - Aurora.Uix.Parsers.IndexParser.parse/3: Index view customization
-      - Aurora.Uix.Parsers.ContextParser.parse/3: Default context functions
+  - `resource_config` (`map()`) - Module configuration info.
+  - `opts` (`keyword()`) - Optional config settings:
+    * Aurora.Uix.Parsers.Common.parse/3: Source and schema options.
+    * Aurora.Uix.Parsers.IndexParser.parse/3: Index view customization.
+    * Aurora.Uix.Parsers.ContextParser.parse/3: Default context functions.
 
-  Returns:
-    - map() with schema metadata, fields config and template settings
+  ## Returns
+  `map()` - Schema metadata, fields config, and template settings.
   """
   @spec parse(map(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do

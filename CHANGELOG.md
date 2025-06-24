@@ -8,27 +8,21 @@ Compatible with Phoenix v1.7+
 Compatible with Phoenix LiveView v1.0+
 
 ### Features
-* Resource Configuration
-  - `auix_resource_metadata/3` - Define schema-based resource configurations with field customizations
-  - `auix_register_resource/3` - Register resources for automatic CRUD function generation
 
-* Layout System
-  - `edit_layout/3` - Define editable form layouts
-  - `show_layout/3` - Create read-only display layouts
-  - `index_columns/3` - Configure resource list view columns
+- **Resource Metadata**
+  - `auix_resource_metadata/3` — Declarative resource and field configuration with field-level options and association support.
 
-* Layout Components
-  - `group/3` - Create visual field groupings with titles
-  - `inline/2` - Arrange fields horizontally
-  - `stacked/2` - Organize fields in vertical layouts
-  - `sections/3` - Group content in tab-like structures
+- **Layout System**
+  - `edit_layout/3`, `show_layout/3`, `index_columns/3` — Macros for defining form, show, and index layouts.
+  - Sub-layouts: `group/3`, `inline/2`, `stacked/2`, `sections/3`, and `section/3` for flexible UI composition.
 
-* UI Generation
-  - Compile-time UI generation through `use Aurora.Uix.Layout.CreateUI`
-  - Dynamic template generation with HEEx support
-  - Integrated i18n support via configurable Gettext backend
+- **Compile-Time UI Generation**
+  - `use Aurora.Uix.Layout.CreateUI` — Generates LiveView modules and templates at compile time for index, form, and show views.
 
-* Development Features
-  - Minimal runtime overhead through compile-time generation
-  - Extensible through custom parsing and rendering strategies
-  - Automatic module generation for index, form, and show views
+- **Extensibility**
+  - Support for custom templates, field renderers, and layout containers.
+  - Integrated i18n support via configurable Gettext backend.
+
+- **Development**
+  - Minimal runtime overhead due to compile-time generation.
+  - Designed for extensibility and customization.

@@ -6,6 +6,11 @@ defmodule Aurora.Uix do
   and UI composition. It is designed to reduce boilerplate code while maintaining flexibility
   for customization.
 
+  ## Key Constraints
+  - Designed for use with Phoenix and Ecto schemas, but supports any structured data format.
+  - Intended to be used via `use Aurora.Uix` in your modules.
+  - Not intended for use outside Phoenix UI layer or for non-UIX applications.
+
   ## Key Features
 
   ### 1. Schema Configuration (`auix_resource_metadata`)

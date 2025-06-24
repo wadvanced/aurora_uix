@@ -35,9 +35,9 @@ defmodule Aurora.Uix.Parsers.ContextParser do
     Parse module and :index options.
 
     ## Parameters
-      - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-      - `resource_config` (map): Contains all the modules' configuration. Should have keys: :context and :schema
-      - `opts` (keyword): List of options for handling valid context.
+      - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+      - `resource_config` (map()): Contains all the modules' configuration. Should have keys: :context and :schema
+      - `opts` (keyword()): List of options for handling valid context.
 
     ## Options
       - `:list_function` - Name of the function for reading all the elements of the resource.
@@ -76,7 +76,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
 
   """
-  @spec parse(map, map, keyword) :: map
+  @spec parse(map(), map(), keyword()) :: map()
   def parse(parsed_opts, resource_config, opts \\ [])
 
   def parse(parsed_opts, %{context: context} = _resource_config, _opts) when is_nil(context),
@@ -97,12 +97,12 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   Resolves default values for context-derived properties.
 
   ### Parameters
-    - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-    - `resource_config` (`map`) -  contains all the modules' configuration.
-    - `key` (`atom`) -  Key value to produce the value from.
+    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `resource_config` (`map()`) -  contains all the modules' configuration.
+    - `key` (`atom()`) -  Key value to produce the value from.
 
   """
-  @spec default_value(map, map, atom) :: any
+  @spec default_value(map(), map(), atom()) :: any()
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
     filter_function(context, ["list_#{source}", "list_#{module}"], 0)
   end
@@ -133,7 +133,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
-  @spec filter_function(module, list, integer) :: atom
+  @spec filter_function(module(), list(), integer()) :: atom()
   defp filter_function(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions
@@ -147,7 +147,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
     |> to_atom()
   end
 
-  @spec to_atom(binary | nil) :: atom
+  @spec to_atom(binary() | nil) :: atom()
   defp to_atom(nil), do: nil
   defp to_atom(function_name), do: String.to_atom(function_name)
 end

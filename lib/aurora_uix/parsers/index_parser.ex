@@ -16,9 +16,9 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   Parse module and :index options.
 
   ## Parameters
-    - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-    - `resource_config` (map): Contains all the modules' configuration.
-    - `opts` (keyword): List of options, the available ones depends on the type of view.
+    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `resource_config` (map()): Contains all the modules' configuration.
+    - `opts` (keyword()): List of options, the available ones depends on the type of view.
 
   ## Options
     - :index and :card opts
@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Parsers.IndexParser do
       - `layout: Uix.Formatter`: Overrides the default layout by using a formatter. See details in the module.
 
   """
-  @spec parse(map, map, keyword) :: map
+  @spec parse(map(), map(), keyword()) :: map()
   def parse(parsed_opts, resource_config, opts) do
     parsed_opts
     |> add_opt(resource_config, opts, :rows)
@@ -51,11 +51,11 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   Produce the default value for the given field.
 
   ## Parameters
-    - `parsed_opts` (`map`) - Map (accumulator) for parsed options.
-    - `resource_config` (map): contains all the modules' configuration.
-    - `field` (atom): Field to produce the default value for.
+    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `resource_config` (map()): contains all the modules' configuration.
+    - `field` (atom()): Field to produce the default value for.
   """
-  @spec default_value(map, map, atom) :: any
+  @spec default_value(map(), map(), atom()) :: any()
   def default_value(_parsed_opts, %{schema: module}, :rows) do
     :source
     |> module.__schema__()

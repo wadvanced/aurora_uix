@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Parsers.ParserCore do
     quote do
       @behaviour Aurora.Uix.Parser
 
-      @spec add_opt(map, map, keyword, atom) :: map
+      @spec add_opt(map(), map(), keyword(), atom()) :: map()
       defp add_opt(parsed_opts, resource_config, opts, key) do
         parsed_opts
         |> default_value(resource_config, key)
@@ -25,7 +25,7 @@ defmodule Aurora.Uix.Parsers.ParserCore do
         |> then(&Map.put_new(parsed_opts, key, &1))
       end
 
-      @spec capitalize(binary) :: binary
+      @spec capitalize(binary()) :: binary()
       defp capitalize(string) do
         string
         |> Macro.underscore()
