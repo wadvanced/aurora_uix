@@ -99,15 +99,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
     <%= if @field.hidden do %>
       <input type="hidden" id={"#{@field.html_id}-#{@_auix._mode}"}
-        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.field].name, value: @_auix._form[@field.field].value},
-         else: %{name: @field.field, value: @auix_entity[@field.field]}} />
+        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.key].name, value: @_auix._form[@field.key].value},
+         else: %{name: @field.key, value: @auix_entity[@field.key]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
           id={"#{@field.html_id}-#{@_auix._mode}"}
           {if @_auix._mode == :form,
-            do: %{field: @_auix._form[@field.field]},
-            else: %{name: @field.field, value: Map.get(@auix_entity || %{}, @field.field)}}
+            do: %{field: @_auix._form[@field.key]},
+            else: %{name: @field.key, value: Map.get(@auix_entity || %{}, @field.key)}}
           type={"#{@field.html_type}"}
           label={@field.label}
           options={@select_opts[:options]}

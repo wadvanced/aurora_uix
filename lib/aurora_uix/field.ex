@@ -3,8 +3,8 @@ defmodule Aurora.Uix.Field do
   A module representing a configurable field in the Aurora.Uix system.
 
   This module defines a struct to represent field properties for UI components, such as:
-    - `field` (`atom`) - The field reference in the schema.
-    - `name` (`binary`) - The field's name as a binary.
+    - `key` (`atom`) - The field reference in the schema.
+    - `name` (`binary`) - The key's name as a binary.
     - `type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
     - `html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `html_id` (`binary`) - A unique html id for the field.
@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Field do
   alias Aurora.Uix.CounterAgent
 
   defstruct [
-    :field,
+    :key,
     :type,
     :html_type,
     :renderer,
@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Field do
   ]
 
   @type t() :: %__MODULE__{
-          field: atom() | nil,
+          key: atom() | nil,
           type: atom() | nil,
           html_type: atom() | binary() | nil,
           html_id: binary(),
@@ -88,12 +88,12 @@ defmodule Aurora.Uix.Field do
   - `attrs` (map() | keyword()) - Initial attributes for the field struct.
 
   ## Returns
-  `Aurora.Uix.Field.t()` - New field struct with derived name and html_id.
+  `Aurora.Uix.Field.t()` - New key struct with derived name and html_id.
 
   ## Examples
   ```elixir
-  Aurora.Uix.Field.new(%{field: :user_name, label: "User"})
-  # => %Aurora.Uix.Field{field: :user_name, name: "user_name", label: "User", ...}
+  Aurora.Uix.Field.new(%{key: :user_name, label: "User"})
+  # => %Aurora.Uix.Field{key: :user_name, name: "user_name", label: "User", ...}
   ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
@@ -132,10 +132,10 @@ defmodule Aurora.Uix.Field do
 
   ## PRIVATE
   @spec update_name(__MODULE__.t()) :: __MODULE__.t()
-  defp update_name(%{field: field} = field_struct) when is_atom(field),
-    do: field_struct |> struct(%{name: to_string(field)}) |> set_field_id()
+  defp update_name(%{key: key} = field_struct) when is_atom(key),
+    do: field_struct |> struct(%{name: to_string(key)}) |> set_field_id()
 
-  defp update_name(%{field: {parent, field}} = field_struct),
+  defp update_name(%{key: {parent, field}} = field_struct),
     do: field_struct |> struct(%{name: "#{parent} #{field}"}) |> set_field_id()
 
   @doc """
@@ -149,22 +149,22 @@ defmodule Aurora.Uix.Field do
 
   ## Examples
   ```elixir
-  field = Aurora.Uix.Field.new(%{field: :foo})
+  field = Aurora.Uix.Field.new(%{key: :foo})
   Aurora.Uix.Field.set_field_id(field)
   # => %Aurora.Uix.Field{html_id: "auix-field-foo-1", ...}
   ```
   """
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
-  def set_field_id(%__MODULE__{field: field_name} = field) when is_nil(field_name), do: field
+  def set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field
 
-  def set_field_id(%__MODULE__{html_id: "", field: field_name, resource: resource} = field)
+  def set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
       when is_nil(resource) do
-    struct(field, %{html_id: "auix-field-#{field_name}-#{CounterAgent.next_count(:auix_fields)}"})
+    struct(field, %{html_id: "auix-field-#{key}-#{CounterAgent.next_count(:auix_fields)}"})
   end
 
-  def set_field_id(%__MODULE__{html_id: "", field: field_name, resource: resource} = field) do
+  def set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
     struct(field, %{
-      html_id: "auix-field-#{resource}-#{field_name}-#{CounterAgent.next_count(:auix_fields)}"
+      html_id: "auix-field-#{resource}-#{key}-#{CounterAgent.next_count(:auix_fields)}"
     })
   end
 

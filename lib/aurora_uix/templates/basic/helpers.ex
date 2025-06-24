@@ -298,12 +298,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   - Field.t() - A Field struct containing the processed field configuration
   """
   @spec get_field(map, map, atom) :: Field.t()
-  def get_field(%{name: field_name} = field, configurations, resource_name) do
+  def get_field(%{name: field_key} = field, configurations, resource_name) do
     configurations
     |> Map.get(resource_name, %{})
     |> Map.get(:resource_config, %{})
     |> Map.get(:fields, %{})
-    |> Map.get(field_name, Field.new(%{field: field_name, resource: resource_name}))
+    |> Map.get(field_key, Field.new(%{key: field_key, resource: resource_name}))
     |> Field.change(Map.get(field, :config, []))
   end
 
@@ -325,7 +325,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Enum.uniq()
     |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
     |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
-    |> Enum.map(&{&1.type, &1.field})
+    |> Enum.map(&{&1.type, &1.key})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
   end
 

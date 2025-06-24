@@ -261,7 +261,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Parameters
   - `name` (atom()): Unique identifier for the index configuration
-  - `fields` (list()): List of field names to display in the index view
+  - `fields` (list()): List of field keys used to display in the index view
 
   ## Behavior
   - Accumulates fields for the specified resource name

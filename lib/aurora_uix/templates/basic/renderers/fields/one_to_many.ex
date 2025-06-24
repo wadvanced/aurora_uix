@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     related_fields =
       field
       |> get_association_fields(auix._configurations)
-      |> Enum.reject(&(&1.field == auix._resource_name))
+      |> Enum.reject(&(&1.key == auix._resource_name))
 
     related_parsed_opts = get_in(auix._configurations, [field.data.resource, :parsed_opts])
 
@@ -72,22 +72,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
-        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}>{"#{@related_parsed_opts.title} Elements"}
+        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}>{"#{@related_parsed_opts.title} Elements"}
             <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @_auix[:_mode] == :form && @auix_entity.id != nil}
                 navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
-                id={"auix-new-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}>
+                id={"auix-new-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}>
               <.icon name="hero-plus" />
             </.auix_link>
         </.label>
       </div>
-      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"} class={@related_class}>
+      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"} class={@related_class}>
         <.table
-          id={"#{@parsed_opts.module}__#{@field.field}-#{@_auix._mode}"}
+          id={"#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}
           auix_css_classes={@_auix._css_classes}
-          rows={Map.get(@auix_entity, @field.field)}
+          rows={Map.get(@auix_entity, @field.key)}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
-          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.field)}</.auix_link></:col>
+          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.key)}</.auix_link></:col>
           <:action :let={entity}>
             <div class="sr-only">
               <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} name={"auix-show-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-show-#{entity.id}-#{@_auix._mode}"}>Show</.auix_link>
@@ -145,7 +145,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     |> Enum.map(fn path_field ->
       path_field
       |> get_field(configurations, field.data.resource)
-      |> then(&%{label: &1.label, field: &1.field, type: &1.type})
+      |> then(&%{label: &1.label, key: &1.key, type: &1.type})
     end)
   end
 end
