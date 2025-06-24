@@ -38,8 +38,8 @@ end
 You can specify field types and custom renderers:
 
 ```elixir
-field :status, field_type: :select, options: ["active", "archived"]
-field :avatar, field_type: :image, renderer: &MyAppWeb.Helpers.avatar/1
+field :status, type: :select, options: ["active", "archived"]
+field :avatar, type: :image, renderer: &MyAppWeb.Helpers.avatar/1
 ```
 
 ## Associations
@@ -54,13 +54,13 @@ The `option_label` option is used **only** for many-to-one associations rendered
 
 - As an atom (field name):
   ```elixir
-  field :category_id, field_html_type: :select, option_label: :name
+  field :category_id, html_type: :select, option_label: :name
   ```
   This will use the `:name` field of the related entity as the label in the dropdown.
 
 - As a function (arity 1):
   ```elixir
-  field :category_id, field_html_type: :select, option_label: &MyApp.Category.label/1
+  field :category_id, html_type: :select, option_label: &MyApp.Category.label/1
   ```
   The function receives the entity and should return a string label.
 
@@ -71,7 +71,7 @@ The `option_label` option is used **only** for many-to-one associations rendered
     end  
   ```
   ```elixir
-  field :category_id, field_html_type: :select, option_label: &MyApp.Warehouse.label/2
+  field :category_id, html_type: :select, option_label: &MyApp.Warehouse.label/2
   ```
   The function receives the assigns and each instance of the associated entity, and should return a string label.
 
@@ -79,7 +79,7 @@ The `option_label` option is used **only** for many-to-one associations rendered
 
 ```elixir
 auix_resource_metadata :product, schema: MyApp.Product do
-  field :category_id, field_html_type: :select, option_label: :name
+  field :category_id, html_type: :select, option_label: :name
 end
 ```
 

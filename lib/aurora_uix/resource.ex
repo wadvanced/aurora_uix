@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Resource do
   # Adds new fields to the resource config that don't already exist
   @spec add_fields(__MODULE__.t(), list()) :: __MODULE__.t()
   defp add_fields(%{fields: resource_config_fields} = resource_config, attrs) do
-    keys = Enum.map(resource_config_fields, & &1.field)
+    keys = Enum.map(resource_config_fields, & &1.key)
 
     resource_config_fields = Enum.reverse(resource_config_fields)
 
@@ -127,7 +127,7 @@ defmodule Aurora.Uix.Resource do
     |> List.last()
     |> elem(1)
     |> Enum.reject(fn
-      field_properties when is_map(field_properties) -> Map.get(field_properties, :field) in keys
+      field_properties when is_map(field_properties) -> Map.get(field_properties, :key) in keys
       field_properties when is_tuple(field_properties) -> elem(field_properties, 0) in keys
       _ -> true
     end)
@@ -138,10 +138,10 @@ defmodule Aurora.Uix.Resource do
 
   # Creates a new field from a tuple or map specification
   @spec create_field(tuple() | map(), list()) :: list()
-  defp create_field({field, properties}, acc) do
+  defp create_field({key, properties}, acc) do
     new_field =
       properties
-      |> Map.put(:field, field)
+      |> Map.put(:key, key)
       |> Field.new()
 
     [new_field | acc]
@@ -149,7 +149,7 @@ defmodule Aurora.Uix.Resource do
 
   defp create_field(%Field{} = field, acc), do: [field | acc]
 
-  defp create_field(%{field: _field_id} = attrs, _acc),
+  defp create_field(%{key: _key} = attrs, _acc),
     do: Field.new(attrs)
 
   defp create_field(_field, acc), do: acc

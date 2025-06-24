@@ -79,11 +79,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   @spec default_render(map()) :: Phoenix.LiveView.Rendered.t()
   # Delegates one-to-many association rendering
-  defp default_render(%{field: %{field_type: :one_to_many_association}} = assigns),
+  defp default_render(%{field: %{type: :one_to_many_association}} = assigns),
     do: OneToMany.render(assigns)
 
   # Delegates many-to-one association rendering
-  defp default_render(%{field: %{field_type: :many_to_one_association}} = assigns),
+  defp default_render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
 
   # Renders standard field types with appropriate HTML structure
@@ -99,16 +99,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
     <%= if @field.hidden do %>
       <input type="hidden" id={"#{@field.html_id}-#{@_auix._mode}"}
-        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.field].name, value: @_auix._form[@field.field].value},
-         else: %{name: @field.field, value: @auix_entity[@field.field]}} />
+        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.key].name, value: @_auix._form[@field.key].value},
+         else: %{name: @field.key, value: @auix_entity[@field.key]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
           id={"#{@field.html_id}-#{@_auix._mode}"}
           {if @_auix._mode == :form,
-            do: %{field: @_auix._form[@field.field]},
-            else: %{name: @field.field, value: Map.get(@auix_entity || %{}, @field.field)}}
-          type={"#{@field.field_html_type}"}
+            do: %{field: @_auix._form[@field.key]},
+            else: %{name: @field.key, value: Map.get(@auix_entity || %{}, @field.key)}}
+          type={"#{@field.html_type}"}
           label={@field.label}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @spec get_select_options(map()) :: map()
   defp get_select_options(%{
          field: %{
-           field_html_type: :select,
+           html_type: :select,
            data: %{resource: resource_name, related_key: related_key}
          }
        })
@@ -136,7 +136,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   defp get_select_options(
          %{
            field: %{
-             field_html_type: :select,
+             html_type: :select,
              data: %{resource: resource_name}
            },
            _auix: %{_configurations: configurations}
@@ -151,7 +151,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> then(&%{options: &1, multiple: false})
   end
 
-  defp get_select_options(%{field: %{field_html_type: :select, data: select}}) do
+  defp get_select_options(%{field: %{html_type: :select, data: select}}) do
     case select[:opts] do
       nil ->
         %{options: [], multiple: false}

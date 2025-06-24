@@ -205,8 +205,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   The following options can be provided to configure the field:
 
-  - `:field` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
-  - `:field_type`(`atom()`) - The html type that best represent the current field elixir type.
+  - `:key` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
+  - `:type`(`atom()`) - The html type that best represent the current field elixir type.
   - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary()`) - Placeholder text for the field.
   - `:length`(`non_neg_integer()`) - Display length of the field.
@@ -313,7 +313,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     fields
     |> Enum.map(fn field ->
       changes
-      |> Map.get(field.field, [])
+      |> Map.get(field.key, [])
       |> apply_field_change(field)
     end)
     |> then(&struct(resource_struct, %{fields: &1}))
@@ -359,10 +359,10 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> Enum.map(fn field ->
         Enum.find(
           fields,
-          %{field: field.name, resource: resource_name}
+          %{key: field.name, resource: resource_name}
           |> Field.new()
           |> Field.change(field.opts),
-          fn field_struct -> field_struct.field == field.name end
+          fn field_struct -> field_struct.key == field.name end
         )
       end)
       |> Enum.reverse()
@@ -371,7 +371,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     # In this way the order defined in the resource config is the one used leaving the
     # unmentioned fields at the bottom.
     fields
-    |> Enum.reject(&(&1.field in changes))
+    |> Enum.reject(&(&1.key in changes))
     |> Enum.reduce(first_fields, &[&1 | &2])
     |> Enum.reverse()
     |> then(&struct(resource_struct, %{fields: &1}))
@@ -392,11 +392,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     fields_order =
       fields
       |> Enum.reject(& &1.omitted)
-      |> Enum.map(& &1.field)
+      |> Enum.map(& &1.key)
       |> Enum.uniq()
 
     fields
-    |> Enum.map(&{&1.field, &1})
+    |> Enum.map(&{&1.key, &1})
     |> Map.new()
     |> then(&Map.merge(resource, %{fields: &1, fields_order: fields_order}))
     |> then(&{resource_name, &1})
@@ -426,22 +426,22 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - Validation constraints
   # - Association data (if applicable)
   @spec parse_field(module(), atom(), atom()) :: Field.t()
-  defp parse_field(module, resource_name, field) do
-    type = module.__schema__(:type, field)
-    association = module.__schema__(:association, field)
+  defp parse_field(module, resource_name, field_key) do
+    type = module.__schema__(:type, field_key)
+    association = module.__schema__(:association, field_key)
 
     attrs = %{
-      field: field,
-      label: field_label(field),
-      placeholder: field_placeholder(field, type),
-      field_type: field_type(type, association),
-      field_html_type: field_html_type(type, association),
+      key: field_key,
+      label: field_label(field_key),
+      placeholder: field_placeholder(field_key, type),
+      type: field_type(type, association),
+      html_type: field_html_type(type, association),
       length: field_length(type),
       precision: field_precision(type),
       scale: field_scale(type),
-      disabled: field_disabled(field),
-      omitted: field_omitted(field),
-      hidden: field_hidden(field),
+      disabled: field_disabled(field_key),
+      omitted: field_omitted(field_key),
+      hidden: field_hidden(field_key),
       resource: resource_name,
       data: field_data(association)
     }
@@ -537,7 +537,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Checks if a field should be disabled
   # Disabled fields: id, deleted, inactive
   @spec field_disabled(atom()) :: boolean()
-  defp field_disabled(field) when field in [:id, :deleted, :inactive],
+  defp field_disabled(key) when key in [:id, :deleted, :inactive],
     do: true
 
   defp field_disabled(_field), do: false
@@ -545,7 +545,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Checks if a field should be omitted
   # Omitted fields: inserted_at, updated_at
   @spec field_omitted(atom()) :: boolean()
-  defp field_omitted(field) when field in [:inserted_at, :updated_at],
+  defp field_omitted(key) when key in [:inserted_at, :updated_at],
     do: true
 
   defp field_omitted(_field), do: false
@@ -620,13 +620,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # Includes association metadata and proper field type
   @spec parse_association(module(), atom(), list(Resource.t()), atom(), map()) ::
           list(Resource.t())
-  defp parse_association(schema, resource_name, resources, association_field, fields) do
+  defp parse_association(schema, resource_name, resources, association_field_key, fields) do
     :association
-    |> schema.__schema__(association_field)
+    |> schema.__schema__(association_field_key)
     |> then(
       &Field.new(
-        field: association_field,
-        field_type: field_html_type(nil, &1),
+        key: association_field_key,
+        html_type: field_html_type(nil, &1),
+        type: field_type(nil, &1),
         data: Map.put(field_data(&1), :resource, field_resource(&1, resources)),
         resource: resource_name
       )
@@ -637,9 +638,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec configure_many_to_one_selectors(Resource.t()) :: Resource.t()
   defp configure_many_to_one_selectors(%{fields: fields} = resource) do
     fields
-    |> Enum.filter(&(&1.field_type == :many_to_one_association))
+    |> Enum.filter(&(&1.type == :many_to_one_association))
     |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
-    |> Enum.map(&{&1.data.owner_key, %{field_html_type: :select, data: &1.data}})
+    |> Enum.map(&{&1.data.owner_key, %{html_type: :select, data: &1.data}})
     |> Enum.reduce(fields, &replace_related_field/2)
     |> then(&struct(resource, %{fields: &1}))
   end
@@ -649,13 +650,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     do: Enum.map(fields, &replace_related_field_data(&1, related_changes))
 
   @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
-  defp replace_related_field_data(%{ield_type: field_type} = field, _related_changes)
-       when field_type in [:many_to_one_association, :one_to_many_association],
+  defp replace_related_field_data(%{type: type} = field, _related_changes)
+       when type in [:many_to_one_association, :one_to_many_association],
        do: field
 
   defp replace_related_field_data(
-         %{field: field_name, label: label} = field,
-         {field_name, changes}
+         %{key: field_key, label: label} = field,
+         {field_key, changes}
        ) do
     label
     |> Kernel.||("")

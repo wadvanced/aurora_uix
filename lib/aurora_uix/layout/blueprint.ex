@@ -261,7 +261,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Parameters
   - `name` (atom()): Unique identifier for the index configuration
-  - `fields` (list()): List of field names to display in the index view
+  - `fields` (list()): List of field keys used to display in the index view
 
   ## Behavior
   - Accumulates fields for the specified resource name
@@ -447,7 +447,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         &(get_in(resource_config, [
             Access.key!(:fields),
             Access.key!(&1),
-            Access.key!(:field_type)
+            Access.key!(:type)
           ]) in [:many_to_one_association, :one_to_many_association])
       )
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
@@ -470,7 +470,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         &(get_in(resource_config, [
             Access.key!(:fields),
             Access.key!(&1),
-            Access.key!(:field_type)
+            Access.key!(:type)
           ]) in [:many_to_one_association, :one_to_many_association])
       )
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})

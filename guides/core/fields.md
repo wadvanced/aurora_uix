@@ -4,7 +4,7 @@ You can customize field behavior and appearance in Aurora UIX.
 
 ## Field Options
 
-- `field_html_type` — The HTML type of the field. Handled types: `:text`, `:number`, `:checkbox`, `:select`, `:datetime-local`, `:time`, `:one_to_many_association`, `:many_to_one_association`.
+- `html_type` — The HTML type of the field. Handled types: `:text`, `:number`, `:checkbox`, `:select`, `:datetime-local`, `:time`, `:one_to_many_association`, `:many_to_one_association`.
 - `html_id` — A unique HTML id for the field.
 - `renderer` — A custom rendering function for the field.
 - `label` — Display label for the field.
@@ -25,8 +25,8 @@ auix_resource_metadata :product, schema: MyApp.Product do
   field :id, hidden: true
   field :reference, readonly: true, length: 30
   field :description, length: 255, required: true, placeholder: "Enter description"
-  field :price, field_html_type: :number, precision: 8, scale: 2
-  field :category_id, field_html_type: :select, option_label: :name
+  field :price, html_type: :number, precision: 8, scale: 2
+  field :category_id, html_type: :select, option_label: :name
   field :avatar, renderer: &MyAppWeb.Helpers.avatar/1
 end
 ```

@@ -33,7 +33,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(
         %{
-          field: %{field_type: :many_to_one_association} = field_struct,
+          field: %{type: :many_to_one_association} = field_struct,
           _auix: %{_path: %{name: field_name}} = auix
         } = assigns
       )
@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     |> Renderer.render()
   end
 
-  def render(%{field: %{field_type: :many_to_one_association}} = assigns) do
+  def render(%{field: %{type: :many_to_one_association}} = assigns) do
     assigns
     |> parse_many_to_one_value()
     |> set_many_to_one_resource()
@@ -65,7 +65,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     configurations
     |> get_in([field_struct.data.resource, :defaulted_paths, path_type, :inner_elements])
     |> Kernel.||([])
-    |> convert_to_many_to_one_paths(field_struct.field)
+    |> convert_to_many_to_one_paths(field_struct.key)
   end
 
   # Converts a list of paths to many-to-one field paths
@@ -155,7 +155,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
         field.resource,
         :resource_config,
         Access.key!(:fields),
-        field.field
+        field.key
       ],
       field
     )
