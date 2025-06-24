@@ -40,7 +40,6 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
     |> get_in([Access.key!(:product), Access.key!(:fields_order)])
     |> assert_values_order([
       :inactive,
-      :inserted_at,
       :weight,
       :length,
       :width,

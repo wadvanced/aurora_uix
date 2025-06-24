@@ -118,6 +118,5 @@ defmodule Aurora.Uix.Test.Web.Router do
       LocalDemoTest,
       "local-demo-"
     )
-
   end
 end

@@ -66,7 +66,8 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   `map()` - Standardized component entry map.
   """
-  @spec register_dsl_entry(atom(), atom(), keyword() | tuple() | nil, keyword(), any()) :: Macro.t()
+  @spec register_dsl_entry(atom(), atom(), keyword() | tuple() | nil, keyword(), any()) ::
+          Macro.t()
   def register_dsl_entry(tag, name, config, opts, do_block) do
     {block, opts} = extract_block_options(opts, do_block)
 

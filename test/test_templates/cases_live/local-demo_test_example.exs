@@ -15,9 +15,9 @@ defmodule Aurora.Uix.Test.Web.LocalDemoTest do
     alias Aurora.Uix.Test.Inventory.ProductLocation
     alias Aurora.Uix.Test.Inventory.ProductTransaction
 
-    auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
+    auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
-    auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
     auix_resource_metadata(:product, context: Inventory, schema: Product) do
     end
@@ -42,11 +42,9 @@ defmodule Aurora.Uix.Test.Web.LocalDemoTest do
     # live("/local-demo-product_locations/:id/show/edit", LocalDemoTest.TestModule.ProductLocation.Show, :edit)
     auix_create_ui(link_prefix: "local-demo-") do
     end
-
   end
 
   test "Local empty_test", %{conn: conn} do
     live(conn, "/local-demo-products")
   end
-
 end
