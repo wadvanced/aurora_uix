@@ -1,6 +1,9 @@
 defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
   @moduledoc """
-  Represents a transaction for a product in the inventory.
+  Symbolic Ecto schema for product transactions in test inventory scenarios.
+
+  ## Key Features
+  - Used for testing inventory-related features.
   """
 
   use Ecto.Schema
@@ -32,9 +35,16 @@ defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
   end
 
   @doc """
-  Creates a changeset for a product transaction.
+  Creates a changeset for ProductTransaction.
+
+  ## Parameters
+  - `product_transaction` (ProductTransaction.t() | Ecto.Changeset.t()) - The struct or changeset to update.
+  - `attrs` (map()) - The attributes to apply.
+
+  ## Returns
+  Ecto.Changeset.t() - The resulting changeset.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(__MODULE__.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def changeset(product_transaction, attrs) do
     product_transaction
     |> cast(attrs, [:type, :quantity, :cost, :product_id])

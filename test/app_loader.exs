@@ -1,10 +1,17 @@
 defmodule Aurora.Uix.Test.AppLoader do
   @moduledoc """
-    Helps loading the app files
+  Utilities for loading application files for testing.
+
+  ## Key Features
+  - Loads all modules under test/support/app and test/support/app_web.
+  - Recursively loads modules in given paths for test setup.
   """
 
   @doc """
-  Loads all modules under test/support/app and test/support/app_web
+  Loads all modules under test/support/app and test/support/app_web.
+
+  ## Returns
+  :ok - Always returns :ok after loading modules.
   """
   @spec load_app() :: :ok
   def load_app do
@@ -13,17 +20,20 @@ defmodule Aurora.Uix.Test.AppLoader do
   end
 
   @doc """
-  Loads modules in test/support +  given path.
+  Loads modules in test/support plus the given path.
 
   ## Parameters
-    - `path` (binary): Path to be appended.
+  - `path` (binary()) - Path to be appended.
+
+  ## Returns
+  :ok - Always returns :ok after loading modules.
   """
-  @spec load_modules(binary) :: :ok
+  @spec load_modules(binary()) :: :ok
   def load_modules(path) when is_binary(path) do
     load_modules(["test", "support", path])
   end
 
-  @spec load_modules(binary) :: :ok
+  @spec load_modules(list(binary())) :: :ok
   def load_modules(paths) when is_list(paths) do
     paths
     |> Path.join()
@@ -39,7 +49,7 @@ defmodule Aurora.Uix.Test.AppLoader do
     end)
   end
 
-  @spec recursive_list_dir(binary) :: [binary]
+  @spec recursive_list_dir(binary()) :: [binary()]
   defp recursive_list_dir(path) do
     path
     |> list_dir()
@@ -47,14 +57,14 @@ defmodule Aurora.Uix.Test.AppLoader do
     |> List.flatten()
   end
 
-  @spec dir?(binary, binary) :: boolean
+  @spec dir?(binary(), binary()) :: boolean()
   defp dir?(path, file_name) do
     path
     |> Path.join(file_name)
     |> File.dir?()
   end
 
-  @spec list_dir(binary) :: [binary]
+  @spec list_dir(binary()) :: [binary()]
   defp list_dir(path) do
     case File.ls(path) do
       {:ok, files} ->

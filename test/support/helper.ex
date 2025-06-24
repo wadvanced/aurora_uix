@@ -1,7 +1,10 @@
 defmodule Aurora.Uix.Test.Support.Helper do
   @moduledoc """
   Helper functions for test data generation.
-  Provides utilities to create sample records for testing purposes.
+
+  ## Key Features
+  - Utilities to create sample records for testing purposes.
+  - Generates products, product locations, and transactions for test scenarios.
   """
 
   alias Aurora.Uix.Test.Inventory.Product
@@ -14,10 +17,13 @@ defmodule Aurora.Uix.Test.Support.Helper do
   @doc """
   Creates a sequence of sample products with incremental IDs.
 
-  - count: integer() - Number of products to create
-  - prefix: atom() - prefix to use in the reference of the product.
+  ## Parameters
+  - `count` (integer()) - Number of products to create.
+  - `prefix` (atom() | nil) - Prefix to use in the reference of the product.
+  - `attrs` (map()) - Attributes to override defaults.
 
-  Returns: map() - Map of product IDs with atom keys in the format `id_n`
+  ## Returns
+  map() - Map of product IDs with atom keys in the format `id_n`.
   """
   @spec create_sample_products(integer(), atom() | nil, map()) :: map()
   def create_sample_products(count, prefix \\ nil, attrs \\ %{}) do
@@ -40,6 +46,17 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> Map.new()
   end
 
+  @doc """
+  Creates sample products with associated transactions.
+
+  ## Parameters
+  - `product_count` (integer()) - Number of products to create.
+  - `transactions_count` (integer()) - Number of transactions per product.
+  - `prefix` (atom() | nil) - Prefix for product references.
+
+  ## Returns
+  map() - Map of product IDs with associated transactions.
+  """
   @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil) :: map()
   def create_sample_products_with_transactions(product_count, transactions_count, prefix \\ nil) do
     product_count
@@ -47,6 +64,15 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> Enum.map(&create_sample_product_transactions(&1, transactions_count))
   end
 
+  @doc """
+  Creates sample product locations.
+
+  ## Parameters
+  - `locations_count` (integer()) - Number of locations to create.
+
+  ## Returns
+  list(ProductLocation.t()) - List of created product locations.
+  """
   @spec create_sample_product_locations(integer()) :: list(ProductLocation.t())
   def create_sample_product_locations(locations_count) do
     1..locations_count
@@ -63,7 +89,8 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> Map.new()
   end
 
-  @spec create_sample_product_transactions(Ecto.Schema.t(), integer()) :: Ecto.Schema.t()
+  @spec create_sample_product_transactions({binary(), Ecto.Schema.t()}, integer()) ::
+          {binary(), Ecto.Schema.t()}
   defp create_sample_product_transactions(product, transactions_count) do
     1..transactions_count
     |> Enum.map(fn index ->
@@ -77,7 +104,6 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> then(fn _ -> product end)
   end
 
-  @doc false
   @spec reference_id(atom() | binary() | nil, integer(), integer()) :: binary()
   defp reference_id(nil, index, length), do: reference_id("", index, length)
 

@@ -1,30 +1,22 @@
 defmodule Aurora.Uix.Test.Web.DataCase do
   @moduledoc """
-  This module defines the setup for tests requiring
-  access to the application's data layer.
+  Setup for tests requiring access to the application's data layer.
 
-  You may define functions here to be used as helpers in
-  your tests.
-
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use Aurora.Uix.Test.DataCase, async: true`, although
-  this option is not recommended for other databases.
+  ## Key Features
+  - Provides helpers for data-related tests.
+  - Enables SQL sandbox for database tests.
+  - Supports async database tests for PostgreSQL.
   """
 
   use ExUnit.CaseTemplate
 
   alias Aurora.Uix.Test.Repo
   alias Aurora.Uix.Test.Web.DataCase
-
   alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
       alias Aurora.Uix.Test.Repo
-
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
@@ -39,8 +31,14 @@ defmodule Aurora.Uix.Test.Web.DataCase do
 
   @doc """
   Sets up the sandbox based on the test tags.
+
+  ## Parameters
+  - `tags` (keyword()) - Test tags.
+
+  ## Returns
+  :ok - Always returns :ok after setting up the sandbox.
   """
-  @spec setup_sandbox(keyword) :: :ok
+  @spec setup_sandbox(keyword()) :: :ok
   def setup_sandbox(tags) do
     pid = Sandbox.start_owner!(Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)

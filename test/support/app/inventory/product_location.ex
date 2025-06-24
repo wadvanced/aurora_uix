@@ -1,13 +1,13 @@
 defmodule Aurora.Uix.Test.Inventory.ProductLocation do
   @moduledoc """
-  Schema for Product Locations in the inventory system.
-  Tracks product quantities, location details and inventory movements.
+  Symbolic Ecto schema for product locations in test inventory scenarios.
+
+  ## Key Features
+  - Used for testing inventory-related features.
   """
 
   use Ecto.Schema
   import Ecto.Changeset
-
-  alias Aurora.Uix.Test.Inventory.ProductLocation
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -33,12 +33,14 @@ defmodule Aurora.Uix.Test.Inventory.ProductLocation do
   @doc """
   Creates a changeset for ProductLocation.
 
-  - product_location: ProductLocation.t() | Ecto.Changeset.t() - The struct or changeset to update
-  - attrs: map() - The attributes to apply
+  ## Parameters
+  - `product_location` (ProductLocation.t() | Ecto.Changeset.t()) - The struct or changeset to update.
+  - `attrs` (map()) - The attributes to apply.
 
-  Returns: Ecto.Changeset.t() - The resulting changeset
+  ## Returns
+  Ecto.Changeset.t() - The resulting changeset.
   """
-  @spec changeset(ProductLocation.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(__MODULE__.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def changeset(product_location, attrs) do
     product_location
     |> cast(attrs, [

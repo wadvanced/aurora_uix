@@ -1,18 +1,11 @@
 defmodule Aurora.Uix.Test.Web.ConnCase do
   @moduledoc """
-  This module defines the test case to be used by
-  tests that require setting up a connection.
+  Test case to be used by tests that require setting up a connection.
 
-  Such tests rely on `Phoenix.ConnTest` and also
-  import other functionality to make it easier
-  to build common data structures and query the data layer.
-
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use Aurora.Uix.Test.Web.ConnCase, async: true`, although
-  this option is not recommended for other databases.
+  ## Key Features
+  - Uses Phoenix.ConnTest and related helpers for connection tests.
+  - Enables SQL sandbox for database tests.
+  - Supports async database tests for PostgreSQL.
   """
 
   use ExUnit.CaseTemplate
