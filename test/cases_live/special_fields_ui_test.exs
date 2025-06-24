@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
 
     auix_resource_metadata :product, context: Inventory, schema: Product do
       field(:status,
-        field_html_type: :select,
+        html_type: :select,
         data: [
           opts: [
             "In stock": "in_stock",

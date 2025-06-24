@@ -435,7 +435,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       label: field_label(field),
       placeholder: field_placeholder(field, type),
       type: field_type(type, association),
-      field_html_type: field_html_type(type, association),
+      html_type: field_html_type(type, association),
       length: field_length(type),
       precision: field_precision(type),
       scale: field_scale(type),
@@ -626,7 +626,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(
       &Field.new(
         field: association_field,
-        field_html_type: field_html_type(nil, &1),
+        html_type: field_html_type(nil, &1),
         type: field_type(nil, &1),
         data: Map.put(field_data(&1), :resource, field_resource(&1, resources)),
         resource: resource_name
@@ -640,7 +640,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     fields
     |> Enum.filter(&(&1.type == :many_to_one_association))
     |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
-    |> Enum.map(&{&1.data.owner_key, %{field_html_type: :select, data: &1.data}})
+    |> Enum.map(&{&1.data.owner_key, %{html_type: :select, data: &1.data}})
     |> Enum.reduce(fields, &replace_related_field/2)
     |> then(&struct(resource, %{fields: &1}))
   end

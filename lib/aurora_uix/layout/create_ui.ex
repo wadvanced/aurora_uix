@@ -396,9 +396,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp maybe_add_association_info(%{tag: :field, name: name} = field, fields) do
     fields
     |> Map.get(name, %{type: nil, resource: nil})
-    |> then(
-      &Map.merge(field, %{type: &1.type, resource: &1.resource, inner_elements: []})
-    )
+    |> then(&Map.merge(field, %{type: &1.type, resource: &1.resource, inner_elements: []}))
   end
 
   defp maybe_add_association_info(field, _fields), do: Map.put(field, :inner_elements, [])

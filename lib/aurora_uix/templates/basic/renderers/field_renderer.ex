@@ -108,7 +108,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
           {if @_auix._mode == :form,
             do: %{field: @_auix._form[@field.field]},
             else: %{name: @field.field, value: Map.get(@auix_entity || %{}, @field.field)}}
-          type={"#{@field.field_html_type}"}
+          type={"#{@field.html_type}"}
           label={@field.label}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @spec get_select_options(map()) :: map()
   defp get_select_options(%{
          field: %{
-           field_html_type: :select,
+           html_type: :select,
            data: %{resource: resource_name, related_key: related_key}
          }
        })
@@ -136,7 +136,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   defp get_select_options(
          %{
            field: %{
-             field_html_type: :select,
+             html_type: :select,
              data: %{resource: resource_name}
            },
            _auix: %{_configurations: configurations}
@@ -151,7 +151,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     |> then(&%{options: &1, multiple: false})
   end
 
-  defp get_select_options(%{field: %{field_html_type: :select, data: select}}) do
+  defp get_select_options(%{field: %{html_type: :select, data: select}}) do
     case select[:opts] do
       nil ->
         %{options: [], multiple: false}

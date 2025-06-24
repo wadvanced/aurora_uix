@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Field do
     - `field` (`atom`) - The field reference in the schema.
     - `name` (`binary`) - The field's name as a binary.
     - `type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
-    - `field_html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
+    - `html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `html_id` (`binary`) - A unique html id for the field.
     - `renderer` (`function`) - A custom rendering function for the field.
     - `data` (`any`) - A general purpose field.
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Field do
   defstruct [
     :field,
     :type,
-    :field_html_type,
+    :html_type,
     :renderer,
     :data,
     :resource,
@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Field do
   @type t() :: %__MODULE__{
           field: atom() | nil,
           type: atom() | nil,
-          field_html_type: atom() | binary() | nil,
+          html_type: atom() | binary() | nil,
           html_id: binary(),
           renderer: function() | nil,
           data: any() | nil,
