@@ -102,6 +102,8 @@ defmodule Aurora.Uix.Template do
   """
   @callback default_core_components_module() :: module()
 
+  @callback template_component_modules() :: list(module())
+
   @doc """
   Returns CSS class mappings for different template components.
 
