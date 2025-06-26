@@ -409,7 +409,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `mode` (atom()): The rendering mode (`:index`, `:form`, or `:show`).
 
   ## Returns
-  - `map()`: A map representing the UI structure.
+  - map(): A map representing the UI structure.
 
   ## Modes and Behaviour
 

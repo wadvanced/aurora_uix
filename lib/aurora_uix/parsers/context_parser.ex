@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
     Parse module and :index options.
 
     ## Parameters
-      - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+      - `parsed_opts` (map()) - Map (accumulator) for parsed options.
       - `resource_config` (map()): Contains all the modules' configuration. Should have keys: :context and :schema
       - `opts` (keyword()): List of options for handling valid context.
 
@@ -97,8 +97,8 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   Resolves default values for context-derived properties.
 
   ### Parameters
-    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
-    - `resource_config` (`map()`) -  contains all the modules' configuration.
+    - `parsed_opts` (map()) - Map (accumulator) for parsed options.
+    - `resource_config` (map()) -  contains all the modules' configuration.
     - `key` (`atom()`) -  Key value to produce the value from.
 
   """

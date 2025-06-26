@@ -86,8 +86,8 @@ defmodule Aurora.Uix.Template do
   Generates the handling code for the given mode.
 
   ## Parameters
-  - `modules` (`map()`) - Map with caller, module, web and context modules.
-  - `parsed_opts` (`map()`) - Customization options for code generation.
+  - `modules` (map()) - Map with caller, module, web and context modules.
+  - `parsed_opts` (map()) - Customization options for code generation.
 
   ## Returns
   `Macro.t()` - Generated module code.
@@ -106,7 +106,7 @@ defmodule Aurora.Uix.Template do
   Returns CSS class mappings for different template components.
 
   ## Returns
-  `map()` - A map with component categories as keys and CSS class mappings as values.
+  map() - A map with component categories as keys and CSS class mappings as values.
   """
   @callback css_classes() :: %{atom() => map()}
 
@@ -129,8 +129,8 @@ defmodule Aurora.Uix.Template do
   Extracts the value of a specified field from an entity.
 
   ## Parameters
-  - `entity` (`tuple()` | `struct()` | `map()`) - Entity containing field values.
-  - `field_config` (`map()`) - Field configuration with field key.
+  - `entity` (tuple() | `struct()` | map()) - Entity containing field values.
+  - `field_config` (map()) - Field configuration with field key.
 
   ## Returns
   `term()` - Value of the specified field or nil if not found.

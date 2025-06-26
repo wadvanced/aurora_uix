@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Resource do
   Creates a new `Aurora.Uix.Resource` struct with the given attributes.
 
   ## Parameters
-  - `attrs` (`map()` | `keyword()`) - Initial attributes with :name, :schema, :context, and :fields keys.
+  - `attrs` (map() | `keyword()`) - Initial attributes with :name, :schema, :context, and :fields keys.
 
   ## Returns
   `Aurora.Uix.Resource.t()` - A new resource struct.
@@ -49,7 +49,7 @@ defmodule Aurora.Uix.Resource do
 
   ## Parameters
   - `resource_config` (`Aurora.Uix.Resource.t()`) - Existing resource struct to update.
-  - `attrs` (`map()` | `keyword()`) - Attributes to update with :name, :schema, :context, and :fields keys.
+  - `attrs` (map() | `keyword()`) - Attributes to update with :name, :schema, :context, and :fields keys.
 
   ## Returns
   `Aurora.Uix.Resource.t()` - Updated resource struct.
