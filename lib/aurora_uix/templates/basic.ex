@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   @doc """
   Generates logic modules based on the provided configuration.
@@ -73,6 +74,11 @@ defmodule Aurora.Uix.Web.Templates.Basic do
       index_renderer: index_renderer(),
       show_renderer: show_renderer()
     }
+  end
+
+  @spec template_component_modules() :: list(module())
+  def template_component_modules do
+    [RoutingComponents]
   end
 
   ## PRIVATE

@@ -13,7 +13,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
