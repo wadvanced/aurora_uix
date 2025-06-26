@@ -10,9 +10,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   - Integrates with form components
   - Integrates with Aurora UIX context and helpers
   """
-
-  import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
-    only: [module_name: 3, remove_omitted_fields: 1]
+  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates a show view LiveView module with detail display and section handling.
@@ -27,11 +25,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   """
   @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
-    parsed_opts = remove_omitted_fields(parsed_opts)
+    parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     get_function = parsed_opts.get_function
-    show_module = module_name(modules, parsed_opts, ".Show")
-    form_component = module_name(modules, parsed_opts, ".FormComponent")
+    show_module = ModulesGenerator.module_name(modules, parsed_opts, ".Show")
+    form_component = ModulesGenerator.module_name(modules, parsed_opts, ".FormComponent")
     alias_form_component = Module.concat(["#{parsed_opts.module_name}FormComponent"])
     components = Aurora.Uix.Web.Components.AuroraCoreComponents
     core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers

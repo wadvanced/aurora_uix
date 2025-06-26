@@ -14,10 +14,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  import Aurora.Uix.Web.Templates.Basic.ModulesGenerator,
-    only: [module_name: 3, remove_omitted_fields: 1]
-
   alias Aurora.Uix.Web.Templates.Basic.Helpers
+  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates a LiveComponent module for form handling.
@@ -32,13 +30,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   """
   @spec generate_module(map(), map()) :: Macro.t()
   def generate_module(modules, %{_path: %{tag: :form}} = parsed_opts) do
-    parsed_opts = remove_omitted_fields(parsed_opts)
+    parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     change_function = parsed_opts.change_function
     create_function = parsed_opts.create_function
     get_function = parsed_opts.get_function
     update_function = parsed_opts.update_function
-    form_component = module_name(modules, parsed_opts, ".FormComponent")
+    form_component = ModulesGenerator.module_name(modules, parsed_opts, ".FormComponent")
     core_helpers = Aurora.Uix.Web.Templates.Basic.Helpers
 
     one2many_preload =
