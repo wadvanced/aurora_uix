@@ -12,8 +12,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   - Integrates with Aurora UIX context and helpers
   """
 
-  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
-
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderer
 
   @doc """
@@ -181,7 +180,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
          configurations
        ) do
     %{name: field_name}
-    |> get_field(configurations, resource_name)
+    |> BasicHelpers.get_field(configurations, resource_name)
     |> struct(%{readonly: true, disabled: true})
     |> Map.update(:label, "", &"#{parent_label}#{&1}")
   end

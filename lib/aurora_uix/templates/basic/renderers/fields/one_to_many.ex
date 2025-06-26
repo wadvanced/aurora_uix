@@ -13,9 +13,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
   import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -144,7 +144,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     |> Enum.filter(&(&1.tag == :field))
     |> Enum.map(fn path_field ->
       path_field
-      |> get_field(configurations, field.data.resource)
+      |> BasicHelpers.get_field(configurations, field.data.resource)
       |> then(&%{label: &1.label, key: &1.key, type: &1.type})
     end)
   end
