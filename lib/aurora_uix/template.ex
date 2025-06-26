@@ -125,65 +125,6 @@ defmodule Aurora.Uix.Template do
   @spec uix_template() :: module()
   def uix_template, do: validate(@uix_template)
 
-  @doc """
-  Extracts the value of a specified field from an entity.
-
-  ## Parameters
-  - `entity` (tuple() | `struct()` | map()) - Entity containing field values.
-  - `field_config` (map()) - Field configuration with field key.
-
-  ## Returns
-  `term()` - Value of the specified field or nil if not found.
-
-  ## Examples
-  ```elixir
-  Aurora.Uix.Template.field_row_value({1, %{foo: 42}}, %{field: :foo})
-  # => 42
-  Aurora.Uix.Template.field_row_value(%{bar: "baz"}, %{field: :bar, type: :string})
-  # => "baz"
-  Aurora.Uix.Template.field_row_value(%{}, %{field: :id})
-  # => "id"
-  ```
-  """
-  @spec field_row_value(tuple() | struct() | map(), map()) :: term()
-  def field_row_value({_id, entity}, %{field: field}), do: Map.get(entity, field)
-
-  def field_row_value(entity, %{field: field, type: type})
-      when type not in [:one_to_many_association, :many_to_one_association],
-      do: Map.get(entity, field, "")
-
-  def field_row_value(_auix_entity, %{field: field}), do: to_string(field)
-
-  @doc """
-  Safely converts a binary to an existing atom.
-
-  ## Parameters
-  - `name` (`term()` | `nil`) - The name to convert to an atom.
-
-  ## Returns
-  `atom()` | `nil` - The existing atom if it exists, otherwise nil.
-
-  ## Examples
-  ```elixir
-  Aurora.Uix.Template.safe_existing_atom("foo")
-  # => :foo (if :foo exists)
-  Aurora.Uix.Template.safe_existing_atom(:bar)
-  # => :bar
-  Aurora.Uix.Template.safe_existing_atom("nonexistent")
-  # => nil
-  ```
-  """
-  @spec safe_existing_atom(term() | nil) :: atom() | nil
-  def safe_existing_atom(name) when is_binary(name) do
-    String.to_existing_atom(name)
-  catch
-    _ -> nil
-  end
-
-  def safe_existing_atom(name) when is_atom(name), do: name
-
-  def safe_existing_atom(_name), do: nil
-
   ## PRIVATE
 
   # Validates that a module implements the required behavior and exports expected functions

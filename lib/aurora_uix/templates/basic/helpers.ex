@@ -13,8 +13,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
-  import Aurora.Uix.Template, only: [safe_existing_atom: 1]
-
   alias Aurora.Uix.Field
   alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
@@ -389,6 +387,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     end)
     |> Enum.map_join("<br>", &"#{elem(&1, 0)}: #{elem(&1, 1)}")
   end
+
+  @doc """
+  Safely converts a binary to an existing atom.
+
+  ## Parameters
+  - `name` (`term()` | `nil`) - The name to convert to an atom.
+
+  ## Returns
+  `atom()` | `nil` - The existing atom if it exists, otherwise nil.
+
+  """
+  @spec safe_existing_atom(term() | nil) :: atom() | nil
+  def safe_existing_atom(name) when is_binary(name) do
+    String.to_existing_atom(name)
+  catch
+    _ -> nil
+  end
+
+  def safe_existing_atom(name) when is_atom(name), do: name
+
+  def safe_existing_atom(_name), do: nil
 
   ## PRIVATE
   # Performs JavaScript navigation to a given URI, ensuring proper decode and formatting
