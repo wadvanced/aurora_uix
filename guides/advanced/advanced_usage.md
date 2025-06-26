@@ -30,14 +30,6 @@ config :aurora_uix, :core_components_module, MyAppWeb.MyCoreComponents
 
 When this config is set, Aurora UIX will use your custom core components module throughout the application, unless a different module is explicitly passed to `CoreComponentsImporter`.
 
-## Template Utilities
-
-Aurora UIX provides several utility functions for working with templates:
-
-- `Aurora.Uix.Template.uix_template/0`: Returns the validated template module based on your configuration.
-- `Aurora.Uix.Template.field_row_value/2`: Extracts a field value from an entity for rendering.
-- `Aurora.Uix.Template.safe_existing_atom/1`: Safely converts a binary to an existing atom, or returns nil if not found.
-
 ## Notes
 
 - Only the callbacks listed above are required by the core behavior and present in the default template implementation. If you need custom markup or layout parsing, you can add additional functions to your own template modules.
