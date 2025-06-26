@@ -1,103 +1,75 @@
 defmodule Aurora.Uix.Parsers.Common do
   @moduledoc """
-  Handles common parsing logic for extracting metadata from Ecto schema modules.
+  Common parsing utilities for extracting and transforming metadata from Ecto schema modules.
 
-  Provides mechanisms to:
-  - Extract default values for various module attributes
-  - Generate module-specific metadata
-  - Transform schema information into user-friendly configurations
+  ## Key features
+  - Extracts default values for module attributes (e.g., name, title, source).
+  - Generates module-specific metadata for UI configuration.
+  - Transforms schema information into user-friendly options.
+  - Supports extensive configuration for customizing UI generation.
 
-  Supports a wide range of configuration options for customizing UI generation.
+  ## Key constraints
+  - Expects `:schema` key in resource config map.
+  - Designed for use with Ecto schema modules.
+
+  ## Common options
+  - `:actions` (list({integer(), function()})) - List of {position, function} tuples for UI actions.
+  - `:add_actions` (list()) - Additional actions to append.
+  - `:fields` (list(atom())) - Fields to be used, overrides the default list. The default list is created with all the fields found in the module, excluding the redacted fields.
+  - `:link_prefix` (binary()) - The link prefix inserted for paths. By default, this is blank. When used, the path is the link_prefix plus the source.
+  - `:name` (binary()) - Name of the schema. By default, uses the last part of the module name.
+  - `:remove` (list(atom())) - List of fields to be removed from the list. Trying to remove non-existing fields will log a warning, but no error will be raised.
+  - `:remove_actions` (list()) - Removes actions from the current list.
+  - `:source` (binary()) - Key of the data. By default, resolves the source from the schema source value. Uses the function `__schema__/1` passing `:source` as the argument.
+  - `:sub_title` (binary() | :hide) - Subtitle for the view, a `:hide` value will disallow its generation.
+  - `:template` (module()) - Overrides the module that handles the generation. By default, uses `Aurora.Uix.Web.AuroraTemplate`, which is a sophisticated and highly opinionated template. There is also the `Aurora.Uix.Web.PhoenixTemplate`, which resembles the Phoenix UI. The template can also be configured application-wide by adding `:aurora_uix, template: Module`. New templates can be authored.
+  - `:title` (binary()) - Title for the UI. Uses the capitalized schema source as the title.
   """
 
-  use Aurora.Uix.Parsers.ParserCore
+  @behaviour Aurora.Uix.Parser
 
   @doc """
-  Extracts schema metadata and merges common options.
+  Returns the list of supported option keys for schema metadata extraction.
 
-  ## Parameters
-  - `parsed_opts` (map()) - Map (accumulator) for parsed options.
-  - `resource_config` (map()) - contains all the modules' configuration.
-  - `opts` (`keyword()`) - Configuration options with keys:
-    ### Common opts
-    - `actions` - List of {position, function} tuples for UI actions
-    - `add_actions` - Additional actions to append
-    - `fields` -  Fields to be used, overrides the default list.
-      The default list is created with all the fields found in the module, excluding
-      the redacted fields.
-    - `link_prefix` -  The link prefix inserted for paths. By default, this is blank. When used, the path is the link_prefix plus the source.
-    - `name` -  Name of the schema. By default, uses the last part of the module name.
-    - `remove` -  List of fields to be remove from the list.
-      trying to remove non-existing fields will log a warning, but no error will be raised.
-    - `remove_actions` -  Removes actions from the current list.
-    - `source` : Key of the data. By default, resolves the source from the schema source value.
-      Uses the function __schema__/1 passing :source as the argument.
-    - `sub_title` -  Subtitle for the view, a :hide value will disallow its generation.
-    - `template` -  Overrides the module that handles the generation.
-      By default, uses Aurora.Uix.Web.AuroraTemplate, which is a sophisticated and highly opinionated template.
-      There is also the Aurora.Uix.Web.PhoenixTemplate, which resembles the phoenix ui.
-      The template can also be configured, application wide, by adding :aurora_uix, template: Module.
-      New templates can be authored.
-    - `title` -  Title for the UI. Uses the capitalized schema source as the title.
-      #### Example
-      Schema module: GeneralLedger.Account
-      Schema source: "accounts"
-      Title: "Accounts"
-
-      #### Example
-      Schema module: GeneralLedger.AccountReceivable
-      Schema source: "account_receivables"
-      Title: "Account receivables"
-
-  ## Example
-    iex> alias Aurora.Uix.Parsers.Common
-    iex> defmodule Aurora.Uix.GeneralLedger.Account do
-    ...>    use Ecto.Schema
-    ...>    schema "accounts" do
-    ...>      field :description, :string
-    ...>      field :number, :string
-    ...>      timestamps()
-    ...>    end
-    ...>  end
-    iex> parsed = Common.parse(%{}, %{schema: Aurora.Uix.GeneralLedger.Account}, [])
-    iex> parsed.name == "Account" # Name is taken from last part of the schema module name
-    true
-    iex> parsed.title == "Accounts" # Uses the capitalized schema source as the title.
-
-    iex> alias Aurora.Uix.Parsers.Common
-    iex> defmodule Aurora.Uix.GeneralLedger.AccountReceivable do
-    ...>   use Ecto.Schema
-    ...>   schema "account_receivables" do
-    ...>     field :description, :string
-    ...>     field :amount, :float
-    ...>     timestamps()
-    ...>   end
-    ...> end
-    iex> parsed = Common.parse(%{}, %{schema: Aurora.Uix.GeneralLedger.AccountReceivable}, [])
-    iex> parsed.title == "Account Receivables"  # Uses the capitalized schema source as the title
+  ## Returns
+  list(atom()) - List of supported option keys.
   """
-  @spec parse(map(), map(), keyword()) :: map()
-  def parse(parsed_opts, resource_config, opts) do
-    parsed_opts
-    |> add_opt(resource_config, opts, :module)
-    |> add_opt(resource_config, opts, :module_name)
-    |> add_opt(resource_config, opts, :link_prefix)
-    |> add_opt(resource_config, opts, :name)
-    |> add_opt(resource_config, opts, :source)
-    |> add_opt(resource_config, opts, :title)
+  @spec get_options() :: list(atom())
+  def get_options do
+    [
+      :module,
+      :module_name,
+      :link_prefix,
+      :name,
+      :source,
+      :title
+    ]
   end
 
   @doc """
-  Resolves default values for schema-derived properties.
+  Resolves the default value for a given schema-derived property.
 
-  ### Parameters
-    - `parsed_opts` (map()) - Map (accumulator) for parsed options.
-    - `resource_config` (map()) -  contains all the modules' configuration.
-    - `key` (`atom()`) -  Key value to produce the value from.
+  ## Parameters
+  - `parsed_opts` (map()) - Accumulator for parsed options.
+  - `resource_config` (map()) - Contains the module's configuration. Must include `:schema` key.
+  - `key` (atom()) - The property key to resolve.
 
+  ## Returns
+  term() - The resolved default value for the property.
+
+  ## Examples
+  |||elixir
+  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :module)
+  #=> "post"
+
+  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :module_name)
+  #=> "Post"
+
+  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :title)
+  #=> "Posts"
+  |||
   """
-  @spec default_value(map(), map(), atom()) :: any()
-
+  @spec default_value(map(), map(), atom()) :: term()
   def default_value(_parsed_opts, %{schema: module}, :module) do
     module
     |> Module.split()
@@ -126,5 +98,23 @@ defmodule Aurora.Uix.Parsers.Common do
     :source
     |> module.__schema__()
     |> capitalize()
+  end
+
+  ## PRIVATE
+  # Converts a string to capitalized words, splitting on underscores.
+  #
+  # Parameters:
+  # - string (binary()): The string to capitalize.
+  #
+  # Returns:
+  # - binary(): The capitalized string.
+  #
+  # Example:
+  #   capitalize("account_receivables") #=> "Account Receivables"
+  defp capitalize(string) do
+    string
+    |> Macro.underscore()
+    |> String.split("_")
+    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

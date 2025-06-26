@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Parser do
   alias Aurora.Uix.Parsers.ContextParser
   alias Aurora.Uix.Parsers.IndexParser
 
+  @callback get_options() :: list()
   @doc """
   Returns a default value for a given configuration key.
 
@@ -46,9 +47,22 @@ defmodule Aurora.Uix.Parser do
     opts =
       List.flatten(opts)
 
-    %{}
-    |> Common.parse(resource_config, opts)
-    |> IndexParser.parse(resource_config, opts)
-    |> ContextParser.parse(resource_config, opts)
+    Enum.reduce(
+      [Common, IndexParser, ContextParser],
+      %{},
+      &parser_process_options(&1, &2, resource_config, opts)
+    )
+  end
+
+  defp parser_process_options(parser, parsed_opts, resource_config, opts) do
+    parser_options = parser.get_options()
+    Enum.reduce(parser_options, parsed_opts, &add_opt(&1, &2, parser, resource_config, opts))
+  end
+
+  defp add_opt(key, parsed_opts, parser, resource_config, opts) do
+    parsed_opts
+    |> parser.default_value(resource_config, key)
+    |> then(&Keyword.get(opts, key, &1))
+    |> then(&Map.put_new(parsed_opts, key, &1))
   end
 end

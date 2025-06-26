@@ -1,12 +1,15 @@
 ---
-mode: 'agent'
-tools: ['codebase']
-description: 'Generate ex_doc-compatible documentation'
+description: A description of your rule
 ---
+# Documentation rule
+
 ## Ground Rules
 - NEVER alter code logic/behavior. Only modify documentation/specs.
 - Scope strictly to the target module. Ignore other files/modules.
 - Preserve existing docs if semantically correct. Only enhance/fix deficiencies. Avoid stylistic or unsubstantiated changes.
+- Code examples must be valid Elixir code and compile successfully.
+- Use Markdown-compatible formatting for documentation.
+- Code examples must be wrapped in ||| representing code blocks with the `elixir` tag instead of backticks.
 
 ## @shortdoc Requirements
 1. Usage: only to be use on modules implementing Mix.Task behaviour.
