@@ -1,28 +1,25 @@
 defmodule Aurora.Uix.Web.Templates.Basic do
   @moduledoc """
-  Central module for template generation in Aurora UIX, implementing the `Aurora.Uix.Template`
-  behavior and providing a unified interface for template creation and coordination.
+  Provides a unified interface for template generation in Aurora UIX, implementing the `Aurora.Uix.Template` behavior and coordinating specialized components for layout parsing, module generation, and markup creation.
 
   ## Key Features
   - Implements the `Aurora.Uix.Template` behavior for standardized template modules.
-  - Delegates template generation tasks to specialized components:
-    - `LayoutParser`: Parses layout structures.
-    - `ModulesGenerator`: Generates business logic and LiveView modules.
-    - `MarkupGenerator`: Creates HEEx template fragments.
-  - Coordinates between different template generation components.
-  - Provides utility functions for core component access and CSS class mapping.
+  - Delegates template generation to:
+    - `LayoutParser` (layout structure parsing)
+    - `ModulesGenerator` (business logic and LiveView modules)
+    - `MarkupGenerator` (HEEx template fragments)
+  - Coordinates between template generation components.
+  - Utility functions for core component access and CSS class mapping.
+
+  ## Key Constraints
+  - Only coordinates and delegates; does not implement business logic directly.
+  - Expects specialized modules to implement actual generation logic.
 
   ## Generation Flow
   1. Parse layout configurations.
   2. Generate logic modules.
   3. Create markup templates.
   4. Combine generated components.
-
-  ## Example
-  ```elixir
-  # Automatic delegation happens through the Template behavior
-  Aurora.Uix.Web.Templates.Basic.generate_module(%{caller: MyApp, module: MyMod}, %{fields: [:name, :email]})
-  ```
   """
 
   @behaviour Aurora.Uix.Template
@@ -31,18 +28,15 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   alias Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   @doc """
-  Generates logic modules based on the provided configuration.
+  Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
 
   ## Parameters
-
-    - `modules` ([{atom(), module()}] | map()) - The module specifications
-    - `layout` - Layout type and path to be generated
-    - `configurations` - Resource configurations
-    - `parsed_opts` (%{optional(atom()) => any()}) - Additional generation options
+    - `modules` ([{atom(), module()}] | map()) - Module specifications to generate.
+    - `parsed_opts` (map()) - Parsed options for generation.
 
   ## Returns
 
-    - `Macro.t()` - The generated module as a macro
+    - `Macro.t()` - The generated module as a macro.
   """
   @spec generate_module([{atom, module}] | map, map) :: Macro.t()
   defdelegate generate_module(modules, parsed_opts),
@@ -50,8 +44,9 @@ defmodule Aurora.Uix.Web.Templates.Basic do
 
   @doc """
   Returns the default core components module used in the template system.
+
   ## Returns
-    - `module` - The default core components module
+    - `module()` - The default core components module.
   """
   @spec default_core_components_module() :: module
   def default_core_components_module do
@@ -62,10 +57,10 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   Provides CSS class mappings for different template components.
 
   ## Returns
-  - map() - A map with component categories as keys and their respective CSS class mappings as values:
-    - core_components: classes for core template components
-    - index_renderer: classes for index page components
-    - show_renderer: classes for show page components
+  `%{atom() => map()}` - Map with component categories as keys and their respective CSS class mappings as values:
+    - `:core_components` - Classes for core template components.
+    - `:index_renderer` - Classes for index page components.
+    - `:show_renderer` - Classes for show page components.
   """
   @spec css_classes() :: %{atom() => map()}
   def css_classes do
@@ -76,6 +71,12 @@ defmodule Aurora.Uix.Web.Templates.Basic do
     }
   end
 
+  @doc """
+  Returns a list of template component modules used for extension or customization.
+
+  ## Returns
+  `list(module())` - List of component modules.
+  """
   @spec template_component_modules() :: list(module())
   def template_component_modules do
     [RoutingComponents]

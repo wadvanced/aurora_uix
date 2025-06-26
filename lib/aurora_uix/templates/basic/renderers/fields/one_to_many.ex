@@ -13,7 +13,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
