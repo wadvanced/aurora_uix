@@ -15,8 +15,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
 
   use Aurora.Uix.Web.CoreComponentsImporter
   import Aurora.Uix.Web.Templates.Basic.RoutingComponents
-  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
 
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -45,7 +45,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
     assigns =
       path.inner_elements
       |> Enum.filter(&(&1.tag == :field))
-      |> Enum.map(&get_field(&1, configurations, resource_name))
+      |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
       |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
       |> then(&Map.put(assigns, :index_fields, &1))
 

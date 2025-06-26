@@ -12,8 +12,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   """
 
   use Aurora.Uix.Web.CoreComponentsImporter
-  import Aurora.Uix.Web.Templates.Basic.Helpers, only: [get_field: 3]
 
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany
 
@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     name
     |> elem(0)
     |> then(&Map.put(path, :name, &1))
-    |> get_field(configurations, resource_name)
+    |> BasicHelpers.get_field(configurations, resource_name)
   end
 
   defp get_field_info(%{
@@ -67,7 +67,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
          _configurations: configurations,
          _resource_name: resource_name
        }) do
-    get_field(path, configurations, resource_name)
+    BasicHelpers.get_field(path, configurations, resource_name)
   end
 
   # Renders an empty component for omitted fields
