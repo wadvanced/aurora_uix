@@ -30,7 +30,8 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   list(atom()) - List of supported option keys.
 
   """
-  def get_options() do
+  @spec get_options() :: list(atom())
+  def get_options do
     [
       :rows,
       :disable_index_row_click,

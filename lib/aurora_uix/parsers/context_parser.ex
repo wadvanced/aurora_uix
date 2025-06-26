@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   list(atom()) - List of supported option keys for context parsing.
   """
   @spec get_options() :: list(atom())
-  def get_options() do
+  def get_options do
     [
       :list_function,
       :get_function,

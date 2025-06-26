@@ -101,16 +101,9 @@ defmodule Aurora.Uix.Parsers.Common do
   end
 
   ## PRIVATE
+
   # Converts a string to capitalized words, splitting on underscores.
-  #
-  # Parameters:
-  # - string (binary()): The string to capitalize.
-  #
-  # Returns:
-  # - binary(): The capitalized string.
-  #
-  # Example:
-  #   capitalize("account_receivables") #=> "Account Receivables"
+  @spec capitalize(binary()) :: binary()
   defp capitalize(string) do
     string
     |> Macro.underscore()
