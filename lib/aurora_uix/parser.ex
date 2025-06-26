@@ -51,9 +51,6 @@ defmodule Aurora.Uix.Parser do
   ## Returns
   map() - Schema metadata, fields config, and template settings.
 
-  ## Examples
-      iex> Aurora.Uix.Parser.parse(%{schema: MyApp.Account}, rows: [:id, :email])
-      %{rows: [:id, :email], ...}
   """
   @spec parse(map(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do
