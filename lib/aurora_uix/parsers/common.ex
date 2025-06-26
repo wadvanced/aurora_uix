@@ -16,8 +16,8 @@ defmodule Aurora.Uix.Parsers.Common do
   Extracts schema metadata and merges common options.
 
   ## Parameters
-  - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
-  - `resource_config` (`map()`) - contains all the modules' configuration.
+  - `parsed_opts` (map()) - Map (accumulator) for parsed options.
+  - `resource_config` (map()) - contains all the modules' configuration.
   - `opts` (`keyword()`) - Configuration options with keys:
     ### Common opts
     - `actions` - List of {position, function} tuples for UI actions
@@ -91,8 +91,8 @@ defmodule Aurora.Uix.Parsers.Common do
   Resolves default values for schema-derived properties.
 
   ### Parameters
-    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
-    - `resource_config` (`map()`) -  contains all the modules' configuration.
+    - `parsed_opts` (map()) - Map (accumulator) for parsed options.
+    - `resource_config` (map()) -  contains all the modules' configuration.
     - `key` (`atom()`) -  Key value to produce the value from.
 
   """

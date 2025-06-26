@@ -55,7 +55,7 @@ description: 'Generate ex_doc-compatible documentation'
   - Always use parentheses: map() not map, MyStruct.t() not MyStruct
   - Never use any() – replace with concrete types
   - Never document internal map structures
-  - Enclose in backticks structs, tuple or maps to make it compatible with ex_doc generation
+  - Enclose in backticks %AnyStructName{}, {any_tuple} or %{} to make it compatible with ex_doc generation.
 - Examples:
   - Remove naive/trivial examples
   - Fix incorrect examples

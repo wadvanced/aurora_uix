@@ -22,8 +22,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
   Generates an index view LiveView module with standard CRUD operations in Aurora UIX.
 
   ## Parameters
-  - `modules` (`map()`) – Map containing web, context, and schema module references
-  - `parsed_opts` (`map()`) – Index view configuration with `tag: :index`
+  - `modules` (map()) – Map containing web, context, and schema module references
+  - `parsed_opts` (map()) – Index view configuration with `tag: :index`
 
   ## Returns
   - `Macro.t()` – The generated index view module as quoted code

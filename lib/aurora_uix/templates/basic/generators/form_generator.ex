@@ -23,8 +23,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   Generates a LiveComponent module for form handling.
 
   ## Parameters
-  - `modules` (`map()`) – Map containing web, context modules, and component references
-  - `parsed_opts` (`map()`) – Form configuration with `tag: :form` and function references
+  - `modules` (map()) – Map containing web, context modules, and component references
+  - `parsed_opts` (map()) – Form configuration with `tag: :form` and function references
 
   ## Returns
   - `Macro.t()` – The generated form component module as quoted code

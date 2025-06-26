@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   Parse module and :index options.
 
   ## Parameters
-    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `parsed_opts` (map()) - Map (accumulator) for parsed options.
     - `resource_config` (map()): Contains all the modules' configuration.
     - `opts` (keyword()): List of options, the available ones depends on the type of view.
 
@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   Produce the default value for the given field.
 
   ## Parameters
-    - `parsed_opts` (`map()`) - Map (accumulator) for parsed options.
+    - `parsed_opts` (map()) - Map (accumulator) for parsed options.
     - `resource_config` (map()): contains all the modules' configuration.
     - `field` (atom()): Field to produce the default value for.
   """

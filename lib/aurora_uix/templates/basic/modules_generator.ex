@@ -67,7 +67,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   - `parsed_options` (map()) - Options with fields to filter.
 
   ## Returns
-  - `map()` - Options with omitted fields removed.
+  - map() - Options with omitted fields removed.
 
   ## Examples
   ```elixir

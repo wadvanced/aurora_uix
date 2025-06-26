@@ -205,7 +205,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   The following options can be provided to configure the field:
 
-  - `:key` (`atom()` | `tuple()`) - The referred field in the schema. This should be rarely changed.
+  - `:key` (`atom()` | tuple()) - The referred field in the schema. This should be rarely changed.
   - `:type`(`atom()`) - The html type that best represent the current field elixir type.
   - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary()`) - Placeholder text for the field.

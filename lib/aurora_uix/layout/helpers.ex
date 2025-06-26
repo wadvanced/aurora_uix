@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `block` (`any()`) - Optional explicit block value.
 
   ## Returns
-  `{block, opts}` (`tuple()`) - Extracted block and remaining options.
+  `{block, opts}` (tuple()) - Extracted block and remaining options.
   """
   @spec extract_block_options(keyword(), any()) :: tuple()
   def extract_block_options(opts, block \\ nil) do
@@ -59,12 +59,12 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Parameters
   - `tag` (`atom()`) - Component type identifier.
   - `name` (`atom()`) - Component name.
-  - `config` (`keyword()` | `tuple()` | `nil`) - Static configuration or field definitions.
+  - `config` (`keyword()` | tuple() | `nil`) - Static configuration or field definitions.
   - `opts` (`keyword()`) - Component options.
   - `do_block` (`Macro.t()`) - Nested component definitions.
 
   ## Returns
-  `map()` - Standardized component entry map.
+  map() - Standardized component entry map.
   """
   @spec register_dsl_entry(atom(), atom(), keyword() | tuple() | nil, keyword(), any()) ::
           Macro.t()
