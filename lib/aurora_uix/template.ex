@@ -102,6 +102,12 @@ defmodule Aurora.Uix.Template do
   """
   @callback default_core_components_module() :: module()
 
+  @doc """
+  Returns a list of modules used as template components.
+
+  ## Returns
+  list(module()) - List of modules implementing template components.
+  """
   @callback template_component_modules() :: list(module())
 
   @doc """
