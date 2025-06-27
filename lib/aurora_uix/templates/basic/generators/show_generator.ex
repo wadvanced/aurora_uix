@@ -57,10 +57,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
         def handle_params(%{"id" => id} = params, url, socket) do
           {:noreply,
            socket
-           |> assign(
-             :page_title,
-             page_title(socket.assigns.live_action, unquote(parsed_opts.name))
-           )
            |> assign(:subtitle, " Detail")
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_sections, %{})
@@ -72,6 +68,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
              ])
            )
            |> assign_auix(:_form_component, unquote(form_component))
+           |> assign_auix_option(:page_title)
            |> assign_auix_current_path(url)
            |> assign_auix_routing_stack(params, %{
              type: :navigate,
@@ -130,14 +127,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
         def handle_event("auix_route_back", _params, socket) do
           {:noreply, auix_route_back(socket)}
-        end
-
-        # Formats page title by combining capitalized action with suffix
-        defp page_title(action, suffix) do
-          action
-          |> to_string()
-          |> String.capitalize()
-          |> Kernel.<>(" #{suffix}")
         end
       end
     end

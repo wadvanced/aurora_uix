@@ -229,7 +229,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
       nil
     else
       parsed_opts = Parser.parse(resource_config, opts)
-
       layouts = [:index, :form, :show]
 
       # Get all layout paths

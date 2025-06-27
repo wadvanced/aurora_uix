@@ -80,10 +80,10 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   - `key` (atom()) - Key for which to produce the default value.
 
   ## Returns
-  any() - The default value for the given key, or nil if not found.
+  term() - The default value for the given key, or nil if not found.
 
   """
-  @spec default_value(map(), map(), atom()) :: atom() | nil
+  @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
     filter_function(context, ["list_#{source}", "list_#{module}"], 0)
   end

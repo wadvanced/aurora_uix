@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
     ~H"""
     <div class={get_in(@_auix._css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
-        {@_auix.name} Details
+        {@_auix.layout_options.page_title}
         <:subtitle>{@subtitle}</:subtitle>
         <:actions>
           <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@_auix.module}"}>
@@ -58,7 +58,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
           <.live_component
             module={@_auix._form_component}
             id={@auix_entity.id || :new}
-            title={@page_title}
+            title={@_auix.layout_options.page_title}
             action={@live_action}
             auix_entity={@auix_entity}
             auix_routing_stack={@_auix._routing_stack}
