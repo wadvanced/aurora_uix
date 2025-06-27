@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.LiveComponent
 
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
 
@@ -171,12 +172,25 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns routing stack to the socket. Decodes stack from params or uses default route.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - params (map()) - Parameters containing encoded routing stack
-  - default_route (map() | nil) - Optional default route if no stack exists
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `params` (map()) - Parameters, may contain `"routing_stack"` as a key.
+  - `default_route` (map() | nil) - Optional default route to use if no stack is present.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  Phoenix.LiveView.Socket.t() - The socket with updated routing stack.
+
+  ## Examples
+
+      iex> params = %{"routing_stack" => encoded_stack}
+      iex> assign_auix_routing_stack(socket, params, nil)
+      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{...}}}
+
+      iex> assign_auix_routing_stack(socket, %{}, nil)
+      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{}}}
+
+      iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
+      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{...}}}
+
   """
   @spec assign_auix_routing_stack(Phoenix.LiveView.Socket.t(), map(), map() | nil) ::
           Phoenix.LiveView.Socket.t()
@@ -203,6 +217,36 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     default_route
     |> Stack.new()
     |> then(&assign_auix(socket, :_routing_stack, &1))
+  end
+
+  @doc """
+  Assigns a layout option to the socket's assigns using the LayoutOptions module.
+
+  Retrieves the option value using `LayoutOptions.get/2`. If the option is not found, assigns the
+  socket unchanged. Otherwise, stores the value in the `:layout_options` key within the `_auix` map.
+
+  ## Parameters
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `option` (atom()) - The option key to retrieve and assign.
+
+  ## Returns
+  Phoenix.LiveView.Socket.t() - The socket with the option assigned in `_auix.layout_options`.
+
+  """
+  @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom()) :: Phoenix.LiveView.Socket.t()
+  def assign_auix_option(%{assigns: assigns} = socket, option) when is_atom(option) do
+    option_value =
+      case LayoutOptions.get(assigns, option) do
+        {:not_found, _option} ->
+          socket
+
+        {:ok, value} ->
+          value
+      end
+
+    socket
+    |> assign_auix_new(:layout_options, %{})
+    |> put_in([Access.key!(:assigns), :_auix, :layout_options, option], option_value)
   end
 
   @doc """

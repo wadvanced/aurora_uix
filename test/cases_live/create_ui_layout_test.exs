@@ -8,12 +8,17 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
 
+    @spec page_title(map()) :: binary()
+    def page_title(assigns) do
+      "Details for #{assigns._auix.name}"
+    end
+
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link_prefix: "create-ui-layout-" do
-      edit_layout :product, [] do
+      edit_layout :product, page_title: &TestModule.page_title/1 do
         inline([:reference, :name, :description])
         inline([:quantity_at_hand, :quantity_initial])
         inline([:list_price, :rrp])
@@ -98,6 +103,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     |> render_click()
     |> follow_redirect(conn)
     |> elem(1)
+    |> tap(&assert render(&1) =~ "Details for Product")
     |> tap(&assert has_element?(&1, "#auix-edit-product"))
     |> tap(&assert has_element?(&1, "div#auix-show-navigate-back a:nth-of-type(1)"))
   end

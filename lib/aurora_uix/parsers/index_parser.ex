@@ -52,21 +52,10 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   - `field` (atom()) - Field to produce the default value for.
 
   ## Returns
-  any() - Default value for the specified field.
+  term() - Default value for the specified field.
 
-  ## Examples
-  ```elixir
-  Aurora.Uix.Parsers.IndexParser.default_value(%{link_prefix: "/admin/", source: "accounts"}, %{schema: MyApp.Account}, :rows)
-  #=> [:streams, :accounts]
-
-  Aurora.Uix.Parsers.IndexParser.default_value(%{}, %{}, :disable_index_row_click)
-  #=> false
-
-  Aurora.Uix.Parsers.IndexParser.default_value(%{link_prefix: "/admin/", source: "accounts"}, %{}, :index_row_click)
-  #=> "/admin/accounts/[[entity]]"
-  ```
   """
-  @spec default_value(map(), map(), atom()) :: any()
+  @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(_parsed_opts, %{schema: module}, :rows) do
     :source
     |> module.__schema__()

@@ -57,19 +57,8 @@ defmodule Aurora.Uix.Parsers.Common do
   ## Returns
   term() - The resolved default value for the property.
 
-  ## Examples
-  |||elixir
-  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :module)
-  #=> "post"
-
-  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :module_name)
-  #=> "Post"
-
-  Aurora.Uix.Parsers.Common.default_value(%{}, %{schema: MyApp.Blog.Post}, :title)
-  #=> "Posts"
-  |||
   """
-  @spec default_value(map(), map(), atom()) :: term()
+  @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(_parsed_opts, %{schema: module}, :module) do
     module
     |> Module.split()
