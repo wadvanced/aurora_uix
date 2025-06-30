@@ -238,7 +238,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     option_value =
       case LayoutOptions.get(assigns, option) do
         {:not_found, _option} ->
-          socket
+          nil
 
         {:ok, value} ->
           value

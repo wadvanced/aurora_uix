@@ -38,6 +38,11 @@ defmodule Aurora.Uix.Layout.Options do
   end
 
   def get(_assigns, option) do
+    report_error(option)
+  end
+
+  @spec report_error(atom()) :: {:not_found, atom()}
+  def report_error(option) do
     Logger.warning("Option #{option} is not implemented.")
     {:not_found, option}
   end

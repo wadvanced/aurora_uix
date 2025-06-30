@@ -57,7 +57,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
         def handle_params(%{"id" => id} = params, url, socket) do
           {:noreply,
            socket
-           |> assign(:subtitle, " Detail")
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_sections, %{})
            |> assign(
@@ -69,6 +68,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            )
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_option(:page_title)
+           |> assign_auix_option(:page_subtitle)
            |> assign_auix_current_path(url)
            |> assign_auix_routing_stack(params, %{
              type: :navigate,
