@@ -18,7 +18,13 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link_prefix: "create-ui-layout-" do
-      edit_layout :product, page_title: &TestModule.page_title/1 do
+      edit_layout :product do
+        inline([:reference, :name, :description])
+        inline([:quantity_at_hand, :quantity_initial])
+        inline([:list_price, :rrp])
+      end
+
+      show_layout :product, page_title: &TestModule.page_title/1, page_subtitle: nil do
         inline([:reference, :name, :description])
         inline([:quantity_at_hand, :quantity_initial])
         inline([:list_price, :rrp])
@@ -104,6 +110,8 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     |> follow_redirect(conn)
     |> elem(1)
     |> tap(&assert render(&1) =~ "Details for Product")
+    ## Shouldn't show since the show layout has a nil value for page_subtitle
+    |> tap(&refute render(&1) =~ " Detail\n")
     |> tap(&assert has_element?(&1, "#auix-edit-product"))
     |> tap(&assert has_element?(&1, "div#auix-show-navigate-back a:nth-of-type(1)"))
   end

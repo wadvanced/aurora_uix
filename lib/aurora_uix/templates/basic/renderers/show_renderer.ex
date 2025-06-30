@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
     <div class={get_in(@_auix._css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
         {@_auix.layout_options.page_title}
-        <:subtitle>{@subtitle}</:subtitle>
+        <:subtitle :if={@_auix.layout_options.page_subtitle != nil}>{@_auix.layout_options.page_subtitle}</:subtitle>
         <:actions>
           <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@_auix.module}"}>
             <.button>Edit {@_auix.name}</.button>
