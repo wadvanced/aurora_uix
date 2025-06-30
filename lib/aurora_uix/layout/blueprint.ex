@@ -248,24 +248,28 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Options
 
-    * `:page_title` - Sets the page title for the show layout. Accepts:
-      - a `binary()` (static title),
-      - or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
-      - The default is `"{name} Details"`, where `{name}` is the capitalized schema name.
+    * `:page_title` - The page title for the show layout.
+      - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
+      - Default: `"{name} Details"`, where `{name}` is the capitalized schema name`.
 
-  See `Aurora.Uix.Layout.ShowOptions` for the authoritative list of supported options and their behavior.
+    * `:page_subtitle` - The page subtitle for the show layout.
+      - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
+      - Default: `"Detail"`
+
+  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.ShowOptions`.
 
   ## Behavior
   - Renders fields in a disabled/read-only state.
   - All options are processed only for the `:show` tag.
 
-  ## Example
+  ## Examples
 
       show_layout :product, page_title: "Product Details" do
         inline [:reference, :name, :description]
       end
 
-      show_layout :product, page_title: fn assigns -> "Details for \#{assigns._auix.name}" end do
+      show_layout :product, page_title: fn assigns -> "Details for \#{assigns._auix.name}" end,
+                              page_subtitle: "Extra Info" do
         inline [:reference, :name, :description]
       end
 
