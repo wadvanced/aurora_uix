@@ -5,20 +5,42 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     # Makes the modules attributes persistent.
     use Aurora.Uix.Test.Web, :aurora_uix_for_test
 
+    import Phoenix.Component, only: [sigil_H: 2]
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
 
-    @spec page_title(map()) :: binary()
+    @spec page_title(map()) :: term()
     def page_title(assigns) do
-      "Details for #{assigns._auix.name}"
+      ~H"Details for {@_auix.name}"
     end
+
+    @spec edit_title(map()) :: term()
+    def edit_title(%{_auix: %{_form: _form}} = assigns),
+      do: ~H"Modify {@_auix.name}: #{inspect(@_auix._form)} "
+
+    def edit_title(%{auix_entity: nil} = assigns), do: ~H"Modify {@_auix.name}"
+
+    def edit_title(%{auix_entity: _entity} = assigns),
+      do: ~H"Modify {@_auix.name}: {@auix_entity.reference}"
+
+    @spec new_subtitle(map()) :: term()
+    def new_subtitle(assigns),
+      do: ~H"Please fill <strong>{@_auix.name}'s</strong> values properly"
 
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link_prefix: "create-ui-layout-" do
-      edit_layout :product do
+      index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
+        page_title: "The Products Listing"
+      )
+
+      edit_layout :product,
+        new_title: "Add a Product",
+        new_subtitle: &TestModule.new_subtitle/1,
+        edit_title: &TestModule.edit_title/1,
+        edit_subtitle: "Entries are validated before saving" do
         inline([:reference, :name, :description])
         inline([:quantity_at_hand, :quantity_initial])
         inline([:list_price, :rrp])
@@ -38,7 +60,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     assert true == Code.ensure_loaded?(index_module)
 
     {:ok, view, html} = live(conn, "/create-ui-layout-products")
-    assert html =~ "Listing Products"
+    assert html =~ "The Products Listing"
     assert html =~ "New Product"
 
     assert view
@@ -49,7 +71,11 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
   test "Test CREATE new, context, basic layout", %{conn: conn} do
     {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
 
-    assert html =~ "New Product"
+    assert html =~ "Please fill <strong>Product&#39;s</strong> values properly"
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~ "Add a Product"
 
     assert view
            |> form("#auix-product-form",
@@ -65,8 +91,16 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     {:ok, _view, new_html} = live(conn, "/create-ui-layout-products")
 
-    assert new_html =~ "Listing Products"
+    assert new_html =~ "The Products Listing"
     assert new_html =~ "test-first"
+  end
+
+  test "Test index layout", %{conn: conn} do
+    create_sample_products(5, :test)
+
+    {:ok, _view, html} = live(conn, "/create-ui-layout-products")
+
+    assert html =~ "The Products Listing"
   end
 
   test "Test main links", %{conn: conn} do
@@ -142,6 +176,15 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     |> element("tr[id^='products']:nth-of-type(1)  a[name='edit-product']")
     |> render_click()
     |> tap(&assert &1 =~ "auix-save-product")
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~ "Modify Product\n"
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~
+             "Entries are validated before saving"
   end
 
   test "Test main delete link", %{conn: conn} do

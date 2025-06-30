@@ -29,10 +29,29 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
            |> render_click() =~ "New Product"
   end
 
-  test "Test CREATE new, context, basic layout", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/create-ui-default-layout-products/new")
+  test "Test show default options", %{conn: conn} do
+    product_id =
+      1
+      |> create_sample_products(:test)
+      |> get_in([Access.key!("id_test-1"), Access.key!(:id)])
 
-    assert html =~ "New Product"
+    {:ok, _view, html} = live(conn, "/create-ui-default-layout-products/#{product_id}")
+
+    html
+    |> tap(&assert &1 =~ "Product\n")
+    |> tap(&assert &1 =~ " Details\n")
+  end
+
+  test "Test CREATE new, context, basic layout", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/create-ui-default-layout-products/new")
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~ "New Product"
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~ "Creates a new <strong>Product</strong> record in your database"
 
     assert view
            |> form("#auix-product-form",
@@ -59,6 +78,27 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
     |> resource_configs()
     |> get_in([Access.key!(:product), Access.key!(:fields_order)])
     |> assert_stacked_order(html)
+  end
+
+  test "Test main edit link", %{conn: conn} do
+    create_sample_products(5, :test)
+
+    {:ok, view, _html} = live(conn, "/create-ui-default-layout-products")
+
+    view
+    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='edit-product']"))
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='edit-product']")
+    |> render_click()
+    |> tap(&assert &1 =~ "auix-save-product")
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~ "Edit Product"
+
+    assert view
+           |> element("div#auix-product-modal header")
+           |> render() =~
+             "Use this form to manage <strong>Products</strong> records in your database"
   end
 
   @spec assert_stacked_order(list, binary) :: :ok

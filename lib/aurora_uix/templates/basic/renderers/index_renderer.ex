@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
     <div class={get_in(@_auix._css_classes, [:index_renderer, :top_container]) || ""}>
       <.header>
-        Listing {@_auix.title}
+        {@_auix.layout_options.page_title}
         <:actions>
           <.auix_link patch={"#{@_auix[:index_new_link]}"} id={"auix-new-#{@_auix.module}"}>
             <.button>New {@_auix.name}</.button>
@@ -89,7 +89,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
           <.live_component
             module={@_auix._form_component}
             id={@auix_entity.id || :new}
-            title={@page_title}
+            title={if @live_action == :edit, do: @_auix.layout_options.edit_title, else: @_auix.layout_options.new_title}
+            subtitle={if @live_action == :edit, do: @_auix.layout_options.edit_subtitle, else: @_auix.layout_options.new_subtitle}
             action={@live_action}
             auix_entity={@auix_entity}
             auix_routing_stack={@_auix._routing_stack}

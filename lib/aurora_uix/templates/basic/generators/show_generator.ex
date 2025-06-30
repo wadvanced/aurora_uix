@@ -69,6 +69,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_option(:page_title)
            |> assign_auix_option(:page_subtitle)
+           |> assign_auix_option(:edit_title)
+           |> assign_auix_option(:edit_subtitle)
            |> assign_auix_current_path(url)
            |> assign_auix_routing_stack(params, %{
              type: :navigate,

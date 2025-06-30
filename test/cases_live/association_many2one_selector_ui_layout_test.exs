@@ -66,7 +66,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
         "/association-many_to_one_selector-layout-products/#{product_id}"
       )
 
-    assert html =~ "Product Details"
+    assert html =~ "Product\n"
+    assert html =~ "Details\n"
 
     assert has_element?(
              view,

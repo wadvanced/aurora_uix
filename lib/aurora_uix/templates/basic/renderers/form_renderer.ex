@@ -32,7 +32,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
     <div>
       <.header>
         {@title}
-        <:subtitle>Use this form to manage {@_auix.title} records in your database.</:subtitle>
+        <:subtitle>{@subtitle}</:subtitle>
       </.header>
 
       <.flash kind={:error} flash={@flash} title="Error!" />

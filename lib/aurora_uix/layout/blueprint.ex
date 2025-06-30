@@ -219,16 +219,26 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Parameters
   - `name` (atom()): Resource configuration name
-  - `opts` (keyword(), optional): Additional layout options
+  - `opts` (keyword(), optional): Additional layout options. See below for supported options.
   - `do_block` (optional): Layout definition block
 
   ## Options
-  - Customization of edit layout behavior
-  - Field-level configurations
+  The following options are supported for form layouts (see `Aurora.Uix.Layout.FormOptions` for details):
+
+    * `:edit_title` - The title for the edit form. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
+        returns a Phoenix.LiveView.Rendered. Default: `"Edit {name}"`, where {name} is the capitalized schema name.
+    * `:edit_subtitle` - The subtitle for the edit form. Accepts a `binary()` or a function of arity 1.
+        Default: `"Use this form to manage <strong>{title}</strong> records in your database"`, where {title} is the capitalized table name.
+    * `:new_title` - The title for the new resource form (when in `:index` context). Accepts a `binary()` or a function of arity 1.
+        Default: `"New {name}"`, where {name} is the capitalized schema name.
+    * `:new_subtitle` - The subtitle for the new resource form (when in `:index` context). Accepts a `binary()` or a function of arity 1.
+        Default: `"Creates a new <strong>{name}</strong> record in your database"`, where {name} is the capitalized schema name.
+
+  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.FormOptions`.
 
   ## Example
   ```elixir
-    edit_layout :product do
+    edit_layout :product, edit_title: "Edit Product" do
       inline [:reference, :name, :description]
     end
   ```
@@ -243,20 +253,19 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Parameters
   - `name` (atom()) - Resource configuration name.
-  - `opts` (keyword(), optional) - Options for customizing the show layout.
+  - `opts` (keyword(), optional) - Options for customizing the show layout. See below for supported options.
   - `do_block` (optional) - Layout definition block.
 
   ## Options
+  The following options are supported for show layouts (see `Aurora.Uix.Layout.TitleOptions` for details):
 
     * `:page_title` - The page title for the show layout.
-      - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
-      - Default: `"{name} Details"`, where `{name}` is the capitalized schema name`.
+        Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
+        returns a Phoenix.LiveView.Rendered. Default: `"{name}"`, where {name} is the capitalized schema name.
+    * `:page_subtitle` - The page subtitle for the show layout. Accepts a `binary()` or a function of arity 1.
+        Default: `"Details"`.
 
-    * `:page_subtitle` - The page subtitle for the show layout.
-      - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
-      - Default: `"Detail"`
-
-  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.ShowOptions`.
+  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.TitleOptions`.
 
   ## Behavior
   - Renders fields in a disabled/read-only state.
@@ -268,7 +277,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
         inline [:reference, :name, :description]
       end
 
-      show_layout :product, page_title: fn assigns -> "Details for \#{assigns._auix.name}" end,
+      def page_title(assigns), do: ~H"Details for {@_auix.name}"
+      show_layout :product, page_title: &page_title/1,
                               page_subtitle: "Extra Info" do
         inline [:reference, :name, :description]
       end
@@ -280,19 +290,39 @@ defmodule Aurora.Uix.Layout.Blueprint do
   end
 
   @doc """
-  Registers index columns for a specific resource.
+  Registers index columns and associated options for a specific resource.
+
+  Supports both field selection and index-level options, including those described in
+  `Aurora.Uix.Layout.TitleOptions` (such as `:page_title` and `:page_subtitle`).
 
   ## Parameters
-  - `name` (atom()): Unique identifier for the index configuration
-  - `fields` (list()): List of field keys used to display in the index view
+
+    - `name` (atom()) - Unique identifier for the index configuration.
+    - `fields` (list()) - List of field keys or keyword options for customizing field behavior.
+    - `do_block` (optional) - Nested layout definition block.
+
+  ## Options
+  The following options are supported for index layouts (see `Aurora.Uix.Layout.TitleOptions` for details):
+
+    * `:page_title` - The page title for the index layout. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
+        returns a Phoenix.LiveView.Rendered. Default: `"Listing {title}"`, where {title} is the capitalized table name.
+    * Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom/1]]`).
+
+  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.TitleOptions`.
 
   ## Behavior
-  - Accumulates fields for the specified resource name
-  - Allows multiple calls to append additional fields
-  - Processed during module compilation
+
+    - Accumulates fields and options for the specified resource name.
+    - Allows multiple calls to append additional fields or override options.
+    - Processed during module compilation.
+
+  ## Examples
+
+      index_columns :product, [:reference, :name, page_title: "Product List"]
+      index_columns :product, [name: [renderer: &upcase/1], page_subtitle: "All products"]
 
   """
-  @spec index_columns(atom(), keyword(), any()) :: Macro.t()
+  @spec index_columns(atom(), keyword() | list(), any()) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do
     LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
   end

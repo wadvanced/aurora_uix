@@ -58,7 +58,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
           <.live_component
             module={@_auix._form_component}
             id={@auix_entity.id || :new}
-            title={@_auix.layout_options.page_title}
+            title={@_auix.layout_options.edit_title}
+            subtitle={@_auix.layout_options.edit_subtitle}
             action={@live_action}
             auix_entity={@auix_entity}
             auix_routing_stack={@_auix._routing_stack}
