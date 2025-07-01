@@ -250,6 +250,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
+  Sets a layout option to the _auix entry in the socket's assigns.
+
+  ## Parameters
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `option` (atom()) - The option key to retrieve and assign.
+  - `option_value` term() - The value to put on the option.
+
+  ## Returns
+  Phoenix.LiveView.Socket.t() - The updated socket.
+
+  """
+  @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom(), term() | nil) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_auix_option(socket, option, option_value)
+      when is_atom(option) do
+    socket
+    |> assign_auix_new(:layout_options, %{})
+    |> put_in([Access.key!(:assigns), :_auix, :layout_options, option], option_value)
+  end
+
+  @doc """
   Handles forward navigation by updating the routing stack and navigating to the new path.
 
   ## Parameters

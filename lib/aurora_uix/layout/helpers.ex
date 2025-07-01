@@ -15,20 +15,34 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   ## Parameters
   - `opts` (`keyword()`) - Options list that may contain a :do key.
-  - `block` (`any()`) - Optional explicit block value.
+  - `block` (`term()`) - Optional explicit block value.
 
   ## Returns
   `{block, opts}` (tuple()) - Extracted block and remaining options.
   """
-  @spec extract_block_options(keyword(), any()) :: tuple()
-  def extract_block_options(opts, block \\ nil) do
-    if is_nil(block) do
-      Keyword.pop(opts, :do, [])
-    else
-      block
-      |> extract_block()
-      |> then(&{&1, opts})
-    end
+  @spec extract_block_options(keyword() | list(), term()) :: tuple()
+  def extract_block_options(opts, block \\ nil)
+
+  def extract_block_options(opts, nil) do
+    Keyword.pop(opts, :do, [])
+  end
+
+  def extract_block_options(opts, do: block) do
+    {block, opts}
+  end
+
+  def extract_block_options([], block) when is_tuple(block) do
+    {block, []}
+  end
+
+  def extract_block_options([], shifted_options) do
+    {[], shifted_options}
+  end
+
+  def extract_block_options(opts, block) do
+    block
+    |> extract_block()
+    |> then(&{&1, opts})
   end
 
   @doc """
@@ -112,7 +126,8 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   # Extracts block content from either a keyword list with :do key or direct block
   # Used to handle both inline and do-block syntax in DSL macros
-  @spec extract_block(keyword() | Macro.t()) :: Macro.t()
+  @spec extract_block(keyword() | Macro.t() | list()) :: Macro.t()
+  defp extract_block(nil), do: []
   defp extract_block(do: block), do: block
   defp extract_block(block), do: block
 

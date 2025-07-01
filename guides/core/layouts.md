@@ -109,4 +109,59 @@ end
 ## Default Layouts
 
 If you omit a layout, Aurora UIX generates a default layout for index, show and edit.
-s
+
+## Titles and Subtitles in Layouts
+
+Aurora UIX layouts support customizable titles and subtitles for each view (index, form, show) via layout options. These options let you control the text shown at the top of each page or section, and can be static strings or dynamic functions.
+
+### Supported Options
+
+- **Index and Show Layouts** (see also `Aurora.Uix.Layout.TitleOptions`):
+  - `:page_title` – The main title for the page (e.g., "Product Details" or "Listing Products").
+    - Accepts a string or a function reference of arity 1 (receives assigns).
+    - Defaults:
+      - Show: `"{name}"` (resource name)
+      - Index: `"Listing {title}"` (resource title)
+  - `:page_subtitle` – The subtitle for the page (e.g., "Details").
+    - Accepts a string or a function reference of arity 1.
+    - Defaults:
+      - Show: `"Details"`
+      - Index: *(none by default)*
+
+- **Form Layouts** (see also `Aurora.Uix.Layout.FormOptions`):
+  - `:edit_title` – Title for the edit form.
+    - Accepts a string or a function reference of arity 1.
+    - Default: `"Edit {name}"`
+  - `:edit_subtitle` – Subtitle for the edit form.
+    - Accepts a string or a function reference of arity 1.
+    - Default: `"Use this form to manage <strong>{title}</strong> records in your database"`
+  - `:new_title` – Title for the new resource form (when in index context).
+    - Accepts a string or a function reference of arity 1.
+    - Default: `"New {name}"`
+  - `:new_subtitle` – Subtitle for the new resource form (when in index context).
+    - Accepts a string or a function reference of arity 1.
+    - Default: `"Creates a new <strong>{name}</strong> record in your database"`
+
+### How to Use
+
+You can set these options directly in your layout macros. For dynamic content, pass a function reference:
+
+```elixir
+defmodule MyView do
+  def custom_subtitle(assigns), do: "Custom subtitle for #{assigns._auix.name}"
+end
+
+edit_layout :product, edit_title: "Edit Product", edit_subtitle: &MyView.custom_subtitle/1 do
+  stacked [:reference, :name, :description]
+end
+
+show_layout :product, page_title: "Product Details", page_subtitle: "All about this product" do
+  stacked [:reference, :name, :description]
+end
+
+index_columns :product, [:reference, :name, :description], page_title: "Product List"
+```
+
+If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
+
+For more details, see the documentation for `Aurora.Uix.Layout.TitleOptions` and `Aurora.Uix.Layout.FormOptions`.

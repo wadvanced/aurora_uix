@@ -1,10 +1,10 @@
 defmodule Aurora.Uix.Layout.Options do
   @moduledoc """
-  Provides utilities for retrieving layout options based on the current assigns context.
+  Provides utilities for retrieving and creating a rendering layout options based on the assigns context.
 
   ## Key features
 
-    * Delegates option retrieval to tag-specific modules (e.g., `Aurora.Uix.Layout.ShowOptions`) when applicable.
+    * Delegates option retrieval to tag-specific modules (e.g., `Aurora.Uix.Layout.TitleOptions`) when applicable.
     * Logs warnings and returns `{:not_found, option}` for unsupported tags or missing options.
     * Centralizes error reporting for unknown or unimplemented options.
 
@@ -13,10 +13,13 @@ defmodule Aurora.Uix.Layout.Options do
     * Expects assigns to contain `_auix` and `_path` keys with appropriate structure.
     * Only delegates to tag-specific modules when the tag is recognized.
     * Does not implement option handling for all possible tags; unrecognized tags will log a warning.
-
   """
 
-  alias Aurora.Uix.Layout.ShowOptions
+  import Phoenix.Component, only: [sigil_H: 2]
+  import Phoenix.HTML, only: [raw: 1]
+
+  alias Aurora.Uix.Layout.FormOptions
+  alias Aurora.Uix.Layout.TitleOptions
   require Logger
 
   @doc """
@@ -50,34 +53,41 @@ defmodule Aurora.Uix.Layout.Options do
 
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{_auix: %{_path: %{tag: :show}}} = assigns, option) do
-    ShowOptions.get(assigns, option)
-  end
-
-  def get(%{_auix: %{_path: %{tag: tag, name: name}}}, option) do
-    Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
-    {:not_found, option}
-  end
-
-  def get(_assigns, option) do
-    report_error(option)
+  def get(%{_auix: %{_path: %{tag: tag, name: name}}} = assigns, option) do
+    with {:not_found, _option} <- TitleOptions.get(assigns, option),
+         {:not_found, _option} <- FormOptions.get(assigns, option) do
+      Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
+      {:not_found, option}
+    end
   end
 
   @doc """
-  Logs a warning and returns `{:not_found, option}` for unimplemented or unknown options.
+  Renders a value as a binary in a HEEx template.
+
+  Inserts the value into assigns under the `:auix_option_value` key and renders it.
 
   ## Parameters
 
-    - `option` (atom()) - The option key that was not found or is not implemented.
+    - `assigns` (map()) - Assigns map for the template.
+    - `value` (term()) - Value to render.
 
   ## Returns
 
-    - `{:not_found, atom()}` - Always returns a tuple indicating the option is not found.
+    Phoenix.LiveView.Rendered.t() - Rendered HEEx content containing the value.
 
+  ## Examples
+
+      iex> assigns = %{}
+      iex> Aurora.Uix.Layout.Options.render_binary(assigns, "Hello")
+      #=> Phoenix.LiveView.Rendered (renders "Hello")
   """
-  @spec report_error(atom()) :: {:not_found, atom()}
-  def report_error(option) do
-    Logger.warning("Option #{option} is not implemented.")
-    {:not_found, option}
+  @spec render_binary(map(), term()) :: Phoenix.LiveView.Rendered.t()
+  def render_binary(assigns, value) do
+    assigns =
+      value
+      |> raw()
+      |> then(&Map.put(assigns, :auix_option_value, &1))
+
+    ~H"{@auix_option_value}"
   end
 end

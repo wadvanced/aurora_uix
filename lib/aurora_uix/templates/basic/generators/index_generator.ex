@@ -75,8 +75,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+           #  |> tap(&MIO.inspect(&1.assigns._auix._configurations, label: "*********** path"))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
+           |> assign_auix_option(:page_title, "")
+           |> assign_auix_option(:page_subtitle, "")
+           |> assign_auix_option(:edit_title, "")
+           |> assign_auix_option(:edit_subtitle, "")
+           |> assign_auix_option(:new_title, "")
+           |> assign_auix_option(:new_subtitle, "")
            |> assign_auix_current_path(url)
            |> assign_auix_routing_stack(params, %{
              type: :patch,
@@ -156,7 +163,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         @spec apply_action(Phoenix.LiveView.Socket.t(), atom, map) :: Phoenix.LiveView.t()
         defp apply_action(socket, :edit, %{"id" => id} = params) do
           socket
-          |> assign(:page_title, "Edit #{unquote(parsed_opts.name)}")
+          |> assign_auix_option(:edit_title)
+          |> assign_auix_option(:edit_subtitle)
           |> assign(
             :auix_entity,
             apply(unquote(modules.context), unquote(get_function), [
@@ -168,7 +176,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         defp apply_action(socket, :new, params) do
           socket
-          |> assign(:page_title, "New #{unquote(parsed_opts.name)}")
+          |> assign_auix_option(:new_title)
+          |> assign_auix_option(:new_subtitle)
           |> assign_new_entity(
             params,
             apply(unquote(modules.context), unquote(new_function), [
@@ -180,7 +189,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         defp apply_action(socket, :index, _params) do
           socket
-          |> assign(:page_title, "Listing #{unquote(parsed_opts.title)}")
+          |> assign_auix_option(:page_title)
+          |> assign_auix_option(:page_subtitle)
           |> assign(:auix_entity, nil)
         end
       end

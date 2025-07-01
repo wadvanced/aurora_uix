@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.ShowOptions do
+defmodule Aurora.Uix.Layout.TitleOptions do
   @moduledoc """
   Handles retrieval of options specific to `:show` layout tags.
 
@@ -16,11 +16,11 @@ defmodule Aurora.Uix.Layout.ShowOptions do
   ## Options
 
     * `:page_title` - The page title for the show layout.
-      - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
+      - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
       - Default: `"{name} Details"`, where `{name}` is the capitalized schema name.
 
     * `:page_subtitle` - The page subtitle for the show layout.
-      - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a value implementing the `String.Chars` protocol.
+      - Accepts a `binary()` or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
       - Default: `"Detail"`
   """
 
@@ -44,27 +44,30 @@ defmodule Aurora.Uix.Layout.ShowOptions do
   ## Examples
 
       iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: [page_title: "Custom"]}}}
-      iex> Aurora.Uix.Layout.ShowOptions.get(assigns, :page_title)
+      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
       {:ok, "Custom"}
 
       iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.ShowOptions.get(assigns, :page_title)
-      {:ok, "Product Details"}
+      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
+      {:ok, "Product"}
 
       iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.ShowOptions.get(assigns, :page_subtitle)
-      {:ok, "Detail"}
+      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_subtitle)
+      {:ok, "Details"}
 
-      iex> Aurora.Uix.Layout.ShowOptions.get(assigns, :unknown_option)
+      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :unknown_option)
       {:not_found, :unknown_option}
 
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{_auix: %{_path: %{tag: :show, opts: opts}}} = assigns, option) do
+  def get(%{_auix: %{_path: %{tag: tag, opts: opts}}} = assigns, option)
+      when tag in [:show, :index] do
     if Keyword.has_key?(opts, option),
       do: get_option(assigns, opts[option], option),
       else: get_default(assigns, option)
   end
+
+  def get(_assigns, option), do: {:not_found, option}
 
   ## PRIVATE
 
@@ -74,15 +77,22 @@ defmodule Aurora.Uix.Layout.ShowOptions do
        when is_function(value, 1) and option in [:page_title, :page_subtitle],
        do: {:ok, value.(assigns)}
 
-  defp get_option(_assigns, value, option)
+  defp get_option(assigns, value, option)
        when is_binary(value) and option in [:page_title, :page_subtitle],
-       do: {:ok, value}
+       do: {:ok, LayoutOptions.render_binary(assigns, value)}
 
-  defp get_option(_assigns, _value, option), do: LayoutOptions.report_error(option)
+  defp get_option(_assigns, _value, option), do: {:not_found, option}
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{_auix: %{name: name}}, :page_title), do: {:ok, "#{name} Details"}
-  defp get_default(_assigns, :page_subtitle), do: {:ok, "Detail"}
-  defp get_default(_assigns, option), do: LayoutOptions.report_error(option)
+  defp get_default(%{_auix: %{_path: %{tag: :show}, name: name}} = assigns, :page_title),
+    do: {:ok, LayoutOptions.render_binary(assigns, "#{name}")}
+
+  defp get_default(%{_auix: %{_path: %{tag: :show}}} = assigns, :page_subtitle),
+    do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
+
+  defp get_default(%{_auix: %{_path: %{tag: :index}, title: title}} = assigns, :page_title),
+    do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
+
+  defp get_default(_assigns, option), do: {:not_found, option}
 end
