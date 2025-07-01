@@ -277,7 +277,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         inline [:reference, :name, :description]
       end
 
-      def page_title(assigns), do: ~H"Details for {@_auix.name}"
+      def page_title(assigns), do: ~H"Details for {@auix.name}"
       show_layout :product, page_title: &page_title/1,
                               page_subtitle: "Extra Info" do
         inline [:reference, :name, :description]

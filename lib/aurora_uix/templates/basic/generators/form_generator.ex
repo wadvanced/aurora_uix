@@ -162,7 +162,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         end
 
         defp conditional_route_back(
-               %{assigns: %{_auix: %{_routing_stack: routing_stack}, auix_entity: entity}} =
+               %{assigns: %{auix: %{_routing_stack: routing_stack}, auix_entity: entity}} =
                  socket,
                :new,
                true

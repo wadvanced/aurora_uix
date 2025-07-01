@@ -148,7 +148,7 @@ You can set these options directly in your layout macros. For dynamic content, p
 
 ```elixir
 defmodule MyView do
-  def custom_subtitle(assigns), do: "Custom subtitle for #{assigns._auix.name}"
+  def custom_subtitle(assigns), do: "Custom subtitle for #{assigns.auix.name}"
 end
 
 edit_layout :product, edit_title: "Edit Product", edit_subtitle: &MyView.custom_subtitle/1 do

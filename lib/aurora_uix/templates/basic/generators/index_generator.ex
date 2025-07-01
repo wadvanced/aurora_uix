@@ -75,7 +75,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
-           #  |> tap(&MIO.inspect(&1.assigns._auix._configurations, label: "*********** path"))
+           #  |> tap(&MIO.inspect(&1.assigns.auix._configurations, label: "*********** path"))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_option(:page_title, "")
@@ -113,7 +113,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
                  {:ok, _changeset} <- apply(context, delete_function, [entity]) do
               socket
               |> put_flash(:info, "Item deleted successfully")
-              |> push_patch(to: socket.assigns._auix[:_current_path])
+              |> push_patch(to: socket.assigns.auix[:_current_path])
             else
               _ -> socket
             end

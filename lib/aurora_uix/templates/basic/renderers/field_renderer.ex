@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   ## Parameters
   - assigns (map()) - LiveView assigns; must include:
-    - _auix (map()) - Aurora UIX context
+    - auix (map()) - Aurora UIX context
     - auix_entity (map()) - Entity being rendered
     - field (map()) - Field configuration and metadata
 
@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   - Phoenix.LiveView.Rendered.t() - The rendered field component
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{_auix: auix} = assigns) do
+  def render(%{auix: auix} = assigns) do
     field = get_field_info(auix)
 
     assigns = assign(assigns, :field, field)
@@ -98,22 +98,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
     ~H"""
     <%= if @field.hidden do %>
-      <input type="hidden" id={"#{@field.html_id}-#{@_auix._mode}"}
-        {if @_auix._mode == :form, do: %{name: @_auix._form[@field.key].name, value: @_auix._form[@field.key].value},
+      <input type="hidden" id={"#{@field.html_id}-#{@auix._mode}"}
+        {if @auix._mode == :form, do: %{name: @auix._form[@field.key].name, value: @auix._form[@field.key].value},
          else: %{name: @field.key, value: @auix_entity[@field.key]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
-          id={"#{@field.html_id}-#{@_auix._mode}"}
-          {if @_auix._mode == :form,
-            do: %{field: @_auix._form[@field.key]},
+          id={"#{@field.html_id}-#{@auix._mode}"}
+          {if @auix._mode == :form,
+            do: %{field: @auix._form[@field.key]},
             else: %{name: @field.key, value: Map.get(@auix_entity || %{}, @field.key)}}
           type={"#{@field.html_type}"}
           label={@field.label}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
-          disabled={@field.disabled or @_auix._mode == :show}
+          disabled={@field.disabled or @auix._mode == :show}
           class={@input_classes}
         />
       </div>
@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
              html_type: :select,
              data: %{resource: resource_name}
            },
-           _auix: %{_configurations: configurations}
+           auix: %{_configurations: configurations}
          } = assigns
        ) do
     context = get_in(configurations, [resource_name, :resource_config, Access.key!(:context)])

@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Key constraints
 
-    * Expects assigns to contain `_auix` and `_path` keys with appropriate structure.
+    * Expects assigns to contain `auix` and `_path` keys with appropriate structure.
     * Only delegates to tag-specific modules when the tag is recognized.
     * Does not implement option handling for all possible tags; unrecognized tags will log a warning.
   """
@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-    - `assigns` (map()) - Assigns map containing the `_auix` and `_path` keys.
+    - `assigns` (map()) - Assigns map containing the `auix` and `_path` keys.
     - `option` (atom()) - The option key to retrieve.
 
   ## Returns
@@ -40,11 +40,11 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Examples
 
-      iex> assigns = %{_auix: %{_path: %{tag: :show}}}
+      iex> assigns = %{auix: %{_path: %{tag: :show}}}
       iex> Aurora.Uix.Layout.Options.get(assigns, :page_title)
       {:ok, "Product Details"}
 
-      iex> assigns = %{_auix: %{_path: %{tag: :edit, name: "resource"}}}
+      iex> assigns = %{auix: %{_path: %{tag: :edit, name: "resource"}}}
       iex> Aurora.Uix.Layout.Options.get(assigns, :page_title)
       {:not_found, :page_title}
 
@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{_auix: %{_path: %{tag: tag, name: name}}} = assigns, option) do
+  def get(%{auix: %{_path: %{tag: tag, name: name}}} = assigns, option) do
     with {:not_found, _option} <- TitleOptions.get(assigns, option),
          {:not_found, _option} <- FormOptions.get(assigns, option) do
       Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")

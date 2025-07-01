@@ -23,14 +23,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   ## Parameters
   - assigns (map()) - The LiveView assigns including:
     - field - Field configuration map
-    - _auix - Configuration and options map
+    - auix - Configuration and options map
 
   ## Returns
   - Phoenix.LiveView.Rendered.t()
 
   ## Examples
   ```elixir
-  render(%{field: field, _auix: auix})
+  render(%{field: field, auix: auix})
   ```
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     """
   end
 
-  def render(%{field: %{type: :one_to_many_association} = field, _auix: auix} = assigns) do
+  def render(%{field: %{type: :one_to_many_association} = field, auix: auix} = assigns) do
     related_fields =
       field
       |> get_association_fields(auix._configurations)
@@ -71,27 +71,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     ~H"""
     <div class="flex flex-col">
       <div class="flex-row gap-4">
-        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @_auix[:_mode] == :form && @auix_entity.id != nil}
+        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"}>{"#{@related_parsed_opts.title} Elements"}
+            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix[:_mode] == :form && @auix_entity.id != nil}
                 navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
-                id={"auix-new-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}>
+                id={"auix-new-#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"}>
               <.icon name="hero-plus" />
             </.auix_link>
         </.label>
       </div>
-      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"} class={@related_class}>
+      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"} class={@related_class}>
         <.table
-          id={"#{@parsed_opts.module}__#{@field.key}-#{@_auix._mode}"}
-          auix_css_classes={@_auix._css_classes}
+          id={"#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"}
+          auix_css_classes={@auix._css_classes}
           rows={Map.get(@auix_entity, @field.key)}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
           <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.key)}</.auix_link></:col>
           <:action :let={entity}>
             <div class="sr-only">
-              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} name={"auix-show-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-show-#{entity.id}-#{@_auix._mode}"}>Show</.auix_link>
+              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} name={"auix-show-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-show-#{entity.id}-#{@auix._mode}"}>Show</.auix_link>
             </div>
-            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} name={"auix-edit-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-edit-#{entity.id}-#{@_auix._mode}"}><.icon name="hero-pencil" /></.auix_link>
+            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} name={"auix-edit-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-edit-#{entity.id}-#{@auix._mode}"}><.icon name="hero-pencil" /></.auix_link>
           </:action>
 
           <:action :let={entity}>

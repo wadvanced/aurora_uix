@@ -103,7 +103,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
                  {:ok, _changeset} <- apply(context, delete_function, [entity]) do
               socket
               |> put_flash(:info, "Item deleted successfully")
-              |> push_patch(to: socket.assigns._auix[:_current_path])
+              |> push_patch(to: socket.assigns.auix[:_current_path])
             else
               _ -> socket
             end

@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Layout.TitleOptions do
 
   ## Key constraints
 
-    * Expects assigns to contain `_auix` and `_path` keys with appropriate structure.
+    * Expects assigns to contain `auix` and `_path` keys with appropriate structure.
     * Only processes options relevant to the `:show` tag.
 
   ## Options
@@ -29,12 +29,12 @@ defmodule Aurora.Uix.Layout.TitleOptions do
   @doc """
   Retrieves a show layout option from assigns.
 
-  Looks up the given option in the assigns' `_auix._path.opts` if the tag is `:show`.
+  Looks up the given option in the assigns' `auix._path.opts` if the tag is `:show`.
   Supports both static and function-based values for `:page_title` and `:page_subtitle`.
   Falls back to defaults or delegates error reporting to `LayoutOptions` for unsupported options.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map. Must contain `_auix` and `_path` with `:show` tag.
+  - `assigns` (map()) - Assigns map. Must contain `auix` and `_path` with `:show` tag.
   - `option` (atom()) - The option key to retrieve.
 
   ## Returns
@@ -43,15 +43,15 @@ defmodule Aurora.Uix.Layout.TitleOptions do
 
   ## Examples
 
-      iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: [page_title: "Custom"]}}}
+      iex> assigns = %{auix: %{name: "Product", _path: %{tag: :show, opts: [page_title: "Custom"]}}}
       iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
       {:ok, "Custom"}
 
-      iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
+      iex> assigns = %{auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
       iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
       {:ok, "Product"}
 
-      iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
+      iex> assigns = %{auix: %{name: "Product", _path: %{tag: :show, opts: []}}}
       iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_subtitle)
       {:ok, "Details"}
 
@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Layout.TitleOptions do
 
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{_auix: %{_path: %{tag: tag, opts: opts}}} = assigns, option)
+  def get(%{auix: %{_path: %{tag: tag, opts: opts}}} = assigns, option)
       when tag in [:show, :index] do
     if Keyword.has_key?(opts, option),
       do: get_option(assigns, opts[option], option),
@@ -85,13 +85,13 @@ defmodule Aurora.Uix.Layout.TitleOptions do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{_auix: %{_path: %{tag: :show}, name: name}} = assigns, :page_title),
+  defp get_default(%{auix: %{_path: %{tag: :show}, name: name}} = assigns, :page_title),
     do: {:ok, LayoutOptions.render_binary(assigns, "#{name}")}
 
-  defp get_default(%{_auix: %{_path: %{tag: :show}}} = assigns, :page_subtitle),
+  defp get_default(%{auix: %{_path: %{tag: :show}}} = assigns, :page_subtitle),
     do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
 
-  defp get_default(%{_auix: %{_path: %{tag: :index}, title: title}} = assigns, :page_title),
+  defp get_default(%{auix: %{_path: %{tag: :index}, title: title}} = assigns, :page_title),
     do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
 
   defp get_default(_assigns, option), do: {:not_found, option}
