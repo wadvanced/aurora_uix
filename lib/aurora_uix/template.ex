@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Template do
   @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Basic)
 
   @doc """
-  Generates the handling code for the given mode.
+  Generates the handling code for the given layout type.
 
   ## Parameters
   - `modules` (map()) - Map with caller, module, web and context modules.

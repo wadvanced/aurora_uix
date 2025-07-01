@@ -38,18 +38,18 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
       <.flash kind={:error} flash={@flash} title="Error!" />
 
       <.simple_form
-        for={@_auix._form}
-        id={"auix-#{@_auix.module}-form"}
+        for={@auix._form}
+        id={"auix-#{@auix.module}-form"}
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
       >
-        <div class="auix-form-container p-4 border rounded-lg shadow bg-white" data-layout={@_auix._path.name}>
-          <Renderer.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
+        <div class="auix-form-container p-4 border rounded-lg shadow bg-white" data-layout={@auix.layout_tree.name}>
+          <Renderer.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving..." id={"auix-save-#{@_auix.module}"}>Save {@_auix.name}</.button>
+          <.button phx-disable-with="Saving..." id={"auix-save-#{@auix.module}"}>Save {@auix.name}</.button>
         </:actions>
       </.simple_form>
     </div>

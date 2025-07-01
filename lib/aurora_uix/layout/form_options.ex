@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Layout.FormOptions do
 
   ## Key constraints
 
-    * Expects assigns to contain `_auix` and `_path` keys with appropriate structure.
+    * Expects assigns to contain `auix` and `layout_tree` keys with appropriate structure.
     * Only processes options relevant to the `:form`, `:show`, and `:index` tags.
 
   ## Options
@@ -45,7 +45,7 @@ defmodule Aurora.Uix.Layout.FormOptions do
 
   ## Parameters
 
-    - `assigns` (map()) - Assigns map. Must contain `_auix` and `_path` with appropriate tag.
+    - `assigns` (map()) - Assigns map. Must contain `auix` and `layout_tree` with appropriate tag.
     - `option` (atom()) - The option key to retrieve.
 
   ## Returns
@@ -55,19 +55,19 @@ defmodule Aurora.Uix.Layout.FormOptions do
 
   ## Examples
 
-      iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :form, opts: [edit_title: "Edit Product"]}}}
+      iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :form, opts: [edit_title: "Edit Product"]}}}
       iex> Aurora.Uix.Layout.FormOptions.get(assigns, :edit_title)
       {:ok, "Edit Product"}
 
-      iex> assigns = %{_auix: %{name: "Product", _path: %{tag: :form, opts: []}}}
+      iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :form, opts: []}}}
       iex> Aurora.Uix.Layout.FormOptions.get(assigns, :edit_title)
       {:ok, "Edit Product"}
 
-      iex> assigns = %{_auix: %{title: "Product", _path: %{tag: :form, opts: []}}}
+      iex> assigns = %{auix: %{title: "Product", layout_tree: %{tag: :form, opts: []}}}
       iex> Aurora.Uix.Layout.FormOptions.get(assigns, :edit_subtitle)
       {:ok, "Use this form to manage <strong>Product</strong> records in your database"}
 
-      iex> assigns = %{_auix: %{_path: %{tag: :index, name: "Product"}}}
+      iex> assigns = %{auix: %{layout_tree: %{tag: :index, name: "Product"}}}
       iex> Aurora.Uix.Layout.FormOptions.get(assigns, :new_title)
       {:ok, "New Product"}
 
@@ -78,10 +78,10 @@ defmodule Aurora.Uix.Layout.FormOptions do
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(
         %{
-          _auix: %{
-            _path: %{tag: tag},
-            _configurations: configurations,
-            _resource_name: resource_name
+          auix: %{
+            layout_tree: %{tag: tag},
+            configurations: configurations,
+            resource_name: resource_name
           }
         } = assigns,
         option
@@ -98,7 +98,7 @@ defmodule Aurora.Uix.Layout.FormOptions do
       else: get_default(assigns, option)
   end
 
-  def get(%{_auix: %{_path: %{tag: tag, opts: opts}}} = assigns, option)
+  def get(%{auix: %{layout_tree: %{tag: tag, opts: opts}}} = assigns, option)
       when tag in [:form] do
     if Keyword.has_key?(opts, option),
       do: get_option(assigns, opts[option], option),
@@ -125,10 +125,10 @@ defmodule Aurora.Uix.Layout.FormOptions do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{_auix: %{name: name}} = assigns, :edit_title),
+  defp get_default(%{auix: %{name: name}} = assigns, :edit_title),
     do: {:ok, LayoutOptions.render_binary(assigns, "Edit #{name}")}
 
-  defp get_default(%{_auix: %{title: title}} = assigns, :edit_subtitle),
+  defp get_default(%{auix: %{title: title}} = assigns, :edit_subtitle),
     do:
       {:ok,
        LayoutOptions.render_binary(
@@ -136,10 +136,10 @@ defmodule Aurora.Uix.Layout.FormOptions do
          "Use this form to manage <strong>#{title}</strong> records in your database"
        )}
 
-  defp get_default(%{_auix: %{_path: %{tag: :index}, name: name}} = assigns, :new_title),
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}, name: name}} = assigns, :new_title),
     do: {:ok, LayoutOptions.render_binary(assigns, "New #{name}")}
 
-  defp get_default(%{_auix: %{_path: %{tag: :index}, name: name}} = assigns, :new_subtitle),
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}, name: name}} = assigns, :new_subtitle),
     do:
       {:ok,
        LayoutOptions.render_binary(

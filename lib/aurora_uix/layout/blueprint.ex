@@ -277,7 +277,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         inline [:reference, :name, :description]
       end
 
-      def page_title(assigns), do: ~H"Details for {@_auix.name}"
+      def page_title(assigns), do: ~H"Details for {@auix.name}"
       show_layout :product, page_title: &page_title/1,
                               page_subtitle: "Extra Info" do
         inline [:reference, :name, :description]
@@ -454,20 +454,20 @@ defmodule Aurora.Uix.Layout.Blueprint do
   end
 
   @doc """
-  Generates a default path structure for rendering UI components based on the given mode.
+  Generates a default layout_tree structure for rendering UI components based on the given layout type.
 
   ## Parameters
   - `paths` (list()): An existing list of paths. If empty, default paths are generated.
   - `resource_config` (atom()): The associated resource configuration.
-  - `mode` (atom()): The rendering mode (`:index`, `:form`, or `:show`).
+  - `layout_type` (atom()): The rendering layout type (`:index`, `:form`, or `:show`).
 
   ## Returns
   - map(): A map representing the UI structure.
 
   ## Modes and Behaviour
 
-  - **`:index` mode**: Generates an `:index` structure using all available fields as columns.
-  - **`:form` and `:show` modes**: Generates a `:layout` structure containing an `:inline` group with all fields.
+  - **`:index` layout types**: Generates an `:index` structure using all available fields as columns.
+  - **`:form` and `:show` layout types**: Generates a `:layout` structure containing an `:inline` group with all fields.
   - If paths are already provided, they are returned unchanged.
 
   ## Example
@@ -514,8 +514,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
     }
   end
 
-  def build_default_layout_paths([], resource_config, opts, mode)
-      when mode in [:form, :show] do
+  def build_default_layout_paths([], resource_config, opts, layout_type)
+      when layout_type in [:form, :show] do
     columns =
       resource_config
       |> Map.get(:fields_order, [])
@@ -533,7 +533,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     fields_layout = %{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
 
     %{
-      tag: mode,
+      tag: layout_type,
       name: resource_config.name,
       config: [],
       opts: [],
@@ -541,20 +541,20 @@ defmodule Aurora.Uix.Layout.Blueprint do
     }
   end
 
-  def build_default_layout_paths([], resource_config, _opts, mode),
-    do: %{name: resource_config.name, tag: mode, config: [], opts: [], inner_elements: []}
+  def build_default_layout_paths([], resource_config, _opts, layout_type),
+    do: %{name: resource_config.name, tag: layout_type, config: [], opts: [], inner_elements: []}
 
-  def build_default_layout_paths([paths], _resource_config, _opts, _mode), do: paths
+  def build_default_layout_paths([paths], _resource_config, _opts, _layout_type), do: paths
 
   @doc """
-  Parses a list of paths to handle sections based on the given mode.
+  Parses a list of paths to handle sections based on the given layout type.
 
   ## Parameters
-  - `paths` (list()): A list of path maps representing the layout structure.
-  - `mode` (atom()): The mode of parsing, such as `:index` or other modes.
+  - `paths` (list()): A list of layout_tree maps representing the layout structure.
+  - `layout_type` (atom()): The layout type of parsing, such as `:index` or other modes.
 
   ## Returns
-  - `list()`: A list of parsed paths with sections processed according to the mode.
+  - `list()`: A list of parsed paths with sections processed according to the layout type.
 
   ## Examples
     iex> paths = [
@@ -582,16 +582,16 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
   @spec parse_sections(map(), atom()) :: map()
-  def parse_sections(path, mode) when mode in [:form, :show] do
+  def parse_sections(layout_tree, layout_type) when layout_type in [:form, :show] do
     pid = CounterAgent.start_counter()
 
-    path
+    layout_tree
     |> Map.get(:inner_elements, [])
     |> normalize_sections_and_tabs(pid)
-    |> then(&Map.put(path, :inner_elements, &1))
+    |> then(&Map.put(layout_tree, :inner_elements, &1))
   end
 
-  def parse_sections(path, _mode), do: path
+  def parse_sections(layout_tree, _layout_type), do: layout_tree
 
   ## PRIVATE
 

@@ -24,7 +24,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :show}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     get_function = parsed_opts.get_function
@@ -103,7 +103,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
                  {:ok, _changeset} <- apply(context, delete_function, [entity]) do
               socket
               |> put_flash(:info, "Item deleted successfully")
-              |> push_patch(to: socket.assigns._auix[:_current_path])
+              |> push_patch(to: socket.assigns.auix[:_current_path])
             else
               _ -> socket
             end

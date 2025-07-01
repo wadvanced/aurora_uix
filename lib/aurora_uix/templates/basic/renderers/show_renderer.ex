@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
 
   ## Parameters
   - assigns (map()) - LiveView assigns containing:
-    - _auix: Aurora UIX context with configurations and path info
+    - auix: Aurora UIX context with configurations and layout_tree info
     - auix_entity: Entity being displayed
     - live_action: Current live action (:edit)
     - page_title: Title for edit modal
@@ -32,38 +32,38 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   - Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{_auix: %{_path: %{tag: :show}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
     ~H"""
-    <div class={get_in(@_auix._css_classes, [:show_renderer, :top_container]) || ""}>
+    <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
-        {@_auix.layout_options.page_title}
-        <:subtitle :if={@_auix.layout_options.page_subtitle != nil}>{@_auix.layout_options.page_subtitle}</:subtitle>
+        {@auix.layout_options.page_title}
+        <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
         <:actions>
-          <.auix_link patch={"/#{@_auix.link_prefix}#{@_auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@_auix.module}"}>
-            <.button>Edit {@_auix.name}</.button>
+          <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@auix.module}"}>
+            <.button>Edit {@auix.name}</.button>
           </.auix_link>
         </:actions>
       </.header>
 
       <div class="auix-show-container p-4 border rounded-lg shadow bg-white" data-layout="#{name}">
-        <Renderer.render_inner_elements _auix={@_auix} auix_entity={@auix_entity} />
+        <Renderer.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
       </div>
 
       <div id="auix-show-navigate-back">
-        <.auix_back>Back to {@_auix.title}</.auix_back>
+        <.auix_back>Back to {@auix.title}</.auix_back>
       </div>
 
-      <.modal :if={@live_action == :edit} auix_css_classes={@_auix._css_classes} id={"auix-#{@_auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action == :edit} auix_css_classes={@auix.css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
-            module={@_auix._form_component}
+            module={@auix._form_component}
             id={@auix_entity.id || :new}
-            title={@_auix.layout_options.edit_title}
-            subtitle={@_auix.layout_options.edit_subtitle}
+            title={@auix.layout_options.edit_title}
+            subtitle={@auix.layout_options.edit_subtitle}
             action={@live_action}
             auix_entity={@auix_entity}
-            auix_routing_stack={@_auix._routing_stack}
-            auix_css_classes={@_auix._css_classes}
+            auix_routing_stack={@auix._routing_stack}
+            auix_css_classes={@auix.css_classes}
           />
         </div>
       </.modal>

@@ -29,11 +29,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
   ## Example
 
-      iex> IndexGenerator.generate_module(%{web: MyAppWeb, context: MyApp.Context, module: MyApp.Entity}, %{_path: %{tag: :index}, source: "entities", ...})
+      iex> IndexGenerator.generate_module(%{web: MyAppWeb, context: MyApp.Context, module: MyApp.Entity}, %{layout_tree: %{tag: :index}, source: "entities", ...})
       #=> {:module, ...}
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :index}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)
@@ -75,7 +75,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
-           #  |> tap(&MIO.inspect(&1.assigns._auix._configurations, label: "*********** path"))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_option(:page_title, "")
@@ -113,7 +112,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
                  {:ok, _changeset} <- apply(context, delete_function, [entity]) do
               socket
               |> put_flash(:info, "Item deleted successfully")
-              |> push_patch(to: socket.assigns._auix[:_current_path])
+              |> push_patch(to: socket.assigns.auix[:_current_path])
             else
               _ -> socket
             end

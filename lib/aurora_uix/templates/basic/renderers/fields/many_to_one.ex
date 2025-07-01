@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   - Groups and labels associated fields
   - Supports nested rendering of related fields
   - Handles both form and show modes
-  - Manages label and path configuration for associations
+  - Manages label and layout_tree configuration for associations
   - Integrates with Aurora UIX context and helpers
   """
 
@@ -21,32 +21,32 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   ## Parameters
   - assigns (map()) - LiveView assigns, must include:
     - field (map()) - Field configuration
-    - _auix (map()) - Aurora UIX configuration
+    - auix (map()) - Aurora UIX configuration
 
   ## Returns
   - Phoenix.LiveView.Rendered.t()
 
   ## Example
-      render(%{field: field, _auix: auix})
+      render(%{field: field, auix: auix})
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(
         %{
           field: %{type: :many_to_one_association} = field_struct,
-          _auix: %{_path: %{name: field_name}} = auix
+          auix: %{layout_tree: %{name: field_name}} = auix
         } = assigns
       )
       when is_atom(field_name) do
-    inner_elements = get_association_paths(field_struct, auix._configurations, :show)
-    association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+    inner_elements = get_association_paths(field_struct, auix.configurations, :show)
+    association_label = get_in(auix.configurations, [field_struct.resource, :parsed_opts, :name])
 
     assigns
-    |> put_in([:_auix, :_path], %{
+    |> put_in([:auix, :layout_tree], %{
       tag: :group,
       config: [group_id: "#{field_struct.html_id}", title: association_label],
       inner_elements: inner_elements
     })
-    |> put_in([:_auix, :_ignore_association_label], true)
+    |> put_in([:auix, :_ignore_association_label], true)
     |> Renderer.render()
   end
 
@@ -73,29 +73,35 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     Enum.map(paths, &convert_to_many_to_one_path(&1, parent_field))
   end
 
-  # Converts a single path to a many-to-one field path
+  # Converts a single layout_tree to a many-to-one field layout_tree
   @spec convert_to_many_to_one_path(map(), atom()) :: map()
   defp convert_to_many_to_one_path(
-         %{tag: :field, name: field_name, inner_elements: inner_elements} = path,
+         %{tag: :field, name: field_name, inner_elements: inner_elements} = layout_tree,
          parent_field
        ) do
-    Map.merge(path, %{
+    Map.merge(layout_tree, %{
       name: {parent_field, field_name},
       inner_elements: convert_to_many_to_one_paths(inner_elements, parent_field)
     })
   end
 
-  defp convert_to_many_to_one_path(%{inner_elements: inner_elements} = path, parent_field) do
-    Map.put(path, :inner_elements, convert_to_many_to_one_paths(inner_elements, parent_field))
+  defp convert_to_many_to_one_path(%{inner_elements: inner_elements} = layout_tree, parent_field) do
+    Map.put(
+      layout_tree,
+      :inner_elements,
+      convert_to_many_to_one_paths(inner_elements, parent_field)
+    )
   end
 
   # Parses the value for a many-to-one association, handling tuple and atom names
   @spec parse_many_to_one_value(map()) :: map()
-  defp parse_many_to_one_value(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name),
-    do: assigns
+  defp parse_many_to_one_value(%{auix: %{layout_tree: %{name: name}}} = assigns)
+       when is_atom(name),
+       do: assigns
 
   defp parse_many_to_one_value(
-         %{_auix: %{_path: %{name: names}, _mode: :show}, auix_entity: entity} = assigns
+         %{auix: %{layout_tree: %{name: names}, layout_type: :show}, auix_entity: entity} =
+           assigns
        )
        when is_tuple(names) do
     names
@@ -106,7 +112,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   end
 
   defp parse_many_to_one_value(
-         %{_auix: %{_path: %{name: names}, _form: form, _mode: :form} = _auix} = assigns
+         %{auix: %{layout_tree: %{name: names}, _form: form, layout_type: :form}} = assigns
        )
        when is_tuple(names) do
     names
@@ -114,18 +120,19 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     |> List.first()
     |> then(&%{&1 => form[&1].value})
     |> then(&Map.put(assigns, :auix_entity, &1))
-    |> put_in([:_auix, :_mode], :show)
+    |> put_in([:auix, :layout_type], :show)
     |> parse_many_to_one_value()
   end
 
   # Sets the resource for a many-to-one association, updating assigns
   @spec set_many_to_one_resource(map()) :: map()
-  defp set_many_to_one_resource(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name),
-    do: assigns
+  defp set_many_to_one_resource(%{auix: %{layout_tree: %{name: name}}} = assigns)
+       when is_atom(name),
+       do: assigns
 
   defp set_many_to_one_resource(
          %{
-           _auix: %{_path: %{name: names}, _configurations: configurations} = auix,
+           auix: %{layout_tree: %{name: names}, configurations: configurations} = auix,
            field: parent_field_struct
          } = assigns
        ) do
@@ -149,8 +156,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     assigns
     |> put_in(
       [
-        :_auix,
-        :_configurations,
+        :auix,
+        :configurations,
         field.resource,
         :resource_config,
         Access.key!(:fields),
@@ -158,7 +165,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
       ],
       field
     )
-    |> put_in([:_auix, :_resource_name], field.resource)
+    |> put_in([:auix, :resource_name], field.resource)
   end
 
   # Gets a nested field for a many-to-one association
@@ -192,15 +199,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
 
   defp maybe_ignore_parent_label(parent_field, true), do: Map.put(parent_field, :label, "")
 
-  # Trims the path for a many-to-one association to the last element
+  # Trims the layout_tree for a many-to-one association to the last element
   @spec trim_path(map()) :: map()
-  defp trim_path(%{_auix: %{_path: %{name: name}}} = assigns) when is_atom(name), do: assigns
+  defp trim_path(%{auix: %{layout_tree: %{name: name}}} = assigns) when is_atom(name), do: assigns
 
-  defp trim_path(%{_auix: %{_path: %{name: names}}} = assigns) do
+  defp trim_path(%{auix: %{layout_tree: %{name: names}}} = assigns) do
     names
     |> Tuple.to_list()
     |> List.last()
-    |> then(&put_in(assigns, [:_auix, :_path, :name], &1))
+    |> then(&put_in(assigns, [:auix, :layout_tree, :name], &1))
   end
 
   # Deletes the last element from a list

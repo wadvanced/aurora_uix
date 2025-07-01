@@ -11,21 +11,21 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     @spec page_title(map()) :: term()
     def page_title(assigns) do
-      ~H"Details for {@_auix.name}"
+      ~H"Details for {@auix.name}"
     end
 
     @spec edit_title(map()) :: term()
-    def edit_title(%{_auix: %{_form: _form}} = assigns),
-      do: ~H"Modify {@_auix.name}: #{inspect(@_auix._form)} "
+    def edit_title(%{auix: %{_form: _form}} = assigns),
+      do: ~H"Modify {@auix.name}: #{inspect(@auix._form)} "
 
-    def edit_title(%{auix_entity: nil} = assigns), do: ~H"Modify {@_auix.name}"
+    def edit_title(%{auix_entity: nil} = assigns), do: ~H"Modify {@auix.name}"
 
     def edit_title(%{auix_entity: _entity} = assigns),
-      do: ~H"Modify {@_auix.name}: {@auix_entity.reference}"
+      do: ~H"Modify {@auix.name}: {@auix_entity.reference}"
 
     @spec new_subtitle(map()) :: term()
     def new_subtitle(assigns),
-      do: ~H"Please fill <strong>{@_auix.name}'s</strong> values properly"
+      do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
 
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 

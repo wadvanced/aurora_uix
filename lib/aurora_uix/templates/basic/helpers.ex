@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   """
   @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   def assign_index_row_click(%{assigns: assigns} = socket, _params) do
-    parsed_opts = Map.get(assigns, :_auix, %{})
+    parsed_opts = Map.get(assigns, :auix, %{})
 
     index_row_click =
       if parsed_opts[:disable_index_row_click],
@@ -77,11 +77,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
-  Assigns parsed options to the _auix assigns map in the socket.
+  Assigns parsed options to the auix assigns map in the socket.
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - parsed_opts (map()) - Options to merge with existing _auix assigns
+  - parsed_opts (map()) - Options to merge with existing auix assigns
 
   ## Returns
   - Phoenix.LiveView.Socket.t()
@@ -89,17 +89,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec assign_parsed_opts(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   def assign_parsed_opts(socket, parsed_opts) do
     socket.assigns
-    |> Map.get(:_auix, %{})
+    |> Map.get(:auix, %{})
     |> then(&Map.merge(parsed_opts, &1))
-    |> then(&assign(socket, :_auix, &1))
+    |> then(&assign(socket, :auix, &1))
   end
 
   @doc """
-  Assigns a value to the _auix assigns map in the socket.
+  Assigns a value to the auix assigns map in the socket.
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - key (atom()) - Key for storing in _auix map
+  - key (atom()) - Key for storing in auix map
   - value (term()) - Value to store
 
   ## Returns
@@ -108,17 +108,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec assign_auix(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix(socket, key, value) do
     socket.assigns
-    |> Map.get(:_auix, %{})
+    |> Map.get(:auix, %{})
     |> Map.put(key, value)
-    |> then(&assign(socket, :_auix, &1))
+    |> then(&assign(socket, :auix, &1))
   end
 
   @doc """
-  Assigns a value to the _auix assigns map in the socket only if it does not exist.
+  Assigns a value to the auix assigns map in the socket only if it does not exist.
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - key (atom()) - Key for storing in _auix map
+  - key (atom()) - Key for storing in auix map
   - value (term()) - Value to store
 
   ## Returns
@@ -127,13 +127,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix_new(socket, key, value) do
     socket.assigns
-    |> Map.get(:_auix, %{})
+    |> Map.get(:auix, %{})
     |> Map.put_new(key, value)
-    |> then(&assign(socket, :_auix, &1))
+    |> then(&assign(socket, :auix, &1))
   end
 
   @doc """
-  Assigns section configuration to _auix assigns map.
+  Assigns section configuration to auix assigns map.
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
@@ -146,14 +146,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary(), binary()) ::
           Phoenix.LiveView.Socket.t()
   def assign_auix_sections(%{assigns: assigns} = socket, sections_id, tab_id) do
-    assigns._auix
+    assigns.auix
     |> Map.get(:_sections)
     |> Map.put(sections_id, tab_id)
     |> then(&assign_auix(socket, :_sections, &1))
   end
 
   @doc """
-  Extracts and assigns the current path out of the current url, to the _auix map.
+  Extracts and assigns the current path out of the current url, to the auix map.
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
@@ -223,14 +223,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Assigns a layout option to the socket's assigns using the LayoutOptions module.
 
   Retrieves the option value using `LayoutOptions.get/2`. If the option is not found, assigns the
-  socket unchanged. Otherwise, stores the value in the `:layout_options` key within the `_auix` map.
+  socket unchanged. Otherwise, stores the value in the `:layout_options` key within the `auix` map.
 
   ## Parameters
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
   - `option` (atom()) - The option key to retrieve and assign.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() - The socket with the option assigned in `_auix.layout_options`.
+  Phoenix.LiveView.Socket.t() - The socket with the option assigned in `auix.layout_options`.
 
   """
   @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom()) :: Phoenix.LiveView.Socket.t()
@@ -246,11 +246,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
     socket
     |> assign_auix_new(:layout_options, %{})
-    |> put_in([Access.key!(:assigns), :_auix, :layout_options, option], option_value)
+    |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
   end
 
   @doc """
-  Sets a layout option to the _auix entry in the socket's assigns.
+  Sets a layout option to the auix entry in the socket's assigns.
 
   ## Parameters
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
@@ -267,7 +267,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       when is_atom(option) do
     socket
     |> assign_auix_new(:layout_options, %{})
-    |> put_in([Access.key!(:assigns), :_auix, :layout_options, option], option_value)
+    |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
   end
 
   @doc """
@@ -282,7 +282,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   """
   @spec auix_route_forward(Phoenix.LiveView.Socket.t(), keyword()) :: Phoenix.LiveView.Socket.t()
   def auix_route_forward(
-        %{assigns: %{_auix: %{_current_path: current_path}}} = socket,
+        %{assigns: %{auix: %{_current_path: current_path}}} = socket,
         navigation
       ) do
     socket
@@ -300,7 +300,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   - Phoenix.LiveView.Socket.t()
   """
   @spec auix_route_back(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
-  def auix_route_back(%{assigns: %{_auix: %{_routing_stack: routing_stack}}} = socket) do
+  def auix_route_back(%{assigns: %{auix: %{_routing_stack: routing_stack}}} = socket) do
     {new_navigation_stack, back_path} = Stack.pop!(routing_stack)
 
     socket
@@ -386,7 +386,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> List.flatten()
     |> Enum.map(&elem(&1, 0))
     |> Enum.uniq()
-    |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
+    |> Enum.map(&get_field(%{name: &1}, parsed_opts.configurations, parsed_opts.resource_name))
     |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
     |> Enum.map(&{&1.type, &1.key})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
@@ -406,8 +406,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   def flat_paths(elements, result \\ [])
   def flat_paths([], result), do: result
 
-  def flat_paths(%{inner_elements: inner_elements} = path, result) do
-    flat_paths(inner_elements, [%{tag: path.tag, name: path[:name]} | result])
+  def flat_paths(%{inner_elements: inner_elements} = layout_tree, result) do
+    flat_paths(inner_elements, [%{tag: layout_tree.tag, name: layout_tree[:name]} | result])
   end
 
   def flat_paths([%{inner_elements: inner_elements} | rest], result) do
@@ -486,7 +486,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   # Adds a path to the forward navigation stack and updates last route path in assigns
   @spec add_forward_path(Phoenix.LiveView.Socket.t(), binary(), keyword()) ::
           Phoenix.LiveView.Socket.t()
-  defp add_forward_path(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, path, navigation) do
+  defp add_forward_path(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, path, navigation) do
     navigation_entry =
       navigation
       |> route_type()
@@ -502,14 +502,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   # Handles route changes based on navigation type and current routing stack
   @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
-  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{
+  defp route_to(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, %{
          type: :navigate,
          path: path
        }) do
     push_navigate(socket, to: route_path_with_stack(path, stack))
   end
 
-  defp route_to(%{assigns: %{_auix: %{_routing_stack: stack}}} = socket, %{
+  defp route_to(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, %{
          type: :patch,
          path: path
        }) do
