@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
     ~H"""
     <div id={@auix.layout_tree.config[:group_id]} class="p-3 border rounded-md bg-gray-100">
       <h3 class="font-semibold text-lg"><%= @auix.layout_tree.config[:title] %></h3>
-      <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """
   end
@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   def render(%{auix: %{layout_tree: %{tag: :inline}}} = assigns) do
     ~H"""
     <div class="flex flex-col gap-2 sm:flex-row">
-      <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """
   end
@@ -68,7 +68,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   def render(%{auix: %{layout_tree: %{tag: :stacked}}} = assigns) do
     ~H"""
     <div class="flex flex-col gap-2">
-      <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """
   end
@@ -105,7 +105,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @spec render_inner_elements(map()) :: Phoenix.LiveView.Rendered.t()
   def render_inner_elements(assigns) do
     ~H"""
-    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix_entity} :for={inner_path <- @auix.layout_tree.inner_elements} />
+    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix.entity} :for={inner_path <- @auix.layout_tree.inner_elements} />
     """
   end
 end

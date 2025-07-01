@@ -29,7 +29,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_new_entity(Phoenix.Socket.t(), map(), struct()) :: Phoenix.Socket.t()
+  @spec assign_new_entity(Phoenix.LiveView.Socket.t(), map(), struct()) ::
+          Phoenix.LiveView.Socket.t()
   def assign_new_entity(
         socket,
         %{
@@ -44,7 +45,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   def assign_new_entity(socket, _params, default) do
-    assign(socket, :auix_entity, default)
+    assign_auix(socket, :entity, default)
   end
 
   @doc """
@@ -105,7 +106,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_auix(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
+  @spec assign_auix(Phoenix.LiveView.Socket.t(), atom(), term()) :: Phoenix.LiveView.Socket.t()
   def assign_auix(socket, key, value) do
     socket.assigns
     |> Map.get(:auix, %{})
@@ -183,13 +184,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
       iex> params = %{"routing_stack" => encoded_stack}
       iex> assign_auix_routing_stack(socket, params, nil)
-      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{...}}}
+      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
       iex> assign_auix_routing_stack(socket, %{}, nil)
-      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{}}}
+      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{}}}
 
       iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
-      #=> %Phoenix.LiveView.Socket{assigns: %{_routing_stack: %Stack{...}}}
+      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
   """
   @spec assign_auix_routing_stack(Phoenix.LiveView.Socket.t(), map(), map() | nil) ::
@@ -206,17 +207,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     # |> Map.get("values", [])
     # |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
     # |> Stack.new()
-    |> then(&assign_auix(socket, :_routing_stack, &1))
+    |> then(&assign_auix(socket, :routing_stack, &1))
   end
 
   def assign_auix_routing_stack(socket, _params, nil) do
-    assign_auix(socket, :_routing_stack, Stack.new())
+    assign_auix(socket, :routing_stack, Stack.new())
   end
 
   def assign_auix_routing_stack(socket, _params, default_route) do
     default_route
     |> Stack.new()
-    |> then(&assign_auix(socket, :_routing_stack, &1))
+    |> then(&assign_auix(socket, :routing_stack, &1))
   end
 
   @doc """
@@ -300,11 +301,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   - Phoenix.LiveView.Socket.t()
   """
   @spec auix_route_back(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
-  def auix_route_back(%{assigns: %{auix: %{_routing_stack: routing_stack}}} = socket) do
+  def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack}}} = socket) do
     {new_navigation_stack, back_path} = Stack.pop!(routing_stack)
 
     socket
-    |> assign_auix(:_routing_stack, new_navigation_stack)
+    |> assign_auix(:routing_stack, new_navigation_stack)
     |> route_to(Map.new(back_path))
   end
 
@@ -325,29 +326,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> String.replace("[[entity]]", entity |> Map.get(:id) |> to_string())
     |> then(fn link -> URI.decode("/#{link}") end)
   end
-
-  @doc """
-  Generates a path string for related entities.
-
-  ## Parameters
-  - source (binary()) - The source identifier
-  - auix_entity (map()) - Entity with id and owner key value
-  - related_key (atom()) - Key identifying the relation
-  - owner_key (atom()) - Key identifying the owner field
-
-  ## Returns
-  - binary()
-  """
-  @spec related_path(binary, map, atom, atom) :: binary
-  def related_path(_source, _auix_entity, nil, _owner_key), do: ""
-  def related_path(_source, _auix_entity, _related_key, nil), do: ""
-  def related_path(_source, %{id: nil}, _related_key, _owner_key), do: ""
-
-  def related_path(source, %{id: id} = auix_entity, related_key, owner_key) do
-    "source=#{source}/#{id}&related_key=#{related_key}&parent_id=#{Map.get(auix_entity, owner_key)}"
-  end
-
-  def related_path(_parsed_opts, _auix_entity, _related_key, _owner_key), do: ""
 
   @doc """
   Retrieves and processes field configuration from the resource configurations.
@@ -426,12 +404,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
         ) :: Phoenix.LiveView.Socket.t()
   def __maybe_set_related_to_new_entity__(related_key, socket, parent_id, default)
       when is_nil(related_key) or is_nil(parent_id),
-      do: assign(socket, :auix_entity, default)
+      do: assign_auix(socket, :entity, default)
 
   def __maybe_set_related_to_new_entity__(related_key, socket, parent_id, default) do
     default
     |> struct(%{related_key => parent_id})
-    |> then(&assign(socket, :auix_entity, &1))
+    |> then(&assign_auix(socket, :entity, &1))
   end
 
   @doc """
@@ -486,7 +464,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   # Adds a path to the forward navigation stack and updates last route path in assigns
   @spec add_forward_path(Phoenix.LiveView.Socket.t(), binary(), keyword()) ::
           Phoenix.LiveView.Socket.t()
-  defp add_forward_path(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, path, navigation) do
+  defp add_forward_path(%{assigns: %{auix: %{routing_stack: stack}}} = socket, path, navigation) do
     navigation_entry =
       navigation
       |> route_type()
@@ -494,7 +472,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
     stack
     |> Stack.push(navigation_entry)
-    |> then(&assign_auix(socket, :_routing_stack, &1))
+    |> then(&assign_auix(socket, :routing_stack, &1))
     |> assign_auix(:_last_route_path, path)
   end
 
@@ -502,14 +480,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   # Handles route changes based on navigation type and current routing stack
   @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
-  defp route_to(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, %{
+  defp route_to(%{assigns: %{auix: %{routing_stack: stack}}} = socket, %{
          type: :navigate,
          path: path
        }) do
     push_navigate(socket, to: route_path_with_stack(path, stack))
   end
 
-  defp route_to(%{assigns: %{auix: %{_routing_stack: stack}}} = socket, %{
+  defp route_to(%{assigns: %{auix: %{routing_stack: stack}}} = socket, %{
          type: :patch,
          path: path
        }) do

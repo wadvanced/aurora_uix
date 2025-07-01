@@ -59,8 +59,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_auix_new(:_sections, %{})
-           |> assign(
-             :auix_entity,
+           |> assign_auix(
+             :entity,
              apply(unquote(modules.context), unquote(get_function), [
                id,
                [preload: unquote(Macro.escape(parsed_opts.preload))]

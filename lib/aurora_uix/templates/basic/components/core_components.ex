@@ -47,7 +47,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
   attr(:id, :string, required: true)
   attr(:show, :boolean, default: false)
   attr(:on_cancel, JS, default: %JS{})
-  attr(:auix_css_classes, :map, default: %{})
+  attr(:auix, :map, default: %{})
   slot(:inner_block, required: true)
 
   @spec modal(map) :: Rendered.t()
@@ -70,7 +70,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class={get_in(@auix_css_classes, [:core_components, :modal_inner_container]) || "w-full max-w-3xl p-4 sm:p-6 lg:py-8"}>
+          <div class={get_in(@auix, [:css_classes, :core_components, :modal_inner_container]) || "w-full max-w-3xl p-4 sm:p-6 lg:py-8"}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -494,7 +494,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
     doc: "the function for mapping each row before calling the :col and :action slots"
   )
 
-  attr(:auix_css_classes, :map, default: %{})
+  attr(:auix, :map, default: %{})
 
   slot :col, required: true do
     attr(:label, :string)
@@ -510,7 +510,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
       end
 
     ~H"""
-    <div class={get_in(@auix_css_classes, [:core_components, :table_container]) || "overflow-y-auto px-4 sm:overflow-visible sm:px-0"}>
+    <div class={get_in(@auix, [:css_classes, :core_components, :table_container]) || "overflow-y-auto px-4 sm:overflow-visible sm:px-0"}>
       <table class="w-[40rem] mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>

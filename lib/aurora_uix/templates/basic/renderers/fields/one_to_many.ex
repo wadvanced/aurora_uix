@@ -72,8 +72,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     <div class="flex flex-col">
       <div class="flex-row gap-4">
         <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && @auix_entity.id != nil}
-                navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix_entity, @owner_key)}"}
+            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && @auix.entity.id != nil}
+                navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix.entity, @owner_key)}"}
                 id={"auix-new-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
               <.icon name="hero-plus" />
             </.auix_link>
@@ -82,8 +82,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
-          auix_css_classes={@auix.css_classes}
-          rows={Map.get(@auix_entity, @field.key)}
+          auix={%{css_classes: @auix.css_classes}}
+          rows={get_in(@auix, [:entity, Access.key!(@field.key)])}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
           <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.key)}</.auix_link></:col>
@@ -131,7 +131,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   # Returns path template with placeholders for dynamic values
   @spec build_related_path(binary(), map()) :: binary()
   defp build_related_path(source, data) do
-    "source=#{source}/\#{@auix_entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix_entity.#{data.owner_key}}"
+    "source=#{source}/\#{@auix.entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix.entity.#{data.owner_key}}"
   end
 
   # Gets field configurations for associations from the resource configurations

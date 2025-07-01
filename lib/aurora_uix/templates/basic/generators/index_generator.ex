@@ -159,13 +159,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         ## PRIVATE
 
-        @spec apply_action(Phoenix.LiveView.Socket.t(), atom, map) :: Phoenix.LiveView.t()
+        @spec apply_action(Phoenix.LiveView.Socket.t(), atom(), map()) :: Phoenix.LiveView.t()
         defp apply_action(socket, :edit, %{"id" => id} = params) do
           socket
           |> assign_auix_option(:edit_title)
           |> assign_auix_option(:edit_subtitle)
-          |> assign(
-            :auix_entity,
+          |> assign_auix(
+            :entity,
             apply(unquote(modules.context), unquote(get_function), [
               id,
               [preload: unquote(Macro.escape(parsed_opts.preload))]
@@ -190,7 +190,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           socket
           |> assign_auix_option(:page_title)
           |> assign_auix_option(:page_subtitle)
-          |> assign(:auix_entity, nil)
+          |> assign_auix(:entity, nil)
         end
       end
     end

@@ -66,7 +66,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         alias unquote(modules.context)
 
         @impl true
-        def update(%{:auix_entity => entity} = assigns, socket) do
+        def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do
           form =
             unquote(modules.context)
             |> apply(unquote(change_function), [entity])
@@ -79,10 +79,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
            |> assign_auix_new(:_form, form)
            |> assign_auix_new(:_sections, %{})
            |> assign_auix(:_myself, socket.assigns.myself)
-           |> assign_auix(
-             :_routing_stack,
-             Map.get(assigns, :auix_routing_stack, Stack.new())
-           )
+           |> assign_auix(:routing_stack, routing_stack || Stack.new())
            |> render_with(&Renderer.render/1)}
         end
 
@@ -92,7 +89,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
           changeset =
             apply(unquote(modules.context), unquote(change_function), [
-              socket.assigns[:auix_entity],
+              socket.assigns[:auix][:entity],
               entity_params
             ])
 
@@ -137,8 +134,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
               {:noreply,
                socket
                |> put_flash(:info, "#{unquote(parsed_opts.name)} updated successfully")
-               |> assign(:auix_entity, new_entity)
                |> assign(:action, :edit)
+               |> assign_auix(:entity, new_entity)
                |> conditional_route_back(action, unquote(one2many_rendered?))}
 
             {:error, %Ecto.Changeset{} = changeset} ->
@@ -152,7 +149,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         # Persists entity changes using the appropriate context function
         defp save_entity(socket, :edit, entity_params) do
           apply(unquote(modules.context), unquote(update_function), [
-            socket.assigns[:auix_entity],
+            socket.assigns[:auix][:entity],
             entity_params
           ])
         end
@@ -162,7 +159,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         end
 
         defp conditional_route_back(
-               %{assigns: %{auix: %{_routing_stack: routing_stack}, auix_entity: entity}} =
+               %{assigns: %{auix: %{routing_stack: routing_stack, entity: entity}}} =
                  socket,
                :new,
                true
@@ -177,7 +174,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
           |> then(
             &assign_auix(
               socket,
-              :_routing_stack,
+              :routing_stack,
               Stack.push(new_routing_stack, %{type: :navigate, path: &1})
             )
           )
