@@ -23,7 +23,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   ## Parameters
   - assigns (map()) - LiveView assigns containing:
     - auix: Aurora UIX context with configurations and layout_tree info
-    - auix_entity: Entity being displayed
     - live_action: Current live action (:edit)
     - page_title: Title for edit modal
     - subtitle: Optional subtitle for the header
@@ -39,31 +38,29 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
         {@auix.layout_options.page_title}
         <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
         <:actions>
-          <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix_entity.id}/show/edit"} id={"auix-edit-#{@auix.module}"}>
+          <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix.entity.id}/show/edit"} id={"auix-edit-#{@auix.module}"}>
             <.button>Edit {@auix.name}</.button>
           </.auix_link>
         </:actions>
       </.header>
 
       <div class="auix-show-container p-4 border rounded-lg shadow bg-white" data-layout="#{name}">
-        <Renderer.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
+        <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
       </div>
 
       <div id="auix-show-navigate-back">
         <.auix_back>Back to {@auix.title}</.auix_back>
       </div>
 
-      <.modal :if={@live_action == :edit} auix_css_classes={@auix.css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action == :edit} auix={%{css_classes: @auix.css_classes}} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix._form_component}
-            id={@auix_entity.id || :new}
+            id={@auix.entity.id || :new}
             title={@auix.layout_options.edit_title}
             subtitle={@auix.layout_options.edit_subtitle}
             action={@live_action}
-            auix_entity={@auix_entity}
-            auix_routing_stack={@auix._routing_stack}
-            auix_css_classes={@auix.css_classes}
+            auix={%{css_classes: @auix.css_classes, entity: @auix.entity, routing_stack: @auix.routing_stack}}
           />
         </div>
       </.modal>
