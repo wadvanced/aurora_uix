@@ -98,14 +98,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
     ~H"""
     <%= if @field.hidden do %>
-      <input type="hidden" id={"#{@field.html_id}-#{@auix._mode}"}
-        {if @auix._mode == :form, do: %{name: @auix._form[@field.key].name, value: @auix._form[@field.key].value},
+      <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"}
+        {if @auix.layout_type == :form, do: %{name: @auix._form[@field.key].name, value: @auix._form[@field.key].value},
          else: %{name: @field.key, value: @auix_entity[@field.key]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
-          id={"#{@field.html_id}-#{@auix._mode}"}
-          {if @auix._mode == :form,
+          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          {if @auix.layout_type == :form,
             do: %{field: @auix._form[@field.key]},
             else: %{name: @field.key, value: Map.get(@auix_entity || %{}, @field.key)}}
           type={"#{@field.html_type}"}
@@ -113,7 +113,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
-          disabled={@field.disabled or @auix._mode == :show}
+          disabled={@field.disabled or @auix.layout_type == :show}
           class={@input_classes}
         />
       </div>

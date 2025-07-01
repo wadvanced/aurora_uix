@@ -95,7 +95,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     do: assigns
 
   defp parse_many_to_one_value(
-         %{auix: %{_path: %{name: names}, _mode: :show}, auix_entity: entity} = assigns
+         %{auix: %{_path: %{name: names}, layout_type: :show}, auix_entity: entity} = assigns
        )
        when is_tuple(names) do
     names
@@ -106,7 +106,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   end
 
   defp parse_many_to_one_value(
-         %{auix: %{_path: %{name: names}, _form: form, _mode: :form}} = assigns
+         %{auix: %{_path: %{name: names}, _form: form, layout_type: :form}} = assigns
        )
        when is_tuple(names) do
     names
@@ -114,7 +114,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     |> List.first()
     |> then(&%{&1 => form[&1].value})
     |> then(&Map.put(assigns, :auix_entity, &1))
-    |> put_in([:auix, :_mode], :show)
+    |> put_in([:auix, :layout_type], :show)
     |> parse_many_to_one_value()
   end
 

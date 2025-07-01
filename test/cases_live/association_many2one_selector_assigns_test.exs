@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAssignsTest do
     alias Aurora.Uix.Test.Inventory.ProductTransaction
 
     @spec option_label(map(), term()) :: binary()
-    def option_label(assigns, entity), do: "#{assigns.auix._mode}: #{entity.name}"
+    def option_label(assigns, entity), do: "#{assigns.auix.layout_type}: #{entity.name}"
 
     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
       field(:products, omitted: true)

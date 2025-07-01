@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.SectionsRenderer do
       |> assign(:unique_id, unique_id)
 
     ~H"""
-    <div id={"sections-#{@unique_id}-#{@auix._mode}"} class="" data-sections-index={@auix._path.config[:index]}>
+    <div id={"sections-#{@unique_id}-#{@auix.layout_type}"} class="" data-sections-index={@auix._path.config[:index]}>
       <div class="auix-button-tabs-container mt-2 flex flex-col sm:flex-row">
         <%= for tab <- @auix._path.config[:tabs] do %>
           <button type="button"
@@ -47,7 +47,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.SectionsRenderer do
             data-button-sections-index={tab.sections_index}
             data-button-tab-index={tab.tab_index}
             phx-click="switch_section"
-            phx-target={if @auix._mode == :form, do: @auix._myself}
+            phx-target={if @auix.layout_type == :form, do: @auix._myself}
             phx-value-tab-id={Jason.encode!(%{sections_id: tab.sections_id, tab_id: tab.tab_id})}
             >
             <%= tab.label %>
