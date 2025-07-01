@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
@@ -204,9 +205,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       ) do
     encoded_routing_stack
     |> decode_routing_stack()
-    # |> Map.get("values", [])
-    # |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
-    # |> Stack.new()
     |> then(&assign_auix(socket, :routing_stack, &1))
   end
 
@@ -234,8 +232,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   Phoenix.LiveView.Socket.t() - The socket with the option assigned in `auix.layout_options`.
 
   """
-  @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom()) :: Phoenix.LiveView.Socket.t()
-  def assign_auix_option(%{assigns: assigns} = socket, option) when is_atom(option) do
+  @spec assign_auix_option(Phoenix.LiveView.Socket.t() | map(), atom()) ::
+          Phoenix.LiveView.Socket.t() | map()
+  def assign_auix_option(%Phoenix.LiveView.Socket{assigns: assigns} = socket, option)
+      when is_atom(option) do
     option_value =
       case LayoutOptions.get(assigns, option) do
         {:not_found, _option} ->
@@ -248,6 +248,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     socket
     |> assign_auix_new(:layout_options, %{})
     |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
+  end
+
+  def assign_auix_option(%{auix: auix} = assigns, option) when is_atom(option) do
+    option_value =
+      case LayoutOptions.get(assigns, option) do
+        {:not_found, _option} ->
+          nil
+
+        {:ok, value} ->
+          value
+      end
+
+    auix
+    |> Map.put_new(:layout_options, %{})
+    |> then(&Map.put(assigns, :auix, &1))
+    |> put_in([:auix, :layout_options, option], option_value)
   end
 
   @doc """
@@ -269,6 +285,61 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     socket
     |> assign_auix_new(:layout_options, %{})
     |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
+  end
+
+  @doc """
+  Adds an action to the specified actions group in the assigns map.
+
+  ## Parameters
+  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `actions_group` (atom()) - The group to which the action will be added. Only `:row_actions` is supported.
+  - `action` (Action.t()) - The action to add.
+
+  ## Returns
+  map() - The updated assigns map with the action added to the group.
+
+  ## Examples
+
+      iex> assigns = %{auix: %{row_actions: []}}
+      iex> action = %Aurora.Uix.Action{name: "edit", function_component: fn -> :ok end}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.add_auix_action(assigns, :row_actions, action)
+      %{auix: %{row_actions: [%Aurora.Uix.Action{name: "edit", function_component: #Function<...>}]}}
+  """
+  @spec add_auix_action(map(), atom(), Action.t()) :: map()
+  def add_auix_action(%{auix: auix} = assigns, actions_group, action)
+      when actions_group in [:row_actions, :header_actions] do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.reverse()
+    |> then(&[action | &1])
+    |> Enum.reverse()
+    |> then(&put_in(assigns, [:auix, actions_group], &1))
+  end
+
+  @doc """
+  Removes an action by name from the specified actions group in the assigns map.
+
+  ## Parameters
+  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `actions_group` (atom()) - The group from which the action will be removed. Only `:row_actions` is supported.
+  - `action_name` (atom()) - The name of the action to remove.
+
+  ## Returns
+  map() - The updated assigns map with the action removed from the group.
+
+  ## Examples
+
+      iex> assigns = %{auix: %{row_actions: [{:edit, fn -> :ok end}, {:delete, fn -> :ok end}]}}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.remove_auix_action(assigns, :row_actions, :edit)
+      %{auix: %{row_actions: [{:delete, #Function<...>}]}}
+  """
+  @spec remove_auix_action(map(), atom(), atom()) :: map()
+  def remove_auix_action(%{auix: auix} = assigns, actions_group, action_name)
+      when actions_group in [:row_actions, :header_actions] do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.reject(&(&1.name == action_name))
+    |> then(&put_in(assigns, [:auix, actions_group], &1))
   end
 
   @doc """

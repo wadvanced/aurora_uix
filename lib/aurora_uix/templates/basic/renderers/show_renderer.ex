@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
 
@@ -32,6 +33,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
+    assigns = get_layout_options(assigns)
+
     ~H"""
     <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
@@ -57,8 +60,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
           <.live_component
             module={@auix._form_component}
             id={@auix.entity.id || :new}
-            title={@auix.layout_options.edit_title}
-            subtitle={@auix.layout_options.edit_subtitle}
             action={@live_action}
             auix={%{css_classes: @auix.css_classes, entity: @auix.entity, routing_stack: @auix.routing_stack}}
           />
@@ -66,5 +67,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
       </.modal>
     </div>
     """
+  end
+
+  # PRIVATE
+
+  @spec get_layout_options(map()) :: map()
+  defp get_layout_options(assigns) do
+    assigns
+    |> BasicHelpers.assign_auix_option(:page_title)
+    |> BasicHelpers.assign_auix_option(:page_subtitle)
   end
 end

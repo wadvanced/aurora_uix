@@ -116,7 +116,7 @@ Aurora UIX layouts support customizable titles and subtitles for each view (inde
 
 ### Supported Options
 
-- **Index and Show Layouts** (see also `Aurora.Uix.Layout.TitleOptions`):
+- **Index and Show Layouts** (see also `Aurora.Uix.Layout.Options.Page`):
   - `:page_title` – The main title for the page (e.g., "Product Details" or "Listing Products").
     - Accepts a string or a function reference of arity 1 (receives assigns).
     - Defaults:
@@ -128,7 +128,7 @@ Aurora UIX layouts support customizable titles and subtitles for each view (inde
       - Show: `"Details"`
       - Index: *(none by default)*
 
-- **Form Layouts** (see also `Aurora.Uix.Layout.FormOptions`):
+- **Form Layouts** (see also `Aurora.Uix.Layout.Options.Form`):
   - `:edit_title` – Title for the edit form.
     - Accepts a string or a function reference of arity 1.
     - Default: `"Edit {name}"`
@@ -164,4 +164,4 @@ index_columns :product, [:reference, :name, :description], page_title: "Product 
 
 If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
 
-For more details, see the documentation for `Aurora.Uix.Layout.TitleOptions` and `Aurora.Uix.Layout.FormOptions`.
+For more details, see the documentation for `Aurora.Uix.Layout.Options.Page` and `Aurora.Uix.Layout.Options.Form`.

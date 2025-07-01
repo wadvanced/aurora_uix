@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Web.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
 
@@ -46,15 +47,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
       |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
       |> then(&Map.put(assigns, :index_fields, &1))
+      |> get_layout_options()
+      |> IndexActions.set_actions()
 
     ~H"""
     <div class={get_in(@auix, [:css_classes, :index_renderer, :top_container]) || ""}>
       <.header>
         {@auix.layout_options.page_title}
         <:actions>
-          <.auix_link patch={"#{@auix[:index_new_link]}"} id={"auix-new-#{@auix.module}"}>
-            <.button>New {@auix.name}</.button>
-          </.auix_link>
+          <div :for={%{function_component: action} <- @auix.header_actions}>
+            {action.(%{auix: @auix})}
+          </div>
         </:actions>
       </.header>
 
@@ -66,21 +69,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       >
         <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{entity.id}"}>{Map.get(entity, field.key)}</.auix_link></:col>
 
-        <:action :let={{_id, entity}}>
-          <div class="sr-only">
-            <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{entity.id}"} name={"show-#{@auix.module}"}>Show</.auix_link>
-          </div>
-          <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{entity.id}/edit"} name={"edit-#{@auix.module}"}>Edit</.auix_link>
+        <:action :let={entity_info} :for={%{function_component: action} <- @auix.row_actions}>
+          {action.(%{auix: Map.put(@auix, :entity_info, entity_info)})}
         </:action>
-        <:action :let={{id, entity}}>
-          <.link
-            phx-click={JS.push("delete", value: %{id: entity.id}) |> hide("##{id}")}
-            name={"delete-#{@auix.module}"}
-            data-confirm="Are you sure?"
-          >
-            Delete
-          </.link>
-        </:action>
+
       </.table>
 
       <.modal :if={@live_action in [:new, :edit]} auix={%{css_classes: @auix.css_classes}} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
@@ -88,8 +80,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
           <.live_component
             module={@auix._form_component}
             id={@auix.entity.id || :new}
-            title={if @live_action == :edit, do: @auix.layout_options.edit_title, else: @auix.layout_options.new_title}
-            subtitle={if @live_action == :edit, do: @auix.layout_options.edit_subtitle, else: @auix.layout_options.new_subtitle}
             action={@live_action}
             auix={%{css_classes: @auix.css_classes, entity: @auix.entity, routing_stack: @auix.routing_stack}}
           />
@@ -97,5 +87,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       </.modal>
     </div>
     """
+  end
+
+  # PRIVATE
+  @spec get_layout_options(map()) :: map()
+  defp get_layout_options(assigns) do
+    assigns
+    |> BasicHelpers.assign_auix_option(:page_title)
+    |> BasicHelpers.assign_auix_option(:page_subtitle)
   end
 end

@@ -85,5 +85,5 @@ description: 'Generate ex_doc-compatible documentation'
 ## Formatting Rules
 - Line length: Max 98 chars
 - Types: Always parenthesized (e.g., list(String.t()))
-- Options: Use bullet points under parameter description
+- Options: Use bullet points under parameter description using dash
 - Returns: Explicit return type before description

@@ -223,7 +223,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `do_block` (optional): Layout definition block
 
   ## Options
-  The following options are supported for form layouts (see `Aurora.Uix.Layout.FormOptions` for details):
+  The following options are supported for form layouts (see `Aurora.Uix.Layout.Options.Form` for details):
 
     * `:edit_title` - The title for the edit form. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
         returns a Phoenix.LiveView.Rendered. Default: `"Edit {name}"`, where {name} is the capitalized schema name.
@@ -234,7 +234,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     * `:new_subtitle` - The subtitle for the new resource form (when in `:index` context). Accepts a `binary()` or a function of arity 1.
         Default: `"Creates a new <strong>{name}</strong> record in your database"`, where {name} is the capitalized schema name.
 
-  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.FormOptions`.
+  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options.Form`.
 
   ## Example
   ```elixir
@@ -257,7 +257,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `do_block` (optional) - Layout definition block.
 
   ## Options
-  The following options are supported for show layouts (see `Aurora.Uix.Layout.TitleOptions` for details):
+  The following options are supported for show layouts (see `Aurora.Uix.Layout.Options.Page` for details):
 
     * `:page_title` - The page title for the show layout.
         Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
@@ -265,7 +265,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     * `:page_subtitle` - The page subtitle for the show layout. Accepts a `binary()` or a function of arity 1.
         Default: `"Details"`.
 
-  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.TitleOptions`.
+  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options.Page`.
 
   ## Behavior
   - Renders fields in a disabled/read-only state.
@@ -293,7 +293,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Registers index columns and associated options for a specific resource.
 
   Supports both field selection and index-level options, including those described in
-  `Aurora.Uix.Layout.TitleOptions` (such as `:page_title` and `:page_subtitle`).
+  `Aurora.Uix.Layout.Options.Page` (such as `:page_title` and `:page_subtitle`).
 
   ## Parameters
 
@@ -302,13 +302,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
     - `do_block` (optional) - Nested layout definition block.
 
   ## Options
-  The following options are supported for index layouts (see `Aurora.Uix.Layout.TitleOptions` for details):
+  The following options are supported for index layouts (see `Aurora.Uix.Layout.Options.Page` for details):
 
     * `:page_title` - The page title for the index layout. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
         returns a Phoenix.LiveView.Rendered. Default: `"Listing {title}"`, where {title} is the capitalized table name.
     * Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom/1]]`).
 
-  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.TitleOptions`.
+  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.Options.Page`.
 
   ## Behavior
 

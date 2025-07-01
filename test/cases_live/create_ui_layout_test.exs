@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     @spec edit_title(map()) :: term()
     def edit_title(%{auix: %{_form: _form}} = assigns),
-      do: ~H"Modify {@auix.name}: #{inspect(@auix._form)} "
+      do: ~H"Modify {@auix.name}: #{@auix._form[:reference].value} "
 
     def edit_title(%{auix: %{entity: nil}} = assigns), do: ~H"Modify {@auix.name}"
 
@@ -179,7 +179,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     assert view
            |> element("div#auix-product-modal header")
-           |> render() =~ "Modify Product\n"
+           |> render() =~ "Modify Product: #item_"
 
     assert view
            |> element("div#auix-product-modal header")

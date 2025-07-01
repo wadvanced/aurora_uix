@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.TitleOptions do
+defmodule Aurora.Uix.Layout.Options.Page do
   @moduledoc """
   Handles retrieval of options specific to `:show` layout tags.
 
@@ -44,18 +44,18 @@ defmodule Aurora.Uix.Layout.TitleOptions do
   ## Examples
 
       iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: [page_title: "Custom"]}}}
-      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
+      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_title)
       {:ok, "Custom"}
 
       iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_title)
+      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_title)
       {:ok, "Product"}
 
       iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :page_subtitle)
+      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_subtitle)
       {:ok, "Details"}
 
-      iex> Aurora.Uix.Layout.TitleOptions.get(assigns, :unknown_option)
+      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :unknown_option)
       {:not_found, :unknown_option}
 
   """
