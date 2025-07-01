@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     related_fields =
       field
       |> get_association_fields(auix.configurations)
-      |> Enum.reject(&(&1.key == auix._resource_name))
+      |> Enum.reject(&(&1.key == auix.resource_name))
 
     related_parsed_opts = get_in(auix.configurations, [field.data.resource, :parsed_opts])
 
@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     related_class =
       "w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4"
 
-    parsed_opts = get_in(auix.configurations, [auix._resource_name, :parsed_opts])
+    parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
 
     assigns =
       assigns

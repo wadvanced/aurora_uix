@@ -311,7 +311,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     parsed_opts
     |> Map.put(:configurations, configurations)
     |> Map.put(:layout_tree, layout_tree)
-    |> Map.put(:_resource_name, layout_tree.name)
+    |> Map.put(:resource_name, layout_tree.name)
     |> Map.put(:layout_type, layout_tree.tag)
     |> Map.put(:css_classes, template.css_classes())
     |> then(&template.generate_module(modules, &1))

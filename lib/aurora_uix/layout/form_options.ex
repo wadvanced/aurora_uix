@@ -81,7 +81,7 @@ defmodule Aurora.Uix.Layout.FormOptions do
           auix: %{
             layout_tree: %{tag: tag},
             configurations: configurations,
-            _resource_name: resource_name
+            resource_name: resource_name
           }
         } = assigns,
         option

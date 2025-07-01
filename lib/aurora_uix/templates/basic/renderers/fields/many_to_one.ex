@@ -165,7 +165,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
       ],
       field
     )
-    |> put_in([:auix, :_resource_name], field.resource)
+    |> put_in([:auix, :resource_name], field.resource)
   end
 
   # Gets a nested field for a many-to-one association

@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   defp get_field_info(%{
          layout_tree: %{name: name} = layout_tree,
          configurations: configurations,
-         _resource_name: resource_name
+         resource_name: resource_name
        })
        when is_tuple(name) do
     name
@@ -65,7 +65,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   defp get_field_info(%{
          layout_tree: layout_tree,
          configurations: configurations,
-         _resource_name: resource_name
+         resource_name: resource_name
        }) do
     BasicHelpers.get_field(layout_tree, configurations, resource_name)
   end
