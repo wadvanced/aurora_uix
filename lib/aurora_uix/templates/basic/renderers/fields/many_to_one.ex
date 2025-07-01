@@ -37,8 +37,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
         } = assigns
       )
       when is_atom(field_name) do
-    inner_elements = get_association_paths(field_struct, auix._configurations, :show)
-    association_label = get_in(auix._configurations, [field_struct.resource, :parsed_opts, :name])
+    inner_elements = get_association_paths(field_struct, auix.configurations, :show)
+    association_label = get_in(auix.configurations, [field_struct.resource, :parsed_opts, :name])
 
     assigns
     |> put_in([:auix, :_path], %{
@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
 
   defp set_many_to_one_resource(
          %{
-           auix: %{_path: %{name: names}, _configurations: configurations} = auix,
+           auix: %{_path: %{name: names}, configurations: configurations} = auix,
            field: parent_field_struct
          } = assigns
        ) do
@@ -150,7 +150,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
     |> put_in(
       [
         :auix,
-        :_configurations,
+        :configurations,
         field.resource,
         :resource_config,
         Access.key!(:fields),

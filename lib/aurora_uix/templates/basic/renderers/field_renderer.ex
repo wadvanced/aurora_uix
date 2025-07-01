@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   @spec get_field_info(map()) :: map()
   defp get_field_info(%{
          _path: %{name: name} = path,
-         _configurations: configurations,
+         configurations: configurations,
          _resource_name: resource_name
        })
        when is_tuple(name) do
@@ -64,7 +64,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   defp get_field_info(%{
          _path: path,
-         _configurations: configurations,
+         configurations: configurations,
          _resource_name: resource_name
        }) do
     BasicHelpers.get_field(path, configurations, resource_name)
@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
              html_type: :select,
              data: %{resource: resource_name}
            },
-           auix: %{_configurations: configurations}
+           auix: %{configurations: configurations}
          } = assigns
        ) do
     context = get_in(configurations, [resource_name, :resource_config, Access.key!(:context)])

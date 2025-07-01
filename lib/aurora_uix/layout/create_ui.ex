@@ -309,7 +309,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec generate_module(map(), map(), map(), map(), module()) :: Macro.t()
   defp generate_module(modules, path, configurations, parsed_opts, template) do
     parsed_opts
-    |> Map.put(:_configurations, configurations)
+    |> Map.put(:configurations, configurations)
     |> Map.put(:_path, path)
     |> Map.put(:_resource_name, path.name)
     |> Map.put(:_mode, path.tag)

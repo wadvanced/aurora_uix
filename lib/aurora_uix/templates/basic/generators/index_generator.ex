@@ -75,7 +75,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
           {:noreply,
            socket
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
-           #  |> tap(&MIO.inspect(&1.assigns.auix._configurations, label: "*********** path"))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
            |> assign_auix_option(:page_title, "")

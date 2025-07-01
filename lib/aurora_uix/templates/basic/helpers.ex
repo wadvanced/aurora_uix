@@ -91,6 +91,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     socket.assigns
     |> Map.get(:auix, %{})
     |> then(&Map.merge(parsed_opts, &1))
+    #|> tap(& MIO.inspect(Map.keys(&1), label: "************ uix keys"))
     |> then(&assign(socket, :auix, &1))
   end
 
@@ -386,7 +387,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> List.flatten()
     |> Enum.map(&elem(&1, 0))
     |> Enum.uniq()
-    |> Enum.map(&get_field(%{name: &1}, parsed_opts._configurations, parsed_opts._resource_name))
+    |> Enum.map(&get_field(%{name: &1}, parsed_opts.configurations, parsed_opts._resource_name))
     |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
     |> Enum.map(&{&1.type, &1.key})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))

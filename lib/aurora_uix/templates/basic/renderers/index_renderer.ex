@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
         %{
           auix: %{
             _path: %{tag: :index} = path,
-            _configurations: configurations,
+            configurations: configurations,
             _resource_name: resource_name
           }
         } = assigns
