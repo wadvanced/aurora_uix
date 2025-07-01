@@ -82,7 +82,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"} class={@related_class}>
         <.table
           id={"#{@parsed_opts.module}__#{@field.key}-#{@auix._mode}"}
-          auix_css_classes={@auix._css_classes}
+          auix_css_classes={@auix.css_classes}
           rows={Map.get(@auix_entity, @field.key)}
           row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >

@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{_path: %{tag: :show}}} = assigns) do
     ~H"""
-    <div class={get_in(@auix._css_classes, [:show_renderer, :top_container]) || ""}>
+    <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>
         {@auix.layout_options.page_title}
         <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
         <.auix_back>Back to {@auix.title}</.auix_back>
       </div>
 
-      <.modal :if={@live_action == :edit} auix_css_classes={@auix._css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action == :edit} auix_css_classes={@auix.css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix._form_component}
@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
             action={@live_action}
             auix_entity={@auix_entity}
             auix_routing_stack={@auix._routing_stack}
-            auix_css_classes={@auix._css_classes}
+            auix_css_classes={@auix.css_classes}
           />
         </div>
       </.modal>

@@ -313,7 +313,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:_path, path)
     |> Map.put(:_resource_name, path.name)
     |> Map.put(:_mode, path.tag)
-    |> Map.put(:_css_classes, template.css_classes())
+    |> Map.put(:css_classes, template.css_classes())
     |> then(&template.generate_module(modules, &1))
   end
 

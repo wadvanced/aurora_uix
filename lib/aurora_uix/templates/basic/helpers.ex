@@ -91,7 +91,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     socket.assigns
     |> Map.get(:auix, %{})
     |> then(&Map.merge(parsed_opts, &1))
-    #|> tap(& MIO.inspect(Map.keys(&1), label: "************ uix keys"))
     |> then(&assign(socket, :auix, &1))
   end
 

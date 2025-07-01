@@ -49,7 +49,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       |> then(&Map.put(assigns, :index_fields, &1))
 
     ~H"""
-    <div class={get_in(@auix._css_classes, [:index_renderer, :top_container]) || ""}>
+    <div class={get_in(@auix.css_classes, [:index_renderer, :top_container]) || ""}>
       <.header>
         {@auix.layout_options.page_title}
         <:actions>
@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
 
       <.table
         id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
-        auix_css_classes={@auix._css_classes}
+        auix_css_classes={@auix.css_classes}
         rows={get_in(assigns, @auix.rows)}
         row_click_navigate={fn {_id, entity} -> "/#{@auix.link_prefix}#{@auix.source}/#{entity.id}" end}
       >
@@ -84,7 +84,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
         </:action>
       </.table>
 
-      <.modal :if={@live_action in [:new, :edit]} auix_css_classes={@auix._css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action in [:new, :edit]} auix_css_classes={@auix.css_classes} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix._form_component}
@@ -94,7 +94,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
             action={@live_action}
             auix_entity={@auix_entity}
             auix_routing_stack={@auix._routing_stack}
-            auix_css_classes={@auix._css_classes}
+            auix_css_classes={@auix.css_classes}
           />
         </div>
       </.modal>
