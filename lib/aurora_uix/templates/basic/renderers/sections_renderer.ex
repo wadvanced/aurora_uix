@@ -39,9 +39,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.SectionsRenderer do
       |> assign(:unique_id, unique_id)
 
     ~H"""
-    <div id={"sections-#{@unique_id}-#{@auix.layout_type}"} class="" data-sections-index={@auix._path.config[:index]}>
+    <div id={"sections-#{@unique_id}-#{@auix.layout_type}"} class="" data-sections-index={@auix.layout_tree.config[:index]}>
       <div class="auix-button-tabs-container mt-2 flex flex-col sm:flex-row">
-        <%= for tab <- @auix._path.config[:tabs] do %>
+        <%= for tab <- @auix.layout_tree.config[:tabs] do %>
           <button type="button"
             class={"tab-button " <> if @auix._sections[tab.sections_id] == tab.tab_id or (@auix._sections[tab.sections_id] == nil and tab.active), do: @active_classes, else: @inactive_classes}
             data-button-sections-index={tab.sections_index}
@@ -74,14 +74,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.SectionsRenderer do
   def section(assigns) do
     ~H"""
     <div
-      class={"auix-section-tab " <> if @auix._sections[@auix._path.config[:sections_id]] == @auix._path.config[:tab_id] or (@auix._sections[@auix._path.config[:sections_id]] == nil and @auix._path.config[:active]), do: "", else: "hidden"}
-      id={@auix._path.config[:tab_id]}
-      data-tab-label={@auix._path.config[:label]}
-      data-tab-sections-id={@auix._path.config[:sections_id]}
-      data-tab-parent-id={@auix._path.config[:tab_parent_id]}
-      data-tab-sections-index={@auix._path.config[:sections_index]}
-      data-tab-index={@auix._path.config[:tab_index]}
-      data-tab-active={if @auix._sections[@auix._path.config[:sections_id]] == @auix._path.config[:tab_id] or (@auix._sections[@auix._path.config[:sections_id]] == nil and @auix._path.config[:active]), do: "active", else: "inactive"}>
+      class={"auix-section-tab " <> if @auix._sections[@auix.layout_tree.config[:sections_id]] == @auix.layout_tree.config[:tab_id] or (@auix._sections[@auix.layout_tree.config[:sections_id]] == nil and @auix.layout_tree.config[:active]), do: "", else: "hidden"}
+      id={@auix.layout_tree.config[:tab_id]}
+      data-tab-label={@auix.layout_tree.config[:label]}
+      data-tab-sections-id={@auix.layout_tree.config[:sections_id]}
+      data-tab-parent-id={@auix.layout_tree.config[:tab_parent_id]}
+      data-tab-sections-index={@auix.layout_tree.config[:sections_index]}
+      data-tab-index={@auix.layout_tree.config[:tab_index]}
+      data-tab-active={if @auix._sections[@auix.layout_tree.config[:sections_id]] == @auix.layout_tree.config[:tab_id] or (@auix._sections[@auix.layout_tree.config[:sections_id]] == nil and @auix.layout_tree.config[:active]), do: "active", else: "inactive"}>
       <Renderer.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
     </div>
     """

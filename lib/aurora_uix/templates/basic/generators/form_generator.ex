@@ -29,7 +29,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :form}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :form}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     change_function = parsed_opts.change_function
@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
 
     one2many_rendered? =
       parsed_opts
-      |> Map.get(:_path)
+      |> Map.get(:layout_tree)
       |> Helpers.flat_paths()
       |> Enum.filter(&(&1.tag == :field and &1.name in one2many_preload))
       |> Enum.empty?()

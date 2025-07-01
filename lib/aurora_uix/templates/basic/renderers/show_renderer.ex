@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
 
   ## Parameters
   - assigns (map()) - LiveView assigns containing:
-    - auix: Aurora UIX context with configurations and path info
+    - auix: Aurora UIX context with configurations and layout_tree info
     - auix_entity: Entity being displayed
     - live_action: Current live action (:edit)
     - page_title: Title for edit modal
@@ -32,7 +32,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   - Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{auix: %{_path: %{tag: :show}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
     ~H"""
     <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
       <.header>

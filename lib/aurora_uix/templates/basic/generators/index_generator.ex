@@ -29,11 +29,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
   ## Example
 
-      iex> IndexGenerator.generate_module(%{web: MyAppWeb, context: MyApp.Context, module: MyApp.Entity}, %{_path: %{tag: :index}, source: "entities", ...})
+      iex> IndexGenerator.generate_module(%{web: MyAppWeb, context: MyApp.Context, module: MyApp.Entity}, %{layout_tree: %{tag: :index}, source: "entities", ...})
       #=> {:module, ...}
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :index}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     list_key = String.to_existing_atom(parsed_opts.source)

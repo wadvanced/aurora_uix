@@ -454,7 +454,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   end
 
   @doc """
-  Generates a default path structure for rendering UI components based on the given layout type.
+  Generates a default layout_tree structure for rendering UI components based on the given layout type.
 
   ## Parameters
   - `paths` (list()): An existing list of paths. If empty, default paths are generated.
@@ -550,7 +550,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Parses a list of paths to handle sections based on the given layout type.
 
   ## Parameters
-  - `paths` (list()): A list of path maps representing the layout structure.
+  - `paths` (list()): A list of layout_tree maps representing the layout structure.
   - `layout_type` (atom()): The layout type of parsing, such as `:index` or other modes.
 
   ## Returns
@@ -582,16 +582,16 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
   @spec parse_sections(map(), atom()) :: map()
-  def parse_sections(path, layout_type) when layout_type in [:form, :show] do
+  def parse_sections(layout_tree, layout_type) when layout_type in [:form, :show] do
     pid = CounterAgent.start_counter()
 
-    path
+    layout_tree
     |> Map.get(:inner_elements, [])
     |> normalize_sections_and_tabs(pid)
-    |> then(&Map.put(path, :inner_elements, &1))
+    |> then(&Map.put(layout_tree, :inner_elements, &1))
   end
 
-  def parse_sections(path, _layout_type), do: path
+  def parse_sections(layout_tree, _layout_type), do: layout_tree
 
   ## PRIVATE
 

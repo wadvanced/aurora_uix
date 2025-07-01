@@ -406,8 +406,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   def flat_paths(elements, result \\ [])
   def flat_paths([], result), do: result
 
-  def flat_paths(%{inner_elements: inner_elements} = path, result) do
-    flat_paths(inner_elements, [%{tag: path.tag, name: path[:name]} | result])
+  def flat_paths(%{inner_elements: inner_elements} = layout_tree, result) do
+    flat_paths(inner_elements, [%{tag: layout_tree.tag, name: layout_tree[:name]} | result])
   end
 
   def flat_paths([%{inner_elements: inner_elements} | rest], result) do

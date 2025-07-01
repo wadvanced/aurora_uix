@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
 
   ## Parameters
   - assigns (map()) - LiveView assigns containing:
-    - auix: Aurora UIX context with configurations and path info
+    - auix: Aurora UIX context with configurations and layout_tree info
     - auix_entity: Entity being rendered
     - live_action: Current live action (:new, :edit)
     - page_title: Page title for modals
@@ -35,14 +35,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
   def render(
         %{
           auix: %{
-            _path: %{tag: :index} = path,
+            layout_tree: %{tag: :index} = layout_tree,
             configurations: configurations,
             _resource_name: resource_name
           }
         } = assigns
       ) do
     assigns =
-      path.inner_elements
+      layout_tree.inner_elements
       |> Enum.filter(&(&1.tag == :field))
       |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
       |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))

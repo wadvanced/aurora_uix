@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   Renders a template based on its tag type.
 
   ## Parameters
-    - assigns (map()) - Aurora UIX context map with _path and tag information
+    - assigns (map()) - Aurora UIX context map with layout_tree and tag information
 
   ## Tag Types
     - :index - List view of entities
@@ -37,27 +37,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
 
   # Top-level renderers
-  def render(%{auix: %{_path: %{tag: :index}}} = assigns),
+  def render(%{auix: %{layout_tree: %{tag: :index}}} = assigns),
     do: Renderers.IndexRenderer.render(assigns)
 
-  def render(%{auix: %{_path: %{tag: :show}}} = assigns),
+  def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns),
     do: Renderers.ShowRenderer.render(assigns)
 
-  def render(%{auix: %{_path: %{tag: :form}}} = assigns),
+  def render(%{auix: %{layout_tree: %{tag: :form}}} = assigns),
     do: Renderers.FormRenderer.render(assigns)
 
   # Group renderer
-  def render(%{auix: %{_path: %{tag: :group}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :group}}} = assigns) do
     ~H"""
-    <div id={@auix._path.config[:group_id]} class="p-3 border rounded-md bg-gray-100">
-      <h3 class="font-semibold text-lg"><%= @auix._path.config[:title] %></h3>
+    <div id={@auix.layout_tree.config[:group_id]} class="p-3 border rounded-md bg-gray-100">
+      <h3 class="font-semibold text-lg"><%= @auix.layout_tree.config[:title] %></h3>
       <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
     </div>
     """
   end
 
   # Layout renderers
-  def render(%{auix: %{_path: %{tag: :inline}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :inline}}} = assigns) do
     ~H"""
     <div class="flex flex-col gap-2 sm:flex-row">
       <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
@@ -65,7 +65,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
     """
   end
 
-  def render(%{auix: %{_path: %{tag: :stacked}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :stacked}}} = assigns) do
     ~H"""
     <div class="flex flex-col gap-2">
       <.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
@@ -74,16 +74,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   end
 
   # Section renderers
-  def render(%{auix: %{_path: %{tag: :sections}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :sections}}} = assigns) do
     Renderers.SectionsRenderer.render(assigns)
   end
 
-  def render(%{auix: %{_path: %{tag: :section}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :section}}} = assigns) do
     Renderers.SectionsRenderer.section(assigns)
   end
 
   # Field renderer
-  def render(%{auix: %{_path: %{tag: :field}}} = assigns) do
+  def render(%{auix: %{layout_tree: %{tag: :field}}} = assigns) do
     Renderers.FieldRenderer.render(assigns)
   end
 
@@ -105,7 +105,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderer do
   @spec render_inner_elements(map()) :: Phoenix.LiveView.Rendered.t()
   def render_inner_elements(assigns) do
     ~H"""
-    <.render auix={Map.put(@auix, :_path, inner_path)} auix_entity={@auix_entity} :for={inner_path <- @auix._path.inner_elements} />
+    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix_entity} :for={inner_path <- @auix.layout_tree.inner_elements} />
     """
   end
 end

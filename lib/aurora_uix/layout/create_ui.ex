@@ -126,7 +126,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   ## Parameters
   - resource_configs (map()) - Map of resource configurations
   - caller (module()) - The calling module
-  - layout_paths (list()) - List of layout path definitions
+  - layout_paths (list()) - List of layout layout_tree definitions
   - opts (keyword()) - Configuration options
 
   ## Options
@@ -152,16 +152,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   # Merges the inner elements and options of two layout paths
   @spec merge_layout_opts_inner_elements(map(), map() | nil) :: map()
-  defp merge_layout_opts_inner_elements(path, nil), do: path
+  defp merge_layout_opts_inner_elements(layout_tree, nil), do: layout_tree
 
-  defp merge_layout_opts_inner_elements(path, acc) do
-    opts = Keyword.merge(acc.opts, path.opts)
+  defp merge_layout_opts_inner_elements(layout_tree, acc) do
+    opts = Keyword.merge(acc.opts, layout_tree.opts)
 
     inner_elements =
       acc.inner_elements
       |> Enum.reverse()
       |> then(
-        &Enum.reduce(path.inner_elements, &1, fn path_element, acc_elements ->
+        &Enum.reduce(layout_tree.inner_elements, &1, fn path_element, acc_elements ->
           [path_element | acc_elements]
         end)
       )
@@ -307,12 +307,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
   @spec generate_module(map(), map(), map(), map(), module()) :: Macro.t()
-  defp generate_module(modules, path, configurations, parsed_opts, template) do
+  defp generate_module(modules, layout_tree, configurations, parsed_opts, template) do
     parsed_opts
     |> Map.put(:configurations, configurations)
-    |> Map.put(:_path, path)
-    |> Map.put(:_resource_name, path.name)
-    |> Map.put(:layout_type, path.tag)
+    |> Map.put(:layout_tree, layout_tree)
+    |> Map.put(:_resource_name, layout_tree.name)
+    |> Map.put(:layout_type, layout_tree.tag)
     |> Map.put(:css_classes, template.css_classes())
     |> then(&template.generate_module(modules, &1))
   end
@@ -340,8 +340,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
 
   @spec update_layout_path_tag(map(), atom(), atom()) :: map()
-  defp update_layout_path_tag(%{tag: from} = path, from, to), do: Map.put(path, :tag, to)
-  defp update_layout_path_tag(path, _from, _to), do: path
+  defp update_layout_path_tag(%{tag: from} = layout_tree, from, to),
+    do: Map.put(layout_tree, :tag, to)
+
+  defp update_layout_path_tag(layout_tree, _from, _to), do: layout_tree
 
   @spec extract_resource_preloads(map()) :: map()
   defp extract_resource_preloads(configurations) do

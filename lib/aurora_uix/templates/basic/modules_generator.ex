@@ -25,7 +25,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
 
   ## Parameters
   - `modules` (map()) - Configuration with caller, context, module, and web references.
-  - `parsed_opts` (map()) - Generation options with `_path.tag` and component configuration.
+  - `parsed_opts` (map()) - Generation options with `layout_tree.tag` and component configuration.
 
   ## Returns
   - `Macro.t()` - The generated LiveView module code.
@@ -34,25 +34,25 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   ```elixir
   Aurora.Uix.Web.Templates.Basic.ModulesGenerator.generate_module(
     %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb},
-    %{_path: %{tag: :index}, name: :product}
+    %{layout_tree: %{tag: :index}, name: :product}
   )
   ```
   If the tag is not implemented, returns a quoted block with no generation logic.
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :index}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :index}} = parsed_opts) do
     IndexGenerator.generate_module(modules, parsed_opts)
   end
 
-  def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :show}} = parsed_opts) do
     ShowGenerator.generate_module(modules, parsed_opts)
   end
 
-  def generate_module(modules, %{_path: %{tag: :form}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :form}} = parsed_opts) do
     FormGenerator.generate_module(modules, parsed_opts)
   end
 
-  def generate_module(_modules, %{_path: %{tag: type}}) do
+  def generate_module(_modules, %{layout_tree: %{tag: type}}) do
     Logger.error("The logic for `#{inspect(type)} is not implemented.")
 
     quote do

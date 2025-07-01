@@ -24,7 +24,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
   """
   @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{_path: %{tag: :show}} = parsed_opts) do
+  def generate_module(modules, %{layout_tree: %{tag: :show}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     get_function = parsed_opts.get_function

@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
         phx-change="validate"
         phx-submit="save"
       >
-        <div class="auix-form-container p-4 border rounded-lg shadow bg-white" data-layout={@auix._path.name}>
+        <div class="auix-form-container p-4 border rounded-lg shadow bg-white" data-layout={@auix.layout_tree.name}>
           <Renderer.render_inner_elements auix={@auix} auix_entity={@auix_entity} />
         </div>
 

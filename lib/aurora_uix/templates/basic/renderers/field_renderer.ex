@@ -51,23 +51,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   # Returns field info for rendering, handling tuple and atom names
   @spec get_field_info(map()) :: map()
   defp get_field_info(%{
-         _path: %{name: name} = path,
+         layout_tree: %{name: name} = layout_tree,
          configurations: configurations,
          _resource_name: resource_name
        })
        when is_tuple(name) do
     name
     |> elem(0)
-    |> then(&Map.put(path, :name, &1))
+    |> then(&Map.put(layout_tree, :name, &1))
     |> BasicHelpers.get_field(configurations, resource_name)
   end
 
   defp get_field_info(%{
-         _path: path,
+         layout_tree: layout_tree,
          configurations: configurations,
          _resource_name: resource_name
        }) do
-    BasicHelpers.get_field(path, configurations, resource_name)
+    BasicHelpers.get_field(layout_tree, configurations, resource_name)
   end
 
   # Renders an empty component for omitted fields
