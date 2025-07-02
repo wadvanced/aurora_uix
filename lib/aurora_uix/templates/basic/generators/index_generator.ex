@@ -77,12 +77,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
            |> assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
            |> assign_index_row_click(params)
            |> assign_auix(:_form_component, unquote(form_component))
-           |> assign_auix_option(:page_title, "")
-           |> assign_auix_option(:page_subtitle, "")
-           |> assign_auix_option(:edit_title, "")
-           |> assign_auix_option(:edit_subtitle, "")
-           |> assign_auix_option(:new_title, "")
-           |> assign_auix_option(:new_subtitle, "")
            |> assign_auix_current_path(url)
            |> assign_auix_routing_stack(params, %{
              type: :patch,
@@ -161,10 +155,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         @spec apply_action(Phoenix.LiveView.Socket.t(), atom(), map()) :: Phoenix.LiveView.t()
         defp apply_action(socket, :edit, %{"id" => id} = params) do
-          socket
-          |> assign_auix_option(:edit_title)
-          |> assign_auix_option(:edit_subtitle)
-          |> assign_auix(
+          assign_auix(
+            socket,
             :entity,
             apply(unquote(modules.context), unquote(get_function), [
               id,
@@ -174,10 +166,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         end
 
         defp apply_action(socket, :new, params) do
-          socket
-          |> assign_auix_option(:new_title)
-          |> assign_auix_option(:new_subtitle)
-          |> assign_new_entity(
+          assign_new_entity(
+            socket,
             params,
             apply(unquote(modules.context), unquote(new_function), [
               %{},
@@ -187,10 +177,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
         end
 
         defp apply_action(socket, :index, _params) do
-          socket
-          |> assign_auix_option(:page_title)
-          |> assign_auix_option(:page_subtitle)
-          |> assign_auix(:entity, nil)
+          assign_auix(socket, :entity, nil)
         end
       end
     end

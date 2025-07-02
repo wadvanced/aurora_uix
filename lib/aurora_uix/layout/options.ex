@@ -4,7 +4,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Key features
 
-    * Delegates option retrieval to tag-specific modules (e.g., `Aurora.Uix.Layout.TitleOptions`) when applicable.
+    * Delegates option retrieval to tag-specific modules (e.g., `Aurora.Uix.Layout.Options.Page`) when applicable.
     * Logs warnings and returns `{:not_found, option}` for unsupported tags or missing options.
     * Centralizes error reporting for unknown or unimplemented options.
 
@@ -18,8 +18,8 @@ defmodule Aurora.Uix.Layout.Options do
   import Phoenix.Component, only: [sigil_H: 2]
   import Phoenix.HTML, only: [raw: 1]
 
-  alias Aurora.Uix.Layout.FormOptions
-  alias Aurora.Uix.Layout.TitleOptions
+  alias Aurora.Uix.Layout.Options.Form, as: FormOptions
+  alias Aurora.Uix.Layout.Options.Page, as: PageOptions
   require Logger
 
   @doc """
@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Layout.Options do
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
-    with {:not_found, _option} <- TitleOptions.get(assigns, option),
+    with {:not_found, _option} <- PageOptions.get(assigns, option),
          {:not_found, _option} <- FormOptions.get(assigns, option) do
       Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
       {:not_found, option}
