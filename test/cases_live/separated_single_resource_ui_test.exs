@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Test.Web.SeparatedSingleResourceUITest do
     assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-product")
+           |> element("a[name='auix-new-product']")
            |> render_click() =~ "New Product"
   end
 

@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Test.Web.SeparatedMultipleResourcesUITest do
     assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-product")
+           |> element("a[name='auix-new-product']")
            |> render_click() =~ "New Product"
   end
 
@@ -78,7 +78,7 @@ defmodule Aurora.Uix.Test.Web.SeparatedMultipleResourcesUITest do
     assert html =~ "New Product Transaction"
 
     assert view
-           |> element("#auix-new-product_transaction")
+           |> element("a[name='auix-new-product_transaction']")
            |> render_click() =~ "New Product Transaction"
   end
 

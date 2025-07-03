@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Key Constraints
 
-  - Assumes assigns contain `:auix` with `:entity_info`, `:link_prefix`, `:source`, and `:module`.
+  - Assumes assigns contain `:auix` with `:row_info`, `:link_prefix`, `:source`, and `:module`.
   - Only intended for use in index page layouts.
   """
 
@@ -29,12 +29,24 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
     add_header_action: :header_actions
   }
 
+  @insert_actions %{
+    insert_row_action: :row_actions,
+    insert_header_action: :header_actions
+  }
+
+  @replace_actions %{
+    replace_row_action: :row_actions,
+    replace_header_action: :header_actions
+  }
+
   @remove_actions %{
     remove_row_action: :row_actions,
     remove_header_action: :header_actions
   }
 
   @allowed_add_actions Map.keys(@add_actions)
+  @allowed_insert_actions Map.keys(@insert_actions)
+  @allowed_replace_actions Map.keys(@replace_actions)
   @allowed_remove_actions Map.keys(@remove_actions)
 
   @doc """
@@ -64,7 +76,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Examples
 
-      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", entity_info: {:user, %{id: 1}}, module: "User"}}
+      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.show_row_action(assigns)
       #=> %Phoenix.LiveView.Rendered{...}
   """
@@ -72,7 +84,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   def show_row_action(assigns) do
     ~H"""
       <div class="sr-only">
-        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.entity_info, 1).id}"} name={"show-#{@auix.module}"}>Show</.auix_link>
+        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}"} name={"auix-show-#{@auix.module}"}>Show</.auix_link>
       </div>
     """
   end
@@ -88,14 +100,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Examples
 
-      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", entity_info: {:user, %{id: 1}}, module: "User"}}
+      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.edit_row_action(assigns)
       #=> %Phoenix.LiveView.Rendered{...}
   """
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.entity_info, 1).id}/edit"} name={"edit-#{@auix.module}"}>Edit</.auix_link>
+      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Edit</.auix_link>
     """
   end
 
@@ -110,7 +122,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Examples
 
-      iex> assigns = %{auix: %{entity_info: {:user, %{id: 1}}, module: "User"}}
+      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.remove_row_action(assigns)
       #=> %Phoenix.LiveView.Rendered{...}
   """
@@ -118,8 +130,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   def remove_row_action(assigns) do
     ~H"""
       <.link
-            phx-click={JS.push("delete", value: %{id: elem(@auix.entity_info, 1).id}) |> hide("##{elem(@auix.entity_info, 1).id}")}
-            name={"delete-#{@auix.module}"}
+            phx-click={JS.push("delete", value: %{id: elem(@auix.row_info, 1).id}) |> hide("##{elem(@auix.row_info, 1).id}")}
+            name={"auix-delete-#{@auix.module}"}
             data-confirm="Are you sure?"
           >
             Delete
@@ -145,7 +157,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(assigns) do
     ~H"""
-    <.auix_link patch={"#{@auix[:index_new_link]}"} id={"auix-new-#{@auix.module}"}>
+    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"}>
       <.button>New {@auix.name}</.button>
     </.auix_link>
     """
@@ -186,6 +198,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   end
 
   defp modify_action({action_name, action}, assigns)
+       when action_name in @allowed_insert_actions do
+    BasicHelpers.insert_auix_action(assigns, @insert_actions[action_name], Action.new(action))
+  end
+
+  defp modify_action({action_name, action}, assigns)
+       when action_name in @allowed_replace_actions do
+    BasicHelpers.replace_auix_action(assigns, @replace_actions[action_name], Action.new(action))
+  end
+
+  defp modify_action({action_name, action}, assigns)
        when action_name in @allowed_remove_actions do
     BasicHelpers.remove_auix_action(assigns, @remove_actions[action_name], action)
   end
@@ -195,11 +217,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   @spec add_default_row_actions(map()) :: map()
   defp add_default_row_actions(assigns) do
     assigns
-    |> BasicHelpers.add_auix_action(:row_actions, Action.new(:default_show, &show_row_action/1))
-    |> BasicHelpers.add_auix_action(:row_actions, Action.new(:default_edit, &edit_row_action/1))
     |> BasicHelpers.add_auix_action(
       :row_actions,
-      Action.new(:default_delete, &remove_row_action/1)
+      Action.new(:default_row_show, &show_row_action/1)
+    )
+    |> BasicHelpers.add_auix_action(
+      :row_actions,
+      Action.new(:default_row_edit, &edit_row_action/1)
+    )
+    |> BasicHelpers.add_auix_action(
+      :row_actions,
+      Action.new(:default_row_delete, &remove_row_action/1)
     )
   end
 

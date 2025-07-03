@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneParentUILayoutTest do
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp create_new_product({conn, view}) do
     assert view
-           |> element("#auix-new-product")
+           |> element("a[name='auix-new-product']")
            |> render_click() =~ "New Product"
 
     view

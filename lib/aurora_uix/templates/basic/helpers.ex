@@ -1,13 +1,35 @@
 defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @moduledoc """
-  Provides utility functions for LiveView components in Aurora UIX, including routing,
-  assignment management, navigation stack handling, and entity relationship utilities.
+  Provides utility functions for LiveView components in Aurora UIX.
 
   ## Key Features
   - Manages navigation stacks for LiveView routing.
   - Assigns values and parsed options to LiveView sockets.
   - Handles entity relationships and section/tab assignment.
-  - Provides helpers for working with Phoenix LiveView assigns and context.
+
+  ## Navigation Helpers
+  These functions help with routing and navigation stack management.
+
+  ## Assign Helpers
+  These functions help with assigning values to the socket or assigns map.
+
+  ## Entity Helpers
+  These functions assist with entity creation and relationship handling.
+
+  ## Error Helpers
+  These functions are used for error formatting and processing.
+
+  ## Field Helpers
+  These functions are for retrieving and processing field configurations.
+
+  ## Layout Helpers
+  These functions handle layout options assignment and retrieval.
+
+  ## Action Helpers
+  These functions manage actions within the assigns map, such as adding or removing actions.
+
+  ## Path Helpers
+  These functions deal with path and URL manipulations.
   """
 
   use Phoenix.Component
@@ -313,6 +335,63 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     |> Enum.reverse()
     |> then(&[action | &1])
     |> Enum.reverse()
+    |> then(&put_in(assigns, [:auix, actions_group], &1))
+  end
+
+  @doc """
+  Inserts an action at the beginning of the specified actions group in the assigns map.
+
+  ## Parameters
+  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `actions_group` (atom()) - The group to which the action will be added. Must be `:row_actions` or `:header_actions`.
+  - `action` (Action.t()) - The action to insert.
+
+  ## Returns
+  map() - The updated assigns map with the action inserted at the beginning of the group.
+
+  ## Examples
+
+      iex> assigns = %{auix: %{row_actions: [%Aurora.Uix.Action{name: "edit"}]}}
+      iex> action = %Aurora.Uix.Action{name: "delete"}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.insert_auix_action(assigns, :row_actions, action)
+      %{auix: %{row_actions: [%Aurora.Uix.Action{name: "delete"}, %Aurora.Uix.Action{name: "edit"}]}}
+  """
+  @spec insert_auix_action(map(), atom(), Action.t()) :: map()
+  def insert_auix_action(%{auix: auix} = assigns, actions_group, action)
+      when actions_group in [:row_actions, :header_actions] do
+    auix
+    |> Map.get(actions_group, [])
+    |> then(&[action | &1])
+    |> then(&put_in(assigns, [:auix, actions_group], &1))
+  end
+
+  @doc """
+  Replaces an action by name in the specified actions group in the assigns map.
+
+  ## Parameters
+  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `actions_group` (atom()) - The group in which the action will be replaced. Must be `:row_actions` or `:header_actions`.
+  - `action` (Action.t()) - The action to replace, must include a `:name` key.
+
+  ## Returns
+  map() - The updated assigns map with the action replaced.
+
+  ## Examples
+
+      iex> assigns = %{auix: %{row_actions: [%Aurora.Uix.Action{name: :edit}, %Aurora.Uix.Action{name: :delete}]}}
+      iex> action = %Aurora.Uix.Action{name: :edit, function_component: fn -> :ok end}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.replace_auix_action(assigns, :row_actions, action)
+      %{auix: %{row_actions: [%Aurora.Uix.Action{name: :edit, function_component: #Function<...>}, %Aurora.Uix.Action{name: :delete}]}}
+  """
+  @spec replace_auix_action(map(), atom(), Action.t()) :: map()
+  def replace_auix_action(%{auix: auix} = assigns, actions_group, %{name: action_name} = action)
+      when actions_group in [:row_actions, :header_actions] do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.map(fn
+      %{name: ^action_name} -> action
+      current_action -> current_action
+    end)
     |> then(&put_in(assigns, [:auix, actions_group], &1))
   end
 

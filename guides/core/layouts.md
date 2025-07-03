@@ -144,11 +144,13 @@ Aurora UIX layouts support customizable titles and subtitles for each view (inde
 
 ### How to Use
 
-You can set these options directly in your layout macros. For dynamic content, pass a function reference:
+You can set these options directly in your layout macros. For dynamic content, pass a function reference (only named functions are supported, not anonymous functions):
 
 ```elixir
 defmodule MyView do
-  def custom_subtitle(assigns), do: "Custom subtitle for #{assigns.auix.name}"
+  def custom_subtitle(assigns), do: ~H"Custom subtitle for #{assigns.auix.name}"
+  def custom_page_title(assigns), do: ~H"Custom page title for #{assigns.auix.name}"
+  def custom_action(assigns), do: ~H"<span>Custom</span>"
 end
 
 edit_layout :product, edit_title: "Edit Product", edit_subtitle: &MyView.custom_subtitle/1 do
@@ -159,9 +161,12 @@ show_layout :product, page_title: "Product Details", page_subtitle: "All about t
   stacked [:reference, :name, :description]
 end
 
-index_columns :product, [:reference, :name, :description], page_title: "Product List"
+index_columns :product, [:reference, :name, :description],
+  page_title: &MyView.custom_page_title/1,
+  add_row_action: {:custom, &MyView.custom_action/1},
+  remove_row_action: :default_row_edit
 ```
 
 If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
 
-For more details, see the documentation for `Aurora.Uix.Layout.Options.Page` and `Aurora.Uix.Layout.Options.Form`.
+For more details, see the documentation for `Aurora.Uix.Layout.Options.Page`, `Aurora.Uix.Layout.Options.Form`, and `Aurora.Uix.Web.Templates.Basic.Actions.Index`.

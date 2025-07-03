@@ -4,6 +4,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
   defmodule TestModule do
     # Makes the modules attributes persistent.
     use Aurora.Uix.Test.Web, :aurora_uix_for_test
+    use Aurora.Uix.Web.CoreComponentsImporter
 
     import Phoenix.Component, only: [sigil_H: 2]
     alias Aurora.Uix.Test.Inventory
@@ -27,13 +28,72 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     def new_subtitle(assigns),
       do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
 
+    @spec custom_row_action_to_add(map()) :: Rendered.t()
+    def custom_row_action_to_add(assigns) do
+      ~H"""
+        <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-added"}>Custom Added</.auix_link>
+      """
+    end
+
+    @spec custom_row_action_to_replace(map()) :: Rendered.t()
+    def custom_row_action_to_replace(assigns) do
+      ~H"""
+        <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Custom Removed and Added</.auix_link>
+      """
+    end
+
+    @spec custom_row_action_to_insert(map()) :: Rendered.t()
+    def custom_row_action_to_insert(assigns) do
+      ~H"""
+        <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-inserted"}>Custom Inserted</.auix_link>
+      """
+    end
+
+    @spec custom_header_action_added(map()) :: Rendered.t()
+    def custom_header_action_added(assigns) do
+      ~H"""
+      <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}-added"}>
+        <.button>Added {@auix.name}</.button>
+      </.auix_link>
+      """
+    end
+
+    @spec custom_header_action_inserted(map()) :: Rendered.t()
+    def custom_header_action_inserted(assigns) do
+      ~H"""
+      <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}-inserted"}>
+        <.button>Inserted {@auix.name}</.button>
+      </.auix_link>
+      """
+    end
+
+    @spec custom_header_action_directly_replaced(map()) :: Rendered.t()
+    def custom_header_action_directly_replaced(assigns) do
+      ~H"""
+      <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"}>
+        <.button>New Replaced {@auix.name}</.button>
+      </.auix_link>
+      """
+    end
+
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
     auix_create_ui link_prefix: "create-ui-layout-" do
       index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
-        page_title: "The Products Listing"
+        page_title: "The Products Listing",
+        remove_row_action: :default_row_edit,
+        add_row_action: {:custom_row_action_replaced, &TestModule.custom_row_action_to_replace/1},
+        add_row_action: {:custom_row_action_added, &TestModule.custom_row_action_to_add/1},
+        insert_row_action:
+          {:custom_row_action_inserted, &TestModule.custom_row_action_to_insert/1},
+        add_header_action:
+          {:custom_header_action_added, &TestModule.custom_header_action_added/1},
+        insert_header_action:
+          {:custom_header_action_inserted, &TestModule.custom_header_action_inserted/1},
+        replace_header_action:
+          {:default_new, &TestModule.custom_header_action_directly_replaced/1}
       )
 
       edit_layout :product,
@@ -61,11 +121,11 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     {:ok, view, html} = live(conn, "/create-ui-layout-products")
     assert html =~ "The Products Listing"
-    assert html =~ "New Product"
+    assert html =~ "New Replaced Product"
 
     assert view
-           |> element("#auix-new-product")
-           |> render_click() =~ "New Product"
+           |> element("a[name='auix-new-product']")
+           |> render_click() =~ "New Replaced Product"
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
@@ -101,6 +161,47 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, _view, html} = live(conn, "/create-ui-layout-products")
 
     assert html =~ "The Products Listing"
+
+    assert html
+           |> Floki.find("thead tr th")
+           |> Enum.map(&Floki.text/1) == [
+             "Id",
+             "Reference",
+             "Name",
+             "Description",
+             "Quantity at hand",
+             "Actions"
+           ]
+  end
+
+  test "Test index row custom actions", %{conn: conn} do
+    create_sample_products(5, :test)
+
+    {:ok, _view, html} = live(conn, "/create-ui-layout-products")
+
+    # Validate row actions order of elements
+    assert html
+           |> Floki.find("tr:nth-of-type(1) a[name^='auix-edit-product']")
+           |> Enum.map(&Floki.text/1) == [
+             "Custom Inserted",
+             "Custom Removed and Added",
+             "Custom Added"
+           ]
+  end
+
+  test "Test index header custom actions", %{conn: conn} do
+    create_sample_products(5, :test)
+
+    {:ok, _view, html} = live(conn, "/create-ui-layout-products")
+
+    # Validate row actions order of elements
+    assert html
+           |> Floki.find("div a[name^='auix-new-product']")
+           |> Enum.map(&Floki.text/1) == [
+             "\n  Inserted Product\n",
+             "\n  New Replaced Product\n",
+             "\n  Added Product\n"
+           ]
   end
 
   test "Test main links", %{conn: conn} do
@@ -109,11 +210,18 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> tap(&assert has_element?(&1, "#auix-new-product"))
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='show-product']"))
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='edit-product']"))
+    |> tap(&assert has_element?(&1, "a[name='auix-new-product']"))
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='delete-product']")
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+    )
+    |> tap(
+      &assert has_element?(
+                &1,
+                "tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']"
+              )
+    )
+    |> tap(
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
     )
   end
 
@@ -121,8 +229,8 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> tap(&assert has_element?(&1, "#auix-new-product"))
-    |> element("#auix-new-product")
+    |> tap(&assert has_element?(&1, "a[name='auix-new-product']"))
+    |> element("a[name='auix-new-product']")
     |> render_click()
 
     view
@@ -138,8 +246,10 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='show-product']"))
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='show-product']")
+    |> tap(
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+    )
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
     |> render_click()
     |> follow_redirect(conn)
     |> elem(1)
@@ -156,7 +266,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='show-product']")
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
     |> render_click()
     |> follow_redirect(conn)
     |> elem(1)
@@ -172,8 +282,13 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='edit-product']"))
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='edit-product']")
+    |> tap(
+      &assert has_element?(
+                &1,
+                "tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']"
+              )
+    )
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']")
     |> render_click()
     |> tap(&assert &1 =~ "auix-save-product")
 
@@ -195,9 +310,9 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
     view
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='delete-product']")
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
     )
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='delete-product']")
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
     |> render()
     |> Floki.parse_document!()
     |> tap(&assert &1 |> Floki.attribute("data-confirm") |> List.first() =~ "Are you sure?")
