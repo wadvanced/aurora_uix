@@ -41,6 +41,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
 
+  @action_groups [
+    :index_row_actions,
+    :index_header_actions,
+    :show_header_actions,
+    :show_footer_actions
+  ]
+
   @doc """
   Assigns a new entity to the socket based on related parameters.
 
@@ -314,7 +321,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Parameters
   - `assigns` (map()) - The assigns map containing the `:auix` key.
-  - `actions_group` (atom()) - The group to which the action will be added. Only `:row_actions` is supported.
+  - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to add.
 
   ## Returns
@@ -322,14 +329,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Examples
 
-      iex> assigns = %{auix: %{row_actions: []}}
+      iex> assigns = %{auix: %{index_row_actions: []}}
       iex> action = %Aurora.Uix.Action{name: "edit", function_component: fn -> :ok end}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.add_auix_action(assigns, :row_actions, action)
-      %{auix: %{row_actions: [%Aurora.Uix.Action{name: "edit", function_component: #Function<...>}]}}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.add_auix_action(assigns, :index_row_actions, action)
+      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit", function_component: #Function<...>}]}}
   """
   @spec add_auix_action(map(), atom(), Action.t()) :: map()
   def add_auix_action(%{auix: auix} = assigns, actions_group, action)
-      when actions_group in [:row_actions, :header_actions] do
+      when actions_group in @action_groups do
     auix
     |> Map.get(actions_group, [])
     |> Enum.reverse()
@@ -343,7 +350,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Parameters
   - `assigns` (map()) - The assigns map containing the `:auix` key.
-  - `actions_group` (atom()) - The group to which the action will be added. Must be `:row_actions` or `:header_actions`.
+  - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to insert.
 
   ## Returns
@@ -351,14 +358,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Examples
 
-      iex> assigns = %{auix: %{row_actions: [%Aurora.Uix.Action{name: "edit"}]}}
+      iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit"}]}}
       iex> action = %Aurora.Uix.Action{name: "delete"}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.insert_auix_action(assigns, :row_actions, action)
-      %{auix: %{row_actions: [%Aurora.Uix.Action{name: "delete"}, %Aurora.Uix.Action{name: "edit"}]}}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.insert_auix_action(assigns, :index_row_actions, action)
+      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "delete"}, %Aurora.Uix.Action{name: "edit"}]}}
   """
   @spec insert_auix_action(map(), atom(), Action.t()) :: map()
   def insert_auix_action(%{auix: auix} = assigns, actions_group, action)
-      when actions_group in [:row_actions, :header_actions] do
+      when actions_group in @action_groups do
     auix
     |> Map.get(actions_group, [])
     |> then(&[action | &1])
@@ -370,7 +377,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Parameters
   - `assigns` (map()) - The assigns map containing the `:auix` key.
-  - `actions_group` (atom()) - The group in which the action will be replaced. Must be `:row_actions` or `:header_actions`.
+  - `actions_group` (atom()) - The group in which the action will be replaced.
   - `action` (Action.t()) - The action to replace, must include a `:name` key.
 
   ## Returns
@@ -378,14 +385,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Examples
 
-      iex> assigns = %{auix: %{row_actions: [%Aurora.Uix.Action{name: :edit}, %Aurora.Uix.Action{name: :delete}]}}
+      iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit}, %Aurora.Uix.Action{name: :delete}]}}
       iex> action = %Aurora.Uix.Action{name: :edit, function_component: fn -> :ok end}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.replace_auix_action(assigns, :row_actions, action)
-      %{auix: %{row_actions: [%Aurora.Uix.Action{name: :edit, function_component: #Function<...>}, %Aurora.Uix.Action{name: :delete}]}}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.replace_auix_action(assigns, :index_row_actions, action)
+      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit, function_component: #Function<...>}, %Aurora.Uix.Action{name: :delete}]}}
   """
   @spec replace_auix_action(map(), atom(), Action.t()) :: map()
   def replace_auix_action(%{auix: auix} = assigns, actions_group, %{name: action_name} = action)
-      when actions_group in [:row_actions, :header_actions] do
+      when actions_group in @action_groups do
     auix
     |> Map.get(actions_group, [])
     |> Enum.map(fn
@@ -400,7 +407,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Parameters
   - `assigns` (map()) - The assigns map containing the `:auix` key.
-  - `actions_group` (atom()) - The group from which the action will be removed. Only `:row_actions` is supported.
+  - `actions_group` (atom()) - The group from which the action will be removed.
   - `action_name` (atom()) - The name of the action to remove.
 
   ## Returns
@@ -408,13 +415,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   ## Examples
 
-      iex> assigns = %{auix: %{row_actions: [{:edit, fn -> :ok end}, {:delete, fn -> :ok end}]}}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.remove_auix_action(assigns, :row_actions, :edit)
-      %{auix: %{row_actions: [{:delete, #Function<...>}]}}
+      iex> assigns = %{auix: %{index_row_actions: [{:edit, fn -> :ok end}, {:delete, fn -> :ok end}]}}
+      iex> Aurora.Uix.Web.Templates.Basic.Helpers.remove_auix_action(assigns, :index_row_actions, :edit)
+      %{auix: %{index_row_actions: [{:delete, #Function<...>}]}}
   """
   @spec remove_auix_action(map(), atom(), atom()) :: map()
   def remove_auix_action(%{auix: auix} = assigns, actions_group, action_name)
-      when actions_group in [:row_actions, :header_actions] do
+      when actions_group in @action_groups do
     auix
     |> Map.get(actions_group, [])
     |> Enum.reject(&(&1.name == action_name))

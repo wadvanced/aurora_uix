@@ -14,8 +14,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Web.Templates.Basic.Actions.Show, as: ShowActions
   alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderer
+
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -33,7 +35,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
-    assigns = get_layout_options(assigns)
+    assigns =
+      assigns
+      |> get_layout_options()
+      |> ShowActions.set_actions()
 
     ~H"""
     <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
@@ -41,9 +46,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
         {@auix.layout_options.page_title}
         <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
         <:actions>
-          <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix.entity.id}/show/edit"} id={"auix-edit-#{@auix.module}"}>
-            <.button>Edit {@auix.name}</.button>
-          </.auix_link>
+          <div name="auix-show-header-actions">
+            <%= for %{function_component: action} <- @auix.show_header_actions do %>
+              {action.(%{auix: @auix})}
+            <% end %>
+          </div>
         </:actions>
       </.header>
 
@@ -51,10 +58,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
         <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
       </div>
 
-      <div id="auix-show-navigate-back">
-        <.auix_back>Back to {@auix.title}</.auix_back>
+      <div name="auix-show-footer-actions">
+        <%= for %{function_component: action} <- @auix.show_footer_actions do %>
+          {action.(%{auix: @auix})}
+        <% end %>
       </div>
-
       <.modal :if={@live_action == :edit} auix={%{css_classes: @auix.css_classes}} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
