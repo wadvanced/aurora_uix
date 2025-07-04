@@ -25,7 +25,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
     assert html =~ "New Product"
 
     assert view
-           |> element("#auix-new-product")
+           |> element("a[name='auix-new-product']")
            |> render_click() =~ "New Product"
   end
 
@@ -86,8 +86,10 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-default-layout-products")
 
     view
-    |> tap(&assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='edit-product']"))
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='edit-product']")
+    |> tap(
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']")
+    )
+    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']")
     |> render_click()
     |> tap(&assert &1 =~ "auix-save-product")
 

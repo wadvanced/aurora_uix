@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `group`: Visually segmented fields
   - `sections`: Tab-like field organization
 
-  ## Layout Path Structure
+  ## Layout Tree Element Structure
 
   Internally, each layout is represented by a list of maps (called "paths"), where each entry contains the following keys:
 
@@ -168,7 +168,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     end
     ```
 
-    ### Complex Layouts
+  ### Complex Layouts
 
     Layout can be more complex, by combining sections, groups, inline and field UI overrides.
 
@@ -293,34 +293,70 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Registers index columns and associated options for a specific resource.
 
   Supports both field selection and index-level options, including those described in
-  `Aurora.Uix.Layout.Options.Page` (such as `:page_title` and `:page_subtitle`).
+  `Aurora.Uix.Layout.Options.Page` (such as `:page_title` and `:page_subtitle`), as well as default and custom row/header actions.
 
   ## Parameters
-
-    - `name` (atom()) - Unique identifier for the index configuration.
-    - `fields` (list()) - List of field keys or keyword options for customizing field behavior.
-    - `do_block` (optional) - Nested layout definition block.
+  - `name` (atom()): Resource configuration name.
+  - `fields` (list() | keyword()): List of field atoms or field/option pairs to display as columns.
+  - `do_block` (optional): Optional block for nested layout or further customization.
 
   ## Options
-  The following options are supported for index layouts (see `Aurora.Uix.Layout.Options.Page` for details):
+  The following options are supported for index layouts (see `Aurora.Uix.Layout.Options.Page`):
 
-    * `:page_title` - The page title for the index layout. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
-        returns a Phoenix.LiveView.Rendered. Default: `"Listing {title}"`, where {title} is the capitalized table name.
-    * Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom/1]]`).
+  - `:page_title` (binary() | (assigns -> Rendered.t())): The page title for the index layout.
+    - Example: `page_title: "Products List"`
+    - Example: `page_title: &custom_page_title/1` where `def custom_page_title(assigns), do: ~H"<span>Custom Title</span>"`
+    - Default: `"Listing {title}"` (where `{title}` is the resource title)
 
-  For a full list of supported options and their behavior, see `Aurora.Uix.Layout.Options.Page`.
+  - `:page_subtitle` (binary() | (assigns -> Rendered.t())): The page subtitle for the index layout.
+    - Example: `page_subtitle: "All available products"`
+    - Example: `page_subtitle: &custom_page_subtitle/1` where `def custom_page_subtitle(assigns), do: ~H"<span>Subtitle</span>"`
+    - Default: `"Details"`
+
+  - Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom_renderer/1]]`).
+
+  ## Actions
+  The following actions are supported for index layouts (see `Aurora.Uix.Web.Templates.Basic.Actions.Index`):
+
+  > **Note:** Row-related actions (such as `add_row_action`, `insert_row_action`, `remove_row_action`)
+    will receive an `@auix.row_info` assign containing a tuple `{id, row_entity}` for the current row.
+
+  - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
+  - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details).
+  - `remove_row_action: name`: Removes a row action by name (e.g., `:default_row_edit`).
+
+  - `add_header_action: {name, &fun/1}`: Adds a header action at the end.
+  - `insert_header_action: {name, &fun/1}`: Inserts a header action at a specific position (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details).
+  - `remove_header_action: name`: Removes a header action by name (e.g., `:default_new`).
+
+  - Example: `add_row_action: {:custom_action, &custom_action/1}` where `def custom_action(assigns), do: ~H"<span>Custom</span>"`
+  - Example: `insert_row_action: {:special, &special_action/1}`
+  - Example: `remove_row_action: :default_row_edit`
 
   ## Behavior
-
-    - Accumulates fields and options for the specified resource name.
-    - Allows multiple calls to append additional fields or override options.
-    - Processed during module compilation.
+  - Fields listed in `fields` will be rendered as columns in the index table.
+  - Options and actions allow customization of the index page title, subtitle, and available actions.
 
   ## Examples
+  ```elixir
+  # Basic usage with default actions and titles
+  index_columns :product, [:name, :price]
 
-      index_columns :product, [:reference, :name, page_title: "Product List"]
-      index_columns :product, [name: [renderer: &upcase/1], page_subtitle: "All products"]
+  # Custom page title and subtitle
+  index_columns :product, [:name, :price],
+    page_title: "Products List",
+    page_subtitle: "All available products"
 
+  # Add a custom row action and remove the default delete action
+  defmodule MyApp.Actions do
+    def custom_action(assigns) do
+      ~H"<.link navigate={~p\"/edit_page\"}"
+    end
+  end
+  index_columns :product, [:name, :price],
+    add_row_action: {:custom, &MyApp.Actions.custom_action/1},
+    remove_row_action: :default_row_delete
+  ```
   """
   @spec index_columns(atom(), keyword() | list(), any()) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do

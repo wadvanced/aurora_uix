@@ -71,7 +71,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     unique_id = :nanosecond |> System.system_time() |> to_string()
 
     view
-    |> element("#auix-new-product")
+    |> element("a[name='auix-new-product']")
     |> render_click()
 
     {:ok, created_product_view, _html} =
@@ -99,7 +99,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
   defp select_product({conn, view}, product_id) do
     {:ok, view, _html} =
       view
-      |> element("tr[id^='products-#{product_id}'] a[name='show-product']")
+      |> element("tr[id^='products-#{product_id}'] a[name='auix-show-product']")
       |> render_click()
       |> follow_redirect(conn)
 
