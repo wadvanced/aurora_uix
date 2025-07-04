@@ -19,50 +19,43 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
-  alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Web.Templates.Basic.Actions
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
-  @add_actions %{
-    add_row_action: :row_actions,
-    add_header_action: :header_actions
+  @actions %{
+    add_row_action: {:index_row_actions, :add_auix_action},
+    add_header_action: {:index_header_actions, :add_auix_action},
+    insert_row_action: {:index_row_actions, :insert_auix_action},
+    insert_header_action: {:index_header_actions, :insert_auix_action},
+    replace_row_action: {:index_row_actions, :replace_auix_action},
+    replace_header_action: {:index_header_actions, :replace_auix_action},
+    remove_row_action: {:index_row_actions, :remove_auix_action},
+    remove_header_action: {:index_header_actions, :remove_auix_action}
   }
-
-  @insert_actions %{
-    insert_row_action: :row_actions,
-    insert_header_action: :header_actions
-  }
-
-  @replace_actions %{
-    replace_row_action: :row_actions,
-    replace_header_action: :header_actions
-  }
-
-  @remove_actions %{
-    remove_row_action: :row_actions,
-    remove_header_action: :header_actions
-  }
-
-  @allowed_add_actions Map.keys(@add_actions)
-  @allowed_insert_actions Map.keys(@insert_actions)
-  @allowed_replace_actions Map.keys(@replace_actions)
-  @allowed_remove_actions Map.keys(@remove_actions)
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` key with required subkeys.
 
   ## Returns
   map() - The updated assigns with actions set.
+
+  ## Examples
+
+      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
+      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.set_actions(assigns)
+      %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}, ...}
   """
   @spec set_actions(map()) :: map()
   def set_actions(assigns) do
     assigns
-    |> add_default_actions()
-    |> modify_actions()
+    |> add_default_row_actions()
+    |> add_default_header_actions()
+    |> Actions.modify_actions(@actions)
   end
 
   @doc """
@@ -70,6 +63,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` with `:link_prefix`, `:source`, `:row_info`, and `:module`.
 
   ## Returns
   Rendered.t() - The rendered "show" action link.
@@ -78,7 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
       iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.show_row_action(assigns)
-      #=> %Phoenix.LiveView.Rendered{...}
+      %Phoenix.LiveView.Rendered{}
   """
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
@@ -94,6 +88,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` with `:link_prefix`, `:source`, `:row_info`, and `:module`.
 
   ## Returns
   Rendered.t() - The rendered "edit" action link.
@@ -102,7 +97,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
       iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.edit_row_action(assigns)
-      #=> %Phoenix.LiveView.Rendered{...}
+      %Phoenix.LiveView.Rendered{}
   """
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
@@ -116,6 +111,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` with `:row_info` and `:module`.
 
   ## Returns
   Rendered.t() - The rendered "delete" action link.
@@ -124,7 +120,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
       iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.remove_row_action(assigns)
-      #=> %Phoenix.LiveView.Rendered{...}
+      %Phoenix.LiveView.Rendered{}
+
+  ## Edge Cases
+
+  - If `@auix.row_info` is missing or malformed, the link may not render correctly.
   """
   @spec remove_row_action(map()) :: Rendered.t()
   def remove_row_action(assigns) do
@@ -144,6 +144,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` with `:index_new_link`, `:module`, and `:name`.
 
   ## Returns
   Rendered.t() - The rendered "new" action link.
@@ -152,7 +153,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
       iex> assigns = %{auix: %{index_new_link: "/users/new", module: "User", name: "User"}}
       iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.new_header_action(assigns)
-      #=> %Phoenix.LiveView.Rendered{...}
+      %Phoenix.LiveView.Rendered{}
   """
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(assigns) do
@@ -163,80 +164,19 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
     """
   end
 
-  @doc """
-  Adds the default row and header actions to the assigns for index layouts.
-
-  ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-
-  ## Returns
-  map() - The updated assigns with default actions added.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.add_default_actions(assigns)
-      #=> %{auix: %{row_actions: [%Aurora.Uix.Action{...}, ...], header_actions: [%Aurora.Uix.Action{...}]}}
-  """
-  @spec add_default_actions(map()) :: map()
-  def add_default_actions(assigns) do
-    assigns
-    |> add_default_row_actions()
-    |> add_default_header_actions()
-  end
-
   ## PRIVATE
-
-  @spec modify_actions(map()) :: map()
-  defp modify_actions(%{auix: %{layout_tree: %{opts: opts}}} = assigns) do
-    Enum.reduce(opts, assigns, &modify_action/2)
-  end
-
-  @spec modify_action(Action.t(), map()) :: map()
-  defp modify_action({action_name, action}, assigns) when action_name in @allowed_add_actions do
-    BasicHelpers.add_auix_action(assigns, @add_actions[action_name], Action.new(action))
-  end
-
-  defp modify_action({action_name, action}, assigns)
-       when action_name in @allowed_insert_actions do
-    BasicHelpers.insert_auix_action(assigns, @insert_actions[action_name], Action.new(action))
-  end
-
-  defp modify_action({action_name, action}, assigns)
-       when action_name in @allowed_replace_actions do
-    BasicHelpers.replace_auix_action(assigns, @replace_actions[action_name], Action.new(action))
-  end
-
-  defp modify_action({action_name, action}, assigns)
-       when action_name in @allowed_remove_actions do
-    BasicHelpers.remove_auix_action(assigns, @remove_actions[action_name], action)
-  end
-
-  defp modify_action(_option, assigns), do: assigns
 
   @spec add_default_row_actions(map()) :: map()
   defp add_default_row_actions(assigns) do
-    assigns
-    |> BasicHelpers.add_auix_action(
-      :row_actions,
-      Action.new(:default_row_show, &show_row_action/1)
-    )
-    |> BasicHelpers.add_auix_action(
-      :row_actions,
-      Action.new(:default_row_edit, &edit_row_action/1)
-    )
-    |> BasicHelpers.add_auix_action(
-      :row_actions,
-      Action.new(:default_row_delete, &remove_row_action/1)
+    Actions.add_actions(assigns, :index_row_actions,
+      default_row_show: &show_row_action/1,
+      default_row_edit: &edit_row_action/1,
+      default_row_delete: &remove_row_action/1
     )
   end
 
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
-    BasicHelpers.add_auix_action(
-      assigns,
-      :header_actions,
-      Action.new(:default_new, &new_header_action/1)
-    )
+    Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
   end
 end

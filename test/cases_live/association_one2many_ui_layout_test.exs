@@ -116,7 +116,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp edit_product({conn, view}) do
     view
-    |> element("a[id='auix-edit-product']")
+    |> element("a[name='auix-edit-product']")
     |> render_click()
 
     {conn, view}

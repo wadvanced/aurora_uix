@@ -55,8 +55,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       <.header>
         {@auix.layout_options.page_title}
         <:actions>
-          <div name="auix-header-actions">
-            <%= for %{function_component: action} <- @auix.header_actions do %>
+          <div name="auix-index-header-actions">
+            <%= for %{function_component: action} <- @auix.index_header_actions do %>
               {action.(%{auix: @auix})}
             <% end %>
           </div>
@@ -71,7 +71,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
       >
         <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{entity.id}"}>{Map.get(entity, field.key)}</.auix_link></:col>
 
-        <:action :let={row_info} :for={%{function_component: action} <- @auix.row_actions}>
+        <:action :let={row_info} :for={%{function_component: action} <- @auix.index_row_actions}>
           {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
         </:action>
 
