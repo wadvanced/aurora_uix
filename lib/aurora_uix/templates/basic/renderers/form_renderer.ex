@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Web.Templates.Basic.Actions.Form, as: FormActions
   alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderer
 
@@ -29,13 +30,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    assigns = get_layout_options(assigns)
+    assigns =
+      assigns
+      |> get_layout_options()
+      |> FormActions.set_actions()
 
     ~H"""
     <div>
       <.header>
         {if @action == :edit, do: @auix.layout_options.edit_title, else: @auix.layout_options.new_title}
         <:subtitle>{if @action == :edit, do: @auix.layout_options.edit_subtitle, else: @auix.layout_options.new_subtitle}</:subtitle>
+        <:actions>
+          <div name="auix-form-header-actions">
+            <%= for %{function_component: action} <- @auix.form_header_actions do %>
+              {action.(%{auix: @auix})}
+            <% end %>
+          </div>
+        </:actions>
       </.header>
 
       <.flash kind={:error} flash={@flash} title="Error!" />
@@ -52,7 +63,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving..." id={"auix-save-#{@auix.module}"}>Save {@auix.name}</.button>
+          <div name="auix-form-footer-actions">
+            <%= for %{function_component: action} <- @auix.form_footer_actions do %>
+              {action.(%{auix: @auix})}
+            <% end %>
+          </div>
         </:actions>
       </.simple_form>
     </div>

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
+defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
   defmodule TestModule do
@@ -58,11 +58,20 @@ defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
       """
     end
 
+    @spec custom_footer_action(map()) :: Rendered.t()
+    def custom_footer_action(assigns) do
+      ~H"""
+      <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}-footer"}>
+        <.button>Footer {@auix.name}</.button>
+      </.auix_link>
+      """
+    end
+
     auix_resource_metadata(:product, context: Inventory, schema: Product)
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "create-ui-index-actions-" do
+    auix_create_ui link_prefix: "create-ui-actions-index-" do
       index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
         remove_row_action: :default_row_edit,
         add_row_action: {:custom_row_action_replaced, &TestModule.custom_row_action_to_replace/1},
@@ -74,7 +83,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
         insert_header_action:
           {:custom_header_action_inserted, &TestModule.custom_header_action_inserted/1},
         replace_header_action:
-          {:default_new, &TestModule.custom_header_action_directly_replaced/1}
+          {:default_new, &TestModule.custom_header_action_directly_replaced/1},
+        add_footer_action: {:custom_footer_action, &TestModule.custom_footer_action/1}
       )
 
       edit_layout :product do
@@ -96,7 +106,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
     index_module = Module.concat(test_module, Product.Index)
     assert true == Code.ensure_loaded?(index_module)
 
-    {:ok, view, html} = live(conn, "/create-ui-index-actions-products")
+    {:ok, view, html} = live(conn, "/create-ui-actions-index-products")
     assert html =~ "Listing Products"
     assert html =~ "New Replaced Product"
 
@@ -108,7 +118,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
   test "Test index row custom actions", %{conn: conn} do
     create_sample_products(5, :test)
 
-    {:ok, _view, html} = live(conn, "/create-ui-index-actions-products")
+    {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")
 
     # Validate row actions order of elements
     assert html
@@ -123,15 +133,28 @@ defmodule Aurora.Uix.Test.Web.CreateUIIndexActionsTest do
   test "Test index header custom actions", %{conn: conn} do
     create_sample_products(5, :test)
 
-    {:ok, _view, html} = live(conn, "/create-ui-index-actions-products")
+    {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("div a[name^='auix-new-product']")
+           |> Floki.find("div[name='auix-index-header-actions'] a[name^='auix-new-product']")
            |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
              "Inserted Product",
              "New Replaced Product",
              "Added Product"
+           ]
+  end
+
+  test "Test index footer custom actions", %{conn: conn} do
+    create_sample_products(5, :test)
+
+    {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")
+
+    # Validate row actions order of elements
+    assert html
+           |> Floki.find("div[name='auix-index-footer-actions'] a[name^='auix-new-product']")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+             "Footer Product"
            ]
   end
 end

@@ -170,3 +170,47 @@ index_columns :product, [:reference, :name, :description],
 If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
 
 For more details, see the documentation for `Aurora.Uix.Layout.Options.Page`, `Aurora.Uix.Layout.Options.Form`, and `Aurora.Uix.Web.Templates.Basic.Actions.Index`.
+
+### Actions
+
+Aurora UIX layouts support a set of actions that can be customized for each view (index, form, show). Actions allow you to add, remove, or replace buttons and links in the UI, such as row actions (edit, delete, custom actions) and header actions (new, export, etc.).
+
+You can configure actions using the following options in your layout macros:
+
+- `add_row_action: {name, &fun/1}` – Adds a row action at the end.
+- `insert_row_action: {name, &fun/1}` – Inserts a row action at a specific position.
+- `replace_row_action: {name, &fun/1}` – Replaces a row action by name.
+- `remove_row_action: name` – Removes a row action by name (e.g., `:default_row_edit`).
+- `add_header_action: {name, &fun/1}` – Adds a header action at the end.
+- `insert_header_action: {name, &fun/1}` – Inserts a header action at a specific position.
+- `replace_header_action: {name, &fun/1}` – Replaces a header action by name.
+- `remove_header_action: name` – Removes a header action by name (e.g., `:default_new`).
+
+> **Note:** Row-related actions (such as `add_row_action`, `insert_row_action`, `replace_row_action`, `remove_row_action`) will receive an `@auix.row_info` assign containing a tuple `{id, row_entity}` for the current row.
+
+#### Where to Use Actions
+
+- **Index Layouts**: Actions are typically used for row-level operations (edit, delete, custom) and header-level actions (new, export, etc.).
+- **Form and Show Layouts**: Actions can be used to customize the available buttons or links at the top of the page or for each record.
+
+#### Example Usage
+
+```elixir
+defmodule MyView do
+  def custom_action(assigns), do: ~H"<span>Custom</span>"
+end
+
+index_columns :product, [:reference, :name, :description],
+  add_row_action: {:custom, &MyView.custom_action/1},
+  remove_row_action: :default_row_edit
+
+edit_layout :product, add_header_action: {:custom, &MyView.custom_action/1} do
+  stacked [:reference, :name, :description]
+end
+
+show_layout :product, remove_header_action: :default_new do
+  stacked [:reference, :name, :description]
+end
+```
+
+For more details and advanced usage, see the documentation for `Aurora.Uix.Web.Templates.Basic.Actions.Index` and related modules.

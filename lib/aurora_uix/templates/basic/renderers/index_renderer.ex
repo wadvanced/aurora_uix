@@ -77,6 +77,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
 
       </.table>
 
+      <div name="auix-index-footer-actions">
+        <%= for %{function_component: action} <- @auix.index_footer_actions do %>
+          {action.(%{auix: @auix})}
+        <% end %>
+      </div>
+
       <.modal :if={@live_action in [:new, :edit]} auix={%{css_classes: @auix.css_classes}} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component

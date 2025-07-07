@@ -145,7 +145,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     |> render_click()
 
     view
-    |> tap(&assert has_element?(&1, "#auix-save-product"))
+    |> tap(&assert has_element?(&1, "[name='auix-save-product'"))
     |> tap(
       &assert has_element?(&1, "div#auix-product-modal-container div button[phx-click*='exec']")
     )
