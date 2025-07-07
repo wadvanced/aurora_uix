@@ -1,0 +1,82 @@
+defmodule Aurora.Uix.Test.Web.CreateUIActionsFormTest do
+  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+
+  defmodule TestModule do
+    # Makes the modules attributes persistent.
+    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+    use Aurora.Uix.Web.CoreComponentsImporter
+
+    import Phoenix.Component, only: [sigil_H: 2]
+    alias Aurora.Uix.Test.Inventory
+    alias Aurora.Uix.Test.Inventory.Product
+
+    @spec custom_form_header_action(map()) :: Rendered.t()
+    def custom_form_header_action(assigns) do
+      ~H"""
+        <.button phx-disable-with="Saving..." name={"auix-save-#{@auix.module}"}>Custom Save {@auix.name}</.button>
+      """
+    end
+
+    @spec custom_form_footer_action(map()) :: Rendered.t()
+    def custom_form_footer_action(assigns) do
+      ~H"""
+        <.button phx-disable-with="Saving..." name={"auix-save-#{@auix.module}"}>Custom Footer Save {@auix.name}</.button>
+      """
+    end
+
+    auix_resource_metadata(:product, context: Inventory, schema: Product)
+
+    # When you define a link in a test, add a line to test/support/app_web/router.exs
+    # See section `Including cases_live tests in the test server` in the README.md file.
+    auix_create_ui link_prefix: "create-ui-actions-form-" do
+      index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand])
+
+      edit_layout :product,
+        add_header_action: {:custom_header, &TestModule.custom_form_header_action/1},
+        insert_footer_action: {:custom_footer, &TestModule.custom_form_footer_action/1} do
+        inline([:reference, :name, :description])
+        inline([:quantity_at_hand, :quantity_initial])
+        inline([:list_price, :rrp])
+      end
+
+      show_layout :product do
+        inline([:reference, :name, :description])
+        inline([:quantity_at_hand, :quantity_initial])
+        inline([:list_price, :rrp])
+      end
+    end
+  end
+
+  test "Test form header custom actions", %{conn: conn} do
+    product_id =
+      5
+      |> create_sample_products(:test)
+      |> get_in(["id_test-1", Access.key!(:id)])
+
+    {:ok, _view, html} = live(conn, "/create-ui-actions-form-products/#{product_id}/edit")
+
+    # Validate row actions order of elements
+    assert html
+           |> Floki.find("div[name='auix-form-header-actions'] [name='auix-save-product']")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+             "Custom Save Product"
+           ]
+  end
+
+  test "Test form footer custom actions", %{conn: conn} do
+    product_id =
+      5
+      |> create_sample_products(:test)
+      |> get_in(["id_test-1", Access.key!(:id)])
+
+    {:ok, _view, html} = live(conn, "/create-ui-actions-form-products/#{product_id}/edit")
+
+    # Validate row actions order of elements
+    assert html
+           |> Floki.find("div[name='auix-form-footer-actions'] [name='auix-save-product']")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+             "Custom Footer Save Product",
+             "Save Product"
+           ]
+  end
+end

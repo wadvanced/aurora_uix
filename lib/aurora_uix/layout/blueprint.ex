@@ -215,32 +215,40 @@ defmodule Aurora.Uix.Layout.Blueprint do
   end
 
   @doc """
-  Defines a layout for resource editing.
+  Defines a form layout for resource editing.
 
   ## Parameters
-  - `name` (atom()): Resource configuration name
+  - `name` (atom()): Resource configuration name.
   - `opts` (keyword(), optional): Additional layout options. See below for supported options.
-  - `do_block` (optional): Layout definition block
+  - `do_block` (optional): Layout definition block.
 
   ## Options
-  The following options are supported for form layouts (see `Aurora.Uix.Layout.Options.Form` for details):
+  See `Aurora.Uix.Layout.Options.Form` for all supported options and behaviors.
+  - `:edit_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The title for the edit form. Default: `"Edit {name}"`, where `{name}` is the capitalized schema name.
+  - `:edit_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the edit form. Default: `"Use this form to manage <strong>{title}</strong> records in your database"`, where `{title}` is the capitalized table name.
+  - `:new_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The title for the new resource form. Default: `"New {name}"`, where `{name}` is the capitalized schema name.
+  - `:new_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the new resource form. Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the capitalized schema name.
 
-    * `:edit_title` - The title for the edit form. Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
-        returns a Phoenix.LiveView.Rendered. Default: `"Edit {name}"`, where {name} is the capitalized schema name.
-    * `:edit_subtitle` - The subtitle for the edit form. Accepts a `binary()` or a function of arity 1.
-        Default: `"Use this form to manage <strong>{title}</strong> records in your database"`, where {title} is the capitalized table name.
-    * `:new_title` - The title for the new resource form (when in `:index` context). Accepts a `binary()` or a function of arity 1.
-        Default: `"New {name}"`, where {name} is the capitalized schema name.
-    * `:new_subtitle` - The subtitle for the new resource form (when in `:index` context). Accepts a `binary()` or a function of arity 1.
-        Default: `"Creates a new <strong>{name}</strong> record in your database"`, where {name} is the capitalized schema name.
+  ## Actions
+  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
+  - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
+  - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
+  - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.
+  - `remove_row_action: name`: Removes a row action by name (e.g., `:default_row_edit`).
+  - `add_header_action: {name, &fun/1}`: Adds a header action at the end.
+  - `insert_header_action: {name, &fun/1}`: Inserts a header action at a specific position.
+  - `replace_header_action: {name, &fun/1}`: Replaces a header action by name.
+  - `remove_header_action: name`: Removes a header action by name (e.g., `:default_new`).
 
-  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options.Form`.
+  ## Behavior
+  - Renders an editable form layout for the resource.
+  - Options allow customization of form titles, subtitles, and field arrangement.
 
   ## Example
   ```elixir
-    edit_layout :product, edit_title: "Edit Product" do
-      inline [:reference, :name, :description]
-    end
+  edit_layout :product, edit_title: "Edit Product" do
+    inline [:reference, :name, :description]
+  end
   ```
   """
   @spec edit_layout(atom(), keyword(), any()) :: Macro.t()
@@ -249,39 +257,46 @@ defmodule Aurora.Uix.Layout.Blueprint do
   end
 
   @doc """
+
   Defines a read-only layout for resource display.
 
   ## Parameters
-  - `name` (atom()) - Resource configuration name.
-  - `opts` (keyword(), optional) - Options for customizing the show layout. See below for supported options.
-  - `do_block` (optional) - Layout definition block.
+  - `name` (atom()): Resource configuration name.
+  - `opts` (keyword(), optional): Options for customizing the show layout. See below for supported options.
+  - `do_block` (optional): Layout definition block.
 
   ## Options
-  The following options are supported for show layouts (see `Aurora.Uix.Layout.Options.Page` for details):
+  See `Aurora.Uix.Layout.Options.Page` for all supported options and behaviors.
+  - `:page_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page title for the show layout. Default: `"{name}"`.
+  - `:page_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page subtitle for the show layout. Default: `"Details"`.
 
-    * `:page_title` - The page title for the show layout.
-        Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and
-        returns a Phoenix.LiveView.Rendered. Default: `"{name}"`, where {name} is the capitalized schema name.
-    * `:page_subtitle` - The page subtitle for the show layout. Accepts a `binary()` or a function of arity 1.
-        Default: `"Details"`.
-
-  For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options.Page`.
+  ## Actions
+  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
+  - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
+  - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
+  - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.
+  - `remove_row_action: name`: Removes a row action by name (e.g., `:default_row_edit`).
+  - `add_header_action: {name, &fun/1}`: Adds a header action at the end.
+  - `insert_header_action: {name, &fun/1}`: Inserts a header action at a specific position.
+  - `replace_header_action: {name, &fun/1}`: Replaces a header action by name.
+  - `remove_header_action: name`: Removes a header action by name (e.g., `:default_new`).
 
   ## Behavior
   - Renders fields in a disabled/read-only state.
   - All options are processed only for the `:show` tag.
 
   ## Examples
+  ```elixir
+  show_layout :product, page_title: "Product Details" do
+    inline [:reference, :name, :description]
+  end
 
-      show_layout :product, page_title: "Product Details" do
-        inline [:reference, :name, :description]
-      end
-
-      def page_title(assigns), do: ~H"Details for {@auix.name}"
-      show_layout :product, page_title: &page_title/1,
-                              page_subtitle: "Extra Info" do
-        inline [:reference, :name, :description]
-      end
+  def page_title(assigns), do: ~H"Details for {@auix.name}"
+  show_layout :product, page_title: &page_title/1,
+                          page_subtitle: "Extra Info" do
+    inline [:reference, :name, :description]
+  end
+  ```
 
   """
   @spec show_layout(atom(), keyword(), any()) :: Macro.t()
@@ -292,46 +307,29 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @doc """
   Registers index columns and associated options for a specific resource.
 
-  Supports both field selection and index-level options, including those described in
-  `Aurora.Uix.Layout.Options.Page` (such as `:page_title` and `:page_subtitle`), as well as default and custom row/header actions.
-
   ## Parameters
-  - `name` (atom()): Resource configuration name.
-  - `fields` (list() | keyword()): List of field atoms or field/option pairs to display as columns.
+  - `name` (atom): Resource configuration name.
+  - `fields` (list | keyword): List of field atoms or field/option pairs to display as columns.
   - `do_block` (optional): Optional block for nested layout or further customization.
 
+
   ## Options
-  The following options are supported for index layouts (see `Aurora.Uix.Layout.Options.Page`):
-
-  - `:page_title` (binary() | (assigns -> Rendered.t())): The page title for the index layout.
-    - Example: `page_title: "Products List"`
-    - Example: `page_title: &custom_page_title/1` where `def custom_page_title(assigns), do: ~H"<span>Custom Title</span>"`
-    - Default: `"Listing {title}"` (where `{title}` is the resource title)
-
-  - `:page_subtitle` (binary() | (assigns -> Rendered.t())): The page subtitle for the index layout.
-    - Example: `page_subtitle: "All available products"`
-    - Example: `page_subtitle: &custom_page_subtitle/1` where `def custom_page_subtitle(assigns), do: ~H"<span>Subtitle</span>"`
-    - Default: `"Details"`
-
+  - `:page_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page title for the index layout. Example: `page_title: "Products List"` or `page_title: &custom_page_title/1`.
+  - `:page_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
   - Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom_renderer/1]]`).
 
   ## Actions
-  The following actions are supported for index layouts (see `Aurora.Uix.Web.Templates.Basic.Actions.Index`):
-
-  > **Note:** Row-related actions (such as `add_row_action`, `insert_row_action`, `remove_row_action`)
-    will receive an `@auix.row_info` assign containing a tuple `{id, row_entity}` for the current row.
-
+  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
   - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
-  - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details).
+  - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
+  - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.
   - `remove_row_action: name`: Removes a row action by name (e.g., `:default_row_edit`).
-
   - `add_header_action: {name, &fun/1}`: Adds a header action at the end.
-  - `insert_header_action: {name, &fun/1}`: Inserts a header action at a specific position (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details).
+  - `insert_header_action: {name, &fun/1}`: Inserts a header action at a specific position.
+  - `replace_header_action: {name, &fun/1}`: Replaces a header action by name.
   - `remove_header_action: name`: Removes a header action by name (e.g., `:default_new`).
 
-  - Example: `add_row_action: {:custom_action, &custom_action/1}` where `def custom_action(assigns), do: ~H"<span>Custom</span>"`
-  - Example: `insert_row_action: {:special, &special_action/1}`
-  - Example: `remove_row_action: :default_row_edit`
+  > **Note:** Row-related actions (such as `add_row_action`, `insert_row_action`, `replace_row_action`, `remove_row_action`) will receive an `@auix.row_info` assign containing a tuple `{id, row_entity}` for the current row.
 
   ## Behavior
   - Fields listed in `fields` will be rendered as columns in the index table.

@@ -24,14 +24,18 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   alias Phoenix.LiveView.Rendered
 
   @actions %{
-    add_row_action: {:index_row_actions, :add_auix_action},
     add_header_action: {:index_header_actions, :add_auix_action},
-    insert_row_action: {:index_row_actions, :insert_auix_action},
     insert_header_action: {:index_header_actions, :insert_auix_action},
-    replace_row_action: {:index_row_actions, :replace_auix_action},
     replace_header_action: {:index_header_actions, :replace_auix_action},
-    remove_row_action: {:index_row_actions, :remove_auix_action},
-    remove_header_action: {:index_header_actions, :remove_auix_action}
+    remove_header_action: {:index_header_actions, :remove_auix_action},
+    add_footer_action: {:index_footer_actions, :add_auix_action},
+    insert_footer_action: {:index_footer_actions, :insert_auix_action},
+    replace_footer_action: {:index_footer_actions, :replace_auix_action},
+    remove_footer_action: {:index_footer_actions, :remove_auix_action},
+    add_row_action: {:index_row_actions, :add_auix_action},
+    insert_row_action: {:index_row_actions, :insert_auix_action},
+    replace_row_action: {:index_row_actions, :replace_auix_action},
+    remove_row_action: {:index_row_actions, :remove_auix_action}
   }
 
   @doc """
@@ -55,6 +59,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
     assigns
     |> add_default_row_actions()
     |> add_default_header_actions()
+    |> add_default_footer_actions()
     |> Actions.modify_actions(@actions)
   end
 
@@ -174,6 +179,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
       default_row_delete: &remove_row_action/1
     )
   end
+
+  @spec add_default_footer_actions(map()) :: map()
+  defp add_default_footer_actions(%{auix: %{index_footer_actions: %{}}} = assigns), do: assigns
+
+  # Adds an empty form_header_actions map if not present.
+  defp add_default_footer_actions(assigns),
+    do: put_in(assigns, [:auix, :index_footer_actions], %{})
 
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do

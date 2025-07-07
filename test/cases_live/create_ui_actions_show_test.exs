@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.CreateUIShowActionsTest do
+defmodule Aurora.Uix.Test.Web.CreateUIActionsShowTest do
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
   defmodule TestModule do
@@ -32,7 +32,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIShowActionsTest do
 
     # When you define a link in a test, add a line to test/support/app_web/router.exs
     # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "create-ui-show-actions-" do
+    auix_create_ui link_prefix: "create-ui-actions-show-" do
       index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand])
 
       edit_layout :product do
@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIShowActionsTest do
       |> create_sample_products(:test)
       |> get_in(["id_test-1", Access.key!(:id)])
 
-    {:ok, view, html} = live(conn, "/create-ui-show-actions-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/create-ui-actions-show-products/#{product_id}")
 
     assert view
            |> element("div[name='auix-show-header-actions'] a[name='auix-edit-product']")

@@ -106,13 +106,18 @@ defmodule Aurora.Uix.Test.Web.Router do
     )
 
     Web.register_product_crud(
-      CreateUIIndexActionsTest,
-      "create-ui-index-actions-"
+      CreateUIActionsIndexTest,
+      "create-ui-actions-index-"
     )
 
     Web.register_product_crud(
-      CreateUIShowActionsTest,
-      "create-ui-show-actions-"
+      CreateUIActionsShowTest,
+      "create-ui-actions-show-"
+    )
+
+    Web.register_product_crud(
+      CreateUIActionsFormTest,
+      "create-ui-actions-form-"
     )
 
     Web.register_product_crud(

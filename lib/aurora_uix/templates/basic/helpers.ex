@@ -44,8 +44,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   @action_groups [
     :index_row_actions,
     :index_header_actions,
+    :index_footer_actions,
     :show_header_actions,
-    :show_footer_actions
+    :show_footer_actions,
+    :form_header_actions,
+    :form_footer_actions
   ]
 
   @doc """
