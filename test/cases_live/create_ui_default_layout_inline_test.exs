@@ -1,27 +1,23 @@
 defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutInlineTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
-
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui(
-      link_prefix: "create-ui-default-layout-inline-",
-      default_fields_layout: :inline
-    )
-  end
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui(
+    link_prefix: "create-ui-default-layout-inline-",
+    default_fields_layout: :inline
+  )
 
   test "Check field, inline order", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/create-ui-default-layout-inline-products/new")
 
-    TestModule
+    __MODULE__
     |> resource_configs()
     |> get_in([Access.key!(:product), Access.key!(:fields_order)])
     |> assert_inline_order(html)

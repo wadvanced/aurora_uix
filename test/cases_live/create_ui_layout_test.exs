@@ -1,65 +1,57 @@
 defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
+  use Aurora.Uix.Web.CoreComponentsImporter
+  import Phoenix.Component, only: [sigil_H: 2]
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
-    use Aurora.Uix.Web.CoreComponentsImporter
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-    import Phoenix.Component, only: [sigil_H: 2]
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  @spec page_title(map()) :: term()
+  def page_title(assigns) do
+    ~H"Details for {@auix.name}"
+  end
 
-    @spec page_title(map()) :: term()
-    def page_title(assigns) do
-      ~H"Details for {@auix.name}"
+  @spec edit_title(map()) :: term()
+  def edit_title(%{auix: %{_form: _form}} = assigns),
+    do: ~H"Modify {@auix.name}: #{@auix._form[:reference].value} "
+
+  def edit_title(%{auix: %{entity: nil}} = assigns), do: ~H"Modify {@auix.name}"
+
+  def edit_title(%{auix: %{entity: _entity}} = assigns),
+    do: ~H"Modify {@auix.name}: {@auix.entity.reference}"
+
+  @spec new_subtitle(map()) :: term()
+  def new_subtitle(assigns),
+    do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
+
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
+
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui link_prefix: "create-ui-layout-" do
+    index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
+      page_title: "The Products Listing"
+    )
+
+    edit_layout :product,
+      new_title: "Add a Product",
+      new_subtitle: &__MODULE__.new_subtitle/1,
+      edit_title: &__MODULE__.edit_title/1,
+      edit_subtitle: "Entries are validated before saving" do
+      inline([:reference, :name, :description])
+      inline([:quantity_at_hand, :quantity_initial])
+      inline([:list_price, :rrp])
     end
 
-    @spec edit_title(map()) :: term()
-    def edit_title(%{auix: %{_form: _form}} = assigns),
-      do: ~H"Modify {@auix.name}: #{@auix._form[:reference].value} "
-
-    def edit_title(%{auix: %{entity: nil}} = assigns), do: ~H"Modify {@auix.name}"
-
-    def edit_title(%{auix: %{entity: _entity}} = assigns),
-      do: ~H"Modify {@auix.name}: {@auix.entity.reference}"
-
-    @spec new_subtitle(map()) :: term()
-    def new_subtitle(assigns),
-      do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
-
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
-
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "create-ui-layout-" do
-      index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
-        page_title: "The Products Listing"
-      )
-
-      edit_layout :product,
-        new_title: "Add a Product",
-        new_subtitle: &TestModule.new_subtitle/1,
-        edit_title: &TestModule.edit_title/1,
-        edit_subtitle: "Entries are validated before saving" do
-        inline([:reference, :name, :description])
-        inline([:quantity_at_hand, :quantity_initial])
-        inline([:list_price, :rrp])
-      end
-
-      show_layout :product, page_title: &TestModule.page_title/1, page_subtitle: nil do
-        inline([:reference, :name, :description])
-        inline([:quantity_at_hand, :quantity_initial])
-        inline([:list_price, :rrp])
-      end
+    show_layout :product, page_title: &__MODULE__.page_title/1, page_subtitle: nil do
+      inline([:reference, :name, :description])
+      inline([:quantity_at_hand, :quantity_initial])
+      inline([:list_price, :rrp])
     end
   end
 
   test "Test UI default with schema, context, basic layout", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, html} = live(conn, "/create-ui-layout-products")
     assert html =~ "The Products Listing"
     assert html =~ "New Product"

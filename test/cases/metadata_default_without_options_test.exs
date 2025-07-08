@@ -1,15 +1,10 @@
 defmodule Aurora.Uix.Test.MetadataWithoutOptionsTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase
-
-  defmodule DefaultWithoutOptions do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
-
-    auix_resource_metadata(:product)
-  end
+  auix_resource_metadata(:product)
 
   test "Test default without options - no schema, no context" do
-    resource_configs = resource_configs(DefaultWithoutOptions)
+    resource_configs = resource_configs(__MODULE__)
     assert is_nil(Map.get(resource_configs, :product_transaction))
     product = Map.get(resource_configs, :product)
 

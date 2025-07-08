@@ -1,37 +1,29 @@
 defmodule Aurora.Uix.Test.Web.GroupUILayoutTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui link_prefix: "group-ui-layout-" do
+    edit_layout :product, [] do
+      inline([:reference, :name, :description])
 
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "group-ui-layout-" do
-      edit_layout :product, [] do
-        inline([:reference, :name, :description])
+      group "Quantities" do
+        inline([:quantity_at_hand, :quantity_initial])
+      end
 
-        group "Quantities" do
-          inline([:quantity_at_hand, :quantity_initial])
-        end
-
-        group "Sale Prices" do
-          stacked([:list_price, :rrp])
-        end
+      group "Sale Prices" do
+        stacked([:list_price, :rrp])
       end
     end
   end
 
   test "Test groups", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, html} = live(conn, "/group-ui-layout-products/new")
     assert html =~ "auix-group-quantities-"
     assert html =~ "auix-group-sale_prices-"

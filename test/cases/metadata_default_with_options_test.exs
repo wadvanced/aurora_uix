@@ -1,21 +1,16 @@
 defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Test.Inventory.ProductTransaction
 
-  defmodule DefaultWithOptions do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
-
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
-    alias Aurora.Uix.Test.Inventory.ProductTransaction
-
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
-    auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
-  end
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
+  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
   test "Test default with options schema and context" do
     resource_configs =
-      resource_configs(DefaultWithOptions)
+      resource_configs(__MODULE__)
 
     validate_schema(resource_configs, :product,
       cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
@@ -27,7 +22,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
   end
 
   test "Test the `auix_resource` function with multiple resources" do
-    product = __MODULE__.DefaultWithOptions.auix_resource(:product).product
+    product = __MODULE__.auix_resource(:product).product
 
     assert product.schema == Aurora.Uix.Test.Inventory.Product
     assert product.context == Aurora.Uix.Test.Inventory
@@ -35,7 +30,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
     assert product.fields != []
 
     product_transaction =
-      __MODULE__.DefaultWithOptions.auix_resource(:product_transaction).product_transaction
+      __MODULE__.auix_resource(:product_transaction).product_transaction
 
     assert product_transaction.schema == Aurora.Uix.Test.Inventory.ProductTransaction
     assert product_transaction.context == Aurora.Uix.Test.Inventory

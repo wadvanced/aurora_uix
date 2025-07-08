@@ -1,42 +1,34 @@
 defmodule Aurora.Uix.Test.Web.SectionUILayoutTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui link_prefix: "section-ui-layout-" do
+    edit_layout :product, [] do
+      inline([:reference, :name, :description])
 
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "section-ui-layout-" do
-      edit_layout :product, [] do
-        inline([:reference, :name, :description])
+      # section_index_1
+      sections do
+        # section_index_1, tab_index_1
+        section "Quantities" do
+          inline([:quantity_at_hand, :quantity_initial])
+        end
 
-        # section_index_1
-        sections do
-          # section_index_1, tab_index_1
-          section "Quantities" do
-            inline([:quantity_at_hand, :quantity_initial])
-          end
-
-          # section_index_1, tab_index_2
-          section "Sale Prices" do
-            stacked([:list_price, :rrp])
-          end
+        # section_index_1, tab_index_2
+        section "Sale Prices" do
+          stacked([:list_price, :rrp])
         end
       end
     end
   end
 
   test "Test groups", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, _html} = live(conn, "/section-ui-layout-products/new")
 
     assert_section_button_is_active(view, "quantities", :tab_index_1)

@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Test.Cases.CreateWithoutOptions do
   end
 
   test "Test UI default without options - no schema, no context" do
-    index_module = Module.concat(TestModule, Index)
+    index_module = Module.concat(DefaultWithoutOptions, Index)
     assert false == Code.ensure_loaded?(index_module)
   end
 end
