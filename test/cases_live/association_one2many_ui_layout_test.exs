@@ -134,7 +134,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
         # Add
         {:ok, new_view, _html} =
           acc_view
-          |> element("#auix-new-product__product_transactions-form")
+          |> element("a[name='auix-new-product__product_transactions-form']")
           |> render_click()
           |> follow_redirect(conn)
 
@@ -187,7 +187,9 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     # Test editing a transaction
     {:ok, edit_view, _html} =
       view
-      |> element("#auix-edit-#{transaction_id}-form")
+      |> element(
+        "#auix-one_to_many-product__product_transactions-#{suffix} table a[name='auix-edit-product__product_transaction-#{transaction_id}'"
+      )
       |> render_click()
       |> follow_redirect(conn)
 
@@ -239,7 +241,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     # The data-confirm will trigger browser's native confirm dialog
     view
     |> element(
-      "#auix-one_to_many-product__product_transactions-#{suffix} table a[phx-click*='#{transaction.id}'][name='auix-delete-product__product_transaction'][data-confirm='Are you sure?']"
+      "#auix-one_to_many-product__product_transactions-#{suffix} table a[phx-click*='#{transaction.id}'][name^='auix-delete-product__product_transaction-'][data-confirm='Are you sure?']"
     )
     |> render_click()
 

@@ -20,19 +20,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Web.Templates.Basic.Actions
   alias Phoenix.LiveView.Rendered
 
-  @actions %{
-    add_header_action: {:form_header_actions, :add_auix_action},
-    insert_header_action: {:form_header_actions, :insert_auix_action},
-    replace_header_action: {:form_header_actions, :replace_auix_action},
-    remove_header_action: {:form_header_actions, :remove_auix_action},
-    add_footer_action: {:form_footer_actions, :add_auix_action},
-    insert_footer_action: {:form_footer_actions, :insert_auix_action},
-    replace_footer_action: {:form_footer_actions, :replace_auix_action},
-    remove_footer_action: {:form_footer_actions, :remove_auix_action}
-  }
+  @actions Action.available_actions(:form)
 
   @doc """
   Adds default header and footer actions to the assigns and modifies actions as needed.
@@ -89,11 +81,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
 
   # Returns assigns unchanged if form_header_actions already present.
   @spec add_default_header_actions(map()) :: map()
-  defp add_default_header_actions(%{auix: %{form_header_actions: %{}}} = assigns), do: assigns
+  defp add_default_header_actions(%{auix: %{form_header_actions: _}} = assigns), do: assigns
 
   # Adds an empty form_header_actions map if not present.
   defp add_default_header_actions(assigns),
-    do: put_in(assigns, [:auix, :form_header_actions], %{})
+    do: put_in(assigns, [:auix, :form_header_actions], [])
 
   # Adds a default save action to form_footer_actions.
   @spec add_default_footer_actions(map()) :: map()

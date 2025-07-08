@@ -14,8 +14,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Web.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a one-to-many association field.
@@ -39,16 +39,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     """
   end
 
-  def render(%{field: %{type: :one_to_many_association} = field, auix: auix} = assigns) do
+  def render(
+        %{
+          field: %{type: :one_to_many_association, data: data} = field,
+          auix: %{layout_tree: layout_tree} = auix
+        } = assigns
+      ) do
     related_fields =
       field
       |> get_association_fields(auix.configurations)
       |> Enum.reject(&(&1.key == auix.resource_name))
 
-    related_parsed_opts = get_in(auix.configurations, [field.data.resource, :parsed_opts])
+    related_parsed_opts = get_in(auix.configurations, [data.resource, :parsed_opts])
 
     related_resource_config =
-      get_in(auix.configurations, [field.data.resource, :resource_config])
+      get_in(auix.configurations, [data.resource, :resource_config])
 
     related_path = build_related_path(auix.source, field.data)
 
@@ -59,72 +64,52 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
 
     assigns =
       assigns
-      |> Map.put(:related_parsed_opts, related_parsed_opts)
-      |> Map.put(:related_resource_config, related_resource_config)
-      |> Map.put(:related_path, related_path)
-      |> Map.put(:related_class, related_class)
-      |> Map.put(:related_fields, related_fields)
-      |> Map.put(:related_key, field.data.related_key)
-      |> Map.put(:owner_key, field.data.owner_key)
-      |> Map.put(:parsed_opts, parsed_opts)
+      |> put_in([:auix, :association], %{})
+      |> put_in([:auix, :association, :related_parsed_opts], related_parsed_opts)
+      |> put_in([:auix, :association, :related_resource_config], related_resource_config)
+      |> put_in([:auix, :association, :related_path], related_path)
+      |> put_in([:auix, :association, :related_class], related_class)
+      |> put_in([:auix, :association, :related_fields], related_fields)
+      |> put_in([:auix, :association, :related_key], field.data.related_key)
+      |> put_in([:auix, :association, :owner_key], field.data.owner_key)
+      |> put_in([:auix, :association, :parsed_opts], parsed_opts)
+      |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
+      |> OneToManyActions.set_actions()
 
     ~H"""
-    <div class="flex flex-col">
+    <div class="flex flex-col" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
       <div class="flex-row gap-4">
-        <.label for={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@related_parsed_opts.title} Elements"}
-            <.auix_link :if={!@related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && @auix.entity.id != nil}
-                navigate={"#{@related_parsed_opts.index_new_link}?related_key=#{@related_key}&parent_id=#{Map.get(@auix.entity, @owner_key)}"}
-                id={"auix-new-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
-              <.icon name="hero-plus" />
-            </.auix_link>
+        <.label for={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@auix.association.related_parsed_opts.title} Elements"}
+            <div name="auix-one_to_many-header-actions" class="inline">
+              <%= for %{function_component: action} <- @auix.one_to_many_header_actions do %>
+                {action.(%{auix: @auix, field: @field})}
+              <% end %>
+            </div>
         </.label>
       </div>
-      <div id={"auix-one_to_many-#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@related_class}>
+      <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
         <.table
-          id={"#{@parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
+          id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
           auix={%{css_classes: @auix.css_classes}}
           rows={get_in(@auix, [:entity, Access.key!(@field.key)])}
-          row_click_navigate={if @related_parsed_opts.disable_index_row_click, do: nil, else: build_row_click(@related_parsed_opts, @related_path)}
         >
-          <:col :let={entity} :for={related_field <- @related_fields} label={"#{related_field.label}"}><.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"}>{Map.get(entity, related_field.key)}</.auix_link></:col>
-          <:action :let={entity}>
-            <div class="sr-only">
-              <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}"} name={"auix-show-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-show-#{entity.id}-#{@auix.layout_type}"}>Show</.auix_link>
-            </div>
-            <.auix_link navigate={"/#{@related_parsed_opts.link_prefix}#{@related_parsed_opts.source}/#{entity.id}/edit"} name={"auix-edit-#{@parsed_opts.module}__#{@related_parsed_opts.module}"} id={"auix-edit-#{entity.id}-#{@auix.layout_type}"}><.icon name="hero-pencil" /></.auix_link>
-          </:action>
-
-          <:action :let={entity}>
-            <.link
-              phx-click={JS.push("delete",
-                  value: %{id: entity.id,
-                    context: @related_resource_config.context,
-                    get_function: @related_parsed_opts.get_function,
-                    delete_function: @related_parsed_opts.delete_function}
-                )
-                |> hide("##{entity.id}")}
-              name={"auix-delete-#{@parsed_opts.module}__#{@related_parsed_opts.module}"}
-              data-confirm="Are you sure?"
-            >
-              <.icon name="hero-trash" />
-            </.link>
+          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"}>
+            {Map.get(entity, related_field.key)}
+          </:col>
+          <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
+              {action.(%{auix: Map.put(@auix, :row_info, {entity.id, entity})})}
           </:action>
         </.table>
       </div>
+      <div class="flex-row">
+        <div class="flex flex-col" name="auix-one_to_many-footer_actions">
+          <%= for %{function_component: action} <- @auix.one_to_many_footer_actions do %>
+            {action.(%{auix: @auix, field: @field})}
+          <% end %>
+        </div>
+      </div>
     </div>
     """
-  end
-
-  # Creates a click handler function for row interactions in tables
-  # Returns function that generates path with entity ID
-  @spec build_row_click(map(), binary()) :: (map() -> binary())
-  defp build_row_click(opts, path) do
-    fn row ->
-      row
-      |> Map.get(:id)
-      |> to_string()
-      |> then(&String.replace("#{opts.index_row_click}?#{path}", "[[entity]]", &1))
-    end
   end
 
   # Builds the URL path template for related entity operations

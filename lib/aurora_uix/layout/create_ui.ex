@@ -112,7 +112,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
-    create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block)
+    create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block, __CALLER__)
 
     quote do
       use CreateUI

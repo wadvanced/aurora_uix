@@ -8,7 +8,12 @@ defmodule Aurora.Uix.Layout.Helpers do
   - Manages unique identifier counters and component configuration for dynamic UI generation.
 
   """
+
+  alias Aurora.Uix.Action
+
   require Logger
+
+  @one_to_many_action_names :one_to_many |> Action.available_actions() |> Map.keys()
 
   @doc """
   Extracts the `:do` block from options while preserving other options.
@@ -80,16 +85,23 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   map() - Standardized component entry map.
   """
-  @spec register_dsl_entry(atom(), atom(), keyword() | tuple() | nil, keyword(), any()) ::
+  @spec register_dsl_entry(
+          atom(),
+          atom(),
+          keyword() | tuple() | nil,
+          keyword(),
+          any(),
+          Macro.Env.t()
+        ) ::
           Macro.t()
-  def register_dsl_entry(tag, name, config, opts, do_block) do
+  def register_dsl_entry(tag, name, config, opts, do_block, env) do
     {block, opts} = extract_block_options(opts, do_block)
 
     inner_elements =
       case config do
         {:fields, fields} ->
           fields
-          |> Enum.map(&create_field_tag/1)
+          |> Enum.map(&create_field_tag(&1, env))
           |> Macro.escape()
 
         _other ->
@@ -133,16 +145,34 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   # Creates a standardized field tag structure from various field specifications
   # Handles atom fields, tuple fields, and fields with options
-  @spec create_field_tag(atom() | {atom(), keyword()}) :: map()
-  defp create_field_tag(field) when is_atom(field) do
+  @spec create_field_tag(atom() | {atom(), keyword()}, Macro.Env.t()) :: map()
+  defp create_field_tag(field, _env) when is_atom(field) do
     %{tag: :field, name: field, config: [], inner_elements: []}
   end
 
-  defp create_field_tag(field) when is_tuple(field) do
+  defp create_field_tag({field_name, opts} = _field, env) when is_list(opts) do
+    opts
+    |> Enum.map(&process_field_tag_option(&1, env))
+    |> then(&%{tag: :field, name: field_name, opts: &1, config: [], inner_elements: []})
+  end
+
+  defp create_field_tag(field, _env) when is_tuple(field) do
     %{tag: :field, name: field, config: [], inner_elements: []}
   end
 
-  defp create_field_tag({field_name, opts}) do
+  defp create_field_tag({field_name, opts}, _env) do
     %{tag: :field, name: field_name, config: opts, inner_elements: []}
   end
+
+  @spec process_field_tag_option(Keyword.t(), Macro.Env.t()) :: Keyword.t()
+  defp process_field_tag_option({action_name, {action_key, {:&, _, _} = function_component}}, env)
+       when action_name in @one_to_many_action_names do
+    env
+    |> Code.env_for_eval()
+    |> then(&Code.eval_quoted_with_env(function_component, [], &1))
+    |> elem(0)
+    |> then(&{action_name, {action_key, &1}})
+  end
+
+  defp process_field_tag_option(option, _env), do: option
 end
