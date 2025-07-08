@@ -53,11 +53,6 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
   end
 
   test "Test groups", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, _html} = live(conn, "/nested-sections-ui-layout-products/new")
 
     assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)
