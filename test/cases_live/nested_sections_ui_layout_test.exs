@@ -1,55 +1,50 @@
 defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui link_prefix: "nested-sections-ui-layout-" do
+    edit_layout :product, [] do
+      # sections_index_1
+      sections do
+        # sections_index_1 tab_index_1
+        section "References" do
+          inline([:reference, :name])
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product)
+          # sections_index_2
+          sections do
+            # sections_index_2 tab_index_1
+            section "Descriptions" do
+              inline([:description, :status])
+            end
 
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "nested-sections-ui-layout-" do
-      edit_layout :product, [] do
-        # sections_index_1
-        sections do
-          # sections_index_1 tab_index_1
-          section "References" do
-            inline([:reference, :name])
-
-            # sections_index_2
-            sections do
-              # sections_index_2 tab_index_1
-              section "Descriptions" do
-                inline([:description, :status])
-              end
-
-              # sections_index_2 tab_index_2
-              section "Specifications" do
-                stacked do
-                  inline([:width, :height, :length])
-                  inline([:weight])
-                end
+            # sections_index_2 tab_index_2
+            section "Specifications" do
+              stacked do
+                inline([:width, :height, :length])
+                inline([:weight])
               end
             end
           end
+        end
 
-          # sections_index_1 tab_index_2
-          section "Information" do
-            # sections_index_3
-            sections do
-              # sections_index_3 tab_index_1
-              section "Quantities" do
-                inline([:quantity_at_hand, :quantity_initial])
-              end
+        # sections_index_1 tab_index_2
+        section "Information" do
+          # sections_index_3
+          sections do
+            # sections_index_3 tab_index_1
+            section "Quantities" do
+              inline([:quantity_at_hand, :quantity_initial])
+            end
 
-              # sections_index_3 tab_index_2
-              section "Sale Prices", default: true do
-                stacked([:list_price, :rrp])
-              end
+            # sections_index_3 tab_index_2
+            section "Sale Prices", default: true do
+              stacked([:list_price, :rrp])
             end
           end
         end
@@ -58,11 +53,6 @@ defmodule Aurora.Uix.Test.Web.NestedSectionsUILayoutTest do
   end
 
   test "Test groups", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, _html} = live(conn, "/nested-sections-ui-layout-products/new")
 
     assert_section_button_is_active(view, "references", :sections_index_1, :tab_index_1)

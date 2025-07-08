@@ -21,42 +21,42 @@ defmodule Aurora.Uix.Test.Web.Router do
 
     # Tests with required CRUD links for testing
     Web.register_crud(
-      CreateUIDefaultLayoutTest.TestModule.Product,
+      CreateUIDefaultLayoutTest.Product,
       "create-ui-default-layout-products"
     )
 
     Web.register_crud(
-      CreateUIDefaultLayoutInlineTest.TestModule.Product,
+      CreateUIDefaultLayoutInlineTest.Product,
       "create-ui-default-layout-inline-products"
     )
 
     Web.register_crud(
-      CreateUILayoutTest.TestModule.Product,
+      CreateUILayoutTest.Product,
       "create-ui-layout-products"
     )
 
     Web.register_crud(
-      GroupUILayoutTest.TestModule.Product,
+      GroupUILayoutTest.Product,
       "group-ui-layout-products"
     )
 
     Web.register_crud(
-      SectionUILayoutTest.TestModule.Product,
+      SectionUILayoutTest.Product,
       "section-ui-layout-products"
     )
 
     Web.register_crud(
-      NestedSectionsUILayoutTest.TestModule.Product,
+      NestedSectionsUILayoutTest.Product,
       "nested-sections-ui-layout-products"
     )
 
     Web.register_crud(
-      SpecialFieldsUITest.TestModule.Product,
+      SpecialFieldsUITest.Product,
       "special-fields-ui-products"
     )
 
     Web.register_crud(
-      SeparatedSingleResourceUITest.TestModule.Product,
+      SeparatedSingleResourceUITest.Product,
       "separated-single-resource-products"
     )
 
@@ -118,11 +118,6 @@ defmodule Aurora.Uix.Test.Web.Router do
     Web.register_product_crud(
       CreateUIActionsFormTest,
       "create-ui-actions-form-"
-    )
-
-    Web.register_product_crud(
-      BasicDemoTest,
-      "basic-demo-"
     )
 
     ## You can create a file test/cases_live/-local-demo_test.exs

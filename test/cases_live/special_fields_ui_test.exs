@@ -1,42 +1,34 @@
 defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
-  defmodule TestModule do
-    # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
+  auix_resource_metadata :product, context: Inventory, schema: Product do
+    field(:status,
+      html_type: :select,
+      data: [
+        opts: [
+          "In stock": "in_stock",
+          Discontinued: "discontinued",
+          "Only available online": "online_only",
+          "Only available in the store": "in_store_only"
+        ],
+        multiple: false
+      ]
+    )
+  end
 
-    auix_resource_metadata :product, context: Inventory, schema: Product do
-      field(:status,
-        html_type: :select,
-        data: [
-          opts: [
-            "In stock": "in_stock",
-            Discontinued: "discontinued",
-            "Only available online": "online_only",
-            "Only available in the store": "in_store_only"
-          ],
-          multiple: false
-        ]
-      )
-    end
-
-    # When you define a link in a test, add a line to test/support/app_web/router.exs
-    # See section `Including cases_live tests in the test server` in the README.md file.
-    auix_create_ui link_prefix: "special-fields-ui-" do
-      edit_layout :product, [] do
-        stacked([:reference, :name, :description, :status])
-      end
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui link_prefix: "special-fields-ui-" do
+    edit_layout :product, [] do
+      stacked([:reference, :name, :description, :status])
     end
   end
 
   test "Test select field", %{conn: conn} do
-    test_module = __MODULE__.TestModule
-    index_module = Module.concat(test_module, Product.Index)
-    assert true == Code.ensure_loaded?(index_module)
-
     {:ok, view, _html} = live(conn, "/special-fields-ui-products/new")
 
     assert view

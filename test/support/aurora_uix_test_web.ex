@@ -164,15 +164,15 @@ defmodule Aurora.Uix.Test.Web do
   defmacro register_product_crud(module, prefix) do
     quote do
       unquote(module)
-      |> Module.concat(TestModule.Product)
+      |> Module.concat(Product)
       |> Web.register_crud("#{unquote(prefix)}products")
 
       unquote(module)
-      |> Module.concat(TestModule.ProductTransaction)
+      |> Module.concat(ProductTransaction)
       |> Web.register_crud("#{unquote(prefix)}product_transactions")
 
       unquote(module)
-      |> Module.concat(TestModule.ProductLocation)
+      |> Module.concat(ProductLocation)
       |> Web.register_crud("#{unquote(prefix)}product_locations")
     end
   end
