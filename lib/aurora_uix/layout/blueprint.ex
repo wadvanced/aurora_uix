@@ -253,7 +253,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec edit_layout(atom(), keyword(), any()) :: Macro.t()
   defmacro edit_layout(name, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:form, name, nil, opts, do_block)
+    LayoutHelpers.register_dsl_entry(:form, name, nil, opts, do_block, __CALLER__)
   end
 
   @doc """
@@ -301,7 +301,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec show_layout(atom(), keyword(), any()) :: Macro.t()
   defmacro show_layout(name, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:show, name, nil, opts, do_block)
+    LayoutHelpers.register_dsl_entry(:show, name, nil, opts, do_block, __CALLER__)
   end
 
   @doc """
@@ -358,7 +358,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec index_columns(atom(), keyword() | list(), any()) :: Macro.t()
   defmacro index_columns(name, fields, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block)
+    LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block, __CALLER__)
   end
 
   @doc """
@@ -389,7 +389,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @spec inline(keyword(), any()) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
-    LayoutHelpers.register_dsl_entry(:inline, nil, {:fields, fields}, [], block)
+    LayoutHelpers.register_dsl_entry(:inline, nil, {:fields, fields}, [], block, __CALLER__)
   end
 
   @doc """
@@ -410,7 +410,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @spec stacked(keyword(), any()) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
-    LayoutHelpers.register_dsl_entry(:stacked, nil, {:fields, fields}, [], block)
+    LayoutHelpers.register_dsl_entry(:stacked, nil, {:fields, fields}, [], block, __CALLER__)
   end
 
   @doc """
@@ -433,7 +433,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
       nil,
       [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
       opts,
-      do_block
+      do_block,
+      __CALLER__
     )
   end
 
@@ -459,7 +460,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
       nil,
       [sections_id: "auix-#{unique_titled_id("sections")}"],
       opts,
-      do_block
+      do_block,
+      __CALLER__
     )
   end
 
@@ -483,7 +485,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
       nil,
       [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
       opts,
-      do_block
+      do_block,
+      __CALLER__
     )
   end
 

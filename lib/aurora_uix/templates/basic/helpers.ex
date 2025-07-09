@@ -41,15 +41,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   alias Aurora.Uix.Stack
   alias Phoenix.LiveView.JS
 
-  @action_groups [
-    :index_row_actions,
-    :index_header_actions,
-    :index_footer_actions,
-    :show_header_actions,
-    :show_footer_actions,
-    :form_header_actions,
-    :form_footer_actions
-  ]
+  @action_groups Action.action_groups()
 
   @doc """
   Assigns a new entity to the socket based on related parameters.
@@ -74,7 +66,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       ) do
     related_key
     |> safe_existing_atom()
-    |> __maybe_set_related_to_new_entity__(socket, parent_id, default)
+    |> maybe_set_related_to_new_entity(socket, parent_id, default)
   end
 
   def assign_new_entity(socket, _params, default) do
@@ -540,36 +532,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   ## Returns
   - list() - Flattened list of maps containing tag and name information
   """
-  @spec flat_paths(map() | list(), list()) :: list()
-  def flat_paths(elements, result \\ [])
-  def flat_paths([], result), do: result
+  @spec flatten_layout_tree(map() | list(), list()) :: list()
+  def flatten_layout_tree(elements, result \\ [])
+  def flatten_layout_tree([], result), do: result
 
-  def flat_paths(%{inner_elements: inner_elements} = layout_tree, result) do
-    flat_paths(inner_elements, [%{tag: layout_tree.tag, name: layout_tree[:name]} | result])
+  def flatten_layout_tree(%{inner_elements: inner_elements} = layout_tree, result) do
+    flatten_layout_tree(inner_elements, [
+      %{tag: layout_tree.tag, name: layout_tree[:name]} | result
+    ])
   end
 
-  def flat_paths([%{inner_elements: inner_elements} | rest], result) do
+  def flatten_layout_tree([%{inner_elements: inner_elements} | rest], result) do
     inner_elements
-    |> Enum.reduce(result, &flat_paths(&1.inner_elements, [%{tag: &1.tag, name: &1[:name]} | &2]))
-    |> then(&flat_paths(rest, &1))
-  end
-
-  ## Non imported
-  @doc false
-  @spec __maybe_set_related_to_new_entity__(
-          binary | nil,
-          Phoenix.LiveView.Socket.t(),
-          binary | nil,
-          struct
-        ) :: Phoenix.LiveView.Socket.t()
-  def __maybe_set_related_to_new_entity__(related_key, socket, parent_id, default)
-      when is_nil(related_key) or is_nil(parent_id),
-      do: assign_auix(socket, :entity, default)
-
-  def __maybe_set_related_to_new_entity__(related_key, socket, parent_id, default) do
-    default
-    |> struct(%{related_key => parent_id})
-    |> then(&assign_auix(socket, :entity, &1))
+    |> Enum.reduce(
+      result,
+      &flatten_layout_tree(&1.inner_elements, [%{tag: &1.tag, name: &1[:name]} | &2])
+    )
+    |> then(&flatten_layout_tree(rest, &1))
   end
 
   @doc """
@@ -613,6 +592,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   def safe_existing_atom(_name), do: nil
 
   ## PRIVATE
+  @spec maybe_set_related_to_new_entity(
+          binary | nil,
+          Phoenix.LiveView.Socket.t(),
+          binary | nil,
+          struct
+        ) :: Phoenix.LiveView.Socket.t()
+  defp maybe_set_related_to_new_entity(related_key, socket, parent_id, default)
+       when is_nil(related_key) or is_nil(parent_id),
+       do: assign_auix(socket, :entity, default)
+
+  defp maybe_set_related_to_new_entity(related_key, socket, parent_id, default) do
+    default
+    |> struct(%{related_key => parent_id})
+    |> then(&assign_auix(socket, :entity, &1))
+  end
+
   # Performs JavaScript navigation to a given URI, ensuring proper decode and formatting
   @spec js_navigate(binary()) :: JS.t()
   defp js_navigate(uri) do

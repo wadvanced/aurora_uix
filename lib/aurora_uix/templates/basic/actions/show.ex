@@ -17,19 +17,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
 
   use Aurora.Uix.Web.CoreComponentsImporter
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Web.Templates.Basic.Actions
   alias Phoenix.LiveView.Rendered
 
-  @actions %{
-    add_header_action: {:show_header_actions, :add_auix_action},
-    insert_header_action: {:show_header_actions, :insert_auix_action},
-    replace_header_action: {:show_header_actions, :replace_auix_action},
-    remove_header_action: {:show_header_actions, :remove_auix_action},
-    add_footer_action: {:show_footer_actions, :add_auix_action},
-    insert_footer_action: {:show_footer_actions, :insert_auix_action},
-    replace_footer_action: {:show_footer_actions, :replace_auix_action},
-    remove_footer_action: {:show_footer_actions, :remove_auix_action}
-  }
+  @actions Action.available_actions(:show)
 
   @doc """
   Sets up actions for the show layout by adding defaults and applying modifications.

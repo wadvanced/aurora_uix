@@ -47,7 +47,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
     one2many_rendered? =
       parsed_opts
       |> Map.get(:layout_tree)
-      |> Helpers.flat_paths()
+      |> Helpers.flatten_layout_tree()
       |> Enum.filter(&(&1.tag == :field and &1.name in one2many_preload))
       |> Enum.empty?()
       |> Kernel.not()

@@ -120,6 +120,11 @@ defmodule Aurora.Uix.Test.Web.Router do
       "create-ui-actions-form-"
     )
 
+    Web.register_product_crud(
+      AssociationOne2ManyUIActionsTest,
+      "association-one_to_many-actions-"
+    )
+
     ## You can create a file test/cases_live/-local-demo_test.exs
     ## With Aurora.Uix.Test.Web.LocalDemoTest module
     ## And then test its output in /local-demo-products

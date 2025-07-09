@@ -228,7 +228,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
   @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
-    LayoutHelpers.register_dsl_entry(:field, field, [], opts, nil)
+    LayoutHelpers.register_dsl_entry(:field, field, [], opts, nil, __CALLER__)
   end
 
   @doc """
