@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
       <.flash kind={:error} flash={@flash} title="Error!" />
 
       <.simple_form
-        for={@auix._form}
+        for={@auix.form}
         id={"auix-#{@auix.module}-form"}
         phx-target={@myself}
         phx-change="validate"

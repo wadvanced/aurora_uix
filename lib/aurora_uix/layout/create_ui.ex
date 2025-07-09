@@ -310,6 +310,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp generate_module(modules, layout_tree, configurations, parsed_opts, template) do
     parsed_opts
     |> Map.put(:configurations, configurations)
+    |> Map.put(:modules, modules)
     |> Map.put(:layout_tree, layout_tree)
     |> Map.put(:resource_name, layout_tree.name)
     |> Map.put(:layout_type, layout_tree.tag)

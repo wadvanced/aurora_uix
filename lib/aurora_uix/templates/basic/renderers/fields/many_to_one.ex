@@ -112,7 +112,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   end
 
   defp parse_many_to_one_value(
-         %{auix: %{layout_tree: %{name: names}, _form: form, layout_type: :form}} = assigns
+         %{auix: %{layout_tree: %{name: names}, form: form, layout_type: :form}} = assigns
        )
        when is_tuple(names) do
     names

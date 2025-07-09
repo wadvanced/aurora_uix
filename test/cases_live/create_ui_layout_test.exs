@@ -13,8 +13,8 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
   end
 
   @spec edit_title(map()) :: term()
-  def edit_title(%{auix: %{_form: _form}} = assigns),
-    do: ~H"Modify {@auix.name}: #{@auix._form[:reference].value} "
+  def edit_title(%{auix: %{form: _form}} = assigns),
+    do: ~H"Modify {@auix.name}: #{@auix.form[:reference].value} "
 
   def edit_title(%{auix: %{entity: nil}} = assigns), do: ~H"Modify {@auix.name}"
 
