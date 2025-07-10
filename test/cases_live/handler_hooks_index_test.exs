@@ -29,6 +29,3 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksIndexTest do
     {:ok, _view, _html} = live(conn, "/handler-hooks-index-products")
   end
 end
-
-defmodule Aurora.Uix.Test.Web.IndexHandler do
-end

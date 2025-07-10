@@ -19,5 +19,4 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Index do
   """
 
   use Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
-
 end
