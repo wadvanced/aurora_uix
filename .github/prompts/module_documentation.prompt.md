@@ -53,6 +53,7 @@ description: 'Generate ex_doc-compatible documentation'
     ```
 
 - Type Enforcement:
+  - @doc goes only on the FIRST of pattern matched functions, it DOES NOT repeat for the rest of pattern matched.
   - Always use parentheses: map() not map, MyStruct.t() not MyStruct
   - Never use any() – replace with concrete types
   - Never document internal map structures
@@ -68,7 +69,7 @@ description: 'Generate ex_doc-compatible documentation'
 - Include parameter/return types and descriptions
 
 ## @spec Requirements
-- Add missing specs for all public functions/macros
+- Add missing specs for all the first functions/macros of a pattern matched group
 - Modify existing specs only:
   - Add parentheses: keyword → keyword()
   - Replace any() with specific types

@@ -24,7 +24,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   Generates a LiveView module for the specified UI component type.
 
   ## Parameters
-  - `modules` (map()) - Configuration with caller, context, module, and web references.
   - `parsed_opts` (map()) - Generation options with `layout_tree.tag` and component configuration.
 
   ## Returns
@@ -33,26 +32,28 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   ## Examples
   ```elixir
   Aurora.Uix.Web.Templates.Basic.ModulesGenerator.generate_module(
-    %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb},
-    %{layout_tree: %{tag: :index}, name: :product}
+    %{layout_tree: %{tag: :index}, name: :product,
+        modules: %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb}
+      }
+    }
   )
   ```
   If the tag is not implemented, returns a quoted block with no generation logic.
   """
-  @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{layout_tree: %{tag: :index}} = parsed_opts) do
-    IndexGenerator.generate_module(modules, parsed_opts)
+  @spec generate_module(map()) :: Macro.t()
+  def generate_module(%{layout_tree: %{tag: :index}} = parsed_opts) do
+    IndexGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(modules, %{layout_tree: %{tag: :show}} = parsed_opts) do
-    ShowGenerator.generate_module(modules, parsed_opts)
+  def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
+    ShowGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(modules, %{layout_tree: %{tag: :form}} = parsed_opts) do
-    FormGenerator.generate_module(modules, parsed_opts)
+  def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
+    FormGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(_modules, %{layout_tree: %{tag: type}}) do
+  def generate_module(%{layout_tree: %{tag: type}}) do
     Logger.error("The logic for `#{inspect(type)} is not implemented.")
 
     quote do
@@ -107,8 +108,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   # => MyAppWeb.User.Index
   ```
   """
-  @spec module_name(map(), map(), binary()) :: module()
-  def module_name(modules, parsed_opts, suffix) do
-    Module.concat(modules.caller, "#{parsed_opts.module_name}#{suffix}")
+  @spec module_name(map(), binary()) :: module()
+  def module_name(parsed_opts, suffix) do
+    Module.concat(parsed_opts.modules.caller, "#{parsed_opts.module_name}#{suffix}")
   end
 end

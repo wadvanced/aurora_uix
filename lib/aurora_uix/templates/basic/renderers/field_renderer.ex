@@ -98,14 +98,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
     <%= if @field.hidden do %>
       <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"}
-        {if @auix.layout_type == :form, do: %{name: @auix._form[@field.key].name, value: @auix._form[@field.key].value},
+        {if @auix.layout_type == :form, do: %{name: @auix.form[@field.key].name, value: @auix.form[@field.key].value},
          else: %{name: @field.key, value: @auix.entity[@field.key]}} />
     <% else %>
       <div class="flex flex-col">
         <.input
           id={"#{@field.html_id}-#{@auix.layout_type}"}
           {if @auix.layout_type == :form,
-            do: %{field: @auix._form[@field.key]},
+            do: %{field: @auix.form[@field.key]},
             else: %{name: @field.key, value: Map.get(@auix.entity || %{}, @field.key)}}
           type={"#{@field.html_type}"}
           label={@field.label}

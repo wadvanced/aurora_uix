@@ -6,7 +6,7 @@ This guide covers advanced topics for customizing and extending Aurora UIX.
 
 You can provide your own template modules by implementing the `Aurora.Uix.Template` behaviour. Your module must implement the following required callbacks:
 
-- `generate_module/2`: Generates the handling code (LiveView modules, components, etc.) for a given layout type and configuration.
+- `generate_module/1`: Generates the handling code (LiveView modules, components, etc.) for a given layout type and configuration.
 - `default_core_components_module/0`: Returns the module containing your core UI components (such as forms, tables, modals).
 - `css_classes/0`: Returns a map of CSS class mappings for different template components.
 

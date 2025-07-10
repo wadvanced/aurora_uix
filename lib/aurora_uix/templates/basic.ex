@@ -31,15 +31,15 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
 
   ## Parameters
-    - `modules` ([{atom(), module()}] | map()) - Module specifications to generate.
     - `parsed_opts` (map()) - Parsed options for generation.
 
   ## Returns
 
     - `Macro.t()` - The generated module as a macro.
   """
-  @spec generate_module([{atom, module}] | map, map) :: Macro.t()
-  defdelegate generate_module(modules, parsed_opts),
+  @impl true
+  @spec generate_module(map()) :: Macro.t()
+  defdelegate generate_module(parsed_opts),
     to: ModulesGenerator
 
   @doc """
@@ -48,6 +48,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   ## Returns
     - `module()` - The default core components module.
   """
+  @impl true
   @spec default_core_components_module() :: module
   def default_core_components_module do
     Aurora.Uix.Web.Templates.Basic.CoreComponents
@@ -62,6 +63,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
     - `:index_renderer` - Classes for index page components.
     - `:show_renderer` - Classes for show page components.
   """
+  @impl true
   @spec css_classes() :: %{atom() => map()}
   def css_classes do
     %{
@@ -77,6 +79,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   ## Returns
   `list(module())` - List of component modules.
   """
+  @impl true
   @spec template_component_modules() :: list(module())
   def template_component_modules do
     [RoutingComponents]
