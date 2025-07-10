@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
   alias Aurora.Uix.Action
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Actions
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -88,7 +89,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
   @spec add_new_child(map()) :: Rendered.t()
   def add_new_child(assigns) do
     ~H"""
-      <.auix_link :if={!@auix.association.related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && @auix.entity.id != nil}
+      <.auix_link :if={!@auix.association.related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key) != nil}
           navigate={"#{@auix.association.related_parsed_opts.index_new_link}?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
           name={"auix-new-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
         <.icon name="hero-plus" />
