@@ -33,21 +33,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   Initializes the LiveView socket for the index page.
 
   ## Parameters
+  - `caller` (module()) - The calling module.
   - `params` (map()) - URL/query parameters.
   - `session` (map()) - Session data.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  - `{:ok, Socket.t()}`: The initialized socket.
-
-  ## Examples
-
-      iex> auix_mount(%{}, %{}, %Phoenix.LiveView.Socket{assigns: %{auix: %{list_key: :items, modules: %{context: MyApp.Context, list_function: :list_items}}}})
-      {:ok, %Phoenix.LiveView.Socket{}}
+  `{:ok, Socket.t()}` - The initialized socket with streamed entities.
 
   """
   @callback auix_mount(
-              caller :: module,
+              caller :: module(),
               params :: map(),
               session :: map(),
               socket :: Socket.t()
@@ -58,14 +54,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   Handles URL parameter changes, updates routing stack, and assigns form component.
 
   ## Parameters
+  - `caller` (module()) - The calling module.
   - `params` (map()) - URL/query parameters.
   - `url` (binary()) - Current URL.
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  - `{:noreply, Socket.t()}`: Updated socket.
-
-
+  `{:noreply, Socket.t()}` - Updated socket with routing stack and form component.
 
   """
   @callback auix_handle_params(
@@ -77,15 +72,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
               {:noreply, Socket.t()}
 
   @doc """
-  Handles all LiveView events for the index page, including deletion, forward navigation, and back navigation.
+  Handles all LiveView events for the index page.
 
   ## Parameters
+  - `caller` (module()) - The calling module.
   - `event` (binary()) - Event name.
   - `params` (map()) - Event parameters.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  - `{:noreply, Socket.t()}`: Updated socket.
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
 
   """
   @callback auix_handle_event(
@@ -97,14 +93,15 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
               {:noreply, Socket.t()}
 
   @doc """
-  Handles info messages for the LiveView, such as entity save notifications.
+  Handles info messages for the LiveView.
 
   ## Parameters
+  - `caller` (module()) - The calling module.
   - `event_info` (term()) - Info message, e.g., `{_component, {:saved, entity}}`.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  - `{:noreply, Socket.t()}`: Updated socket.
+  `{:noreply, Socket.t()}` - Updated socket after info message handling.
 
   """
   @callback auix_handle_info(
@@ -115,15 +112,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
               {:noreply, Socket.t()}
 
   @doc """
-  Applies the given action to the socket, such as assigning an entity for edit or new actions.
+  Applies the given action to the socket.
 
   ## Parameters
   - `socket` (Socket.t()) - LiveView socket.
+  - `caller` (module()) - The calling module.
   - `action` (atom()) - Action to apply (`:edit`, `:new`, `:index`).
   - `params` (map()) - Action parameters.
 
   ## Returns
-  - `Socket.t()`: Updated socket.
+  `Socket.t()` - Updated socket with action-specific assigns.
 
   """
   @callback auix_apply_action(
@@ -142,26 +140,37 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
       import Aurora.Uix.Web.Templates.Basic.Helpers
       import Phoenix.LiveView
 
+      alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
       alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
       alias Aurora.Uix.Web.Templates.Basic.Renderer
-      alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
 
+      @doc false
       @impl Phoenix.LiveView
+      @spec mount(map(), map(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
       def mount(params, session, socket) do
         auix_mount(__MODULE__, params, session, socket)
       end
 
+      @doc false
       @impl Phoenix.LiveView
+      @spec handle_params(map(), binary(), Phoenix.LiveView.Socket.t()) ::
+              {:noreply, Phoenix.LiveView.Socket.t()}
       def handle_params(params, url, socket) do
         auix_handle_params(__MODULE__, params, url, socket)
       end
 
+      @doc false
       @impl Phoenix.LiveView
+      @spec handle_event(binary(), map(), Phoenix.LiveView.Socket.t()) ::
+              {:noreply, Phoenix.LiveView.Socket.t()}
       def handle_event(event, params, socket) do
         auix_handle_event(__MODULE__, event, params, socket)
       end
 
+      @doc false
       @impl Phoenix.LiveView
+      @spec handle_info(term(), Phoenix.LiveView.Socket.t()) ::
+              {:noreply, Phoenix.LiveView.Socket.t()}
       def handle_info(event_info, socket) do
         auix_handle_info(__MODULE__, event_info, socket)
       end
@@ -169,49 +178,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
       @impl IndexImpl
       defdelegate auix_mount(caller, params, session, socket), to: IndexImpl
 
-      @doc """
-      Handles URL parameter changes, updates routing stack, and assigns form component.
-
-      ## Parameters
-      - `params`: URL/query parameters (map)
-      - `url`: Current URL (String.t)
-      - `socket`: LiveView socket with `:auix` assigns (Phoenix.LiveView.Socket.t)
-
-      ## Returns
-      - `{:noreply, Phoenix.LiveView.Socket.t}`: Updated socket
-      """
       @impl IndexImpl
       defdelegate auix_handle_params(caller, params, url, socket), to: IndexImpl
 
-      @doc """
-      Handles all LiveView events for the index page, including deletion, forward navigation, and back navigation.
-
-      - For the `"delete"` event, if params include `"context"`, `"get_function"`, and `"delete_function"`, it uses those to fetch and delete the entity, then flashes a message and pushes a patch. If only `"id"` is present, it uses the auix context and functions to delete and remove from the stream.
-      - For the `"auix_route_forward"` event, it handles navigation and patch route types.
-      - For the `"auix_route_back"` event, it handles back navigation.
-
-      ## Parameters
-      - `event`: Event name (String.t)
-      - `params`: Event parameters (map)
-      - `socket`: LiveView socket (Phoenix.LiveView.Socket.t)
-
-      ## Returns
-      - `{:noreply, Phoenix.LiveView.Socket.t}`: Updated socket
-      """
       @impl IndexImpl
       defdelegate auix_handle_event(caller, event, params, socket), to: IndexImpl
 
-      @doc """
-      Handles info messages for the LiveView. If the message is a tuple of the form `{_component, {:saved, entity}}`,
-      it inserts the entity into the stream. Otherwise, it returns the unchanged socket.
-
-      ## Parameters
-      - `{_component, {:saved, entity}}` or any other message: Info message (tuple or any)
-      - `socket`: LiveView socket with `:auix` assigns (Phoenix.LiveView.Socket.t)
-
-      ## Returns
-      - `{:noreply, Phoenix.LiveView.Socket.t}`: Updated socket
-      """
       @impl IndexImpl
       defdelegate auix_handle_info(caller, input, socket), to: IndexImpl
 
@@ -220,10 +192,41 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     end
   end
 
+  @doc """
+  Initializes the LiveView socket for the index page by streaming entities.
+
+  ## Parameters
+  - `caller` (module()) - The calling module.
+  - `params` (map()) - URL/query parameters.
+  - `session` (map()) - Session data.
+  - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
+
+  ## Returns
+  `{:ok, Socket.t()}` - The initialized socket with streamed entities from context.
+
+  """
+  @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
     {:ok, stream(socket, auix.list_key, apply(auix.modules.context, auix.list_function, []))}
   end
 
+  @doc """
+  Handles URL parameter changes and updates socket state.
+
+  Updates routing stack, assigns form component, and applies the current action based on
+  live_action and parameters.
+
+  ## Parameters
+  - `caller` (module()) - The calling module.
+  - `params` (map()) - URL/query parameters.
+  - `url` (binary()) - Current URL.
+  - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket with routing stack, form component, and action applied.
+
+  """
+  @spec auix_handle_params(module(), map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_params(caller, params, url, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
@@ -240,6 +243,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
      |> caller.auix_apply_action(caller, socket.assigns.live_action, params)}
   end
 
+  @doc """
+  Handles LiveView events for the index page.
+
+  Supports delete events with custom context/functions or default auix context,
+  forward/back navigation events, and routing events.
+
+  ## Parameters
+  - `caller` (module()) - The calling module.
+  - `event` (binary()) - Event name (`"delete"`, `"auix_route_forward"`, `"auix_route_back"`).
+  - `params` (map()) - Event parameters.
+  - `socket` (Socket.t()) - LiveView socket.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
+
+  """
+  @spec auix_handle_event(module(), binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_event(
         _caller,
         "delete",
@@ -296,6 +316,21 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     {:noreply, auix_route_back(socket)}
   end
 
+  @doc """
+  Handles info messages for the LiveView.
+
+  Processes save notifications by inserting entities into the stream, ignores other messages.
+
+  ## Parameters
+  - `caller` (module()) - The calling module.
+  - `event_info` (term()) - Info message, typically `{component, {:saved, entity}}`.
+  - `socket` (Socket.t()) - LiveView socket.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket with entity inserted into stream or unchanged.
+
+  """
+  @spec auix_handle_info(module(), term(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_info(
         _caller,
         {_component, {:saved, entity}},
@@ -308,6 +343,23 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
+  @doc """
+  Applies the given action to the socket state.
+
+  Handles `:edit` action by fetching and assigning entity, `:new` action by creating new entity,
+  and `:index` action by clearing entity assignment.
+
+  ## Parameters
+  - `socket` (Socket.t()) - LiveView socket.
+  - `caller` (module()) - The calling module.
+  - `action` (atom()) - Action to apply (`:edit`, `:new`, `:index`).
+  - `params` (map()) - Action parameters containing entity ID for `:edit`.
+
+  ## Returns
+  `Socket.t()` - Updated socket with action-specific entity assignment.
+
+  """
+  @spec auix_apply_action(Socket.t(), module(), atom(), map()) :: Socket.t()
   def auix_apply_action(
         %{assigns: %{auix: auix}} = socket,
         _caller,
@@ -324,7 +376,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     )
   end
 
-  # Assigns new entity for new action.
   def auix_apply_action(%{assigns: %{auix: auix}} = socket, _caller, :new, params) do
     assign_new_entity(
       socket,
@@ -336,7 +387,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     )
   end
 
-  # Clears entity for index action.
   def auix_apply_action(socket, _caller, :index, _params) do
     assign_auix(socket, :entity, nil)
   end

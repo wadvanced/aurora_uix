@@ -10,6 +10,10 @@ description: A description of your rule
 - Code examples must be valid Elixir code and compile successfully.
 - Use Markdown-compatible formatting for documentation.
 - Code examples must be wrapped in ||| representing code blocks with the `elixir` tag instead of backticks.
+- Code examples must be valid Elixir code and compile successfully.
+- Use Markdown-compatible formatting for documentation.
+- Code examples must be wrapped in ||| representing code blocks with the `elixir` tag instead of backticks.
+- Apply changes to the target module immediately, if possible.
 
 ## @shortdoc Requirements
 1. Usage: only to be use on modules implementing Mix.Task behaviour.
@@ -55,6 +59,7 @@ description: A description of your rule
     ```
 
 - Type Enforcement:
+  - @doc goes only on the FIRST of pattern matched functions, it DOES NOT repeat for the rest of pattern matched.
   - Always use parentheses: map() not map, MyStruct.t() not MyStruct
   - Never use any() – replace with concrete types
   - Never document internal map structures
@@ -70,7 +75,7 @@ description: A description of your rule
 - Include parameter/return types and descriptions
 
 ## @spec Requirements
-- Add missing specs for all public functions/macros
+- Add missing specs for all the first functions/macros of a pattern matched group
 - Modify existing specs only:
   - Add parentheses: keyword → keyword()
   - Replace any() with specific types
