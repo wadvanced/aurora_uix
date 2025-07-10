@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       if parsed_opts[:disable_index_row_click],
         do: nil,
         else: fn {_id, row} ->
-          id = Map.get(row, :id)
+          id = primary_key_value(row, parsed_opts.primary_key)
 
           parsed_opts
           |> Map.get(:index_row_click, "#")
@@ -590,6 +590,18 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   def safe_existing_atom(name) when is_atom(name), do: name
 
   def safe_existing_atom(_name), do: nil
+
+  def primary_key_value(entity, primary_key) when is_atom(primary_key) do
+    Map.get(entity, primary_key)
+  end
+
+  def primary_key_value(entity, [primary_key]) do
+    Map.get(entity, primary_key)
+  end
+
+  def primary_key_value(entity, primary_keys) do
+    Enum.map(primary_keys, &Map.get(entity, &1))
+  end
 
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(
