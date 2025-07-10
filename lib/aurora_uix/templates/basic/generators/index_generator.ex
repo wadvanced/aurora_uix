@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.Index, as: IndexHandlers
+  alias Aurora.Uix.Web.Templates.Basic.Handlers.Index, as: IndexHandler
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
       |> Map.put(:list_key, String.to_existing_atom(parsed_opts.source))
 
     index_module = ModulesGenerator.module_name(parsed_opts, ".Index")
-    handler_module = ModulesGenerator.handler_module(parsed_opts, IndexHandlers)
+    handler_module = ModulesGenerator.handler_module(parsed_opts, IndexHandler)
 
     quote do
       defmodule unquote(index_module) do

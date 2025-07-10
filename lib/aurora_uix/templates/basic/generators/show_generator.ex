@@ -10,6 +10,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   - Integrates with form components
   - Integrates with Aurora UIX context and helpers
   """
+
+  alias Aurora.Uix.Web.Templates.Basic.Handlers.Show, as: ShowHandler
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
   @doc """
@@ -27,7 +29,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     show_module = ModulesGenerator.module_name(parsed_opts, ".Show")
-    handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Show
+    handler_module = ModulesGenerator.handler_module(parsed_opts, ShowHandler)
 
     quote do
       defmodule unquote(show_module) do

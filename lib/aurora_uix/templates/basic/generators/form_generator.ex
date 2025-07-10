@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
+  alias Aurora.Uix.Web.Templates.Basic.Handlers.Form, as: FormHandler
   alias Aurora.Uix.Web.Templates.Basic.Helpers
   alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
 
@@ -32,7 +33,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     form_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".FormComponent")
-    handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Form
+    handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, FormHandler)
 
     one2many_preload =
       cleaned_parsed_opts
