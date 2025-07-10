@@ -189,6 +189,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
 
       @impl IndexImpl
       defdelegate auix_apply_action(socket, caller, action, params), to: IndexImpl
+
+      defoverridable auix_mount: 4,
+                     auix_handle_params: 4,
+                     auix_handle_event: 4,
+                     auix_handle_info: 3,
+                     auix_apply_action: 4
     end
   end
 

@@ -112,4 +112,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   def module_name(parsed_opts, suffix) do
     Module.concat(parsed_opts.modules.caller, "#{parsed_opts.module_name}#{suffix}")
   end
+
+  @doc """
+  Returns the handler module or the default one.
+  """
+  @spec handler_module(map(), module()) :: module()
+  def handler_module(%{layout_tree: %{opts: opts}} = _parsed_opts, default_module) do
+    Keyword.get(opts, :handler_module, default_module)
+  end
+
+  def handler_module(_parsed_opts, default_module), do: default_module
 end

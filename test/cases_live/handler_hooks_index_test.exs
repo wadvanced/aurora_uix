@@ -10,7 +10,9 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksIndexTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "handler-hooks-index-" do
-    index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand])
+    index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
+      handler_module: Aurora.Uix.Test.Web.IndexHandlerHook
+    )
 
     edit_layout :product do
       inline([:reference, :name, :description])
@@ -26,6 +28,27 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksIndexTest do
   end
 
   test "Test index hooks", %{conn: conn} do
-    {:ok, _view, _html} = live(conn, "/handler-hooks-index-products")
+    create_sample_products(20, :test)
+    {:ok, _view, html} = live(conn, "/handler-hooks-index-products")
+
+    refute html =~ "item_test-06"
+  end
+end
+
+defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
+  use Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
+
+  alias Phoenix.LiveView.Socket
+
+  @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
+    {:ok,
+     stream(
+       socket,
+       auix.list_key,
+       apply(auix.modules.context, auix.list_function, [
+         [where: {:reference, :lt, "item_test-06"}]
+       ])
+     )}
   end
 end
