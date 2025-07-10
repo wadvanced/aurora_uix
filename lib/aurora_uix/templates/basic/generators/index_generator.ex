@@ -34,15 +34,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
       |> ModulesGenerator.remove_omitted_fields()
       |> Map.put(:list_key, String.to_existing_atom(parsed_opts.source))
 
-    modules = parsed_opts.modules
-    index_module = ModulesGenerator.module_name(modules, parsed_opts, ".Index")
+    index_module = ModulesGenerator.module_name(parsed_opts, ".Index")
     handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Index
 
     quote do
       defmodule unquote(index_module) do
         @moduledoc false
 
-        use unquote(modules.web), :live_view
+        use unquote(parsed_opts.modules.web), :live_view
 
         alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
 

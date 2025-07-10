@@ -31,8 +31,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
-    modules = cleaned_parsed_opts.modules
-    form_component = ModulesGenerator.module_name(modules, cleaned_parsed_opts, ".FormComponent")
+    form_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".FormComponent")
     handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Form
 
     one2many_preload =
@@ -54,7 +53,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
       defmodule unquote(form_component) do
         @moduledoc false
 
-        use unquote(modules.web), :live_component
+        use unquote(parsed_opts.modules.web), :live_component
         alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
 
         @impl true

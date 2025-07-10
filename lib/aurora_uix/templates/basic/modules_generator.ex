@@ -108,8 +108,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   # => MyAppWeb.User.Index
   ```
   """
-  @spec module_name(map(), map(), binary()) :: module()
-  def module_name(modules, parsed_opts, suffix) do
-    Module.concat(modules.caller, "#{parsed_opts.module_name}#{suffix}")
+  @spec module_name(map(), binary()) :: module()
+  def module_name(parsed_opts, suffix) do
+    Module.concat(parsed_opts.modules.caller, "#{parsed_opts.module_name}#{suffix}")
   end
 end

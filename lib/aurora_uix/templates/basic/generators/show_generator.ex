@@ -26,16 +26,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
     parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
-    modules = parsed_opts.modules
-
-    show_module = ModulesGenerator.module_name(modules, parsed_opts, ".Show")
+    show_module = ModulesGenerator.module_name(parsed_opts, ".Show")
     handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Show
 
     quote do
       defmodule unquote(show_module) do
         @moduledoc false
 
-        use unquote(modules.web), :live_view
+        use unquote(parsed_opts.modules.web), :live_view
 
         alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
 

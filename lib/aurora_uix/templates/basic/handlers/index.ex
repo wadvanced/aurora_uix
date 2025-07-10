@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Index do
   - `{:noreply, Phoenix.LiveView.Socket.t}`: Updated socket
   """
   def handle_params(params, url, %{assigns: %{auix: auix}} = socket) do
-    form_component = ModulesGenerator.module_name(auix.modules, auix, ".FormComponent")
+    form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
     {:noreply,
      socket
