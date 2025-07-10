@@ -21,17 +21,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   Generates a LiveComponent module for form handling.
 
   ## Parameters
-  - `modules` (map()) – Map containing web, context modules, and component references
   - `parsed_opts` (map()) – Form configuration with `tag: :form` and function references
 
   ## Returns
   - `Macro.t()` – The generated form component module as quoted code
 
   """
-  @spec generate_module(map(), map()) :: Macro.t()
-  def generate_module(modules, %{layout_tree: %{tag: :form}} = parsed_opts) do
+  @spec generate_module(map()) :: Macro.t()
+  def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
+    modules = cleaned_parsed_opts.modules
     form_component = ModulesGenerator.module_name(modules, cleaned_parsed_opts, ".FormComponent")
     handler_module = Aurora.Uix.Web.Templates.Basic.Handlers.Form
 
