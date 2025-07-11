@@ -166,10 +166,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
         notify_parent({:saved, entity})
 
         new_entity =
-          apply(auix.modules.context, auix.get_function, [
-            BasicHelpers.primary_key_value(entity, auix.primary_key),
-            [preload: auix.preload]
-          ])
+          entity
+          |> BasicHelpers.primary_key_value(auix.primary_key)
+          |> auix.get_function.(preload: auix.preload)
 
         {:noreply,
          socket

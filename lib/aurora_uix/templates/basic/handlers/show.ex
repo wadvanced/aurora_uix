@@ -70,13 +70,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Show do
     {:noreply,
      socket
      |> assign_auix_new(:_sections, %{})
-     |> assign_auix(
-       :entity,
-       apply(auix.modules.context, auix.get_function, [
-         id,
-         [preload: auix.preload]
-       ])
-     )
+     |> assign_auix(:entity, auix.get_function.(id, preload: auix.preload))
      |> assign_auix(:form_component, form_component)
      |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
@@ -129,11 +123,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Show do
     } = params
 
     context = String.to_existing_atom(context_string)
-    get_function = String.to_existing_atom(get_function_string)
+    {get_function, _} = Code.eval_string(get_function_string)
     delete_function = String.to_existing_atom(delete_function_string)
 
     socket =
-      with %{} = entity <- apply(context, get_function, [id]),
+      with %{} = entity <- get_function.(id, []),
            {:ok, _changeset} <- apply(context, delete_function, [entity]) do
         socket
         |> put_flash(:info, "Item deleted successfully")

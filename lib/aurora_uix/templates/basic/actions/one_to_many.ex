@@ -152,7 +152,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
         phx-click={JS.push("delete",
             value: %{id: elem(@auix.row_info, 0),
               context: @auix.association.related_resource_config.context,
-              get_function: @auix.association.related_parsed_opts.get_function,
+              get_function: inspect(@auix.association.related_parsed_opts.get_function),
               delete_function: @auix.association.related_parsed_opts.delete_function}
           )
           |> hide("##{elem(@auix.row_info, 0)}")}
