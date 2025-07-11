@@ -1,29 +1,32 @@
 defmodule Aurora.Uix.Parsers.Common do
   @moduledoc """
-  Common parsing utilities for extracting and transforming metadata from Ecto schema modules.
+  Provides default value resolution for schema-derived properties in Aurora.Uix parsers.
+
+  This module implements the `Aurora.Uix.Parser` behaviour and serves as a common utility
+  for resolving default values from Ecto schema modules. It supports extracting metadata
+  such as module names, titles, sources, and primary keys directly from schema definitions.
 
   ## Key features
-  - Extracts default values for module attributes (e.g., name, title, source).
-  - Generates module-specific metadata for UI configuration.
-  - Transforms schema information into user-friendly options.
-  - Supports extensive configuration for customizing UI generation.
+  - Resolves default values for eight core schema properties: `:module`, `:module_name`,
+    `:link_prefix`, `:name`, `:source`, `:title`, and `:primary_key`.
+  - Automatically extracts schema source and primary key information using `__schema__/1`.
+  - Transforms module names into user-friendly formats with proper capitalization.
+  - Provides consistent naming conventions across the Aurora.Uix system.
 
   ## Key constraints
-  - Expects `:schema` key in resource config map.
-  - Designed for use with Ecto schema modules.
+  - Requires `:schema` key in resource config map containing an Ecto schema module.
+  - Schema module must implement `__schema__/1` function (standard Ecto requirement).
+  - Only handles the specific property keys returned by `get_options/0`.
 
-  ## Common options
-  - `:actions` (list({integer(), function()})) - List of {position, function} tuples for UI actions.
-  - `:add_actions` (list()) - Additional actions to append.
-  - `:fields` (list(atom())) - Fields to be used, overrides the default list. The default list is created with all the fields found in the module, excluding the redacted fields.
-  - `:link_prefix` (binary()) - The link prefix inserted for paths. By default, this is blank. When used, the path is the link_prefix plus the source.
-  - `:name` (binary()) - Name of the schema. By default, uses the last part of the module name.
-  - `:remove` (list(atom())) - List of fields to be removed from the list. Trying to remove non-existing fields will log a warning, but no error will be raised.
-  - `:remove_actions` (list()) - Removes actions from the current list.
-  - `:source` (binary()) - Key of the data. By default, resolves the source from the schema source value. Uses the function `__schema__/1` passing `:source` as the argument.
-  - `:sub_title` (binary() | :hide) - Subtitle for the view, a `:hide` value will disallow its generation.
-  - `:template` (module()) - Overrides the module that handles the generation. By default, uses `Aurora.Uix.Web.AuroraTemplate`, which is a sophisticated and highly opinionated template. There is also the `Aurora.Uix.Web.PhoenixTemplate`, which resembles the Phoenix UI. The template can also be configured application-wide by adding `:aurora_uix, template: Module`. New templates can be authored.
-  - `:title` (binary()) - Title for the UI. Uses the capitalized schema source as the title.
+  ## Properties
+  When a property is not present in the metadata, this module provides default values:
+  - `:module` - Defaults to underscored module name (e.g., "blog_post" from MyApp.BlogPost)
+  - `:module_name` - Defaults to last part of module name (e.g., "BlogPost" from MyApp.BlogPost)
+  - `:link_prefix` - Defaults to empty string
+  - `:name` - Defaults to capitalized module name (e.g., "Blog Post" from MyApp.BlogPost)
+  - `:source` - Defaults to schema table name from `__schema__(:source)`
+  - `:title` - Defaults to capitalized schema source name
+  - `:primary_key` - Defaults to primary key fields from `__schema__(:primary_key)`
   """
 
   @behaviour Aurora.Uix.Parser
@@ -42,7 +45,8 @@ defmodule Aurora.Uix.Parsers.Common do
       :link_prefix,
       :name,
       :source,
-      :title
+      :title,
+      :primary_key
     ]
   end
 
@@ -51,14 +55,27 @@ defmodule Aurora.Uix.Parsers.Common do
 
   ## Parameters
   - `parsed_opts` (map()) - Accumulator for parsed options.
-  - `resource_config` (map()) - Contains the module's configuration. Must include `:schema` key.
+  - `resource_config` (map()) - Contains the module's configuration:
+    * `:schema` (module()) - The Ecto schema module to extract metadata from.
   - `key` (atom()) - The property key to resolve.
 
   ## Returns
   term() - The resolved default value for the property.
 
+  ## Examples
+      iex> config = %{schema: MyApp.User}
+      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :name)
+      "User"
+
+      iex> config = %{schema: MyApp.BlogPost}
+      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :module)
+      "blog_post"
+
+      iex> config = %{schema: MyApp.User}
+      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :link_prefix)
+      ""
   """
-  @spec default_value(map(), map(), atom()) :: term() | nil
+  @spec default_value(map(), map(), atom()) :: term()
   def default_value(_parsed_opts, %{schema: module}, :module) do
     module
     |> Module.split()
@@ -87,6 +104,13 @@ defmodule Aurora.Uix.Parsers.Common do
     :source
     |> module.__schema__()
     |> capitalize()
+  end
+
+  def default_value(_parsed_opts, %{schema: module}, :primary_key) do
+    case module.__schema__(:primary_key) do
+      [] -> :fields |> module.__schema__() |> List.first() |> then(&[&1])
+      key -> key
+    end
   end
 
   ## PRIVATE

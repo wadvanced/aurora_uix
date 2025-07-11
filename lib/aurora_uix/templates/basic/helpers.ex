@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
       if parsed_opts[:disable_index_row_click],
         do: nil,
         else: fn {_id, row} ->
-          id = Map.get(row, :id)
+          id = primary_key_value(row, parsed_opts.primary_key)
 
           parsed_opts
           |> Map.get(:index_row_click, "#")
@@ -462,24 +462,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
-  Generates a link for showing an entity in the index view.
-
-  ## Parameters
-  - auix (map()) - Configuration map with index_show_entity_link setting
-  - entity (map()) - Entity data with id field
-
-  ## Returns
-  - binary()
-  """
-  @spec index_show_entity_link(map, map) :: binary
-  def index_show_entity_link(auix, entity) do
-    auix
-    |> Map.get(:index_show_entity_link, "#")
-    |> String.replace("[[entity]]", entity |> Map.get(:id) |> to_string())
-    |> then(fn link -> URI.decode("/#{link}") end)
-  end
-
-  @doc """
   Retrieves and processes field configuration from the resource configurations.
 
   Parameters:
@@ -590,6 +572,32 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   def safe_existing_atom(name) when is_atom(name), do: name
 
   def safe_existing_atom(_name), do: nil
+
+  @doc """
+  Gets the value of an entity's primary key.
+
+  ## Parameters
+  - `entity` (term()) - The entity that will be primary key value.
+  - `primary_key` (atom() | list()) - The field (or fields) to be gather from the entity.
+
+  ## Returns
+  `term()` | list() | nil - Return a single value if the primary key is an `atom()` or a single element list.
+    Otherwise returns a list of values, each corresponding to each of the primary key list of fields.
+  """
+  @spec primary_key_value(term() | nil, atom() | list()) :: term() | list() | nil
+  def primary_key_value(entity, _primary_key) when is_nil(entity), do: nil
+
+  def primary_key_value(entity, primary_key) when is_atom(primary_key) do
+    Map.get(entity, primary_key)
+  end
+
+  def primary_key_value(entity, [primary_key]) do
+    Map.get(entity, primary_key)
+  end
+
+  def primary_key_value(entity, primary_keys) do
+    Enum.map(primary_keys, &Map.get(entity, &1))
+  end
 
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(

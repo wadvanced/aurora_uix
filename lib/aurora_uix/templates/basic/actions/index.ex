@@ -21,6 +21,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Web.Templates.Basic.Actions
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -71,7 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   def show_row_action(assigns) do
     ~H"""
       <div class="sr-only">
-        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}"} name={"auix-show-#{@auix.module}"}>Show</.auix_link>
+        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>Show</.auix_link>
       </div>
     """
   end
@@ -95,7 +96,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Edit</.auix_link>
+      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>Edit</.auix_link>
     """
   end
 
@@ -123,7 +124,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   def remove_row_action(assigns) do
     ~H"""
       <.link
-            phx-click={JS.push("delete", value: %{id: elem(@auix.row_info, 1).id}) |> hide("##{elem(@auix.row_info, 1).id}")}
+            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> hide("##{row_info_id(@auix)}")}
             name={"auix-delete-#{@auix.module}"}
             data-confirm="Are you sure?"
           >
@@ -178,5 +179,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
     Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
+  end
+
+  @spec row_info_id(map()) :: term() | nil
+  defp row_info_id(%{row_info: {_, row_entity}, primary_key: primary_key}) do
+    BasicHelpers.primary_key_value(row_entity, primary_key)
   end
 end

@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Web.Templates.Basic.Actions
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.Rendered
 
   @actions Action.available_actions(:show)
@@ -66,7 +67,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
   @spec edit_header_action(map()) :: Rendered.t()
   def edit_header_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix.entity.id}/show/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show/edit"} name={"auix-edit-#{@auix.module}"}>
         <.button>Edit {@auix.name}</.button>
       </.auix_link>
     """
