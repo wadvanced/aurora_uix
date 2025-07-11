@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
   import Phoenix.LiveView
 
   alias Aurora.Uix.Stack
+  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Web.Templates.Basic.Renderer
 
   @impl true
@@ -166,7 +167,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
 
         new_entity =
           apply(auix.modules.context, auix.get_function, [
-            entity.id,
+            BasicHelpers.primary_key_value(entity, auix.primary_key),
             [preload: auix.preload]
           ])
 
