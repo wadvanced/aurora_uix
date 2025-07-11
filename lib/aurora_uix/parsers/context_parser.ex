@@ -100,7 +100,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   end
 
   def default_value(%{module: module}, %{context: context}, :update_function) do
-    filter_function(context, ["update_#{module}"], 2)
+    create_function_reference(context, ["update_#{module}"], 2)
   end
 
   def default_value(%{module: module}, %{context: context}, :change_function) do

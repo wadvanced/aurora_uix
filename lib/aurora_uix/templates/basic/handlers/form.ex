@@ -189,10 +189,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
   @spec save_entity(Phoenix.LiveView.Socket.t(), atom(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   defp save_entity(%{assigns: %{auix: auix}} = socket, :edit, entity_params) do
-    apply(auix.modules.context, auix.update_function, [
-      socket.assigns[:auix][:entity],
-      entity_params
-    ])
+    auix.update_function.(socket.assigns[:auix][:entity], entity_params)
   end
 
   defp save_entity(%{assigns: %{auix: auix}}, :new, entity_params) do
