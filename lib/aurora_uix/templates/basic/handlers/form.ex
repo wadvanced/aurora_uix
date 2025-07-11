@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
 
   ## Examples
 
-      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}, change_function: :change_user}}})
+      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}}})
       {:ok, %Phoenix.LiveView.Socket{...}}
   """
   @spec update(map(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -55,8 +55,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
         %{assigns: %{auix: auix}} = socket
       ) do
     form =
-      auix.modules.context
-      |> apply(auix.change_function, [entity])
+      entity
+      |> auix.change_function.(%{})
       |> to_form()
 
     {:ok,
@@ -111,11 +111,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
        ) do
     socket = Phoenix.LiveView.clear_flash(socket)
 
-    changeset =
-      apply(auix.modules.context, auix.change_function, [
-        socket.assigns[:auix][:entity],
-        entity_params
-      ])
+    changeset = auix.change_function.(socket.assigns[:auix][:entity], entity_params)
 
     {:noreply, assign_auix(socket, :form, to_form(changeset, action: :validate))}
   end
