@@ -130,6 +130,11 @@ defmodule Aurora.Uix.Test.Web.Router do
       "handler-hooks-index-"
     )
 
+    Web.register_product_crud(
+      HandlerHooksShowTest,
+      "handler-hooks-show-"
+    )
+
     ## You can create a file test/cases_live/-local-demo_test.exs
     ## With Aurora.Uix.Test.Web.LocalDemoTest module
     ## And then test its output in /local-demo-products
