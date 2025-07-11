@@ -213,7 +213,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   """
   @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
-    {:ok, stream(socket, auix.list_key, apply(auix.modules.context, auix.list_function, []))}
+    {:ok, stream(socket, auix.list_key, auix.list_function.([]))}
   end
 
   @doc """
@@ -270,19 +270,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
         "delete",
         %{
           "id" => id,
-          "context" => context_name,
-          "get_function" => get_function_name,
-          "delete_function" => delete_function_name
+          "get_function" => get_function_string,
+          "delete_function" => delete_function_string
         },
         socket
       ) do
-    context = String.to_existing_atom(context_name)
-    get_function = String.to_existing_atom(get_function_name)
-    delete_function = String.to_existing_atom(delete_function_name)
+    {get_function, _} = Code.eval_string(get_function_string)
+    {delete_function, _} = Code.eval_string(delete_function_string)
 
     socket =
-      with %{} = entity <- apply(context, get_function, [id]),
-           {:ok, _changeset} <- apply(context, delete_function, [entity]) do
+      with %{} = entity <- get_function.(id, []),
+           {:ok, _changeset} <- delete_function.(entity) do
         socket
         |> put_flash(:info, "Item deleted successfully")
         |> push_patch(to: socket.assigns.auix[:_current_path])
@@ -294,9 +292,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   end
 
   def auix_handle_event(_caller, "delete", %{"id" => id}, %{assigns: %{auix: auix}} = socket) do
-    instance = apply(auix.modules.context, auix.get_function, [id])
-    {:ok, _} = apply(auix.modules.context, auix.delete_function, [instance])
-    {:noreply, stream_delete(socket, auix.list_key, instance)}
+    entity = auix.get_function.(id)
+    {:ok, _} = auix.delete_function.(entity)
+    {:noreply, stream_delete(socket, auix.list_key, entity)}
   end
 
   def auix_handle_event(
@@ -374,22 +372,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
     assign_auix(
       socket,
       :entity,
-      apply(auix.modules.context, auix.get_function, [
-        id,
-        [preload: auix.preload]
-      ])
+      auix.get_function.(id, preload: auix.preload)
     )
   end
 
   def auix_apply_action(%{assigns: %{auix: auix}} = socket, _caller, :new, params) do
-    assign_new_entity(
-      socket,
-      params,
-      apply(auix.modules.context, auix.new_function, [
-        %{},
-        [preload: auix.preload]
-      ])
-    )
+    assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
   end
 
   def auix_apply_action(socket, _caller, :index, _params) do

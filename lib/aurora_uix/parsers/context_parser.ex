@@ -14,41 +14,91 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   - Relies on naming conventions for default function detection unless overridden.
 
   ## Context Options
-  - `:list_function` - Name of the function for reading all the elements of the resource.
-    The name MUST be an atom, and the arity of the function is always 0.
-    The function is expected to return a list of elements.
-    By default, is list_<source>/0 or list_<schema_module>. The source, for ecto schema, is the name of the table,
-    while the schema_module is the name of the ecto schema module.
+  - `:list_function` - Function reference for reading all the elements of the resource.
+    By default, is list_<source>/1.
+    The source is the name of the table.
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `opts` - Query options
+    ### Expected return
+    Function should be able to produce the following:
+    - A list of entities or empty list.
 
-  - `:get_function` - Name of the function for getting one element of the resource.
-    Its arity is always 1 and accepts the id of the element as the only argument.
-    The function is expected to return a single element or nil.
-    By default, is get_<schema_module>/1 or get_<schema_module>!/1.
+  - `:get_function` - Function reference for getting one element of the resource.
+    By default, is get_<schema_module>/2 or get_<schema_module>!/2.
     The schema_module is the name of the ecto schema module (the last part).
+    ### Required parameters
+    - `id` - Id of the entity
+    - `opts` - Query options
+    ### Expected return
+    Function should be able to produce the following:
+    - A single element or nil.
 
   - `:delete_function` - Name of the function for deleting a element of the resource.
-    Its arity is always 1 and accepts the id of the element as the only argument.
     By default, is delete_<schema_module>/1 or delete_<schema_module>!/1.
-    The function is expected to return a tuple {:ok, <deleted_element>} or {:error, <changeset or relevant info>}
+    The schema_module is the name of the ecto schema module (the last part).
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `entity` - The entity to be deleted.
+    ### Expected return
+    Function should be able to produce the following:
+    - `{:ok, entity}` - If the deletion was ok.
+    - `{:error, changeset}` - If something went wrong.
 
   - `:create_function` - Insert a new element to the resource.
-    Its arity is always 1 and accepts a map of the element fields with their value, as the only argument.
-    By default, is create_<schema_module>/2.
-    The function is expected to return a tuple {:ok, <created_element>} or {:error, <changeset or relevant info>}
+    By default, is create_<schema_module>/1.
+    The schema_module is the name of the ecto schema module (the last part).
+
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `changeset` or `attribute map` - The mapped values for the entities keys.
+
+    ### Expected return
+    Function should be able to produce the following:
+    - `{:ok, <created_element>}` - If it was properly stored.
+    - `{:error, <changeset or relevant info>}` - If something went wrong.
 
   - `:update_function` - Updates an existing element in the resource.
-    Its arity is always 2 and accepts a changeset or an element instance as the first argument,
-    and a map with the changes to be applied.
-    By default, is change_<schema_module>/1.
-    The function is expected to return tuple {:ok, <updated_element>} or {:error, <changeset or relevant info>}
+    By default, is update_<schema_module>/2.
+    The schema_module is the name of the ecto schema module (the last part).
+
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `entity or changeset` - The entity or changeset to be updated.
+    - `attrs` - Attributes map with the changes.
+
+    ### Expected return
+    Function should be able to produce the following:
+    - `{:ok, <updated_element>}` - If the update was completed.
+    - `{:error, <changeset or relevant info>}` - If any error happened.
 
   - `:change_function` - Creates a changeset of changes.
-    Its arity is always 2 and accepts a changeset or an element instance as the first argument,
-    and a map with the changes to be applied.
+    Similar to update_function, but does not perform any repo updates, only affects or produce changeset.
     By default, is change_<schema_module>/2.
-    The function should return a Changeset.
+    The schema_module is the name of the ecto schema module (the last part).
 
-  - `:change_function` (atom()) - Creates a changeset of changes. Its arity is always 2 and accepts a changeset or an element instance as the first argument, and a map with the changes to be applied. By default, is change_<schema_module>/2. The function should return a Changeset.
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `entity or changeset` - The entity or Changeset to be updated.
+    - `attrs` - Attributes map with the changes to be applied.
+
+    ### Expected return
+    Function should be able to produce the following:
+    - A Changeset.
+
+  - `:new_function` (atom()) - Creates a changeset of changes.
+    Its arity is always 2 and accepts a changeset or an element instance as the first argument,
+    and a map with the changes to be applied. By default, is change_<schema_module>/2.
+    The function should return a Changeset.
+    ### Required parameters
+    Function should be able to handle the following parameters:
+    - `attrs` - Attribute map with the initial values for the changeset.
+    - `opts` - Repo options for the new changeset. Normally used to pass the required preloads.
+
+    ### Expected return
+    Function should be able to produce the following:
+    - A Changeset.
+
   """
   @behaviour Aurora.Uix.Parser
 
@@ -85,54 +135,54 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
-    filter_function(context, ["list_#{source}", "list_#{module}"], 0)
+    create_function_reference(context, ["list_#{source}", "list_#{module}"], 1)
   end
 
   def default_value(%{module: module}, %{context: context}, :get_function) do
-    filter_function(context, ["get_#{module}", "get_#{module}!"], 1)
+    create_function_reference(context, ["get_#{module}", "get_#{module}!"], 2)
   end
 
   def default_value(%{module: module}, %{context: context}, :delete_function) do
-    filter_function(context, ["delete_#{module}", "delete_#{module}!"], 1)
+    create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
   end
 
   def default_value(%{module: module}, %{context: context}, :create_function) do
-    filter_function(context, ["create_#{module}"], 2)
+    create_function_reference(context, ["create_#{module}"], 1)
   end
 
   def default_value(%{module: module}, %{context: context}, :update_function) do
-    filter_function(context, ["update_#{module}"], 2)
+    create_function_reference(context, ["update_#{module}"], 2)
   end
 
   def default_value(%{module: module}, %{context: context}, :change_function) do
-    filter_function(context, ["change_#{module}"], 2)
+    create_function_reference(context, ["change_#{module}"], 2)
   end
 
   def default_value(%{module: module}, %{context: context}, :new_function) do
-    filter_function(context, ["new_#{module}"], 1)
+    create_function_reference(context, ["new_#{module}"], 2)
   end
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
   ## PRIVATE
 
-  # Finds the first function in the context module matching the given names and arity.
-  @spec filter_function(module(), list(String.t()), integer()) :: atom()
-  defp filter_function(context, [first_selected | _rest] = functions, expected_arity) do
+  @spec create_function_reference(module(), list(String.t()), integer()) :: function()
+  defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions
       |> context.__info__()
       |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
       |> Enum.map(&(&1 |> elem(0) |> to_string()))
 
-    functions
-    |> Enum.filter(&(&1 in implemented_functions))
-    |> List.first(first_selected)
-    |> to_atom()
-  end
+    function_name =
+      functions
+      |> Enum.filter(&(&1 in implemented_functions))
+      |> List.first(first_selected)
 
-  # Converts a string or nil to an atom or nil.
-  @spec to_atom(binary() | nil) :: atom() | nil
-  defp to_atom(nil), do: nil
-  defp to_atom(function_name), do: String.to_atom(function_name)
+    context
+    |> Module.concat(nil)
+    |> then(&"&#{&1}.#{function_name}/#{expected_arity}")
+    |> Code.eval_string()
+    |> elem(0)
+  end
 end

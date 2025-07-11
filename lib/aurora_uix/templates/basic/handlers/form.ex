@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
 
   ## Examples
 
-      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}, change_function: :change_user}}})
+      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}}})
       {:ok, %Phoenix.LiveView.Socket{...}}
   """
   @spec update(map(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -55,8 +55,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
         %{assigns: %{auix: auix}} = socket
       ) do
     form =
-      auix.modules.context
-      |> apply(auix.change_function, [entity])
+      entity
+      |> auix.change_function.(%{})
       |> to_form()
 
     {:ok,
@@ -111,11 +111,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
        ) do
     socket = Phoenix.LiveView.clear_flash(socket)
 
-    changeset =
-      apply(auix.modules.context, auix.change_function, [
-        socket.assigns[:auix][:entity],
-        entity_params
-      ])
+    changeset = auix.change_function.(socket.assigns[:auix][:entity], entity_params)
 
     {:noreply, assign_auix(socket, :form, to_form(changeset, action: :validate))}
   end
@@ -166,10 +162,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
         notify_parent({:saved, entity})
 
         new_entity =
-          apply(auix.modules.context, auix.get_function, [
-            BasicHelpers.primary_key_value(entity, auix.primary_key),
-            [preload: auix.preload]
-          ])
+          entity
+          |> BasicHelpers.primary_key_value(auix.primary_key)
+          |> auix.get_function.(preload: auix.preload)
 
         {:noreply,
          socket
@@ -190,14 +185,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
   @spec save_entity(Phoenix.LiveView.Socket.t(), atom(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   defp save_entity(%{assigns: %{auix: auix}} = socket, :edit, entity_params) do
-    apply(auix.modules.context, auix.update_function, [
-      socket.assigns[:auix][:entity],
-      entity_params
-    ])
+    auix.update_function.(socket.assigns[:auix][:entity], entity_params)
   end
 
   defp save_entity(%{assigns: %{auix: auix}}, :new, entity_params) do
-    apply(auix.modules.context, auix.create_function, [entity_params])
+    auix.create_function.(entity_params)
   end
 
   # Handles routing after save based on action and rendering context.

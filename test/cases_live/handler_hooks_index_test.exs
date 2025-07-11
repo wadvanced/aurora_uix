@@ -46,9 +46,7 @@ defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
      stream(
        socket,
        auix.list_key,
-       apply(auix.modules.context, auix.list_function, [
-         [where: {:reference, :lt, "item_test-06"}]
-       ])
+       auix.list_function.(where: {:reference, :lt, "item_test-06"})
      )}
   end
 end
