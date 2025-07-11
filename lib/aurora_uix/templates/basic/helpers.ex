@@ -39,7 +39,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
-  alias Phoenix.LiveView.JS
 
   @action_groups Action.action_groups()
 
@@ -71,35 +70,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
   def assign_new_entity(socket, _params, default) do
     assign_auix(socket, :entity, default)
-  end
-
-  @doc """
-  Assigns click handler for index rows based on parsed options.
-
-  ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - params (map()) - Parameters map
-
-  ## Returns
-  - Phoenix.LiveView.Socket.t()
-  """
-  @spec assign_index_row_click(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
-  def assign_index_row_click(%{assigns: assigns} = socket, _params) do
-    parsed_opts = Map.get(assigns, :auix, %{})
-
-    index_row_click =
-      if parsed_opts[:disable_index_row_click],
-        do: nil,
-        else: fn {_id, row} ->
-          id = primary_key_value(row, parsed_opts.primary_key)
-
-          parsed_opts
-          |> Map.get(:index_row_click, "#")
-          |> String.replace("[[entity]]", to_string(id))
-          |> then(&js_navigate/1)
-        end
-
-    assign_auix(socket, :index_row_click, index_row_click)
   end
 
   @doc """
@@ -614,14 +584,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
     default
     |> struct(%{related_key => parent_id})
     |> then(&assign_auix(socket, :entity, &1))
-  end
-
-  # Performs JavaScript navigation to a given URI, ensuring proper decode and formatting
-  @spec js_navigate(binary()) :: JS.t()
-  defp js_navigate(uri) do
-    "/#{uri}"
-    |> URI.decode()
-    |> JS.navigate()
   end
 
   # Adds a path to the forward navigation stack and updates last route path in assigns

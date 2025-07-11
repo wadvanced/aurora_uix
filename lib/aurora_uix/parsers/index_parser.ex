@@ -13,10 +13,6 @@ defmodule Aurora.Uix.Parsers.IndexParser do
 
   ## Index Options
   - `:rows` (list(atom())): List of fields to use. Defaults to Phoenix streams and schema name.
-  - `:disable_index_row_click` (boolean()): Disables row click navigation in index views. Default: false.
-  - `:disable_index_new_link` (boolean()): Disables the "new" link in index views. Default: false.
-  - `:disable_index_show_entity_link` (boolean()): Disables the show entity link in index views. Default: false.
-  - `:index_row_click` (String.t()): URL template for row click navigation. Default: "<link_prefix><source>/[[entity]]".
   - `:index_new_link` (String.t()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
   """
 
@@ -33,10 +29,6 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   def get_options do
     [
       :rows,
-      :disable_index_row_click,
-      :disable_index_new_link,
-      :disable_index_show_entity_link,
-      :index_row_click,
       :index_new_link
     ]
   end
@@ -60,17 +52,6 @@ defmodule Aurora.Uix.Parsers.IndexParser do
     |> then(&[:streams, String.to_atom(&1)])
   end
 
-  def default_value(_parsed_opts, _resource_config, :disable_index_row_click), do: false
-  def default_value(_parsed_opts, _resource_config, :disable_index_new_link), do: false
-  def default_value(_parsed_opts, _resource_config, :disable_index_show_entity_link), do: false
-
-  def default_value(parsedOpts, _resource_config, :index_row_click) do
-    "#{parsedOpts[:link_prefix]}#{parsedOpts[:source]}/[[entity]]"
-  end
-
-  def default_value(parsedOpts, _resource_config, :index_new_link) do
-    if parsedOpts.disable_index_new_link,
-      do: "#",
-      else: "/#{parsedOpts[:link_prefix]}#{parsedOpts[:source]}/new"
-  end
+  def default_value(parsed_opts, _resource_config, :index_new_link),
+    do: "/#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/new"
 end

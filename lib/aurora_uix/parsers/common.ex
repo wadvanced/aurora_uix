@@ -61,19 +61,6 @@ defmodule Aurora.Uix.Parsers.Common do
 
   ## Returns
   term() - The resolved default value for the property.
-
-  ## Examples
-      iex> config = %{schema: MyApp.User}
-      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :name)
-      "User"
-
-      iex> config = %{schema: MyApp.BlogPost}
-      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :module)
-      "blog_post"
-
-      iex> config = %{schema: MyApp.User}
-      iex> Aurora.Uix.Parsers.Common.default_value(%{}, config, :link_prefix)
-      ""
   """
   @spec default_value(map(), map(), atom()) :: term()
   def default_value(_parsed_opts, %{schema: module}, :module) do
