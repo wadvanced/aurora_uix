@@ -68,7 +68,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
         auix={%{css_classes: @auix.css_classes}}
         rows={get_in(assigns, @auix.rows)}
       >
-        <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{entity_id(@auix)}"}>{Map.get(entity, field.key)}</.auix_link></:col>
+        <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>{Map.get(entity, field.key)}</.auix_link></:col>
 
         <:action :let={row_info} :for={%{function_component: action} <- @auix.index_row_actions}>
           {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
