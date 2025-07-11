@@ -270,19 +270,17 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
         "delete",
         %{
           "id" => id,
-          "context" => context_name,
           "get_function" => get_function_string,
-          "delete_function" => delete_function_name
+          "delete_function" => delete_function_string
         },
         socket
       ) do
-    context = String.to_existing_atom(context_name)
     {get_function, _} = Code.eval_string(get_function_string)
-    delete_function = String.to_existing_atom(delete_function_name)
+    {delete_function, _} = Code.eval_string(delete_function_string)
 
     socket =
       with %{} = entity <- get_function.(id, []),
-           {:ok, _changeset} <- apply(context, delete_function, [entity]) do
+           {:ok, _changeset} <- delete_function.(entity) do
         socket
         |> put_flash(:info, "Item deleted successfully")
         |> push_patch(to: socket.assigns.auix[:_current_path])
@@ -294,9 +292,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   end
 
   def auix_handle_event(_caller, "delete", %{"id" => id}, %{assigns: %{auix: auix}} = socket) do
-    instance = auix.get_function.(id)
-    {:ok, _} = apply(auix.modules.context, auix.delete_function, [instance])
-    {:noreply, stream_delete(socket, auix.list_key, instance)}
+    entity = auix.get_function.(id)
+    {:ok, _} = auix.delete_function.(entity)
+    {:noreply, stream_delete(socket, auix.list_key, entity)}
   end
 
   def auix_handle_event(

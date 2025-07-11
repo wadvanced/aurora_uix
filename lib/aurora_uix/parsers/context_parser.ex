@@ -92,7 +92,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   end
 
   def default_value(%{module: module}, %{context: context}, :delete_function) do
-    filter_function(context, ["delete_#{module}", "delete_#{module}!"], 1)
+    create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
   end
 
   def default_value(%{module: module}, %{context: context}, :create_function) do

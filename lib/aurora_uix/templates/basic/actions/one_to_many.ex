@@ -153,7 +153,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
             value: %{id: elem(@auix.row_info, 0),
               context: @auix.association.related_resource_config.context,
               get_function: inspect(@auix.association.related_parsed_opts.get_function),
-              delete_function: @auix.association.related_parsed_opts.delete_function}
+              delete_function: inspect(@auix.association.related_parsed_opts.delete_function)}
           )
           |> hide("##{elem(@auix.row_info, 0)}")}
         name={"auix-delete-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
