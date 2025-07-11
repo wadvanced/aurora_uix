@@ -55,7 +55,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     related_resource_config =
       get_in(auix.configurations, [data.resource, :resource_config])
 
-    related_path = build_related_path(auix.source, field.data)
 
     related_class =
       "w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4"
@@ -67,7 +66,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       |> put_in([:auix, :association], %{})
       |> put_in([:auix, :association, :related_parsed_opts], related_parsed_opts)
       |> put_in([:auix, :association, :related_resource_config], related_resource_config)
-      |> put_in([:auix, :association, :related_path], related_path)
       |> put_in([:auix, :association, :related_class], related_class)
       |> put_in([:auix, :association, :related_fields], related_fields)
       |> put_in([:auix, :association, :related_key], field.data.related_key)
@@ -97,7 +95,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
             {Map.get(entity, related_field.key)}
           </:col>
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
-              {action.(%{auix: Map.put(@auix, :row_info, {entity.id, entity})})}
+              {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
           </:action>
         </.table>
       </div>
@@ -110,13 +108,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       </div>
     </div>
     """
-  end
-
-  # Builds the URL path template for related entity operations
-  # Returns path template with placeholders for dynamic values
-  @spec build_related_path(binary(), map()) :: binary()
-  defp build_related_path(source, data) do
-    "source=#{source}/\#{@auix.entity.id}&related_key=#{data.related_key}&parent_id=\#{@auix.entity.#{data.owner_key}}"
   end
 
   # Gets field configurations for associations from the resource configurations
