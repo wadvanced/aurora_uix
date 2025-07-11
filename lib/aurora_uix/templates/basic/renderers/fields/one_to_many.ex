@@ -55,7 +55,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     related_resource_config =
       get_in(auix.configurations, [data.resource, :resource_config])
 
-
     related_class =
       "w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4"
 

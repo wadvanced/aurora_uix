@@ -602,7 +602,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   `term()` | list() | nil - Return a single value if the primary key is an `atom()` or a single element list.
     Otherwise returns a list of values, each corresponding to each of the primary key list of fields.
   """
-  @spec primary_key_value(term(), atom() | list()) :: term() | list() | nil
+  @spec primary_key_value(term() | nil, atom() | list()) :: term() | list() | nil
+  def primary_key_value(entity, _primary_key) when is_nil(entity), do: nil
+
   def primary_key_value(entity, primary_key) when is_atom(primary_key) do
     Map.get(entity, primary_key)
   end
