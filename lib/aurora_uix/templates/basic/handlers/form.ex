@@ -196,7 +196,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
   end
 
   defp save_entity(%{assigns: %{auix: auix}}, :new, entity_params) do
-    apply(auix.modules.context, auix.create_function, [entity_params])
+    auix.create_function.(entity_params)
   end
 
   # Handles routing after save based on action and rendering context.
