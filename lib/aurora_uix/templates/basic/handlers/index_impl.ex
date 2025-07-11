@@ -213,7 +213,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   """
   @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
-    {:ok, stream(socket, auix.list_key, apply(auix.modules.context, auix.list_function, []))}
+    {:ok, stream(socket, auix.list_key, auix.list_function.([]))}
   end
 
   @doc """

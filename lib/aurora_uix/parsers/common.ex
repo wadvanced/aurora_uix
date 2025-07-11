@@ -46,7 +46,8 @@ defmodule Aurora.Uix.Parsers.Common do
       :name,
       :source,
       :title,
-      :primary_key
+      :primary_key,
+      :default_order_by
     ]
   end
 
@@ -99,6 +100,9 @@ defmodule Aurora.Uix.Parsers.Common do
       key -> key
     end
   end
+
+  def default_value(parsed_opts, %{schema: _module}, :default_order_by),
+    do: parsed_opts[:primary_key]
 
   ## PRIVATE
 

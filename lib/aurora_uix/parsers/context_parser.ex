@@ -14,11 +14,10 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   - Relies on naming conventions for default function detection unless overridden.
 
   ## Context Options
-  - `:list_function` - Name of the function for reading all the elements of the resource.
-    The name MUST be an atom, and the arity of the function is always 0.
-    The function is expected to return a list of elements.
-    By default, is list_<source>/0 or list_<schema_module>. The source, for ecto schema, is the name of the table,
-    while the schema_module is the name of the ecto schema module.
+  - `:list_function` - Function reference for reading all the elements of the resource.
+    It is expected a function with a 1 arity. The argument is a keyword of query options.
+    The function is expected to return a list of entities.
+    By default, is list_<source>/1. The source, for ecto schema, is the name of the table.
 
   - `:get_function` - Name of the function for getting one element of the resource.
     Its arity is always 1 and accepts the id of the element as the only argument.
@@ -85,7 +84,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
-    filter_function(context, ["list_#{source}", "list_#{module}"], 0)
+    create_function_reference(context, ["list_#{source}", "list_#{module}"], 1)
   end
 
   def default_value(%{module: module}, %{context: context}, :get_function) do
@@ -129,6 +128,26 @@ defmodule Aurora.Uix.Parsers.ContextParser do
     |> Enum.filter(&(&1 in implemented_functions))
     |> List.first(first_selected)
     |> to_atom()
+  end
+
+  @spec create_function_reference(module(), list(String.t()), integer()) :: function()
+  defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
+    implemented_functions =
+      :functions
+      |> context.__info__()
+      |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
+      |> Enum.map(&(&1 |> elem(0) |> to_string()))
+
+    function_name =
+      functions
+      |> Enum.filter(&(&1 in implemented_functions))
+      |> List.first(first_selected)
+
+    context
+    |> Module.concat(nil)
+    |> then(&"&#{&1}.#{function_name}/#{expected_arity}")
+    |> Code.eval_string()
+    |> elem(0)
   end
 
   # Converts a string or nil to an atom or nil.

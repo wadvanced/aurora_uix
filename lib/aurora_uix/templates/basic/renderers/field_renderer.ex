@@ -141,11 +141,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
            auix: %{configurations: configurations}
          } = assigns
        ) do
-    context = get_in(configurations, [resource_name, :resource_config, Access.key!(:context)])
     list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
 
-    context
-    |> apply(list_function, [])
+    []
+    |> list_function.()
     |> Enum.map(&get_many_to_one_select_option(assigns, &1))
     |> then(&%{options: &1, multiple: false})
   end
