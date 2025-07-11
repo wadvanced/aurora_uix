@@ -377,14 +377,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   end
 
   def auix_apply_action(%{assigns: %{auix: auix}} = socket, _caller, :new, params) do
-    assign_new_entity(
-      socket,
-      params,
-      apply(auix.modules.context, auix.new_function, [
-        %{},
-        [preload: auix.preload]
-      ])
-    )
+    assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
   end
 
   def auix_apply_action(socket, _caller, :index, _params) do
