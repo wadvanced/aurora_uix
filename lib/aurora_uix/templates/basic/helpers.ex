@@ -462,24 +462,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   end
 
   @doc """
-  Generates a link for showing an entity in the index view.
-
-  ## Parameters
-  - auix (map()) - Configuration map with index_show_entity_link setting
-  - entity (map()) - Entity data with id field
-
-  ## Returns
-  - binary()
-  """
-  @spec index_show_entity_link(map, map) :: binary
-  def index_show_entity_link(auix, entity) do
-    auix
-    |> Map.get(:index_show_entity_link, "#")
-    |> String.replace("[[entity]]", entity |> Map.get(:id) |> to_string())
-    |> then(fn link -> URI.decode("/#{link}") end)
-  end
-
-  @doc """
   Retrieves and processes field configuration from the resource configurations.
 
   Parameters:

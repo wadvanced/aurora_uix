@@ -18,7 +18,6 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   - `:disable_index_show_entity_link` (boolean()): Disables the show entity link in index views. Default: false.
   - `:index_row_click` (String.t()): URL template for row click navigation. Default: "<link_prefix><source>/[[entity]]".
   - `:index_new_link` (String.t()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
-  - `:index_show_entity_link` (String.t()): URL template for show entity link. Default: "<link_prefix><source>/[[entity]]" or "#" if disabled.
   """
 
   @behaviour Aurora.Uix.Parser
@@ -38,8 +37,7 @@ defmodule Aurora.Uix.Parsers.IndexParser do
       :disable_index_new_link,
       :disable_index_show_entity_link,
       :index_row_click,
-      :index_new_link,
-      :index_show_entity_link
+      :index_new_link
     ]
   end
 
@@ -74,11 +72,5 @@ defmodule Aurora.Uix.Parsers.IndexParser do
     if parsedOpts.disable_index_new_link,
       do: "#",
       else: "/#{parsedOpts[:link_prefix]}#{parsedOpts[:source]}/new"
-  end
-
-  def default_value(parsedOpts, _resource_config, :index_show_entity_link) do
-    if parsedOpts.disable_index_show_entity_link,
-      do: "#",
-      else: "#{parsedOpts[:link_prefix]}#{parsedOpts[:source]}/[[entity]]"
   end
 end

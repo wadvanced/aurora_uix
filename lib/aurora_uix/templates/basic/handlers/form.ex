@@ -207,7 +207,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
           boolean()
         ) :: Phoenix.LiveView.Socket.t()
   defp conditional_route_back(
-         %{assigns: %{auix: %{routing_stack: routing_stack, entity: entity}}} =
+         %{
+           assigns: %{
+             auix: %{routing_stack: routing_stack, entity: entity, primary_key: primary_key}
+           }
+         } =
            socket,
          :new,
          true
@@ -218,7 +222,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
     |> Map.get(:path)
     |> URI.parse()
     |> Map.get(:path)
-    |> then(&"#{&1}/#{Map.get(entity, :id)}/edit")
+    |> then(&"#{&1}/#{BasicHelpers.primary_key_value(entity, primary_key)}/edit")
     |> then(
       &assign_auix(
         socket,
