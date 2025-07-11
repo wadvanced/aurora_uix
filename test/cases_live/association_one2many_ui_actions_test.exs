@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
   @spec custom_new_child(map()) :: Rendered.t()
   def custom_new_child(assigns) do
     ~H"""
-      <.auix_link :if={!@auix.association.related_parsed_opts.disable_index_new_link && @auix[:layout_type] == :form && @auix.entity.id != nil}
+      <.auix_link :if={@auix[:layout_type] == :form && @auix.entity.id != nil}
           navigate={"#{@auix.association.related_parsed_opts.index_new_link}?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
           name={"auix-new-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
         custom new

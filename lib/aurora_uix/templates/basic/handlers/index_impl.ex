@@ -238,7 +238,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
 
     {:noreply,
      socket
-     |> assign_index_row_click(params)
      |> assign_auix(:form_component, form_component)
      |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
