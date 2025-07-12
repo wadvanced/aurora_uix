@@ -14,11 +14,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "handler-hooks-show-") do
-    show_layout :product, handler_module: Aurora.Uix.Test.Web.ShowHandlerHook do
-      stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
-    end
-
-    edit_layout :product do
+    edit_layout :product, show_handler_module: Aurora.Uix.Test.Web.ShowHandlerHook do
       stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
     end
   end
@@ -275,16 +271,16 @@ defmodule Aurora.Uix.Test.Web.ShowHandlerHook do
   @doc """
   Just DO nothing to delete the transaction
   """
-  @spec auix_handle_event(module(), binary(), map(), Socket.t()) ::
+  @spec handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
-  def auix_handle_event(_caller, "delete", _params, socket) do
+  def handle_event("delete", _params, socket) do
     {:noreply,
      socket
      |> put_flash(:info, "Item deleted successfully")
      |> push_patch(to: socket.assigns.auix[:_current_path])}
   end
 
-  def auix_handle_event(caller, event, params, socket) do
-    super(caller, event, params, socket)
+  def handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 end
