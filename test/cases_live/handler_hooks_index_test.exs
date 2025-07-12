@@ -40,8 +40,8 @@ defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
 
   alias Phoenix.LiveView.Socket
 
-  @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
+  @spec auix_mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     {:ok,
      stream(
        socket,

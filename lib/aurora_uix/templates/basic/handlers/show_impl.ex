@@ -33,8 +33,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   Initializes the LiveView socket for the show modal.
 
   ## Parameters
-  - `caller` (module()) - The calling module.
-  - `params` (map()) - URL/query parameters.
+    - `params` (map()) - URL/query parameters.
   - `session` (map()) - Session data.
   - `socket` (Socket.t()) - LiveView socket.
 
@@ -43,7 +42,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
 
   """
   @callback auix_mount(
-              caller :: module(),
               params :: map(),
               session :: map(),
               socket :: Socket.t()
@@ -53,8 +51,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   Handles URL parameter changes, updates routing stack, and assigns form component.
 
   ## Parameters
-  - `caller` (module()) - The calling module.
-  - `params` (map()) - URL/query parameters.
+    - `params` (map()) - URL/query parameters.
   - `url` (binary()) - Current URL.
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
@@ -63,7 +60,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
 
   """
   @callback auix_handle_params(
-              caller :: module(),
               params :: map(),
               url :: binary(),
               socket :: Socket.t()
@@ -74,8 +70,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   Handles all LiveView events for the show modal.
 
   ## Parameters
-  - `caller` (module()) - The calling module.
-  - `event` (binary()) - Event name.
+    - `event` (binary()) - Event name.
   - `params` (map()) - Event parameters.
   - `socket` (Socket.t()) - LiveView socket.
 
@@ -84,7 +79,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
 
   """
   @callback auix_handle_event(
-              caller :: module(),
               event :: binary(),
               params :: map(),
               socket :: Socket.t()
@@ -100,7 +94,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
       @impl LiveView
       @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
       def mount(params, session, socket) do
-        auix_mount(__MODULE__, params, session, socket)
+        auix_mount(params, session, socket)
       end
 
       @doc false
@@ -108,7 +102,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
       @spec handle_params(map(), binary(), Socket.t()) ::
               {:noreply, Socket.t()}
       def handle_params(params, url, socket) do
-        auix_handle_params(__MODULE__, params, url, socket)
+        auix_handle_params(params, url, socket)
       end
 
       @doc false
@@ -116,19 +110,19 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
       @spec handle_event(binary(), map(), Socket.t()) ::
               {:noreply, Socket.t()}
       def handle_event(event, params, socket) do
-        auix_handle_event(__MODULE__, event, params, socket)
+        auix_handle_event(event, params, socket)
       end
 
       @impl ShowImpl
-      defdelegate auix_mount(caller, params, session, socket), to: ShowImpl
+      defdelegate auix_mount(params, session, socket), to: ShowImpl
 
       @impl ShowImpl
-      defdelegate auix_handle_params(caller, params, url, socket), to: ShowImpl
+      defdelegate auix_handle_params(params, url, socket), to: ShowImpl
 
       @impl ShowImpl
-      defdelegate auix_handle_event(caller, event, params, socket), to: ShowImpl
+      defdelegate auix_handle_event(event, params, socket), to: ShowImpl
 
-      defoverridable auix_mount: 4, auix_handle_params: 4, auix_handle_event: 4
+      defoverridable ShowImpl
     end
   end
 
@@ -136,7 +130,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   Initializes the LiveView socket for the show page.
 
   ## Parameters
-    - `caller` (module()) - Caller module.
     - `params` (map()) - Request parameters (unused).
     - `session` (map()) - Session data (unused).
     - `socket` (Socket.t()) - The LiveView socket.
@@ -145,8 +138,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
 
     - `{:ok, Socket.t()}` - The initialized socket.
   """
-  @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def auix_mount(_caller, _params, _session, socket) do
+  @spec auix_mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_mount(_params, _session, socket) do
     {:ok, socket}
   end
 
@@ -154,7 +147,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   Handles URL parameter changes and loads the entity for display.
 
   ## Parameters
-    - `caller` (module()) - Caller module.
     - `params` (map()) - Parameters including the entity ID.
     - `url` (binary()) - The current URL.
     - `socket` (Socket.t()) - The LiveView socket with `:auix` assigns.
@@ -163,9 +155,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
 
     - `{:noreply, Socket.t()}` - The updated socket with entity and navigation assigns.
   """
-  @spec auix_handle_params(module(), map(), binary(), Socket.t()) ::
+  @spec auix_handle_params(map(), binary(), Socket.t()) ::
           {:noreply, Socket.t()}
-  def auix_handle_params(_caller, %{"id" => id} = params, url, %{assigns: %{auix: auix}} = socket) do
+  def auix_handle_params(%{"id" => id} = params, url, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
     {:noreply,
@@ -200,14 +192,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
     - `{:noreply, Socket.t()}` - The updated socket.
 
   """
-  @spec auix_handle_event(module(), binary(), map(), Socket.t()) ::
+  @spec auix_handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
-  def auix_handle_event(_caller, "switch_section", %{"tab-id" => sections_tab_id}, socket) do
+  def auix_handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
     %{"sections_id" => sections_id, "tab_id" => tab_id} = Jason.decode!(sections_tab_id)
     {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
   end
 
-  def auix_handle_event(_caller, "delete", params, socket) do
+  def auix_handle_event("delete", params, socket) do
     %{
       "id" => id,
       "get_function" => get_function_string,
@@ -231,7 +223,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   end
 
   def auix_handle_event(
-        _caller,
         "auix_route_forward",
         %{"route_type" => "navigate", "route_path" => path},
         socket
@@ -240,7 +231,6 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
   end
 
   def auix_handle_event(
-        _caller,
         "auix_route_forward",
         %{"route_type" => "patch", "route_path" => path},
         socket
@@ -248,7 +238,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
     {:noreply, auix_route_forward(socket, patch: path)}
   end
 
-  def auix_handle_event(_caller, "auix_route_back", _params, socket) do
+  def auix_handle_event("auix_route_back", _params, socket) do
     {:noreply, auix_route_back(socket)}
   end
 end

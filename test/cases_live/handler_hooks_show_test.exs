@@ -275,16 +275,16 @@ defmodule Aurora.Uix.Test.Web.ShowHandlerHook do
   @doc """
   Just DO nothing to delete the transaction
   """
-  @spec auix_handle_event(module(), binary(), map(), Socket.t()) ::
+  @spec auix_handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
-  def auix_handle_event(_caller, "delete", _params, socket) do
+  def auix_handle_event("delete", _params, socket) do
     {:noreply,
      socket
      |> put_flash(:info, "Item deleted successfully")
      |> push_patch(to: socket.assigns.auix[:_current_path])}
   end
 
-  def auix_handle_event(caller, event, params, socket) do
-    super(caller, event, params, socket)
+  def auix_handle_event(event, params, socket) do
+    super(event, params, socket)
   end
 end
