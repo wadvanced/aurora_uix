@@ -117,8 +117,16 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   Returns the handler module or the default one.
   """
   @spec handler_module(map(), module()) :: module()
-  def handler_module(%{layout_tree: %{opts: opts}} = _parsed_opts, default_module) do
+  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :index}, default_module) do
     Keyword.get(opts, :handler_module, default_module)
+  end
+
+  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :show}, default_module) do
+    Keyword.get(opts, :show_handler_module, default_module)
+  end
+
+  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :form}, default_module) do
+    Keyword.get(opts, :edit_handler_module, default_module)
   end
 
   def handler_module(_parsed_opts, default_module), do: default_module

@@ -38,15 +38,22 @@ end
 defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
   use Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
 
+  alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
   alias Phoenix.LiveView.Socket
 
-  @spec auix_mount(module(), map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def auix_mount(_caller, _params, _session, %{assigns: %{auix: auix}} = socket) do
+  @impl Phoenix.LiveView
+  @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
+  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     {:ok,
      stream(
        socket,
        auix.list_key,
        auix.list_function.(where: {:reference, :lt, "item_test-06"})
      )}
+  end
+
+  @impl IndexImpl
+  def apply_action(socket, params) do
+    super(socket, params)
   end
 end
