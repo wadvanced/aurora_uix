@@ -314,9 +314,27 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
 
   ## Options
-  - `:page_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page title for the index layout. Example: `page_title: "Products List"` or `page_title: &custom_page_title/1`.
-  - `:page_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
+  - `:page_title` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page title for the index layout. Example: `page_title: "Products List"` or `page_title: &custom_page_title/1`.
+  - `:page_subtitle` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
+  - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
+    Takes precedence over any order_by set in `auix_resource_metadata`.
+    See `Aurora.Uix.Layout.ResourceMetadata.auix_resource_metadata/3` for details.
   - Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom_renderer/1]]`).
+
+  ## Field-level Options
+  Besides the metadata options, there are some field types that can accept specific options for changing the way they are rendered.
+
+  ### Fields representing **one-to-many** association.
+  - `:order_by` (atom() | list() | keyword()) - `Order by` used for displaying the related items.ç
+    Uses the same criteria as the `order_by` option described above.
+
+  ### Fields representing **many-to-one** association related field.
+  Those are the fields that referred the id that associates the many to one relation. For example: product_id.
+  They are, by default, represented as a select html type.
+  - `:option_label` (atom() | function()) - The label to be shown for each option. Can be:
+    - atom() - Renders the field contents.
+    - function/1 - Receives the entity as an argument, must return a `Phoenix.LiveView.Rendered.t()`
+    - function/2 - Receives assigns and the entity as arguments, expected to return `Phoenix.LiveView.Rendered.t()`
 
   ## Actions
   The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):

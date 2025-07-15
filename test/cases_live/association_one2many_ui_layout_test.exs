@@ -15,7 +15,13 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "association-one_to_many-layout-") do
     edit_layout :product do
-      stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
+      stacked([
+        :reference,
+        :name,
+        :description,
+        :quantity_initial,
+        product_transactions: [order_by: [desc: :quantity]]
+      ])
     end
   end
 
@@ -46,6 +52,26 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     |> create_multiple_transactions(product_id, "form")
     |> edit_single_transaction(product_id, "form")
     |> delete_single_transaction(product_id, "form")
+  end
+
+  test "Test order_by", %{conn: conn} do
+    product_id =
+      1
+      |> create_sample_products_with_transactions(10, :one2)
+      |> List.first()
+      |> elem(1)
+      |> Map.get(:id)
+
+    expected_result =
+      [order_by: [desc: :quantity], where: [product_id: product_id]]
+      |> Inventory.list_product_transactions()
+      |> Enum.map(&(&1 |> Map.get(:quantity) |> to_string()))
+
+    {:ok, _view, html} = live(conn, "/association-one_to_many-layout-products/#{product_id}")
+
+    assert html
+           |> Floki.find("tbody#product__product_transactions-show tr td:nth-of-type(3)")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == expected_result
   end
 
   @spec visit_products_index(Plug.Conn.t()) :: {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}

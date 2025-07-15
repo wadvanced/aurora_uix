@@ -73,14 +73,18 @@ defmodule Aurora.Uix.Test.Support.Helper do
   ## Returns
   list(ProductLocation.t()) - List of created product locations.
   """
-  @spec create_sample_product_locations(integer()) :: list(ProductLocation.t())
-  def create_sample_product_locations(locations_count) do
+  @spec create_sample_product_locations(integer(), atom() | nil) :: list(ProductLocation.t())
+  def create_sample_product_locations(locations_count, prefix \\ nil) do
+    length = locations_count |> to_string() |> String.length()
+
     1..locations_count
     |> Enum.map(fn index ->
+      reference_id = reference_id(prefix, index, length)
+
       %ProductLocation{
-        reference: "test-reference-#{index}",
-        name: "test-name-#{index}",
-        type: "test-type-#{index}"
+        reference: "test-reference-#{reference_id}",
+        name: "test-name-#{reference_id}",
+        type: "test-type-#{reference_id}"
       }
       |> Repo.insert()
       |> elem(1)

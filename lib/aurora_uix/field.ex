@@ -167,6 +167,7 @@ defmodule Aurora.Uix.Field do
   @doc """
   Implements `Access.fetch/2` for the field struct.
   """
+  @impl Access
   @spec fetch(__MODULE__.t(), atom()) :: any()
   def fetch(field, key) do
     Map.get(field, key)
@@ -175,6 +176,7 @@ defmodule Aurora.Uix.Field do
   @doc """
   Implements `Access.get_and_update/3` for the field struct.
   """
+  @impl Access
   @spec get_and_update(map(), atom(), (any() -> {any(), any()} | :pop)) :: {any(), map()}
   def get_and_update(data, key, function) do
     data
@@ -186,6 +188,7 @@ defmodule Aurora.Uix.Field do
   @doc """
   Implements `Access.pop/2` for the field struct.
   """
+  @impl Access
   @spec pop(map(), atom()) :: {any(), map()}
   def pop(data, key) do
     if Map.has_key?(data, key) do
