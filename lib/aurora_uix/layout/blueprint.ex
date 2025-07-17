@@ -319,6 +319,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
     Takes precedence over any order_by set in `auix_resource_metadata`.
     See `Aurora.Uix.Layout.ResourceMetadata.auix_resource_metadata/3` for details.
+  - `:where` (keyword()) - Where clauses to use for filtering the items to show.
   - Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom_renderer/1]]`).
 
   ## Field-level Options
