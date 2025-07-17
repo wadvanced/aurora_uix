@@ -136,19 +136,22 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
          %{
            field: %{
              html_type: :select,
-             data: %{resource: resource_name}
+             data: %{resource: resource_name} = data
            },
            auix: %{configurations: configurations}
          } = assigns
        ) do
     list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
 
-    []
+    data
+    |> Map.get(:query_opts, [])
     |> list_function.()
     |> Enum.map(&get_many_to_one_select_option(assigns, &1))
+    |> maybe_add_nil_option()
     |> then(&%{options: &1, multiple: false})
   end
 
+  # Hardcoded select options
   defp get_select_options(%{field: %{html_type: :select, data: select}}) do
     case select[:opts] do
       nil ->
@@ -160,8 +163,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
     end
   end
 
+  # Not defined
   defp get_select_options(_assigns), do: %{options: [], multiple: false}
 
+  # Read from table
   @spec get_many_to_one_select_option(map(), term()) :: tuple()
   defp get_many_to_one_select_option(
          %{field: %{data: %{option_label: option_label, related_key: related_key}}},
@@ -189,5 +194,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
 
   defp get_many_to_one_select_option(%{field: %{data: %{related_key: related_key}}}, entity) do
     {entity |> Map.get(related_key) |> to_string(), Map.get(entity, related_key)}
+  end
+
+  @spec maybe_add_nil_option(keyword()) :: keyword()
+  defp maybe_add_nil_option(options) do
+    if Enum.any?(options, fn {key, _value} -> is_nil(key) end) do
+      options
+    else
+      [{nil, nil} | options]
+    end
   end
 end

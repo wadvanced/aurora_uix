@@ -72,6 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       |> put_in([:auix, :association, :parsed_opts], parsed_opts)
       |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
       |> OneToManyActions.set_actions()
+      |> apply_options()
 
     ~H"""
     <div class="flex flex-col" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
@@ -121,5 +122,57 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
       |> BasicHelpers.get_field(configurations, field.data.resource)
       |> then(&%{label: &1.label, key: &1.key, type: &1.type})
     end)
+  end
+
+  @spec apply_options(map()) :: map()
+  defp apply_options(%{auix: %{layout_tree: %{opts: opts}}} = assigns) do
+    opts
+    |> Enum.reduce(assigns, &apply_option(&2, &1))
+    |> maybe_apply_where()
+  end
+
+  @spec apply_option(map(), tuple()) :: map()
+  defp apply_option(
+         %{auix: %{association: association}} = assigns,
+         {:order_by, _order_by} = order_by_option
+       ) do
+    association
+    |> Map.get(:query_opts, [])
+    |> then(&put_in(assigns, [:auix, :association, :query_opts], [order_by_option | &1]))
+  end
+
+  defp apply_option(assigns, _opt), do: assigns
+
+  @spec maybe_apply_where(map()) :: map()
+  defp maybe_apply_where(
+         %{
+           auix: %{association: %{query_opts: query_opts} = association, entity: entity} = auix,
+           field: field
+         } = assigns
+       ) do
+    owner_keys = Enum.map(auix.primary_key, &Map.get(entity, &1))
+
+    if Enum.any?(owner_keys, &is_nil/1) do
+      assigns
+    else
+      owner_keys
+      |> merge_keys(association.related_key)
+      |> then(&association.related_parsed_opts.list_function.([{:where, &1} | query_opts]))
+      |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
+    end
+  end
+
+  defp maybe_apply_where(assigns), do: assigns
+
+  @spec merge_keys(list(), list() | atom(), list()) :: list()
+  defp merge_keys(owner_keys, related_keys, result \\ [])
+  defp merge_keys([], _, result), do: result
+  defp merge_keys(_, [], result), do: result
+
+  defp merge_keys([owner_key | _owner_keys], related_key, _result) when is_atom(related_key),
+    do: {related_key, owner_key}
+
+  defp merge_keys([owner_key | owner_keys], [related_key | related_keys], result) do
+    merge_keys(owner_keys, related_keys, [{related_key, owner_key} | result])
   end
 end

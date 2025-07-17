@@ -48,7 +48,12 @@ Aurora UIX supports two types of associations: **many-to-one** (`belongs_to`) an
 
 ### Many-to-One
 
+By default, if a field represents a many-to-one association, it is automatically considered a select html type, and will 
+be rendered as such. You can bypass this behaviour by setting the `html_type` option to another type.
+
 The `option_label` option is used **only** for many-to-one associations rendered as select dropdowns. It controls what is shown as the label for each option in the dropdown. By default, the related key (usually an ID) is shown, but you can specify a field (atom), a function, or a function with arity 2 for more advanced labeling.
+
+The `order_by` option is used **only** for many-to-one associations rendered as select dropdowns when the `option_label` option is set to a field.
 
 **Usage:**
 
@@ -75,14 +80,25 @@ The `option_label` option is used **only** for many-to-one associations rendered
   ```
   The function receives the assigns and each instance of the associated entity, and should return a string label.
 
-**Example:**
+**Examples:**
 
 ```elixir
+# Renders a selector displaying the name contents as the option labels.
+# Options are ordered by name.
 auix_resource_metadata :product, schema: MyApp.Product do
   field :category_id, html_type: :select, option_label: :name
+end
+```
+```elixir
+# Renders a selector displaying the name contents as the option labels.
+# Options are ordered by the reference contents (not displayed).
+auix_resource_metadata :product, context: Inventory, schema: Product do
+  field :category_id, option_label: :name, order_by: [desc: :reference]
 end
 ```
 
 ### One-to-Many
 
-For **one-to-many associations** (`has_many`), the `option_label` option is not applicable.
+Fields representing a **one-to-many** (`has_many`) association are rendered as a list with actions
+for adding, editing, deleting and sorting.
+

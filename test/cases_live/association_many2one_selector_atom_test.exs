@@ -7,6 +7,29 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
   alias Aurora.Uix.Test.Inventory.ProductLocation
   alias Aurora.Uix.Test.Inventory.ProductTransaction
 
+  @test_names [
+    "test-name-many2-20",
+    "test-name-many2-19",
+    "test-name-many2-18",
+    "test-name-many2-17",
+    "test-name-many2-16",
+    "test-name-many2-15",
+    "test-name-many2-14",
+    "test-name-many2-13",
+    "test-name-many2-12",
+    "test-name-many2-11",
+    "test-name-many2-10",
+    "test-name-many2-09",
+    "test-name-many2-08",
+    "test-name-many2-07",
+    "test-name-many2-06",
+    "test-name-many2-05",
+    "test-name-many2-04",
+    "test-name-many2-03",
+    "test-name-many2-02",
+    "test-name-many2-01"
+  ]
+
   auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
     field(:products, omitted: true)
   end
@@ -16,7 +39,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
   end
 
   auix_resource_metadata(:product, context: Inventory, schema: Product) do
-    field(:product_location_id, option_label: :name)
+    field(:product_location_id, option_label: :name, order_by: [desc: :name])
   end
 
   # When you define a link in a test, add a line to test/support/app_web/router.exs
@@ -107,5 +130,30 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
              "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value='#{location_id_2}']",
              name_2
            )
+  end
+
+  test "Test selector order by", %{conn: conn} do
+    location_id =
+      20
+      |> create_sample_product_locations(:many2)
+      |> get_in(["id_1", Access.key!(:id)])
+
+    product_id =
+      1
+      |> create_sample_products(:test, %{product_location_id: location_id})
+      |> get_in([Access.key!("id_test-1"), Access.key!(:id)])
+
+    {:ok, _view, html} =
+      live(
+        conn,
+        "/association-many_to_one_selector-atom-products/#{product_id}/edit"
+      )
+
+    assert html
+           |> Floki.find(
+             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option"
+           )
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim()))
+           |> Enum.filter(&String.starts_with?(&1, "test-name-many2-")) == @test_names
   end
 end

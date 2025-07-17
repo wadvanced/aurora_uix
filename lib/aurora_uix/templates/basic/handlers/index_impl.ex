@@ -126,7 +126,20 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
-    {:ok, stream(socket, auix.list_key, auix.list_function.([]))}
+    layout_opts = Map.get(auix.layout_tree, :opts, [])
+
+    opts =
+      auix
+      |> get_in([:configurations, auix.resource_name, :resource_config])
+      |> Map.get(:opts, [])
+      |> Keyword.merge(layout_opts)
+
+    {:ok,
+     stream(
+       socket,
+       auix.list_key,
+       auix.list_function.(order_by: Keyword.get(opts, :order_by, []))
+     )}
   end
 
   @doc """

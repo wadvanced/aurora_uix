@@ -165,8 +165,30 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   ## Options
   - `:schema` (module()) - Required. Ecto schema/data structure module.
   - `:context` (module()) - Optional. Context module with data functions.
-  - `:include_associations` (boolean()) - Optional. Auto-configure associations.
+  - `:order_by` (atom() | list() | keyword()) - Optional. Order used for displaying the index.
+    - atom() - Accepts an atom referencing a field.
+    - list() - Accepts a list of fields (atoms).
+    - keyword() -  Accepts keywords indicating the direction of the sort (:asc, :desc)
+      See [Ecto.Query.order_by/3](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3)
+      for details about the supported directions.
+  ### Examples
+  ```elixir
+    # Single field
+    auix_resource_metadata(:product,
+      context: Inventory,
+      schema: Product,
+      order_by: :reference
+    )
+  ```
 
+  ```elixir
+    # Changed direction field
+    auix_resource_metadata(:product,
+      context: Inventory,
+      schema: Product,
+      order_by: [desc: :reference]
+    )
+  ```
   ## Returns
   `Macro.t()` - Configured metadata block for the resource.
   """
@@ -280,11 +302,17 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp configure_resource_fields(resource) do
     schema = resource.opts[:schema]
 
+    opts =
+      resource.opts
+      |> Keyword.delete(:schema)
+      |> Keyword.delete(:context)
+
     resource =
       %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{
+        opts: opts,
         fields: parse_fields(schema, resource.name),
         inner_elements: resource.inner_elements
       })
@@ -320,20 +348,33 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   @spec apply_field_change(keyword(), Field.t()) :: Field.t()
+  defp apply_field_change([], field), do: field
+
   defp apply_field_change(change, field) do
     change
-    |> Enum.map(&maybe_add_option_to_data(&1, field))
+    |> Enum.reduce(%{data: Map.get(field, :data, %{})}, &maybe_add_option_to_data(&1, &2))
     |> then(&Field.change(field, &1))
   end
 
-  @spec maybe_add_option_to_data(tuple(), Field.t()) :: tuple()
-  defp maybe_add_option_to_data({:option_label, option_label}, field) do
-    field
+  @spec maybe_add_option_to_data(tuple(), map()) :: map()
+  defp maybe_add_option_to_data({:option_label, option_label}, result) do
+    result
     |> Map.get(:data, %{})
-    |> then(&{:data, Map.put(&1, :option_label, option_label)})
+    |> Map.put(:option_label, option_label)
+    |> then(&Map.put(result, :data, &1))
   end
 
-  defp maybe_add_option_to_data(option, _field), do: option
+  defp maybe_add_option_to_data({:order_by, order_by}, result) do
+    data = Map.get(result, :data, %{})
+
+    data
+    |> Map.get(:query_opts, [])
+    |> Keyword.put(:order_by, order_by)
+    |> then(&Map.put(data, :query_opts, &1))
+    |> then(&Map.put(result, :data, &1))
+  end
+
+  defp maybe_add_option_to_data({key, value}, result), do: Map.put(result, key, value)
 
   # Reorder fields based on config block order:
   # - Keeps configured fields in order of appearance
