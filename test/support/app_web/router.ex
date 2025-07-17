@@ -155,6 +155,11 @@ defmodule Aurora.Uix.Test.Web.Router do
       "where-layout-"
     )
 
+    Web.register_product_crud(
+      WhereOne2ManyTest,
+      "where-one_to_many-"
+    )
+
     ## You can create a file test/cases_live/-local-demo_test.exs
     ## With Aurora.Uix.Test.Web.LocalDemoTest module
     ## And then test its output in /local-demo-products
