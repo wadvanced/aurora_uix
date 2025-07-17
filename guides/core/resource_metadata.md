@@ -99,6 +99,27 @@ end
 
 ### One-to-Many
 
-Fields representing a **one-to-many** (`has_many`) association are rendered as a list with actions
-for adding, editing, deleting and sorting.
+Fields representing a **one-to-many** (`has_many`) association are rendered as a list with 
+customizable actions for adding, editing, deleting. There are options for sorting and filtering.
+
+These are the available options:
+- `:order_by` allows to change the order of how the initial list of elements are rendered.
+- `:where` defines filtering.
+
+**Usage:**
+```elixir
+  auix_create_ui do
+    edit_layout :product do
+      stacked([
+        :reference,
+        :name,
+        :description
+        product_transactions: [order_by: [desc: :quantity], where: {:quantity, :between, 8, 16}]
+      ])
+    end
+  end
+```
+
+
+
 

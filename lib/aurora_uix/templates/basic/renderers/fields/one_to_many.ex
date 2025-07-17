@@ -134,11 +134,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   @spec apply_option(map(), tuple()) :: map()
   defp apply_option(
          %{auix: %{association: association}} = assigns,
-         {:order_by, _order_by} = order_by_option
-       ) do
+         {option_key, _option_value} = option
+       )
+       when option_key in [:order_by, :where] do
     association
     |> Map.get(:query_opts, [])
-    |> then(&put_in(assigns, [:auix, :association, :query_opts], [order_by_option | &1]))
+    |> then(&put_in(assigns, [:auix, :association, :query_opts], [option | &1]))
   end
 
   defp apply_option(assigns, _opt), do: assigns
@@ -155,8 +156,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
     if Enum.any?(owner_keys, &is_nil/1) do
       assigns
     else
+      {custom_where, query_opts} = Keyword.pop(query_opts, :where)
+
       owner_keys
       |> merge_keys(association.related_key)
+      |> merge_custom_where(custom_where)
       |> then(&association.related_parsed_opts.list_function.([{:where, &1} | query_opts]))
       |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end
@@ -164,13 +168,27 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
 
   defp maybe_apply_where(assigns), do: assigns
 
+  @spec merge_custom_where(list(), term() | nil) :: list()
+  defp merge_custom_where(related_where, nil), do: related_where
+  defp merge_custom_where(related_where, []), do: related_where
+
+  defp merge_custom_where(related_where, custom_where) when is_list(custom_where) do
+    custom_where
+    |> Enum.reduce(related_where, &[&1 | &2])
+    |> Enum.reverse()
+  end
+
+  defp merge_custom_where(related_where, custom_where) do
+    Enum.reverse([custom_where | related_where])
+  end
+
   @spec merge_keys(list(), list() | atom(), list()) :: list()
   defp merge_keys(owner_keys, related_keys, result \\ [])
   defp merge_keys([], _, result), do: result
   defp merge_keys(_, [], result), do: result
 
   defp merge_keys([owner_key | _owner_keys], related_key, _result) when is_atom(related_key),
-    do: {related_key, owner_key}
+    do: [{related_key, owner_key}]
 
   defp merge_keys([owner_key | owner_keys], [related_key | related_keys], result) do
     merge_keys(owner_keys, related_keys, [{related_key, owner_key} | result])
