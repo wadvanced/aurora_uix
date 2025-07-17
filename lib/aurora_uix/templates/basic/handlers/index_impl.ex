@@ -138,7 +138,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
      stream(
        socket,
        auix.list_key,
-       auix.list_function.(order_by: Keyword.get(opts, :order_by, []))
+       auix.list_function.(
+         order_by: Keyword.get(opts, :order_by, []),
+         where: Keyword.get(opts, :where, [])
+       )
      )}
   end
 

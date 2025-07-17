@@ -110,13 +110,22 @@ end
 
 If you omit a layout, Aurora UIX generates a default layout for index, show and edit.
 
-## Titles and Subtitles in Layouts
+## Layouts Customization
 
-Aurora UIX layouts support customizable titles and subtitles for each view (index, form, show) via layout options. These options let you control the text shown at the top of each page or section, and can be static strings or dynamic functions.
+Aurora UIX layouts support customizing each view (index, form, show) via layout options. 
+Refer to the `Aurora.Uix.Layout.Blueprint` module for detailed options' descriptions in its documentation.
+For titles and subtitle options see `Aurora.Uix.Layout.Options` modules documentation. 
 
-### Supported Options
+- **Index Layout**:
+  - `:order_by` - Allows customization of the initial order to use when rendering the index rows.
+    - This setting takes precedence over `auix_resource_metadata` disposition.
+    - See module `Aurora.Ctx.QueryBuilder` for its syntax.
+    - Defaults: Schema primary key.
+  - `:where` - Option for setting custom filtering for the index rows.
+    - See module `Aurora.Ctx.QueryBuilder` for its syntax.
+    - Defaults: *(none by default)*
 
-- **Index and Show Layouts** (see also `Aurora.Uix.Layout.Options.Page`):
+- **Index and Show Layouts**:
   - `:page_title` – The main title for the page (e.g., "Product Details" or "Listing Products").
     - Accepts a string or a function reference of arity 1 (receives assigns).
     - Defaults:
@@ -126,9 +135,9 @@ Aurora UIX layouts support customizable titles and subtitles for each view (inde
     - Accepts a string or a function reference of arity 1.
     - Defaults:
       - Show: `"Details"`
-      - Index: *(none by default)*
+      - Index: *(none by default)*  
 
-- **Form Layouts** (see also `Aurora.Uix.Layout.Options.Form`):
+- **Form Layouts**:
   - `:edit_title` – Title for the edit form.
     - Accepts a string or a function reference of arity 1.
     - Default: `"Edit {name}"`
@@ -169,7 +178,6 @@ index_columns :product, [:reference, :name, :description],
 
 If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
 
-For more details, see the documentation for `Aurora.Uix.Layout.Options.Page`, `Aurora.Uix.Layout.Options.Form`, and `Aurora.Uix.Web.Templates.Basic.Actions.Index`.
 
 ### Actions
 

@@ -364,12 +364,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(&Map.put(result, :data, &1))
   end
 
-  defp maybe_add_option_to_data({:order_by, order_by}, result) do
+  defp maybe_add_option_to_data({option_key, option_value}, result)
+       when option_key in [:order_by, :where] do
     data = Map.get(result, :data, %{})
 
     data
     |> Map.get(:query_opts, [])
-    |> Keyword.put(:order_by, order_by)
+    |> Keyword.put(option_key, option_value)
     |> then(&Map.put(data, :query_opts, &1))
     |> then(&Map.put(result, :data, &1))
   end
