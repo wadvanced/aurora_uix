@@ -326,8 +326,9 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Besides the metadata options, there are some field types that can accept specific options for changing the way they are rendered.
 
   ### Fields representing **one-to-many** association.
-  - `:order_by` (atom() | list() | keyword()) - `Order by` used for displaying the related items.ç
+  - `:order_by` (atom() | list() | keyword()) - `Order by` used for displaying the related items.
     Uses the same criteria as the `order_by` option described above.
+  - `:where` (list()) - Allows filtering the rendered options.
 
   ### Fields representing **many-to-one** association related field.
   Those are the fields that referred the id that associates the many to one relation. For example: product_id.
