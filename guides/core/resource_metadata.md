@@ -53,7 +53,7 @@ be rendered as such. You can bypass this behaviour by setting the `html_type` op
 
 The `option_label` option is used **only** for many-to-one associations rendered as select dropdowns. It controls what is shown as the label for each option in the dropdown. By default, the related key (usually an ID) is shown, but you can specify a field (atom), a function, or a function with arity 2 for more advanced labeling.
 
-The `order_by` option is used **only** for many-to-one associations rendered as select dropdowns when the `option_label` option is set to a field.
+The `order_by`, and `where` options are enabled **only** for many-to-one associations rendered as select dropdowns when the `option_label` option is set to a field reference (atom).
 
 **Usage:**
 
@@ -93,7 +93,10 @@ end
 # Renders a selector displaying the name contents as the option labels.
 # Options are ordered by the reference contents (not displayed).
 auix_resource_metadata :product, context: Inventory, schema: Product do
-  field :category_id, option_label: :name, order_by: [desc: :reference]
+  field :category_id, option_label: :name, [
+    order_by: [desc: :reference], 
+    where: [{:name, :between, "A", "Z"}]
+  ]
 end
 ```
 
