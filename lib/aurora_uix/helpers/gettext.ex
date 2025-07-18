@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Gettext do
+defmodule Aurora.Uix.Gettext do
   @moduledoc """
   Provides dynamic Gettext functionality for Aurora UIX, allowing the backend to be determined by
   an environment variable or application configuration.
@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Web.Gettext do
 
   ## Key Constraints
   - The backend can be set via the `:backend` option or the `:gettext_backend` application config.
-  - If no backend is specified, defaults to `Aurora.Uix.Web.GettextBackend`.
+  - If no backend is specified, defaults to `Aurora.Uix.GettextBackend`.
   """
 
   @doc """
@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Web.Gettext do
   ## Parameters
   - `opts` (keyword()) - Options for configuring the backend. Options:
     * `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
-      `Aurora.Uix.Web.GettextBackend`.
+      `Aurora.Uix.GettextBackend`.
 
   ## Returns
   - `Macro.t()` - A quoted expression that injects Gettext or imports the configured backend.
@@ -27,11 +27,11 @@ defmodule Aurora.Uix.Web.Gettext do
   ## Examples
   ```elixir
   defmodule MyApp.Gettext do
-    use Aurora.Uix.Web.Gettext
+    use Aurora.Uix.Gettext
   end
 
   defmodule MyApp.Gettext do
-    use Aurora.Uix.Web.Gettext, backend: MyCustomBackend
+    use Aurora.Uix.Gettext, backend: MyCustomBackend
   end
 
   # Usage in runtime
@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Web.Gettext do
   """
   @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
-    default_backend = opts[:backend] || Aurora.Uix.Web.GettextBackend
+    default_backend = opts[:backend] || Aurora.Uix.GettextBackend
 
     backend_module =
       Application.get_env(:aurora_uix, :gettext_backend, default_backend)

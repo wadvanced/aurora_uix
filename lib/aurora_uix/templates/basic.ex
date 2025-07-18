@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic do
+defmodule Aurora.Uix.Templates.Basic do
   @moduledoc """
   Provides a unified interface for template generation in Aurora UIX, implementing the `Aurora.Uix.Template` behavior and coordinating specialized components for layout parsing, module generation, and markup creation.
 
@@ -24,8 +24,8 @@ defmodule Aurora.Uix.Web.Templates.Basic do
 
   @behaviour Aurora.Uix.Template
 
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
-  alias Aurora.Uix.Web.Templates.Basic.RoutingComponents
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.RoutingComponents
 
   @doc """
   Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Web.Templates.Basic do
   @impl true
   @spec default_core_components_module() :: module
   def default_core_components_module do
-    Aurora.Uix.Web.Templates.Basic.CoreComponents
+    Aurora.Uix.Templates.Basic.CoreComponents
   end
 
   @doc """

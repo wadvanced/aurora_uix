@@ -230,7 +230,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:new_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the new resource form. Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the capitalized schema name.
 
   ## Actions
-  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
+  The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
   - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
   - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
   - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.
@@ -271,7 +271,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:page_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page subtitle for the show layout. Default: `"Details"`.
 
   ## Actions
-  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
+  The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
   - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
   - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
   - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.
@@ -338,7 +338,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     - function/2 - Receives assigns and the entity as arguments, expected to return `Phoenix.LiveView.Rendered.t()`
 
   ## Actions
-  The following actions are available (see `Aurora.Uix.Web.Templates.Basic.Actions.Index` for details and usage):
+  The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
   - `add_row_action: {name, &fun/1}`: Adds a row action at the end.
   - `insert_row_action: {name, &fun/1}`: Inserts a row action at a specific position.
   - `replace_row_action: {name, &fun/1}`: Replaces a row action by name.

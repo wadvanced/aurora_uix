@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
+defmodule Aurora.Uix.Templates.Basic.Helpers do
   @moduledoc """
   Provides utility functions for LiveView components in Aurora UIX.
 
@@ -296,7 +296,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
       iex> assigns = %{auix: %{index_row_actions: []}}
       iex> action = %Aurora.Uix.Action{name: "edit", function_component: fn -> :ok end}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.add_auix_action(assigns, :index_row_actions, action)
+      iex> Aurora.Uix.Templates.Basic.Helpers.add_auix_action(assigns, :index_row_actions, action)
       %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit", function_component: #Function<...>}]}}
   """
   @spec add_auix_action(map(), atom(), Action.t()) :: map()
@@ -325,7 +325,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
       iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit"}]}}
       iex> action = %Aurora.Uix.Action{name: "delete"}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.insert_auix_action(assigns, :index_row_actions, action)
+      iex> Aurora.Uix.Templates.Basic.Helpers.insert_auix_action(assigns, :index_row_actions, action)
       %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "delete"}, %Aurora.Uix.Action{name: "edit"}]}}
   """
   @spec insert_auix_action(map(), atom(), Action.t()) :: map()
@@ -352,7 +352,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
 
       iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit}, %Aurora.Uix.Action{name: :delete}]}}
       iex> action = %Aurora.Uix.Action{name: :edit, function_component: fn -> :ok end}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.replace_auix_action(assigns, :index_row_actions, action)
+      iex> Aurora.Uix.Templates.Basic.Helpers.replace_auix_action(assigns, :index_row_actions, action)
       %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit, function_component: #Function<...>}, %Aurora.Uix.Action{name: :delete}]}}
   """
   @spec replace_auix_action(map(), atom(), Action.t()) :: map()
@@ -381,7 +381,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Helpers do
   ## Examples
 
       iex> assigns = %{auix: %{index_row_actions: [{:edit, fn -> :ok end}, {:delete, fn -> :ok end}]}}
-      iex> Aurora.Uix.Web.Templates.Basic.Helpers.remove_auix_action(assigns, :index_row_actions, :edit)
+      iex> Aurora.Uix.Templates.Basic.Helpers.remove_auix_action(assigns, :index_row_actions, :edit)
       %{auix: %{index_row_actions: [{:delete, #Function<...>}]}}
   """
   @spec remove_auix_action(map(), atom(), atom()) :: map()

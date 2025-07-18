@@ -1,7 +1,7 @@
 defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
   use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
@@ -89,9 +89,9 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
 end
 
 defmodule Aurora.Uix.Test.Web.FormHandlerHook do
-  use Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl
+  use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
   alias Phoenix.LiveView.Socket
 
   @impl FormImpl

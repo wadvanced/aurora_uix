@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
+defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   @moduledoc """
   Renders index view pages with table-based entity listings and CRUD actions in Aurora UIX.
 
@@ -13,10 +13,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.IndexRenderer do
   - Integrates with Aurora UIX context and helpers
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Web.Templates.Basic.Actions.Index, as: IndexActions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
 
   @doc """

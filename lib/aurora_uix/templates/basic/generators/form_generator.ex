@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
+defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   @moduledoc """
   Generates form component modules for the Basic template implementation.
 
@@ -14,9 +14,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.Form, as: FormHandler
-  alias Aurora.Uix.Web.Templates.Basic.Helpers
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Handlers.Form, as: FormHandler
+  alias Aurora.Uix.Templates.Basic.Helpers
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates a LiveComponent module for form handling.
@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component
-        alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         @impl true
         def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do

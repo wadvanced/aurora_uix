@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.CoreComponentsImporter do
+defmodule Aurora.Uix.CoreComponentsImporter do
   @moduledoc """
   Core UI component provider for Aurora UIX.
 
@@ -27,7 +27,7 @@ defmodule Aurora.Uix.Web.CoreComponentsImporter do
   ## Examples
   ```elixir
   defmodule MyAppWeb.MyComponent do
-    use Aurora.Uix.Web.CoreComponentsImporter, core_components_module: MyAppWeb.CustomComponents
+    use Aurora.Uix.CoreComponentsImporter, core_components_module: MyAppWeb.CustomComponents
   end
   ```
   """

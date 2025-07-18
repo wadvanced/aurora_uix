@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
+defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   @moduledoc """
   Renders one-to-many association fields in Phoenix LiveView templates for Aurora UIX.
 
@@ -12,10 +12,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany do
   - Integrates with Aurora UIX context and helpers
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Web.Templates.Basic.Actions.OneToMany, as: OneToManyActions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
   @doc """
   Renders a one-to-many association field.

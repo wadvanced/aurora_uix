@@ -36,9 +36,9 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksIndexTest do
 end
 
 defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
-  use Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
+  alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveView

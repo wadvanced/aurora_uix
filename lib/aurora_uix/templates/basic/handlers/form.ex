@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
+defmodule Aurora.Uix.Templates.Basic.Handlers.Form do
   @moduledoc """
   Provides a LiveComponent handler for form rendering and event management in Aurora UIX templates.
 
@@ -21,5 +21,5 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Form do
     - Designed for use within Aurora UIX LiveView templates.
   """
 
-  use Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl
+  use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 end

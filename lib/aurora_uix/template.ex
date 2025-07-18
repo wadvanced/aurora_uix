@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Template do
   ```
   """
 
-  @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Web.Templates.Basic)
+  @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Templates.Basic)
 
   @doc """
   Generates the handling code for the given layout type.
@@ -126,7 +126,7 @@ defmodule Aurora.Uix.Template do
   ## Examples
   ```elixir
   Aurora.Uix.Template.uix_template()
-  # => Aurora.Uix.Web.Templates.Basic
+  # => Aurora.Uix.Templates.Basic
   ```
   """
   @spec uix_template() :: module()

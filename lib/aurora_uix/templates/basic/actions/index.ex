@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
+defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @moduledoc """
   Renders default row and header action links (show, edit, delete, new) for entities in index layouts.
 
@@ -15,13 +15,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   - Only intended for use in index page layouts.
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Actions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Actions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   ## Examples
 
       iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.set_actions(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Index.set_actions(assigns)
       %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}, ...}
   """
   @spec set_actions(map()) :: map()
@@ -65,7 +65,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   ## Examples
 
       iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.show_row_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Index.show_row_action(assigns)
       %Phoenix.LiveView.Rendered{}
   """
   @spec show_row_action(map()) :: Rendered.t()
@@ -90,7 +90,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   ## Examples
 
       iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.edit_row_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Index.edit_row_action(assigns)
       %Phoenix.LiveView.Rendered{}
   """
   @spec edit_row_action(map()) :: Rendered.t()
@@ -113,7 +113,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   ## Examples
 
       iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.remove_row_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Index.remove_row_action(assigns)
       %Phoenix.LiveView.Rendered{}
 
   ## Edge Cases
@@ -146,7 +146,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Index do
   ## Examples
 
       iex> assigns = %{auix: %{index_new_link: "/users/new", module: "User", name: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Index.new_header_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Index.new_header_action(assigns)
       %Phoenix.LiveView.Rendered{}
   """
   @spec new_header_action(map()) :: Rendered.t()

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.GettextBackend do
+defmodule Aurora.Uix.GettextBackend do
   @moduledoc """
   Fallback module providing internationalization (I18n) for Aurora UIX using a Gettext-based API.
 

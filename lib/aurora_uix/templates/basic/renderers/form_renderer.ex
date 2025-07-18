@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
+defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   @moduledoc """
   Renders form live components for creating or editing entities in Aurora UIX.
 
@@ -13,11 +13,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FormRenderer do
   header, validation, and submission handling.
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Web.Templates.Basic.Actions.Form, as: FormActions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
   Renders a form view for creating or editing entities.

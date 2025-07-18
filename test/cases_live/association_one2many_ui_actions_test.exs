@@ -1,7 +1,7 @@
 defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
   use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   import Phoenix.Component, only: [sigil_H: 2]
 

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
+defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   @moduledoc """
   Provides helpers for managing form actions in Aurora UIX basic templates.
 
@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
 
     - Adds default header and footer actions to form assigns.
     - Provides a `save_action/1` helper for rendering a save button.
-    - Integrates with `Aurora.Uix.Web.Templates.Basic.Actions` for action modification.
+    - Integrates with `Aurora.Uix.Templates.Basic.Actions` for action modification.
 
   ## Key Constraints
 
@@ -18,10 +18,10 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
     - Designed for use within Phoenix LiveView templates.
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Actions
+  alias Aurora.Uix.Templates.Basic.Actions
   alias Phoenix.LiveView.Rendered
 
   @actions Action.available_actions(:form)
@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
   ## Examples
 
       iex> assigns = %{auix: %{form_header_actions: %{}, form_footer_actions: %{}}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Form.set_actions(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Form.set_actions(assigns)
       %{auix: %{form_header_actions: %{}, form_footer_actions: %{}}}
 
   """
@@ -66,7 +66,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Form do
   ## Examples
 
       iex> assigns = %{auix: %{module: "user", name: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Form.save_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Form.save_action(assigns)
       #=> #Phoenix.LiveView.Rendered<...>
 
   """
