@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
+defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
   @moduledoc """
   Renders detail (show) views for individual entities in Aurora UIX.
 
@@ -12,11 +12,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ShowRenderer do
   - Integrates with Aurora UIX context and helpers
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Web.Templates.Basic.Actions.Show, as: ShowActions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Actions.Show, as: ShowActions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveView.JS
 

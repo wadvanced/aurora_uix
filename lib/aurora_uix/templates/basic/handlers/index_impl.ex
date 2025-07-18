@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
+defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @moduledoc """
   Behaviour and macro for implementing index page handlers in Aurora UIX LiveView templates.
 
@@ -21,12 +21,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
 
   """
 
-  import Aurora.Uix.Web.Templates.Basic.Helpers
+  import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -69,12 +69,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl do
       @behaviour IndexImpl
       @behaviour Phoenix.LiveView
 
-      import Aurora.Uix.Web.Templates.Basic.Helpers
+      import Aurora.Uix.Templates.Basic.Helpers
       import Phoenix.LiveView
 
-      alias Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
-      alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
-      alias Aurora.Uix.Web.Templates.Basic.Renderer
+      alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+      alias Aurora.Uix.Templates.Basic.ModulesGenerator
+      alias Aurora.Uix.Templates.Basic.Renderer
 
       @doc false
       @impl LiveView

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Index do
+defmodule Aurora.Uix.Templates.Basic.Handlers.Index do
   @moduledoc """
   LiveView handler for index pages in Aurora UIX.
 
@@ -18,5 +18,5 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Index do
     - Designed for use within Phoenix LiveView index templates.
   """
 
-  use Aurora.Uix.Web.Templates.Basic.Handlers.IndexImpl
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 end

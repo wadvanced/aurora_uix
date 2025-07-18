@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
+defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   @moduledoc """
   Behaviour and macro for implementing show view handlers in Aurora UIX LiveView templates.
 
@@ -19,12 +19,12 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl do
     - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `list_key`, etc.).
 
   """
-  import Aurora.Uix.Web.Templates.Basic.Helpers
+  import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowImpl
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket

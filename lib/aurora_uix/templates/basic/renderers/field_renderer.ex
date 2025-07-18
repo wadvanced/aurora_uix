@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
+defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
   Renders form fields for Aurora UIX, supporting standard, one-to-many, many-to-one, hidden, and custom field types.
 
@@ -11,11 +11,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.FieldRenderer do
   - Integrates with Aurora UIX context and helpers
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne
-  alias Aurora.Uix.Web.Templates.Basic.Renderers.OneToMany
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
+  alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
   @doc """
   Renders a form field based on its type and configuration.

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
+defmodule Aurora.Uix.Templates.Basic.Actions.Show do
   @moduledoc """
   Renders default header and footer action links (edit, back) for entities in show layouts.
 
@@ -15,11 +15,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
   - Only intended for use in show page layouts.
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Actions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Actions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.Rendered
 
   @actions Action.available_actions(:show)
@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
   ## Examples
 
       iex> assigns = %{auix: %{entity: %{id: 1}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Show.set_actions(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Show.set_actions(assigns)
       %{auix: %{entity: %{id: 1}, module: "User"}, ...}
   """
   @spec set_actions(map()) :: map()
@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
   ## Examples
 
       iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", entity: %{id: 1}, module: "User", name: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Show.edit_header_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Show.edit_header_action(assigns)
       %Phoenix.LiveView.Rendered{}
   """
   @spec edit_header_action(map()) :: Rendered.t()
@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.Show do
   ## Examples
 
       iex> assigns = %{auix: %{title: "Users"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.Show.back_footer_action(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.Show.back_footer_action(assigns)
       %Phoenix.LiveView.Rendered{}
   """
   @spec back_footer_action(map()) :: Rendered.t()

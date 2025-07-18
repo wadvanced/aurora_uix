@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
+defmodule Aurora.Uix.Templates.Basic.Generators.ShowGenerator do
   @moduledoc """
   Provides a macro to generate LiveView modules for detail (show) pages in Aurora UIX Basic templates.
 
@@ -11,8 +11,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.Show, as: ShowHandler
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Handlers.Show, as: ShowHandler
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates a show view LiveView module with detail display and section handling.
@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator do
 
         use unquote(parsed_opts.modules.web), :live_view
 
-        alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         @impl true
         def mount(params, session, socket) do

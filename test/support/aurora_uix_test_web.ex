@@ -182,8 +182,8 @@ defmodule Aurora.Uix.Test.Web do
   @spec html_helpers() :: Macro.t()
   defp html_helpers do
     quote do
-      use Aurora.Uix.Web.Gettext
-      use Aurora.Uix.Web.CoreComponentsImporter
+      use Aurora.Uix.Gettext
+      use Aurora.Uix.CoreComponentsImporter
       import Phoenix.HTML
       alias Phoenix.LiveView.JS
       unquote(verified_routes())

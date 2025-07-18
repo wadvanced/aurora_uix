@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Actions do
+defmodule Aurora.Uix.Templates.Basic.Actions do
   @moduledoc """
   Provides helper functions to manage and modify action groups within Aurora UIX templates.
 
@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions do
 
     - Adds actions to a given action group in the assigns map.
     - Modifies existing actions in the assigns map based on provided options.
-    - Integrates with `Aurora.Uix.Action` and `Aurora.Uix.Web.Templates.Basic.Helpers` for action creation and manipulation.
+    - Integrates with `Aurora.Uix.Action` and `Aurora.Uix.Templates.Basic.Helpers` for action creation and manipulation.
 
   ## Key Constraints
 
@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions do
   """
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
   @doc """
   Adds a list of actions to the specified action group in the assigns map.
@@ -33,7 +33,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions do
   ## Examples
 
       iex> assigns = %{}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.add_actions(assigns, :main, [%{name: "edit"}])
+      iex> Aurora.Uix.Templates.Basic.Actions.add_actions(assigns, :main, [%{name: "edit"}])
       %{}
 
   """
@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions do
 
       iex> assigns = %{auix: %{layout_tree: %{opts: [edit: %{name: "edit"}]}}}
       iex> actions = %{edit: {:main, :remove_auix_action}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.modify_actions(assigns, actions)
+      iex> Aurora.Uix.Templates.Basic.Actions.modify_actions(assigns, actions)
       %{auix: %{layout_tree: %{opts: [edit: %{name: "edit"}]}}}
 
   """

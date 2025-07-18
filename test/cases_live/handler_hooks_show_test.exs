@@ -263,7 +263,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
 end
 
 defmodule Aurora.Uix.Test.Web.ShowHandlerHook do
-  use Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl
+  use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
 
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]
   alias Phoenix.LiveView.Socket

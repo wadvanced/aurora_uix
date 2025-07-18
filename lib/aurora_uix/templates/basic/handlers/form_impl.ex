@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl do
+defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @moduledoc """
   Behaviour and macro for implementing form live view component handlers in Aurora UIX LiveView templates.
 
@@ -20,14 +20,14 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl do
 
   """
 
-  import Aurora.Uix.Web.Templates.Basic.Helpers
+  import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.Component, only: [assign: 3, to_form: 1, to_form: 2]
   import Phoenix.LiveView
 
   alias Aurora.Uix.Stack
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.FormImpl
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveComponent
   alias Phoenix.LiveView.Socket

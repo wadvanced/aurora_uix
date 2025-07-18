@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.RoutingComponents do
+defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   @moduledoc """
   Provides routing-related UI components for navigation in Phoenix LiveView applications using Aurora UIX. These components enable navigation and back actions that integrate with Aurora's routing system.
 
@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.RoutingComponents do
 
   use Phoenix.Component
 
-  alias Aurora.Uix.Web.Templates.Basic.CoreComponents
+  alias Aurora.Uix.Templates.Basic.CoreComponents
   alias Phoenix.LiveView.Rendered
 
   @doc """

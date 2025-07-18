@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
+defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @moduledoc """
   Provides the core set of reusable UI components for Aurora UIX, including modals, tables, forms, flash messages, and more.
 
@@ -16,11 +16,11 @@ defmodule Aurora.Uix.Web.Templates.Basic.CoreComponents do
 
   > #### Note {: .info}
   > This module may be injected as the core components module depending on the Aurora UIX template configuration.
-  > Dynamic selection and import of the core components module is handled via `use Aurora.Uix.Web.CoreComponentsImporter`,
+  > Dynamic selection and import of the core components module is handled via `use Aurora.Uix.CoreComponentsImporter`,
   > which will import either this module or a custom one as configured in your application or template.
 
   """
-  use Aurora.Uix.Web.Gettext
+  use Aurora.Uix.Gettext
   use Phoenix.Component
 
   alias Phoenix.HTML.Form

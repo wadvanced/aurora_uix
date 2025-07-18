@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
+defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   @moduledoc """
   Renders many-to-one association fields for Aurora UIX in Phoenix LiveView templates.
 
@@ -12,8 +12,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Renderers.ManyToOne do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Web.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
   Renders a many-to-one association field.

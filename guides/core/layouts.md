@@ -221,4 +221,4 @@ show_layout :product, remove_header_action: :default_new do
 end
 ```
 
-For more details and advanced usage, see the documentation for `Aurora.Uix.Web.Templates.Basic.Actions.Index` and related modules.
+For more details and advanced usage, see the documentation for `Aurora.Uix.Templates.Basic.Actions.Index` and related modules.

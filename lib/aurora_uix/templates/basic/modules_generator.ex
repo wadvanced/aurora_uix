@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
+defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
@@ -15,9 +15,9 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
   - Only modules with the required context functions are supported.
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Generators.FormGenerator
-  alias Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator
-  alias Aurora.Uix.Web.Templates.Basic.Generators.ShowGenerator
+  alias Aurora.Uix.Templates.Basic.Generators.FormGenerator
+  alias Aurora.Uix.Templates.Basic.Generators.IndexGenerator
+  alias Aurora.Uix.Templates.Basic.Generators.ShowGenerator
   require Logger
 
   @doc """
@@ -31,7 +31,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
 
   ## Examples
   ```elixir
-  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.generate_module(
+  Aurora.Uix.Templates.Basic.ModulesGenerator.generate_module(
     %{layout_tree: %{tag: :index}, name: :product,
         modules: %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb}
       }
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
 
   ## Examples
   ```elixir
-  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.remove_omitted_fields(%{
+  Aurora.Uix.Templates.Basic.ModulesGenerator.remove_omitted_fields(%{
     fields: [
       %{name: :foo, omitted: true},
       %{name: :bar, omitted: false}
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.ModulesGenerator do
 
   ## Examples
   ```elixir
-  Aurora.Uix.Web.Templates.Basic.ModulesGenerator.module_name(
+  Aurora.Uix.Templates.Basic.ModulesGenerator.module_name(
     %{caller: MyAppWeb}, %{module_name: "User"}, ".Index"
   )
   # => MyAppWeb.User.Index

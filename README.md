@@ -152,7 +152,7 @@ Thank you for considering contributing! Here's how to set up your development an
 Aurora UIX is designed for extensibility. You can:
 
 - **Create custom templates** by implementing the `Aurora.Uix.Template` behaviour. See [Advanced Usage](./guides/advanced/advanced_usage.md).
-- **Override core components** using your own module with `Aurora.Uix.Web.CoreComponentsImporter`.
+- **Override core components** using your own module with `Aurora.Uix.CoreComponentsImporter`.
 - **Add new field renderers or layout containers** by following the patterns in the `lib/aurora_uix/templates` directory.
 
 For more, see the [Advanced Usage Guide](./guides/advanced/advanced_usage.md).

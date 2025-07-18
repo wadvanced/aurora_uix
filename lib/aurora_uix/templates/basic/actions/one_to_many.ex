@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
+defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @moduledoc """
   Provides helpers for managing one-to-many association actions in Aurora UIX index layouts.
 
@@ -18,13 +18,13 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
     - Designed for use within Phoenix LiveView templates and Aurora UIX layouts.
   """
 
-  use Aurora.Uix.Web.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter
 
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Web.Templates.Basic.Actions
-  alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Actions
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
   ## Examples
 
       iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.OneToMany.set_actions(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.OneToMany.set_actions(assigns)
       %{auix: %{row_info: {:user, %{id: 1}}, module: "User", one_to_many_row_actions: %{}, one_to_many_header_actions: %{}, one_to_many_footer_actions: %{}}, ...}
   """
   @spec set_actions(map()) :: map()
@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Actions.OneToMany do
       ...>   },
       ...>   field: %{key: "users"}
       ...> }
-      iex> Aurora.Uix.Web.Templates.Basic.Actions.OneToMany.add_new_child(assigns)
+      iex> Aurora.Uix.Templates.Basic.Actions.OneToMany.add_new_child(assigns)
       #=> %Phoenix.LiveView.Rendered{...}
   """
   @spec add_new_child(map()) :: Rendered.t()

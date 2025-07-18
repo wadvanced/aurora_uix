@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
+defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   @moduledoc """
   Generates index view LiveView modules for the Basic template implementation.
 
@@ -15,8 +15,8 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
   """
 
-  alias Aurora.Uix.Web.Templates.Basic.Handlers.Index, as: IndexHandler
-  alias Aurora.Uix.Web.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Handlers.Index, as: IndexHandler
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   @doc """
   Generates an index view LiveView module with standard CRUD operations in Aurora UIX.
@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Web.Templates.Basic.Generators.IndexGenerator do
 
         use unquote(parsed_opts.modules.web), :live_view
 
-        alias Aurora.Uix.Web.Templates.Basic.Helpers, as: BasicHelpers
+        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         @impl true
         def mount(params, session, socket) do

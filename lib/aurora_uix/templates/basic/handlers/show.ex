@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Show do
+defmodule Aurora.Uix.Templates.Basic.Handlers.Show do
   @moduledoc """
   Handles LiveView events and rendering for the "show" page of an entity in the Aurora UIX basic template.
 
@@ -20,5 +20,5 @@ defmodule Aurora.Uix.Web.Templates.Basic.Handlers.Show do
     - Expects `:auix` assign to be present in the socket, containing context, function, and preload info.
     - Assumes the presence of supporting modules: `ModulesGenerator`, `Renderer`, and helpers.
   """
-  use Aurora.Uix.Web.Templates.Basic.Handlers.ShowImpl
+  use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
 end

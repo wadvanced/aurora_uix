@@ -12,14 +12,14 @@ You can provide your own template modules by implementing the `Aurora.Uix.Templa
 
 These callbacks allow you to control how UI modules and markup are generated for your application.
 
-Aurora UIX provides a built-in basic template implementation at `Aurora.Uix.Web.Templates.Basic`, which you can use as a reference or starting point for your own templates.
+Aurora UIX provides a built-in basic template implementation at `Aurora.Uix.Templates.Basic`, which you can use as a reference or starting point for your own templates.
 
 ## Overriding Core Components
 
-You can override the default core components by passing a custom module when using the `Aurora.Uix.Web.CoreComponentsImporter`:
+You can override the default core components by passing a custom module when using the `Aurora.Uix.CoreComponentsImporter`:
 
 ```elixir
-use Aurora.Uix.Web.CoreComponentsImporter, core_components_module: MyAppWeb.MyCoreComponents
+use Aurora.Uix.CoreComponentsImporter, core_components_module: MyAppWeb.MyCoreComponents
 ```
 
 Alternatively, you can set the default core components module globally using your `config.exs` or environment-specific config file:
