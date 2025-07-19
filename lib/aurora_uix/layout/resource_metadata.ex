@@ -236,6 +236,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `:scale` (`integer()`) - The numeric scale for decimal or float fields.
   - `:readonly` (`boolean()`) - Marks the field as read-only.
   - `:hidden` (`boolean()`) - Hides the field.
+  - `:filterable` (`boolean()`) - If true, allows the field to participate in UI filtering.
   - `:renderer` (`function()`) - Custom rendering function/component.
   - `:required` (`boolean()`) - Marks the field as required.
   - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
@@ -484,6 +485,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       disabled: field_disabled(field_key),
       omitted: field_omitted(field_key),
       hidden: field_hidden(field_key),
+      filterable: field_filterable(type),
       resource: resource_name,
       data: field_data(association)
     }
@@ -594,6 +596,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   @spec field_hidden(atom()) :: boolean()
   defp field_hidden(_field), do: false
+
+  @spec field_filterable(atom()) :: boolean()
+  defp field_filterable(type) when type in [:string, :binary, :integer, :float, :decimal],
+    do: true
+
+  defp field_filterable(_type), do: false
 
   # Extracts metadata for associations
   # Returns nil for non-association fields
