@@ -1,0 +1,14 @@
+Assist in the Elixir documentation of the following module under strict constraints: 
+never alter code logic or behavior, only modify documentation and specs within the target module scope, 
+preserve existing correct documentation while enhancing deficiencies. 
+For modules implementing Mix.Task behavior, add a @shortdoc with a single phrase describing the task's purpose positioned right before @moduledoc. 
+The @moduledoc must be the first module attribute (or after @shortdoc), should not start with the module name, must include missing summaries and key features/constraints,
+use markdown formatting with code blocks, remove trivial examples, and provide meaningful examples for Mix.Task modules. 
+Function and macro @doc attributes go only on the first function of each arity group, follow a structured format with short description, 
+parameters (with types in parentheses and options as bullet points), returns, raises only if within the code, and examples sections, 
+use backticks for structs/tuples/maps, avoid the any() types in favor of concrete types. 
+Add @spec for all first functions of arity groups with parenthesized types, never using :: in arguments, and replace any() with specific types. 
+Private functions should be placed after a ## PRIVATE comment at module end with descriptive comments above complex functions but no @doc attributes. 
+All documentation must follow formatting rules including 98-character line limits, parenthesized types, bullet points for options, and explicit return types in descriptions, 
+while ensuring examples compile and return the shown results.
+---

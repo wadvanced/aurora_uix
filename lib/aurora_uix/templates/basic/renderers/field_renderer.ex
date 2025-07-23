@@ -93,7 +93,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     assigns =
       assigns
       |> assign(:input_classes, input_classes)
-      |> assign(:select_opts, get_select_options(assigns))
+      |> assign(:select_opts, BasicHelpers.get_select_options(assigns))
 
     ~H"""
     <%= if @field.hidden do %>
@@ -118,90 +118,5 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
       </div>
     <% end %>
     """
-  end
-
-  # Returns select field options and multiple selection flag if applicable
-  @spec get_select_options(map()) :: map()
-  defp get_select_options(%{
-         field: %{
-           html_type: :select,
-           data: %{resource: resource_name, related_key: related_key}
-         }
-       })
-       when is_nil(resource_name) or is_nil(related_key),
-       do: %{options: [], multiple: false}
-
-  # Select options for Many to one
-  defp get_select_options(
-         %{
-           field: %{
-             html_type: :select,
-             data: %{resource: resource_name} = data
-           },
-           auix: %{configurations: configurations}
-         } = assigns
-       ) do
-    list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
-
-    data
-    |> Map.get(:query_opts, [])
-    |> list_function.()
-    |> Enum.map(&get_many_to_one_select_option(assigns, &1))
-    |> maybe_add_nil_option()
-    |> then(&%{options: &1, multiple: false})
-  end
-
-  # Hardcoded select options
-  defp get_select_options(%{field: %{html_type: :select, data: select}}) do
-    case select[:opts] do
-      nil ->
-        %{options: [], multiple: false}
-
-      opts ->
-        options = for {label, value} <- opts, do: {label, value}
-        %{options: options, multiple: select[:multiple] || false}
-    end
-  end
-
-  # Not defined
-  defp get_select_options(_assigns), do: %{options: [], multiple: false}
-
-  # Read from table
-  @spec get_many_to_one_select_option(map(), term()) :: tuple()
-  defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
-         entity
-       )
-       when is_atom(option_label) do
-    {Map.get(entity, option_label), Map.get(entity, related_key)}
-  end
-
-  defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
-         entity
-       )
-       when is_function(option_label, 1) do
-    {option_label.(entity), Map.get(entity, related_key)}
-  end
-
-  defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}} = assigns,
-         entity
-       )
-       when is_function(option_label, 2) do
-    {option_label.(assigns, entity), Map.get(entity, related_key)}
-  end
-
-  defp get_many_to_one_select_option(%{field: %{data: %{related_key: related_key}}}, entity) do
-    {entity |> Map.get(related_key) |> to_string(), Map.get(entity, related_key)}
-  end
-
-  @spec maybe_add_nil_option(keyword()) :: keyword()
-  defp maybe_add_nil_option(options) do
-    if Enum.any?(options, fn {key, _value} -> is_nil(key) end) do
-      options
-    else
-      [{nil, nil} | options]
-    end
   end
 end

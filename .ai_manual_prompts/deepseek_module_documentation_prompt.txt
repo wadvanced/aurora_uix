@@ -1,0 +1,8 @@
+Please review and enhance the documentation for the target Elixir module while strictly adhering to these rules: Never alter code logic/behavior, 
+maintain strict module scope, and only modify existing @doc / @module documentation when deficiencies exist. 
+For modules implementing Mix.Task, include a concise @shortdoc phrase before @moduledoc. 
+Ensure @moduledoc contains key features/constraints without module-name starters. When formatting elixir code block, enclosed within |||elixir and ||| instead of using backticks. Add only meaningful examples. 
+Document functions with structured sections (Parameters, Returns, Raises) using parenthesized types (no 'any()'), and place @doc only on the first arity-matched function only.
+Add @specs with concrete types (no :: in args), and handle private functions after ## PRIVATE with only # comments. Maintain 98-char line length, use bullet points for options, 
+and ensure all examples compile while showing edge cases. Preserve correct existing docs and remove trivial/redundant content.
+---------

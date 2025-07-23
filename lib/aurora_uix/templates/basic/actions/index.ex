@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Only intended for use in index page layouts.
   """
 
+  use Aurora.Uix.Gettext
   use Aurora.Uix.CoreComponentsImporter
 
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
@@ -26,6 +27,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   alias Phoenix.LiveView.Rendered
 
   @actions Action.available_actions(:index)
+  @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
@@ -35,13 +37,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     - Must include `:auix` key with required subkeys.
 
   ## Returns
-  map() - The updated assigns with actions set.
 
-  ## Examples
+  map - The updated assigns with actions set including row, header, footer, and filter actions.
 
-      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Index.set_actions(assigns)
-      %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}, ...}
+
+
   """
   @spec set_actions(map()) :: map()
   def set_actions(assigns) do
@@ -49,6 +49,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     |> add_default_row_actions()
     |> add_default_header_actions()
     |> add_default_footer_actions()
+    |> add_default_filters_actions()
     |> Actions.modify_actions(@actions)
   end
 
@@ -62,11 +63,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "show" action link.
 
-  ## Examples
 
-      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Index.show_row_action(assigns)
-      %Phoenix.LiveView.Rendered{}
   """
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
@@ -87,11 +84,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "edit" action link.
 
-  ## Examples
 
-      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Index.edit_row_action(assigns)
-      %Phoenix.LiveView.Rendered{}
   """
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
@@ -110,11 +103,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "delete" action link.
 
-  ## Examples
-
-      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Index.remove_row_action(assigns)
-      %Phoenix.LiveView.Rendered{}
 
   ## Edge Cases
 
@@ -143,11 +131,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "new" action link.
 
-  ## Examples
 
-      iex> assigns = %{auix: %{index_new_link: "/users/new", module: "User", name: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Index.new_header_action(assigns)
-      %Phoenix.LiveView.Rendered{}
   """
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(assigns) do
@@ -158,8 +142,51 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     """
   end
 
+  @doc """
+  Renders a button to clear all applied filters in the index layout.
+
+  ## Parameters
+
+  - `assigns` (map()) - Assigns map (no specific requirements for this action)
+
+  ## Returns
+
+  Phoenix.LiveView.Rendered.t() - The rendered clear filters button
+
+  """
+  @spec clear_filters_action(map()) :: Rendered.t()
+  def clear_filters_action(assigns) do
+    assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
+
+    ~H"""
+    <.button type="button" class={@filters_button_class} phx-click="filters-clear" name={"auix-filters_clear-#{@auix.module}"}>{gettext("Clear Filters")}</.button>
+    """
+  end
+
+  @doc """
+  Renders a button to submit current filter selections in the index layout.
+
+  ## Parameters
+
+  - `assigns` (map) - Assigns map (no specific requirements for this action)
+
+  ## Returns
+
+  Phoenix.LiveView.Rendered.t() - The rendered submit filters button
+
+  """
+  @spec submit_filters_action(map()) :: Rendered.t()
+  def submit_filters_action(assigns) do
+    assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
+
+    ~H"""
+    <.button type="button" class={@filters_button_class} phx-click="filters-submit" name={"auix-filters_submit-#{@auix.module}"}>Submit</.button>
+    """
+  end
+
   ## PRIVATE
 
+  # Adds default row actions (show, edit, delete) to the assigns
   @spec add_default_row_actions(map()) :: map()
   defp add_default_row_actions(assigns) do
     Actions.add_actions(assigns, :index_row_actions,
@@ -169,18 +196,30 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     )
   end
 
+  # Returns assigns unchanged if index_footer_actions already exists
   @spec add_default_footer_actions(map()) :: map()
   defp add_default_footer_actions(%{auix: %{index_footer_actions: _}} = assigns), do: assigns
 
-  # Adds an empty form_header_actions map if not present.
+  # Adds an empty index_footer_actions list if not present
   defp add_default_footer_actions(assigns),
     do: put_in(assigns, [:auix, :index_footer_actions], [])
 
+  # Adds default header actions (new) to the assigns
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
     Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
   end
 
+  # Adds default filter actions (clear, submit) to the assigns
+  @spec add_default_filters_actions(map()) :: map()
+  defp add_default_filters_actions(assigns) do
+    Actions.add_actions(assigns, :index_filters_actions,
+      default_clear: &clear_filters_action/1,
+      default_submit: &submit_filters_action/1
+    )
+  end
+
+  # Extracts the primary key value from row_info for use in links and actions
   @spec row_info_id(map()) :: term() | nil
   defp row_info_id(%{row_info: {_, row_entity}, primary_key: primary_key}) do
     BasicHelpers.primary_key_value(row_entity, primary_key)

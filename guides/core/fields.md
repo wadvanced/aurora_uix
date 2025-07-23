@@ -17,7 +17,7 @@ You can customize field behavior and appearance in Aurora UIX.
 - `required: true` — Field must not be empty.
 - `disabled: true` — Field does not participate in form interaction.
 - `omitted: true` — Field is not displayed or used at all (as if it doesn't exist).
-- `filterable: true`- Field can participate in filtering UI interfaces.
+- `filterable?: true`- Field can participate in filtering UI interfaces.
 
 Example:
 

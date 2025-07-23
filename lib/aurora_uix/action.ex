@@ -34,7 +34,11 @@ defmodule Aurora.Uix.Action do
       add_row_action: {:index_row_actions, :add_auix_action},
       insert_row_action: {:index_row_actions, :insert_auix_action},
       replace_row_action: {:index_row_actions, :replace_auix_action},
-      remove_row_action: {:index_row_actions, :remove_auix_action}
+      remove_row_action: {:index_row_actions, :remove_auix_action},
+      add_filters_action: {:index_filters_actions, :add_auix_action},
+      insert_filters_action: {:index_filters_actions, :insert_auix_action},
+      replace_filters_action: {:index_filters_actions, :replace_auix_action},
+      remove_filters_action: {:index_filters_actions, :remove_auix_action}
     },
     form: %{
       add_header_action: {:form_header_actions, :add_auix_action},

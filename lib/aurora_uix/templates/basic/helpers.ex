@@ -51,7 +51,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - default (struct()) - Default entity struct for new records
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  - Phoenix.LiveView.Socket.t() - Socket with entity assigned to `:auix.entity`
   """
   @spec assign_new_entity(Phoenix.LiveView.Socket.t(), map(), struct()) ::
           Phoenix.LiveView.Socket.t()
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - parsed_opts (map()) - Options to merge with existing auix assigns
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  - Phoenix.LiveView.Socket.t()- Socket with updated auix assigns
   """
   @spec assign_parsed_opts(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   def assign_parsed_opts(socket, parsed_opts) do
@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - value (term()) - Value to store
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
   @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
   def assign_auix_new(socket, key, value) do
@@ -137,7 +137,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - tab_id (binary()) - Identifier for the active tab
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
   @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary(), binary()) ::
           Phoenix.LiveView.Socket.t()
@@ -156,7 +156,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - url (binary()) - Actual url.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
   @spec assign_auix_current_path(Phoenix.LiveView.Socket.t(), binary() | URI.t()) ::
           Phoenix.LiveView.Socket.t()
@@ -269,7 +269,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - `option_value` term() - The value to put on the option.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() - The updated socket.
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
 
   """
   @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom(), term() | nil) ::
@@ -569,6 +569,65 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     Enum.map(primary_keys, &Map.get(entity, &1))
   end
 
+  @doc """
+  Gets select field options and multiple selection flag.
+
+  Processes field configuration to generate options for select inputs. Handles
+  different data sources including related resources and hardcoded options.
+
+  ## Parameters
+
+  - `assigns` (`map()`) - Assigns map containing field and configuration data
+
+  ## Returns
+
+  `map()` - Map with `:options` (list of `{label, value}` tuples) and `:multiple` (boolean)
+  """
+  @spec get_select_options(map()) :: map()
+  def get_select_options(%{
+        field: %{
+          html_type: :select,
+          data: %{resource: resource_name, related_key: related_key}
+        }
+      })
+      when is_nil(resource_name) or is_nil(related_key),
+      do: %{options: [], multiple: false}
+
+  # Select options for Many to one
+  def get_select_options(
+        %{
+          field: %{
+            html_type: :select,
+            data: %{resource: resource_name} = data
+          },
+          auix: %{configurations: configurations}
+        } = assigns
+      ) do
+    list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
+
+    data
+    |> Map.get(:query_opts, [])
+    |> list_function.()
+    |> Enum.map(&get_many_to_one_select_option(assigns, &1))
+    |> maybe_add_nil_option()
+    |> then(&%{options: &1, multiple: false})
+  end
+
+  # Hardcoded select options
+  def get_select_options(%{field: %{html_type: :select, data: %{select: select}}}) do
+    case Map.get(select, :opts) do
+      nil ->
+        %{options: [], multiple: false}
+
+      opts ->
+        options = for {label, value} <- opts, do: {label, value}
+        %{options: options, multiple: Map.get(select, :multiple) || false}
+    end
+  end
+
+  # Not defined
+  def get_select_options(_assigns), do: %{options: [], multiple: false}
+
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(
           binary | nil,
@@ -659,5 +718,44 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> Map.get("values", [])
     |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
     |> Stack.new()
+  end
+
+  # Read from table
+  @spec get_many_to_one_select_option(map(), term()) :: tuple()
+  defp get_many_to_one_select_option(
+         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
+         entity
+       )
+       when is_atom(option_label) do
+    {Map.get(entity, option_label), Map.get(entity, related_key)}
+  end
+
+  defp get_many_to_one_select_option(
+         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
+         entity
+       )
+       when is_function(option_label, 1) do
+    {option_label.(entity), Map.get(entity, related_key)}
+  end
+
+  defp get_many_to_one_select_option(
+         %{field: %{data: %{option_label: option_label, related_key: related_key}}} = assigns,
+         entity
+       )
+       when is_function(option_label, 2) do
+    {option_label.(assigns, entity), Map.get(entity, related_key)}
+  end
+
+  defp get_many_to_one_select_option(%{field: %{data: %{related_key: related_key}}}, entity) do
+    {entity |> Map.get(related_key) |> to_string(), Map.get(entity, related_key)}
+  end
+
+  @spec maybe_add_nil_option(keyword()) :: keyword()
+  defp maybe_add_nil_option(options) do
+    if Enum.any?(options, fn {key, _value} -> is_nil(key) end) do
+      options
+    else
+      [{nil, nil} | options]
+    end
   end
 end
