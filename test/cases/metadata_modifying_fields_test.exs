@@ -36,16 +36,32 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
     |> resource_configs()
     |> get_in([Access.key!(:product), Access.key!(:fields_order)])
     |> assert_values_order([
-      :inactive,
+      :id,
+      :reference,
+      :name,
+      :description,
+      :quantity_at_hand,
+      :quantity_initial,
+      :quantity_entries,
+      :quantity_exits,
+      :cost,
+      :msrp,
+      :rrp,
+      :list_price,
+      :discounted_price,
       :weight,
       :length,
       :width,
       :height,
-      :data_virtual,
+      :image,
+      :thumbnail,
       :status,
-      :id,
-      :reference,
-      :name
+      :deleted,
+      :inactive,
+      :product_location_id,
+      :product_transactions,
+      :product_location,
+      :data_virtual
     ])
   end
 end

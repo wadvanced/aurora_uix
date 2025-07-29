@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   use Aurora.Uix.Gettext
   use Phoenix.Component
 
+  alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -305,6 +306,10 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2")
   attr(:multiple, :boolean, default: false, doc: "the multiple flag for select inputs")
 
+  attr(:label_class, :string, default: nil, doc: "optional label class override")
+  attr(:input_class, :string, default: nil, doc: "optional input class override")
+  attr(:option_class, :string, default: "", doc: "optional option class override for select")
+
   attr(:rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
@@ -330,7 +335,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+      <label class={["flex items-center gap-4 text-sm leading-6 text-zinc-600", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -338,7 +343,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+          class={["rounded border-zinc-300 text-zinc-900 focus:ring-0", @input_class]}
           {@rest}
         />
         {@label}
@@ -351,15 +356,15 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div>
-      <.label for={@id}>{@label}</.label>
+      <.label class={@label_class} for={@id}>{@label}</.label>
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={["mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm", @input_class]}
         multiple={@multiple}
         {@rest}
       >
-        <option :if={@prompt} value="">{@prompt}</option>
+        <option class={@option_class} :if={@prompt} value="">{@prompt}</option>
         {Phoenix.HTML.Form.options_for_select(@options, @value)}
       </select>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -370,14 +375,15 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div>
-      <.label for={@id}>{@label}</.label>
+      <.label class={@label_class} for={@id}>{@label}</.label>
       <textarea
         id={@id}
         name={@name}
         class={[
           "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          @errors != [] && "border-rose-400 focus:border-rose-400",
+          @input_class
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -390,7 +396,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def input(assigns) do
     ~H"""
     <div>
-      <.label for={@id}>{@label}</.label>
+      <.label class={@label_class} for={@id}>{@label}</.label>
       <input
         type={@type}
         name={@name}
@@ -399,7 +405,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         class={[
           "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          @errors != [] && "border-rose-400 focus:border-rose-400",
+          @input_class
         ]}
         {@rest}
       />
@@ -412,12 +419,13 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   Renders a label.
   """
   attr(:for, :string, default: nil)
+  attr(:class, :string, default: nil, doc: "class override")
   slot(:inner_block, required: true)
 
   @spec label(map) :: Rendered.t()
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class={["block text-sm font-semibold leading-6 text-zinc-800", @class]}>
       {render_slot(@inner_block)}
     </label>
     """
@@ -500,6 +508,10 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     attr(:label, :string)
   end
 
+  slot(:filter_action,
+    doc: "the slot for showing filter actions in the last table heading column"
+  )
+
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec table(map) :: Rendered.t()
@@ -513,12 +525,45 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     <div class={get_in(@auix, [:css_classes, :core_components, :table_container]) || "overflow-y-auto px-4 sm:overflow-visible sm:px-0"}>
       <table class="w-[40rem] mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
-          <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal">{col[:label]}</th>
-            <th :if={@action != []} class="relative p-0 pb-4">
-              <span class="sr-only">{gettext("Actions")}</span>
+          <tr :if={Map.get(@auix, :filters_enabled?)} >
+            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
+              <FilteringComponents.filter_field
+                  field={col.field}
+                  filter={get_in(@auix, [:filters_form, col.field.key, Access.key!(:value)])}
+                  auix={@auix}/>
+            </th>
+            <th :if={@filter_action != []} class="relative w-14 p-0">
+              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
+                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+                <span
+                  :for={action <- @filter_action}
+                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+                  {render_slot(action)}
+                </span>
+              </div>
             </th>
           </tr>
+          <tr>
+            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
+              <div class="font-bold inline-flex">
+                <div name="auix-column-label">{col.label}</div>
+              </div>
+            </th>
+            <th :if={Map.get(@auix, :filters) != []} class="relative w-14 p-0">
+              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
+                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+                <%= if Map.get(@auix, :filters_enabled?) do %>
+                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
+                    <.icon name="hero-funnel" class=""/>
+                    <.icon name="hero-x-mark" class="align-super size-3"/>
+                  </a>
+                <% else %>
+                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
+                <% end %>
+              </div>
+            </th>
+          </tr>
+
         </thead>
         <tbody
           id={@id}

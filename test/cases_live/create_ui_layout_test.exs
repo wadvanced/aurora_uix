@@ -96,14 +96,13 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     assert html =~ "The Products Listing"
 
     assert html
-           |> Floki.find("thead tr th")
-           |> Enum.map(&Floki.text/1) == [
+           |> Floki.find("thead tr th [name='auix-column-label']")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
              "Id",
              "Reference",
              "Name",
              "Description",
-             "Quantity at hand",
-             "Actions"
+             "Quantity at hand"
            ]
   end
 

@@ -46,7 +46,6 @@ defmodule Aurora.Uix.Field do
     :type,
     :html_type,
     :renderer,
-    :data,
     :resource,
     name: "",
     label: "",
@@ -59,7 +58,9 @@ defmodule Aurora.Uix.Field do
     readonly: false,
     required: false,
     disabled: false,
-    omitted: false
+    omitted: false,
+    filterable?: false,
+    data: %{}
   ]
 
   @type t() :: %__MODULE__{
@@ -80,7 +81,8 @@ defmodule Aurora.Uix.Field do
           readonly: boolean(),
           required: boolean(),
           disabled: boolean(),
-          omitted: boolean()
+          omitted: boolean(),
+          filterable?: boolean()
         }
 
   @doc """

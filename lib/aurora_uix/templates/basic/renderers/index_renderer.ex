@@ -32,21 +32,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   - Phoenix.LiveView.Rendered.t() - Rendered index page with table and actions
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(
-        %{
-          auix: %{
-            layout_tree: %{tag: :index} = layout_tree,
-            configurations: configurations,
-            resource_name: resource_name
-          }
-        } = assigns
-      ) do
+  def render(assigns) do
     assigns =
-      layout_tree.inner_elements
-      |> Enum.filter(&(&1.tag == :field))
-      |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
-      |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
-      |> then(&Map.put(assigns, :index_fields, &1))
+      assigns
       |> get_layout_options()
       |> IndexActions.set_actions()
 
@@ -63,18 +51,27 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         </:actions>
       </.header>
 
-      <.table
-        id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
-        auix={%{css_classes: @auix.css_classes}}
-        rows={get_in(assigns, @auix.rows)}
-      >
-        <:col :let={{_id, entity}} :for={field <- @index_fields} label={"#{field.label}"}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>{Map.get(entity, field.key)}</.auix_link></:col>
+      <.simple_form :let={filters_form} for={@auix.filters_form} name="auix-filters_form" phx-change="filter-change">
+        <.table
+          id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
+          auix={%{css_classes: @auix.css_classes,
+              configurations: @auix.configurations,
+              filters: Map.get(@auix, :filters, %{}), filters_form: filters_form,
+              filters_enabled?: @auix.filters_enabled?}}
+          rows={get_in(assigns, @auix.rows)}
+        >
+          <:filter_action :for={%{function_component: action} <- @auix.index_filters_actions}>
+            {action.(%{auix: @auix})}
+          </:filter_action>
 
-        <:action :let={row_info} :for={%{function_component: action} <- @auix.index_row_actions}>
-          {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
-        </:action>
+          <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={"#{field.label}"} field={field}><.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>{field_value(entity, Map.put(assigns, :field, field))}</.auix_link></:col>
 
-      </.table>
+          <:action :let={row_info} :for={%{function_component: action} <- @auix.index_row_actions}>
+            {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
+          </:action>
+
+        </.table>
+      </.simple_form>
 
       <div name="auix-index-footer-actions">
         <%= for %{function_component: action} <- @auix.index_footer_actions do %>
@@ -109,4 +106,27 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     do: BasicHelpers.primary_key_value(entity, primary_key)
 
   defp entity_id(_auix), do: nil
+
+  @spec field_value(term(), map()) :: term()
+  defp field_value(entity, %{field: %{html_type: :select, data: %{option_label: label_field}}})
+       when is_atom(label_field) do
+    Map.get(entity, label_field)
+  end
+
+  defp field_value(entity, %{field: %{html_type: :select, data: %{option_label: option_label}}})
+       when is_function(option_label, 1) do
+    option_label.(entity)
+  end
+
+  defp field_value(
+         entity,
+         %{field: %{html_type: :select, data: %{option_label: option_label}}} = assigns
+       )
+       when is_function(option_label, 2) do
+    option_label.(assigns, entity)
+  end
+
+  defp field_value(entity, %{field: field}) do
+    Map.get(entity, field.key)
+  end
 end

@@ -23,8 +23,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
+  import Phoenix.Component
 
+  alias Aurora.Uix.Filter
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -125,24 +128,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
-    layout_opts = Map.get(auix.layout_tree, :opts, [])
-
-    opts =
-      auix
-      |> get_in([:configurations, auix.resource_name, :resource_config])
-      |> Map.get(:opts, [])
-      |> Keyword.merge(layout_opts)
-
-    {:ok,
-     stream(
-       socket,
-       auix.list_key,
-       auix.list_function.(
-         order_by: Keyword.get(opts, :order_by, []),
-         where: Keyword.get(opts, :where, [])
-       )
-     )}
+  def mount(_params, _session, socket) do
+    {:ok, load_items(socket)}
   end
 
   @doc """
@@ -166,7 +153,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     {:noreply,
      socket
+     |> assign(:test, "--")
      |> assign_auix(:form_component, form_component)
+     |> assign_auix(:filters_enabled?, false)
+     |> assign_index_fields()
+     |> assign_filters()
      |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
        type: :patch,
@@ -242,6 +233,80 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, auix_route_back(socket)}
   end
 
+  def handle_event(
+        "filter-toggle",
+        _params,
+        %{assigns: %{auix: %{filters_enabled?: filters_enabled?}}} = socket
+      ) do
+    {:noreply, assign_auix(socket, :filters_enabled?, !filters_enabled?)}
+  end
+
+  def handle_event(
+        "filter-change",
+        %{"_target" => ["condition__" <> filter_key = condition_key]} = params,
+        socket
+      ) do
+    socket =
+      update_filter(socket, filter_key, %{
+        condition: params |> Map.get(condition_key) |> String.to_existing_atom()
+      })
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "filter-change",
+        %{"_target" => ["to__" <> filter_key = to_key]} = params,
+        socket
+      ) do
+    socket = update_filter(socket, filter_key, %{to: params[to_key]})
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "filter-change",
+        %{"_target" => ["from__" <> filter_key = from_key]} = params,
+        socket
+      ) do
+    socket = update_filter(socket, filter_key, %{from: params[from_key]})
+    {:noreply, socket}
+  end
+
+  def handle_event("filters-clear", _params, %{assigns: %{auix: %{filters: filters}}} = socket) do
+    {:noreply,
+     Enum.reduce(filters, socket, fn {key, _filter}, acc_socket ->
+       update_filter(acc_socket, key, %{condition: :eq, from: nil, to: nil})
+     end)}
+  end
+
+  def handle_event(
+        "filters-submit",
+        _params,
+        %{assigns: %{auix: %{filters: filters}}} = socket
+      ) do
+    filters =
+      filters
+      |> Enum.reject(fn
+        {_key, %{condition: :between} = filter} ->
+          is_nil(filter.from) or is_nil(filter.to)
+
+        {_key, filter} ->
+          is_nil(filter.from)
+      end)
+      |> Enum.map(fn
+        {_key, %{condition: :eq} = filter} ->
+          {filter.key, filter.from}
+
+        {_key, %{condition: :between} = filter} ->
+          {filter.key, filter.condition, filter.from, filter.to}
+
+        {_key, filter} ->
+          {filter.key, filter.condition, filter.from}
+      end)
+
+    {:noreply, load_items(socket, where: filters)}
+  end
+
   @doc """
   Handles info messages for the LiveView.
 
@@ -299,5 +364,91 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
     assign_auix(socket, :entity, nil)
+  end
+
+  ## PRIVATE
+  @spec load_items(Socket.t(), keyword()) :: Socket.t()
+  defp load_items(%{assigns: %{auix: auix}} = socket, extra_options \\ []) do
+    layout_opts = Map.get(auix.layout_tree, :opts, [])
+
+    opts =
+      auix
+      |> get_in([:configurations, auix.resource_name, :resource_config])
+      |> Map.get(:opts, [])
+      |> Keyword.merge(layout_opts)
+      |> Keyword.put_new(:order_by, [])
+      |> Keyword.put_new(:where, [])
+
+    full_options =
+      Enum.map(opts, &merge_extra_option(&1, extra_options))
+
+    stream(
+      socket,
+      auix.list_key,
+      auix.list_function.(
+        order_by: Keyword.get(full_options, :order_by),
+        where: Keyword.get(full_options, :where)
+      ),
+      reset: true
+    )
+  end
+
+  @spec merge_extra_option(tuple(), list()) :: tuple()
+  defp merge_extra_option({option_key, _value} = option, extra_options) do
+    extra_options
+    |> Keyword.get(option_key)
+    |> merge_option(option)
+  end
+
+  @spec merge_option(list() | nil, tuple()) :: tuple()
+  defp merge_option(extra, {:where, where}) when is_list(extra),
+    do: {:where, Keyword.merge(where, extra)}
+
+  defp merge_option(extra, {:order_by, _order_by}) when is_list(extra), do: {:order_by, extra}
+
+  defp merge_option(nil, option), do: option
+
+  @spec assign_index_fields(Socket.t()) :: Socket.t()
+  defp assign_index_fields(
+         %{
+           assigns: %{
+             auix: %{
+               configurations: configurations,
+               layout_tree: layout_tree,
+               resource_name: resource_name
+             }
+           }
+         } = socket
+       ) do
+    layout_tree.inner_elements
+    |> Enum.filter(&(&1.tag == :field))
+    |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
+    |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
+    |> then(&assign_auix(socket, :index_fields, &1))
+  end
+
+  @spec assign_filters(Socket.t()) :: Socket.t()
+  defp assign_filters(%{assigns: %{auix: %{index_fields: index_fields}}} = socket) do
+    filters =
+      index_fields
+      |> Enum.filter(& &1.filterable?)
+      |> Map.new(&{to_string(&1.key), Filter.new(&1.key)})
+
+    socket
+    |> assign_auix(:filters, filters)
+    |> assign_auix(:filters_form, to_form(filters))
+  end
+
+  @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()
+  defp update_filter(%{assigns: %{auix: %{filters: filters}}} = socket, filter_key, attrs) do
+    filters =
+      filters
+      |> Map.get(filter_key, Filter.new(filter_key))
+      |> Filter.change(attrs)
+      |> then(&Map.put(filters, filter_key, &1))
+
+    socket
+    |> put_in([Access.key!(:assigns), :auix, :filters], filters)
+    |> assign_auix(:filters_form, to_form(filters))
   end
 end

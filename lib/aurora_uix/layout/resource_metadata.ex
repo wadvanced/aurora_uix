@@ -236,6 +236,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `:scale` (`integer()`) - The numeric scale for decimal or float fields.
   - `:readonly` (`boolean()`) - Marks the field as read-only.
   - `:hidden` (`boolean()`) - Hides the field.
+  - `:filterable?` (`boolean()`) - If true, allows the field to participate in UI filtering.
   - `:renderer` (`function()`) - Custom rendering function/component.
   - `:required` (`boolean()`) - Marks the field as required.
   - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
@@ -377,45 +378,32 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   defp maybe_add_option_to_data({key, value}, result), do: Map.put(result, key, value)
 
-  # Reorder fields based on config block order:
-  # - Keeps configured fields in order of appearance
   # - Appends unconfigured fields at end
-  # - Maintains field associations
-  @spec reorder_fields_by_changes(map(), map()) :: map()
-  defp reorder_fields_by_changes(resource_struct, %{inner_elements: []}), do: resource_struct
+  @spec add_new_fields_from_changes(map(), map()) :: map()
+  defp add_new_fields_from_changes(resource_struct, %{inner_elements: []}), do: resource_struct
 
-  defp reorder_fields_by_changes(%{fields: fields, name: resource_name} = resource_struct, %{
+  defp add_new_fields_from_changes(%{fields: fields, name: resource_name} = resource_struct, %{
          inner_elements: field_changes
        }) do
-    # Creates a list of the field changes encountered within the resource config block.
-    changes =
-      field_changes
-      |> List.flatten()
-      |> Enum.map(& &1.name)
-      |> Enum.uniq()
+    fields_list = Enum.map(fields, & &1.key)
 
     # Creates a list of Field.t() according to the changes order. New fields are added in this stage.
-    first_fields =
+    new_fields =
       field_changes
       |> List.flatten()
+      |> Enum.reject(&(&1.name in fields_list))
       |> Enum.map(fn field ->
-        Enum.find(
-          fields,
-          %{key: field.name, resource: resource_name}
-          |> Field.new()
-          |> Field.change(field.opts),
-          fn field_struct -> field_struct.key == field.name end
-        )
+        %{key: field.name, resource: resource_name}
+        |> Field.new()
+        |> Field.change(field.opts)
       end)
-      |> Enum.reverse()
 
     # Filter out known processed fields and then append each field to the first_fields
     # In this way the order defined in the resource config is the one used leaving the
     # unmentioned fields at the bottom.
     fields
-    |> Enum.reject(&(&1.key in changes))
-    |> Enum.reduce(first_fields, &[&1 | &2])
     |> Enum.reverse()
+    |> Enum.reduce(new_fields, &[&1 | &2])
     |> then(&struct(resource_struct, %{fields: &1}))
   end
 
@@ -484,6 +472,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       disabled: field_disabled(field_key),
       omitted: field_omitted(field_key),
       hidden: field_hidden(field_key),
+      filterable?: field_filterable(type),
       resource: resource_name,
       data: field_data(association)
     }
@@ -595,10 +584,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec field_hidden(atom()) :: boolean()
   defp field_hidden(_field), do: false
 
+  @spec field_filterable(atom()) :: boolean()
+  defp field_filterable(_type), do: true
+
   # Extracts metadata for associations
   # Returns nil for non-association fields
   @spec field_data(map() | nil) :: map() | nil
-  defp field_data(nil), do: nil
+  defp field_data(nil), do: %{}
 
   defp field_data(association),
     do: %{
@@ -654,7 +646,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(&struct(resource, %{fields: &1}))
     |> configure_many_to_one_selectors()
     |> apply_field_changes(resource)
-    |> reorder_fields_by_changes(resource)
+    |> add_new_fields_from_changes(resource)
     |> then(&{name, &1})
   end
 

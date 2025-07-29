@@ -88,10 +88,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
         <.table
           id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
-          auix={%{css_classes: @auix.css_classes}}
+          auix={%{css_classes: @auix.css_classes, filters: %{}}}
           rows={get_in(@auix, [:entity, Access.key!(@field.key)])}
         >
-          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"}>
+          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"} field={related_field}>
             {Map.get(entity, related_field.key)}
           </:col>
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>

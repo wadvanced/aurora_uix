@@ -177,7 +177,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
        ) do
     parent_field
     |> Map.put(:resource, resource_name)
-    |> Map.delete(:data)
+    |> Map.put(:data, %{})
     |> get_many_to_one_field(field_name, configurations)
   end
 
