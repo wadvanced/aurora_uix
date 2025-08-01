@@ -52,6 +52,8 @@ defmodule Aurora.Uix.Test.Web.WhereMany2OneTest do
   end
 
   test "Test selector where", %{conn: conn} do
+    delete_all_sample_data()
+
     location_id =
       20
       |> create_sample_product_locations(:many2)

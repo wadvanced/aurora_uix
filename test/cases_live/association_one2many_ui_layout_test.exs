@@ -26,6 +26,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
   end
 
   test "Test one-to-many relationship UI workflow", %{conn: conn} do
+    delete_all_sample_data()
     # Create sample data with 1 product
     product_id =
       3
@@ -55,6 +56,8 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
   end
 
   test "Test order_by", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       1
       |> create_sample_products_with_transactions(10, :one2)

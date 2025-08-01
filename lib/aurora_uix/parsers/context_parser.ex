@@ -24,6 +24,8 @@ defmodule Aurora.Uix.Parsers.ContextParser do
     Function should be able to produce the following:
     - A list of entities or empty list.
 
+  - `:list_paginated_function` - Function reference for reading elements using pagination.
+
   - `:get_function` - Function reference for getting one element of the resource.
     By default, is get_<schema_module>/2 or get_<schema_module>!/2.
     The schema_module is the name of the ecto schema module (the last part).
@@ -112,6 +114,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   def get_options do
     [
       :list_function,
+      :list_function_paginated,
       :get_function,
       :delete_function,
       :update_function,
@@ -136,6 +139,18 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
     create_function_reference(context, ["list_#{source}", "list_#{module}"], 1)
+  end
+
+  def default_value(
+        %{source: source, module: module},
+        %{context: context},
+        :list_function_paginated
+      ) do
+    create_function_reference(
+      context,
+      ["list_#{source}_paginated", "list_#{module}_paginated"],
+      1
+    )
   end
 
   def default_value(%{module: module}, %{context: context}, :get_function) do

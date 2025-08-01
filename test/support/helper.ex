@@ -93,6 +93,16 @@ defmodule Aurora.Uix.Test.Support.Helper do
     |> Map.new()
   end
 
+  @doc """
+  Deletes all the products
+  """
+  @spec delete_all_sample_data() :: :ok
+  def delete_all_sample_data do
+    Repo.delete_all(ProductTransaction)
+    Repo.delete_all(Product)
+    Repo.delete_all(ProductLocation)
+  end
+
   @spec create_sample_product_transactions({binary(), Ecto.Schema.t()}, integer()) ::
           {binary(), Ecto.Schema.t()}
   defp create_sample_product_transactions(product, transactions_count) do

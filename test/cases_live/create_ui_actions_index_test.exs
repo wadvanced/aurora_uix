@@ -105,6 +105,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
   end
 
   test "Test index row custom actions", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(5, :test)
 
     {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")
@@ -120,6 +121,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
   end
 
   test "Test index header custom actions", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(5, :test)
 
     {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")
@@ -135,6 +137,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
   end
 
   test "Test index footer custom actions", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(5, :test)
 
     {:ok, _view, html} = live(conn, "/create-ui-actions-index-products")

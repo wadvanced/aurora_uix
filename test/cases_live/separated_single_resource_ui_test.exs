@@ -31,6 +31,7 @@ defmodule Aurora.Uix.Test.Web.SeparatedSingleResourceUITest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
+    delete_all_sample_data()
     {:ok, view, html} = live(conn, "/separated-single-resource-products/new")
 
     assert html =~ "New Product"

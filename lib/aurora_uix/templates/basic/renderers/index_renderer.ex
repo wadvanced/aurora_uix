@@ -58,7 +58,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               configurations: @auix.configurations,
               filters: Map.get(@auix, :filters, %{}), filters_form: filters_form,
               filters_enabled?: @auix.filters_enabled?}}
-          rows={get_in(assigns, @auix.rows)}
+          rows={@auix.layout_options.get_rows.(assigns)}
+          row_id={Map.get(@auix.layout_options, :row_id)}
         >
           <:filter_action :for={%{function_component: action} <- @auix.index_filters_actions}>
             {action.(%{auix: @auix})}
@@ -97,8 +98,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   @spec get_layout_options(map()) :: map()
   defp get_layout_options(assigns) do
     assigns
+    |> BasicHelpers.assign_auix_option(:disable_pagination)
     |> BasicHelpers.assign_auix_option(:page_title)
     |> BasicHelpers.assign_auix_option(:page_subtitle)
+    |> BasicHelpers.assign_auix_option(:pages_bar_range_offset)
+    |> BasicHelpers.assign_auix_option(:get_rows)
+    |> BasicHelpers.assign_auix_option(:row_id)
   end
 
   @spec entity_id(map()) :: term() | list() | nil

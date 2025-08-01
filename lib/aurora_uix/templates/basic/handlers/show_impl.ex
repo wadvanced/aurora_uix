@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
 
     - Expects the `:auix` assign to be present in the LiveView socket.
     - Designed for use with Phoenix LiveView and Aurora UIX context modules.
-    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `list_key`, etc.).
+    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
   """
   import Aurora.Uix.Templates.Basic.Helpers

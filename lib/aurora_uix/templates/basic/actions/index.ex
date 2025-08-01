@@ -184,6 +184,53 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     """
   end
 
+  @doc """
+  Renders pagination controls for the index layout.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing the layout tree and other context.
+    - Must include `:auix` with `:layout_options`, `:pagination`, `:link_prefix`, `:source`, and `:resource_name`.
+
+  ## Returns
+  Rendered.t() - The rendered pagination controls with responsive breakpoints.
+
+  """
+  @spec pagination_action(map()) :: Rendered.t()
+  def pagination_action(
+        %{
+          auix: %{
+            layout_options: %{disable_pagination: false},
+            pagination: %{page: _page, pages_count: pages_count}
+          }
+        } = assigns
+      )
+      when pages_count > 1 do
+    ~H"""
+      <div name={"auix-pages_bar-#{@auix.source}"} class="mt-10">
+        <hr class="mb-4"/>
+        <div class="h-0 invisible 2xl:visible" name={"auix-pages_bar-#{@auix.source}-xl2"}>
+          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)} />
+        </div>
+        <div class="h-0 invisible xl:visible 2xl:invisible" name={"auix-pages_bar-#{@auix.source}-xl"}>
+          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)} />
+        </div>
+        <div class="h-0 invisible lg:visible xl:invisible" name={"auix-pages_bar-#{@auix.source}-lg"}>
+          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)} />
+        </div>
+        <div class="h-0 invisible md:visible lg:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-md"}>
+          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)} />
+        </div>
+        <div class="h-0 sm:visible md:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-sm"}>
+          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :sm)} />
+        </div>
+      </div>
+    """
+  end
+
+  def pagination_action(assigns) do
+    ~H""
+  end
+
   ## PRIVATE
 
   # Adds default row actions (show, edit, delete) to the assigns
@@ -197,18 +244,20 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   # Returns assigns unchanged if index_footer_actions already exists
-  @spec add_default_footer_actions(map()) :: map()
-  defp add_default_footer_actions(%{auix: %{index_footer_actions: _}} = assigns), do: assigns
-
-  # Adds an empty index_footer_actions list if not present
-  defp add_default_footer_actions(assigns),
-    do: put_in(assigns, [:auix, :index_footer_actions], [])
 
   # Adds default header actions (new) to the assigns
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
     Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
   end
+
+  # Adds default footer actions (pagination) to the assigns
+  @spec add_default_footer_actions(map()) :: map()
+  defp add_default_footer_actions(assigns),
+    do:
+      Actions.add_actions(assigns, :index_footer_actions,
+        default_pagination: &pagination_action/1
+      )
 
   # Adds default filter actions (clear, submit) to the assigns
   @spec add_default_filters_actions(map()) :: map()

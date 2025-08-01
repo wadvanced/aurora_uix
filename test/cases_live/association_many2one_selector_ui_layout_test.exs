@@ -46,6 +46,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorUILayoutTest do
   end
 
   test "check_show", %{conn: conn} do
+    delete_all_sample_data()
     locations = create_sample_product_locations(5)
     location_id = get_in(locations, ["id_1", Access.key!(:id)])
 

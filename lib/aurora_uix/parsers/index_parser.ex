@@ -12,7 +12,8 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   - Relies on Phoenix streams and schema naming conventions for defaults.
 
   ## Index Options
-  - `:rows` (list(atom())): List of fields to use. Defaults to Phoenix streams and schema name.
+  - `:get_rows` (function()): Reference to an arity one function.
+        By default is `Aurora.Uix.Parsers.IndexParser.get_rows/1`.
   - `:index_new_link` (String.t()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
   """
 
@@ -28,7 +29,6 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   @spec get_options() :: list(atom())
   def get_options do
     [
-      :rows,
       :index_new_link
     ]
   end
@@ -42,16 +42,10 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   - `field` (atom()) - Field to produce the default value for.
 
   ## Returns
-  term() - Default value for the specified field.
+  function() - Default value for the specified field.
 
   """
-  @spec default_value(map(), map(), atom()) :: term() | nil
-  def default_value(_parsed_opts, %{schema: module}, :rows) do
-    :source
-    |> module.__schema__()
-    |> then(&[:streams, String.to_atom(&1)])
-  end
-
+  @spec default_value(map(), map(), atom()) :: term()
   def default_value(parsed_opts, _resource_config, :index_new_link),
     do: "/#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/new"
 end

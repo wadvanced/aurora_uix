@@ -183,6 +183,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
 
   @spec prepare_filters_test(Phoenix.Conn.t()) :: View.t()
   defp prepare_filters_test(conn) do
+    delete_all_sample_data()
     locations = create_sample_product_locations(5, :flt)
 
     create_sample_products(2, :group_1a, %{

@@ -21,6 +21,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
   end
 
   test "Test show default options", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       1
       |> create_sample_products(:test)
@@ -34,6 +36,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
+    delete_all_sample_data()
     {:ok, view, _html} = live(conn, "/create-ui-default-layout-products/new")
 
     assert view
@@ -72,6 +75,7 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutTest do
   end
 
   test "Test main edit link", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(5, :test)
 
     {:ok, view, _html} = live(conn, "/create-ui-default-layout-products")

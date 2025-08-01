@@ -26,6 +26,8 @@ defmodule Aurora.Uix.Test.Web.WhereOne2ManyTest do
   end
 
   test "Test where", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       1
       |> create_sample_products_with_transactions(10, :one2)

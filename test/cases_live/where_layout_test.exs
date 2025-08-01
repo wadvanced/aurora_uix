@@ -33,6 +33,7 @@ defmodule Aurora.Uix.Test.Web.WhereLayoutTest do
   end
 
   test "Test UI default order", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(20, :test_order)
 
     {:ok, _view, html} = live(conn, "/where-layout-products")
