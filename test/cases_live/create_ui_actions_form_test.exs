@@ -44,6 +44,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsFormTest do
   end
 
   test "Test form header custom actions", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       5
       |> create_sample_products(:test)
@@ -60,6 +62,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsFormTest do
   end
 
   test "Test form footer custom actions", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       5
       |> create_sample_products(:test)

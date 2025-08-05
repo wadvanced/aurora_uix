@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     - Expects the `:auix` assign to be present in the LiveView socket.
     - Designed for use with Phoenix LiveView and Aurora UIX context modules.
-    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `list_key`, etc.).
+    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
   """
 
@@ -25,7 +25,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   import Phoenix.LiveView
   import Phoenix.Component
 
+  alias Aurora.Ctx.Core, as: CtxCore
+  alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -129,7 +132,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, load_items(socket)}
+    {:ok,
+     socket
+     |> load_items()
+     |> maybe_create_stream(socket)}
   end
 
   @doc """
@@ -207,10 +213,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix}} = socket) do
+  def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix, streams: _streams}} = socket) do
     entity = auix.get_function.(id)
     {:ok, _} = auix.delete_function.(entity)
-    {:noreply, stream_delete(socket, auix.list_key, entity)}
+    {:noreply, stream_delete(socket, auix.source_key, entity)}
   end
 
   def handle_event(
@@ -304,8 +310,48 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           {filter.key, filter.condition, filter.from}
       end)
 
-    {:noreply, load_items(socket, where: filters)}
+    {:noreply,
+     socket
+     |> load_items(where: filters)
+     |> maybe_create_stream(socket)}
   end
+
+  def handle_event(
+        "pagination_to_page",
+        %{"page" => page},
+        %{assigns: %{auix: %{pagination: %Pagination{}} = auix}} = socket
+      ) do
+    {:noreply,
+     auix_route_forward(socket, patch: "/#{auix.link_prefix}#{auix.source}?page=#{page}")}
+  end
+
+  def handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
+
+  def handle_event(
+        "pagination_previous",
+        _params,
+        %{assigns: %{auix: %{pagination: %Pagination{} = pagination} = auix}} = socket
+      ) do
+    {:noreply,
+     auix_route_forward(socket,
+       patch: "/#{auix.link_prefix}#{auix.source}?page=#{previous_page(pagination)}"
+     )}
+  end
+
+  def handle_event("pagination_previous", _params, socket), do: {:noreply, socket}
+
+  def handle_event(
+        "pagination_next",
+        _params,
+        %{assigns: %{auix: %{pagination: %Pagination{} = pagination} = auix}} = socket
+      ) do
+    {:noreply,
+     auix_route_forward(socket,
+       patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
+     )}
+  end
+
+  def handle_event("pagination_next", _params, socket), do: {:noreply, socket}
 
   @doc """
   Handles info messages for the LiveView.
@@ -323,9 +369,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_info(
         {_component, {:saved, entity}},
-        %{assigns: %{auix: auix}} = socket
+        %{assigns: %{auix: auix, streams: _streams}} = socket
       ) do
-    {:noreply, stream_insert(socket, auix.list_key, entity)}
+    {:noreply, stream_insert(socket, auix.source_key, entity)}
   end
 
   def handle_info(_input, socket) do
@@ -362,13 +408,44 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
   end
 
+  def apply_action(
+        %{
+          assigns: %{
+            live_action: :index,
+            auix: %{pagination: %{repo_module: _repo_module} = pagination}
+          }
+        } = socket,
+        %{"page" => page}
+      ) do
+    pagination
+    |> CtxCore.to_page(String.to_integer(page))
+    |> maybe_create_stream(socket)
+    |> assign_auix(:entity, nil)
+  end
+
+  def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
+    socket
+    |> load_items()
+    |> then(fn
+      %{
+        assigns: %{auix: %{pagination: %{repo_module: _, schema_module: _, page: _} = pagination}}
+      } ->
+        CtxCore.to_page(pagination, page)
+
+      entries ->
+        entries
+    end)
+    |> maybe_create_stream(socket)
+    |> assign_auix(:entity, nil)
+  end
+
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
     assign_auix(socket, :entity, nil)
   end
 
   ## PRIVATE
   @spec load_items(Socket.t(), keyword()) :: Socket.t()
-  defp load_items(%{assigns: %{auix: auix}} = socket, extra_options \\ []) do
+  defp load_items(%{assigns: %{auix: auix} = assigns}, extra_options \\ []) do
     layout_opts = Map.get(auix.layout_tree, :opts, [])
 
     opts =
@@ -379,18 +456,47 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Keyword.put_new(:order_by, [])
       |> Keyword.put_new(:where, [])
 
+    list_function =
+      case LayoutOptions.get(assigns, :disable_pagination) do
+        {:ok, true} -> auix.list_function
+        _ -> auix.list_function_paginated
+      end
+
     full_options =
       Enum.map(opts, &merge_extra_option(&1, extra_options))
 
-    stream(
-      socket,
-      auix.list_key,
-      auix.list_function.(
-        order_by: Keyword.get(full_options, :order_by),
-        where: Keyword.get(full_options, :where)
-      ),
+    list_function.(
+      order_by: Keyword.get(full_options, :order_by),
+      where: Keyword.get(full_options, :where)
+    )
+  end
+
+  @spec maybe_create_stream(map(), Socket.t()) :: Socket.t()
+  defp maybe_create_stream(
+         %{entries: entries} = pagination,
+         %{assigns: %{auix: %{primary_key: primary_key, source: source}}} = socket
+       ) do
+    entries
+    |> Enum.map(&normalize_entry(&1, source, primary_key))
+    |> then(&assign_auix(socket, :rows, &1))
+    |> assign_auix(:pagination, pagination)
+  end
+
+  defp maybe_create_stream(entries, %{assigns: %{auix: auix}} = socket) do
+    socket
+    |> assign_auix(:pagination, nil)
+    |> stream(
+      auix.source_key,
+      entries,
       reset: true
     )
+  end
+
+  @spec normalize_entry(map(), binary(), list() | atom()) :: tuple()
+  defp normalize_entry(entry, source, primary_key) do
+    entry
+    |> BasicHelpers.primary_key_value(primary_key)
+    |> then(&{"#{source}-#{&1}", entry})
   end
 
   @spec merge_extra_option(tuple(), list()) :: tuple()
@@ -451,4 +557,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> put_in([Access.key!(:assigns), :auix, :filters], filters)
     |> assign_auix(:filters_form, to_form(filters))
   end
+
+  @spec previous_page(map()) :: integer()
+  defp previous_page(%{page: page}) when page <= 1, do: 1
+  defp previous_page(%{page: page}), do: page - 1
+
+  @spec next_page(map()) :: integer()
+  defp next_page(%{page: page, pages_count: pages_count}) when page >= pages_count,
+    do: pages_count
+
+  defp next_page(%{page: page}), do: page + 1
 end

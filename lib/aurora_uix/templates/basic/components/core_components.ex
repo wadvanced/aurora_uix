@@ -516,11 +516,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   @spec table(map) :: Rendered.t()
   def table(assigns) do
-    assigns =
-      with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
-        assign(assigns, row_id: assigns.row_id || fn {id, _item} -> id end)
-      end
-
     ~H"""
     <div class={get_in(@auix, [:css_classes, :core_components, :table_container]) || "overflow-y-auto px-4 sm:overflow-visible sm:px-0"}>
       <table class="w-[40rem] mt-11 sm:w-full">
@@ -574,8 +569,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
-              phx-value-route_type={evaluate_route_type(assigns)}
-              phx-value-route_path={evaluate_route_path(assigns, row)}
               class={["relative p-0", @row_click && "hover:cursor-pointer"]}
             >
               <div class="block py-4 pr-6">
@@ -681,6 +674,39 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  attr(:pagination, :map, required: true)
+  attr(:pages_bar_range_offset, :integer, required: true)
+  @spec pages_selection(map()) :: map()
+  def pages_selection(assigns) do
+    assigns =
+      assigns
+      |> page_calculate_indexes()
+      |> maybe_augment_range()
+
+    ~H"""
+      <div class="flex flex-row gap-3 justify-center overflow-x-clip">
+        <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
+        <%= if @pages_start_index > 1 do %>
+          <a name="auix-pages_bar_page-first" phx-click="pagination_to_page" phx-value-page={1}>1</a>
+          <span>...</span>
+        <% end %>
+        <div :for={page_index <- @pages_start_index..@pages_end_index}>
+          <%= if page_index == @pagination.page do %>
+            <span name="auix-pages_bar_page-current" class="border border-zinc-400 rounded-full p-2">{page_index}</span>
+          <% else %>
+            <a name={"auix-pages_bar_page-#{page_index}"} phx-click="pagination_to_page" phx-value-page={page_index}>{page_index}</a>
+          <% end %>
+        </div>
+
+        <%= if @pages_end_index < @pagination.pages_count do %>
+          <span>...</span>
+          <a name="auix-pages_bar_page-last" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>{@pagination.pages_count}</a>
+        <% end %>
+        <a name="auix-pages_bar_page-next" :if={@pagination.page < @pagination.pages_count} phx-click="pagination_to_page" phx-value-page={@pages_end_index}><.icon name="hero-chevron-right"/></a>
+      </div>
     """
   end
 
@@ -817,19 +843,47 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   defp evaluate_phx_click(_assigns, _row), do: nil
 
-  @spec evaluate_route_type(map()) :: atom() | nil
-  defp evaluate_route_type(%{row_click_navigate: _row_click_navigate}), do: :navigate
-  defp evaluate_route_type(%{row_click_patch: _row_click_navigate}), do: :patch
-  defp evaluate_route_type(_assigns), do: nil
+  @spec page_calculate_indexes(map()) :: map()
+  defp page_calculate_indexes(
+         %{pagination: %{page: page}, pages_bar_range_offset: offset} = assigns
+       ) do
+    assigns
+    |> Map.put(:pages_start_index, page - offset)
+    |> Map.put(:pages_end_index, page + offset)
+    |> page_fix_indexes_bounds()
+  end
 
-  @spec evaluate_route_path(map(), function() | nil) :: any()
-  defp evaluate_route_path(%{row_click_navigate: row_click_navigate}, row)
-       when is_function(row_click_navigate),
-       do: row_click_navigate.(row)
+  @spec maybe_augment_range(map()) :: map()
+  defp maybe_augment_range(
+         %{
+           pagination: %{page: page},
+           pages_start_index: start_index,
+           pages_end_index: end_index,
+           pages_bar_range_offset: offset
+         } = assigns
+       ) do
+    add_to_end_index = offset - (page - start_index)
+    subtract_from_start_index = offset - (end_index - page)
 
-  defp evaluate_route_path(%{row_click_patch: row_click_patch}, row)
-       when is_function(row_click_patch),
-       do: row_click_patch.(row)
+    assigns
+    |> Map.put(:pages_start_index, start_index - subtract_from_start_index)
+    |> Map.put(:pages_end_index, end_index + add_to_end_index)
+    |> page_fix_indexes_bounds()
+  end
 
-  defp evaluate_route_path(_assigns, _row), do: nil
+  @spec page_fix_indexes_bounds(map()) :: map()
+  defp page_fix_indexes_bounds(
+         %{
+           pagination: %{pages_count: pages_count},
+           pages_start_index: start_index,
+           pages_end_index: end_index
+         } = assigns
+       ) do
+    start_index = if start_index < 1, do: 1, else: start_index
+    end_index = if end_index > pages_count, do: pages_count, else: end_index
+
+    assigns
+    |> Map.put(:pages_start_index, start_index)
+    |> Map.put(:pages_end_index, end_index)
+  end
 end

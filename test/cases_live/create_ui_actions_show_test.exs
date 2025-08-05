@@ -48,6 +48,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsShowTest do
   end
 
   test "Test show custom actions", %{conn: conn} do
+    delete_all_sample_data()
+
     product_id =
       5
       |> create_sample_products(:test)

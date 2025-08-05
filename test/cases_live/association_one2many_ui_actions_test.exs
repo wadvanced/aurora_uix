@@ -79,6 +79,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
   end
 
   test "Test header actions", %{conn: conn} do
+    delete_all_sample_data()
     # Create sample data with 1 product
     product_id =
       3
@@ -100,6 +101,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
   end
 
   test "Test row actions", %{conn: conn} do
+    delete_all_sample_data()
     # Create sample data with 1 product
     product_id =
       1
@@ -121,6 +123,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
   end
 
   test "Test footer actions", %{conn: conn} do
+    delete_all_sample_data()
     # Create sample data with 1 product
     product_id =
       3

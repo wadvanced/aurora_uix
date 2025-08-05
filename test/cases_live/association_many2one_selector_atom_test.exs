@@ -71,6 +71,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
   end
 
   test "check_show", %{conn: conn} do
+    delete_all_sample_data()
     locations = create_sample_product_locations(5)
     location_id = get_in(locations, ["id_1", Access.key!(:id)])
 
@@ -94,6 +95,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
   end
 
   test "check_edit", %{conn: conn} do
+    delete_all_sample_data()
     locations = create_sample_product_locations(5)
     location_id_1 = get_in(locations, ["id_1", Access.key!(:id)])
     location_id_2 = get_in(locations, ["id_2", Access.key!(:id)])
@@ -133,6 +135,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
   end
 
   test "Test selector order by", %{conn: conn} do
+    delete_all_sample_data()
+
     location_id =
       20
       |> create_sample_product_locations(:many2)

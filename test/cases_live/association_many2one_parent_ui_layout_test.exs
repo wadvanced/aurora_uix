@@ -63,6 +63,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneParentUILayoutTest do
   @spec validate_product_locations({Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp validate_product_locations({conn, _view}) do
+    delete_all_sample_data()
+
     location_id =
       1
       |> create_sample_product_locations()

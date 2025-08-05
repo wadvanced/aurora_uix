@@ -45,6 +45,7 @@ defmodule Aurora.Uix.Parsers.Common do
       :link_prefix,
       :name,
       :source,
+      :source_key,
       :title,
       :primary_key
     ]
@@ -84,6 +85,9 @@ defmodule Aurora.Uix.Parsers.Common do
   end
 
   def default_value(_parsed_opts, %{schema: module}, :source), do: module.__schema__(:source)
+
+  def default_value(_parsed_opts, %{schema: module}, :source_key),
+    do: :source |> module.__schema__() |> String.to_atom()
 
   def default_value(_parsed_opts, _resource_config, :link_prefix), do: ""
 

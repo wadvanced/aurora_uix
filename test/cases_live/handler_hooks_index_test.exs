@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksIndexTest do
   end
 
   test "Test index hooks", %{conn: conn} do
+    delete_all_sample_data()
     create_sample_products(20, :test)
     {:ok, _view, html} = live(conn, "/handler-hooks-index-products")
 
@@ -47,7 +48,7 @@ defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
     {:ok,
      stream(
        socket,
-       auix.list_key,
+       auix.source_key,
        auix.list_function.(where: {:reference, :lt, "item_test-06"})
      )}
   end

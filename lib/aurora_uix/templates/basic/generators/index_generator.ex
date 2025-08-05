@@ -30,10 +30,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_tree: %{tag: :index}} = parsed_opts) do
-    parsed_opts =
-      parsed_opts
-      |> ModulesGenerator.remove_omitted_fields()
-      |> Map.put(:list_key, String.to_existing_atom(parsed_opts.source))
+    parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     index_module = ModulesGenerator.module_name(parsed_opts, ".Index")
     handler_module = ModulesGenerator.handler_module(parsed_opts, IndexHandler)

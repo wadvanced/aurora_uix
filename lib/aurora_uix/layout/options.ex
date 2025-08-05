@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Layout.Options do
   import Phoenix.HTML, only: [raw: 1]
 
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
+  alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
   alias Aurora.Uix.Layout.Options.Page, as: PageOptions
   require Logger
 
@@ -55,7 +56,8 @@ defmodule Aurora.Uix.Layout.Options do
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
     with {:not_found, _option} <- PageOptions.get(assigns, option),
-         {:not_found, _option} <- FormOptions.get(assigns, option) do
+         {:not_found, _option} <- FormOptions.get(assigns, option),
+         {:not_found, _option} <- IndexOptions.get(assigns, option) do
       Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
       {:not_found, option}
     end
