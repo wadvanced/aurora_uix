@@ -8,7 +8,7 @@ You can provide your own template modules by implementing the `Aurora.Uix.Templa
 
 - `generate_module/1`: Generates the handling code (LiveView modules, components, etc.) for a given layout type and configuration.
 - `default_core_components_module/0`: Returns the module containing your core UI components (such as forms, tables, modals).
-- `css_classes/0`: Returns a map of CSS class mappings for different template components.
+
 
 These callbacks allow you to control how UI modules and markup are generated for your application.
 

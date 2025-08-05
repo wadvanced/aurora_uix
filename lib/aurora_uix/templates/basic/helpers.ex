@@ -40,6 +40,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
 
+  alias Phoenix.LiveView.Socket
+
   @action_groups Action.action_groups()
 
   @doc """
@@ -53,8 +55,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with entity assigned to `:auix.entity`
   """
-  @spec assign_new_entity(Phoenix.LiveView.Socket.t(), map(), struct()) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_new_entity(Socket.t(), map(), struct()) ::
+          Socket.t()
   def assign_new_entity(
         socket,
         %{
@@ -82,7 +84,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()- Socket with updated auix assigns
   """
-  @spec assign_parsed_opts(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
+  @spec assign_parsed_opts(Socket.t(), map()) :: Socket.t()
   def assign_parsed_opts(socket, parsed_opts) do
     socket.assigns
     |> Map.get(:auix, %{})
@@ -101,7 +103,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_auix(Phoenix.LiveView.Socket.t(), atom(), term()) :: Phoenix.LiveView.Socket.t()
+  @spec assign_auix(Socket.t(), atom(), term()) :: Socket.t()
   def assign_auix(socket, key, value) do
     socket.assigns
     |> Map.get(:auix, %{})
@@ -120,7 +122,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
-  @spec assign_auix_new(Phoenix.LiveView.Socket.t(), atom, any) :: Phoenix.LiveView.Socket.t()
+  @spec assign_auix_new(Socket.t(), atom, any) :: Socket.t()
   def assign_auix_new(socket, key, value) do
     socket.assigns
     |> Map.get(:auix, %{})
@@ -139,8 +141,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
-  @spec assign_auix_sections(Phoenix.LiveView.Socket.t(), binary(), binary()) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_auix_sections(Socket.t(), binary(), binary()) ::
+          Socket.t()
   def assign_auix_sections(%{assigns: assigns} = socket, sections_id, tab_id) do
     assigns.auix
     |> Map.get(:_sections)
@@ -158,8 +160,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
-  @spec assign_auix_current_path(Phoenix.LiveView.Socket.t(), binary() | URI.t()) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_auix_current_path(Socket.t(), binary() | URI.t()) ::
+          Socket.t()
   def assign_auix_current_path(socket, url) do
     assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
   end
@@ -188,8 +190,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
   """
-  @spec assign_auix_routing_stack(Phoenix.LiveView.Socket.t(), map(), map() | nil) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) ::
+          Socket.t()
   def assign_auix_routing_stack(socket, params, default_route \\ nil)
 
   def assign_auix_routing_stack(
@@ -226,9 +228,9 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Phoenix.LiveView.Socket.t() - The socket with the option assigned in `auix.layout_options`.
 
   """
-  @spec assign_auix_option(Phoenix.LiveView.Socket.t() | map(), atom()) ::
-          Phoenix.LiveView.Socket.t() | map()
-  def assign_auix_option(%Phoenix.LiveView.Socket{assigns: assigns} = socket, option)
+  @spec assign_auix_option(Socket.t() | map(), atom()) ::
+          Socket.t() | map()
+  def assign_auix_option(%Socket{assigns: assigns} = socket, option)
       when is_atom(option) do
     option_value =
       case LayoutOptions.get(assigns, option) do
@@ -272,8 +274,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
 
   """
-  @spec assign_auix_option(Phoenix.LiveView.Socket.t(), atom(), term() | nil) ::
-          Phoenix.LiveView.Socket.t()
+  @spec assign_auix_option(Socket.t(), atom(), term() | nil) ::
+          Socket.t()
   def assign_auix_option(socket, option, option_value)
       when is_atom(option) do
     socket
@@ -281,25 +283,49 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
   end
 
-  @doc """
-  Adds an action to the specified actions group in the assigns map.
+    @doc """
+  Sets a temporary to the auix entry in the socket's assigns.
+  There is no guarantee that the elements here will remain in the socket.
 
   ## Parameters
-  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `key` (atom()) - The key to assign.
+  - `value` term() - The value to put on the temp space.
+
+  ## Returns
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  """
+  @spec assign_auix_temp(Phoenix.LiveView.Socket.t(), atom(), any()) :: any()
+  def assign_auix_temp(socket, key, value) when is_atom(key) do
+    socket
+    |> assign_auix_new(:temp, %{})
+    |> put_in([Access.key!(:assigns), :auix, :temp, key], value)
+  end
+
+  @doc """
+  Adds an action to the specified actions group in the map.
+
+  ## Parameters
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The map containing the `:auix` key.
   - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to add.
 
   ## Returns
-  map() - The updated assigns map with the action added to the group.
+  Phoenix.LiveView.Socket.t() | map() - The updated map with the action added to the group.
 
-  ## Examples
-
-      iex> assigns = %{auix: %{index_row_actions: []}}
-      iex> action = %Aurora.Uix.Action{name: "edit", function_component: fn -> :ok end}
-      iex> Aurora.Uix.Templates.Basic.Helpers.add_auix_action(assigns, :index_row_actions, action)
-      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit", function_component: #Function<...>}]}}
   """
-  @spec add_auix_action(map(), atom(), Action.t()) :: map()
+  @spec add_auix_action(Socket.t() | map(), atom(), Action.t()) :: Socket.t() | map()
+  def add_auix_action(%Socket{assigns: %{auix: auix}} = socket, actions_group, action)
+      when actions_group in @action_groups do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.reverse()
+    |> then(&[action | &1])
+    |> Enum.reverse()
+    |> then(&assign_auix(socket, actions_group, &1))
+  end
+
   def add_auix_action(%{auix: auix} = assigns, actions_group, action)
       when actions_group in @action_groups do
     auix
@@ -314,21 +340,22 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Inserts an action at the beginning of the specified actions group in the assigns map.
 
   ## Parameters
-  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the `:auix` key.
   - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to insert.
 
   ## Returns
-  map() - The updated assigns map with the action inserted at the beginning of the group.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "edit"}]}}
-      iex> action = %Aurora.Uix.Action{name: "delete"}
-      iex> Aurora.Uix.Templates.Basic.Helpers.insert_auix_action(assigns, :index_row_actions, action)
-      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: "delete"}, %Aurora.Uix.Action{name: "edit"}]}}
+  Phoenix.LiveView.Socket.t() | map() - The updated map with the action inserted at the beginning of the group.
   """
-  @spec insert_auix_action(map(), atom(), Action.t()) :: map()
+  @spec insert_auix_action(Socket.t() | map(), atom(), Action.t()) :: Socket.t() | map()
+  def insert_auix_action(%Socket{assigns: %{auix: auix}} = socket, actions_group, action)
+      when actions_group in @action_groups do
+    auix
+    |> Map.get(actions_group, [])
+    |> then(&[action | &1])
+    |> then(&assign_auix(socket, actions_group, &1))
+  end
+
   def insert_auix_action(%{auix: auix} = assigns, actions_group, action)
       when actions_group in @action_groups do
     auix
@@ -338,24 +365,32 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  Replaces an action by name in the specified actions group in the assigns map.
+  Replaces an action by name in the specified actions group in the map.
 
   ## Parameters
-  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The map containing the `:auix` key.
   - `actions_group` (atom()) - The group in which the action will be replaced.
   - `action` (Action.t()) - The action to replace, must include a `:name` key.
 
   ## Returns
-  map() - The updated assigns map with the action replaced.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit}, %Aurora.Uix.Action{name: :delete}]}}
-      iex> action = %Aurora.Uix.Action{name: :edit, function_component: fn -> :ok end}
-      iex> Aurora.Uix.Templates.Basic.Helpers.replace_auix_action(assigns, :index_row_actions, action)
-      %{auix: %{index_row_actions: [%Aurora.Uix.Action{name: :edit, function_component: #Function<...>}, %Aurora.Uix.Action{name: :delete}]}}
+  Phoenix.LiveView.Socket.t() | map() - The updated map with the action replaced.
   """
-  @spec replace_auix_action(map(), atom(), Action.t()) :: map()
+  @spec replace_auix_action(Socket.t() | map(), atom(), Action.t()) :: map()
+  def replace_auix_action(
+        %Socket{assigns: %{auix: auix}} = socket,
+        actions_group,
+        %{name: action_name} = action
+      )
+      when actions_group in @action_groups do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.map(fn
+      %{name: ^action_name} -> action
+      current_action -> current_action
+    end)
+    |> then(&assign_auix(socket, actions_group, &1))
+  end
+
   def replace_auix_action(%{auix: auix} = assigns, actions_group, %{name: action_name} = action)
       when actions_group in @action_groups do
     auix
@@ -371,20 +406,22 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Removes an action by name from the specified actions group in the assigns map.
 
   ## Parameters
-  - `assigns` (map()) - The assigns map containing the `:auix` key.
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the `:auix` key.
   - `actions_group` (atom()) - The group from which the action will be removed.
   - `action_name` (atom()) - The name of the action to remove.
 
   ## Returns
-  map() - The updated assigns map with the action removed from the group.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{index_row_actions: [{:edit, fn -> :ok end}, {:delete, fn -> :ok end}]}}
-      iex> Aurora.Uix.Templates.Basic.Helpers.remove_auix_action(assigns, :index_row_actions, :edit)
-      %{auix: %{index_row_actions: [{:delete, #Function<...>}]}}
+  Phoenix.LiveView.Socket.t() | map() - The updated assigns map with the action removed from the group.
   """
   @spec remove_auix_action(map(), atom(), atom()) :: map()
+  def remove_auix_action(%Socket{assigns: %{auix: auix}} = socket, actions_group, action_name)
+      when actions_group in @action_groups do
+    auix
+    |> Map.get(actions_group, [])
+    |> Enum.reject(&(&1.name == action_name))
+    |> then(&assign_auix(socket, actions_group, &1))
+  end
+
   def remove_auix_action(%{auix: auix} = assigns, actions_group, action_name)
       when actions_group in @action_groups do
     auix
@@ -403,7 +440,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec auix_route_forward(Phoenix.LiveView.Socket.t(), keyword()) :: Phoenix.LiveView.Socket.t()
+  @spec auix_route_forward(Socket.t(), keyword()) :: Socket.t()
   def auix_route_forward(
         %{assigns: %{auix: %{_current_path: current_path}}} = socket,
         navigation
@@ -422,7 +459,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec auix_route_back(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
+  @spec auix_route_back(Socket.t()) :: Socket.t()
   def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack}}} = socket) do
     {new_navigation_stack, back_path} = Stack.pop!(routing_stack)
 
@@ -631,10 +668,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(
           binary | nil,
-          Phoenix.LiveView.Socket.t(),
+          Socket.t(),
           binary | nil,
           struct
-        ) :: Phoenix.LiveView.Socket.t()
+        ) :: Socket.t()
   defp maybe_set_related_to_new_entity(related_key, socket, parent_id, default)
        when is_nil(related_key) or is_nil(parent_id),
        do: assign_auix(socket, :entity, default)
@@ -646,8 +683,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   # Adds a path to the forward navigation stack and updates last route path in assigns
-  @spec add_forward_path(Phoenix.LiveView.Socket.t(), binary(), keyword()) ::
-          Phoenix.LiveView.Socket.t()
+  @spec add_forward_path(Socket.t(), binary(), keyword()) ::
+          Socket.t()
   defp add_forward_path(%{assigns: %{auix: %{routing_stack: stack}}} = socket, path, navigation) do
     navigation_entry =
       navigation
@@ -663,7 +700,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   defp add_forward_path(socket, _path, _navigation), do: socket
 
   # Handles route changes based on navigation type and current routing stack
-  @spec route_to(Phoenix.LiveView.Socket.t(), map() | keyword()) :: Phoenix.LiveView.Socket.t()
+  @spec route_to(Socket.t(), map() | keyword()) :: Socket.t()
   defp route_to(%{assigns: %{auix: %{routing_stack: stack}}} = socket, %{
          type: :navigate,
          path: path

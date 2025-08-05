@@ -2,6 +2,8 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
   use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
+
+  import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2]
 
   alias Aurora.Uix.Test.Inventory

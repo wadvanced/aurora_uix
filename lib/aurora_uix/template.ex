@@ -102,22 +102,6 @@ defmodule Aurora.Uix.Template do
   @callback default_core_components_module() :: module()
 
   @doc """
-  Returns a list of modules used as template components.
-
-  ## Returns
-  list(module()) - List of modules implementing template components.
-  """
-  @callback template_component_modules() :: list(module())
-
-  @doc """
-  Returns CSS class mappings for different template components.
-
-  ## Returns
-  map() - A map with component categories as keys and CSS class mappings as values.
-  """
-  @callback css_classes() :: %{atom() => map()}
-
-  @doc """
   Validates and returns the configured UIX template module.
 
   ## Returns

@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   ## Options
 
-  * `:disable_pagination` - Controls whether pagination is enabled for the index list
+  * `:pagination_disabled?` - Controls whether pagination is enabled for the index list
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
     - Default: `false` (pagination active)
   * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
@@ -142,13 +142,13 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   ## PRIVATE
 
-  # Resolves function or boolean values for disable_pagination option, otherwise delegates error.
+  # Resolves function or boolean values for pagination_disabled? option, otherwise delegates error.
   @spec get_option(map(), term(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_option(assigns, value, :disable_pagination)
+  defp get_option(assigns, value, :pagination_disabled?)
        when is_function(value, 1),
        do: {:ok, value.(assigns)}
 
-  defp get_option(_assigns, value, :disable_pagination)
+  defp get_option(_assigns, value, :pagination_disabled?)
        when is_boolean(value),
        do: {:ok, value}
 
@@ -156,7 +156,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :disable_pagination),
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_disabled?),
     do: {:ok, false}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),

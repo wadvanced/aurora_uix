@@ -20,11 +20,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
 
   use Aurora.Uix.CoreComponentsImporter
 
+  import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 

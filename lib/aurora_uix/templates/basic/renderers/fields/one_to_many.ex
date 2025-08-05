@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  import Aurora.Uix.Templates.Basic.Components
 
   alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -86,9 +87,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
         </.label>
       </div>
       <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
-        <.table
+        <.auix_table
           id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
-          auix={%{css_classes: @auix.css_classes, filters: %{}}}
+          auix={%{filters: %{}}}
           rows={get_in(@auix, [:entity, Access.key!(@field.key)])}
         >
           <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"} field={related_field}>
@@ -97,7 +98,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
               {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
           </:action>
-        </.table>
+        </.auix_table>
       </div>
       <div class="flex-row">
         <div class="flex flex-col" name="auix-one_to_many-footer_actions">

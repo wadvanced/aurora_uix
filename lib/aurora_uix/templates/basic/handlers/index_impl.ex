@@ -28,7 +28,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
+  alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -69,6 +71,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
               params :: map()
             ) ::
               Socket.t()
+
+  @allowed_query_options [:where, :or_where, :order_by, :paginate, :select, :preload]
 
   defmacro __using__(_opts) do
     quote do
@@ -131,11 +135,25 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, socket) do
+  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
+    form_component = ModulesGenerator.module_name(auix, ".FormComponent")
+
     {:ok,
      socket
+     |> assign_auix(:form_component, form_component)
+     |> assign_auix(:filters_enabled?, false)
+     |> assign_auix(:selected, MapSet.new())
+     |> assign_auix(:selected_count, 0)
+     |> assign_auix(:selected_any?, false)
+     |> assign_auix(:selected_in_page, %{})
+     |> assign_auix(:selected_any_in_page?, false)
+     |> assign_layout_options()
+     |> IndexActions.set_actions()
+     |> assign_index_fields()
+     |> assign_filters()
+     |> list_function()
      |> load_items()
-     |> maybe_create_stream(socket)}
+    }
   end
 
   @doc """
@@ -155,15 +173,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_params(params, url, %{assigns: %{auix: auix}} = socket) do
-    form_component = ModulesGenerator.module_name(auix, ".FormComponent")
-
     {:noreply,
      socket
-     |> assign(:test, "--")
-     |> assign_auix(:form_component, form_component)
-     |> assign_auix(:filters_enabled?, false)
-     |> assign_index_fields()
-     |> assign_filters()
      |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
        type: :patch,
@@ -216,7 +227,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix, streams: _streams}} = socket) do
     entity = auix.get_function.(id)
     {:ok, _} = auix.delete_function.(entity)
-    {:noreply, stream_delete(socket, auix.source_key, entity)}
+
+    {:noreply,
+     socket
+     |> stream_delete(auix.source_key, entity)
+     |> assign_selected_states()}
   end
 
   def handle_event(
@@ -247,38 +262,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, assign_auix(socket, :filters_enabled?, !filters_enabled?)}
   end
 
-  def handle_event(
-        "filter-change",
-        %{"_target" => ["condition__" <> filter_key = condition_key]} = params,
-        socket
-      ) do
-    socket =
-      update_filter(socket, filter_key, %{
-        condition: params |> Map.get(condition_key) |> String.to_existing_atom()
-      })
-
-    {:noreply, socket}
-  end
-
-  def handle_event(
-        "filter-change",
-        %{"_target" => ["to__" <> filter_key = to_key]} = params,
-        socket
-      ) do
-    socket = update_filter(socket, filter_key, %{to: params[to_key]})
-    {:noreply, socket}
-  end
-
-  def handle_event(
-        "filter-change",
-        %{"_target" => ["from__" <> filter_key = from_key]} = params,
-        socket
-      ) do
-    socket = update_filter(socket, filter_key, %{from: params[from_key]})
-    {:noreply, socket}
-  end
-
-  def handle_event("filters-clear", _params, %{assigns: %{auix: %{filters: filters}}} = socket) do
+    def handle_event("filters-clear", _params, %{assigns: %{auix: %{filters: filters}}} = socket) do
     {:noreply,
      Enum.reduce(filters, socket, fn {key, _filter}, acc_socket ->
        update_filter(acc_socket, key, %{condition: :eq, from: nil, to: nil})
@@ -310,10 +294,118 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           {filter.key, filter.condition, filter.from}
       end)
 
+    {:noreply, load_items(socket, where: filters)}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["filter_condition__" <> filter_key = condition_key]} = params,
+        socket
+      ) do
+    socket =
+      update_filter(socket, filter_key, %{
+        condition: params |> Map.get(condition_key) |> String.to_existing_atom()
+      })
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["filter_to__" <> filter_key = to_key]} = params,
+        socket
+      ) do
+    socket = update_filter(socket, filter_key, %{to: params[to_key]})
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["filter_from__" <> filter_key = from_key]} = params,
+        socket
+      ) do
+    socket = update_filter(socket, filter_key, %{from: params[from_key]})
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["selected_check__" <> id]},
+        %{assigns: %{auix: %{selected: selected, selected_in_page: selected_in_page} = auix}} = socket
+      ) do
+
+    page = if auix.layout_options.pagination_disabled?, do: 1, else: auix.pagination.page
+
+    {new_selected, new_selected_in_page} =
+      selected
+      |> MapSet.member?(id)
+      |> Kernel.!()
+      |> then(&set_selected(id, {selected, selected_in_page}, &1, page))
     {:noreply,
      socket
-     |> load_items(where: filters)
-     |> maybe_create_stream(socket)}
+     |> assign_auix(:selected, new_selected)
+     |> assign_auix(:selected_in_page, new_selected_in_page)
+     |> assign_selected_states()
+    }
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["selected_in_page__"]},
+        %{assigns: %{auix: auix}} = socket
+      ) do
+
+    new_selected_any_in_page? = !auix.selected_any_in_page?
+
+    page = if auix.layout_options.pagination_disabled?, do: 1, else: auix.pagination.page
+
+    {new_selected, new_selected_in_page} =
+      socket
+      |> get_page_items_id()
+      |> Enum.reduce({auix.selected, auix.selected_in_page}, &set_selected(&1, &2, new_selected_any_in_page?, page))
+
+    {:noreply,
+     socket
+     |> assign_auix(:selected, new_selected)
+     |> assign_auix(:selected_in_page, new_selected_in_page)
+     |> assign_auix(:selected_any_in_page?, new_selected_any_in_page?)
+     |> assign_selected_states()}
+  end
+
+  def handle_event("index-layout-change", _params, socket), do: {:noreply, socket}
+
+  def handle_event(
+        "selected_toggle_all",
+        params,
+        %{assigns: %{auix: %{layout_options: %{pagination_disabled?: false}, pagination: pagination, selected: selected, selected_in_page: selected_in_page} = auix}} = socket
+      ) do
+
+    state? = Map.get(params, "state", "false") == "true"
+
+    {new_selected, new_selected_in_page} =
+      1..pagination.pages_count
+      |> Enum.reduce({selected, selected_in_page}, fn page, {acc_selected, acc_selected_in_page} ->
+        pagination
+        |> CtxCore.to_page(page)
+        |> Map.get(:entries, [])
+        |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
+        |> Enum.reduce({acc_selected, acc_selected_in_page}, &set_selected(&1, &2, state?, page))
+      end)
+
+    {:noreply,
+     socket
+     |> assign_auix(:selected, new_selected)
+     |> assign_auix(:selected_in_page, new_selected_in_page)
+     |> assign_selected_states()}
+  end
+
+  def handle_event(
+        "selected_toggle_all",
+        _params,
+        %{assigns: %{auix: %{layout_options: %{pagination_disabled?: true}}}} = socket
+      ) do
+
+    {:noreply, socket}
   end
 
   def handle_event(
@@ -419,24 +511,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       ) do
     pagination
     |> CtxCore.to_page(String.to_integer(page))
-    |> maybe_create_stream(socket)
+    |> then(&assign_auix(socket, :read_items, &1))
+    |> maybe_create_stream()
     |> assign_auix(:entity, nil)
-  end
-
-  def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
-    socket
-    |> load_items()
-    |> then(fn
-      %{
-        assigns: %{auix: %{pagination: %{repo_module: _, schema_module: _, page: _} = pagination}}
-      } ->
-        CtxCore.to_page(pagination, page)
-
-      entries ->
-        entries
-    end)
-    |> maybe_create_stream(socket)
-    |> assign_auix(:entity, nil)
+    |> assign_selected_states()
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
@@ -445,10 +523,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   ## PRIVATE
   @spec load_items(Socket.t(), keyword()) :: Socket.t()
-  defp load_items(%{assigns: %{auix: auix} = assigns}, extra_options \\ []) do
-    layout_opts = Map.get(auix.layout_tree, :opts, [])
+  defp load_items(%{assigns: %{auix: auix}} = socket, extra_options \\ []) do
+    layout_opts = auix.layout_tree
+      |> Map.get(:opts, [])
+      |> Enum.filter(&elem(&1, 0) in @allowed_query_options)
 
-    opts =
+      opts =
       auix
       |> get_in([:configurations, auix.resource_name, :resource_config])
       |> Map.get(:opts, [])
@@ -456,33 +536,57 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Keyword.put_new(:order_by, [])
       |> Keyword.put_new(:where, [])
 
-    list_function =
-      case LayoutOptions.get(assigns, :disable_pagination) do
-        {:ok, true} -> auix.list_function
-        _ -> auix.list_function_paginated
-      end
+    full_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
-    full_options =
-      Enum.map(opts, &merge_extra_option(&1, extra_options))
-
-    list_function.(
-      order_by: Keyword.get(full_options, :order_by),
-      where: Keyword.get(full_options, :where)
-    )
+    socket
+    |> assign_auix(:last_full_options, full_options)
+    |> prepare_query_options()
+    |> read_items()
+    |> maybe_create_stream()
   end
 
-  @spec maybe_create_stream(map(), Socket.t()) :: Socket.t()
+  @spec list_function(Socket.t()) :: Socket.t()
+  defp list_function(%{assigns: %{auix: auix} = assigns} = socket) do
+      list_function =
+        case LayoutOptions.get(assigns, :pagination_disabled?) do
+          {:ok, true} -> auix.list_function
+          _ -> auix.list_function_paginated
+        end
+      assign_auix(socket, :list_function_selected, list_function)
+  end
+
+  @spec prepare_query_options(Socket.t()) :: Socket.t()
+  defp prepare_query_options(%{assigns: %{auix: %{last_full_options: full_options}}} = socket) do
+    query_options = [order_by: Keyword.get(full_options, :order_by),
+      where: Keyword.get(full_options, :where)]
+    assign_auix(socket, :query_options, query_options)
+  end
+
+  @spec read_items(Socket.t()) :: Socket.t()
+  defp read_items(%{assigns: %{auix: %{query_options: query_options, list_function_selected: list_function}}} = socket) do
+    query_options
+    |> list_function.()
+    |> then(&assign_auix(socket, :read_items, &1))
+  end
+
+  @spec maybe_create_stream(Socket.t()) :: Socket.t()
   defp maybe_create_stream(
-         %{entries: entries} = pagination,
-         %{assigns: %{auix: %{primary_key: primary_key, source: source}}} = socket
+         %{assigns: %{auix: %{primary_key: primary_key, read_items: %{entries: entries} = pagination,source: source} = auix}} = socket
        ) do
     entries
     |> Enum.map(&normalize_entry(&1, source, primary_key))
     |> then(&assign_auix(socket, :rows, &1))
     |> assign_auix(:pagination, pagination)
+    |> assign_auix(:read_items, nil)
+    |> stream(
+      auix.source_key,
+      entries,
+      reset: true,
+      limit: Enum.count(pagination.entries)
+    )
   end
 
-  defp maybe_create_stream(entries, %{assigns: %{auix: auix}} = socket) do
+  defp maybe_create_stream(%{assigns: %{auix: %{read_items: entries} = auix}} = socket) do
     socket
     |> assign_auix(:pagination, nil)
     |> stream(
@@ -490,6 +594,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       entries,
       reset: true
     )
+    |> assign_auix(:read_items, nil)
   end
 
   @spec normalize_entry(map(), binary(), list() | atom()) :: tuple()
@@ -514,23 +619,72 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   defp merge_option(nil, option), do: option
 
+  @spec assign_layout_options(Socket.t()) :: Socket.t()
+  defp assign_layout_options(socket) do
+    socket
+    |> BasicHelpers.assign_auix_option(:pagination_disabled?)
+    |> BasicHelpers.assign_auix_option(:page_title)
+    |> BasicHelpers.assign_auix_option(:page_subtitle)
+    |> BasicHelpers.assign_auix_option(:pages_bar_range_offset)
+    |> BasicHelpers.assign_auix_option(:get_rows)
+    |> BasicHelpers.assign_auix_option(:row_id)
+  end
+
   @spec assign_index_fields(Socket.t()) :: Socket.t()
   defp assign_index_fields(
          %{
            assigns: %{
-             auix: %{
-               configurations: configurations,
-               layout_tree: layout_tree,
-               resource_name: resource_name
-             }
+             auix:
+               %{
+                 configurations: configurations,
+                 layout_tree: layout_tree,
+                 resource_name: resource_name
+               } = auix
            }
          } = socket
        ) do
+    select_toggle_function =
+      auix
+      |> Map.get(:index_selected_all_actions, [])
+      |> List.first(%{})
+      |> Map.get(:function_component, "")
+
+    select_field =
+      :selected_check__
+      |> LayoutHelpers.parse_field(:boolean, resource_name)
+      |> struct(%{label: select_toggle_function})
+
     layout_tree.inner_elements
     |> Enum.filter(&(&1.tag == :field))
     |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
     |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
+    |> then(&[select_field | &1])
     |> then(&assign_auix(socket, :index_fields, &1))
+  end
+
+  @spec assign_selected_states(Socket.t()) :: Socket.t()
+  defp assign_selected_states(
+         %{assigns: %{auix: %{selected: selected, selected_in_page: selected_in_page, layout_options: %{pagination_disabled?: false}} = auix}} = socket
+       ) do
+
+    new_selected_any_in_page? =
+      selected_in_page
+      |> Map.get(auix.pagination.page, MapSet.new())
+      |> Enum.any?()
+
+    new_selected_count = Enum.count(selected)
+
+    socket
+    |> assign_auix(:selected_any?, new_selected_count > 0)
+    |> assign_auix(:selected_count, new_selected_count)
+    |> assign_auix(:selected_any_in_page?, new_selected_any_in_page?)
+  end
+
+  defp assign_selected_states(%{assigns: %{auix: %{selected: selected} = auix}} = socket) do
+    socket
+    |> assign_auix(:selected_any?, Map.get(auix, :selected_all?) == true or !Enum.empty?(selected))
+    |> assign_auix(:selected_count, MapSet.size(selected))
+    |> assign_auix(:selected_any_in_page?, !Enum.empty?(selected))
   end
 
   @spec assign_filters(Socket.t()) :: Socket.t()
@@ -542,7 +696,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     socket
     |> assign_auix(:filters, filters)
-    |> assign_auix(:filters_form, to_form(filters))
+    |> assign_auix(:index_layout_form, to_form(filters))
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()
@@ -555,7 +709,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     socket
     |> put_in([Access.key!(:assigns), :auix, :filters], filters)
-    |> assign_auix(:filters_form, to_form(filters))
+    |> assign_auix(:index_layout_form, to_form(filters))
   end
 
   @spec previous_page(map()) :: integer()
@@ -567,4 +721,44 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     do: pages_count
 
   defp next_page(%{page: page}), do: page + 1
+
+  @spec set_selected(term(), tuple(), boolean(), integer()) :: map()
+  defp set_selected(selected_id, {selected, selected_in_page}, true, page) do
+    new_selected = MapSet.put(selected, selected_id)
+    new_selected_in_page = selected_in_page
+      |> Map.get(page, MapSet.new())
+      |> MapSet.put(selected_id)
+      |> then(&Map.put(selected_in_page, page, &1))
+    {new_selected, new_selected_in_page}
+  end
+
+  defp set_selected(selected_id, {selected, selected_in_page}, _state, page) do
+    new_selected = MapSet.delete(selected, selected_id)
+    new_selected_in_page = selected_in_page
+    |> Map.get(page, MapSet.new())
+    |> MapSet.delete(selected_id)
+    |> then(&Map.put(selected_in_page, page, &1))
+    {new_selected, new_selected_in_page}
+  end
+
+  @spec get_page_items_id(Socket.t()) :: list()
+  defp get_page_items_id(%{assigns: %{auix: %{layout_options: %{pagination_disabled?: false}} = auix}}) do
+    auix.pagination
+    |> Map.get(:opts, [])
+    |> Keyword.put(:select, auix.primary_key)
+    |> Keyword.put(:paginate, %{per_page: auix.pagination.per_page})
+    |> then(&Map.put(auix.pagination, :opts, &1))
+    |> CtxCore.to_page(auix.pagination.page)
+    |> Map.get(:entries, [])
+    |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
+  end
+
+  defp get_page_items_id(%{assigns: %{auix: auix}}) do
+    auix
+    |> Map.get(:query_options)
+    |> Keyword.put(:select, auix.primary_key)
+    |> auix.list_function_selected.()
+    |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
+  end
+
 end

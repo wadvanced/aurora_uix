@@ -459,145 +459,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp parse_field(module, resource_name, field_key) do
     type = module.__schema__(:type, field_key)
     association = module.__schema__(:association, field_key)
-
-    attrs = %{
-      key: field_key,
-      label: field_label(field_key),
-      placeholder: field_placeholder(field_key, type),
-      type: field_type(type, association),
-      html_type: field_html_type(type, association),
-      length: field_length(type),
-      precision: field_precision(type),
-      scale: field_scale(type),
-      disabled: field_disabled(field_key),
-      omitted: field_omitted(field_key),
-      hidden: field_hidden(field_key),
-      filterable?: field_filterable(type),
-      resource: resource_name,
-      data: field_data(association)
-    }
-
-    Field.new(attrs)
+    LayoutHelpers.parse_field(field_key, type, resource_name, association)
   end
-
-  # Formats a display label from a field name
-  # Capitalizes and converts underscores to spaces
-  @spec field_label(atom()) :: binary()
-  defp field_label(nil), do: ""
-
-  defp field_label(name),
-    do: name |> to_string() |> String.replace("_", " ") |> String.capitalize()
-
-  # Determines default placeholder text for a field
-  # Based on the field's Elixir type
-  @spec field_placeholder(atom(), atom()) :: binary()
-  defp field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
-
-  defp field_placeholder(_, type)
-       when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-       do: "yyyy/MM/dd HH:mm:ss"
-
-  defp field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
-  defp field_placeholder(name, _type), do: name |> to_string() |> String.capitalize()
-
-  # Maps an Elixir type to a field type
-  # Handles both basic types and associations
-  @spec field_type(atom(), map() | nil) :: atom()
-  defp field_type(type, nil), do: type
-
-  defp field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
-
-  defp field_type(nil, %{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  # Maps an Elixir type to an HTML input type
-  # Provides appropriate HTML5 input types based on data type
-  @spec field_html_type(atom(), map() | nil) :: atom()
-  defp field_html_type(type, _association)
-       when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
-       do: :text
-
-  defp field_html_type(type, _association) when type in [:id, :integer, :float, :decimal],
-    do: :number
-
-  defp field_html_type(type, _association)
-       when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-       do: :"datetime-local"
-
-  defp field_html_type(type, _association) when type in [:time, :time_usec], do: :time
-
-  defp field_html_type(:boolean, _association), do: :checkbox
-
-  defp field_html_type(type, nil), do: type
-
-  defp field_html_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
-
-  defp field_html_type(nil, %{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  defp field_html_type(nil, _association), do: :unimplemented
-
-  # Determines display length for a field
-  # Sets sensible defaults based on data type
-  @spec field_length(atom()) :: integer()
-  defp field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
-  defp field_length(type) when type in [:id, :integer], do: 10
-  defp field_length(type) when type in [:float, :decimal], do: 12
-
-  defp field_length(type)
-       when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-       do: 20
-
-  defp field_length(type) when type in [:time, :time_usec], do: 10
-  defp field_length(Ecto.UUID), do: 34
-  defp field_length(:boolean), do: 5
-  defp field_length(_type), do: 50
-
-  # Gets numeric precision for number fields
-  # Returns 0 for non-numeric fields
-  @spec field_precision(atom()) :: integer()
-  defp field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
-  defp field_precision(_type), do: 0
-
-  # Gets numeric scale for decimal/float fields
-  # Returns 0 for non-decimal fields
-  @spec field_scale(atom()) :: integer()
-  defp field_scale(type) when type in [:float, :decimal], do: 2
-  defp field_scale(_type), do: 0
-
-  # Checks if a field should be disabled
-  # Disabled fields: id, deleted, inactive
-  @spec field_disabled(atom()) :: boolean()
-  defp field_disabled(key) when key in [:id, :deleted, :inactive],
-    do: true
-
-  defp field_disabled(_field), do: false
-
-  # Checks if a field should be omitted
-  # Omitted fields: inserted_at, updated_at
-  @spec field_omitted(atom()) :: boolean()
-  defp field_omitted(key) when key in [:inserted_at, :updated_at],
-    do: true
-
-  defp field_omitted(_field), do: false
-
-  @spec field_hidden(atom()) :: boolean()
-  defp field_hidden(_field), do: false
-
-  @spec field_filterable(atom()) :: boolean()
-  defp field_filterable(_type), do: true
-
-  # Extracts metadata for associations
-  # Returns nil for non-association fields
-  @spec field_data(map() | nil) :: map() | nil
-  defp field_data(nil), do: %{}
-
-  defp field_data(association),
-    do: %{
-      related: association.related,
-      related_key: association.related_key,
-      owner_key: association.owner_key
-    }
 
   # Finds matching resource for an association
   # Returns resource name if found, nil if not
@@ -660,9 +523,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> then(
       &Field.new(
         key: association_field_key,
-        html_type: field_html_type(nil, &1),
-        type: field_type(nil, &1),
-        data: Map.put(field_data(&1), :resource, field_resource(&1, resources)),
+        html_type: LayoutHelpers.field_html_type(nil, &1),
+        type: LayoutHelpers.field_type(nil, &1),
+        data: Map.put(LayoutHelpers.field_data(&1), :resource, field_resource(&1, resources)),
         resource: resource_name
       )
     )

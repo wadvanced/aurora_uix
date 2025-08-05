@@ -72,11 +72,11 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     {view, _locations} = prepare_filters_test(conn)
 
     view
-    |> set_filter_change(:condition, :reference, :eq)
-    |> set_filter_change(:from, :reference, "item_group_3d-1")
+    |> set_filter_change(:filter_condition, :reference, :eq)
+    |> set_filter_change(:filter_from, :reference, "item_group_3d-1")
 
     assert view
-           |> element("[name='from__reference']")
+           |> element("[name='filter_from__reference']")
            |> render()
            |> Floki.attribute("value")
            |> List.first() == "item_group_3d-1"
@@ -95,11 +95,11 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     {view, _locations} = prepare_filters_test(conn)
 
     view
-    |> set_filter_change(:condition, :reference, :ge)
-    |> set_filter_change(:from, :reference, "item_group_3d-2")
+    |> set_filter_change(:filter_condition, :reference, :ge)
+    |> set_filter_change(:filter_from, :reference, "item_group_3d-2")
 
     assert view
-           |> element("[name='from__reference']")
+           |> element("[name='filter_from__reference']")
            |> render()
            |> Floki.attribute("value")
            |> List.first() == "item_group_3d-2"
@@ -118,12 +118,12 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     {view, _locations} = prepare_filters_test(conn)
 
     view
-    |> set_filter_change(:condition, :reference, :between)
-    |> set_filter_change(:from, :reference, "item_group_2b")
-    |> set_filter_change(:to, :reference, "item_group_3c")
+    |> set_filter_change(:filter_condition, :reference, :between)
+    |> set_filter_change(:filter_from, :reference, "item_group_2b")
+    |> set_filter_change(:filter_to, :reference, "item_group_3c")
 
     assert view
-           |> element("[name='to__reference']")
+           |> element("[name='filter_to__reference']")
            |> render()
            |> Floki.attribute("value")
            |> List.first() == "item_group_3c"
@@ -142,15 +142,15 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     {view, locations} = prepare_filters_test(conn)
 
     view
-    |> element("[name='from__product_location_id']")
+    |> element("[name='filter_from__product_location_id']")
     |> render() =~ locations["id_3"].name
 
     view
-    |> set_filter_change(:condition, :product_location_id, :eq)
-    |> set_filter_change(:from, :product_location_id, locations["id_3"].id)
+    |> set_filter_change(:filter_condition, :product_location_id, :eq)
+    |> set_filter_change(:filter_from, :product_location_id, locations["id_3"].id)
 
     assert view
-           |> element("[name='from__product_location_id']")
+           |> element("[name='filter_from__product_location_id']")
            |> render()
            |> Floki.find("option[selected='selected']")
            |> Floki.attribute("value")
@@ -245,7 +245,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
 
   @spec set_filter_change(View.t(), atom(), atom(), atom() | binary()) :: View.t()
   defp set_filter_change(view, element, field, value) do
-    render_change(view, "filter-change", %{
+    render_change(view, "index-layout-change", %{
       "_target" => ["#{element}__#{field}"],
       "#{element}__#{field}" => "#{value}"
     })

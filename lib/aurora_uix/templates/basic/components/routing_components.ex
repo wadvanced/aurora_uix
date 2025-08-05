@@ -9,9 +9,9 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   - Accepts custom HTML attributes and content slots for flexible usage.
   """
 
+  use Aurora.Uix.CoreComponentsImporter
   use Phoenix.Component
 
-  alias Aurora.Uix.Templates.Basic.CoreComponents
   alias Phoenix.LiveView.Rendered
 
   @doc """
@@ -109,7 +109,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
         {@rest}
       >
-        <CoreComponents.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
       </a>
     </div>

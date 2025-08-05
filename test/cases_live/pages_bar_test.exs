@@ -14,7 +14,10 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "pages-bar-") do
-    index_columns(:product, [:id, :reference, :name, :cost], order_by: :name)
+    index_columns(:product, [:id, :reference, :name, :cost],
+      order_by: :name,
+      pagination_disabled?: false
+    )
   end
 
   test "Test UI page bar not needed", %{conn: conn} do
@@ -48,6 +51,7 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
              "3",
              "4",
              "5",
+             "...",
              "25",
              ""
            ]
@@ -60,11 +64,13 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
            |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
              "",
              "1",
+             "...",
              "10",
              "11",
              "12",
              "13",
              "14",
+             "...",
              "25",
              ""
            ]
@@ -84,11 +90,13 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
            |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
              "",
              "1",
+             "...",
              "8",
              "9",
              "10",
              "11",
              "12",
+             "...",
              "25",
              ""
            ]
