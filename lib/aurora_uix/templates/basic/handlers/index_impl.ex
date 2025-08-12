@@ -29,7 +29,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
-  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -147,11 +146,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:selected_any?, false)
      |> assign_auix(:selected_in_page, %{})
      |> assign_auix(:selected_any_in_page?, false)
+     |> assign_auix(:list_function_selected, auix.list_function_paginated)
      |> assign_layout_options()
      |> IndexActions.set_actions()
      |> assign_index_fields()
      |> assign_filters()
-     |> list_function()
      |> load_items()}
   end
 
@@ -527,7 +526,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     pagination
     |> CtxCore.to_page(String.to_integer(page))
     |> then(&assign_auix(socket, :read_items, &1))
-    |> maybe_create_stream()
+    |> create_stream()
     |> assign_auix(:entity, nil)
     |> assign_selected_states()
   end
@@ -558,18 +557,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> assign_auix(:last_full_options, full_options)
     |> prepare_query_options()
     |> read_items()
-    |> maybe_create_stream()
-  end
-
-  @spec list_function(Socket.t()) :: Socket.t()
-  defp list_function(%{assigns: %{auix: auix} = assigns} = socket) do
-    list_function =
-      case LayoutOptions.get(assigns, :pagination_disabled?) do
-        {:ok, true} -> auix.list_function
-        _ -> auix.list_function_paginated
-      end
-
-    assign_auix(socket, :list_function_selected, list_function)
+    |> create_stream()
   end
 
   @spec prepare_query_options(Socket.t()) :: Socket.t()
@@ -595,8 +583,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> then(&assign_auix(socket, :read_items, &1))
   end
 
-  @spec maybe_create_stream(Socket.t()) :: Socket.t()
-  defp maybe_create_stream(
+  @spec create_stream(Socket.t()) :: Socket.t()
+  defp create_stream(
          %{
            assigns: %{
              auix:
@@ -621,7 +609,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     )
   end
 
-  defp maybe_create_stream(%{assigns: %{auix: %{read_items: entries} = auix}} = socket) do
+  defp create_stream(%{assigns: %{auix: %{read_items: entries} = auix}} = socket) do
     socket
     |> assign_auix(:pagination, nil)
     |> stream(
