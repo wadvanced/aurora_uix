@@ -23,6 +23,12 @@ defmodule Aurora.Uix.Action do
 
   @actions %{
     index: %{
+      replace_selected_all_action: {:index_selected_all_actions, :replace_auix_action},
+      remove_selected_all_action: {:index_selected_all_actions, :remove_auix_action},
+      add_selected_action: {:index_selected_actions, :add_auix_action},
+      insert_selected_action: {:index_selected_actions, :insert_auix_action},
+      replace_selected_action: {:index_selected_actions, :replace_auix_action},
+      remove_selected_action: {:index_selected_actions, :remove_auix_action},
       add_header_action: {:index_header_actions, :add_auix_action},
       insert_header_action: {:index_header_actions, :insert_auix_action},
       replace_header_action: {:index_header_actions, :replace_auix_action},

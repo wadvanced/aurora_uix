@@ -23,7 +23,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   use Aurora.Uix.Gettext
   use Phoenix.Component
 
-  alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -71,7 +70,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         tabindex="0"
       >
         <div class="flex min-h-full items-center justify-center">
-          <div class={get_in(@auix, [:css_classes, :core_components, :modal_inner_container]) || "w-full max-w-3xl p-4 sm:p-6 lg:py-8"}>
+          <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -346,7 +345,9 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           class={["rounded border-zinc-300 text-zinc-900 focus:ring-0", @input_class]}
           {@rest}
         />
-        {@label}
+        <%= if is_binary(@label) do %>
+          {@label}
+        <% end %>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -472,130 +473,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
-  @doc ~S"""
-  Renders a table with generic styling.
-
-  ## Examples
-
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id"><%= user.id %></:col>
-        <:col :let={user} label="username"><%= user.username %></:col>
-      </.table>
-  """
-  attr(:id, :string, required: true)
-  attr(:rows, :list, required: true)
-  attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
-  attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
-
-  attr(:row_click_navigate, :any,
-    default: nil,
-    doc: "the function for handling phx-click on each row using auix_route_forward"
-  )
-
-  attr(:row_click_patch, :any,
-    default: nil,
-    doc: "the function for handling phx-click on each row using auix_route_forward"
-  )
-
-  attr(:row_item, :any,
-    default: &Function.identity/1,
-    doc: "the function for mapping each row before calling the :col and :action slots"
-  )
-
-  attr(:auix, :map, default: %{})
-
-  slot :col, required: true do
-    attr(:label, :string)
-  end
-
-  slot(:filter_action,
-    doc: "the slot for showing filter actions in the last table heading column"
-  )
-
-  slot(:action, doc: "the slot for showing user actions in the last table column")
-
-  @spec table(map) :: Rendered.t()
-  def table(assigns) do
-    ~H"""
-    <div class={get_in(@auix, [:css_classes, :core_components, :table_container]) || "overflow-y-auto px-4 sm:overflow-visible sm:px-0"}>
-      <table class="w-[40rem] mt-11 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
-          <tr :if={Map.get(@auix, :filters_enabled?)} >
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
-              <FilteringComponents.filter_field
-                  field={col.field}
-                  filter={get_in(@auix, [:filters_form, col.field.key, Access.key!(:value)])}
-                  auix={@auix}/>
-            </th>
-            <th :if={@filter_action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <span
-                  :for={action <- @filter_action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
-                  {render_slot(action)}
-                </span>
-              </div>
-            </th>
-          </tr>
-          <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
-              <div class="font-bold inline-flex">
-                <div name="auix-column-label">{col.label}</div>
-              </div>
-            </th>
-            <th :if={Map.get(@auix, :filters) != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <%= if Map.get(@auix, :filters_enabled?) do %>
-                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
-                    <.icon name="hero-funnel" class=""/>
-                    <.icon name="hero-x-mark" class="align-super size-3"/>
-                  </a>
-                <% else %>
-                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
-                <% end %>
-              </div>
-            </th>
-          </tr>
-
-        </thead>
-        <tbody
-          id={@id}
-          phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
-            <td
-              :for={{col, i} <- Enum.with_index(@col)}
-              phx-click={evaluate_phx_click(assigns, row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
-            >
-              <div class="block py-4 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
-                  {render_slot(col, @row_item.(row))}
-                </span>
-              </div>
-            </td>
-            <td :if={@action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <span
-                  :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-                >
-                  {render_slot(action, @row_item.(row))}
-                </span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    """
-  end
-
   @doc """
   Renders a data list.
 
@@ -674,39 +551,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
-    """
-  end
-
-  attr(:pagination, :map, required: true)
-  attr(:pages_bar_range_offset, :integer, required: true)
-  @spec pages_selection(map()) :: map()
-  def pages_selection(assigns) do
-    assigns =
-      assigns
-      |> page_calculate_indexes()
-      |> maybe_augment_range()
-
-    ~H"""
-      <div class="flex flex-row gap-3 justify-center overflow-x-clip">
-        <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
-        <%= if @pages_start_index > 1 do %>
-          <a name="auix-pages_bar_page-first" phx-click="pagination_to_page" phx-value-page={1}>1</a>
-          <span>...</span>
-        <% end %>
-        <div :for={page_index <- @pages_start_index..@pages_end_index}>
-          <%= if page_index == @pagination.page do %>
-            <span name="auix-pages_bar_page-current" class="border border-zinc-400 rounded-full p-2">{page_index}</span>
-          <% else %>
-            <a name={"auix-pages_bar_page-#{page_index}"} phx-click="pagination_to_page" phx-value-page={page_index}>{page_index}</a>
-          <% end %>
-        </div>
-
-        <%= if @pages_end_index < @pagination.pages_count do %>
-          <span>...</span>
-          <a name="auix-pages_bar_page-last" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>{@pagination.pages_count}</a>
-        <% end %>
-        <a name="auix-pages_bar_page-next" :if={@pagination.page < @pagination.pages_count} phx-click="pagination_to_page" phx-value-page={@pages_end_index}><.icon name="hero-chevron-right"/></a>
-      </div>
     """
   end
 
@@ -823,67 +667,5 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec translate_errors(list, keyword) :: list
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
-  end
-
-  ## PRIVATE
-  @spec evaluate_phx_click(map(), function() | nil) :: any()
-  defp evaluate_phx_click(%{row_click: row_click}, row) when is_function(row_click) do
-    row_click.(row)
-  end
-
-  defp evaluate_phx_click(%{row_click_navigate: row_click_navigate}, _row)
-       when is_function(row_click_navigate) do
-    "auix_route_forward"
-  end
-
-  defp evaluate_phx_click(%{row_click_patch: row_click_patch}, _row)
-       when is_function(row_click_patch) do
-    "auix_route_forward"
-  end
-
-  defp evaluate_phx_click(_assigns, _row), do: nil
-
-  @spec page_calculate_indexes(map()) :: map()
-  defp page_calculate_indexes(
-         %{pagination: %{page: page}, pages_bar_range_offset: offset} = assigns
-       ) do
-    assigns
-    |> Map.put(:pages_start_index, page - offset)
-    |> Map.put(:pages_end_index, page + offset)
-    |> page_fix_indexes_bounds()
-  end
-
-  @spec maybe_augment_range(map()) :: map()
-  defp maybe_augment_range(
-         %{
-           pagination: %{page: page},
-           pages_start_index: start_index,
-           pages_end_index: end_index,
-           pages_bar_range_offset: offset
-         } = assigns
-       ) do
-    add_to_end_index = offset - (page - start_index)
-    subtract_from_start_index = offset - (end_index - page)
-
-    assigns
-    |> Map.put(:pages_start_index, start_index - subtract_from_start_index)
-    |> Map.put(:pages_end_index, end_index + add_to_end_index)
-    |> page_fix_indexes_bounds()
-  end
-
-  @spec page_fix_indexes_bounds(map()) :: map()
-  defp page_fix_indexes_bounds(
-         %{
-           pagination: %{pages_count: pages_count},
-           pages_start_index: start_index,
-           pages_end_index: end_index
-         } = assigns
-       ) do
-    start_index = if start_index < 1, do: 1, else: start_index
-    end_index = if end_index > pages_count, do: pages_count, else: end_index
-
-    assigns
-    |> Map.put(:pages_start_index, start_index)
-    |> Map.put(:pages_end_index, end_index)
   end
 end

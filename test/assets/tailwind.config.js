@@ -4,6 +4,8 @@
 const plugin = require("tailwindcss/plugin")
 const fs = require("fs")
 const path = require("path")
+// Determine if the current environment is development or test
+const isDevelopmentOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
 module.exports = {
   content: [
@@ -13,6 +15,26 @@ module.exports = {
     "../support/app_web/aurora_uix_test_web.{ex,exs}",
     "../support/app_web/**/*.{ex,exs,heex}",
   ],
+  
+  // In development and test environments, we safelist all possible Tailwind utility classes
+  // along with their common variants and your custom LiveView variants.
+  // This ensures that during development/testing, all classes are available
+  // regardless of whether they are explicitly found in the 'content' files.
+  // In production, this safelist will be empty, allowing for optimal purging.
+  safelist: isDevelopmentOrTest
+    ? [
+        {
+          pattern: /.*/, // Match all utility classes
+          variants: [
+            "responsive", "hover", "focus", "active", "group-hover",
+            "focus-within", "even", "odd", "disabled",
+            // Custom LiveView variants
+            "phx-click-loading", "phx-submit-loading", "phx-change-loading"
+          ],
+        },
+      ]
+    : [], // In production, keep the safelist empty for efficient purging
+
   theme: {
     extend: {
       colors: {

@@ -314,7 +314,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
 
   ## Options
-  - `:disable_pagination` (boolean()) - If true, pagination is not used for populating the index list.
+  - `:pagination_disabled?` (boolean()) - If true, pagination is not used for populating the index list.
   - `:page_title` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page title for the index layout. Example: `page_title: "Products List"` or `page_title: &custom_page_title/1`.
   - `:page_subtitle` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
   - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.

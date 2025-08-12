@@ -25,7 +25,6 @@ defmodule Aurora.Uix.Templates.Basic do
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
-  alias Aurora.Uix.Templates.Basic.RoutingComponents
 
   @doc """
   Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
@@ -52,58 +51,5 @@ defmodule Aurora.Uix.Templates.Basic do
   @spec default_core_components_module() :: module
   def default_core_components_module do
     Aurora.Uix.Templates.Basic.CoreComponents
-  end
-
-  @doc """
-  Provides CSS class mappings for different template components.
-
-  ## Returns
-  `%{atom() => map()}` - Map with component categories as keys and their respective CSS class mappings as values:
-    - `:core_components` - Classes for core template components.
-    - `:index_renderer` - Classes for index page components.
-    - `:show_renderer` - Classes for show page components.
-  """
-  @impl true
-  @spec css_classes() :: %{atom() => map()}
-  def css_classes do
-    %{
-      core_components: core_components(),
-      index_renderer: index_renderer(),
-      show_renderer: show_renderer()
-    }
-  end
-
-  @doc """
-  Returns a list of template component modules used for extension or customization.
-
-  ## Returns
-  `list(module())` - List of component modules.
-  """
-  @impl true
-  @spec template_component_modules() :: list(module())
-  def template_component_modules do
-    [RoutingComponents]
-  end
-
-  ## PRIVATE
-  # Defines CSS classes for core components with container styles for modals and tables
-  @spec core_components() :: map()
-  defp core_components do
-    %{
-      modal_inner_container: "max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto",
-      table_container: "overflow-y-auto px-4 overflow-visible sm:px-0"
-    }
-  end
-
-  # Defines CSS classes for index page container with responsive padding and width
-  @spec index_renderer() :: map()
-  defp index_renderer do
-    %{top_container: "max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto"}
-  end
-
-  # Defines CSS classes for show page container with responsive padding and width
-  @spec show_renderer() :: map()
-  defp show_renderer do
-    %{top_container: "max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto"}
   end
 end

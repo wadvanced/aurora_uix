@@ -44,13 +44,15 @@ defmodule Aurora.Uix.Test.Web.IndexHandlerHook do
 
   @impl Phoenix.LiveView
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
-    {:ok,
-     stream(
-       socket,
-       auix.source_key,
-       auix.list_function.(where: {:reference, :lt, "item_test-06"})
-     )}
+  def mount(params, session, %{assigns: %{auix: auix}} = socket) do
+    new_socket =
+      auix.layout_tree
+      |> Map.get(:opts, [])
+      |> Keyword.put(:where, {:reference, :lt, "item_test-06"})
+      |> then(&Map.put(auix.layout_tree, :opts, &1))
+      |> then(&assign_auix(socket, :layout_tree, &1))
+
+    super(params, session, new_socket)
   end
 
   @impl IndexImpl

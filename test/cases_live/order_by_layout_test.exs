@@ -72,9 +72,8 @@ defmodule Aurora.Uix.Test.Web.OrderByLayoutTest do
     assert html =~ "Listing Products"
 
     assert html
-           |> Floki.find("table tbody tr td:nth-of-type(3)")
-           |> Enum.map(&Floki.text/1)
-           |> Enum.filter(&String.starts_with?(&1, "Item test_order-")) == @test_references
+           |> Floki.find("table tbody tr td:nth-of-type(4)")
+           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == @test_references
   end
 
   @spec create_shuffled_products(list()) :: :ok

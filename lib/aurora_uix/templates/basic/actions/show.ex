@@ -16,6 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  import Aurora.Uix.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions

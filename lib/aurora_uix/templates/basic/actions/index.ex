@@ -4,20 +4,29 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   ## Key Features
 
-  - Provides LiveView-compatible components for "show", "edit", "delete", and "new" actions.
-  - Generates links using assigns context for entity and module information.
-  - Supplies helpers to add all default row and header actions to assigns.
-  - Supports dynamic modification of actions via layout tree options.
+  - Provides LiveView-compatible components for "show", "edit", "delete", and "new" actions
+  - Generates links using assigns context for entity and module information
+  - Supplies helpers to add all default row and header actions to assigns
+  - Supports dynamic modification of actions via layout tree options
+  - Includes responsive pagination controls with multiple breakpoints
+  - Offers filter management actions (clear/submit)
 
   ## Key Constraints
 
-  - Assumes assigns contain `:auix` with `:row_info`, `:link_prefix`, `:source`, and `:module`.
-  - Only intended for use in index page layouts.
+  - Assumes assigns contain `:auix` with required subkeys:
+    * `:row_info` - Entity row information
+    * `:link_prefix` - URL path prefix
+    * `:source` - Data source identifier
+    * `:module` - Context module name
+  - Only intended for use in index page layouts
+  - Pagination requires specific assigns structure
   """
 
   use Aurora.Uix.Gettext
   use Aurora.Uix.CoreComponentsImporter
 
+  import Aurora.Uix.Templates.Basic.Components
+  import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
 
   alias Aurora.Uix.Action
@@ -25,28 +34,29 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
+  alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:index)
   @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
+  @selected_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` key with required subkeys.
+  - `socket` (Socket.t()) - LiveView socket containing the layout state
 
   ## Returns
-
-  map - The updated assigns with actions set including row, header, footer, and filter actions.
-
-
+  Socket.t() - The updated socket with all default actions configured
 
   """
-  @spec set_actions(map()) :: map()
-  def set_actions(assigns) do
-    assigns
+  @spec set_actions(Socket.t()) :: Socket.t()
+  def set_actions(socket) do
+    socket
+    |> Actions.remove_all_actions(@actions)
     |> add_default_row_actions()
+    |> add_default_selected_actions()
+    |> add_default_select_all_actions()
     |> add_default_header_actions()
     |> add_default_footer_actions()
     |> add_default_filters_actions()
@@ -57,19 +67,21 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders the "show" action link for an entity in the index layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:link_prefix`, `:source`, `:row_info`, and `:module`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:link_prefix` (String.t()) - URL path prefix
+      - `:source` (String.t()) - Data source identifier
+      - `:row_info` (tuple()) - Entity row information
+      - `:module` (atom()) - Context module name
 
   ## Returns
-  Rendered.t() - The rendered "show" action link.
-
-
+  Rendered.t() - The rendered "show" action link (screen-reader only)
   """
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
     ~H"""
       <div class="sr-only">
-        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>Show</.auix_link>
+        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>{gettext("Show")}</.auix_link>
       </div>
     """
   end
@@ -78,18 +90,20 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders the "edit" action link for an entity in the index layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:link_prefix`, `:source`, `:row_info`, and `:module`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:link_prefix` (String.t()) - URL path prefix
+      - `:source` (String.t()) - Data source identifier
+      - `:row_info` (tuple()) - Entity row information
+      - `:module` (atom()) - Context module name
 
   ## Returns
-  Rendered.t() - The rendered "edit" action link.
-
-
+  Rendered.t() - The rendered "edit" action link
   """
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>Edit</.auix_link>
+      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>{gettext("Edit")}</.auix_link>
     """
   end
 
@@ -97,16 +111,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders the "delete" action link for an entity in the index layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:row_info` and `:module`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:row_info` (tuple()) - Entity row information
+      - `:module` (atom()) - Context module name
 
   ## Returns
-  Rendered.t() - The rendered "delete" action link.
-
+  Rendered.t() - The rendered "delete" action link with confirmation
 
   ## Edge Cases
-
-  - If `@auix.row_info` is missing or malformed, the link may not render correctly.
+  - If `@auix.row_info` is missing or malformed, returns malformed link
   """
   @spec remove_row_action(map()) :: Rendered.t()
   def remove_row_action(assigns) do
@@ -114,7 +128,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       <.link
             phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> hide("##{row_info_id(@auix)}")}
             name={"auix-delete-#{@auix.module}"}
-            data-confirm="Are you sure?"
+            data-confirm={gettext("Are you sure?")}
           >
             Delete
       </.link>
@@ -122,22 +136,124 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
+  Renders a button to delete the selected items.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map.
+
+  ## Returns
+  Rendered.t() - Button that triggers the event
+  """
+  @spec selected_delete_all_action(map()) :: Rendered.t()
+  def selected_delete_all_action(%{auix: %{selected_count: selected_count}} = assigns)
+      when selected_count > 0 do
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+
+    ~H"""
+    <.button type="button" class={@selected_button_class} phx-click="selected-delete_all"
+        name={"auix-selected_delete_all-#{@auix.module}"}>
+      {gettext("Delete selected")} <span class="text-xs align-sub border">{@auix.selected_count}</span>
+    </.button>
+    """
+  end
+
+  def selected_delete_all_action(assigns), do: ~H""
+
+  @doc """
+  Renders a button to unselect all items.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map.
+
+  ## Returns
+  Rendered.t() - Button that triggers the event
+  """
+  @spec selected_uncheck_all_action(map()) :: Rendered.t()
+  def selected_uncheck_all_action(
+        %{auix: %{selected_count: selected_count, layout_options: %{pagination_disabled?: false}}} =
+          assigns
+      )
+      when selected_count > 0 do
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+
+    ~H"""
+    <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="false"
+        name={"auix-selected-uncheck_all-#{@auix.module}"}>
+      {gettext("Uncheck all")}
+    </.button>
+    """
+  end
+
+  def selected_uncheck_all_action(assigns), do: ~H""
+
+  @doc """
+  Renders a button to select all items.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map.
+
+  ## Returns
+  Rendered.t() - Button that triggers the event
+  """
+  @spec selected_check_all_action(map()) :: Rendered.t()
+  def selected_check_all_action(
+        %{auix: %{layout_options: %{pagination_disabled?: false}}} = assigns
+      ) do
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+
+    ~H"""
+    <%= if @auix.selected_count < @auix.pagination.entries_count do %>
+      <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
+          name={"auix-selected_check_all-#{@auix.module}"}>
+        {gettext("Check all")}
+      </.button>
+    <% end %>
+    """
+  end
+
+  def selected_check_all_action(assigns), do: ~H""
+
+  @doc """
+  Renders checkbox to toggle selection of all rows in index layout.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:selected_any_in_page?` (boolean()) - Current selection state for the page
+
+  ## Returns
+  Rendered.t() - Checkbox input that triggers "selected-toggle-all" event
+  """
+  @spec toggle_selected_all_in_page_action(map()) :: Rendered.t()
+  def toggle_selected_all_in_page_action(assigns) do
+    ~H"""
+      <.input
+          name="selected_in_page__"
+          value={Map.get(@auix, :selected_any_in_page?, false)}
+          type="checkbox"
+          label=""
+        />
+    """
+  end
+
+  @doc """
   Renders the "new" action link for the header in the index layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:index_new_link`, `:module`, and `:name`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:index_new_link` (String.t()) - Path for new entity creation
+      - `:module` (atom()) - Context module name
+      - `:name` (String.t()) - Display name for the entity type
 
   ## Returns
-  Rendered.t() - The rendered "new" action link.
-
-
+  Rendered.t() - Button link for creating new entities
   """
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(assigns) do
     ~H"""
     <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"}>
-      <.button>New {@auix.name}</.button>
+      <.button>{gettext("New")} {@auix.name}</.button>
     </.auix_link>
     """
   end
@@ -146,13 +262,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders a button to clear all applied filters in the index layout.
 
   ## Parameters
-
-  - `assigns` (map()) - Assigns map (no specific requirements for this action)
+  - `assigns` (map()) - Assigns map (no specific requirements)
 
   ## Returns
+  Rendered.t() - Button that triggers "filters-clear" event
 
-  Phoenix.LiveView.Rendered.t() - The rendered clear filters button
-
+  ## Notes
+  - Uses predefined button styling from module attribute @filters_button_class
   """
   @spec clear_filters_action(map()) :: Rendered.t()
   def clear_filters_action(assigns) do
@@ -167,20 +283,20 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders a button to submit current filter selections in the index layout.
 
   ## Parameters
-
-  - `assigns` (map) - Assigns map (no specific requirements for this action)
+  - `assigns` (map()) - Assigns map (no specific requirements)
 
   ## Returns
+  Rendered.t() - Button that triggers "filters-submit" event
 
-  Phoenix.LiveView.Rendered.t() - The rendered submit filters button
-
+  ## Notes
+  - Uses predefined button styling from module attribute @filters_button_class
   """
   @spec submit_filters_action(map()) :: Rendered.t()
   def submit_filters_action(assigns) do
     assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
 
     ~H"""
-    <.button type="button" class={@filters_button_class} phx-click="filters-submit" name={"auix-filters_submit-#{@auix.module}"}>Submit</.button>
+    <.button type="button" class={@filters_button_class} phx-click="filters-submit" name={"auix-filters_submit-#{@auix.module}"}>{gettext("Submit")}</.button>
     """
   end
 
@@ -188,40 +304,64 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders pagination controls for the index layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:layout_options`, `:pagination`, `:link_prefix`, `:source`, and `:resource_name`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:layout_options` (map()) - Must contain:
+        * `:pagination_disabled?` (boolean()) - False to enable
+        * `:pages_bar_range_offset` (function()) - Breakpoint sizing function
+      - `:pagination` (map()) - Must contain:
+        * `:page` (integer()) - Current page
+        * `:pages_count` (integer()) - Total pages (>1 to render)
+      - `:source` (String.t()) - Data source identifier
 
   ## Returns
-  Rendered.t() - The rendered pagination controls with responsive breakpoints.
+  Rendered.t() - Responsive pagination controls or empty fragment
 
+  ## Breakpoints
+  - Renders different pagination ranges for:
+    * xl2 (2xl): widest range
+    * xl: medium range
+    * lg: smaller range
+    * md: minimal range
+    * sm: mobile-optimized
   """
   @spec pagination_action(map()) :: Rendered.t()
   def pagination_action(
         %{
           auix: %{
-            layout_options: %{disable_pagination: false},
+            layout_options: %{pagination_disabled?: false},
             pagination: %{page: _page, pages_count: pages_count}
           }
         } = assigns
       )
       when pages_count > 1 do
     ~H"""
-      <div name={"auix-pages_bar-#{@auix.source}"} class="mt-10">
+      <div name={"auix-pages_bar-#{@auix.source}"} class="mt-0">
         <hr class="mb-4"/>
         <div class="h-0 invisible 2xl:visible" name={"auix-pages_bar-#{@auix.source}-xl2"}>
-          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)} />
+          <.pages_selection pagination={@auix.pagination}
+              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}
+              selected_in_page={@auix.selected_in_page}/>
         </div>
         <div class="h-0 invisible xl:visible 2xl:invisible" name={"auix-pages_bar-#{@auix.source}-xl"}>
-          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)} />
+          <.pages_selection pagination={@auix.pagination}
+              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)}
+              selected_in_page={@auix.selected_in_page}/>
         </div>
         <div class="h-0 invisible lg:visible xl:invisible" name={"auix-pages_bar-#{@auix.source}-lg"}>
-          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)} />
+          <.pages_selection pagination={@auix.pagination}
+              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)}
+              selected_in_page={@auix.selected_in_page}/>
         </div>
         <div class="h-0 invisible md:visible lg:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-md"}>
-          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)} />
+          <.pages_selection pagination={@auix.pagination}
+              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
+              selected_in_page={@auix.selected_in_page}/>
         </div>
         <div class="h-0 sm:visible md:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-sm"}>
-          <.pages_selection pagination={@auix.pagination} pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :sm)} />
+          <.pages_selection pagination={@auix.pagination}
+              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :sm)}
+              selected_in_page={@auix.selected_in_page}/>
         </div>
       </div>
     """
@@ -233,7 +373,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   ## PRIVATE
 
-  # Adds default row actions (show, edit, delete) to the assigns
+  # Adds default row actions (show, edit, delete) using component functions
   @spec add_default_row_actions(map()) :: map()
   defp add_default_row_actions(assigns) do
     Actions.add_actions(assigns, :index_row_actions,
@@ -243,15 +383,31 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     )
   end
 
-  # Returns assigns unchanged if index_footer_actions already exists
+  # Adds action when any item is selected to assigns
+  @spec add_default_selected_actions(map()) :: map()
+  defp add_default_selected_actions(assigns) do
+    Actions.add_actions(assigns, :index_selected_actions,
+      default_selected_delete_all: &selected_delete_all_action/1,
+      default_selected_uncheck_all: &selected_uncheck_all_action/1,
+      default_selected_check_all: &selected_check_all_action/1
+    )
+  end
 
-  # Adds default header actions (new) to the assigns
+  # Adds all row selection toggle action to assigns
+  @spec add_default_select_all_actions(map()) :: map()
+  defp add_default_select_all_actions(assigns) do
+    Actions.add_actions(assigns, :index_selected_all_actions,
+      default_toggle_all_selected: &toggle_selected_all_in_page_action/1
+    )
+  end
+
+  # Adds default header action (new entity) to assigns
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
     Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
   end
 
-  # Adds default footer actions (pagination) to the assigns
+  # Adds pagination controls to footer actions in assigns
   @spec add_default_footer_actions(map()) :: map()
   defp add_default_footer_actions(assigns),
     do:
@@ -259,7 +415,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         default_pagination: &pagination_action/1
       )
 
-  # Adds default filter actions (clear, submit) to the assigns
+  # Adds filter management actions (clear/submit) to assigns
   @spec add_default_filters_actions(map()) :: map()
   defp add_default_filters_actions(assigns) do
     Actions.add_actions(assigns, :index_filters_actions,
@@ -268,7 +424,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     )
   end
 
-  # Extracts the primary key value from row_info for use in links and actions
+  # Extracts primary key value from row_info tuple {index, entity_map}
   @spec row_info_id(map()) :: term() | nil
   defp row_info_id(%{row_info: {_, row_entity}, primary_key: primary_key}) do
     BasicHelpers.primary_key_value(row_entity, primary_key)

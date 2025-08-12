@@ -314,7 +314,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:layout_tree, layout_tree)
     |> Map.put(:resource_name, layout_tree.name)
     |> Map.put(:layout_type, layout_tree.tag)
-    |> Map.put(:css_classes, template.css_classes())
     |> then(&template.generate_module(&1))
   end
 

@@ -41,7 +41,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
       |> ShowActions.set_actions()
 
     ~H"""
-    <div class={get_in(@auix.css_classes, [:show_renderer, :top_container]) || ""}>
+    <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
       <.header>
         {@auix.layout_options.page_title}
         <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
@@ -63,13 +63,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
           {action.(%{auix: @auix})}
         <% end %>
       </div>
-      <.modal :if={@live_action == :edit} auix={%{css_classes: @auix.css_classes}} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action == :edit} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix.form_component}
             id={entity_id(@auix) || :new}
             action={@live_action}
-            auix={%{css_classes: @auix.css_classes, entity: @auix.entity, routing_stack: @auix.routing_stack}}
+            auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack}}
           />
         </div>
       </.modal>

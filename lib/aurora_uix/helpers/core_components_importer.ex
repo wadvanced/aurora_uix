@@ -38,13 +38,9 @@ defmodule Aurora.Uix.CoreComponentsImporter do
     core_components_module =
       opts[:core_components_module] || template.default_core_components_module()
 
-    template_component_modules =
-      Enum.map(template.template_component_modules(), &quote(do: import(unquote(&1))))
-
     quote do
       import Phoenix.Component
       import unquote(core_components_module)
-      unquote(template_component_modules)
     end
   end
 end

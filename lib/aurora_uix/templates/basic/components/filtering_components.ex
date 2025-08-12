@@ -74,7 +74,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
       <div>
         <.input
             id={"#{@field.html_id}-filter"}
-            name={"from__#{@field.key}"}
+            name={"filter_from__#{@field.key}"}
             value={(@filter.from)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
           />
         <.input
             id={"#{@field.html_id}-filter_to"}
-            name={"to__#{@field.key}"}
+            name={"filter_to__#{@field.key}"}
             value={(@filter.to)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
@@ -106,7 +106,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     ~H"""
       <.input
           id={"#{@field.html_id}-filter_condition"}
-          name={"condition__#{@field.key}"}
+          name={"filter_condition__#{@field.key}"}
           value={(@filter.condition)}
           type="select"
           options={Filter.conditions()}
