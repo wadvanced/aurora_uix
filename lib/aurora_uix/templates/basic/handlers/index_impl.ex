@@ -147,6 +147,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:selected_in_page, %{})
      |> assign_auix(:selected_any_in_page?, false)
      |> assign_auix(:list_function_selected, auix.list_function_paginated)
+     |> assign_auix(:reset_stream?, true)
      |> assign_layout_options()
      |> IndexActions.set_actions()
      |> assign_index_fields()
@@ -292,7 +293,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           {filter.key, filter.condition, filter.from}
       end)
 
-    {:noreply, load_items(socket, where: filters)}
+    {:noreply, socket
+    |> assign_auix(:reset_stream?, true)
+    |> load_items(where: filters)}
   end
 
   def handle_event(
@@ -553,10 +556,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     full_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
+    per_page = if auix.layout_options.pagination_disabled?, do: auix.layout_options.infinite_scroll_items_load, else: auix.layout_options.pagination_items_per_page
+
     socket
     |> assign_auix(:last_full_options, full_options)
     |> prepare_query_options()
-    |> read_items()
+    |> read_items([paginate: %{page: 1, per_page: per_page}])
     |> create_stream()
   end
 
@@ -570,15 +575,17 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     assign_auix(socket, :query_options, query_options)
   end
 
-  @spec read_items(Socket.t()) :: Socket.t()
+  @spec read_items(Socket.t(), keyword()) :: Socket.t()
   defp read_items(
          %{
            assigns: %{
              auix: %{query_options: query_options, list_function_selected: list_function}
            }
-         } = socket
+         } = socket,
+         options
        ) do
     query_options
+    |> Keyword.merge(options)
     |> list_function.()
     |> then(&assign_auix(socket, :read_items, &1))
   end
@@ -589,42 +596,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            assigns: %{
              auix:
                %{
-                 primary_key: primary_key,
-                 read_items: %{entries: entries} = pagination,
-                 source: source
+                 read_items: %{entries: entries} = pagination
                } = auix
            }
          } = socket
        ) do
-    entries
-    |> Enum.map(&normalize_entry(&1, source, primary_key))
-    |> then(&assign_auix(socket, :rows, &1))
+
+    options = if auix.reset_stream?, do: [reset: true], else: []
+
+    socket
     |> assign_auix(:pagination, pagination)
     |> assign_auix(:read_items, nil)
+    |> assign_auix(:reset_stream?, !auix.layout_options.pagination_disabled?)
     |> stream(
       auix.source_key,
       entries,
-      reset: true,
-      limit: Enum.count(pagination.entries)
+      options
     )
-  end
-
-  defp create_stream(%{assigns: %{auix: %{read_items: entries} = auix}} = socket) do
-    socket
-    |> assign_auix(:pagination, nil)
-    |> stream(
-      auix.source_key,
-      entries,
-      reset: true
-    )
-    |> assign_auix(:read_items, nil)
-  end
-
-  @spec normalize_entry(map(), binary(), list() | atom()) :: tuple()
-  defp normalize_entry(entry, source, primary_key) do
-    entry
-    |> BasicHelpers.primary_key_value(primary_key)
-    |> then(&{"#{source}-#{&1}", entry})
   end
 
   @spec merge_extra_option(tuple(), list()) :: tuple()
@@ -645,11 +633,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
     socket
-    |> BasicHelpers.assign_auix_option(:pagination_disabled?)
+    |> BasicHelpers.assign_auix_option(:infinite_scroll_items_load)
+    |> BasicHelpers.assign_auix_option(:get_rows)
     |> BasicHelpers.assign_auix_option(:page_title)
     |> BasicHelpers.assign_auix_option(:page_subtitle)
+    |> BasicHelpers.assign_auix_option(:pagination_disabled?)
+    |> BasicHelpers.assign_auix_option(:pagination_items_per_page)
     |> BasicHelpers.assign_auix_option(:pages_bar_range_offset)
-    |> BasicHelpers.assign_auix_option(:get_rows)
     |> BasicHelpers.assign_auix_option(:row_id)
   end
 

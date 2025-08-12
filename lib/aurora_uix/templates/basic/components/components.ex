@@ -158,6 +158,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
+          phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
+          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
           class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
