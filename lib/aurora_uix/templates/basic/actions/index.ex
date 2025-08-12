@@ -169,7 +169,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Button that triggers the event
   """
   @spec selected_uncheck_all_action(map()) :: Rendered.t()
-  def selected_uncheck_all_action(%{auix: %{selected_count: selected_count, layout_options: %{pagination_disabled?: false}}} = assigns)
+  def selected_uncheck_all_action(
+        %{auix: %{selected_count: selected_count, layout_options: %{pagination_disabled?: false}}} =
+          assigns
+      )
       when selected_count > 0 do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
@@ -193,7 +196,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Button that triggers the event
   """
   @spec selected_check_all_action(map()) :: Rendered.t()
-  def selected_check_all_action(%{auix: %{layout_options: %{pagination_disabled?: false}}} = assigns) do
+  def selected_check_all_action(
+        %{auix: %{layout_options: %{pagination_disabled?: false}}} = assigns
+      ) do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
@@ -205,6 +210,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     <% end %>
     """
   end
+
   def selected_check_all_action(assigns), do: ~H""
 
   @doc """

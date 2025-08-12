@@ -283,7 +283,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
   end
 
-    @doc """
+  @doc """
   Sets a temporary to the auix entry in the socket's assigns.
   There is no guarantee that the elements here will remain in the socket.
 

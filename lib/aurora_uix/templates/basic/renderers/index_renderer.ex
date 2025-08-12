@@ -143,6 +143,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   defp field_value(%{field: %{key: :selected_check__}, entity: entity, auix: auix} = assigns) do
     assigns =
       Map.put(assigns, :selected_id, BasicHelpers.primary_key_value(entity, auix.primary_key))
+
     ~H"""
       <.input
           name={"#{@field.key}#{@selected_id}"}
