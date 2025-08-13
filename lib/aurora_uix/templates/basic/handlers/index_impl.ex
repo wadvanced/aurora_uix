@@ -134,7 +134,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
+  def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
     {:ok,
@@ -152,6 +152,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> IndexActions.set_actions()
      |> assign_index_fields()
      |> assign_filters()
+     |> prepare_initial_pagination(params)
      |> load_items()}
   end
 
@@ -293,9 +294,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           {filter.key, filter.condition, filter.from}
       end)
 
-    {:noreply, socket
-    |> assign_auix(:reset_stream?, true)
-    |> load_items(where: filters)}
+    {:noreply,
+     socket
+     |> assign_auix(:reset_stream?, true)
+     |> load_items(where: filters)}
   end
 
   def handle_event(
@@ -526,12 +528,20 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         } = socket,
         %{"page" => page}
       ) do
-    pagination
-    |> CtxCore.to_page(String.to_integer(page))
-    |> then(&assign_auix(socket, :read_items, &1))
-    |> create_stream()
-    |> assign_auix(:entity, nil)
-    |> assign_selected_states()
+    page = String.to_integer(page)
+
+    if page == pagination.page do
+      socket
+      |> assign_selected_states()
+      |> assign_auix(:entity, nil)
+    else
+      pagination
+      |> CtxCore.to_page(page)
+      |> then(&assign_auix(socket, :read_items, &1))
+      |> create_stream()
+      |> assign_selected_states()
+      |> assign_auix(:entity, nil)
+    end
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
@@ -539,6 +549,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   ## PRIVATE
+  @spec prepare_initial_pagination(Socket.t(), map()) :: Socket.t()
+  defp prepare_initial_pagination(%{assigns: %{auix: auix}} = socket, params) do
+    initial_page =
+      params
+      |> Map.get("page", "1")
+      |> String.to_integer()
+
+    per_page =
+      if auix.layout_options.pagination_disabled?,
+        do: auix.layout_options.infinite_scroll_items_load,
+        else: auix.layout_options.pagination_items_per_page
+
+    socket
+    |> assign_auix(:initial_page, initial_page)
+    |> assign_auix(:per_page, per_page)
+  end
+
   @spec load_items(Socket.t(), keyword()) :: Socket.t()
   defp load_items(%{assigns: %{auix: auix}} = socket, extra_options \\ []) do
     layout_opts =
@@ -556,12 +583,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     full_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
-    per_page = if auix.layout_options.pagination_disabled?, do: auix.layout_options.infinite_scroll_items_load, else: auix.layout_options.pagination_items_per_page
+    read_items_options = [paginate: %{page: auix.initial_page, per_page: auix.per_page}]
 
     socket
     |> assign_auix(:last_full_options, full_options)
     |> prepare_query_options()
-    |> read_items([paginate: %{page: 1, per_page: per_page}])
+    |> read_items(read_items_options)
     |> create_stream()
   end
 
@@ -601,7 +628,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            }
          } = socket
        ) do
-
     options = if auix.reset_stream?, do: [reset: true], else: []
 
     socket
