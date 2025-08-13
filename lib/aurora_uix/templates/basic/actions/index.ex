@@ -174,8 +174,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def selected_uncheck_all_action(
         %{
           auix: %{
-            selection: %{selected_count: selected_count},
-            layout_options: %{pagination_disabled?: false}
+            selection: %{selected_count: selected_count}
           }
         } =
           assigns
@@ -204,21 +203,25 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec selected_check_all_action(map()) :: Rendered.t()
   def selected_check_all_action(
-        %{auix: %{layout_options: %{pagination_disabled?: false}}} = assigns
-      ) do
+        %{
+          auix: %{
+            pagination: %{entries_count: entries_count},
+            selection: %{selected_count: selected_count}
+          }
+        } = assigns
+      )
+      when selected_count < entries_count do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <%= if @auix.selection.selected_count < @auix.pagination.entries_count do %>
-      <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
-          name={"auix-selected_check_all-#{@auix.module}"}>
-        {gettext("Check all")}
-      </.button>
-    <% end %>
+    <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
+        name={"auix-selected_check_all-#{@auix.module}"}>
+      {gettext("Check all")}
+    </.button>
     """
   end
 
-  def selected_check_all_action(assigns), do: ~H""
+  def selected_check_all_action(assigns), do: ~H"{inspect(assigns.auix.selection.selected_count)}"
 
   @doc """
   Renders checkbox to toggle selection of all rows in index layout.

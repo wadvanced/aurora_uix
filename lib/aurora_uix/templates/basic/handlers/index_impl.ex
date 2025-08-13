@@ -355,20 +355,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       ) do
     new_selected_any_in_page? = !auix.selection.selected_any_in_page?
 
-    page = if auix.layout_options.pagination_disabled?, do: 1, else: auix.pagination.page
-
     new_selection =
       socket
       |> get_page_items_id()
       |> Enum.reduce(
         selection,
-        &Selection.set_selected(&1, &2, new_selected_any_in_page?, page)
+        &Selection.set_selected(&1, &2, new_selected_any_in_page?, auix.pagination.page)
       )
 
     {:noreply,
      socket
      |> assign_auix(:selection, new_selection)
-     |> assign_selected_states()}
+     |> assign_selected_states()
+     |> load_items()}
   end
 
   def handle_event("index-layout-change", _params, socket), do: {:noreply, socket}
@@ -380,7 +379,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           assigns: %{
             auix:
               %{
-                layout_options: %{pagination_disabled?: false},
                 pagination: pagination,
                 selection: selection
               } = auix
@@ -405,7 +403,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply,
      socket
      |> assign_auix(:selection, new_selection)
-     |> assign_selected_states()}
+     |> assign_selected_states()
+     |> load_items()}
   end
 
   def handle_event(
@@ -617,6 +616,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            }
          } = socket
        ) do
+    entries =
+      Enum.map(entries, fn entry ->
+        item_id = BasicHelpers.primary_key_value(entry, auix.primary_key)
+
+        entry
+        |> Map.from_struct()
+        |> Selection.set_item_select_state(item_id, auix.selection)
+      end)
+
     options = if auix.reset_stream?, do: [reset: true], else: []
 
     socket
@@ -734,7 +742,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec get_page_items_id(Socket.t()) :: list()
   defp get_page_items_id(%{
-         assigns: %{auix: %{layout_options: %{pagination_disabled?: false}} = auix}
+         assigns: %{auix: auix}
        }) do
     auix.pagination
     |> Map.get(:opts, [])
@@ -743,14 +751,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> then(&Map.put(auix.pagination, :opts, &1))
     |> CtxCore.to_page(auix.pagination.page)
     |> Map.get(:entries, [])
-    |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
-  end
-
-  defp get_page_items_id(%{assigns: %{auix: auix}}) do
-    auix
-    |> Map.get(:query_options)
-    |> Keyword.put(:select, auix.primary_key)
-    |> auix.list_function_selected.()
     |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
   end
 end

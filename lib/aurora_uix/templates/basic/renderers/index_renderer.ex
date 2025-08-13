@@ -144,7 +144,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
       <.input
           name={"#{@field.key}#{@selected_id}"}
-          value={MapSet.member?(@auix.selection.selected, @selected_id)}
+          value={Map.get(@entity, @field.key)}
           type={"#{@field.html_type}"}
           label={@field.label}
         />
