@@ -29,6 +29,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Selection
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -141,11 +142,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      socket
      |> assign_auix(:form_component, form_component)
      |> assign_auix(:filters_enabled?, false)
-     |> assign_auix(:selected, MapSet.new())
-     |> assign_auix(:selected_count, 0)
-     |> assign_auix(:selected_any?, false)
-     |> assign_auix(:selected_in_page, %{})
-     |> assign_auix(:selected_any_in_page?, false)
+     |> assign_auix(:selection, Selection.new())
      |> assign_auix(:list_function_selected, auix.list_function_paginated)
      |> assign_auix(:reset_stream?, true)
      |> assign_layout_options()
@@ -334,46 +331,43 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def handle_event(
         "index-layout-change",
         %{"_target" => ["selected_check__" <> id]},
-        %{assigns: %{auix: %{selected: selected, selected_in_page: selected_in_page} = auix}} =
+        %{assigns: %{auix: %{selection: selection} = auix}} =
           socket
       ) do
     page = if auix.layout_options.pagination_disabled?, do: 1, else: auix.pagination.page
 
-    {new_selected, new_selected_in_page} =
-      selected
+    new_selection =
+      selection.selected
       |> MapSet.member?(id)
       |> Kernel.!()
-      |> then(&set_selected(id, {selected, selected_in_page}, &1, page))
+      |> then(&Selection.set_selected(id, selection, &1, page))
 
     {:noreply,
      socket
-     |> assign_auix(:selected, new_selected)
-     |> assign_auix(:selected_in_page, new_selected_in_page)
+     |> assign_auix(:selection, new_selection)
      |> assign_selected_states()}
   end
 
   def handle_event(
         "index-layout-change",
         %{"_target" => ["selected_in_page__"]},
-        %{assigns: %{auix: auix}} = socket
+        %{assigns: %{auix: %{selection: selection} = auix}} = socket
       ) do
-    new_selected_any_in_page? = !auix.selected_any_in_page?
+    new_selected_any_in_page? = !auix.selection.selected_any_in_page?
 
     page = if auix.layout_options.pagination_disabled?, do: 1, else: auix.pagination.page
 
-    {new_selected, new_selected_in_page} =
+    new_selection =
       socket
       |> get_page_items_id()
       |> Enum.reduce(
-        {auix.selected, auix.selected_in_page},
-        &set_selected(&1, &2, new_selected_any_in_page?, page)
+        selection,
+        &Selection.set_selected(&1, &2, new_selected_any_in_page?, page)
       )
 
     {:noreply,
      socket
-     |> assign_auix(:selected, new_selected)
-     |> assign_auix(:selected_in_page, new_selected_in_page)
-     |> assign_auix(:selected_any_in_page?, new_selected_any_in_page?)
+     |> assign_auix(:selection, new_selection)
      |> assign_selected_states()}
   end
 
@@ -388,34 +382,29 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
               %{
                 layout_options: %{pagination_disabled?: false},
                 pagination: pagination,
-                selected: selected,
-                selected_in_page: selected_in_page
+                selection: selection
               } = auix
           }
         } = socket
       ) do
     state? = Map.get(params, "state", "false") == "true"
 
-    {new_selected, new_selected_in_page} =
+    new_selection =
       Enum.reduce(
         1..pagination.pages_count,
-        {selected, selected_in_page},
-        fn page, {acc_selected, acc_selected_in_page} ->
+        selection,
+        fn page, acc_selection ->
           pagination
           |> CtxCore.to_page(page)
           |> Map.get(:entries, [])
           |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
-          |> Enum.reduce(
-            {acc_selected, acc_selected_in_page},
-            &set_selected(&1, &2, state?, page)
-          )
+          |> Enum.reduce(acc_selection, &Selection.set_selected(&1, &2, state?, page))
         end
       )
 
     {:noreply,
      socket
-     |> assign_auix(:selected, new_selected)
-     |> assign_auix(:selected_in_page, new_selected_in_page)
+     |> assign_auix(:selection, new_selection)
      |> assign_selected_states()}
   end
 
@@ -702,39 +691,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   @spec assign_selected_states(Socket.t()) :: Socket.t()
-  defp assign_selected_states(
-         %{
-           assigns: %{
-             auix:
-               %{
-                 selected: selected,
-                 selected_in_page: selected_in_page,
-                 layout_options: %{pagination_disabled?: false}
-               } = auix
-           }
-         } = socket
-       ) do
-    new_selected_any_in_page? =
-      selected_in_page
-      |> Map.get(auix.pagination.page, MapSet.new())
-      |> Enum.any?()
-
-    new_selected_count = Enum.count(selected)
-
-    socket
-    |> assign_auix(:selected_any?, new_selected_count > 0)
-    |> assign_auix(:selected_count, new_selected_count)
-    |> assign_auix(:selected_any_in_page?, new_selected_any_in_page?)
-  end
-
-  defp assign_selected_states(%{assigns: %{auix: %{selected: selected} = auix}} = socket) do
-    socket
-    |> assign_auix(
-      :selected_any?,
-      Map.get(auix, :selected_all?) == true or !Enum.empty?(selected)
-    )
-    |> assign_auix(:selected_count, MapSet.size(selected))
-    |> assign_auix(:selected_any_in_page?, !Enum.empty?(selected))
+  defp assign_selected_states(%{assigns: %{auix: %{selection: selection} = auix}} = socket) do
+    selection
+    |> Selection.update_states(auix.pagination.page)
+    |> then(&assign_auix(socket, :selection, &1))
   end
 
   @spec assign_filters(Socket.t()) :: Socket.t()
@@ -771,31 +731,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     do: pages_count
 
   defp next_page(%{page: page}), do: page + 1
-
-  @spec set_selected(term(), tuple(), boolean(), integer()) :: tuple()
-  defp set_selected(selected_id, {selected, selected_in_page}, true, page) do
-    new_selected = MapSet.put(selected, selected_id)
-
-    new_selected_in_page =
-      selected_in_page
-      |> Map.get(page, MapSet.new())
-      |> MapSet.put(selected_id)
-      |> then(&Map.put(selected_in_page, page, &1))
-
-    {new_selected, new_selected_in_page}
-  end
-
-  defp set_selected(selected_id, {selected, selected_in_page}, _state, page) do
-    new_selected = MapSet.delete(selected, selected_id)
-
-    new_selected_in_page =
-      selected_in_page
-      |> Map.get(page, MapSet.new())
-      |> MapSet.delete(selected_id)
-      |> then(&Map.put(selected_in_page, page, &1))
-
-    {new_selected, new_selected_in_page}
-  end
 
   @spec get_page_items_id(Socket.t()) :: list()
   defp get_page_items_id(%{

@@ -61,11 +61,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               filters: Map.get(@auix, :filters, %{}),
               index_layout_form: index_layout_form,
               filters_enabled?: @auix.filters_enabled?,
-              selected: @auix.selected,
-              selected_any?: @auix.selected_any?,
-              selected_count: @auix.selected_count,
-              selected_any_in_page?: @auix.selected_any_in_page?,
-              selected_in_page?: @auix.selected_in_page,
+              selection: @auix.selection,
               layout_options: @auix.layout_options
               }}
           rows={@auix.layout_options.get_rows.(assigns)}
@@ -148,7 +144,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
       <.input
           name={"#{@field.key}#{@selected_id}"}
-          value={MapSet.member?(@auix.selected, @selected_id)}
+          value={MapSet.member?(@auix.selection.selected, @selected_id)}
           type={"#{@field.html_type}"}
           label={@field.label}
         />
