@@ -65,7 +65,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               selected_any?: @auix.selected_any?,
               selected_count: @auix.selected_count,
               selected_any_in_page?: @auix.selected_any_in_page?,
-              selected_in_page?: @auix.selected_in_page
+              selected_in_page?: @auix.selected_in_page,
+              layout_options: @auix.layout_options
               }}
           rows={@auix.layout_options.get_rows.(assigns)}
           row_id={Map.get(@auix.layout_options, :row_id)}

@@ -168,5 +168,11 @@ defmodule Aurora.Uix.Layout.Options.Index do
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :row_id),
     do: {:ok, &__MODULE__.row_id/1}
 
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :infinite_scroll_items_load),
+    do: {:ok, 100}
+
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
+    do: {:ok, 40}
+
   defp get_default(_assigns, option), do: {:not_found, option}
 end
