@@ -16,13 +16,15 @@ defmodule Aurora.Uix.Selection do
   defstruct selected: MapSet.new(),
             selected_in_page: %{},
             selected_count: 0,
-            selected_any_in_page?: false
+            selected_any_in_page?: false,
+            toggle_all_mode: :none
 
   @type t() :: %__MODULE__{
           selected: MapSet.t(),
           selected_in_page: map(),
           selected_count: integer(),
-          selected_any_in_page?: boolean()
+          selected_any_in_page?: boolean(),
+          toggle_all_mode: atom()
         }
 
   @doc """

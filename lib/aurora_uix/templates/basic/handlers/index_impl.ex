@@ -705,6 +705,42 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> then(&assign_auix(socket, :selection, &1))
   end
 
+  defp assign_async_selected_toggle_all(
+         %{
+           assigns: %{
+             auix:
+               %{
+                 selection: selection,
+                 pagination: %{pages_count: pages_count} = pagination,
+                 primary_key: primary_key
+               } = auix
+           }
+         } = socket,
+         state?
+       ) do
+    toggle_all_mode = if state?, do: :check, else: :uncheck
+    pagination = struct(pagination, %{entries: []})
+
+    function =
+      fn ->
+        result =
+          Enum.reduce(
+            1..pages_count,
+            selection,
+            fn page, acc_selection ->
+              pagination
+              |> CtxCore.to_page(page)
+              |> Map.get(:entries, [])
+              |> Enum.map(&BasicHelpers.primary_key_value(&1, primary_key))
+              |> Enum.reduce(acc_selection, &Selection.set_selected(&1, &2, state?, page))
+            end
+          )
+      end
+
+    socket
+    |> assign_auix(:selection, struct(selection, %{toggle_all_mode: toggle_all_mode}))
+  end
+
   @spec assign_filters(Socket.t()) :: Socket.t()
   defp assign_filters(%{assigns: %{auix: %{index_fields: index_fields}}} = socket) do
     filters =
