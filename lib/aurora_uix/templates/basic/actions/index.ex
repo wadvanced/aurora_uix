@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   @actions Action.available_actions(:index)
   @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
-  @selected_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
+  @selected_button_class "#{@filters_button_class}"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
@@ -145,14 +145,17 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Button that triggers the event
   """
   @spec selected_delete_all_action(map()) :: Rendered.t()
-  def selected_delete_all_action(%{auix: %{selected_count: selected_count}} = assigns)
-      when selected_count > 0 do
+  def selected_delete_all_action(
+        %{auix: %{selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}}} =
+          assigns
+      )
+      when toggle_all_mode == :none and selected_count > 0 do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected-delete_all"
         name={"auix-selected_delete_all-#{@auix.module}"}>
-      {gettext("Delete selected")} <span class="text-xs align-sub border">{@auix.selected_count}</span>
+      {gettext("Delete selected")} <span class="text-xs align-sub border">{@auix.selection.selected_count}</span>
     </.button>
     """
   end
@@ -170,17 +173,32 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec selected_uncheck_all_action(map()) :: Rendered.t()
   def selected_uncheck_all_action(
-        %{auix: %{selected_count: selected_count, layout_options: %{pagination_disabled?: false}}} =
+        %{
+          auix: %{
+            selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}
+          }
+        } =
           assigns
       )
-      when selected_count > 0 do
+      when toggle_all_mode == :none and selected_count > 0 do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="false"
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="false"
         name={"auix-selected-uncheck_all-#{@auix.module}"}>
       {gettext("Uncheck all")}
     </.button>
+    """
+  end
+
+  def selected_uncheck_all_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :uncheck do
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+
+    ~H"""
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{gettext("De-selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
@@ -197,17 +215,32 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec selected_check_all_action(map()) :: Rendered.t()
   def selected_check_all_action(
-        %{auix: %{layout_options: %{pagination_disabled?: false}}} = assigns
-      ) do
+        %{
+          auix: %{
+            pagination: %{entries_count: entries_count},
+            selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}
+          }
+        } = assigns
+      )
+      when toggle_all_mode == :none and selected_count < entries_count do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <%= if @auix.selected_count < @auix.pagination.entries_count do %>
-      <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
-          name={"auix-selected_check_all-#{@auix.module}"}>
-        {gettext("Check all")}
-      </.button>
-    <% end %>
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="true"
+        name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none}>
+      {gettext("Check all")}
+    </.button>
+    """
+  end
+
+  def selected_check_all_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :check do
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+
+    ~H"""
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{gettext("Selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
@@ -219,22 +252,28 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:selected_any_in_page?` (boolean()) - Current selection state for the page
+      - `:selection` (map()) - Current selection states for the page
 
   ## Returns
   Rendered.t() - Checkbox input that triggers "selected-toggle-all" event
   """
   @spec toggle_selected_all_in_page_action(map()) :: Rendered.t()
-  def toggle_selected_all_in_page_action(assigns) do
+  def toggle_selected_all_in_page_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :none do
     ~H"""
       <.input
           name="selected_in_page__"
-          value={Map.get(@auix, :selected_any_in_page?, false)}
+          value={Map.get(@auix.selection, :selected_any_in_page?, false)}
           type="checkbox"
           label=""
+          disabled={@auix.selection.toggle_all_mode != :none}
         />
     """
   end
+
+  def toggle_selected_all_in_page_action(assigns), do: ~H""
 
   @doc """
   Renders the "new" action link for the header in the index layout.
@@ -341,27 +380,27 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         <div class="h-0 invisible 2xl:visible" name={"auix-pages_bar-#{@auix.source}-xl2"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}
-              selected_in_page={@auix.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}/>
         </div>
         <div class="h-0 invisible xl:visible 2xl:invisible" name={"auix-pages_bar-#{@auix.source}-xl"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)}
-              selected_in_page={@auix.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}/>
         </div>
         <div class="h-0 invisible lg:visible xl:invisible" name={"auix-pages_bar-#{@auix.source}-lg"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)}
-              selected_in_page={@auix.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}/>
         </div>
         <div class="h-0 invisible md:visible lg:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-md"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
-              selected_in_page={@auix.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}/>
         </div>
         <div class="h-0 sm:visible md:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-sm"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :sm)}
-              selected_in_page={@auix.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}/>
         </div>
       </div>
     """

@@ -64,6 +64,11 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
         def handle_info(input, socket) do
           unquote(handler_module).handle_info(input, socket)
         end
+
+        @impl true
+        def handle_async(task, result, socket) do
+          unquote(handler_module).handle_async(task, result, socket)
+        end
       end
     end
   end

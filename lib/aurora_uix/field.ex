@@ -24,7 +24,8 @@ defmodule Aurora.Uix.Field do
     - `required` (`boolean`) - Indicates that the field should not be empty or unused.
     - `disabled` (`boolean`) - If true, the field should not participate in form interaction.
     - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
-      It is equivalent to not having the field at all.
+       It is equivalent to not having the field at all.
+    - `filterable?` (`boolean`) - If true, it is expected that the field can be filterable by the UI.
 
   ## Key Features
   - Encapsulates field properties for UI rendering and configuration.
