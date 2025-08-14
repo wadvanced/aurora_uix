@@ -153,8 +153,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               </div>
             </th>
           </tr>
-
         </thead>
+
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
