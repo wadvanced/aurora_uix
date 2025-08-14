@@ -376,10 +376,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def handle_event("index-layout-change", _params, socket), do: {:noreply, socket}
 
-  def handle_event("selected_toggle_all", params, socket) do
+  def handle_event("selected-toggle_all", params, socket) do
     state? = Map.get(params, "state", "false") == "true"
 
     {:noreply, assign_async_selected_toggle_all(socket, state?)}
+  end
+
+  def handle_event("selected-cancel_toggle_all", _params, socket) do
+    {:noreply, cancel_async(socket, :auix_selection_toggle_all, :cancel)}
   end
 
   def handle_event(

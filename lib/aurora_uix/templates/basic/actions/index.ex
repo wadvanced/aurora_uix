@@ -39,7 +39,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @actions Action.available_actions(:index)
   @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
   @selected_button_class "#{@filters_button_class}"
-  @toggle_message_class "#{@filters_button_class} p-2 rounded-md"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
@@ -185,7 +184,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="false"
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="false"
         name={"auix-selected-uncheck_all-#{@auix.module}"}>
       {gettext("Uncheck all")}
     </.button>
@@ -196,10 +195,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
       )
       when toggle_all_mode == :uncheck do
-    assigns = Map.put(assigns, :toggle_message_class, @toggle_message_class)
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <span class={@toggle_message_class}>{gettext("De-selecting all items. Selection is disabled for a while...")}</span>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{gettext("De-selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
@@ -227,7 +226,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="true"
         name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none}>
       {gettext("Check all")}
     </.button>
@@ -238,10 +237,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
       )
       when toggle_all_mode == :check do
-    assigns = Map.put(assigns, :toggle_message_class, @toggle_message_class)
+    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <span class={@toggle_message_class}>{gettext("Selecting all items. Selection is disabled for a while...")}</span>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{gettext("Selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
