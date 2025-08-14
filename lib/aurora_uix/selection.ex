@@ -136,8 +136,13 @@ defmodule Aurora.Uix.Selection do
   """
   @spec set_item_select_state(map(), term(), __MODULE__.t()) :: map()
   def set_item_select_state(item, item_id, selection) do
-    selection.selected
-    |> MapSet.member?(item_id)
-    |> then(&Map.put(item, :selected_check__, &1))
+    new_state =
+      cond do
+        selection.toggle_all_mode == :check -> true
+        selection.toggle_all_mode == :uncheck -> false
+        true -> MapSet.member?(selection.selected, item_id)
+      end
+
+    Map.put(item, :selected_check__, new_state)
   end
 end

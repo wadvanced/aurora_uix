@@ -38,7 +38,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   @actions Action.available_actions(:index)
   @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
-  @selected_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
+  @selected_button_class "#{@filters_button_class}"
+  @toggle_message_class "#{@filters_button_class} p-2 rounded-md"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
@@ -146,9 +147,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec selected_delete_all_action(map()) :: Rendered.t()
   def selected_delete_all_action(
-        %{auix: %{selection: %{selected_count: selected_count}}} = assigns
+        %{auix: %{selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}}} =
+          assigns
       )
-      when selected_count > 0 do
+      when toggle_all_mode == :none and selected_count > 0 do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
@@ -174,12 +176,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def selected_uncheck_all_action(
         %{
           auix: %{
-            selection: %{selected_count: selected_count}
+            selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}
           }
         } =
           assigns
       )
-      when selected_count > 0 do
+      when toggle_all_mode == :none and selected_count > 0 do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
@@ -187,6 +189,17 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         name={"auix-selected-uncheck_all-#{@auix.module}"}>
       {gettext("Uncheck all")}
     </.button>
+    """
+  end
+
+  def selected_uncheck_all_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :uncheck do
+    assigns = Map.put(assigns, :toggle_message_class, @toggle_message_class)
+
+    ~H"""
+    <span class={@toggle_message_class}>{gettext("De-selecting all items. Selection is disabled for a while...")}</span>
     """
   end
 
@@ -206,22 +219,33 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         %{
           auix: %{
             pagination: %{entries_count: entries_count},
-            selection: %{selected_count: selected_count}
+            selection: %{selected_count: selected_count, toggle_all_mode: toggle_all_mode}
           }
         } = assigns
       )
-      when selected_count < entries_count do
+      when toggle_all_mode == :none and selected_count < entries_count do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected_toggle_all" phx-value-state="true"
-        name={"auix-selected_check_all-#{@auix.module}"}>
+        name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none}>
       {gettext("Check all")}
     </.button>
     """
   end
 
-  def selected_check_all_action(assigns), do: ~H"{inspect(assigns.auix.selection.selected_count)}"
+  def selected_check_all_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :check do
+    assigns = Map.put(assigns, :toggle_message_class, @toggle_message_class)
+
+    ~H"""
+    <span class={@toggle_message_class}>{gettext("Selecting all items. Selection is disabled for a while...")}</span>
+    """
+  end
+
+  def selected_check_all_action(assigns), do: ~H""
 
   @doc """
   Renders checkbox to toggle selection of all rows in index layout.
@@ -235,16 +259,22 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Checkbox input that triggers "selected-toggle-all" event
   """
   @spec toggle_selected_all_in_page_action(map()) :: Rendered.t()
-  def toggle_selected_all_in_page_action(assigns) do
+  def toggle_selected_all_in_page_action(
+        %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
+      )
+      when toggle_all_mode == :none do
     ~H"""
       <.input
           name="selected_in_page__"
           value={Map.get(@auix.selection, :selected_any_in_page?, false)}
           type="checkbox"
           label=""
+          disabled={@auix.selection.toggle_all_mode != :none}
         />
     """
   end
+
+  def toggle_selected_all_in_page_action(assigns), do: ~H""
 
   @doc """
   Renders the "new" action link for the header in the index layout.

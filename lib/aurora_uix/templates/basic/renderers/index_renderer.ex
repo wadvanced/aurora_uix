@@ -147,6 +147,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           value={Map.get(@entity, @field.key)}
           type={"#{@field.html_type}"}
           label={@field.label}
+          disabled={@auix.selection.toggle_all_mode != :none}
         />
     """
   end
