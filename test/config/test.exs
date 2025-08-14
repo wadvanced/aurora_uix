@@ -19,6 +19,7 @@ config :aurora_uix, Aurora.Uix.Test.Web.Endpoint,
   http: [port: 4001],
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
+  check_origin: false,
   # Server must be enabled
   server: true,
   live_view: [signing_salt: "7aOSy6v8"],
