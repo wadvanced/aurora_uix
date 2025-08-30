@@ -136,38 +136,6 @@ defmodule Aurora.Uix.Field do
   def change(field, %{} = attrs), do: field |> struct(attrs) |> update_name()
 
   @doc """
-  Generates or returns a unique HTML ID for a field.
-
-  ## Parameters
-  - `field` (`Aurora.Uix.Field.t()`) - The field struct requiring an ID.
-
-  ## Returns
-  `Aurora.Uix.Field.t()` - Field with updated html_id if empty, or unchanged if ID exists.
-
-  ## Examples
-  ```elixir
-  field = Aurora.Uix.Field.new(%{key: :foo})
-  Aurora.Uix.Field.set_field_id(field)
-  # => %Aurora.Uix.Field{html_id: "auix-field-foo-1", ...}
-  ```
-  """
-  @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
-  def set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field
-
-  def set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
-      when is_nil(resource) do
-    struct(field, %{html_id: "auix-field-#{key}-#{CounterAgent.next_count(:auix_fields)}"})
-  end
-
-  def set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
-    struct(field, %{
-      html_id: "auix-field-#{resource}-#{key}-#{CounterAgent.next_count(:auix_fields)}"
-    })
-  end
-
-  def set_field_id(field), do: field
-
-  @doc """
   Implements `Access.fetch/2` for the field struct.
   """
   @impl Access
@@ -202,6 +170,26 @@ defmodule Aurora.Uix.Field do
   end
 
   ## PRIVATE
+
+  @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
+  defp set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field
+
+  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
+       when is_nil(resource) do
+    CounterAgent.start_counter(:auix_fields)
+    struct(field, %{html_id: "auix-field-#{key}-#{CounterAgent.next_count(:auix_fields)}"})
+  end
+
+  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
+    CounterAgent.start_counter(:auix_fields)
+
+    struct(field, %{
+      html_id: "auix-field-#{resource}-#{key}-#{CounterAgent.next_count(:auix_fields)}"
+    })
+  end
+
+  defp set_field_id(field), do: field
+
   @spec update_name(__MODULE__.t()) :: __MODULE__.t()
   defp update_name(%{key: key} = field_struct) when is_atom(key),
     do: field_struct |> struct(%{name: to_string(key)}) |> set_field_id()
