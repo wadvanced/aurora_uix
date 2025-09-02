@@ -94,24 +94,22 @@ defmodule Aurora.Uix.CounterAgent do
   def start_counter(name \\ nil, initial \\ 0)
 
   def start_counter(nil, initial) do
-    case Agent.start_link(fn -> initial end) do
+    case Agent.start(fn -> initial end) do
       {:ok, pid} ->
         pid
 
-      {:error, {:already_started, _}} ->
-        Logger.warning("Counter was previously started")
-        reset_count(nil, initial)
+      {:error, {:already_started, pid}} ->
+        pid
     end
   end
 
-  def start_counter(name, initial) do
-    case Agent.start_link(fn -> initial end, name: name) do
-      {:ok, _} ->
-        name
+  def start_counter(name, initial) when is_atom(name) do
+    case Agent.start(fn -> initial end, name: name) do
+      {:ok, pid} ->
+        pid
 
-      {:error, {:already_started, _}} ->
-        Logger.warning("Counter named: `#{name}`, was previously started")
-        name
+      {:error, {:already_started, pid}} ->
+        pid
     end
   end
 
