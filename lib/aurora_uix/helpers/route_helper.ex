@@ -38,11 +38,11 @@ defmodule Aurora.Uix.RouteHelper do
   @spec auix_live_resources(binary(), module()) :: Macro.t()
   defmacro auix_live_resources(path, module) do
     quote do
-      live "#{unquote(path)}", unquote(module).Index, :index
-      live "#{unquote(path)}/new", unquote(module).Index, :new
-      live "#{unquote(path)}/:id/edit", unquote(module).Index, :edit
-      live "#{unquote(path)}/:id", unquote(module).Show, :show
-      live "#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit
+      live("#{unquote(path)}", unquote(module).Index, :index)
+      live("#{unquote(path)}/new", unquote(module).Index, :new)
+      live("#{unquote(path)}/:id/edit", unquote(module).Index, :edit)
+      live("#{unquote(path)}/:id", unquote(module).Show, :show)
+      live("#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit)
     end
   end
 end

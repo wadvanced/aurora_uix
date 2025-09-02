@@ -233,12 +233,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def save_entity(%{assigns: %{action: :edit, auix: auix}} = socket, entity_params) do
     auix.update_function.(socket.assigns[:auix][:entity], entity_params)
-    |> IO.inspect(label: "********* Updating entity")
   end
 
   def save_entity(%{assigns: %{action: :new, auix: auix}}, entity_params) do
     auix.create_function.(entity_params)
-    |> IO.inspect(label: "********* Saving new entity")
   end
 
   @doc """
