@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
   auix_create_ui(link_prefix: "pages-bar-") do
     index_columns(:product, [:id, :reference, :name, :cost],
       order_by: :name,
-      pagination_disabled?: false
+      pagination_disabled?: true
     )
   end
 

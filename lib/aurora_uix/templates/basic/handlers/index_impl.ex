@@ -226,7 +226,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix, streams: _streams}} = socket) do
-    entity = auix.get_function.(id)
+    entity = auix.get_function.(id, [])
     {:ok, _} = auix.delete_function.(entity)
 
     {:noreply,

@@ -22,15 +22,44 @@ mix deps.get
 
 ## Tailwind Configuration
 
-Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included:
+### Versions 4.x
+After following the [installation](https://tailwindcss.com/docs/installation/framework-guides/phoenix) guide for phoenix, 
+open assets/css/app.css and look for the following lines.
+
+```css
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/your_app_web";
+...
+```
+
+Add this source reference after yours app reference.
+```css
+@source "../../deps/aurora_uix/lib";
+```
+
+You should have something like the following:
+```css
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/your_app_web";
+@source "../../deps/aurora_uix/lib";
+```
+
+Now you can build your tailwind classes.
+
+### Versions 3.x
+Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included ('aurora_demo` used as an application example):
 
 ```js
 module.exports = {
   content: [
     "./js/**/*.js",
-    "../lib/aurora_uix_demo_web.ex",
-    "../lib/aurora_uix_demo_web/**/*.*ex",
-    "../dev/aurora_uix/**/*.ex"
+    "../lib/aurora_demo_web.ex",
+    "../lib/aurora_demo_web/**/*.*ex",
+    "../deps/aurora_uix/**/*.ex"
   ],
   theme: {
     extend: {},
