@@ -400,7 +400,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def handle_event(
         "pagination_previous",
         _params,
-        %{assigns: %{auix: %{pagination: %Pagination{} = pagination} = auix}} = socket
+        %{
+          assigns: %{
+            auix:
+              %{
+                pagination: %Pagination{} = pagination,
+                layout_options: %{pagination_disabled?: false}
+              } = auix
+          }
+        } = socket
       ) do
     {:noreply,
      auix_route_forward(socket,
@@ -408,17 +416,55 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      )}
   end
 
+  def handle_event(
+        "pagination_previous",
+        _params,
+        %{
+          assigns: %{
+            auix: %{
+              pagination: %Pagination{} = pagination,
+              layout_options: %{pagination_disabled?: true}
+            }
+          }
+        } = socket
+      ) do
+    {:noreply, paginate(socket, pagination.page - 1)}
+  end
+
   def handle_event("pagination_previous", _params, socket), do: {:noreply, socket}
 
   def handle_event(
         "pagination_next",
         _params,
-        %{assigns: %{auix: %{pagination: %Pagination{} = pagination} = auix}} = socket
+        %{
+          assigns: %{
+            auix:
+              %{
+                pagination: %Pagination{} = pagination,
+                layout_options: %{pagination_disabled?: false}
+              } = auix
+          }
+        } = socket
       ) do
     {:noreply,
      auix_route_forward(socket,
        patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
      )}
+  end
+
+  def handle_event(
+        "pagination_next",
+        _params,
+        %{
+          assigns: %{
+            auix: %{
+              pagination: %Pagination{} = pagination,
+              layout_options: %{pagination_disabled?: true}
+            }
+          }
+        } = socket
+      ) do
+    {:noreply, paginate(socket, pagination.page + 1)}
   end
 
   def handle_event("pagination_next", _params, socket), do: {:noreply, socket}
@@ -511,29 +557,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
   end
 
-  def apply_action(
-        %{
-          assigns: %{
-            live_action: :index,
-            auix: %{pagination: %{repo_module: _repo_module} = pagination}
-          }
-        } = socket,
-        %{"page" => page}
-      ) do
+  def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
     page = String.to_integer(page)
-
-    if page == pagination.page do
-      socket
-      |> assign_selected_states()
-      |> assign_auix(:entity, nil)
-    else
-      pagination
-      |> CtxCore.to_page(page)
-      |> then(&assign_auix(socket, :read_items, &1))
-      |> create_stream()
-      |> assign_selected_states()
-      |> assign_auix(:entity, nil)
-    end
+    paginate(socket, page)
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
@@ -556,6 +582,30 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
     |> assign_auix(:initial_page, initial_page)
     |> assign_auix(:per_page, per_page)
+  end
+
+  @spec paginate(Socket.t(), integer()) :: Socket.t()
+  defp paginate(
+         %{
+           assigns: %{
+             live_action: :index,
+             auix: %{pagination: %{repo_module: _repo_module} = pagination}
+           }
+         } = socket,
+         page
+       ) do
+    if page == pagination.page do
+      socket
+      |> assign_selected_states()
+      |> assign_auix(:entity, nil)
+    else
+      pagination
+      |> CtxCore.to_page(page)
+      |> then(&assign_auix(socket, :read_items, &1))
+      |> create_stream()
+      |> assign_selected_states()
+      |> assign_auix(:entity, nil)
+    end
   end
 
   @spec load_items(Socket.t(), keyword()) :: Socket.t()

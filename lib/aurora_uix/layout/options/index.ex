@@ -33,6 +33,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
   """
 
   @default_pages_bar_range_offset 2
+  @default_items_per_page 40
+  @default_infinity_scroll_items_count 100
 
   @doc """
   Retrieves an index layout option from assigns.
@@ -169,10 +171,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
     do: {:ok, &__MODULE__.row_id/1}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :infinite_scroll_items_load),
-    do: {:ok, 100}
+    do: {:ok, @default_infinity_scroll_items_count}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
-    do: {:ok, 40}
+    do: {:ok, @default_items_per_page}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end
