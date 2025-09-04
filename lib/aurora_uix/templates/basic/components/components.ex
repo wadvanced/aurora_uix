@@ -25,6 +25,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   use Phoenix.Component
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
+  alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
   @doc """
@@ -114,7 +115,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       {auix_items_table(assigns)}
     </div>
 
-    <div class="md:hidden">
+    <div class="md:hidden mt-0">
       {auix_items_card(assigns)}
     </div>
 
@@ -216,7 +217,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700 h-svh"
+          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
             <td
@@ -297,17 +298,15 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     <div class="space-y-4">
       <div id={"#{@id}-mobile"}
         phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
-          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
-          class="overflow-y-scroll block h-[calc(50svh)]"
+          phx-viewport-top={@auix.layout_options.pagination_disabled? && JS.push("pagination_previous", loading: true)}
+          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && JS.push("pagination_next", loading: true)}
+          class="overflow-y-scroll block w-full h-[calc(100svh-15rem)]"
         >
-
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}-mobile"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
           <div :for={col <- @col}>
-            <div class="font-bold inline-flex">
-              <div :if={!is_function(col.label, 1)}  name="auix-column-label">
-                <.table_column_label auix={@auix} label={col.label} />
-                <span>: </span>
+            <div class="inline-flex">
+              <div class="flex mr-1" :if={!is_function(col.label, 1)}  name="auix-column-label">
+                <.label>{col.label}</.label>:
               </div>
               <div name="auix-column-value">
                 {render_slot(col, @row_item.(row))}

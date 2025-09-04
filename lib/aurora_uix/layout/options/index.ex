@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
-  @default_infinity_scroll_items_count 100
+  @default_infinity_scroll_items_load 100
 
   @doc """
   Retrieves an index layout option from assigns.
@@ -142,6 +142,12 @@ defmodule Aurora.Uix.Layout.Options.Index do
   def row_id(%{id: id}), do: id
   def row_id(_), do: nil
 
+  @doc """
+  The default infinity scroll items to load.
+  """
+  @spec default_infinity_scroll_items_load() :: integer()
+  def default_infinity_scroll_items_load, do: @default_infinity_scroll_items_load
+
   ## PRIVATE
 
   # Resolves function or boolean values for pagination_disabled? option, otherwise delegates error.
@@ -171,7 +177,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
     do: {:ok, &__MODULE__.row_id/1}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :infinite_scroll_items_load),
-    do: {:ok, @default_infinity_scroll_items_count}
+    do: {:ok, @default_infinity_scroll_items_load}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
     do: {:ok, @default_items_per_page}

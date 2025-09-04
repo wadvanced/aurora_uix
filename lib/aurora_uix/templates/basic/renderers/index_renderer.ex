@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
     <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
       <.header>
-        <div>
+        <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
       </.header>
