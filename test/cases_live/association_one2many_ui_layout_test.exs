@@ -73,8 +73,9 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     {:ok, _view, html} = live(conn, "/association-one_to_many-layout-products/#{product_id}")
 
     assert html
-           |> Floki.find("tbody#product__product_transactions-show tr td:nth-of-type(3)")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == expected_result
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody#product__product_transactions-show tr td:nth-of-type(3)")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == expected_result
   end
 
   @spec visit_products_index(Plug.Conn.t()) :: {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
@@ -217,7 +218,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     {:ok, edit_view, _html} =
       view
       |> element(
-        "#auix-one_to_many-product__product_transactions-#{suffix} table a[name='auix-edit-product__product_transaction-#{transaction_id}'"
+        "#auix-one_to_many-product__product_transactions-#{suffix} table a[name='auix-edit-product__product_transaction-#{transaction_id}']"
       )
       |> render_click()
       |> follow_redirect(conn)

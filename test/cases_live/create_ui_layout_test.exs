@@ -65,7 +65,8 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     delete_all_sample_data()
     {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
 
-    assert html =~ "Please fill <strong>Product&#39;s</strong> values properly"
+    assert html =~ "Please fill <strong"
+    assert html =~ "Product&#39;s</strong> values properly"
 
     assert view
            |> element("div#auix-product-modal header")
@@ -98,8 +99,9 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     assert html =~ "The Products Listing"
 
     assert html
-           |> Floki.find("thead tr th [name='auix-column-label']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("thead tr th [name='auix-column-label']")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "Id",
              "Reference",
@@ -140,7 +142,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     |> render_click()
 
     view
-    |> tap(&assert has_element?(&1, "[name='auix-save-product'"))
+    |> tap(&assert has_element?(&1, "[name='auix-save-product']"))
     |> tap(
       &assert has_element?(&1, "div#auix-product-modal-container div button[phx-click*='exec']")
     )
@@ -224,8 +226,8 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
     )
     |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
     |> render()
-    |> Floki.parse_document!()
-    |> tap(&assert &1 |> Floki.attribute("data-confirm") |> List.first() =~ "Are you sure?")
-    |> tap(&assert &1 |> Floki.attribute("phx-click") |> List.first() =~ ~r".+event.+delete")
+    |> LazyHTML.from_fragment()
+    |> tap(&assert &1 |> LazyHTML.attribute("data-confirm") |> List.first() =~ "Are you sure?")
+    |> tap(&assert &1 |> LazyHTML.attribute("phx-click") |> List.first() =~ ~r".+event.+delete")
   end
 end

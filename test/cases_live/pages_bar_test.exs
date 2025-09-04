@@ -40,12 +40,16 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
     assert has_element?(view, "div[name='auix-pages_bar-products']")
 
     assert html
-           |> Floki.find("#auix-table-pages-bar-products-index tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("#auix-table-pages-bar-products-index tr")
            |> Enum.count() == 40
 
     assert html
-           |> Floki.find("div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
+             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+           )
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "1",
              "2",
              "3",
@@ -60,8 +64,11 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
     {:ok, view_direct, html_direct} = live(conn, "/pages-bar-products?page=12")
 
     assert html_direct
-           |> Floki.find("div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
+             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+           )
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "1",
              "...",
@@ -76,18 +83,22 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
            ]
 
     assert html_direct
-           |> Floki.find("#auix-table-pages-bar-products-index tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("#auix-table-pages-bar-products-index tr")
            |> Enum.count() == 40
 
     # Navigate to a page by click
     view_direct
-    |> element("div[name='auix-pages_bar-products-sm'] a[name='auix-pages_bar_page-10]")
+    |> element("div[name='auix-pages_bar-products-sm'] a[name='auix-pages_bar_page-10']")
     |> render_click()
 
     assert view_direct
            |> render()
-           |> Floki.find("div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
+             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+           )
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "1",
              "...",
@@ -103,7 +114,8 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
 
     assert view_direct
            |> render()
-           |> Floki.find("#auix-table-pages-bar-products-index tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("#auix-table-pages-bar-products-index tr")
            |> Enum.count() == 40
   end
 end

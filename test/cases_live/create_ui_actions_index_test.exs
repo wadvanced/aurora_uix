@@ -114,8 +114,9 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("tr:nth-of-type(1) a[name^='auix-edit-product']")
-           |> Enum.map(&Floki.text/1) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tr:nth-of-type(1) a[name^='auix-edit-product']")
+           |> Enum.map(&LazyHTML.text/1) == [
              "Custom Inserted",
              "Custom Removed and Added",
              "Custom Added"
@@ -130,8 +131,9 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("div[name='auix-index-header-actions'] a[name^='auix-new-product']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("div[name='auix-index-header-actions'] a[name^='auix-new-product']")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Inserted Product",
              "New Replaced Product",
              "Added Product"
@@ -146,8 +148,9 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsIndexTest do
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("div[name='auix-index-footer-actions'] a[name^='auix-new-product']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("div[name='auix-index-footer-actions'] a[name^='auix-new-product']")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Footer Product"
            ]
   end

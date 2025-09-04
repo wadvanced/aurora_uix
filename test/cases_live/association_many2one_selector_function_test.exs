@@ -99,7 +99,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorFunctionTest do
 
     assert has_element?(
              view,
-             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value=#{location_id_1}]",
+             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value='#{location_id_1}']",
              "The #{name_1}"
            )
 

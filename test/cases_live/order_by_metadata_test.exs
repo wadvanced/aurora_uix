@@ -71,8 +71,9 @@ defmodule Aurora.Uix.Test.Web.OrderByMetadataTest do
     assert html =~ "Listing Products"
 
     assert html
-           |> Floki.find("table tbody tr td:nth-of-type(3)")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == @test_references
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("table tbody tr td:nth-of-type(3)")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == @test_references
   end
 
   @spec create_shuffled_products(list()) :: :ok

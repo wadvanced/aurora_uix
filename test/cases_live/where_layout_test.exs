@@ -40,7 +40,8 @@ defmodule Aurora.Uix.Test.Web.WhereLayoutTest do
     assert html =~ "Listing Products"
 
     assert html
-           |> Floki.find("table tbody tr td:nth-of-type(4)")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == @test_references
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("table tbody tr td:nth-of-type(4)")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == @test_references
   end
 end

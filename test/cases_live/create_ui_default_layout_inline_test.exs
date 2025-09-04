@@ -27,13 +27,13 @@ defmodule Aurora.Uix.Test.Web.CreateUIDefaultLayoutInlineTest do
   defp assert_inline_order(fields, html) do
     inputs =
       html
-      |> Floki.parse_document!()
-      |> Floki.find(
-        "form#auix-product-form div.auix-form-container>div.sm\\:flex-row.flex-col input:not([type=='hidden'])"
+      |> LazyHTML.from_document()
+      |> LazyHTML.query(
+        "form#auix-product-form div.auix-form-container>div.sm\\:flex-row.flex-col input:not([type='hidden'])"
       )
       |> Enum.map(fn input ->
         input
-        |> Floki.attribute("name")
+        |> LazyHTML.attribute("name")
         |> List.first()
         |> String.replace("product[", "")
         |> String.replace("]", "")

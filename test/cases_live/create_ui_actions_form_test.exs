@@ -55,8 +55,9 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsFormTest do
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("div[name='auix-form-header-actions'] [name='auix-save-product']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("div[name='auix-form-header-actions'] [name='auix-save-product']")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Custom Save Product"
            ]
   end
@@ -73,8 +74,9 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsFormTest do
 
     # Validate row actions order of elements
     assert html
-           |> Floki.find("div[name='auix-form-footer-actions'] [name='auix-save-product']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("div[name='auix-form-footer-actions'] [name='auix-save-product']")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Custom Footer Save Product",
              "Save Product"
            ]

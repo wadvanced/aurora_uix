@@ -19,6 +19,7 @@ config :aurora_uix, Aurora.Uix.Test.Web.Endpoint,
   http: [port: 4001],
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
+  pubsub_server: Aurora.Uix.Test.PubSub,
   check_origin: false,
   # Server must be enabled
   server: true,
@@ -47,16 +48,25 @@ config :tailwind,
 config :esbuild,
   version: "0.23.0",
   aurora_uix: [
-    args: [
-      "js/app.js",
-      "--bundle",
-      "--target=es2017",
-      "--outdir=../_priv/static/assets",
-      "--external:/fonts/*",
-      "--external:/images/*"
-    ],
+    args:
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
     env: %{
       "NODE_PATH" => "../../deps"
     }
   ]
+
+# Set a higher stacktrace during development. Avoid configuring such
+# in production as building large stacktraces may be expensive.
+config :phoenix, :stacktrace_depth, 20
+
+# Initialize plugs at runtime for faster development compilation
+config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include debug annotations and locations in rendered markup.
+  # Changing this configuration will require mix clean and a full recompile.
+  debug_heex_annotations: true,
+  debug_attributes: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true

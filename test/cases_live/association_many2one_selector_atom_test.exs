@@ -117,7 +117,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
 
     assert has_element?(
              view,
-             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value=#{location_id_1}]",
+             "select[id^='auix-field-product-product_location_id-'][id$='-form'] option[selected][value='#{location_id_1}']",
              name_1
            )
 
@@ -154,10 +154,11 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
       )
 
     assert html
-           |> Floki.find(
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
              "select[id^='auix-field-product-product_location_id-'][id$='-form'] option"
            )
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim()))
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
            |> Enum.filter(&String.starts_with?(&1, "test-name-many2-")) == @test_names
   end
 end

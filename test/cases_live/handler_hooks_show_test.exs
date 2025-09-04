@@ -194,7 +194,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
     {:ok, edit_view, _html} =
       view
       |> element(
-        "#auix-one_to_many-product__product_transactions-#{suffix} table a[name='auix-edit-product__product_transaction-#{transaction_id}'"
+        "#auix-one_to_many-product__product_transactions-#{suffix} table a[name='auix-edit-product__product_transaction-#{transaction_id}']"
       )
       |> render_click()
       |> follow_redirect(conn)

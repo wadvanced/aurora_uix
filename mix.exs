@@ -10,8 +10,10 @@ defmodule Aurora.Uix.MixProject do
       version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
+      compilers: [:phoenix_live_view] ++ Mix.compilers(),
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
+      xref: xref(Mix.env()),
       dialyzer: [
         plt_add_apps: [:eex, :mix]
       ],
@@ -68,10 +70,9 @@ defmodule Aurora.Uix.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
       {:gettext, "~> 0.20"},
-      {:phoenix, "~> 1.7"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:phoenix_html, "~> 4.2"},
-      {:phoenix_live_view, "~> 1.0"},
+      {:phoenix, "~> 1.8"},
+      {:phoenix_ecto, "~> 4.6"},
+      {:phoenix_live_view, "~> 1.1"},
       {:postgrex, ">= 0.0.0"},
 
       ## Dev dependencies
@@ -81,12 +82,54 @@ defmodule Aurora.Uix.MixProject do
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "test/support/"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp xref(:test) do
+    "test/cases_live"
+    |> xref_excluded_test_modules()
+    |> then(&[exclude: &1])
+  end
+
+  defp xref(_), do: []
+
+  defp xref_excluded_test_modules(prefix) do
+    prefix
+    |> File.ls!()
+    |> Enum.filter(&String.ends_with?(&1, ".exs"))
+    |> Enum.reduce([], &test_module_name("#{prefix}/#{&1}", &2))
+  end
+
+  defp test_module_name(file_name, acc) do
+    file_name
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.filter(&(String.starts_with?(&1, "defmodule ") and String.ends_with?(&1, "Test do")))
+    |> List.first()
+    |> String.split()
+    |> Enum.at(1)
+    |> expanded_test_module_names(acc)
+  end
+
+  defp expanded_test_module_names(name, acc) do
+    Enum.reduce(
+      [
+        "Product.Index",
+        "ProductTransaction.Index",
+        "ProductLocation.Index",
+        "Product.Show",
+        "ProductTransaction.Show",
+        "ProductLocation.Show"
+      ],
+      acc,
+      &[Module.concat(name, &1) | &2]
+    )
+  end
 
   defp aliases do
     [
