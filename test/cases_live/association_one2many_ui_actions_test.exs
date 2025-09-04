@@ -92,10 +92,11 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
       live(conn, "/association-one_to_many-actions-products/#{product_id}/edit")
 
     assert html
-           |> Floki.find(
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
              "div[name='auix-one_to_many-product'] [name='auix-one_to_many-header-actions'] a"
            )
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "custom new"
            ]
@@ -115,8 +116,9 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
       live(conn, "/association-one_to_many-actions-products/#{product_id}/edit")
 
     assert html
-           |> Floki.find("div[name='auix-one_to_many-product'] tbody tr:nth-of-type(1) a")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("div[name='auix-one_to_many-product'] tbody tr:nth-of-type(1) a")
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "Custom edit",
              ""
@@ -136,10 +138,11 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUIActionsTest do
       live(conn, "/association-one_to_many-actions-products/#{product_id}/edit")
 
     assert html
-           |> Floki.find(
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
              "div[name='auix-one_to_many-product'] [name='auix-one_to_many-footer_actions'] a"
            )
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Custom footer",
              "Custom footer second"
            ]

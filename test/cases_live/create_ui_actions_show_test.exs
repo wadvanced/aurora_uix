@@ -65,8 +65,11 @@ defmodule Aurora.Uix.Test.Web.CreateUIActionsShowTest do
            |> render() =~ "Edit Custom Product"
 
     assert html
-           |> Floki.find("div[name='auix-show-footer-actions'] [name='auix-show-navigate-back']")
-           |> Enum.map(&(&1 |> Floki.text() |> String.trim())) == [
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
+             "div[name='auix-show-footer-actions'] [name='auix-show-navigate-back']"
+           )
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "Back to Products",
              "Back Custom to Products"
            ]

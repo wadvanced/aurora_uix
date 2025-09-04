@@ -108,8 +108,9 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
   def parent_section_id(view, section_index \\ :section_1, tab_index) do
     view
     |> render()
-    |> Floki.parse_document!()
-    |> Floki.attribute(auix_section_selector(section_index, tab_index), "data-tab-parent-id")
+    |> LazyHTML.from_document()
+    |> LazyHTML.query(auix_section_selector(section_index, tab_index))
+    |> LazyHTML.attribute("data-tab-parent-id")
     |> to_string()
   end
 
@@ -120,48 +121,49 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
   - section_index: atom() | integer() - The section index, defaults to :section_1
   - tab_index: atom() | integer() - The tab index
 
-  Returns: {Floki.html_tree(), string()} - Tuple with parsed HTML and tab ID
+  Returns: {LazyHtml.t(), string()} - Tuple with parsed HTML and tab ID
   """
   @spec section_tab_id(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
-          {Floki.html_tree(), binary}
+          {LazyHtml.t(), binary}
   def section_tab_id(view, section_index \\ :section_1, tab_index) do
     section_index = auix_index(section_index)
 
-    floki =
+    lazy_html =
       view
       |> render()
-      |> Floki.parse_document!()
+      |> LazyHTML.from_document()
 
     tab_id =
-      floki
-      |> Floki.attribute(auix_section_selector(section_index, tab_index), "id")
+      lazy_html
+      |> LazyHTML.query(auix_section_selector(section_index, tab_index))
+      |> LazyHTML.attribute("id")
       |> to_string()
 
-    {floki, tab_id}
+    {lazy_html, tab_id}
   end
 
   @doc """
   Checks if a section is active based on its HTML attributes.
 
-  - floki: Floki.html_tree() - Parsed HTML tree
+  - lazy_html: LazyHtml.t() - Parsed HTML tree
   - section_id: string() - The section ID to check
 
   Returns: boolean() - Whether the section is active
   """
-  @spec section_active?(Floki.html_tree(), binary) :: boolean
-  def section_active?(_floki, ""), do: true
+  @spec section_active?(LazyHtml.t(), binary) :: boolean
+  def section_active?(_lazy_html, ""), do: true
 
-  def section_active?(floki, section_id) do
-    section = Floki.find(floki, "##{section_id}")
+  def section_active?(lazy_html, section_id) do
+    section = LazyHTML.query(lazy_html, "##{section_id}")
 
-    with true <- section |> Floki.attribute("data-tab-active") |> List.first("") =~ "active",
-         false <- section |> Floki.attribute("class") |> List.first("") =~ "hidden",
+    with true <- section |> LazyHTML.attribute("data-tab-active") |> List.first("") =~ "active",
+         false <- section |> LazyHTML.attribute("class") |> List.first("") =~ "hidden",
          true <-
            section
-           |> Floki.attribute("data-tab-parent-id")
+           |> LazyHTML.attribute("data-tab-parent-id")
            |> List.first()
            |> to_string()
-           |> then(&section_active?(floki, &1)) do
+           |> then(&section_active?(lazy_html, &1)) do
       true
     else
       _ -> false
@@ -180,10 +182,10 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
   @spec assert_section_is_active(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
           Macro.t()
   def assert_section_is_active(view, section_index \\ :section_1, tab_index) do
-    {floki, tab_id} = section_tab_id(view, section_index, tab_index)
+    {lazy_html, tab_id} = section_tab_id(view, section_index, tab_index)
 
     assert(
-      section_active?(floki, tab_id),
+      section_active?(lazy_html, tab_id),
       "Tab at section: `#{section_index}`, index: `#{tab_index}` is not active, or one of its parent is not active"
     )
   end
@@ -200,10 +202,10 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
   @spec refute_section_is_active(Phoenix.LiveViewTest.View, atom | integer | nil, atom | integer) ::
           Macro.t()
   def refute_section_is_active(view, section_index \\ :section_1, tab_index) do
-    {floki, tab_id} = section_tab_id(view, section_index, tab_index)
+    {lazy_html, tab_id} = section_tab_id(view, section_index, tab_index)
 
     refute(
-      section_active?(floki, tab_id),
+      section_active?(lazy_html, tab_id),
       "Tab at section: `#{section_index}`, index: `#{tab_index}` is active along with its parents"
     )
   end
@@ -224,12 +226,12 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
           atom | integer
         ) :: Macro.t()
   def assert_parent_section_is_active(view, section_index \\ :section_1, tab_index) do
-    floki = view |> render() |> Floki.parse_document!()
+    lazy_html = view |> render() |> LazyHTML.from_document()
 
     tab_id = parent_section_id(view, section_index, tab_index)
 
     assert(
-      section_active?(floki, tab_id),
+      section_active?(lazy_html, tab_id),
       "Any of the parents of section: `#{section_index}`, index: `#{tab_index}` is inactive"
     )
   end
@@ -250,12 +252,12 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
           atom | integer
         ) :: Macro.t()
   def refute_parent_section_is_active(view, section_index \\ :section_1, tab_index) do
-    floki = view |> render() |> Floki.parse_document!()
+    lazy_html = view |> render() |> LazyHTML.from_document()
 
     tab_id = parent_section_id(view, section_index, tab_index)
 
     refute(
-      section_active?(floki, tab_id),
+      section_active?(lazy_html, tab_id),
       "Any of the parents of section: `#{section_index}`, index: `#{tab_index}` is active"
     )
   end
@@ -337,16 +339,16 @@ defmodule Aurora.Uix.Test.Web.SectionHelper do
       view
       |> element(button_selector)
       |> render()
-      |> Floki.parse_fragment!()
-      |> Floki.attribute("class")
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.attribute("class")
       |> List.first() =~
         "active"
 
-    floki = view |> render() |> Floki.parse_document!()
+    lazy_html = view |> render() |> LazyHTML.from_document()
 
     tab_id = parent_section_id(view, section_index, tab_index)
 
-    parent_section_active? = section_active?(floki, tab_id)
+    parent_section_active? = section_active?(lazy_html, tab_id)
 
     refute(
       active? and parent_section_active?,

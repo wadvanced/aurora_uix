@@ -79,7 +79,8 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneParentUILayoutTest do
       live(conn, "/association-many_to_one_parent-layout-products/#{product_id}/edit")
 
     assert html
-           |> Floki.find("[name='product[name]']")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("[name='product[name]']")
            |> Enum.count() == 1
 
     assert has_element?(view, "div[id^='auix-field-product-product_location-'] h3", "Product")

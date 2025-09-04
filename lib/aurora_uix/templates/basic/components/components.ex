@@ -110,7 +110,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_table(map) :: Rendered.t()
   def auix_table(assigns) do
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+    <div class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
       <table class="w-[40rem] mt-0 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr :if={Map.get(@auix, :filters_enabled?)} >
@@ -160,7 +160,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700 h-svh"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
             <td

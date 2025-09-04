@@ -57,15 +57,15 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
   test "Test filters enablement", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/special-fields-ui-products")
 
-    refute has_element?(view, "[name='auix-filters_submit-product]")
-    refute has_element?(view, "[name='auix-filters_clear-product]")
+    refute has_element?(view, "[name='auix-filters_submit-product']")
+    refute has_element?(view, "[name='auix-filters_clear-product']")
 
     view
     |> element("[name='auix-filter_toggle_open']")
     |> render_click()
 
-    assert has_element?(view, "[name='auix-filters_submit-product]")
-    assert has_element?(view, "[name='auix-filters_clear-product]")
+    assert has_element?(view, "[name='auix-filters_submit-product']")
+    assert has_element?(view, "[name='auix-filters_clear-product']")
   end
 
   test "Test filters equality", %{conn: conn} do
@@ -78,16 +78,18 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     assert view
            |> element("[name='filter_from__reference']")
            |> render()
-           |> Floki.attribute("value")
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.attribute("value")
            |> List.first() == "item_group_3d-1"
 
     view
-    |> element("[name='auix-filters_submit-product]")
+    |> element("[name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
            |> render()
-           |> Floki.find("tbody tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody tr")
            |> Enum.count() == 1
   end
 
@@ -101,16 +103,18 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     assert view
            |> element("[name='filter_from__reference']")
            |> render()
-           |> Floki.attribute("value")
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.attribute("value")
            |> List.first() == "item_group_3d-2"
 
     view
-    |> element("[name='auix-filters_submit-product]")
+    |> element("[name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
            |> render()
-           |> Floki.find("tbody tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody tr")
            |> Enum.count() == 3
   end
 
@@ -125,16 +129,18 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     assert view
            |> element("[name='filter_to__reference']")
            |> render()
-           |> Floki.attribute("value")
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.attribute("value")
            |> List.first() == "item_group_3c"
 
     view
-    |> element("[name='auix-filters_submit-product]")
+    |> element("[name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
            |> render()
-           |> Floki.find("tbody tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody tr")
            |> Enum.count() == 16
   end
 
@@ -152,17 +158,19 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
     assert view
            |> element("[name='filter_from__product_location_id']")
            |> render()
-           |> Floki.find("option[selected='selected']")
-           |> Floki.attribute("value")
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.query("option[selected='']")
+           |> LazyHTML.attribute("value")
            |> List.first() == locations["id_3"].id
 
     view
-    |> element("[name='auix-filters_submit-product]")
+    |> element("[name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
            |> render()
-           |> Floki.find("tbody tr")
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody tr")
            |> Enum.count() == 7
   end
 
