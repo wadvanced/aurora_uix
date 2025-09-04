@@ -121,7 +121,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
-
   @doc ~S"""
   Renders a table with generic styling.
 
@@ -164,6 +163,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
+  @spec auix_items_table(map()) :: Rendered.t()
   def auix_items_table(assigns) do
     ~H"""
     <div class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
@@ -259,7 +259,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
   """
-    attr(:id, :string, required: true)
+  attr(:id, :string, required: true)
   attr(:rows, :list, required: true)
   attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
   attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
@@ -291,6 +291,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
+  @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(assigns) do
     ~H"""
     <div class="space-y-4">
@@ -301,7 +302,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           class="overflow-y-scroll block h-[calc(50svh)]"
         >
 
-        <div :for={row <- @rows} id={"#{@row_id && @row_id.(row)}-mobile"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}-mobile"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
           <div :for={col <- @col}>
             <div class="font-bold inline-flex">
               <div :if={!is_function(col.label, 1)}  name="auix-column-label">
