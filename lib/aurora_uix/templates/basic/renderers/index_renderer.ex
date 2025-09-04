@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         </div>
       </div>
       <.auix_simple_form :let={index_layout_form} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
-        <.auix_table
+        <.auix_items
           id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
           auix={%{configurations: @auix.configurations,
               filters: Map.get(@auix, :filters, %{}),
@@ -85,7 +85,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
           </:action>
 
-        </.auix_table>
+        </.auix_items>
       </.auix_simple_form>
 
       <div name="auix-index-footer-actions">

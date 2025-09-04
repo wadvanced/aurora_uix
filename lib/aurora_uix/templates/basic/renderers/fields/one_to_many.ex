@@ -87,7 +87,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
         </.label>
       </div>
       <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
-        <.auix_table
+        <.auix_items
           id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
           auix={%{filters: %{}, layout_options: %{pagination_disabled?: false}}}
           rows={get_in(@auix, [:entity, Access.key!(@field.key)])}
@@ -98,7 +98,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
               {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
           </:action>
-        </.auix_table>
+        </.auix_items>
       </div>
       <div class="flex-row">
         <div class="flex flex-col" name="auix-one_to_many-footer_actions">

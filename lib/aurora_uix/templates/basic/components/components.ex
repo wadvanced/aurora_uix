@@ -66,14 +66,14 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   @doc ~S"""
-  Renders a table with generic styling.
+  Renders a table or card with generic styling.
 
   ## Examples
 
-      <.auix_table id="users" rows={@users}>
+      <.auix_items id="users" rows={@users}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
-      </.auix_table>
+      </.auix_items>
   """
   attr(:id, :string, required: true)
   attr(:rows, :list, required: true)
@@ -107,8 +107,64 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
-  @spec auix_table(map) :: Rendered.t()
-  def auix_table(assigns) do
+  @spec auix_items(map) :: Rendered.t()
+  def auix_items(assigns) do
+    ~H"""
+    <div class="hidden md:block">
+      {auix_items_table(assigns)}
+    </div>
+
+    <div class="md:hidden">
+      {auix_items_card(assigns)}
+    </div>
+
+    """
+  end
+
+
+  @doc ~S"""
+  Renders a table with generic styling.
+
+  ## Examples
+
+      <.auix_items_table id="users" rows={@users}>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
+      </.auix_items>
+  """
+  attr(:id, :string, required: true)
+  attr(:rows, :list, required: true)
+  attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
+  attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
+
+  attr(:row_click_navigate, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
+  attr(:row_click_patch, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
+  attr(:row_item, :any,
+    default: &Function.identity/1,
+    doc: "the function for mapping each row before calling the :col and :action slots"
+  )
+
+  attr(:auix, :map, default: %{})
+
+  slot :col, required: true do
+    attr(:label, :string)
+  end
+
+  slot(:filter_action,
+    doc: "the slot for showing filter actions in the last table heading column"
+  )
+
+  slot(:action, doc: "the slot for showing user actions in the last table column")
+
+  def auix_items_table(assigns) do
     ~H"""
     <div class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
       <table class="w-[40rem] mt-0 sm:w-full">
@@ -189,6 +245,77 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           </tr>
         </tbody>
       </table>
+    </div>
+    """
+  end
+
+  @doc ~S"""
+  Renders a list of cards with generic styling.
+
+  ## Examples
+
+      <.auix_items_card id="users" rows={@users}>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
+      </.auix_items>
+  """
+    attr(:id, :string, required: true)
+  attr(:rows, :list, required: true)
+  attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
+  attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
+
+  attr(:row_click_navigate, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
+  attr(:row_click_patch, :any,
+    default: nil,
+    doc: "the function for handling phx-click on each row using auix_route_forward"
+  )
+
+  attr(:row_item, :any,
+    default: &Function.identity/1,
+    doc: "the function for mapping each row before calling the :col and :action slots"
+  )
+
+  attr(:auix, :map, default: %{})
+
+  slot :col, required: true do
+    attr(:label, :string)
+  end
+
+  slot(:filter_action,
+    doc: "the slot for showing filter actions in the last table heading column"
+  )
+
+  slot(:action, doc: "the slot for showing user actions in the last table column")
+
+  def auix_items_card(assigns) do
+    ~H"""
+    <div class="space-y-4">
+      <div id={"#{@id}-mobile"}
+        phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
+          phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
+          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
+          class="overflow-y-scroll block h-[calc(50svh)]"
+        >
+
+        <div :for={row <- @rows} id={"#{@row_id && @row_id.(row)}-mobile"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
+          <div :for={col <- @col}>
+            <div class="font-bold inline-flex">
+              <div :if={!is_function(col.label, 1)}  name="auix-column-label">
+                <.table_column_label auix={@auix} label={col.label} />
+                <span>: </span>
+              </div>
+              <div name="auix-column-value">
+                {render_slot(col, @row_item.(row))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
     """
   end
