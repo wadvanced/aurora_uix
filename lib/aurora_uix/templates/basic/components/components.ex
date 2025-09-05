@@ -196,19 +196,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                 </div>
               </div>
             </th>
-            <th :if={Map.get(@auix, :filters) != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <%= if Map.get(@auix, :filters_enabled?) do %>
-                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
-                    <.icon name="hero-funnel" class=""/>
-                    <.icon name="hero-x-mark" class="align-super size-3"/>
-                  </a>
-                <% else %>
-                  <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
-                <% end %>
-              </div>
-            </th>
           </tr>
         </thead>
 
