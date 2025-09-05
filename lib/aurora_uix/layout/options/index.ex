@@ -27,7 +27,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
     - Default: `false` (pagination active)
   * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
-  * `:get_rows` - Function for extracting row data from assigns
+  * `:get_streams` - Function for extracting row data from assigns
   * `:row_id` - Function for extracting row identifiers
 
   """
@@ -111,15 +111,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
   - `list()` - List of row data, or empty list if no rows found
 
   """
-  @spec get_rows(map()) :: list()
-  def get_rows(%{auix: %{source_key: source_key} = auix, streams: streams}) do
-    case Map.get(streams, source_key) do
-      nil -> Map.get(auix, :rows, [])
-      rows -> rows
-    end
-  end
+  @spec get_streams(map()) :: list()
+  def get_streams(%{streams: streams}), do: streams
 
-  def get_rows(%{auix: auix}), do: Map.get(auix, :rows, [])
+  def get_streams(%{auix: auix}), do: Map.get(auix, :rows, [])
 
   @doc """
   Extracts row identifier from various row data formats.
@@ -170,8 +165,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),
     do: {:ok, &__MODULE__.page_bar_range_offset/2}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :get_rows),
-    do: {:ok, &__MODULE__.get_rows/1}
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :get_streams),
+    do: {:ok, &__MODULE__.get_streams/1}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :row_id),
     do: {:ok, &__MODULE__.row_id/1}
@@ -181,6 +176,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
     do: {:ok, @default_items_per_page}
+
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :alternate_streams_suffixes),
+    do: {:ok, ["mobile"]}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

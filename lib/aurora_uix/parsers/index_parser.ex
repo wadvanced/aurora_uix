@@ -12,8 +12,8 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   - Relies on Phoenix streams and schema naming conventions for defaults.
 
   ## Index Options
-  - `:get_rows` (function()): Reference to an arity one function.
-        By default is `Aurora.Uix.Parsers.IndexParser.get_rows/1`.
+  - `:get_streams` (function()): Reference to an arity one function.
+        By default is `Aurora.Uix.Parsers.IndexParser.get_streams/1`.
   - `:index_new_link` (String.t()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
   """
 

@@ -24,7 +24,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   use Aurora.Uix.CoreComponentsImporter
   use Phoenix.Component
 
-  alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -77,7 +76,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       </.auix_items>
   """
   attr(:id, :string, required: true)
-  attr(:rows, :list, required: true)
+  attr(:streams, :map, required: true)
   attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
   attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
 
@@ -106,19 +105,20 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     doc: "the slot for showing filter actions in the last table heading column"
   )
 
+  slot(:filter_element, doc: "The filter elements to display")
+
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items(map) :: Rendered.t()
   def auix_items(assigns) do
     ~H"""
     <div class="hidden md:block">
-      {auix_items_table(assigns)}
+      {auix_items_table(assign_rows(assigns, @streams, @auix.source_key))}
     </div>
 
     <div class="md:hidden mt-0">
-      {auix_items_card(assigns)}
+      {auix_items_card(assign_rows(assigns, @streams, @auix.source_key, "mobile"))}
     </div>
-
     """
   end
 
@@ -162,30 +162,19 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     doc: "the slot for showing filter actions in the last table heading column"
   )
 
+  slot(:filter_element, doc: "The filter elements to display")
+
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items_table(map()) :: Rendered.t()
   def auix_items_table(assigns) do
     ~H"""
-    <div class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
+    <div name="auix-items-table" class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
       <table class="w-[40rem] mt-0 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr :if={Map.get(@auix, :filters_enabled?)} >
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
-              <FilteringComponents.filter_field
-                  field={col.field}
-                  filter={get_in(@auix, [:index_layout_form, col.field.key, Access.key!(:value)])}
-                  auix={@auix}/>
-            </th>
-            <th :if={@filter_action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <span
-                  :for={action <- @filter_action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
-                  {render_slot(action)}
-                </span>
-              </div>
+            <th :for={filter_element <- @filter_element} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
+              {render_slot(filter_element, "")}
             </th>
           </tr>
           <tr>
@@ -277,19 +266,27 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     doc: "the slot for showing filter actions in the last table heading column"
   )
 
+  slot(:filter_element, doc: "The filter elements to display")
+
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(assigns) do
     ~H"""
-    <div class="space-y-4">
+    <div name="auix-items-card" class="space-y-4">
+      <div :if={Map.get(@auix, :filters_enabled?)}>
+        <div :for={filter_element <- @filter_element}>
+          {render_slot(filter_element, "--mobile--")}
+        </div>
+      </div>
+
       <div id={"#{@id}-mobile"}
-        phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
+          phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={@auix.layout_options.pagination_disabled? && JS.push("pagination_previous", loading: true)}
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && JS.push("pagination_next", loading: true)}
           class="overflow-y-scroll block w-full h-[calc(100svh-15rem)]"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}-mobile"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
           <div :for={col <- @col}>
             <div class="inline-flex">
               <div class="flex mr-1" :if={!is_function(col.label, 1)}  name="auix-column-label">
@@ -477,4 +474,29 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> Map.put(:pages_left_index, left_index)
     |> Map.put(:pages_right_index, right_index)
   end
+
+  @spec assign_rows(map(), map(), atom() | nil, atom() | binary() | nil) :: map()
+  defp assign_rows(assigns, streams, source_key, suffix \\ nil)
+
+  defp assign_rows(assigns, %{} = streams, source_key, nil) do
+    result =
+      case Map.get(streams, source_key) do
+        nil -> []
+        rows -> rows
+      end
+
+    assign(assigns, :rows, result)
+  end
+
+  defp assign_rows(assigns, %{} = streams, source_key, suffix) do
+    result =
+      case Map.get(streams, "#{source_key}__#{suffix}") do
+        nil -> []
+        rows -> rows
+      end
+
+    assign(assigns, :rows, result)
+  end
+
+  defp assign_rows(assigns, rows, _source_key, _suffix), do: assign(assigns, :rows, rows)
 end
