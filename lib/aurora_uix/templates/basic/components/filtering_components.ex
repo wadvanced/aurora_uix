@@ -104,6 +104,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     assigns = Map.put(assigns, :input_class, input_class)
 
     ~H"""
+      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="md:hidden !h-[0.8rem]">{@field.label}</.label>
       <.input
           id={"#{@field.html_id}#{@infix}-filter_condition"}
           name={"filter_condition__#{@infix}#{@field.key}"}
