@@ -399,72 +399,50 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def handle_event(
         "pagination_previous",
-        _params,
+        params,
         %{
           assigns: %{
             auix:
               %{
                 pagination: %Pagination{} = pagination,
-                layout_options: %{pagination_disabled?: false}
+                layout_options: %{pagination_disabled?: pagination_disabled?}
               } = auix
           }
         } = socket
       ) do
-    {:noreply,
-     auix_route_forward(socket,
-       patch: "/#{auix.link_prefix}#{auix.source}?page=#{previous_page(pagination)}"
-     )}
-  end
-
-  def handle_event(
-        "pagination_previous",
-        _params,
-        %{
-          assigns: %{
-            auix: %{
-              pagination: %Pagination{} = pagination,
-              layout_options: %{pagination_disabled?: true}
-            }
-          }
-        } = socket
-      ) do
-    {:noreply, paginate(socket, pagination.page - 1)}
+    if pagination_disabled? or Map.get(params, "pagination_disabled?") do
+      {:noreply, paginate(socket, pagination.page - 1, Map.get(params, "items_per_page"))}
+    else
+      {:noreply,
+       auix_route_forward(socket,
+         patch: "/#{auix.link_prefix}#{auix.source}?page=#{previous_page(pagination)}"
+       )}
+    end
   end
 
   def handle_event("pagination_previous", _params, socket), do: {:noreply, socket}
 
   def handle_event(
         "pagination_next",
-        _params,
+        params,
         %{
           assigns: %{
             auix:
               %{
                 pagination: %Pagination{} = pagination,
-                layout_options: %{pagination_disabled?: false}
+                layout_options: %{pagination_disabled?: pagination_disabled?}
               } = auix
           }
         } = socket
       ) do
-    {:noreply,
-     auix_route_forward(socket,
-       patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
-     )}
-  end
-
-  def handle_event(
-        "pagination_next",
-        _params,
-        %{
-          assigns: %{
-            auix: %{
-              pagination: %Pagination{} = pagination,
-              layout_options: %{pagination_disabled?: true}
-            }
-          }
-        } = socket
-      ) do
-    {:noreply, paginate(socket, pagination.page + 1)}
+    if pagination_disabled? or Map.get(params, "pagination_disabled?") do
+      {:noreply, paginate(socket, pagination.page + 1, Map.get(params, "items_per_page"))}
+    else
+      {:noreply,
+       auix_route_forward(socket,
+         patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
+       )}
+    end
   end
 
   def handle_event("pagination_next", _params, socket), do: {:noreply, socket}
@@ -559,7 +537,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
     page = String.to_integer(page)
-    paginate(socket, page)
+    paginate(socket, page, nil)
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
@@ -584,16 +562,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> assign_auix(:per_page, per_page)
   end
 
-  @spec paginate(Socket.t(), integer()) :: Socket.t()
+  @spec paginate(Socket.t(), integer(), integer() | nil) :: Socket.t()
   defp paginate(
          %{
            assigns: %{
              live_action: :index,
-             auix: %{pagination: %{repo_module: _repo_module} = pagination}
+             auix: %{pagination: %{repo_module: _repo_module, per_page: per_page} = pagination}
            }
          } = socket,
-         page
-       ) do
+         page,
+         items_per_page
+       )
+       when is_nil(items_per_page) or items_per_page == per_page do
     if page == pagination.page do
       socket
       |> assign_selected_states()
@@ -606,6 +586,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_selected_states()
       |> assign_auix(:entity, nil)
     end
+  end
+
+  # This one will be triggered if the items_per_page is changed.
+  # That is a typical case when the elements are rendered in a small device, and fallback to infinity scroll.
+  defp paginate(%{assigns: %{live_action: :index}} = socket, _page, items_per_page) do
+    socket
+    |> assign_auix(:initial_page, 1)
+    |> assign_auix(:per_page, items_per_page)
+    |> put_in([Access.key!(:assigns), :auix, :layout_options, :pagination_disabled?], true)
+    |> load_items()
   end
 
   @spec load_items(Socket.t(), keyword()) :: Socket.t()

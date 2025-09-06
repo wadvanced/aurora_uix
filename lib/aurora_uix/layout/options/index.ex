@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
-  @default_infinity_scroll_items_load 100
+  @default_infinity_scroll_items_load 200
 
   @doc """
   Retrieves an index layout option from assigns.
