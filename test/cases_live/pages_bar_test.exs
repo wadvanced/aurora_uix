@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
     assert html
            |> LazyHTML.from_document()
            |> LazyHTML.query(
-             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+             "div[name='auix-pages_bar-products-md'] [name^='auix-pages_bar_page-']"
            )
            |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "1",
@@ -52,6 +52,10 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
              "3",
              "4",
              "5",
+             "6",
+             "7",
+             "8",
+             "9",
              "...",
              "25",
              ""
@@ -63,17 +67,21 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
     assert html_direct
            |> LazyHTML.from_document()
            |> LazyHTML.query(
-             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+             "div[name='auix-pages_bar-products-md'] [name^='auix-pages_bar_page-']"
            )
            |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "1",
              "...",
+             "8",
+             "9",
              "10",
              "11",
              "12",
              "13",
              "14",
+             "15",
+             "16",
              "...",
              "25",
              ""
@@ -86,24 +94,28 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
 
     # Navigate to a page by click
     view_direct
-    |> element("div[name='auix-pages_bar-products-sm'] a[name='auix-pages_bar_page-10']")
+    |> element("div[name='auix-pages_bar-products-md'] a[name='auix-pages_bar_page-10']")
     |> render_click()
 
     assert view_direct
            |> render()
            |> LazyHTML.from_document()
            |> LazyHTML.query(
-             "div[name='auix-pages_bar-products-sm'] [name^='auix-pages_bar_page-']"
+             "div[name='auix-pages_bar-products-md'] [name^='auix-pages_bar_page-']"
            )
            |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
              "",
              "1",
              "...",
+             "6",
+             "7",
              "8",
              "9",
              "10",
              "11",
              "12",
+             "13",
+             "14",
              "...",
              "25",
              ""

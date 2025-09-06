@@ -282,8 +282,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
       <div id={"#{@id}-mobile"}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          phx-viewport-top={@auix.layout_options.pagination_disabled? && JS.push("pagination_previous", loading: true)}
-          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && JS.push("pagination_next", loading: true)}
+          phx-viewport-top={JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
+          phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           class="overflow-y-scroll block w-full h-[calc(100svh-15rem)]"
         >
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="bg-white rounded-lg shadow p-4 border border-gray-200">

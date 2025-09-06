@@ -425,11 +425,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 sm:visible md:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-sm"}>
-          <.pages_selection pagination={@auix.pagination}
-              pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :sm)}
-              selected_in_page={@auix.selection.selected_in_page}/>
-        </div>
       </div>
     """
   end
