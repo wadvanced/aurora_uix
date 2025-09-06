@@ -602,7 +602,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       pagination
       |> CtxCore.to_page(page)
       |> then(&assign_auix(socket, :read_items, &1))
-      |> create_stream()
+      |> update_streams()
       |> assign_selected_states()
       |> assign_auix(:entity, nil)
     end
@@ -631,7 +631,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> assign_auix(:load_items_options, load_items_options)
     |> prepare_query_options()
     |> read_items(read_items_options)
-    |> create_stream()
+    |> update_streams()
   end
 
   @spec refresh_current_page(Socket.t()) :: Socket.t()
@@ -639,7 +639,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
     |> assign_auix(:reset_stream?, true)
     |> read_items(paginate: struct(pagination, %{page: pagination.page}))
-    |> create_stream()
+    |> update_streams()
   end
 
   # Prepare the query.
@@ -680,8 +680,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> then(&assign_auix(socket, :read_items, &1))
   end
 
-  @spec create_stream(Socket.t()) :: Socket.t()
-  defp create_stream(
+  @spec update_streams(Socket.t()) :: Socket.t()
+  defp update_streams(
          %{
            assigns: %{
              auix:
@@ -711,7 +711,30 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       entries,
       options
     )
+    |> update_alternate_streams(entries, options)
   end
+
+  @spec update_alternate_streams(Socket.t(), list(), keyword()) :: Socket.t()
+  defp update_alternate_streams(
+         %{
+           assigns: %{
+             auix: %{
+               source_key: source_key,
+               layout_options: %{alternate_streams_suffixes: alternate_streams_suffixes}
+             }
+           }
+         } = socket,
+         entries,
+         options
+       ) do
+    Enum.reduce(
+      alternate_streams_suffixes,
+      socket,
+      &stream(&2, "#{source_key}__#{&1}", entries, options)
+    )
+  end
+
+  defp update_alternate_streams(socket, _entries, _options), do: socket
 
   @spec merge_extra_option(tuple(), list()) :: tuple()
   defp merge_extra_option({option_key, _value} = option, extra_options) do
@@ -731,8 +754,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
     socket
+    |> BasicHelpers.assign_auix_option(:alternate_streams_suffixes)
     |> BasicHelpers.assign_auix_option(:infinite_scroll_items_load)
-    |> BasicHelpers.assign_auix_option(:get_rows)
+    |> BasicHelpers.assign_auix_option(:get_streams)
     |> BasicHelpers.assign_auix_option(:page_title)
     |> BasicHelpers.assign_auix_option(:page_subtitle)
     |> BasicHelpers.assign_auix_option(:pagination_disabled?)
@@ -831,6 +855,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()
   defp update_filter(%{assigns: %{auix: %{filters: filters}}} = socket, filter_key, attrs) do
+    filter_key = String.replace(filter_key, ~r/--\w+--/, "")
+
     filters =
       filters
       |> Map.get(filter_key, Filter.new(filter_key))

@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
            |> List.first() == "item_group_3d-1"
 
     view
-    |> element("[name='auix-filters_submit-product']")
+    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -108,7 +108,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
            |> List.first() == "item_group_3d-2"
 
     view
-    |> element("[name='auix-filters_submit-product']")
+    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -134,7 +134,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
            |> List.first() == "item_group_3c"
 
     view
-    |> element("[name='auix-filters_submit-product']")
+    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -164,7 +164,7 @@ defmodule Aurora.Uix.Test.Web.SpecialFieldsUITest do
            |> List.first() == locations["id_3"].id
 
     view
-    |> element("[name='auix-filters_submit-product']")
+    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view

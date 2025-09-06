@@ -298,6 +298,34 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
+  Renders a open filters or close filters buttons.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing:
+
+  ## Returns
+  Rendered.t() - Button link for creating new entities
+  """
+  @spec toggle_filters_action(map()) :: Rendered.t()
+  def toggle_filters_action(assigns) do
+    ~H"""
+      <div :if={Map.get(@auix, :filters) != []} class="relative w-14 pr-1">
+        <div class="relative whitespace-nowrap py-2 text-right text-sm font-medium">
+          <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+          <%= if Map.get(@auix, :filters_enabled?) do %>
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
+              <.icon name="hero-funnel" class=""/>
+              <.icon name="hero-x-mark" class="align-super size-3"/>
+            </a>
+          <% else %>
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
+          <% end %>
+        </div>
+      </div>
+    """
+  end
+
+  @doc """
   Renders a button to clear all applied filters in the index layout.
 
   ## Parameters
@@ -443,7 +471,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   # Adds default header action (new entity) to assigns
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do
-    Actions.add_actions(assigns, :index_header_actions, default_new: &new_header_action/1)
+    Actions.add_actions(assigns, :index_header_actions,
+      default_toggle_filters: &toggle_filters_action/1,
+      default_new: &new_header_action/1
+    )
   end
 
   # Adds pagination controls to footer actions in assigns

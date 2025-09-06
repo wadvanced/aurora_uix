@@ -1,0 +1,38 @@
+defmodule Aurora.Uix.Test.Web.InfinityScrollTest do
+  use Aurora.Uix.Test.Web, :aurora_uix_for_test
+  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+
+  alias Aurora.Uix.Layout.Options.Index
+  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Test.Inventory.Product
+
+  auix_resource_metadata(:product,
+    context: Inventory,
+    schema: Product,
+    order_by: :reference
+  )
+
+  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # See section `Including cases_live tests in the test server` in the README.md file.
+  auix_create_ui(link_prefix: "infinity-scroll-") do
+    index_columns(:product, [:id, :reference, :name, :cost],
+      order_by: :name,
+      pagination_disabled?: true
+    )
+  end
+
+  test "Test UI page bar needed", %{conn: conn} do
+    delete_all_sample_data()
+    create_sample_products(1000, :test)
+
+    {:ok, view, html} = live(conn, "/infinity-scroll-products")
+    assert html =~ "Listing Products"
+
+    refute has_element?(view, "div[name='auix-pages_bar-products']")
+
+    assert html
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("#auix-table-infinity-scroll-products-index tr")
+           |> Enum.count() == Index.default_infinity_scroll_items_load()
+  end
+end

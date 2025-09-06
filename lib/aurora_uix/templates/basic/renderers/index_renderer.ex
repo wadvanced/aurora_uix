@@ -17,6 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
 
+  alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -38,7 +39,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
     <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
       <.header>
-        <div>
+        <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
       </.header>
@@ -48,7 +49,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             {action.(%{auix: @auix})}
           <% end %>
         </div>
-        <div class="justify-self-end align-middle" name="auix-index-header-actions">
+        <div class="flex justify-self-end align-middle" name="auix-index-header-actions">
           <%= for %{function_component: action} <- @auix.index_header_actions do %>
             {action.(%{auix: @auix})}
           <% end %>
@@ -62,14 +63,36 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               index_layout_form: index_layout_form,
               filters_enabled?: @auix.filters_enabled?,
               selection: @auix.selection,
-              layout_options: @auix.layout_options
+              layout_options: @auix.layout_options,
+              source_key: @auix.source_key
               }}
-          rows={@auix.layout_options.get_rows.(assigns)}
+          streams={@auix.layout_options.get_streams.(assigns)}
           row_id={Map.get(@auix.layout_options, :row_id)}
         >
           <:filter_action :for={%{function_component: action} <- @auix.index_filters_actions}>
             {action.(%{auix: @auix})}
           </:filter_action>
+
+          <:filter_element :for={field <- @auix.index_fields} :let={infix}>
+                <FilteringComponents.filter_field
+                      field={field}
+                      infix={infix}
+                      filter={get_in(@auix, [:index_layout_form, field.key, Access.key!(:value)])}
+                      auix={@auix}/>
+          </:filter_element>
+
+          <:filter_element>
+            <div :if={@auix.index_filters_actions != []} class="relative w-14 p-0">
+              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
+                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+                <span
+                  :for={%{function_component: action} <- @auix.index_filters_actions}
+                      class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+                  {action.(%{auix: @auix})}
+                </span>
+              </div>
+            </div>
+          </:filter_element>
 
           <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={field.label} field={field}>
             <%= if field.key == :selected_check__ do %>

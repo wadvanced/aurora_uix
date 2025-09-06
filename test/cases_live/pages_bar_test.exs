@@ -14,10 +14,7 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "pages-bar-") do
-    index_columns(:product, [:id, :reference, :name, :cost],
-      order_by: :name,
-      pagination_disabled?: false
-    )
+    index_columns(:product, [:id, :reference, :name, :cost], order_by: :name)
   end
 
   test "Test UI page bar not needed", %{conn: conn} do

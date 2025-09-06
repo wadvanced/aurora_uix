@@ -41,10 +41,10 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     <div class="flex flex-col gap-0 items-center">
       <div class="w-full text-center pb-2">
         <div>
-          <.render_filter_condition field={@field} filter={@filter} />
+          <.render_filter_condition field={@field} filter={@filter} infix={@infix}/>
         </div>
         <div>
-          <.render_filter_input field={@field} filter={@filter} auix={@auix} />
+          <.render_filter_input field={@field} filter={@filter} auix={@auix} infix={@infix}/>
         </div>
       </div>
     </div>
@@ -73,8 +73,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     ~H"""
       <div>
         <.input
-            id={"#{@field.html_id}-filter"}
-            name={"filter_from__#{@field.key}"}
+            id={"#{@field.html_id}#{@infix}-filter_from"}
+            name={"filter_from__#{@infix}#{@field.key}"}
             value={(@filter.from)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
@@ -82,8 +82,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             input_class={@input_class}
           />
         <.input
-            id={"#{@field.html_id}-filter_to"}
-            name={"filter_to__#{@field.key}"}
+            id={"#{@field.html_id}#{@infix}-filter_to"}
+            name={"filter_to__#{@infix}#{@field.key}"}
             value={(@filter.to)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
@@ -104,9 +104,10 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     assigns = Map.put(assigns, :input_class, input_class)
 
     ~H"""
+      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="md:hidden !h-[0.8rem]">{@field.label}</.label>
       <.input
-          id={"#{@field.html_id}-filter_condition"}
-          name={"filter_condition__#{@field.key}"}
+          id={"#{@field.html_id}#{@infix}-filter_condition"}
+          name={"filter_condition__#{@infix}#{@field.key}"}
           value={(@filter.condition)}
           type="select"
           options={Filter.conditions()}
