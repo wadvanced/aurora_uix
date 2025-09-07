@@ -21,7 +21,36 @@ defmodule Aurora.Uix.Layout.Options do
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
   alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
   alias Aurora.Uix.Layout.Options.Page, as: PageOptions
+
   require Logger
+
+  defmacro __using__(_opts) do
+    quote do
+      import Aurora.Uix.Layout.Options, only: [register_option: 2]
+
+      Module.register_attribute(__MODULE__, :auix_options, accumulate: true, persist: true)
+
+      def available_options() do
+        :attributes
+        |> __MODULE__.__info__()
+        |> Enum.filter(fn
+          {:auix_options, _} -> true
+          _ -> false
+        end)
+        |> Enum.map(fn {key, value} -> value end)
+        |> List.flatten()
+      end
+    end
+  end
+
+  defmacro register_option(name, value) do
+    quote do
+      Module.put_attribute(__MODULE__, :auix_options, unquote(name))
+
+      defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, unquote(name)),
+        do: {:ok, unquote(value)}
+    end
+  end
 
   @doc """
   Retrieves a layout option for the given assigns and option key.

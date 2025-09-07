@@ -31,6 +31,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:row_id` - Function for extracting row identifiers
 
   """
+  use Aurora.Uix.Layout.Options
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
@@ -158,27 +159,21 @@ defmodule Aurora.Uix.Layout.Options.Index do
   defp get_option(_assigns, _value, option), do: {:not_found, option}
 
   # Returns default values for supported options, otherwise delegates error.
-  @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_disabled?),
-    do: {:ok, false}
+  register_option(:page_title, &LayoutOptions.render_binary(assigns, "#{name}"))
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),
-    do: {:ok, &__MODULE__.page_bar_range_offset/2}
+  register_option(:pagination_disabled?, false)
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :get_streams),
-    do: {:ok, &__MODULE__.get_streams/1}
+  register_option(:pages_bar_range_offset, &__MODULE__.page_bar_range_offset/2)
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :row_id),
-    do: {:ok, &__MODULE__.row_id/1}
+  register_option(:get_streams, &__MODULE__.get_streams/1)
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :infinite_scroll_items_load),
-    do: {:ok, @default_infinity_scroll_items_load}
+  register_option(:row_id, &__MODULE__.row_id/1)
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
-    do: {:ok, @default_items_per_page}
+  register_option(:infinite_scroll_items_load, @default_infinity_scroll_items_load)
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :alternate_streams_suffixes),
-    do: {:ok, ["mobile"]}
+  register_option(:pagination_items_per_page, @default_items_per_page)
+
+  register_option(:alternate_streams_suffixes, ["mobile"])
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

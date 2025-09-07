@@ -29,6 +29,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
   alias Aurora.Uix.Selection
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
@@ -743,16 +744,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
-    socket
-    |> BasicHelpers.assign_auix_option(:alternate_streams_suffixes)
-    |> BasicHelpers.assign_auix_option(:infinite_scroll_items_load)
-    |> BasicHelpers.assign_auix_option(:get_streams)
-    |> BasicHelpers.assign_auix_option(:page_title)
-    |> BasicHelpers.assign_auix_option(:page_subtitle)
-    |> BasicHelpers.assign_auix_option(:pagination_disabled?)
-    |> BasicHelpers.assign_auix_option(:pagination_items_per_page)
-    |> BasicHelpers.assign_auix_option(:pages_bar_range_offset)
-    |> BasicHelpers.assign_auix_option(:row_id)
+    options = IndexOptions.available_options()
+    Enum.reduce(options, socket, &BasicHelpers.assign_auix_option(&2, &1))
+
+    # socket
+    # |> BasicHelpers.assign_auix_option(:alternate_streams_suffixes)
+    # |> BasicHelpers.assign_auix_option(:infinite_scroll_items_load)
+    # |> BasicHelpers.assign_auix_option(:get_streams)
+    # |> BasicHelpers.assign_auix_option(:page_title)
+    # |> BasicHelpers.assign_auix_option(:page_subtitle)
+    # |> BasicHelpers.assign_auix_option(:pagination_disabled?)
+    # |> BasicHelpers.assign_auix_option(:pagination_items_per_page)
+    # |> BasicHelpers.assign_auix_option(:pages_bar_range_offset)
+    # |> BasicHelpers.assign_auix_option(:row_id)
   end
 
   @spec assign_index_fields(Socket.t()) :: Socket.t()
