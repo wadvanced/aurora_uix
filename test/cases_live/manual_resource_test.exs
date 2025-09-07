@@ -7,14 +7,12 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
       name: :product_location,
       schema: Aurora.Uix.Test.Inventory.ProductLocation,
       context: Aurora.Uix.Test.Inventory,
-      opts: [],
       fields: %{
         id: %Aurora.Uix.Field{
           key: :id,
           type: :binary_id,
           html_type: :text,
           renderer: nil,
-          resource: :product_location,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -26,7 +24,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :string,
           html_type: :text,
           renderer: nil,
-          resource: :product_location,
           name: "name",
           label: "Name",
           placeholder: "Name",
@@ -37,7 +34,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :string,
           html_type: :text,
           renderer: nil,
-          resource: :product_location,
           name: "type",
           label: "Type",
           placeholder: "Type",
@@ -48,7 +44,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :string,
           html_type: :text,
           renderer: nil,
-          resource: :product_location,
           name: "reference",
           label: "Reference",
           placeholder: "Reference",
@@ -66,7 +61,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :binary_id,
           html_type: :text,
           renderer: nil,
-          resource: :product_transaction,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -78,7 +72,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :string,
           html_type: :text,
           renderer: nil,
-          resource: :product_transaction,
           name: "type",
           label: "Type",
           placeholder: "Type",
@@ -89,7 +82,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :many_to_one_association,
           html_type: :many_to_one_association,
           renderer: nil,
-          resource: :product_transaction,
           name: "product",
           label: "",
           placeholder: "",
@@ -106,7 +98,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :decimal,
           html_type: :number,
           renderer: nil,
-          resource: :product_transaction,
           name: "quantity",
           label: "Quantity",
           placeholder: "0",
@@ -120,7 +111,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :decimal,
           html_type: :number,
           renderer: nil,
-          resource: :product_transaction,
           name: "cost",
           label: "Cost",
           placeholder: "0",
@@ -134,7 +124,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           type: :binary_id,
           html_type: :select,
           renderer: nil,
-          resource: :product_transaction,
           name: "product_id",
           label: "Product",
           placeholder: "Product_id",
@@ -157,7 +146,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :id,
           type: :binary_id,
           html_type: :text,
-          resource: :product,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -168,7 +156,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :name,
           type: :string,
           html_type: :text,
-          resource: :product,
           name: "name",
           label: "Name",
           placeholder: "Name",
@@ -178,7 +165,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :status,
           type: :string,
           html_type: :text,
-          resource: :product,
           name: "status",
           label: "Status",
           placeholder: "Status",
@@ -188,7 +174,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :length,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "length",
           label: "Length",
           placeholder: "0",
@@ -201,7 +186,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :description,
           type: :string,
           html_type: :text,
-          resource: :product,
           name: "description",
           label: "Description",
           placeholder: "Description",
@@ -211,7 +195,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :reference,
           type: :string,
           html_type: :text,
-          resource: :product,
           name: "reference",
           label: "Reference",
           placeholder: "Reference",
@@ -221,7 +204,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :image,
           type: :binary,
           html_type: :text,
-          resource: :product,
           name: "image",
           label: "Image",
           placeholder: "Image",
@@ -231,7 +213,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :width,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "width",
           label: "Width",
           placeholder: "0",
@@ -244,7 +225,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :product_transactions,
           type: :one_to_many_association,
           html_type: :one_to_many_association,
-          resource: :product,
           name: "product_transactions",
           label: "",
           placeholder: "",
@@ -261,7 +241,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :product_location_id,
           type: :binary_id,
           html_type: :select,
-          resource: :product,
           name: "product_location_id",
           label: "Product location id",
           placeholder: "Product_location_id",
@@ -278,7 +257,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :quantity_at_hand,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "quantity_at_hand",
           label: "Quantity at hand",
           placeholder: "0",
@@ -291,7 +269,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :quantity_initial,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "quantity_initial",
           label: "Quantity initial",
           placeholder: "0",
@@ -304,7 +281,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :rrp,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "rrp",
           label: "Rrp",
           placeholder: "0",
@@ -317,7 +293,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :list_price,
           type: :decimal,
           html_type: :number,
-          resource: :product,
           name: "list_price",
           label: "List price",
           placeholder: "0",
@@ -333,6 +308,10 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "manual-resource-" do
+    index_columns(:product, [:reference, :name, :description, :product_location_id],
+      order_by: :name
+    )
+
     edit_layout :product, [] do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
@@ -350,6 +329,23 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
     assert view
            |> element("a[name='auix-new-product']")
            |> render_click() =~ "New Product"
+  end
+
+  test "Test ensure all fields are displayed in NEW", %{conn: conn} do
+    delete_all_sample_data()
+    {:ok, view, html} = live(conn, "/manual-resource-products/new")
+
+    assert html =~ "New Product"
+
+    assert has_element?(view, "input[name='product[reference]']")
+    assert has_element?(view, "input[name='product[name]']")
+    assert has_element?(view, "input[name='product[description]']")
+    assert has_element?(view, "input[name='product[quantity_at_hand]']")
+    assert has_element?(view, "input[name='product[quantity_initial]']")
+    assert has_element?(view, "input[name='product[list_price]']")
+    assert has_element?(view, "input[name='product[rrp]']")
+    assert has_element?(view, "select[name='product[product_location_id]']")
+    assert has_element?(view, "#auix-one_to_many-product__product_transactions-form")
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
