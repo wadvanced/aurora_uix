@@ -268,6 +268,30 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
     assert has_element?(view, "#auix-one_to_many-product__product_transactions-form")
   end
 
+  test "Test ensure all fields are displayed in SHOW", %{conn: conn} do
+    delete_all_sample_data()
+
+    product_id =
+      3
+      |> create_sample_products(:test)
+      |> Map.get("id_test-1")
+      |> Map.get(:id)
+
+    {:ok, view, html} = live(conn, "/manual-resource-products/#{product_id}")
+
+    assert html =~ "Product"
+
+    assert has_element?(view, "input[name='reference']")
+    assert has_element?(view, "input[name='name']")
+    assert has_element?(view, "input[name='description']")
+    assert has_element?(view, "input[name='quantity_at_hand']")
+    assert has_element?(view, "input[name='quantity_initial']")
+    assert has_element?(view, "input[name='list_price']")
+    assert has_element?(view, "input[name='rrp']")
+    assert has_element?(view, "select[name='product_location_id']")
+    assert has_element?(view, "div[name='auix-one_to_many-product']")
+  end
+
   test "Test CREATE new, context, basic layout", %{conn: conn} do
     delete_all_sample_data()
     {:ok, view, html} = live(conn, "/manual-resource-products/new")

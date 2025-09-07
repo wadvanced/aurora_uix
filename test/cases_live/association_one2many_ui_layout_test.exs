@@ -38,9 +38,6 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
     |> visit_products_index()
     |> select_product(product_id)
     |> edit_product()
-    |> create_multiple_transactions(product_id)
-    |> edit_single_transaction(product_id)
-    |> delete_single_transaction(product_id)
   end
 
   test "Test one-to-many relationship UI workflow new Product", %{conn: conn} do
@@ -50,9 +47,9 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
       |> start_product_creation()
 
     {conn, view}
-    |> create_multiple_transactions(product_id, "form")
-    |> edit_single_transaction(product_id, "form")
-    |> delete_single_transaction(product_id, "form")
+    |> create_multiple_transactions(product_id, :form)
+    |> edit_single_transaction(product_id, :form)
+    |> delete_single_transaction(product_id, :form)
   end
 
   test "Test order_by", %{conn: conn} do
@@ -152,7 +149,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
           String.t()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp create_multiple_transactions({conn, view}, product_id, suffix \\ "show") do
+  defp create_multiple_transactions({conn, view}, product_id, suffix) do
     transactions = [
       %{quantity: 10, type: "in", cost: 13.4},
       %{quantity: 15, type: "out", cost: 14.5},
@@ -208,7 +205,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
           String.t()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp edit_single_transaction({conn, view}, product_id, suffix \\ "show") do
+  defp edit_single_transaction({conn, view}, product_id, suffix) do
     transaction_id =
       product_id
       |> get_single_transaction()
@@ -258,7 +255,7 @@ defmodule Aurora.Uix.Test.Web.AssociationOne2ManyUILayoutTest do
           String.t()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp delete_single_transaction({conn, view}, product_id, suffix \\ "show") do
+  defp delete_single_transaction({conn, view}, product_id, suffix) do
     transaction = get_single_transaction(product_id)
 
     # Assert transaction exists
