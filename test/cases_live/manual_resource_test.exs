@@ -8,35 +8,23 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
       schema: Aurora.Uix.Test.Inventory.ProductLocation,
       context: Aurora.Uix.Test.Inventory,
       fields: %{
-        id: %Aurora.Uix.Field{
-          key: :id,
-          type: :binary_id,
-          name: "id",
-          label: "Id",
-          placeholder: "Id",
-          html_id: "auix-field-product_location-id-33",
-          disabled: true
-        },
         name: %Aurora.Uix.Field{
           key: :name,
           name: "name",
           label: "Name",
-          placeholder: "Name",
-          html_id: "auix-field-product_location-name-35"
+          placeholder: "Name"
         },
         type: %Aurora.Uix.Field{
           key: :type,
           name: "type",
           label: "Type",
-          placeholder: "Type",
-          html_id: "auix-field-product_location-type-36"
+          placeholder: "Type"
         },
         reference: %Aurora.Uix.Field{
           key: :reference,
           name: "reference",
           label: "Reference",
-          placeholder: "Reference",
-          html_id: "auix-field-product_location-reference-34"
+          placeholder: "Reference"
         }
       }
     },
@@ -45,30 +33,18 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
       schema: Aurora.Uix.Test.Inventory.ProductTransaction,
       context: Aurora.Uix.Test.Inventory,
       fields: %{
-        id: %Aurora.Uix.Field{
-          key: :id,
-          type: :binary_id,
-          name: "id",
-          label: "Id",
-          placeholder: "Id",
-          html_id: "auix-field-product_transaction-id-1",
-          disabled: true
-        },
         type: %Aurora.Uix.Field{
           key: :type,
           name: "type",
           label: "Type",
-          placeholder: "Type",
-          html_id: "auix-field-product_transaction-type-2"
+          placeholder: "Type"
         },
         product: %Aurora.Uix.Field{
           key: :product,
           type: :many_to_one_association,
-          html_type: :many_to_one_association,
           name: "product",
           label: "",
           placeholder: "",
-          html_id: "auix-field-product_transaction-product-33",
           data: %{
             resource: :product,
             owner_key: :product_id,
@@ -85,8 +61,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product_transaction-quantity-3"
+          scale: 2
         },
         cost: %Aurora.Uix.Field{
           key: :cost,
@@ -97,8 +72,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product_transaction-cost-4"
+          scale: 2
         },
         product_id: %Aurora.Uix.Field{
           key: :product_id,
@@ -107,7 +81,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           name: "product_id",
           label: "Product",
           placeholder: "Product_id",
-          html_id: "auix-field-product_transaction-product_id-5",
           data: %{
             resource: :product,
             owner_key: :product_id,
@@ -122,28 +95,17 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
       schema: Aurora.Uix.Test.Inventory.Product,
       context: Aurora.Uix.Test.Inventory,
       fields: %{
-        id: %Aurora.Uix.Field{
-          key: :id,
-          type: :binary_id,
-          name: "id",
-          label: "Id",
-          placeholder: "Id",
-          html_id: "auix-field-product-id-8",
-          disabled: true
-        },
         name: %Aurora.Uix.Field{
           key: :name,
           name: "name",
           label: "Name",
-          placeholder: "Name",
-          html_id: "auix-field-product-name-10"
+          placeholder: "Name"
         },
         status: %Aurora.Uix.Field{
           key: :status,
           name: "status",
           label: "Status",
-          placeholder: "Status",
-          html_id: "auix-field-product-status-27"
+          placeholder: "Status"
         },
         length: %Aurora.Uix.Field{
           key: :length,
@@ -154,30 +116,26 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-length-22"
+          scale: 2
         },
         description: %Aurora.Uix.Field{
           key: :description,
           name: "description",
           label: "Description",
-          placeholder: "Description",
-          html_id: "auix-field-product-description-11"
+          placeholder: "Description"
         },
         reference: %Aurora.Uix.Field{
           key: :reference,
           name: "reference",
           label: "Reference",
-          placeholder: "Reference",
-          html_id: "auix-field-product-reference-9"
+          placeholder: "Reference"
         },
         image: %Aurora.Uix.Field{
           key: :image,
           type: :binary,
           name: "image",
           label: "Image",
-          placeholder: "Image",
-          html_id: "auix-field-product-image-25"
+          placeholder: "Image"
         },
         width: %Aurora.Uix.Field{
           key: :width,
@@ -188,17 +146,14 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-width-23"
+          scale: 2
         },
         product_transactions: %Aurora.Uix.Field{
           key: :product_transactions,
           type: :one_to_many_association,
-          html_type: :one_to_many_association,
           name: "product_transactions",
           label: "",
           placeholder: "",
-          html_id: "auix-field-product-product_transactions-34",
           filterable?: false,
           data: %{
             resource: :product_transaction,
@@ -214,7 +169,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           name: "product_location_id",
           label: "Product location id",
           placeholder: "Product_location_id",
-          html_id: "auix-field-product-product_location_id-30",
           data: %{
             resource: :product_location,
             owner_key: :product_location_id,
@@ -232,8 +186,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-quantity_at_hand-12"
+          scale: 2
         },
         quantity_initial: %Aurora.Uix.Field{
           key: :quantity_initial,
@@ -244,8 +197,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-quantity_initial-13"
+          scale: 2
         },
         rrp: %Aurora.Uix.Field{
           key: :rrp,
@@ -256,8 +208,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-rrp-18"
+          scale: 2
         },
         list_price: %Aurora.Uix.Field{
           key: :list_price,
@@ -268,8 +219,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           placeholder: "0",
           length: 12,
           precision: 10,
-          scale: 2,
-          html_id: "auix-field-product-list_price-19"
+          scale: 2
         }
       }
     }
