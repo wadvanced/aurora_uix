@@ -553,7 +553,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       ) do
     columns =
       resource_config
-      |> Map.get(:fields_order, [])
+      |> fields_order()
       |> Enum.reject(
         &(get_in(resource_config, [
             Access.key!(:fields),
@@ -576,7 +576,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       when layout_type in [:form, :show] do
     columns =
       resource_config
-      |> Map.get(:fields_order, [])
+      |> fields_order()
       |> Enum.reject(
         &(get_in(resource_config, [
             Access.key!(:fields),
@@ -889,4 +889,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
     |> elem(0)
     |> Enum.reverse()
   end
+
+  @spec fields_order(map()) :: list()
+  defp fields_order(%{fields: fields, fields_order: []}) do
+    Enum.map(fields, &elem(&1, 0))
+  end
+
+  defp fields_order(%{fields_order: fields_order}), do: fields_order
+
+  defp fields_order(_), do: []
 end

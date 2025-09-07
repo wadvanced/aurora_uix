@@ -587,33 +587,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           data: %{}
         }
       },
-      fields_order: [
-        :id,
-        :reference,
-        :name,
-        :description,
-        :quantity_at_hand,
-        :quantity_initial,
-        :quantity_entries,
-        :quantity_exits,
-        :cost,
-        :msrp,
-        :rrp,
-        :list_price,
-        :discounted_price,
-        :weight,
-        :length,
-        :width,
-        :height,
-        :image,
-        :thumbnail,
-        :status,
-        :deleted,
-        :inactive,
-        :product_location_id,
-        :product_transactions,
-        :product_location
-      ],
       inner_elements: []
     }
   }
