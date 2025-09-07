@@ -89,7 +89,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
       #=> %Phoenix.LiveView.Rendered{...}
   """
   @spec add_new_child(map()) :: Rendered.t()
-  def add_new_child(assigns) do
+  def add_new_child(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.auix_link :if={@auix[:layout_type] == :form
             && BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key) != nil}
@@ -99,6 +99,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
       </.auix_link>
     """
   end
+
+  def add_new_child(assigns), do: ~H""
 
   @doc """
   Renders a link for showing a child entity in a one-to-many association.
@@ -129,7 +131,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec edit_child_action(map()) :: Rendered.t()
-  def edit_child_action(assigns) do
+  def edit_child_action(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.link_prefix}#{@auix.association.related_parsed_opts.source}/#{elem(@auix.row_info, 0)}/edit"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
@@ -137,6 +139,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
       </.auix_link>
     """
   end
+
+  def edit_child_action(assigns), do: ~H""
 
   @doc """
   Renders a link for deleting a child entity in a one-to-many association.
@@ -148,7 +152,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec delete_child_action(map()) :: Rendered.t()
-  def delete_child_action(assigns) do
+  def delete_child_action(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.link
         phx-click={JS.push("delete",
@@ -165,6 +169,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
       </.link>
     """
   end
+
+  def delete_child_action(assigns), do: ~H""
 
   ## PRIVATE
 

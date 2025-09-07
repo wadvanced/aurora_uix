@@ -77,7 +77,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
     ~H"""
     <div class="flex flex-col" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
-      <div class="flex-row gap-4">
+      <div class="flex-row gap-4 mt-1">
         <.label for={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@auix.association.related_parsed_opts.title} Elements"}
             <div name="auix-one_to_many-header-actions" class="inline">
               <%= for %{function_component: action} <- @auix.one_to_many_header_actions do %>
