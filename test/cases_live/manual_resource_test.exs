@@ -11,8 +11,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         id: %Aurora.Uix.Field{
           key: :id,
           type: :binary_id,
-          html_type: :text,
-          renderer: nil,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -21,9 +19,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         name: %Aurora.Uix.Field{
           key: :name,
-          type: :string,
-          html_type: :text,
-          renderer: nil,
           name: "name",
           label: "Name",
           placeholder: "Name",
@@ -31,9 +26,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         type: %Aurora.Uix.Field{
           key: :type,
-          type: :string,
-          html_type: :text,
-          renderer: nil,
           name: "type",
           label: "Type",
           placeholder: "Type",
@@ -41,9 +33,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         reference: %Aurora.Uix.Field{
           key: :reference,
-          type: :string,
-          html_type: :text,
-          renderer: nil,
           name: "reference",
           label: "Reference",
           placeholder: "Reference",
@@ -59,8 +48,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         id: %Aurora.Uix.Field{
           key: :id,
           type: :binary_id,
-          html_type: :text,
-          renderer: nil,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -69,9 +56,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         type: %Aurora.Uix.Field{
           key: :type,
-          type: :string,
-          html_type: :text,
-          renderer: nil,
           name: "type",
           label: "Type",
           placeholder: "Type",
@@ -81,7 +65,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :product,
           type: :many_to_one_association,
           html_type: :many_to_one_association,
-          renderer: nil,
           name: "product",
           label: "",
           placeholder: "",
@@ -97,7 +80,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :quantity,
           type: :decimal,
           html_type: :number,
-          renderer: nil,
           name: "quantity",
           label: "Quantity",
           placeholder: "0",
@@ -110,7 +92,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :cost,
           type: :decimal,
           html_type: :number,
-          renderer: nil,
           name: "cost",
           label: "Cost",
           placeholder: "0",
@@ -123,7 +104,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
           key: :product_id,
           type: :binary_id,
           html_type: :select,
-          renderer: nil,
           name: "product_id",
           label: "Product",
           placeholder: "Product_id",
@@ -145,7 +125,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         id: %Aurora.Uix.Field{
           key: :id,
           type: :binary_id,
-          html_type: :text,
           name: "id",
           label: "Id",
           placeholder: "Id",
@@ -154,8 +133,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         name: %Aurora.Uix.Field{
           key: :name,
-          type: :string,
-          html_type: :text,
           name: "name",
           label: "Name",
           placeholder: "Name",
@@ -163,8 +140,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         status: %Aurora.Uix.Field{
           key: :status,
-          type: :string,
-          html_type: :text,
           name: "status",
           label: "Status",
           placeholder: "Status",
@@ -184,8 +159,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         description: %Aurora.Uix.Field{
           key: :description,
-          type: :string,
-          html_type: :text,
           name: "description",
           label: "Description",
           placeholder: "Description",
@@ -193,8 +166,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         },
         reference: %Aurora.Uix.Field{
           key: :reference,
-          type: :string,
-          html_type: :text,
           name: "reference",
           label: "Reference",
           placeholder: "Reference",
@@ -203,7 +174,6 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
         image: %Aurora.Uix.Field{
           key: :image,
           type: :binary,
-          html_type: :text,
           name: "image",
           label: "Image",
           placeholder: "Image",
