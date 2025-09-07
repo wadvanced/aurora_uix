@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   ```
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{field: %{type: :one_to_many_association, resource: nil}} = assigns) do
+  def render(%{field: %{type: :one_to_many_association, data: %{resource: nil}}} = assigns) do
     ~H"""
     """
   end
