@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Field do
     required: false,
     disabled: false,
     omitted: false,
-    filterable?: false,
+    filterable?: true,
     data: %{}
   ]
 
