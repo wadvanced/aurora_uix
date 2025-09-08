@@ -32,6 +32,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   """
   use Aurora.Uix.Layout.Options
+  
+  import Phoenix.Component, only: [sigil_H: 2]
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
