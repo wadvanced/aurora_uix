@@ -187,6 +187,9 @@ defmodule Aurora.Uix.Layout.Options do
          {:not_found, _option} <- IndexOptions.get(assigns, option) do
       Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
       {:not_found, option}
+    else
+      {:ok, option_value} when is_function(option_value) -> option_value.(assigns)
+      {:ok, option_value} -> option_value
     end
   end
 
