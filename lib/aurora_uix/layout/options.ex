@@ -68,12 +68,24 @@ defmodule Aurora.Uix.Layout.Options do
   @spec __using__(atom()) :: Macro.t()
   defmacro __using__(layout_type) do
     quote do
-      import Aurora.Uix.Layout.Options, only: [register_option: 2, register_option: 3]
+      import Aurora.Uix.Layout.Options, only: [get: 2, register_option: 2, register_option: 3]
 
       Module.register_attribute(__MODULE__, :auix_options, accumulate: true, persist: true)
       Module.put_attribute(__MODULE__, :auix_layout_type, unquote(layout_type))
 
+      @doc false
+      @spec registered_options() :: list()
       def registered_options(), do: @auix_options
+
+      @doc false
+      @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+      def get(%{auix: %{layout_tree: %{tag: :form, opts: opts}}} = assigns, option) do
+        if Keyword.has_key?(opts, option),
+          do: get_option(assigns, opts[option], option),
+          else: get_default(assigns, option)
+      end
+
+      def get(_assigns, option), do: {:not_found, option}
     end
   end
 
