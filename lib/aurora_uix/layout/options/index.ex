@@ -31,8 +31,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:row_id` - Function for extracting row identifiers
 
   """
-  use Aurora.Uix.Layout.Options
-  
+  use Aurora.Uix.Layout.Options, :index
+
   import Phoenix.Component, only: [sigil_H: 2]
 
   @default_pages_bar_range_offset 2
@@ -161,7 +161,14 @@ defmodule Aurora.Uix.Layout.Options.Index do
   defp get_option(_assigns, _value, option), do: {:not_found, option}
 
   # Returns default values for supported options, otherwise delegates error.
-  register_option(:page_title, fn assigns -> ~H"<span :if={@auix[:layout_tree][:name]}>@auix.layout_tree.name</span>" end)
+  register_option(
+    :page_title,
+    fn assigns ->
+      ~H"""
+        <span :if={@auix[:tittle] != ""}>Listing {@auix.title}</span>
+      """
+    end
+  )
 
   register_option(:pagination_disabled?, false)
 

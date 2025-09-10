@@ -33,7 +33,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
-
+  use Aurora.Uix.Layout.Options, :form
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   @doc """

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.Options.Page do
+defmodule Aurora.Uix.Layout.Options.Show do
   @moduledoc """
   Handles retrieval of options specific to `:show` layout tags.
 
@@ -81,7 +81,7 @@ defmodule Aurora.Uix.Layout.Options.Page do
        when is_binary(value) and option in [:page_title, :page_subtitle],
        do: {:ok, LayoutOptions.render_binary(assigns, value)}
 
-  defp get_option(_assigns, _value, option), do: {:not_found, option}
+  defp get_option(_assigns, _valuPPPLe, option), do: {:not_found, option}
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
