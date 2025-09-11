@@ -23,6 +23,31 @@ defmodule Aurora.Uix.Layout.Options do
   alias Aurora.Uix.Layout.Options.Page, as: PageOptions
   require Logger
 
+  defmacro __using__(layout_type) do
+    quote do
+      Module.put_attribute(__MODULE__, :auix_layout_type, unquote(layout_type))
+      @before_compile Aurora.Uix.Layout.Options
+
+      @doc false
+      @spec available_options() :: list()
+      def available_options do
+        @auix_options
+      end
+    end
+  end
+
+  @spec __before_conpile__(Macro.t()) :: :ok
+  def __before_compile__(env) do
+    layout_type = Module.get_attribute(env.module, :auix_layout_type)
+    {_version, _kind, _metadata, def_args} = Module.get_definition(env.module, {:get_default, 2})
+
+    def_args
+    |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
+    |> Enum.filter(&is_atom/1)
+    |> Enum.map(& {layout_type, &1})
+    |> then(&Module.put_attribute(env.module, :auix_options, &1))
+  end
+
   @doc """
   Retrieves a layout option for the given assigns and option key.
 

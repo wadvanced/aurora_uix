@@ -31,6 +31,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:row_id` - Function for extracting row identifiers
 
   """
+  use Aurora.Uix.Layout.Options, :layout_type
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
