@@ -41,9 +41,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
       iex> Aurora.Uix.Templates.Basic.Actions.Show.set_actions(assigns)
       %{auix: %{entity: %{id: 1}, module: "User"}, ...}
   """
-  @spec set_actions(map()) :: map()
-  def set_actions(assigns) do
-    assigns
+  @spec set_actions(Socket.t()) :: Socket.t()
+  def set_actions(socket) do
+    socket
+    |> Actions.remove_all_actions(@actions)
     |> add_default_header_actions()
     |> add_default_footer_actions()
     |> Actions.modify_actions(@actions)
@@ -101,13 +102,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
 
   ## PRIVATE
 
-  @spec add_default_header_actions(map()) :: map()
-  defp add_default_header_actions(assigns) do
-    Actions.add_actions(assigns, :show_header_actions, default_edit: &edit_header_action/1)
+  @spec add_default_header_actions(Socket.t()) :: Socket.t()
+  defp add_default_header_actions(socket) do
+    Actions.add_actions(socket, :show_header_actions, default_edit: &edit_header_action/1)
   end
 
-  @spec add_default_footer_actions(map()) :: map()
-  defp add_default_footer_actions(assigns) do
-    Actions.add_actions(assigns, :show_footer_actions, default_back: &back_footer_action/1)
+  @spec add_default_footer_actions(Socket.t()) :: Socket.t()
+  defp add_default_footer_actions(socket) do
+    Actions.add_actions(socket, :show_footer_actions, default_back: &back_footer_action/1)
   end
 end
