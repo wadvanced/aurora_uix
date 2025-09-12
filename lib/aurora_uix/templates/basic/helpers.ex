@@ -103,12 +103,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_auix(Socket.t(), atom(), term()) :: Socket.t()
-  def assign_auix(socket, key, value) do
+  @spec assign_auix(Socket.t() | map(), atom(), term()) :: Socket.t()
+  def assign_auix(%Socket{} = socket, key, value) do
     socket.assigns
     |> Map.get(:auix, %{})
     |> Map.put(key, value)
     |> then(&assign(socket, :auix, &1))
+  end
+
+  def assign_auix(assigns, key, value) do
+    put_in(assigns, [:auix, key], value)
   end
 
   @doc """

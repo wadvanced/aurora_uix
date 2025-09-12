@@ -22,7 +22,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
 
-
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Templates.Basic.Actions.Show, as: ShowActions
   alias Aurora.Uix.Templates.Basic.Handlers.ShowImpl

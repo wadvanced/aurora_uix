@@ -22,6 +22,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
   alias Aurora.Uix.Templates.Basic.Actions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.Rendered
+  alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:show)
 
