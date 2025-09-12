@@ -81,6 +81,7 @@ defmodule Aurora.Uix.Layout.Options do
       |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
       |> Enum.filter(&is_atom/1)
       |> Enum.map(&{layout_type, &1})
+
     quote do
       @doc false
       @spec available_options() :: [{atom(), atom()}]

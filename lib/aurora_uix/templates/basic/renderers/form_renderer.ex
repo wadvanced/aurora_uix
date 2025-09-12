@@ -32,7 +32,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   def render(assigns) do
     assigns =
       assigns
-      |> get_layout_options()
       |> FormActions.set_actions()
 
     ~H"""
@@ -72,15 +71,5 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
       </.simple_form>
     </div>
     """
-  end
-
-  # PRIVATE
-  @spec get_layout_options(map()) :: map()
-  defp get_layout_options(assigns) do
-    assigns
-    |> BasicHelpers.assign_auix_option(:edit_title)
-    |> BasicHelpers.assign_auix_option(:edit_subtitle)
-    |> BasicHelpers.assign_auix_option(:new_title)
-    |> BasicHelpers.assign_auix_option(:new_subtitle)
   end
 end
