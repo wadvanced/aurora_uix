@@ -15,8 +15,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
-  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -30,10 +28,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    assigns =
-      assigns
-      |> FormActions.set_actions()
-
     ~H"""
     <div>
       <.header>

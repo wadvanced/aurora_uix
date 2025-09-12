@@ -26,7 +26,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
+  alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
   alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveComponent
@@ -160,6 +162,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> assign_auix(:_myself, socket.assigns.myself)
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
      |> assign_layout_options()
+     |> FormActions.set_actions()
      |> render_with(&Renderer.render/1)}
   end
 

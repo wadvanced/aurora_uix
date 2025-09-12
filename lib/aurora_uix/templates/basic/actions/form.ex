@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions
   alias Phoenix.LiveView.Rendered
+  alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:form)
 
@@ -44,9 +45,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
       %{auix: %{form_header_actions: %{}, form_footer_actions: %{}}}
 
   """
-  @spec set_actions(map()) :: map()
-  def set_actions(assigns) do
-    assigns
+  @spec set_actions(Socket.t()) :: map()
+  def set_actions(socket) do
+    socket
+    |> Actions.remove_all_actions(@actions)
     |> add_default_header_actions()
     |> add_default_footer_actions()
     |> Actions.modify_actions(@actions)
@@ -80,16 +82,17 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   ## PRIVATE
 
   # Returns assigns unchanged if form_header_actions already present.
-  @spec add_default_header_actions(map()) :: map()
-  defp add_default_header_actions(%{auix: %{form_header_actions: _}} = assigns), do: assigns
+  @spec add_default_header_actions(Socket.t()) :: Socket.t()
+  defp add_default_header_actions(%{assigns: %{auix: %{form_header_actions: _}}} = socket),
+    do: socket
 
   # Adds an empty form_header_actions map if not present.
-  defp add_default_header_actions(assigns),
-    do: put_in(assigns, [:auix, :form_header_actions], [])
+  defp add_default_header_actions(socket),
+    do: put_in(socket, [Access.key!(:assigns), :auix, :form_header_actions], [])
 
   # Adds a default save action to form_footer_actions.
-  @spec add_default_footer_actions(map()) :: map()
-  defp add_default_footer_actions(assigns) do
-    Actions.add_actions(assigns, :form_footer_actions, default_save: &save_action/1)
+  @spec add_default_footer_actions(Socket.t()) :: Socket.t()
+  defp add_default_footer_actions(socket) do
+    Actions.add_actions(socket, :form_footer_actions, default_save: &save_action/1)
   end
 end
