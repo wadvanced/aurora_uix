@@ -22,7 +22,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
 
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
+  alias Aurora.Uix.Templates.Basic.Actions.Show, as: ShowActions
   alias Aurora.Uix.Templates.Basic.Handlers.ShowImpl
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -93,6 +96,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
        type: :navigate,
        path: "/#{auix.link_prefix}#{auix.source}"
      })
+     |> assign_layout_options()
+     |> ShowActions.set_actions()
      |> render_with(&Renderer.render/1)}
   end
 
@@ -163,5 +168,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
 
   def handle_event("auix_route_back", _params, socket) do
     {:noreply, auix_route_back(socket)}
+  end
+
+  ## PRIVATE
+  @spec assign_layout_options(Socket.t()) :: Socket.t()
+  defp assign_layout_options(socket) do
+    :show
+    |> LayoutOptions.available_options()
+    |> Enum.reduce(socket, &BasicHelpers.assign_auix_option(&2, &1))
   end
 end

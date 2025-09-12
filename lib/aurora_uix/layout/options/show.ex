@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.Options.Page do
+defmodule Aurora.Uix.Layout.Options.Show do
   @moduledoc """
   Handles retrieval of options specific to `:show` layout tags.
 
@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Layout.Options.Page do
       - Accepts a `binary()` or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
       - Default: `"Detail"`
   """
-
+  use Aurora.Uix.Layout.Options, :show
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   @doc """
@@ -90,9 +90,6 @@ defmodule Aurora.Uix.Layout.Options.Page do
 
   defp get_default(%{auix: %{layout_tree: %{tag: :show}}} = assigns, :page_subtitle),
     do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
-
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}} = assigns, :page_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

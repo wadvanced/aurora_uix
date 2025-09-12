@@ -51,6 +51,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @spec set_actions(map()) :: map()
   def set_actions(assigns) do
     assigns
+    # |> Actions.remove_all_actions(@actions)
     |> add_default_row_actions()
     |> add_default_header_actions()
     |> add_default_footer_actions()

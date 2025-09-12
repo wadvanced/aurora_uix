@@ -14,7 +14,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Templates.Basic.Actions.Show, as: ShowActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -35,11 +34,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
-    assigns =
-      assigns
-      |> get_layout_options()
-      |> ShowActions.set_actions()
-
     ~H"""
     <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
       <.header>
@@ -78,14 +72,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
   end
 
   # PRIVATE
-
-  @spec get_layout_options(map()) :: map()
-  defp get_layout_options(assigns) do
-    assigns
-    |> BasicHelpers.assign_auix_option(:page_title)
-    |> BasicHelpers.assign_auix_option(:page_subtitle)
-  end
-
   @spec entity_id(map()) :: term() | list() | nil
   defp entity_id(%{entity: entity, primary_key: primary_key}),
     do: BasicHelpers.primary_key_value(entity, primary_key)

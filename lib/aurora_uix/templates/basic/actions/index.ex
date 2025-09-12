@@ -436,9 +436,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## PRIVATE
 
   # Adds default row actions (show, edit, delete) using component functions
-  @spec add_default_row_actions(map()) :: map()
-  defp add_default_row_actions(assigns) do
-    Actions.add_actions(assigns, :index_row_actions,
+  @spec add_default_row_actions(Socket.t()) :: Socket.t()
+  defp add_default_row_actions(socket) do
+    Actions.add_actions(socket, :index_row_actions,
       default_row_show: &show_row_action/1,
       default_row_edit: &edit_row_action/1,
       default_row_delete: &remove_row_action/1
@@ -446,9 +446,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   # Adds action when any item is selected to assigns
-  @spec add_default_selected_actions(map()) :: map()
-  defp add_default_selected_actions(assigns) do
-    Actions.add_actions(assigns, :index_selected_actions,
+  @spec add_default_selected_actions(Socket.t()) :: Socket.t()
+  defp add_default_selected_actions(socket) do
+    Actions.add_actions(socket, :index_selected_actions,
       default_selected_delete_all: &selected_delete_all_action/1,
       default_selected_uncheck_all: &selected_uncheck_all_action/1,
       default_selected_check_all: &selected_check_all_action/1
@@ -456,34 +456,32 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   # Adds all row selection toggle action to assigns
-  @spec add_default_select_all_actions(map()) :: map()
-  defp add_default_select_all_actions(assigns) do
-    Actions.add_actions(assigns, :index_selected_all_actions,
+  @spec add_default_select_all_actions(Socket.t()) :: Socket.t()
+  defp add_default_select_all_actions(socket) do
+    Actions.add_actions(socket, :index_selected_all_actions,
       default_toggle_all_selected: &toggle_selected_all_in_page_action/1
     )
   end
 
   # Adds default header action (new entity) to assigns
-  @spec add_default_header_actions(map()) :: map()
-  defp add_default_header_actions(assigns) do
-    Actions.add_actions(assigns, :index_header_actions,
+  @spec add_default_header_actions(Socket.t()) :: Socket.t()
+  defp add_default_header_actions(socket) do
+    Actions.add_actions(socket, :index_header_actions,
       default_toggle_filters: &toggle_filters_action/1,
       default_new: &new_header_action/1
     )
   end
 
   # Adds pagination controls to footer actions in assigns
-  @spec add_default_footer_actions(map()) :: map()
-  defp add_default_footer_actions(assigns),
+  @spec add_default_footer_actions(Socket.t()) :: Socket.t()
+  defp add_default_footer_actions(socket),
     do:
-      Actions.add_actions(assigns, :index_footer_actions,
-        default_pagination: &pagination_action/1
-      )
+      Actions.add_actions(socket, :index_footer_actions, default_pagination: &pagination_action/1)
 
   # Adds filter management actions (clear/submit) to assigns
-  @spec add_default_filters_actions(map()) :: map()
-  defp add_default_filters_actions(assigns) do
-    Actions.add_actions(assigns, :index_filters_actions,
+  @spec add_default_filters_actions(Socket.t()) :: Socket.t()
+  defp add_default_filters_actions(socket) do
+    Actions.add_actions(socket, :index_filters_actions,
       default_clear: &clear_filters_action/1,
       default_submit: &submit_filters_action/1
     )

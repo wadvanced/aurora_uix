@@ -24,7 +24,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   import Phoenix.Component, only: [assign: 3, to_form: 1, to_form: 2]
   import Phoenix.LiveView
 
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
+  alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
   alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
@@ -159,6 +161,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> assign_auix_new(:_sections, %{})
      |> assign_auix(:_myself, socket.assigns.myself)
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
+     |> assign_layout_options()
+     |> FormActions.set_actions()
      |> render_with(&Renderer.render/1)}
   end
 
@@ -305,4 +309,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  @spec assign_layout_options(Socket.t()) :: Socket.t()
+  defp assign_layout_options(socket) do
+    :form
+    |> LayoutOptions.available_options()
+    |> Enum.reduce(socket, &BasicHelpers.assign_auix_option(&2, &1))
+  end
 end
