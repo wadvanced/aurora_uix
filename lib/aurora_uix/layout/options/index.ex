@@ -31,7 +31,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:row_id` - Function for extracting row identifiers
 
   """
-  use Aurora.Uix.Layout.Options, :layout_type
+  use Aurora.Uix.Layout.Options, :index
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
@@ -162,6 +163,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_disabled?),
     do: {:ok, false}
+
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}} = assigns, :page_title),
+    do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),
     do: {:ok, &__MODULE__.page_bar_range_offset/2}

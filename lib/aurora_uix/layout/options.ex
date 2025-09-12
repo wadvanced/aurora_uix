@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Layout.Options do
   - **Option Discovery**: Automatically discovers available options from the calling module's
     `get_default/2` function implementation via a `__before_compile__` callback.
   - **Centralized Retrieval**: Offers a unified `get/2` function that delegates option
-    retrieval to the appropriate layout-specific module (`PageOptions`, `FormOptions`,
+    retrieval to the appropriate layout-specific module (`ShowOptions`, `FormOptions`,
     `IndexOptions`).
   - **Dynamic Rendering**: Includes a `render_binary/2` helper to render values within
     HEEx templates.
@@ -27,7 +27,7 @@ defmodule Aurora.Uix.Layout.Options do
     use Aurora.Uix.Layout.Options, :my_layout
 
     # The `get_default/2` function is required for option discovery.
-    def get_default(assigns, :my_option, _default_opts \ []) do
+    def get_default(assigns, :my_option, _default_opts \\ []) do
       # implementation
     end
   end
@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
   alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
-  alias Aurora.Uix.Layout.Options.Page, as: PageOptions
+  alias Aurora.Uix.Layout.Options.Show, as: ShowOptions
   require Logger
 
   @doc """
@@ -51,19 +51,14 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `layout_type` (atom()) - The atom representing the layout type (e.g., `:page`, `:form`).
+  - `layout_type` (atom) - The atom representing the layout type (e.g., `:page`, `:form`).
   """
-  @spec __using__(layout_type :: atom()) :: Macro.t()
+  @spec __using__(atom()) :: Macro.t()
   defmacro __using__(layout_type) do
     quote do
       Module.put_attribute(__MODULE__, :auix_layout_type, unquote(layout_type))
-      @before_compile Aurora.Uix.Layout.Options
 
-      @doc false
-      @spec available_options() :: [{atom(), atom()}]
-      def available_options do
-        @auix_options
-      end
+      @before_compile Aurora.Uix.Layout.Options
     end
   end
 
@@ -72,37 +67,73 @@ defmodule Aurora.Uix.Layout.Options do
   # `get_default/2` function definition within the calling module to extract the names of
   # the available options. These options are then stored in the `@auix_options` module
   # attribute of the caller.
-  @spec __before_compile__(env :: Macro.Env.t()) :: :ok
+  @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
-    layout_type = Module.get_attribute(env.module, :auix_layout_type)
-    {_version, _kind, _metadata, def_args} = Module.get_definition(env.module, {:get_default, 2})
+    module = env.module
 
-    def_args
-    |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
-    |> Enum.filter(&is_atom/1)
-    |> Enum.map(&{layout_type, &1})
-    |> then(&Module.put_attribute(env.module, :auix_options, &1))
+    layout_type = Module.get_attribute(module, :auix_layout_type)
 
-    :ok
+    {_version, _kind, _metadata, def_args} =
+      Module.get_definition(module, {:get_default, 2})
+
+    options =
+      def_args
+      |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
+      |> Enum.filter(&is_atom/1)
+      |> Enum.map(&{layout_type, &1})
+
+    quote do
+      @doc false
+      @spec available_options() :: [{atom(), atom()}]
+      def available_options do
+        unquote(options)
+      end
+    end
+  end
+
+  @doc """
+  Retrieves all available options for a given layout type.
+
+  It fetches the options from all registered layout option modules
+  and filters them based on the provided `layout_type`.
+
+  ## Parameters
+
+  - `layout_type` (atom()) - The type of layout to filter options for (e.g., `:page`, `:form`).
+
+  ## Returns
+
+  A `list(atom())` of option atoms available for the specified layout type.
+  """
+  @spec available_options(atom) :: [atom]
+  def available_options(layout_type) do
+    [
+      ShowOptions,
+      FormOptions,
+      IndexOptions
+    ]
+    |> Enum.flat_map(& &1.available_options())
+    |> Enum.filter(fn {type, _name} -> type == layout_type end)
+    |> Enum.map(fn {_type, name} -> name end)
   end
 
   @doc """
   Retrieves a layout option for the given assigns and option key.
 
-  This function delegates the option retrieval to specialized modules (`PageOptions`,
+  This function delegates the option retrieval to specialized modules (`ShowOptions`,
   `FormOptions`, `IndexOptions`). If the option is not found in any of the delegated
   modules, it logs a warning and returns a `:not_found` tuple.
 
   ## Parameters
 
-  - `assigns` (map()) - The assigns map, which must contain an `:auix` key with a
-    `%{layout_tree: %{tag: atom(), name: String.t()}}` structure.
-  - `option` (atom()) - The option key to retrieve.
+  - `assigns` (map) - The assigns map, which must contain an `:auix` key with a
+    `%{layout_tree: %{tag: atom, name: String.t()}}` structure.
+  - `option` (atom) - The option key to retrieve.
 
   ## Returns
 
-  - `{:ok, term()}` - If the option is found, returns a tuple with `:ok` and the option value.
-  - `{:not_found, atom()}` - If the option is not found or the tag is unsupported.
+  - `{:ok, term}` - If the option is found, returns a tuple with `:ok` and the option value.
+  - `{:not_found, atom}` - If the option is not found or the tag is unsupported.
 
   ## Examples
 
@@ -112,11 +143,10 @@ defmodule Aurora.Uix.Layout.Options do
 
       iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
       {:not_found, :page_title}
-
   """
-  @spec get(assigns :: map(), option :: atom()) :: {:ok, term()} | {:not_found, atom()}
+  @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
-    with {:not_found, _option} <- PageOptions.get(assigns, option),
+    with {:not_found, _option} <- ShowOptions.get(assigns, option),
          {:not_found, _option} <- FormOptions.get(assigns, option),
          {:not_found, _option} <- IndexOptions.get(assigns, option) do
       Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
@@ -135,12 +165,12 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `assigns` (map()) - The assigns map for the template.
-  - `value` (term()) - The value to be rendered.
+  - `assigns` (map) - The assigns map for the template.
+  - `value` (term) - The value to be rendered.
 
   ## Returns
 
-  - `Phoenix.LiveView.Rendered.t()` - The rendered HEEx content containing the value.
+  The rendered `Phoenix.LiveView.Rendered` HEEx content containing the value.
 
   ## Examples
 
@@ -148,11 +178,10 @@ defmodule Aurora.Uix.Layout.Options do
       iex> rendered = Aurora.Uix.Layout.Options.render_binary(assigns, "Hello, World!")
       iex> Phoenix.HTML.safe_to_string(rendered)
       "Hello, World!"
-
   """
-  @spec render_binary(assigns :: map(), value :: term()) :: Phoenix.LiveView.Rendered.t()
+  @spec render_binary(map(), term()) :: Phoenix.LiveView.Rendered.t()
   def render_binary(assigns, value) do
-    assigns = 
+    assigns =
       value
       |> raw()
       |> then(&Map.put(assigns, :auix_option_value, &1))
