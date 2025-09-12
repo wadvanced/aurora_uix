@@ -14,7 +14,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     - Supports streaming, patching, and navigation for index resources.
 
   ## Key Constraints
-
     - Expects the `:auix` assign to be present in the LiveView socket.
     - Designed for use with Phoenix LiveView and Aurora UIX context modules.
     - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
@@ -29,6 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Selection
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
@@ -743,6 +743,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
+    :index
+    |> LayoutOptions.available_options()
+    |> IO.inspect(label: "******* options")
+
     socket
     |> BasicHelpers.assign_auix_option(:alternate_streams_suffixes)
     |> BasicHelpers.assign_auix_option(:infinite_scroll_items_load)
