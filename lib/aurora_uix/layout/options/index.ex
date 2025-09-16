@@ -39,33 +39,6 @@ defmodule Aurora.Uix.Layout.Options.Index do
   @default_infinity_scroll_items_load 200
 
   @doc """
-  Retrieves an index layout option from assigns.
-
-  Looks up the specified option in the assigns' `auix.layout_tree.opts` when the layout tag
-  is `:index`. Supports both static values and dynamic function-based options that receive
-  assigns as their parameter.
-
-  ## Parameters
-
-  - `assigns` (`map()`) - Assigns map containing `auix` and `layout_tree` with `:index` tag
-  - `option` (`atom()`) - The option key to retrieve
-
-  ## Returns
-
-  - `{:ok, term()}` - The value of the requested option
-  - `{:not_found, atom()}` - When the option is not supported or layout tag is not `:index`
-
-  """
-  @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{auix: %{layout_tree: %{tag: :index, opts: opts}}} = assigns, option) do
-    if Keyword.has_key?(opts, option),
-      do: get_option(assigns, opts[option], option),
-      else: get_default(assigns, option)
-  end
-
-  def get(_assigns, option), do: {:not_found, option}
-
-  @doc """
   Calculates the page bar range offset based on media query breakpoint.
 
   Computes the range offset for pagination bar display based on the provided media
@@ -146,18 +119,6 @@ defmodule Aurora.Uix.Layout.Options.Index do
   def default_infinity_scroll_items_load, do: @default_infinity_scroll_items_load
 
   ## PRIVATE
-
-  # Resolves function or boolean values for pagination_disabled? option, otherwise delegates error.
-  @spec get_option(map(), term(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_option(assigns, value, :pagination_disabled?)
-       when is_function(value, 1),
-       do: {:ok, value.(assigns)}
-
-  defp get_option(_assigns, value, :pagination_disabled?)
-       when is_boolean(value),
-       do: {:ok, value}
-
-  defp get_option(_assigns, _value, option), do: {:not_found, option}
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}

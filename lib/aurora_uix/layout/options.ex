@@ -37,10 +37,51 @@ defmodule Aurora.Uix.Layout.Options do
   import Phoenix.Component, only: [sigil_H: 2]
   import Phoenix.HTML, only: [raw: 1]
 
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
   alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
   alias Aurora.Uix.Layout.Options.Show, as: ShowOptions
+
   require Logger
+
+  @layout_options_parsers Application.compile_env(:aurora_uix, :layout_options_parsers, []) ++
+                            [
+                              IndexOptions,
+                              ShowOptions,
+                              FormOptions
+                            ]
+  @title_options Application.compile_env(:aurora_uix, :layout_title_options, []) ++
+                   [
+                     :edit_title,
+                     :edit_subtitle,
+                     :new_title,
+                     :new_subtitle,
+                     :page_title,
+                     :page_subtitle
+                   ]
+
+  @doc """
+  Retrieves the list of available options for the layout.
+
+  ## Returns
+
+  - `list(tuple())` - A list of tuples, where each tuple contains the layout type and the option name.
+  """
+  @callback available_options() :: list()
+
+  @doc """
+  Fetches the value of a specific layout option.
+
+  ## Parameters
+
+  - `assigns` (map()) - The assigns map.
+  - `option` (atom()) - The option to retrieve.
+
+  ## Returns
+
+  - `any()` - The value of the option.
+  """
+  @callback get(assigns :: map(), option :: atom()) :: any()
 
   @doc """
   Injects option-handling capabilities into the calling module.
@@ -51,14 +92,17 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `layout_type` (atom) - The atom representing the layout type (e.g., `:page`, `:form`).
+  - `layout_type` (atom()) - The atom representing the layout type (e.g., `:page`, `:form`).
   """
   @spec __using__(atom()) :: Macro.t()
   defmacro __using__(layout_type) do
     quote do
       Module.put_attribute(__MODULE__, :auix_layout_type, unquote(layout_type))
 
-      @before_compile Aurora.Uix.Layout.Options
+      @behaviour LayoutOptions
+      import LayoutOptions, only: [get_option: 3]
+
+      @before_compile LayoutOptions
     end
   end
 
@@ -80,14 +124,25 @@ defmodule Aurora.Uix.Layout.Options do
       def_args
       |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
       |> Enum.filter(&is_atom/1)
-      |> Enum.map(&{layout_type, &1})
+
+    typed_options = Enum.map(options, &{layout_type, &1})
 
     quote do
       @doc false
       @spec available_options() :: [{atom(), atom()}]
       def available_options do
-        unquote(options)
+        unquote(typed_options)
       end
+
+      @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+      def get(%{auix: %{layout_tree: %{tag: unquote(layout_type), opts: opts}}} = assigns, option)
+          when option in unquote(options) do
+        if Keyword.has_key?(opts, option),
+          do: get_option(assigns, opts[option], option),
+          else: get_default(assigns, option)
+      end
+
+      def get(_assigns, option), do: {:not_found, option}
     end
   end
 
@@ -103,15 +158,11 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Returns
 
-  A `list(atom())` of option atoms available for the specified layout type.
+  - `list(atom())` - A list of option atoms available for the specified layout type.
   """
-  @spec available_options(atom) :: [atom]
+  @spec available_options(atom()) :: list(atom())
   def available_options(layout_type) do
-    [
-      ShowOptions,
-      FormOptions,
-      IndexOptions
-    ]
+    @layout_options_parsers
     |> Enum.flat_map(& &1.available_options())
     |> Enum.filter(fn {type, _name} -> type == layout_type end)
     |> Enum.map(fn {_type, name} -> name end)
@@ -126,35 +177,65 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `assigns` (map) - The assigns map, which must contain an `:auix` key with a
+  - `assigns` (map()) - The assigns map, which must contain an `:auix` key with a
     `%{layout_tree: %{tag: atom, name: String.t()}}` structure.
-  - `option` (atom) - The option key to retrieve.
+  - `option` (atom()) - The option key to retrieve.
 
   ## Returns
 
-  - `{:ok, term}` - If the option is found, returns a tuple with `:ok` and the option value.
-  - `{:not_found, atom}` - If the option is not found or the tag is unsupported.
+  - `{:ok, term()}` - If the option is found, returns a tuple with `:ok` and the option value.
+  - `{:not_found, atom()}` - If the option is not found or the tag is unsupported.
 
   ## Examples
 
-      iex> assigns = %{auix: %{layout_tree: %{tag: :show, name: "resource"}}}
-      iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
-      {:not_found, :unsupported_option}
+  ```elixir
+  iex> assigns = %{auix: %{layout_tree: %{tag: :show, name: "resource"}}}
+  iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
+  {:not_found, :unsupported_option}
 
-      iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
-      {:not_found, :page_title}
+  iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
+  {:not_found, :page_title}
+  ```
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
-    with {:not_found, _option} <- ShowOptions.get(assigns, option),
-         {:not_found, _option} <- FormOptions.get(assigns, option),
-         {:not_found, _option} <- IndexOptions.get(assigns, option) do
-      Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
-      {:not_found, option}
-    end
+    @layout_options_parsers
+    |> Enum.reduce_while(
+      {:cont, option},
+      fn parser, _acc ->
+        assigns
+        |> parser.get(option)
+        |> maybe_halt()
+      end
+    )
+    |> evaluate_option_result(tag, name)
   end
 
   def get(_assigns, option), do: {:not_found, option}
+
+  @doc """
+  Gets an option value, processing it if it's a function or a title.
+
+  ## Parameters
+
+  - `assigns` (map()) - The assigns map.
+  - `value` (term()) - The value of the option.
+  - `option` (atom()) - The option key.
+
+  ## Returns
+
+  - `{:ok, term()}` - A tuple with `:ok` and the processed option value.
+  """
+  @spec get_option(map(), term(), atom()) :: {:ok, term()}
+  def get_option(assigns, value, _option)
+      when is_function(value, 1),
+      do: {:ok, value.(assigns)}
+
+  def get_option(assigns, value, option)
+      when is_binary(value) and option in @title_options,
+      do: {:ok, LayoutOptions.render_binary(assigns, value)}
+
+  def get_option(_assigns, value, _option), do: {:ok, value}
 
   @doc """
   Renders a given value as a binary within a HEEx template.
@@ -165,19 +246,21 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `assigns` (map) - The assigns map for the template.
-  - `value` (term) - The value to be rendered.
+  - `assigns` (map()) - The assigns map for the template.
+  - `value` (term()) - The value to be rendered.
 
   ## Returns
 
-  The rendered `Phoenix.LiveView.Rendered` HEEx content containing the value.
+  - `Phoenix.LiveView.Rendered.t()` - The rendered HEEx content containing the value.
 
   ## Examples
 
-      iex> assigns = %{}
-      iex> rendered = Aurora.Uix.Layout.Options.render_binary(assigns, "Hello, World!")
-      iex> Phoenix.HTML.safe_to_string(rendered)
-      "Hello, World!"
+  ```elixir
+  iex> assigns = %{}
+  iex> rendered = Aurora.Uix.Layout.Options.render_binary(assigns, "Hello, World!")
+  iex> Phoenix.HTML.safe_to_string(rendered)
+  "Hello, World!"
+  ```
   """
   @spec render_binary(map(), term()) :: Phoenix.LiveView.Rendered.t()
   def render_binary(assigns, value) do
@@ -188,4 +271,21 @@ defmodule Aurora.Uix.Layout.Options do
 
     ~H"{@auix_option_value}"
   end
+
+  ## PRIVATE
+
+  # Halts the reduction if the option is found.
+  @spec maybe_halt({:ok, term()} | {:not_found, atom()}) :: {:halt, term()} | {:cont, atom()}
+  defp maybe_halt({:ok, result}), do: {:halt, result}
+  defp maybe_halt({:not_found, result}), do: {:cont, result}
+
+  # Evaluates the result of the option retrieval.
+  @spec evaluate_option_result({:cont, atom()} | term(), atom(), atom()) ::
+          {:ok, term()} | {:not_found, atom()}
+  defp evaluate_option_result({:cont, option}, tag, name) do
+    Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
+    {:not_found, option}
+  end
+
+  defp evaluate_option_result(result, _tag, _name), do: {:ok, result}
 end

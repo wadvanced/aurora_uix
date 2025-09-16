@@ -26,63 +26,7 @@ defmodule Aurora.Uix.Layout.Options.Show do
   use Aurora.Uix.Layout.Options, :show
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
-  @doc """
-  Retrieves a show layout option from assigns.
-
-  Looks up the given option in the assigns' `auix.layout_tree.opts` if the tag is `:show`.
-  Supports both static and function-based values for `:page_title` and `:page_subtitle`.
-  Falls back to defaults or delegates error reporting to `LayoutOptions` for unsupported options.
-
-  ## Parameters
-  - `assigns` (map()) - Assigns map. Must contain `auix` and `layout_tree` with `:show` tag.
-  - `option` (atom()) - The option key to retrieve.
-
-  ## Returns
-  - `{:ok, term()}` - The value of the requested option.
-  - `{:not_found, atom()}` - Indicates the option is not supported.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: [page_title: "Custom"]}}}
-      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_title)
-      {:ok, "Custom"}
-
-      iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_title)
-      {:ok, "Product"}
-
-      iex> assigns = %{auix: %{name: "Product", layout_tree: %{tag: :show, opts: []}}}
-      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :page_subtitle)
-      {:ok, "Details"}
-
-      iex> Aurora.Uix.Layout.Options.Page.get(assigns, :unknown_option)
-      {:not_found, :unknown_option}
-
-  """
-  @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{auix: %{layout_tree: %{tag: tag, opts: opts}}} = assigns, option)
-      when tag in [:show, :index] do
-    if Keyword.has_key?(opts, option),
-      do: get_option(assigns, opts[option], option),
-      else: get_default(assigns, option)
-  end
-
-  def get(_assigns, option), do: {:not_found, option}
-
   ## PRIVATE
-
-  # Resolves function or binary values for page title/subtitle, otherwise delegates error.
-  @spec get_option(map(), term(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_option(assigns, value, option)
-       when is_function(value, 1) and option in [:page_title, :page_subtitle],
-       do: {:ok, value.(assigns)}
-
-  defp get_option(assigns, value, option)
-       when is_binary(value) and option in [:page_title, :page_subtitle],
-       do: {:ok, LayoutOptions.render_binary(assigns, value)}
-
-  defp get_option(_assigns, _value, option), do: {:not_found, option}
-
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{layout_tree: %{tag: :show}, name: name}} = assigns, :page_title),
