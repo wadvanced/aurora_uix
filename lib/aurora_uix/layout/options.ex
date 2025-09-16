@@ -37,10 +37,31 @@ defmodule Aurora.Uix.Layout.Options do
   import Phoenix.Component, only: [sigil_H: 2]
   import Phoenix.HTML, only: [raw: 1]
 
+  alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
   alias Aurora.Uix.Layout.Options.Index, as: IndexOptions
   alias Aurora.Uix.Layout.Options.Show, as: ShowOptions
+
   require Logger
+
+  @layout_options_parsers Application.compile_env(:aurora_uix, :layout_options_parsers, []) ++
+                            [
+                              IndexOptions,
+                              ShowOptions,
+                              FormOptions
+                            ]
+
+  @doc """
+  Retrieves the list of available options for the layout.
+
+  Each option is returned as a tuple containing the layout type and the option name.
+  """
+  @callback available_options() :: list()
+
+  @doc """
+  Fetches the value of a specific layout option.
+  """
+  @callback get(assigns :: map(), option :: atom()) :: any()
 
   @doc """
   Injects option-handling capabilities into the calling module.
@@ -57,6 +78,8 @@ defmodule Aurora.Uix.Layout.Options do
   defmacro __using__(layout_type) do
     quote do
       Module.put_attribute(__MODULE__, :auix_layout_type, unquote(layout_type))
+
+      @behaviour LayoutOptions
 
       @before_compile Aurora.Uix.Layout.Options
     end
@@ -107,11 +130,7 @@ defmodule Aurora.Uix.Layout.Options do
   """
   @spec available_options(atom) :: [atom]
   def available_options(layout_type) do
-    [
-      ShowOptions,
-      FormOptions,
-      IndexOptions
-    ]
+    @layout_options_parsers
     |> Enum.flat_map(& &1.available_options())
     |> Enum.filter(fn {type, _name} -> type == layout_type end)
     |> Enum.map(fn {_type, name} -> name end)
@@ -146,12 +165,16 @@ defmodule Aurora.Uix.Layout.Options do
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
-    with {:not_found, _option} <- ShowOptions.get(assigns, option),
-         {:not_found, _option} <- FormOptions.get(assigns, option),
-         {:not_found, _option} <- IndexOptions.get(assigns, option) do
-      Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
-      {:not_found, option}
-    end
+    @layout_options_parsers
+    |> Enum.reduce_while(
+      {:cont, option},
+      fn parser, _acc ->
+        assigns
+        |> parser.get(option)
+        |> maybe_halt()
+      end
+    )
+    |> evaluate_option_result(tag, name)
   end
 
   def get(_assigns, option), do: {:not_found, option}
@@ -188,4 +211,17 @@ defmodule Aurora.Uix.Layout.Options do
 
     ~H"{@auix_option_value}"
   end
+
+  ## PRIVATE
+  @spec maybe_halt(tuple()) :: any()
+  defp maybe_halt({:ok, result}), do: {:halt, result}
+  defp maybe_halt({:not_found, result}), do: {:cont, result}
+
+  @spec evaluate_option_result(tuple(), atom(), atom()) :: {:ok, term()} | {:not_found, atom()}
+  defp evaluate_option_result({:cont, option}, tag, name) do
+    Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
+    {:not_found, option}
+  end
+
+  defp evaluate_option_result(result, _tag, _name), do: {:ok, result}
 end
