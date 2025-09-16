@@ -70,19 +70,6 @@ defmodule Aurora.Uix.Layout.Options.Show do
   def get(_assigns, option), do: {:not_found, option}
 
   ## PRIVATE
-
-  # Resolves function or binary values for page title/subtitle, otherwise delegates error.
-  @spec get_option(map(), term(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_option(assigns, value, option)
-       when is_function(value, 1) and option in [:page_title, :page_subtitle],
-       do: {:ok, value.(assigns)}
-
-  defp get_option(assigns, value, option)
-       when is_binary(value) and option in [:page_title, :page_subtitle],
-       do: {:ok, LayoutOptions.render_binary(assigns, value)}
-
-  defp get_option(_assigns, _value, option), do: {:not_found, option}
-
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{layout_tree: %{tag: :show}, name: name}} = assigns, :page_title),
