@@ -39,33 +39,6 @@ defmodule Aurora.Uix.Layout.Options.Index do
   @default_infinity_scroll_items_load 200
 
   @doc """
-  Retrieves an index layout option from assigns.
-
-  Looks up the specified option in the assigns' `auix.layout_tree.opts` when the layout tag
-  is `:index`. Supports both static values and dynamic function-based options that receive
-  assigns as their parameter.
-
-  ## Parameters
-
-  - `assigns` (`map()`) - Assigns map containing `auix` and `layout_tree` with `:index` tag
-  - `option` (`atom()`) - The option key to retrieve
-
-  ## Returns
-
-  - `{:ok, term()}` - The value of the requested option
-  - `{:not_found, atom()}` - When the option is not supported or layout tag is not `:index`
-
-  """
-  @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{auix: %{layout_tree: %{tag: :index, opts: opts}}} = assigns, option) do
-    if Keyword.has_key?(opts, option),
-      do: get_option(assigns, opts[option], option),
-      else: get_default(assigns, option)
-  end
-
-  def get(_assigns, option), do: {:not_found, option}
-
-  @doc """
   Calculates the page bar range offset based on media query breakpoint.
 
   Computes the range offset for pagination bar display based on the provided media

@@ -124,14 +124,25 @@ defmodule Aurora.Uix.Layout.Options do
       def_args
       |> Enum.map(fn {_meta, args, _guards, _ast} -> List.last(args) end)
       |> Enum.filter(&is_atom/1)
-      |> Enum.map(&{layout_type, &1})
+
+    typed_options = Enum.map(options, &{layout_type, &1})
 
     quote do
       @doc false
       @spec available_options() :: [{atom(), atom()}]
       def available_options do
-        unquote(options)
+        unquote(typed_options)
       end
+
+      @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+      def get(%{auix: %{layout_tree: %{tag: unquote(layout_type), opts: opts}}} = assigns, option)
+          when option in unquote(options) do
+        if Keyword.has_key?(opts, option),
+          do: get_option(assigns, opts[option], option),
+          else: get_default(assigns, option)
+      end
+
+      def get(_assigns, option), do: {:not_found, option}
     end
   end
 
