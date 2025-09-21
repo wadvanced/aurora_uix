@@ -162,5 +162,4 @@ defmodule Aurora.Uix.Field do
 
   defp update_name(%{key: {parent, field}} = field_struct),
     do: field_struct |> struct(%{name: "#{parent} #{field}"}) |> set_field_id()
-
 end
