@@ -106,7 +106,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     resource_functions = Enum.map(resources_metadata, &resource_functions/1)
 
     quote do
-
       Module.put_attribute(
         unquote(env.module),
         :auix_resource_metadata,
@@ -262,24 +261,24 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec resource_metadata(module()) :: map()
   defp resource_metadata(module) do
     module
-      |> Module.get_attribute(:_auix_process_resource_config)
-      |> configure_fields()
-      |> add_associations()
-      |> convert_fields_to_map()
+    |> Module.get_attribute(:_auix_process_resource_config)
+    |> configure_fields()
+    |> add_associations()
+    |> convert_fields_to_map()
   end
 
   # creates the function for each resource.
   @spec resource_functions({atom(), map()}) :: Macro.t()
   defp resource_functions({resource_key, resource}) do
-      quote do
-        @doc """
-        Gets the config for a given resource.
-        """
-        @spec auix_resource(atom()) :: map()
-        def auix_resource(unquote(resource_key)) do
-          %{unquote(resource_key) => unquote(Macro.escape(resource))}
-        end
+    quote do
+      @doc """
+      Gets the config for a given resource.
+      """
+      @spec auix_resource(atom()) :: map()
+      def auix_resource(unquote(resource_key)) do
+        %{unquote(resource_key) => unquote(Macro.escape(resource))}
       end
+    end
   end
 
   # Process initial field configuration for resources:

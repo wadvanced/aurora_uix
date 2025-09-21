@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Field do
 
   """
 
-  @behaviour Access
+  use Aurora.Uix.AccessHelper
 
   alias Aurora.Uix.CounterAgent
 
@@ -135,40 +135,6 @@ defmodule Aurora.Uix.Field do
 
   def change(field, %{} = attrs), do: field |> struct(attrs) |> update_name()
 
-  @doc """
-  Implements `Access.fetch/2` for the field struct.
-  """
-  @impl Access
-  @spec fetch(__MODULE__.t(), atom()) :: any()
-  def fetch(field, key) do
-    Map.get(field, key)
-  end
-
-  @doc """
-  Implements `Access.get_and_update/3` for the field struct.
-  """
-  @impl Access
-  @spec get_and_update(map(), atom(), (any() -> {any(), any()} | :pop)) :: {any(), map()}
-  def get_and_update(data, key, function) do
-    data
-    |> Map.get(key)
-    |> then(fn value -> function.(value) end)
-    |> then(&maybe_update_data(data, key, &1))
-  end
-
-  @doc """
-  Implements `Access.pop/2` for the field struct.
-  """
-  @impl Access
-  @spec pop(map(), atom()) :: {any(), map()}
-  def pop(data, key) do
-    if Map.has_key?(data, key) do
-      {Map.get(data, key), Map.delete(data, key)}
-    else
-      {nil, data}
-    end
-  end
-
   ## PRIVATE
 
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
@@ -197,12 +163,4 @@ defmodule Aurora.Uix.Field do
   defp update_name(%{key: {parent, field}} = field_struct),
     do: field_struct |> struct(%{name: "#{parent} #{field}"}) |> set_field_id()
 
-  @spec maybe_update_data(map(), term(), tuple()) :: tuple()
-  defp maybe_update_data(data, key, {current_value, new_value}) do
-    {current_value, Map.put(data, key, new_value)}
-  end
-
-  defp maybe_update_data(data, key, :pop) do
-    {Map.get(data, key), Map.delete(data, key)}
-  end
 end

@@ -12,7 +12,8 @@ defmodule Aurora.Uix.Resource do
   - Allows runtime modification of schema metadata
   - Integrates with other Aurora.Uix parsing components
   """
-  @behaviour Access
+
+  use Aurora.Uix.AccessHelper
 
   alias Aurora.Uix.Field
 
@@ -81,40 +82,6 @@ defmodule Aurora.Uix.Resource do
   end
 
   def change(resource_config, %{} = attrs), do: struct(resource_config, attrs)
-
-  @doc """
-  Implements `Access.fetch/2` for the resource struct.
-  """
-  @impl Access
-  @spec fetch(__MODULE__.t(), atom()) :: any()
-  def fetch(resource, key) do
-    Map.get(resource, key)
-  end
-
-  @doc """
-  Implements `Access.get_and_update/3` for the resource struct.
-  """
-  @impl Access
-  @spec get_and_update(map(), atom(), (any() -> {any(), any()} | :pop)) :: {any(), map()}
-  def get_and_update(data, key, function) do
-    data
-    |> Map.get(key)
-    |> then(fn value -> function.(value) end)
-    |> then(&maybe_update_data(data, key, &1))
-  end
-
-  @doc """
-  Implements `Access.pop/2` for the resource struct.
-  """
-  @impl Access
-  @spec pop(map(), atom()) :: {any(), map()}
-  def pop(data, key) do
-    if Map.has_key?(data, key) do
-      {Map.get(data, key), Map.delete(data, key)}
-    else
-      {nil, data}
-    end
-  end
 
   ## PRIVATE
 
@@ -197,14 +164,5 @@ defmodule Aurora.Uix.Resource do
       {^key, _} -> true
       _ -> false
     end)
-  end
-
-  @spec maybe_update_data(map(), term(), tuple()) :: tuple()
-  defp maybe_update_data(data, key, {current_value, new_value}) do
-    {current_value, Map.put(data, key, new_value)}
-  end
-
-  defp maybe_update_data(data, key, :pop) do
-    {Map.get(data, key), Map.delete(data, key)}
   end
 end
