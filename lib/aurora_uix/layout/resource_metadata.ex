@@ -101,25 +101,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   @doc false
   defmacro __before_compile__(env) do
-    resources_metadata =
-      env.module
-      |> Module.get_attribute(:_auix_process_resource_config)
-      |> configure_fields()
-      |> add_associations()
-      |> convert_fields_to_map()
+    resources_metadata = resource_metadata(env.module)
 
-    resource_functions =
-      Enum.map(resources_metadata, fn {resource_key, resource} ->
-        quote do
-          @doc """
-          Gets the config for a given resource.
-          """
-          @spec auix_resource(atom()) :: map()
-          def auix_resource(unquote(resource_key)) do
-            %{unquote(resource_key) => unquote(Macro.escape(resource))}
-          end
-        end
-      end)
+    resource_functions = Enum.map(resources_metadata, &resource_functions/1)
 
     quote do
       Module.put_attribute(
@@ -136,16 +120,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       Returns a list of resource configurations.
       """
       @spec auix_resources() :: list()
-
-      @doc """
-      Gets the configuration for a specific resource.
-
-      Returns a map containing just that resource's configuration.
-
-      Returns a map with the resource key and its config.
-      """
-      @spec auix_resource(atom()) :: map()
-
       def auix_resources do
         unquote(Macro.escape(resources_metadata))
       end
@@ -284,6 +258,28 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   ## PRIVATE
+  @spec resource_metadata(module()) :: map()
+  defp resource_metadata(module) do
+    module
+    |> Module.get_attribute(:_auix_process_resource_config)
+    |> configure_fields()
+    |> add_associations()
+    |> convert_fields_to_map()
+  end
+
+  # creates the function for each resource.
+  @spec resource_functions({atom(), map()}) :: Macro.t()
+  defp resource_functions({resource_key, resource}) do
+    quote do
+      @doc """
+      Gets the config for a given resource.
+      """
+      @spec auix_resource(atom()) :: map()
+      def auix_resource(unquote(resource_key)) do
+        %{unquote(resource_key) => unquote(Macro.escape(resource))}
+      end
+    end
+  end
 
   # Process initial field configuration for resources:
   # 1. Initializes base struct with schema/context
