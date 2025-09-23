@@ -206,6 +206,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   alias Aurora.Uix.CounterAgent
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.TreePath
 
   @doc false
   defmacro __using__(_opts) do
@@ -544,7 +545,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       %{tag: :form, state: :end}
     ]
   """
-  @spec build_default_layout_paths(list(), map(), keyword(), atom()) :: map()
+  @spec build_default_layout_paths(list(), map(), keyword(), atom()) :: TreePath.t()
   def build_default_layout_paths(
         [],
         resource_config,
@@ -555,21 +556,17 @@ defmodule Aurora.Uix.Layout.Blueprint do
       resource_config
       |> fields_order()
       |> Enum.reject(
-        &(get_in(resource_config, [
-            Access.key!(:fields),
-            Access.key!(&1),
-            Access.key!(:type)
-          ]) in [:many_to_one_association, :one_to_many_association])
+        &(get_in(resource_config, [:fields, &1, :type]) in [:many_to_one_association, :one_to_many_association])
       )
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
-    %{
+    TreePath.new(%{
       tag: :index,
       name: resource_config.name,
       config: [],
       opts: [],
       inner_elements: columns
-    }
+    })
   end
 
   def build_default_layout_paths([], resource_config, opts, layout_type)
@@ -578,31 +575,26 @@ defmodule Aurora.Uix.Layout.Blueprint do
       resource_config
       |> fields_order()
       |> Enum.reject(
-        &(get_in(resource_config, [
-            Access.key!(:fields),
-            Access.key!(&1),
-            Access.key!(:type)
-          ]) in [:many_to_one_association, :one_to_many_association])
-      )
+        &(get_in(resource_config, [:fields, &1, :type]) in [:many_to_one_association, :one_to_many_association]))
       |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
 
     fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)
 
     fields_layout = %{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
 
-    %{
+    TreePath.new(%{
       tag: layout_type,
       name: resource_config.name,
       config: [],
       opts: [],
       inner_elements: [fields_layout]
-    }
+    })
   end
 
   def build_default_layout_paths([], resource_config, _opts, layout_type),
-    do: %{name: resource_config.name, tag: layout_type, config: [], opts: [], inner_elements: []}
+    do: TreePath.new(%{name: resource_config.name, tag: layout_type, config: [], opts: [], inner_elements: []})
 
-  def build_default_layout_paths([paths], _resource_config, _opts, _layout_type), do: paths
+  def build_default_layout_paths([%{} = paths], _resource_config, _opts, _layout_type), do: TreePath.new(paths)
 
   @doc """
   Parses a list of paths to handle sections based on the given layout type.
@@ -639,7 +631,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     ]
 
   """
-  @spec parse_sections(map(), atom()) :: map()
+  @spec parse_sections(TreePath.t(), atom()) :: TreePath.t()
   def parse_sections(layout_tree, layout_type) when layout_type in [:form, :show] do
     pid = CounterAgent.start_counter()
 
@@ -767,7 +759,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       |> Keyword.put(:sections_index, next_sections_index)
       |> Keyword.put(:tabs, tabs_info)
 
-    new_element = Map.merge(element, %{config: new_config, inner_elements: new_inner_elements})
+    new_element = TreePath.change(element, %{config: new_config, inner_elements: new_inner_elements})
 
     normalize_sections_and_tabs(
       elements,
@@ -816,7 +808,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         tab_index: next_tab_index
       )
 
-    new_element = Map.merge(element, %{config: new_config, inner_elements: new_inner_elements})
+    new_element = TreePath.change(element, %{config: new_config, inner_elements: new_inner_elements})
 
     normalize_sections_and_tabs(
       elements,
@@ -851,7 +843,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         tab_active?
       )
 
-    new_element = Map.put(element, :inner_elements, new_inner_elements)
+    new_element = TreePath.change(element, %{inner_elements: new_inner_elements})
 
     normalize_sections_and_tabs(
       elements,
@@ -879,7 +871,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
         %{tag: :section, config: config} = element, {acc, false} ->
           config
           |> Keyword.update(:active, true, fn _ -> true end)
-          |> then(&Map.put(element, :config, &1))
+          |> then(&struct(element, %{config: &1}))
           |> then(&{[&1 | acc], true})
 
         element, {acc, tab_active?} ->
