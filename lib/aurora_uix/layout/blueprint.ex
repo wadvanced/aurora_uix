@@ -209,10 +209,58 @@ defmodule Aurora.Uix.Layout.Blueprint do
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
-  @doc false
-  defmacro __using__(_opts) do
+  defmacro __before_compile__(env) do
+    module = env.module
+
+    layout_trees =
+      module
+      |> Module.get_attribute(:auix_layout_trees, [])
+      |> Macro.escape()
+
     quote do
-      import Aurora.Uix.Layout.Blueprint
+      @doc false
+      @spec auix_layout_trees() :: list()
+      def auix_layout_trees do
+        unquote(layout_trees)
+      end
+    end
+  end
+
+  @doc """
+  Configures and initiates UI generation for a specific module.
+
+  ## Parameters
+  - `opts` (`Keyword.t()`) - Configuration options for UI generation.
+  - `do_block` (`Macro.t()` | `nil`) - An optional configuration block for advanced layouts.
+
+  ## Options
+  - `:for` (`atom()`) - The target resource name to generate the UI for.
+
+  ## Returns
+  `Macro.t()` - A quoted expression that sets up the UI configuration.
+
+  ## Example
+  ```elixir
+  auix_create_ui for: :product do
+    index_columns [:name, :price]
+    edit_layout do
+      inline [:name, :price]
+    end
+  end
+  ```
+  """
+  @spec auix_create_layouts(keyword(), Macro.t() | nil) :: Macro.t()
+  defmacro auix_create_layouts(opts \\ [], do_block \\ nil) do
+    {block, _opts} = LayoutHelpers.extract_block_options(opts, do_block)
+
+    layouts = LayoutHelpers.create_layouts(block, __CALLER__)
+
+    quote do
+      import Blueprint
+
+      @before_compile Blueprint
+
+      unquote(layouts)
     end
   end
 
@@ -511,42 +559,6 @@ defmodule Aurora.Uix.Layout.Blueprint do
       do_block,
       __CALLER__
     )
-  end
-
-  @doc """
-  Configures and initiates UI generation for a specific module.
-
-  ## Parameters
-  - `opts` (`Keyword.t()`) - Configuration options for UI generation.
-  - `do_block` (`Macro.t()` | `nil`) - An optional configuration block for advanced layouts.
-
-  ## Options
-  - `:for` (`atom()`) - The target resource name to generate the UI for.
-
-  ## Returns
-  `Macro.t()` - A quoted expression that sets up the UI configuration.
-
-  ## Example
-  ```elixir
-  auix_create_ui for: :product do
-    index_columns [:name, :price]
-    edit_layout do
-      inline [:name, :price]
-    end
-  end
-  ```
-  """
-  @spec auix_create_layouts(keyword(), Macro.t() | nil) :: Macro.t()
-  defmacro auix_create_layouts(opts \\ [], do_block \\ nil) do
-    {block, _opts} = LayoutHelpers.extract_block_options(opts, do_block)
-
-    layouts = LayoutHelpers.create_layouts(block, __CALLER__)
-
-    quote do
-      use Blueprint
-
-      unquote(layouts)
-    end
   end
 
   @doc """

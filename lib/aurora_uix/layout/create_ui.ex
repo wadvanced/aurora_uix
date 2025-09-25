@@ -111,7 +111,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     layouts = LayoutHelpers.create_layouts(block, __CALLER__)
 
     quote do
-      use Blueprint
+      import Blueprint
 
       @before_compile Aurora.Uix.Layout.CreateUI
 
