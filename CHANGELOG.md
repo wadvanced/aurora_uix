@@ -17,7 +17,7 @@ Compatible with Phoenix LiveView v1.0+
   - Sub-layouts: `group/3`, `inline/2`, `stacked/2`, `sections/3`, and `section/3` for flexible UI composition.
 
 - **Compile-Time UI Generation**
-  - `use Aurora.Uix.Layout.CreateUI` — Generates LiveView modules and templates at compile time for index, form, and show views.
+  - `use Aurora.Uix` — Generates LiveView modules and templates at compile time for index, form, and show views.
 
 - **Extensibility**
   - Support for custom templates, field renderers, and layout containers.
