@@ -86,6 +86,7 @@ defmodule Aurora.Uix do
 
   While it provides flexibility for customization, it works best when embracing its conventions.
   """
+  alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.ResourceMetadata
 
@@ -97,6 +98,9 @@ defmodule Aurora.Uix do
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
       Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
+
+      import Blueprint,
+        only: [auix_create_layouts: 1]
 
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]

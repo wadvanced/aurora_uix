@@ -20,7 +20,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   ```elixir
   defmodule MyApp.ProductViews do
-    use Aurora.Uix.Layout.CreateUI
+    use Aurora.Uix
 
     auix_create_ui for: :product do
       index_columns [:name, :price]
@@ -33,25 +33,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   """
 
   alias Aurora.Uix.Layout.Blueprint
-  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Template
-
-  @doc """
-  Injects `CreateUI` functionality into the calling module.
-
-  This macro imports `Aurora.Uix.Layout.CreateUI` and `Aurora.Uix.Layout.Blueprint`,
-  and registers `__before_compile__/1` to generate the UI.
-  """
-  defmacro __using__(_opts) do
-    quote do
-      import Aurora.Uix.Layout.CreateUI
-      use Aurora.Uix.Layout.Blueprint
-
-      @before_compile Aurora.Uix.Layout.CreateUI
-    end
-  end
 
   @doc """
   Generates UI modules before the module is compiled.
@@ -123,27 +107,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
-    create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block, __CALLER__)
-
-    tree_paths =
-      quote do
-        Map.get(unquote(create_ui), :inner_elements, [])
-      end
+    quoted_opts = LayoutHelpers.create_layout_opts(opts)
+    layouts = LayoutHelpers.create_layouts(block, __CALLER__)
 
     quote do
-      use CreateUI
+      use Blueprint
 
-      CreateUI.__put_manual_opts__(
-        __MODULE__,
-        Module.get_attribute(__MODULE__, :auix_layout_opts, []),
-        unquote(opts)
-      )
+      @before_compile Aurora.Uix.Layout.CreateUI
 
-      CreateUI.__put_manual_tree_paths__(
-        __MODULE__,
-        Module.get_attribute(__MODULE__, :auix_layout_trees, []),
-        unquote(tree_paths)
-      )
+      unquote(quoted_opts)
+      unquote(layouts)
     end
   end
 
@@ -167,59 +140,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
     resource_configs
     |> filter_resources(opts[:for])
     |> build_layouts(caller, layout_trees, opts)
-  end
-
-  @doc """
-  Stores manually configured layout options in the module attributes.
-
-  It merges options defined via `auix_create_ui/2` with any existing options
-  and stores them in the `@auix_layout_opts` attribute.
-
-  ## Parameters
-  - `module` (`module()`) - The module where the attributes are stored.
-  - `define_by_module_opts` (`list()`) - The list of options already defined in the module.
-  - `ui_defined` (`list()`) - The list of new options to be added.
-
-  ## Returns
-  `:ok` - Indicates that the options have been stored.
-  """
-  @spec __put_manual_opts__(module(), list(), list()) :: :ok
-  def __put_manual_opts__(module, define_by_module_opts, ui_defined) do
-    Module.delete_attribute(module, :auix_layout_opts)
-
-    define_by_module_opts
-    |> Keyword.merge(ui_defined)
-    |> then(&Module.put_attribute(module, :auix_layout_opts, &1))
-  end
-
-  @doc """
-  Stores manually configured layout tree paths in the module attributes.
-
-  It merges new layout tree paths with existing ones and stores them in the
-  `@auix_layout_trees` attribute, avoiding duplicates.
-
-  ## Parameters
-  - `module` (`module()`) - The module where the attributes are stored.
-  - `defined_by_module_attribute` (`list()`) - The list of tree paths already defined.
-  - `ui_defined` (`list()`) - The list of new tree paths to be added.
-
-  ## Returns
-  `:ok` - Indicates that the tree paths have been stored.
-  """
-  @spec __put_manual_tree_paths__(module(), list(), list()) :: :ok
-  def __put_manual_tree_paths__(module, defined_by_module_attribute, ui_defined) do
-    Module.delete_attribute(module, :auix_layout_trees)
-
-    Enum.each(ui_defined, &Module.put_attribute(module, :auix_layout_trees, &1))
-
-    defined_by_module_attribute
-    |> List.flatten()
-    |> Enum.reject(fn tree_path ->
-      Enum.any?(ui_defined, &(&1.name == tree_path.name and &1.tag == tree_path.tag))
-    end)
-    |> Enum.each(fn tree_path ->
-      Module.put_attribute(module, :auix_layout_trees, tree_path)
-    end)
   end
 
   ## PRIVATE
