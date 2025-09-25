@@ -95,6 +95,8 @@ defmodule Aurora.Uix do
   defmacro __using__(_opts) do
     quote do
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
+      Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
+      Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
 
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
