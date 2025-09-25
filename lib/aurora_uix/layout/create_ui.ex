@@ -41,6 +41,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   """
 
   alias Aurora.Uix.Layout.Blueprint
+  alias Aurora.Uix.Layout.BuildLayouts
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
@@ -59,18 +60,17 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmacro __before_compile__(env) do
     module = env.module
 
-    {layout_paths, opts} =
-      module
-      |> Module.get_attribute(:_auix_layout_paths, %{inner_elements: [], opts: []})
-      |> then(&{&1.inner_elements, &1.opts})
+    layout_trees = Module.get_attribute(module, :auix_layout_trees, [])
 
-    Module.delete_attribute(module, :_auix_layout_paths)
+    opts = Module.get_attribute(module, :auix_layout_opts, [])
+
+    BuildLayouts.build(layout_trees)
 
     ## Merge layout paths
-    merged_layout_paths =
-      layout_paths
+    merged_layout_trees =
+      layout_trees
       |> Enum.group_by(&{&1.name, &1.tag})
-      |> Enum.map(&merge_layout_paths/1)
+      |> Enum.map(&merge_layout_trees/1)
 
     modules =
       module
@@ -78,7 +78,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       |> Enum.reduce(%{}, fn resource, acc ->
         Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), elem(&1, 1)))
       end)
-      |> build_ui(module, merged_layout_paths, opts)
+      |> build_ui(module, merged_layout_trees, opts)
 
     quote do
       unquote(modules)
@@ -116,7 +116,13 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
     quote do
       use CreateUI
-      Module.put_attribute(__MODULE__, :_auix_layout_paths, unquote(create_ui))
+      Module.put_attribute(__MODULE__, :auix_layout_opts, unquote(opts))
+
+      Module.put_attribute(
+        __MODULE__,
+        :auix_layout_trees,
+        Map.get(unquote(create_ui), :inner_elements, [])
+      )
     end
   end
 
@@ -126,7 +132,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   ## Parameters
   - resource_configs (map()) - Map of resource configurations
   - caller (module()) - The calling module
-  - layout_paths (list()) - List of layout layout_tree definitions
+  - layout_trees (list()) - List of layout layout_tree definitions
   - opts (keyword()) - Configuration options
 
   ## Options
@@ -136,17 +142,17 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - list() - Generated UI layout modules
   """
   @spec build_ui(map(), module(), list(), keyword()) :: list()
-  def build_ui(resource_configs, caller, layout_paths, opts) do
+  def build_ui(resource_configs, caller, layout_trees, opts) do
     resource_configs
     |> filter_resources(opts[:for])
-    |> build_layouts(caller, layout_paths, opts)
+    |> build_layouts(caller, layout_trees, opts)
   end
 
   ## PRIVATE
 
   # Merges layout paths by their name and tag, combining inner elements and options
-  @spec merge_layout_paths(tuple()) :: list()
-  defp merge_layout_paths({_, paths}) do
+  @spec merge_layout_trees(tuple()) :: list()
+  defp merge_layout_trees({_, paths}) do
     Enum.reduce(paths, nil, &merge_layout_opts_inner_elements/2)
   end
 
@@ -185,12 +191,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   # Returns a list of maps using the format of #build_configurations
   @spec build_layouts(map(), module(), list(), keyword()) :: [Macro.t()]
-  defp build_layouts(resource_configs, caller, layout_paths, opts) do
+  defp build_layouts(resource_configs, caller, layout_trees, opts) do
     configurations =
       resource_configs
       |> Enum.reduce(
         [],
-        &[build_configurations(&1, layout_paths, opts) | &2]
+        &[build_configurations(&1, layout_trees, opts) | &2]
       )
       |> Enum.reject(&is_nil/1)
       |> Map.new()
@@ -217,7 +223,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec build_configurations({atom(), map()}, list(), keyword()) :: map() | nil
   defp build_configurations(
          {resource_config_name, resource_config},
-         layout_paths,
+         layout_trees,
          opts
        ) do
     # PENDING: The template should be passed or taken from a @ module variable
@@ -235,7 +241,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
       paths =
         layouts
-        |> Enum.map(&locate_layout_paths(&1, layout_paths, resource_config_name))
+        |> Enum.map(&locate_layout_trees(&1, layout_trees, resource_config_name))
         |> Map.new()
         |> fill_missing_paths(:form, :show)
 
@@ -317,19 +323,19 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&template.generate_module(&1))
   end
 
-  @spec locate_layout_paths(atom(), list(), atom()) :: tuple()
-  defp locate_layout_paths(tag, layout_paths, resource_config_name) do
-    layout_paths
+  @spec locate_layout_trees(atom(), list(), atom()) :: tuple()
+  defp locate_layout_trees(tag, layout_trees, resource_config_name) do
+    layout_trees
     |> Enum.filter(&(&1.tag == tag && &1.name == resource_config_name))
     |> then(&{tag, &1})
   end
 
   @spec fill_missing_paths(map(), atom(), atom()) :: map()
-  defp fill_missing_paths(layout_paths, from, to) do
-    layout_paths
+  defp fill_missing_paths(layout_trees, from, to) do
+    layout_trees
     |> Map.get(from, [])
-    |> fill_missing_paths_recursive(layout_paths[to], from, to)
-    |> then(&Map.put(layout_paths, to, &1))
+    |> fill_missing_paths_recursive(layout_trees[to], from, to)
+    |> then(&Map.put(layout_trees, to, &1))
   end
 
   @spec fill_missing_paths_recursive(list(), list(), atom(), atom()) :: list()
