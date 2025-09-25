@@ -41,7 +41,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
   """
 
   alias Aurora.Uix.Layout.Blueprint
-  alias Aurora.Uix.Layout.BuildLayouts
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
@@ -60,11 +59,11 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmacro __before_compile__(env) do
     module = env.module
 
-    layout_trees = Module.get_attribute(module, :auix_layout_trees, [])
+    layout_trees =
+      Module.get_attribute(module, :auix_layout_trees, [])
 
-    opts = Module.get_attribute(module, :auix_layout_opts, [])
-
-    BuildLayouts.build(layout_trees)
+    opts =
+      Module.get_attribute(module, :auix_layout_opts, [])
 
     ## Merge layout paths
     merged_layout_trees =
@@ -114,14 +113,23 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
     create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block, __CALLER__)
 
+    tree_paths =
+      quote do
+        Map.get(unquote(create_ui), :inner_elements, [])
+      end
+
     quote do
       use CreateUI
-      Module.put_attribute(__MODULE__, :auix_layout_opts, unquote(opts))
 
-      Module.put_attribute(
+      __MODULE__
+      |> Module.get_attribute(:auix_layout_opts, [])
+      |> Keyword.merge(unquote(opts))
+      |> then(&Module.put_attribute(__MODULE__, :auix_layout_opts, &1))
+
+      CreateUI.__merge_tree_paths__(
         __MODULE__,
-        :auix_layout_trees,
-        Map.get(unquote(create_ui), :inner_elements, [])
+        Module.get_attribute(__MODULE__, :auix_layout_trees, []),
+        unquote(tree_paths)
       )
     end
   end
@@ -146,6 +154,18 @@ defmodule Aurora.Uix.Layout.CreateUI do
     resource_configs
     |> filter_resources(opts[:for])
     |> build_layouts(caller, layout_trees, opts)
+  end
+
+  @doc false
+  @spec __merge_tree_paths__(module(), list(), list()) :: :ok
+  def __merge_tree_paths__(module, module_defined, ui_defined) do
+    module_defined
+    |> Enum.reduce(ui_defined, fn tree_path, result ->
+      if !Enum.any?(result, &(&1.name == tree_path.name and &1.tag == tree_path.tag)) do
+        [tree_path | result]
+      end
+    end)
+    |> then(&Module.put_attribute(module, :auix_layout_trees, &1))
   end
 
   ## PRIVATE
