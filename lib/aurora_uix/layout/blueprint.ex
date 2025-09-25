@@ -608,6 +608,9 @@ defmodule Aurora.Uix.Layout.Blueprint do
         inner_elements: []
       })
 
+  def build_default_layout_paths([%TreePath{} = paths], _resource_config, _opts, _layout_type),
+    do: paths
+
   def build_default_layout_paths([%{} = paths], _resource_config, _opts, _layout_type),
     do: TreePath.new(paths)
 

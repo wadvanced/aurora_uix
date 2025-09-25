@@ -1,26 +1,23 @@
 defmodule Aurora.Uix.Layout.CreateUI do
   @moduledoc """
-  Provides a comprehensive framework for dynamically generating UI layouts and views in Phoenix/Elixir applications.
+  Provides a framework for dynamically generating UI layouts for Phoenix applications.
+
+  This module offers a compile-time mechanism to create UI components for resources,
+  including index, form, and show views, based on a flexible configuration.
 
   ## Key Features
-  - Compile-time UI generation for resources
-  - Flexible layout configuration
-  - Automatic module generation for index, form, and show views
-  - Integration with schema parsing and template generation
 
-  ## Core Responsibilities
-  - Define macros for UI configuration
-  - Process schema configurations
-  - Generate UI-related modules dynamically
-  - Support custom layout definitions
+  - **Compile-Time UI Generation**: Generates UI modules for resources at compile time, minimizing runtime overhead.
+  - **Flexible Layout Configuration**: Allows for detailed customization of layouts using a DSL.
+  - **Automatic View Generation**: Automatically creates modules for index, form, and show views.
+  - **Schema Integration**: Integrates with Ecto schemas to infer field types and associations.
 
-  ## Compilation Workflow
-  1. Module uses `use Aurora.Uix.Layout.CreateUI`
-  2. Configurations are collected via module attributes
-  3. `__before_compile__/1` macro triggers UI generation
-  4. Modules are dynamically created based on configurations
+  ## Usage
+
+  To use this module, you `use Aurora.Uix.Layout.CreateUI` in your view module and then define the UI using `auix_create_ui/2`.
 
   ## Example
+
   ```elixir
   defmodule MyApp.ProductViews do
     use Aurora.Uix.Layout.CreateUI
@@ -33,20 +30,20 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
   ```
-
-  ## Performance Considerations
-  - UI generation occurs at compile-time
-  - Minimal runtime overhead
-  - Supports complex, nested layouts
   """
 
   alias Aurora.Uix.Layout.Blueprint
-  alias Aurora.Uix.Layout.BuildLayouts
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Template
 
+  @doc """
+  Injects `CreateUI` functionality into the calling module.
+
+  This macro imports `Aurora.Uix.Layout.CreateUI` and `Aurora.Uix.Layout.Blueprint`,
+  and registers `__before_compile__/1` to generate the UI.
+  """
   defmacro __using__(_opts) do
     quote do
       import Aurora.Uix.Layout.CreateUI
@@ -56,15 +53,29 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
+  @doc """
+  Generates UI modules before the module is compiled.
+
+  This macro is triggered before compilation, gathering all `auix_layout_trees`
+  and `auix_layout_opts` attributes to build the final UI modules.
+  It merges layout trees, processes resource metadata, and injects the
+  generated modules into the calling module.
+
+  ## Parameters
+  - `env` (`Macro.Env.t()`) - The macro environment.
+
+  ## Returns
+  `Macro.t()` - A quoted expression containing the generated UI modules.
+  """
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
     module = env.module
 
-    layout_trees = Module.get_attribute(module, :auix_layout_trees, [])
+    layout_trees =
+      Module.get_attribute(module, :auix_layout_trees, [])
 
-    opts = Module.get_attribute(module, :auix_layout_opts, [])
-
-    BuildLayouts.build(layout_trees)
+    opts =
+      Module.get_attribute(module, :auix_layout_opts, [])
 
     ## Merge layout paths
     merged_layout_trees =
@@ -89,14 +100,14 @@ defmodule Aurora.Uix.Layout.CreateUI do
   Configures and initiates UI generation for a specific module.
 
   ## Parameters
-  - opts (keyword()) - Configuration options for UI generation
-  - do_block (Macro.t() | nil) - Optional configuration block for advanced layouts
+  - `opts` (`Keyword.t()`) - Configuration options for UI generation.
+  - `do_block` (`Macro.t()` | `nil`) - An optional configuration block for advanced layouts.
 
   ## Options
-  - for: atom() - Target resource name to generate UI for
+  - `:for` (`atom()`) - The target resource name to generate the UI for.
 
   ## Returns
-  - Macro.t() - Generated UI configuration macro
+  `Macro.t()` - A quoted expression that sets up the UI configuration.
 
   ## Example
   ```elixir
@@ -114,14 +125,24 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
     create_ui = LayoutHelpers.register_dsl_entry(:ui, :ui, [], opts, block, __CALLER__)
 
+    tree_paths =
+      quote do
+        Map.get(unquote(create_ui), :inner_elements, [])
+      end
+
     quote do
       use CreateUI
-      Module.put_attribute(__MODULE__, :auix_layout_opts, unquote(opts))
 
-      Module.put_attribute(
+      CreateUI.__put_manual_opts__(
         __MODULE__,
-        :auix_layout_trees,
-        Map.get(unquote(create_ui), :inner_elements, [])
+        Module.get_attribute(__MODULE__, :auix_layout_opts, []),
+        unquote(opts)
+      )
+
+      CreateUI.__put_manual_tree_paths__(
+        __MODULE__,
+        Module.get_attribute(__MODULE__, :auix_layout_trees, []),
+        unquote(tree_paths)
       )
     end
   end
@@ -130,16 +151,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
   Builds UI layouts based on resource configurations.
 
   ## Parameters
-  - resource_configs (map()) - Map of resource configurations
-  - caller (module()) - The calling module
-  - layout_trees (list()) - List of layout layout_tree definitions
-  - opts (keyword()) - Configuration options
+  - `resource_configs` (`map()`) - A map of resource configurations.
+  - `caller` (`module()`) - The calling module.
+  - `layout_trees` (`list()`) - A list of layout tree definitions.
+  - `opts` (`Keyword.t()`) - Configuration options.
 
   ## Options
-  - for: atom() | list() - Generate UI for specific resource(s)
+  - `:for` (`atom()` | `list()`) - Generates UI for one or more specific resources.
 
   ## Returns
-  - list() - Generated UI layout modules
+  `list()` - A list of quoted expressions representing the generated UI layout modules.
   """
   @spec build_ui(map(), module(), list(), keyword()) :: list()
   def build_ui(resource_configs, caller, layout_trees, opts) do
@@ -148,15 +169,68 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> build_layouts(caller, layout_trees, opts)
   end
 
+  @doc """
+  Stores manually configured layout options in the module attributes.
+
+  It merges options defined via `auix_create_ui/2` with any existing options
+  and stores them in the `@auix_layout_opts` attribute.
+
+  ## Parameters
+  - `module` (`module()`) - The module where the attributes are stored.
+  - `define_by_module_opts` (`list()`) - The list of options already defined in the module.
+  - `ui_defined` (`list()`) - The list of new options to be added.
+
+  ## Returns
+  `:ok` - Indicates that the options have been stored.
+  """
+  @spec __put_manual_opts__(module(), list(), list()) :: :ok
+  def __put_manual_opts__(module, define_by_module_opts, ui_defined) do
+    Module.delete_attribute(module, :auix_layout_opts)
+
+    define_by_module_opts
+    |> Keyword.merge(ui_defined)
+    |> then(&Module.put_attribute(module, :auix_layout_opts, &1))
+  end
+
+  @doc """
+  Stores manually configured layout tree paths in the module attributes.
+
+  It merges new layout tree paths with existing ones and stores them in the
+  `@auix_layout_trees` attribute, avoiding duplicates.
+
+  ## Parameters
+  - `module` (`module()`) - The module where the attributes are stored.
+  - `defined_by_module_attribute` (`list()`) - The list of tree paths already defined.
+  - `ui_defined` (`list()`) - The list of new tree paths to be added.
+
+  ## Returns
+  `:ok` - Indicates that the tree paths have been stored.
+  """
+  @spec __put_manual_tree_paths__(module(), list(), list()) :: :ok
+  def __put_manual_tree_paths__(module, defined_by_module_attribute, ui_defined) do
+    Module.delete_attribute(module, :auix_layout_trees)
+
+    Enum.each(ui_defined, &Module.put_attribute(module, :auix_layout_trees, &1))
+
+    defined_by_module_attribute
+    |> List.flatten()
+    |> Enum.reject(fn tree_path ->
+      Enum.any?(ui_defined, &(&1.name == tree_path.name and &1.tag == tree_path.tag))
+    end)
+    |> Enum.each(fn tree_path ->
+      Module.put_attribute(module, :auix_layout_trees, tree_path)
+    end)
+  end
+
   ## PRIVATE
 
-  # Merges layout paths by their name and tag, combining inner elements and options
+  # Merges layout paths by their name and tag, combining inner elements and options.
   @spec merge_layout_trees(tuple()) :: list()
   defp merge_layout_trees({_, paths}) do
     Enum.reduce(paths, nil, &merge_layout_opts_inner_elements/2)
   end
 
-  # Merges the inner elements and options of two layout paths
+  # Merges the inner elements and options of two layout paths.
   @spec merge_layout_opts_inner_elements(map(), map() | nil) :: map()
   defp merge_layout_opts_inner_elements(layout_tree, nil), do: layout_tree
 
@@ -177,7 +251,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:inner_elements, inner_elements)
   end
 
-  # Filters resource configurations based on the :for option
+  # Filters resource configurations based on the :for option.
   @spec filter_resources(map(), nil | atom() | list()) :: map()
   defp filter_resources(resource_configs, nil), do: resource_configs
 
@@ -189,7 +263,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     Enum.filter(resource_configs, fn {key, _value} -> key in for end)
   end
 
-  # Returns a list of maps using the format of #build_configurations
+  # Builds the layouts for the given resource configurations.
   @spec build_layouts(map(), module(), list(), keyword()) :: [Macro.t()]
   defp build_layouts(resource_configs, caller, layout_trees, opts) do
     configurations =
@@ -211,15 +285,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end)
   end
 
-  # Returns a map with the following format:
-  #  %{
-  #    resource_config_name: resource_config_name, Name of the resource, being configured.
-  #    resource_config: resource_config, # Instance of Aurora.Uix.Resource struct.
-  #    layouts: layouts, # List of layouts map TODO: should be provided by the template
-  #    parsed_opts: parsed_opts, # Parsed options for the layout.
-  #    defaulted_paths: defaulted_paths, # Paths making up the UI.
-  #    template: template, # Used template
-  #  }
+  # Builds the configuration for a single resource.
   @spec build_configurations({atom(), map()}, list(), keyword()) :: map() | nil
   defp build_configurations(
          {resource_config_name, resource_config},
@@ -268,6 +334,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
+  # Builds the resource-specific layouts.
   @spec build_resource_layouts(tuple(), map(), module()) :: list()
   defp build_resource_layouts(
          {_resource_config_name,
@@ -312,6 +379,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
+  # Generates a single UI module.
   @spec generate_module(map(), map(), map(), map(), module()) :: Macro.t()
   defp generate_module(modules, layout_tree, configurations, parsed_opts, template) do
     parsed_opts
@@ -323,6 +391,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&template.generate_module(&1))
   end
 
+  # Locates layout trees for a specific tag and resource name.
   @spec locate_layout_trees(atom(), list(), atom()) :: tuple()
   defp locate_layout_trees(tag, layout_trees, resource_config_name) do
     layout_trees
@@ -330,6 +399,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&{tag, &1})
   end
 
+  # Fills missing layout paths by copying from another layout type.
   @spec fill_missing_paths(map(), atom(), atom()) :: map()
   defp fill_missing_paths(layout_trees, from, to) do
     layout_trees
@@ -338,6 +408,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&Map.put(layout_trees, to, &1))
   end
 
+  # Recursively fills missing layout paths.
   @spec fill_missing_paths_recursive(list(), list(), atom(), atom()) :: list()
   defp fill_missing_paths_recursive(from_paths, to_paths, from, to)
        when is_nil(to_paths) or to_paths == [],
@@ -345,12 +416,14 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
 
+  # Updates the tag of a layout path.
   @spec update_layout_path_tag(map(), atom(), atom()) :: map()
   defp update_layout_path_tag(%{tag: from} = layout_tree, from, to),
     do: Map.put(layout_tree, :tag, to)
 
   defp update_layout_path_tag(layout_tree, _from, _to), do: layout_tree
 
+  # Extracts resource preloads from configurations.
   @spec extract_resource_preloads(map()) :: map()
   defp extract_resource_preloads(configurations) do
     configurations
@@ -367,6 +440,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> expand_associations()
   end
 
+  # Extracts resource fields from a list of resources.
   @spec extract_resource_fields(list(), map(), list()) :: list()
   defp extract_resource_fields(resources, fields, result \\ [])
 
@@ -389,6 +463,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&extract_resource_fields(resources, fields, &1))
   end
 
+  # Adds association information to a field if it's an association.
   @spec maybe_add_association_info(map(), map()) :: map()
 
   defp maybe_add_association_info(%{tag: :field, name: names} = field, fields)
@@ -408,6 +483,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp maybe_add_association_info(field, _fields), do: Map.put(field, :inner_elements, [])
 
+  # Expands nested associations for preloading.
   @spec expand_associations(list()) :: map()
   defp expand_associations(associations) do
     parsed_associations = parse_association(associations)
@@ -429,6 +505,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.new()
   end
 
+  # Parses associations into a map.
   @spec parse_association(list()) :: map()
   defp parse_association(associations) do
     associations
@@ -440,6 +517,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.new()
   end
 
+  # Builds the resource preload option.
   @spec build_resource_preload_option(tuple(), map()) :: tuple()
   defp build_resource_preload_option(
          {resource_config_name, %{parsed_opts: parsed_opts} = configuration},
@@ -452,6 +530,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> then(&{resource_config_name, &1})
   end
 
+  # Finds the web module from the caller module.
   @spec find_web_module(module()) :: module() | nil
   defp find_web_module(caller) do
     caller
@@ -460,6 +539,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> check_web_module()
   end
 
+  # Checks if a module is a web module.
   @spec check_web_module(list()) :: module() | nil
   defp check_web_module([]), do: nil
 
@@ -471,6 +551,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> extract_web_module(module_paths)
   end
 
+  # Extracts the web module.
   @spec extract_web_module(tuple(), list()) :: module() | nil
   defp extract_web_module({:module, module}, _module_paths), do: module
 
