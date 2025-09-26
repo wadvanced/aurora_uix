@@ -100,7 +100,7 @@ defmodule Aurora.Uix do
       Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
 
       import CreateLayout,
-        only: [auix_create_layout: 1]
+        only: [auix_create_layout: 1, auix_create_layout: 2]
 
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]

@@ -7,6 +7,17 @@ defmodule Aurora.Uix.Layout.CreateLayout do
   alias Aurora.Uix.Layout.CreateLayout
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
+  @spec auix_create_missing_layouts() :: Macro.t()
+  defmacro auix_create_missing_layouts do
+    # __MODULE__
+    # |> Module.get_attribute(:auix_layout_opts, [])
+    # |> Keyword.get(:omit_missing_layouts_creation?, false)
+
+    quote do
+      :ok
+    end
+  end
+
   @doc """
   A compile-time hook that generates the `auix_layout_trees/0` function.
 
@@ -19,6 +30,8 @@ defmodule Aurora.Uix.Layout.CreateLayout do
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
     module = env.module
+
+    auix_create_missing_layouts()
 
     layout_trees =
       module
@@ -66,8 +79,9 @@ defmodule Aurora.Uix.Layout.CreateLayout do
   """
   @spec auix_create_layout(keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_create_layout(opts \\ [], do_block \\ nil) do
-    {block, _opts} = LayoutHelpers.extract_block_options(opts, do_block)
+    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
+    quoted_opts = LayoutHelpers.create_layout_opts(opts)
     layouts = LayoutHelpers.create_layout(block, __CALLER__)
 
     quote do
@@ -75,6 +89,7 @@ defmodule Aurora.Uix.Layout.CreateLayout do
 
       @before_compile CreateLayout
 
+      unquote(quoted_opts)
       unquote(layouts)
     end
   end
