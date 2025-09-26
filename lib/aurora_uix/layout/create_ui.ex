@@ -109,7 +109,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
     quoted_opts = LayoutHelpers.create_layout_opts(opts)
-    layouts = LayoutHelpers.create_layout(block, __CALLER__)
+    layout_trees = LayoutHelpers.create_layout(block, __CALLER__)
 
     quote do
       import Blueprint
@@ -117,7 +117,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       @before_compile Aurora.Uix.Layout.CreateUI
 
       unquote(quoted_opts)
-      unquote(layouts)
+      unquote(layout_trees)
     end
   end
 
@@ -214,29 +214,30 @@ defmodule Aurora.Uix.Layout.CreateUI do
          layout_trees,
          opts
        ) do
-    template =
-      caller
-      |> Module.get_attribute(:auix_template)
-      |> BehaviourHelper.validate(Template)
-
     resource_module = Map.get(resource_config, :schema)
 
     if is_nil(resource_module) do
       nil
     else
       parsed_opts = Parser.parse(resource_config, opts)
-      layouts = [:index, :form, :show]
+
+      template =
+        caller
+        |> Module.get_attribute(:auix_template)
+        |> BehaviourHelper.validate(Template)
+
+      layout_tags = Module.get_attribute(caller, :auix_layout_tags)
 
       # Get all layout paths
 
       paths =
-        layouts
+        layout_tags
         |> Enum.map(&locate_layout_trees(&1, layout_trees, resource_config_name))
         |> Map.new()
         |> fill_missing_paths(:form, :show)
 
       layout_trees =
-        layouts
+        layout_tags
         |> Enum.map(fn tag ->
           paths
           |> Map.get(tag)
@@ -250,7 +251,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
        %{
          resource_config_name: resource_config_name,
          resource_config: resource_config,
-         layouts: layouts,
+         layout_tags: layout_tags,
          parsed_opts: parsed_opts,
          layout_trees: layout_trees,
          template: template
@@ -264,7 +265,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
          {_resource_config_name,
           %{
             resource_config: resource_config,
-            layouts: layouts,
+            layout_tags: layout_tags,
             parsed_opts: parsed_opts,
             layout_trees: layout_trees,
             template: template
@@ -286,7 +287,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
 
     Enum.reduce(
-      layouts,
+      layout_tags,
       [],
       &[
         generate_module(

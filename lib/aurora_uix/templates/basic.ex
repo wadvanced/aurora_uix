@@ -41,6 +41,9 @@ defmodule Aurora.Uix.Templates.Basic do
   defdelegate generate_module(parsed_opts),
     to: ModulesGenerator
 
+  @impl true
+  def layout_tags, do: [:index, :form, :show]
+
   @doc """
   Returns the default core components module used in the template system.
 
