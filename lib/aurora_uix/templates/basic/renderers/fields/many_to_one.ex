@@ -62,7 +62,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   @spec get_association_paths(map(), map(), atom()) :: list()
   defp get_association_paths(field_struct, configurations, path_type) do
     configurations
-    |> get_in([field_struct.data.resource, :defaulted_paths, path_type, :inner_elements])
+    |> get_in([field_struct.data.resource, :layout_trees, path_type, :inner_elements])
     |> Kernel.||([])
     |> convert_to_many_to_one_paths(field_struct.key)
   end

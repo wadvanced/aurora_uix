@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
+defmodule Aurora.Uix.Test.Web.ManualTreesTest do
   use Aurora.Uix.Test.Web, :aurora_uix_for_test
   use Aurora.Uix.Test.Web.UICase, :phoenix_case
 
@@ -11,22 +11,13 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  @auix_layout_opts link_prefix: "manual-layouts-"
+  @auix_layout_opts link_prefix: "manual-trees-"
 
-  auix_create_layout do
+  auix_create_layout(omit_missing_layouts_creation?: false) do
     edit_layout :product, [] do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
       inline([:list_price, :rrp])
-      inline([:product_location_id])
-      inline([:product_transactions])
-    end
-  end
-
-  auix_create_layout do
-    show_layout :product, [] do
-      inline([:reference, :name, :description])
-      inline([:quantity_at_hand, :quantity_initial])
       inline([:product_location_id])
       inline([:product_transactions])
     end
@@ -39,7 +30,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
   end
 
   test "Test UI default with schema, context, basic layout", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/manual-layouts-products")
+    {:ok, view, html} = live(conn, "/manual-trees-products")
     assert html =~ "Listing Products"
     assert html =~ "New Product"
 
@@ -52,7 +43,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
 
   test "Test validate the fields displayed in NEW", %{conn: conn} do
     delete_all_sample_data()
-    {:ok, view, html} = live(conn, "/manual-layouts-products/new")
+    {:ok, view, html} = live(conn, "/manual-trees-products/new")
 
     assert html =~ "New Product"
 
@@ -76,7 +67,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
       |> Map.get("id_test-1")
       |> Map.get(:id)
 
-    {:ok, view, html} = live(conn, "/manual-layouts-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/manual-trees-products/#{product_id}")
 
     assert html =~ "Product"
 
@@ -85,15 +76,15 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
     assert has_element?(view, "input[name='description']")
     assert has_element?(view, "input[name='quantity_at_hand']")
     assert has_element?(view, "input[name='quantity_initial']")
-    refute has_element?(view, "input[name='list_price']")
-    refute has_element?(view, "input[name='rrp']")
+    assert has_element?(view, "input[name='list_price']")
+    assert has_element?(view, "input[name='rrp']")
     assert has_element?(view, "select[name='product_location_id']")
     assert has_element?(view, "div[name='auix-one_to_many-product']")
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
     delete_all_sample_data()
-    {:ok, view, html} = live(conn, "/manual-layouts-products/new")
+    {:ok, view, html} = live(conn, "/manual-trees-products/new")
 
     assert html =~ "New Product"
 
@@ -109,7 +100,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
     )
     |> render_submit()
 
-    {:ok, _view, new_html} = live(conn, "/manual-layouts-products")
+    {:ok, _view, new_html} = live(conn, "/manual-trees-products")
 
     assert new_html =~ "Listing Products"
     assert new_html =~ "test-first"

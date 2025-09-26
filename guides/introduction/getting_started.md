@@ -51,7 +51,7 @@ You should have something like the following:
 Now you can build your tailwind classes.
 
 ### Versions 3.x
-Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included ('aurora_demo` used as an application example):
+Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included ('aurora_demo' used as an application example):
 
 ```js
 module.exports = {

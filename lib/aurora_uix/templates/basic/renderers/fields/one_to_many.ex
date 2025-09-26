@@ -117,7 +117,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   @spec get_association_fields(map(), map()) :: list(map())
   defp get_association_fields(field, configurations) do
     configurations
-    |> get_in([field.data.resource, :defaulted_paths, :index, :inner_elements])
+    |> get_in([field.data.resource, :layout_trees, :index, :inner_elements])
     |> Enum.filter(&(&1.tag == :field))
     |> Enum.map(fn path_field ->
       path_field

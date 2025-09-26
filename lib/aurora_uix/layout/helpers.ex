@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.TreePath
 
   require Logger
 
@@ -135,15 +136,13 @@ defmodule Aurora.Uix.Layout.Helpers do
 
     registration =
       quote do
-        %{
+        %TreePath{
           tag: unquote(tag),
           name: unquote(name),
           opts: unquote(opts),
           config: unquote(config),
           inner_elements: unquote(prepare_block(block)) ++ unquote(inner_elements)
         }
-        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-        |> Map.new()
       end
 
     quote do
@@ -458,13 +457,13 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   `Macro.t()` - A quoted expression that, when executed, stores the tree paths.
   """
-  @spec create_layouts(any(), Macro.Env.t()) :: Macro.t()
-  def create_layouts(block, env) do
-    create_ui = register_dsl_entry(:ui, :ui, [], [], block, env)
+  @spec create_layout(any(), Macro.Env.t()) :: Macro.t()
+  def create_layout(block, env) do
+    ui = register_dsl_entry(:ui, :ui, [], [], block, env)
 
     tree_paths =
       quote do
-        Map.get(unquote(create_ui), :inner_elements, [])
+        Map.get(unquote(ui), :inner_elements, [])
       end
 
     quote do
