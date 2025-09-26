@@ -458,8 +458,8 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   `Macro.t()` - A quoted expression that, when executed, stores the tree paths.
   """
-  @spec create_layouts(any(), Macro.Env.t()) :: Macro.t()
-  def create_layouts(block, env) do
+  @spec create_layout(any(), Macro.Env.t()) :: Macro.t()
+  def create_layout(block, env) do
     create_ui = register_dsl_entry(:ui, :ui, [], [], block, env)
 
     tree_paths =

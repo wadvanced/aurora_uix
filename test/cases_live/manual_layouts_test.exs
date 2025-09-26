@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
 
   @auix_layout_opts link_prefix: "manual-layouts-"
 
-  auix_create_layouts do
+  auix_create_layout do
     edit_layout :product, [] do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Test.Web.ManualLayoutsTest do
     end
   end
 
-  auix_create_layouts do
+  auix_create_layout do
     show_layout :product, [] do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
