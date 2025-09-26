@@ -231,7 +231,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
         |> Map.new()
         |> fill_missing_paths(:form, :show)
 
-      defaulted_paths =
+      layout_trees =
         layouts
         |> Enum.map(fn tag ->
           paths
@@ -248,7 +248,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
          resource_config: resource_config,
          layouts: layouts,
          parsed_opts: parsed_opts,
-         defaulted_paths: defaulted_paths,
+         layout_trees: layout_trees,
          template: template
        }}
     end
@@ -262,7 +262,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
             resource_config: resource_config,
             layouts: layouts,
             parsed_opts: parsed_opts,
-            defaulted_paths: defaulted_paths,
+            layout_trees: layout_trees,
             template: template
           }},
          configurations,
@@ -287,7 +287,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       &[
         generate_module(
           modules,
-          Map.get(defaulted_paths, &1, %{}),
+          Map.get(layout_trees, &1, %{}),
           configurations,
           parsed_opts,
           template
@@ -348,8 +348,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp extract_resource_preloads(configurations) do
     configurations
     |> Enum.map(fn {resource_name,
-                    %{resource_config: %{fields: fields}, defaulted_paths: defaulted_paths}} ->
-      defaulted_paths
+                    %{resource_config: %{fields: fields}, layout_trees: layout_trees}} ->
+      layout_trees
       |> Enum.filter(&(elem(&1, 0) in [:index, :form, :show]))
       |> Enum.map(&elem(&1, 1))
       |> extract_resource_fields(fields)
