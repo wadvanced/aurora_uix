@@ -554,7 +554,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
             :one_to_many_association
           ])
       )
-      |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
+      |> Enum.map(&%TreePath{tag: :field, name: &1, inner_elements: [], opts: []})
 
     TreePath.new(%{
       tag: :index,
@@ -576,11 +576,11 @@ defmodule Aurora.Uix.Layout.Blueprint do
             :one_to_many_association
           ])
       )
-      |> Enum.map(&%{tag: :field, name: &1, inner_elements: [], opts: []})
+      |> Enum.map(&%TreePath{tag: :field, name: &1, inner_elements: [], opts: []})
 
     fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)
 
-    fields_layout = %{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
+    fields_layout = %TreePath{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
 
     TreePath.new(%{
       tag: layout_type,
