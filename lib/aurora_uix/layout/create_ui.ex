@@ -32,6 +32,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   ```
   """
 
+  alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
@@ -190,7 +191,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       resource_configs
       |> Enum.reduce(
         [],
-        &[build_configurations(&1, layout_trees, opts) | &2]
+        &[build_configurations(caller, &1, layout_trees, opts) | &2]
       )
       |> Enum.reject(&is_nil/1)
       |> Map.new()
@@ -206,14 +207,17 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Builds the configuration for a single resource.
-  @spec build_configurations({atom(), map()}, list(), keyword()) :: map() | nil
+  @spec build_configurations(module(), {atom(), map()}, list(), keyword()) :: map() | nil
   defp build_configurations(
+         caller,
          {resource_config_name, resource_config},
          layout_trees,
          opts
        ) do
-    # PENDING: The template should be passed or taken from a @ module variable
-    template = Template.uix_template()
+    template =
+      caller
+      |> Module.get_attribute(:auix_template)
+      |> BehaviourHelper.validate(Template)
 
     resource_module = Map.get(resource_config, :schema)
 
