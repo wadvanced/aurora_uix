@@ -100,7 +100,8 @@ defmodule Aurora.Uix do
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
       Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
 
-      Module.put_attribute(__MODULE__, :auix_template, Template.uix_template())
+      @auix_template Template.uix_template()
+      @auix_layout_tags Template.uix_template().layout_tags()
 
       import CreateLayout,
         only: [auix_create_layout: 1, auix_create_layout: 2]
