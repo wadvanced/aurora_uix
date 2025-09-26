@@ -23,7 +23,7 @@ defmodule Aurora.Uix.RouteHelper do
     - Edit from Show: `GET /path/:id/show/edit`
 
   ## Example
-  |||elixir
+  ```elixir
   # Generates routes for user management
   import Aurora.Uix.RouteHelper
   auix_live_resources("/users", MyApp.UserLive)
@@ -33,7 +33,7 @@ defmodule Aurora.Uix.RouteHelper do
   live "/users/:id/edit", MyApp.UserLive.Index, :edit
   live "/users/:id/show", MyApp.UserLive.Show, :show
   live "/users/:id/show/edit", MyApp.UserLive.Index, :edit
-  |||
+  ```
   """
   @spec auix_live_resources(binary(), module()) :: Macro.t()
   defmacro auix_live_resources(path, module) do

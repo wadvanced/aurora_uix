@@ -116,6 +116,9 @@ live "/products/:id/show/edit", MyAppWeb.ProductViews.Product.Show, :edit
 
 ```
 
+> **Note:** You can simplify route registration by using the `Aurora.Uix.RouteHelper` macro. It automatically generates these routes for you.
+
+
 4. **Run Your App**
 
 Start your Phoenix server and visit `/products` to see your UI.

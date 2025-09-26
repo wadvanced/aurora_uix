@@ -89,6 +89,7 @@ defmodule Aurora.Uix do
   alias Aurora.Uix.Layout.CreateLayout
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.ResourceMetadata
+  alias Aurora.Uix.Template
 
   require Logger
 
@@ -98,6 +99,8 @@ defmodule Aurora.Uix do
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
       Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
+
+      Module.put_attribute(__MODULE__, :auix_template, Template.uix_template())
 
       import CreateLayout,
         only: [auix_create_layout: 1, auix_create_layout: 2]

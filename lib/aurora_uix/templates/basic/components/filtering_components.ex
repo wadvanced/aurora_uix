@@ -6,10 +6,6 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   - Automatically handles filterable? fields with consistent styling
   - Falls back to empty render for non-filterable? fields
   - Applies standardized focus styles and responsive sizing
-
-  |||elixir
-  # Example usage in HEEx templates:
-  <.filter_field field={%{filterable?: true, name: :search}} />
   """
 
   use Aurora.Uix.CoreComponentsImporter
