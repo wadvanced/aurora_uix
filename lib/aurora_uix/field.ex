@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Field do
 
   """
 
-  use Aurora.Uix.AccessHelper
+  use Accessible
 
   alias Aurora.Uix.CounterAgent
 

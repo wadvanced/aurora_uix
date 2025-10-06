@@ -1,13 +1,13 @@
 # Changelog for v0.x
 
-## v0.1.0
+## [Unreleased]
 
 Requires Elixir v1.17+
 Compatible with Ecto 3.2+
 Compatible with Phoenix v1.7+
 Compatible with Phoenix LiveView v1.0+
 
-### Features
+### Added
 
 - **Resource Metadata**
   - `auix_resource_metadata/3` — Declarative resource and field configuration with field-level options and association support.

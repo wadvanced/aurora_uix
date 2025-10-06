@@ -544,21 +544,23 @@ defmodule Aurora.Uix.Layout.Helpers do
   # Creates a standardized field tag structure from various field specifications.
   @spec create_field_tag(atom() | {atom(), Keyword.t()}, Macro.Env.t()) :: map()
   defp create_field_tag(field, _env) when is_atom(field) do
-    %{tag: :field, name: field, config: [], inner_elements: []}
+    TreePath.new(%{tag: :field, name: field, config: [], inner_elements: []})
   end
 
   defp create_field_tag({field_name, opts} = _field, env) when is_list(opts) do
     opts
     |> Enum.map(&process_field_tag_option(&1, env))
-    |> then(&%{tag: :field, name: field_name, opts: &1, config: [], inner_elements: []})
+    |> then(
+      &TreePath.new(%{tag: :field, name: field_name, opts: &1, config: [], inner_elements: []})
+    )
   end
 
   defp create_field_tag(field, _env) when is_tuple(field) do
-    %{tag: :field, name: field, config: [], inner_elements: []}
+    TreePath.new(%{tag: :field, name: field, config: [], inner_elements: []})
   end
 
   defp create_field_tag({field_name, opts}, _env) do
-    %{tag: :field, name: field_name, config: opts, inner_elements: []}
+    TreePath.new(%{tag: :field, name: field_name, config: opts, inner_elements: []})
   end
 
   # Processes field tag options, handling function components and quoted expressions.

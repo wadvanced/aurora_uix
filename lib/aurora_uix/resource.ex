@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Resource do
   - Integrates with other Aurora.Uix parsing components
   """
 
-  use Aurora.Uix.AccessHelper
+  use Accessible
 
   alias Aurora.Uix.Field
 

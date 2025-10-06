@@ -2,15 +2,43 @@
   <img src="./guides/images/aurora_uix-logo.svg" height="200" />
 </p>
 
+[![CI](https://github.com/wadvanced/aurora_uix/actions/workflows/ci.yml/badge.svg)](https://github.com/wadvanced/aurora_uix/actions/workflows/ci.yml)
+[![Hex.pm](https://img.shields.io/hexpm/v/aurora_uix.svg)](https://hex.pm/packages/aurora_uix)
+[![Downloads](https://img.shields.io/hexpm/dt/aurora_uix.svg)](https://hex.pm/packages/aurora_uix)
+[![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/aurora_uix)
+[![Last Commit](https://img.shields.io/github/last-commit/wadvanced/aurora_uix.svg)](https://github.com/wadvanced/aurora_uix/commits/main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+
 # Aurora UIX
 
 A low-code UI framework for Elixir's Phoenix, generating CRUD UIs with minimal code.
 
 ---
+## 📖 Overview
 
-## For Library Users
+Aurora UIX is a low-code UI framework for Elixir's Phoenix LiveView that helps you build feature-rich CRUD interfaces with minimal configuration. It is designed to be highly extensible, allowing you to customize every aspect of the UI, from fields and layouts to actions and templates.
 
-### 🚀 Getting Started
+- **Key Features**:
+  - **Low-Code**: Generate complete CRUD UIs from your Ecto schemas with just a few lines of code.
+  - **Highly Extensible**: Customize fields, layouts, actions, and templates to fit your needs.
+  - **LiveView Native**: Built on top of Phoenix LiveView for real-time user experiences.
+  - **Association Support**: Built-in support for `belongs_to` and `has_many` associations.
+- **Technology Stack**:
+  - Elixir `1.15.x`
+  - Phoenix `1.7.x`
+  - Ecto `3.10.x`
+
+---
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have the following installed on your local machine:
+- [Elixir](https://elixir-lang.org/install.html)
+- [Erlang](https://www.erlang.org/downloads)
+
+### Installation
 
 1. **Add to your dependencies**  
    In `mix.exs`:
@@ -67,50 +95,7 @@ Find all guides in the [`guides/`](./guides/) directory.
 > - **Associations**: Aurora UIX supports both `has_many` and `belongs_to` associations with customizable labels.
 
 ---
-
-## For Contributors
-
-Thank you for considering contributing! Here's how to set up your development and testing environment.
-
-### 🛠️ Development Setup
-
-- **Elixir** (check with `elixir --version`)
-- **PostgreSQL** (default: localhost:5432, user: postgres, db: aurora_uix_test)
-- **UUID Extension** in PostgreSQL:
-  ```sql
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  ```
-
-1. Clone the repo:
-   ```shell
-   git clone https://github.com/your-repo/aurora-uix.git
-   cd aurora-uix
-   ```
-2. Install dependencies:
-   ```shell
-   mix deps.get
-   ```
-3. Install and build assets:
-   ```shell
-   mix uix.test.assets.install
-   mix uix.test.assets.build
-   ```
-4. Create and migrate the test database:
-   ```shell
-   mix uix.test.task ecto.create
-   mix uix.test.task ecto.migrate
-   ```
-5. **(Optional) Custom Test Config**  
-   - Copy `test/config/test.exs` to `config/test.exs` in your project root:
-     ```shell
-     cp test/config/test.exs config/test.exs
-     ```
-   - Edit `config/test.exs` as needed for your local environment.  
-   - This file is not under version control.
-
----
-
-### 🧪 Testing
+## 🧪 Running Tests
 
 - Run all tests:
   ```shell
@@ -146,31 +131,30 @@ Thank you for considering contributing! Here's how to set up your development an
 - This setup is required for the test server to mount and test all CRUD UIs at predictable URLs.
 
 ---
+## 🚢 Deployment
 
-### 🧩 Extending Aurora UIX
-
-Aurora UIX is designed for extensibility. You can:
-
-- **Create custom templates** by implementing the `Aurora.Uix.Template` behaviour. See [Advanced Usage](./guides/advanced/advanced_usage.md).
-- **Override core components** using your own module with `Aurora.Uix.CoreComponentsImporter`.
-- **Add new field renderers or layout containers** by following the patterns in the `lib/aurora_uix/templates` directory.
-
-For more, see the [Advanced Usage Guide](./guides/advanced/advanced_usage.md).
-
----
-
-### 🤝 Contribution Guidelines
-
-- All contributions must pass:
-  - `mix consistency` (checks formatting, compilation, Credo, Dialyzer, and documentation)
-  - `mix test` (all tests must pass)
-- Please follow the provided formatter, Credo, and Doctor configs.
-- Write clear and concise documentation where applicable.
+- **Building for production:**
+  ```bash
+  MIX_ENV=prod mix release
+  ```
+- **Running migrations in production:**
+  ```bash
+  prod/rel/[your-app]/bin/[your-app] eval "MyApp.Release.migrate"
+  ```
+- **Hosting details** (e.g., Gigalixir, Fly.io, or self-hosted).
 
 ---
+## 🤝 Contributing
 
-## License
-
-Aurora UIX is licensed under the [MIT License](LICENSE.md).
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
 
 ---
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+## 📧 Contact
+
+- **WAdvanced** - contact@wadvanced.com
+- **Project Link** - [https://github.com/wadvanced/aurora_uix](https://github.com/wadvanced/aurora_uix)
