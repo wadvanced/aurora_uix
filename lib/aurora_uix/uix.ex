@@ -86,6 +86,8 @@ defmodule Aurora.Uix do
 
   While it provides flexibility for customization, it works best when embracing its conventions.
   """
+  use StructInspect.Overrides
+
   alias Aurora.Uix.Layout.CreateLayout
   alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.ResourceMetadata

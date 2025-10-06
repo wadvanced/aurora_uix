@@ -580,7 +580,12 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
     fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)
 
-    fields_layout = %TreePath{tag: fields_layout_mode, config: [], opts: [], inner_elements: columns}
+    fields_layout = %TreePath{
+      tag: fields_layout_mode,
+      config: [],
+      opts: [],
+      inner_elements: columns
+    }
 
     TreePath.new(%{
       tag: layout_type,

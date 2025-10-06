@@ -14,7 +14,8 @@ defmodule Aurora.Uix.TreePath do
     - `inner_elements`: A list of child `t:t/0` nodes.
   """
 
-  use Aurora.Uix.AccessHelper
+  use Accessible
+  # use StructInspect, [false_value: true]
 
   @enforce_keys [:tag]
   defstruct [:tag, :name, config: [], opts: [], inner_elements: []]
