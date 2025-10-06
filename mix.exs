@@ -22,6 +22,7 @@ defmodule Aurora.Uix.MixProject do
       # Hex
       description: "Low code UI for the elixir's Phoenix Framework",
       package: [
+        name: "aurora_uix",
         maintainers: ["Federico Alcántara"],
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
@@ -67,6 +68,7 @@ defmodule Aurora.Uix.MixProject do
   defp deps do
     [
       {:aurora_ctx, "~> 0.1"},
+      {:accessible, "~> 0.3"},
       {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
       {:gettext, "~> 0.20"},
@@ -74,6 +76,7 @@ defmodule Aurora.Uix.MixProject do
       {:phoenix_ecto, "~> 4.6"},
       {:phoenix_live_view, "~> 1.1"},
       {:postgrex, ">= 0.0.0"},
+      {:struct_inspect, "~> 0.1"},
 
       ## Dev dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
