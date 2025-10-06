@@ -1,0 +1,71 @@
+
+# Main workflow.
+name: Dependency Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 23 * * 0" # Every Sunday at 11 PM
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-dependencies:
+    name: Check for outdated dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        elixir: ['1.18.4']
+        otp: ['28.0.1']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Elixir
+        id: setup-beam
+        uses: erlef/setup-beam@e6d7c94229049569db56a7ad5a540c051a010af9 # v1.20.4
+        with:
+          elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
+          otp-version: ${{ matrix.otp }} # [Required] Define the Erlang/OTP version
+      - name: Restore dependencies cache
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          mix deps.get
+          mix deps.compile
+      - name: Check for outdated dependencies and create issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mix hex.outdated | tail -n +3 | while read -r line; do
+            dep_name=$(echo "$line" | awk '{print $1}')
+            current_version=$(echo "$line" | awk '{print $2}')
+            latest_version=$(echo "$line" | awk '{print $3}')
+            issue_title=""
+            issue_body=""
+            issue_labels="bump"
+
+            if echo "$line" | grep -q "Update possible"; then
+              issue_title="Bump $dep_name from $current_version to $latest_version"
+              issue_body="Dependency \`$dep_name\` is outdated. Current version: \`$current_version\`, Latest version: \`$latest_version\`."
+            elif echo "$line" | grep -q "Update not possible"; then
+              issue_title="[HIGH PRIORITY] Bump $dep_name from $current_version to $latest_version"
+              issue_body="Dependency \`$dep_name\` is outdated and requires a major update. Current version: \`$current_version\`, Latest version: \`$latest_version\`."
+              issue_labels="bump,high-priority"
+            fi
+
+            if [ -n "$issue_title" ]; then
+              existing_issue=$(gh issue list --label "dependencies" --search "in:title \"$issue_title\"" --json title -q ".[] | select(.title==\"$issue_title\")")
+              if [ -z "$existing_issue" ]; then
+                gh issue create --title "$issue_title" --body "$issue_body" --label "$issue_labels"
+              fi
+            fi
+          done
