@@ -124,7 +124,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
       role="alert"
       class={[
         "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
@@ -166,8 +166,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         id="client-error"
         kind={:error}
         title={gettext("We can't find the internet")}
-        phx-disconnected={show(".phx-client-error #client-error")}
-        phx-connected={hide("#client-error")}
+        phx-disconnected={uix_show(".phx-client-error #client-error")}
+        phx-connected={uix_hide("#client-error")}
         hidden
       >
         {gettext("Attempting to reconnect")}
@@ -178,8 +178,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         id="server-error"
         kind={:error}
         title={gettext("Something went wrong!")}
-        phx-disconnected={show(".phx-server-error #server-error")}
-        phx-connected={hide("#server-error")}
+        phx-disconnected={uix_show(".phx-server-error #server-error")}
+        phx-connected={uix_hide("#server-error")}
         hidden
       >
         {gettext("Hang in there while we get back on track")}
@@ -563,8 +563,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
       <button phx-click={show("#my-element")}>Show</button>
   """
-  @spec show(JS.t() | nil, binary) :: JS.t()
-  def show(js \\ %JS{}, selector) do
+  @spec uix_show(JS.t() | nil, binary) :: JS.t()
+  def uix_show(js \\ %JS{}, selector) do
     JS.show(js,
       to: selector,
       time: 300,
@@ -582,8 +582,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
       <button phx-click={hide("#my-element")}>Hide</button>
   """
-  @spec hide(JS.t() | nil, binary) :: JS.t()
-  def hide(js \\ %JS{}, selector) do
+  @spec uix_hide(JS.t() | nil, binary) :: JS.t()
+  def uix_hide(js \\ %JS{}, selector) do
     JS.hide(js,
       to: selector,
       time: 200,
@@ -612,7 +612,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       time: 300,
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
     )
-    |> show("##{id}-container")
+    |> uix_show("##{id}-container")
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
   end
@@ -633,7 +633,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       to: "##{id}-bg",
       transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
     )
-    |> hide("##{id}-container")
+    |> uix_hide("##{id}-container")
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
