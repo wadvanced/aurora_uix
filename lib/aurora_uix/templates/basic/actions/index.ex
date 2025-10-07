@@ -126,7 +126,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def remove_row_action(assigns) do
     ~H"""
       <.link
-            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> hide("##{row_info_id(@auix)}")}
+            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> uix_hide("##{row_info_id(@auix)}")}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={gettext("Are you sure?")}
           >
