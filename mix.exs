@@ -15,7 +15,8 @@ defmodule Aurora.Uix.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       xref: xref(Mix.env()),
       dialyzer: [
-        plt_add_apps: [:eex, :mix]
+        plt_add_apps: [:eex, :mix],
+        ignore_warnings: ".dialyzer.ignore-warnings"
       ],
       aliases: aliases(),
 
@@ -71,7 +72,7 @@ defmodule Aurora.Uix.MixProject do
       {:accessible, "~> 0.3"},
       {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
-      {:gettext, "~> 0.20"},
+      {:gettext, "~> 1.0"},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.6"},
       {:phoenix_live_view, "~> 1.1"},
@@ -85,7 +86,7 @@ defmodule Aurora.Uix.MixProject do
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
-      {:lazy_html, ">= 0.1.0", only: :test},
+      {:lazy_html, ">= 0.0.0", only: :test},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
   end
