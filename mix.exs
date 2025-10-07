@@ -85,7 +85,6 @@ defmodule Aurora.Uix.MixProject do
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
     ]
