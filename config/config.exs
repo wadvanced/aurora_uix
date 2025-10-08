@@ -14,6 +14,7 @@ config :aurora_uix,
 # Configures the endpoint
 config :aurora_uix, Aurora.UixWeb.Endpoint,
   url: [host: "localhost"],
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4001")],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: Aurora.UixWeb.ErrorHTML, json: Aurora.UixWeb.ErrorJSON],
@@ -21,15 +22,6 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
   ],
   pubsub_server: Aurora.Uix.PubSub,
   live_view: [signing_salt: "I9hzS6Y2"]
-
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :aurora_uix, Aurora.Uix.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -48,6 +40,8 @@ config :tailwind,
     args: ~w(
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
+      --content=./lib/**/*.{ex,heex,eex}
+      --content=./assets/js/**/*.js
     ),
     cd: Path.expand("..", __DIR__)
   ]

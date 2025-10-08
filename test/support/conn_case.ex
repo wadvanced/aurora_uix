@@ -1,4 +1,4 @@
-defmodule Aurora.UixWeb.ConnCase do
+defmodule Aurora.UixWeb.Test.ConnCase do
   @moduledoc """
   Test case to be used by tests that require setting up a connection.
 
@@ -15,19 +15,19 @@ defmodule Aurora.UixWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint Web.Endpoint
+      @endpoint UixWeb.Endpoint
 
       use Aurora.UixWeb, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn, except: [assign: 3]
       import Phoenix.ConnTest, except: [put_flash: 3]
-      import Web.ConnCase
+      import UixWeb.Test.ConnCase
     end
   end
 
   setup tags do
-    Web.DataCase.setup_sandbox(tags)
+    UixWeb.Test.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

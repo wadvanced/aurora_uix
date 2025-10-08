@@ -1,9 +1,9 @@
-Mix.Tasks.Uix.Test.Assets.Build.run("")
+# Mix.Tasks.Uix.Test.Assets.Build.run("")
 
 Logger.configure(level: :debug)
 Code.require_file("test/env_loader.exs")
-Tailwind.start(nil, nil)
-Esbuild.start(nil, nil)
+# Tailwind.start(nil, nil)
+# Esbuild.start(nil, nil)
 
 Code.require_file("test/start_test_app.exs")
 

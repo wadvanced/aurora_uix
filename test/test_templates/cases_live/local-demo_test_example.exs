@@ -8,7 +8,7 @@ defmodule Aurora.UixWeb.LocalDemoTest do
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
-    use Aurora.UixWeb, :aurora_uix_for_test
+    use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product

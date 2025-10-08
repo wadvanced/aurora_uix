@@ -1,4 +1,4 @@
-defmodule Aurora.UixWeb.DataCase do
+defmodule Aurora.UixWeb.Test.DataCase do
   @moduledoc """
   Setup for tests requiring access to the application's data layer.
 
@@ -11,7 +11,7 @@ defmodule Aurora.UixWeb.DataCase do
   use ExUnit.CaseTemplate
 
   alias Aurora.Uix.Repo
-  alias Aurora.UixWeb.DataCase
+  alias Aurora.UixWeb.Test.DataCase
   alias Ecto.Adapters.SQL.Sandbox
 
   using do

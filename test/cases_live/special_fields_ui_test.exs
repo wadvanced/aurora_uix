@@ -1,5 +1,5 @@
-defmodule Aurora.UixWeb.SpecialFieldsUITest do
-  use Aurora.UixWeb, :aurora_uix_for_test
+defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory

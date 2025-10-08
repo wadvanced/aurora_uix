@@ -1,5 +1,5 @@
 defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
-  use Aurora.UixWeb, :aurora_uix_for_test
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Aurora.UixWeb.UICase
 
   alias Aurora.Uix.Test.Inventory

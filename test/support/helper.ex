@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Support.Helper do
+defmodule Aurora.Uix.Test.Helper do
   @moduledoc """
   Helper functions for test data generation.
 

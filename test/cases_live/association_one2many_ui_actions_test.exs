@@ -1,5 +1,5 @@
-defmodule Aurora.UixWeb.AssociationOne2ManyUIActionsTest do
-  use Aurora.UixWeb, :aurora_uix_for_test
+defmodule Aurora.UixWeb.Test.AssociationOne2ManyUIActionsTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Aurora.UixWeb.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
 

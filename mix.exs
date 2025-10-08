@@ -61,7 +61,8 @@ defmodule Aurora.Uix.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      mod: {Aurora.Uix.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -70,8 +71,9 @@ defmodule Aurora.Uix.MixProject do
     [
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
-      {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
+      {:dns_cluster, "~> 0.2.0"},
+      {:ecto_sql, "~> 3.10"},
       {:gettext, "~> 1.0"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
@@ -88,7 +90,8 @@ defmodule Aurora.Uix.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:postgrex, ">= 0.0.0"},
       {:struct_inspect, "~> 0.1"},
-      {:swoosh, "~> 1.16"},
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.0"},
 
       ## Dev dependencies
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
@@ -103,7 +106,7 @@ defmodule Aurora.Uix.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support/"]
+  defp elixirc_paths(:test), do: ["lib", "test/support/", "test/cases_live"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp xref(:test) do
@@ -151,8 +154,8 @@ defmodule Aurora.Uix.MixProject do
     [
       "assets.build": ["tailwind aurora_uix", "esbuild aurora_uix"],
       "assets.deploy": [
-        "tailwind aurora_uix --minify",
-        "esbuild aurora_uix --minify",
+        "tailwind aurora_uix",
+        "esbuild aurora_uix",
         "phx.digest"
       ],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
