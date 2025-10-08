@@ -30,8 +30,19 @@ aurora_uix-*.tar
 
 *.iml
 
-# /assets/
-/test/_priv/static/assets/
+# generated stuff
+/priv/**/*.gz
+/priv/static/images/aurora_ctx-transparent-icon-*.svg
+/priv/static/images/aurora_irix-transparent-icon-*.svg
+/priv/static/images/aurora_uix-transparent-icon-*.svg
+/priv/static/images/aurora_zelox-transparent-icon-*.svg
+/priv/static/images/aurora-transparent-icon-*.svg
+/priv/static/favicon-*.ico
+/priv/static/robots-*.txt
+
+/tailwindcss-*.log
+
+# vscode
 /.vscode
 
 /**/-local-*.*
