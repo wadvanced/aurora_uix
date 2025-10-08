@@ -1,6 +1,6 @@
 defmodule Aurora.ErrorView do
   @moduledoc """
-  Renders error views for the Aurora.Uix.Test.Web application.
+  Renders error views for the Aurora.UixWeb application.
 
   ## Key Features
   - Provides fallback rendering for error templates and associated data.

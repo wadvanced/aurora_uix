@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Web.ConnCase do
+defmodule Aurora.UixWeb.ConnCase do
   @moduledoc """
   Test case to be used by tests that require setting up a connection.
 
@@ -10,14 +10,14 @@ defmodule Aurora.Uix.Test.Web.ConnCase do
 
   use ExUnit.CaseTemplate
 
-  alias Aurora.Uix.Test.Web
+  alias Aurora.UixWeb
 
   using do
     quote do
       # The default endpoint for testing
       @endpoint Web.Endpoint
 
-      use Aurora.Uix.Test.Web, :verified_routes
+      use Aurora.UixWeb, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn, except: [assign: 3]

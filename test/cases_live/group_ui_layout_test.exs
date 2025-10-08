@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.GroupUILayoutTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.GroupUILayoutTest do
+  use Aurora.UixWeb, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product

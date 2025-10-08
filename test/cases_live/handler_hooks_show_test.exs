@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.HandlerHooksShowTest do
+  use Aurora.UixWeb, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   # When you define a link in a test, add a line to test/support/app_web/router.exs
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "handler-hooks-show-") do
-    edit_layout :product, show_handler_module: Aurora.Uix.Test.Web.ShowHandlerHook do
+    edit_layout :product, show_handler_module: Aurora.UixWeb.ShowHandlerHook do
       stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
     end
   end
@@ -256,7 +256,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   end
 end
 
-defmodule Aurora.Uix.Test.Web.ShowHandlerHook do
+defmodule Aurora.UixWeb.ShowHandlerHook do
   use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
 
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]

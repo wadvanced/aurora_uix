@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Repo do
+defmodule Aurora.Uix.Repo do
   @moduledoc """
   Ecto repository for Aurora UIX test support.
 

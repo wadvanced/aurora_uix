@@ -7,9 +7,6 @@
 # The directory Mix downloads your dependencies sources to.
 /deps/
 
-# The config directory.
-/config/
-
 # Where third-party dependencies like ExDoc output generated docs.
 /doc/
 
@@ -33,7 +30,7 @@ aurora_uix-*.tar
 
 *.iml
 
-/assets/
+# /assets/
 /test/_priv/static/assets/
 /.vscode
 

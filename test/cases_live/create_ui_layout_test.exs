@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.CreateUILayoutTest do
+  use Aurora.UixWeb, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
   import Phoenix.Component, only: [sigil_H: 2]
 

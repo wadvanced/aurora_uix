@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.HandlerHooksFormTest do
+  use Aurora.UixWeb, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Test.Inventory
@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
       inline([:list_price, :rrp])
     end
 
-    edit_layout :product, edit_handler_module: Aurora.Uix.Test.Web.FormHandlerHook do
+    edit_layout :product, edit_handler_module: Aurora.UixWeb.FormHandlerHook do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
       inline([:list_price, :rrp])
@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
   end
 end
 
-defmodule Aurora.Uix.Test.Web.FormHandlerHook do
+defmodule Aurora.UixWeb.FormHandlerHook do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
   alias Aurora.Uix.Templates.Basic.Handlers.FormImpl

@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.AssociationMany2OneParentUILayoutTest do
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
+defmodule Aurora.UixWeb.AssociationMany2OneParentUILayoutTest do
+  use Aurora.UixWeb.UICase, :phoenix_case
+  use Aurora.UixWeb, :aurora_uix_for_test
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product

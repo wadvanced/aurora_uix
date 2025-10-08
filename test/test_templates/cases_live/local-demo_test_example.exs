@@ -1,14 +1,14 @@
-defmodule Aurora.Uix.Test.Web.LocalDemoTest do
+defmodule Aurora.UixWeb.LocalDemoTest do
   @moduledoc """
   Use this module as a reference to create local, not versioned, tests.
   """
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+    use Aurora.UixWeb, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
