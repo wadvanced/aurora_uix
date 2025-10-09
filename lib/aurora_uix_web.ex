@@ -17,8 +17,16 @@ defmodule Aurora.UixWeb do
   those modules here.
   """
 
+  @doc """
+  Returns the list of static paths.
+  """
+  @spec static_paths() :: [String.t()]
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
+  @doc """
+  Defines the router with all the necessary imports and helpers.
+  """
+  @spec router() :: Macro.t()
   def router do
     quote do
       use Phoenix.Router, helpers: false
@@ -32,24 +40,20 @@ defmodule Aurora.UixWeb do
     end
   end
 
+  @doc """
+  Defines a channel with all the necessary imports.
+  """
+  @spec channel() :: Macro.t()
   def channel do
     quote do
       use Phoenix.Channel
     end
   end
 
-  # def controller do
-  #   quote do
-  #     use Phoenix.Controller, formats: [:html, :json]
-
-  #     use Gettext, backend: Aurora.UixWeb.Gettext
-
-  #     import Plug.Conn
-
-  #     unquote(verified_routes())
-  #   end
-  # end
-
+  @doc """
+  Defines a live view with all the necessary imports and helpers.
+  """
+  @spec live_view() :: Macro.t()
   def live_view do
     quote do
       use Phoenix.LiveView
@@ -58,6 +62,10 @@ defmodule Aurora.UixWeb do
     end
   end
 
+  @doc """
+  Defines a live component with all the necessary imports and helpers.
+  """
+  @spec live_component() :: Macro.t()
   def live_component do
     quote do
       use Phoenix.LiveComponent
@@ -66,6 +74,10 @@ defmodule Aurora.UixWeb do
     end
   end
 
+  @doc """
+  Defines an HTML component with all the necessary imports and helpers.
+  """
+  @spec html() :: Macro.t()
   def html do
     quote do
       use Phoenix.Component
@@ -78,6 +90,54 @@ defmodule Aurora.UixWeb do
       unquote(html_helpers())
     end
   end
+
+  @doc """
+  Returns a quote with the verified routes configuration.
+  """
+  @spec verified_routes() :: Macro.t()
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: Aurora.UixWeb.Endpoint,
+        router: Aurora.UixWeb.Router,
+        statics: Aurora.UixWeb.static_paths()
+    end
+  end
+
+  @doc """
+  Injects test routes into the router.
+
+  This function checks if the `Aurora.UixWeb.Test.Routes` module is loaded
+  and, if so, injects the test routes into the router.
+  """
+  @spec inject_test_routes() :: Macro.t()
+  defmacro inject_test_routes do
+    routes =
+      if Code.ensure_loaded?(Aurora.UixWeb.Test.Routes) do
+        quote do
+          scope "/", Aurora.UixWeb.Test do
+            pipe_through(:browser)
+            use Aurora.UixWeb.Test.Routes
+          end
+        end
+      else
+        :ok
+      end
+
+    quote do
+      unquote(routes)
+    end
+  end
+
+  @doc """
+  When used, dispatch to the appropriate controller/live_view/etc.
+  """
+  @spec __using__(atom()) :: Macro.t()
+  defmacro __using__(which) when is_atom(which) do
+    apply(__MODULE__, which, [])
+  end
+
+  ## PRIVATE ##
 
   defp html_helpers do
     quote do
@@ -97,39 +157,5 @@ defmodule Aurora.UixWeb do
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end
-  end
-
-  def verified_routes do
-    quote do
-      use Phoenix.VerifiedRoutes,
-        endpoint: Aurora.UixWeb.Endpoint,
-        router: Aurora.UixWeb.Router,
-        statics: Aurora.UixWeb.static_paths()
-    end
-  end
-
-  @doc """
-  When used, dispatch to the appropriate controller/live_view/etc.
-  """
-  defmacro __using__(which) when is_atom(which) do
-    apply(__MODULE__, which, [])
-  end
-
-  defmacro inject_test_routes do
-    routes =
-      if Code.ensure_loaded?(Aurora.UixWeb.Test.Routes) do
-        quote do
-          scope "/", Aurora.UixWeb.Test do
-            pipe_through(:browser)
-            use Aurora.UixWeb.Test.Routes
-          end
-        end
-      else
-        :ok
-      end
-
-      quote do
-        unquote(routes)
-      end
   end
 end

@@ -1,6 +1,17 @@
 defmodule Aurora.UixWeb.Test.Routes do
+  @moduledoc """
+  Provides test routes for the application.
+
+  This module defines a `__using__/1` macro that injects a comprehensive set of
+  test routes into the router. These routes are used for testing various
+  features and scenarios of the Aurora.Uix framework.
+  """
   alias Aurora.UixWeb.Test.RoutesHelper
 
+  @doc """
+  Injects all test routes into the calling module.
+  """
+  @spec __using__(any()) :: Macro.t()
   defmacro __using__(_opts) do
     quote do
       require Aurora.UixWeb.Test.RoutesHelper

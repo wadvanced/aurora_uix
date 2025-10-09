@@ -1,4 +1,10 @@
 defmodule Aurora.UixWeb.Endpoint do
+  @moduledoc """
+  The application's entry point for web requests.
+
+  It defines the endpoint's configuration and the plug pipeline
+  that all requests go through.
+  """
   use Phoenix.Endpoint, otp_app: :aurora_uix
 
   alias Aurora.UixWeb, as: Web

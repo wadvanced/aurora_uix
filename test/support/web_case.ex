@@ -1,4 +1,10 @@
 defmodule Aurora.UixWeb.Test.WebCase do
+  @moduledoc """
+  This module defines the test case for web-related tests.
+
+  It sets up the necessary configurations and helpers for testing
+  controllers, views, and channels.
+  """
   @doc """
   Defines Aurora UIX test configuration.
 
@@ -22,6 +28,7 @@ defmodule Aurora.UixWeb.Test.WebCase do
   ## Returns
   Macro.t() - Configuration quote for the specified component.
   """
+  @spec __using__(atom()) :: Macro.t()
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end

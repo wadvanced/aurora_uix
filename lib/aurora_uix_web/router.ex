@@ -1,4 +1,10 @@
 defmodule Aurora.UixWeb.Router do
+  @moduledoc """
+  Defines the application's routes and pipelines.
+
+  This module is responsible for defining the application's routes and
+  the pipelines that requests go through.
+  """
   use Aurora.UixWeb, :router
 
   pipeline :browser do

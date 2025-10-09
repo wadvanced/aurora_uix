@@ -1,6 +1,20 @@
 defmodule Aurora.UixWeb.Test.RoutesHelper do
+  @moduledoc """
+  Provides helper macros for defining routes in tests.
+  """
   alias Aurora.UixWeb.Test.RoutesHelper
 
+  @doc """
+  Registers CRUD routes for a given module and link prefix.
+
+  ## Parameters
+  - `module` (module()) - The base module for the routes.
+  - `link_prefix` (binary()) - The URL prefix for the routes.
+
+  ## Returns
+  Macro.t() - A quote with the generated CRUD routes.
+  """
+  @spec register_crud(module(), binary()) :: Macro.t()
   defmacro register_crud(module, link_prefix) do
     routes =
       quote do
