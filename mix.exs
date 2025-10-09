@@ -19,7 +19,7 @@ defmodule Aurora.Uix.MixProject do
         ignore_warnings: ".dialyzer.ignore-warnings"
       ],
       aliases: aliases(),
-
+      listeners: [Phoenix.CodeReloader],
       # Hex
       description: "Low code UI for the elixir's Phoenix Framework",
       package: [
@@ -72,7 +72,6 @@ defmodule Aurora.Uix.MixProject do
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.5"},
-      {:dns_cluster, "~> 0.2.0"},
       {:ecto_sql, "~> 3.10"},
       {:gettext, "~> 1.0"},
       {:heroicons,
@@ -152,8 +151,9 @@ defmodule Aurora.Uix.MixProject do
 
   defp aliases do
     [
-      "assets.build": ["tailwind aurora_uix", "esbuild aurora_uix"],
+      "assets.build": ["phx.digest.clean --all", "tailwind aurora_uix", "esbuild aurora_uix", "phx.digest"],
       "assets.deploy": [
+        "phx.digest.clean --all",
         "tailwind aurora_uix",
         "esbuild aurora_uix",
         "phx.digest"
