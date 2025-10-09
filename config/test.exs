@@ -13,16 +13,29 @@ config :aurora_uix, Aurora.Uix.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
-# We don't run a server during test. If one is required,
-# you can enable the server option below.
+# For development, we disable any cache and enable
+# debugging and code reloading.
+#
+# The watchers configuration can be used to run external
+# watchers to your application. For example, we can use it
+# to bundle .js and .css sources.
 config :aurora_uix, Aurora.UixWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4001],
+  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4001")],
+  check_origin: false,
+  code_reloader: true,
+  debug_errors: true,
+  server: true,
   secret_key_base: "IxHRUjPWSSjebX94pT1TbP1TojKBJmMzFFklknykyzf0EkuvGLrcG5I54+kTQzg3",
-  server: true
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:aurora_uix, ~w(--watch)]}
+  ]
 
+# Enable dev routes for dashboard
+config :aurora_uix, dev_routes: true
+
+# Enable test routes
 config :aurora_uix, test_routes: true
-
-config :aurora_uix, test_routes_module: quote(do: use(Aurora.UixWeb.Test.Routes))
 
 # Print only warnings and errors during test
 config :logger, level: :warning

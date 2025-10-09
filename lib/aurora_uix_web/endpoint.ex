@@ -8,7 +8,7 @@ defmodule Aurora.UixWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_aurora_uix_test_key",
+    key: "_aurora_uix_key",
     signing_salt: "17ECouB/",
     same_site: "Lax"
   ]
@@ -20,7 +20,7 @@ defmodule Aurora.UixWeb.Endpoint do
 
   plug(Plug.Static,
     at: "/",
-    from: "test/_priv/static",
+    from: "priv/static",
     gzip: false,
     only: Web.static_paths()
   )
