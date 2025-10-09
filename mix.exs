@@ -151,7 +151,12 @@ defmodule Aurora.Uix.MixProject do
 
   defp aliases do
     [
-      "assets.build": ["phx.digest.clean --all", "tailwind aurora_uix", "esbuild aurora_uix", "phx.digest"],
+      "assets.build": [
+        "phx.digest.clean --all",
+        "tailwind aurora_uix",
+        "esbuild aurora_uix",
+        "phx.digest"
+      ],
       "assets.deploy": [
         "phx.digest.clean --all",
         "tailwind aurora_uix",

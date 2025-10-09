@@ -2,9 +2,9 @@ defmodule Aurora.UixWeb.Test.OrderByMetadataTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Aurora.UixWeb.UICase, :phoenix_case
 
+  alias Aurora.Uix.Repo
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Repo
 
   @shuffled_references [
     "test_order-11",

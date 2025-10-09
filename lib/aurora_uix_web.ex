@@ -139,6 +139,7 @@ defmodule Aurora.UixWeb do
 
   ## PRIVATE ##
 
+  @spec html_helpers() :: Macro.t()
   defp html_helpers do
     quote do
       use Aurora.Uix.CoreComponentsImporter
@@ -150,9 +151,9 @@ defmodule Aurora.UixWeb do
       # import Aurora.UixWeb.CoreComponents
 
       # Common modules used in templates
-      alias Phoenix.LiveView.JS
-      alias Aurora.UixWeb.Layouts
       alias Aurora.UixWeb
+      alias Aurora.UixWeb.Layouts
+      alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

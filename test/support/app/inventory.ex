@@ -9,8 +9,8 @@ defmodule Aurora.Uix.Test.Inventory do
 
   use Aurora.Ctx
 
-  alias Aurora.Uix.Test.Inventory.{Product, ProductLocation, ProductTransaction}
   alias Aurora.Uix.Repo
+  alias Aurora.Uix.Test.Inventory.{Product, ProductLocation, ProductTransaction}
 
   @doc """
   Lists all products.
