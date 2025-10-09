@@ -197,9 +197,9 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `name` (`atom()` | `nil`) - The field name to format.
 
   ## Returns
-  `String.t()` - The formatted display label.
+  `binary()` - The formatted display label.
   """
-  @spec field_label(atom() | nil) :: String.t()
+  @spec field_label(atom() | nil) :: binary()
   def field_label(nil), do: ""
 
   def field_label(name),
@@ -216,9 +216,9 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `type` (`atom()`) - The Elixir type that determines the placeholder format.
 
   ## Returns
-  `String.t()` - The default placeholder text.
+  `binary()` - The default placeholder text.
   """
-  @spec field_placeholder(atom(), atom()) :: String.t()
+  @spec field_placeholder(atom(), atom()) :: binary()
   def field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
 
   def field_placeholder(_, type)

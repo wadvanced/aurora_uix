@@ -171,7 +171,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Parameters
 
-    - `event` (String.t()) - The event name (e.g., "validate", "save", "switch_section").
+    - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
     - `params` (map()) - Parameters from the event.
     - `socket` (Socket.t()) - The current LiveView socket.
 
@@ -184,7 +184,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       iex> handle_event("validate", %{"user" => %{"name" => "Alice"}}, %{assigns: %{auix: %{module: "user"}}})
       {:noreply, %Phoenix.LiveView.Socket{...}}
   """
-  @spec auix_handle_event(String.t(), map(), Socket.t()) ::
+  @spec auix_handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
   # def auix_handle_event(event, params, %{assigns: %{auix: auix}} = socket) do
   #   entity_params = Map.get(params, auix.module)

@@ -16,9 +16,9 @@ defmodule Aurora.Uix.Test.Inventory.Product do
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t() | nil,
-          reference: String.t() | nil,
-          name: String.t() | nil,
-          description: String.t() | nil,
+          reference: binary() | nil,
+          name: binary() | nil,
+          description: binary() | nil,
           product_location_id: Ecto.UUID.t() | nil,
           quantity_at_hand: Decimal.t() | nil,
           quantity_initial: Decimal.t() | nil,
@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Test.Inventory.Product do
           height: Decimal.t() | nil,
           image: binary() | nil,
           thumbnail: binary() | nil,
-          status: String.t() | nil,
+          status: binary() | nil,
           deleted: boolean() | nil,
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,

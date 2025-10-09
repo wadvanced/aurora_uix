@@ -69,8 +69,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:link_prefix` (String.t()) - URL path prefix
-      - `:source` (String.t()) - Data source identifier
+      - `:link_prefix` (binary()) - URL path prefix
+      - `:source` (binary()) - Data source identifier
       - `:row_info` (tuple()) - Entity row information
       - `:module` (atom()) - Context module name
 
@@ -92,8 +92,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:link_prefix` (String.t()) - URL path prefix
-      - `:source` (String.t()) - Data source identifier
+      - `:link_prefix` (binary()) - URL path prefix
+      - `:source` (binary()) - Data source identifier
       - `:row_info` (tuple()) - Entity row information
       - `:module` (atom()) - Context module name
 
@@ -281,9 +281,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:index_new_link` (String.t()) - Path for new entity creation
+      - `:index_new_link` (binary()) - Path for new entity creation
       - `:module` (atom()) - Context module name
-      - `:name` (String.t()) - Display name for the entity type
+      - `:name` (binary()) - Display name for the entity type
 
   ## Returns
   Rendered.t() - Button link for creating new entities
@@ -379,7 +379,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       - `:pagination` (map()) - Must contain:
         * `:page` (integer()) - Current page
         * `:pages_count` (integer()) - Total pages (>1 to render)
-      - `:source` (String.t()) - Data source identifier
+      - `:source` (binary()) - Data source identifier
 
   ## Returns
   Rendered.t() - Responsive pagination controls or empty fragment

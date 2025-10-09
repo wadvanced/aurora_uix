@@ -118,7 +118,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   @spec create_multiple_transactions(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp create_multiple_transactions({conn, view}, product_id, suffix \\ :show) do
@@ -174,7 +174,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   @spec edit_single_transaction(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp edit_single_transaction({conn, view}, product_id, suffix) do
@@ -224,7 +224,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   @spec delete_single_transaction(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp delete_single_transaction({conn, view}, product_id, suffix) do
