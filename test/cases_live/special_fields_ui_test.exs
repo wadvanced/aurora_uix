@@ -29,7 +29,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
     field(:product_location_id, option_label: :name)
   end
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "special-fields-ui-" do
     index_columns(:product, [:id, :reference, :name, :product_location_id, :status, :inactive],

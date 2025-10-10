@@ -11,7 +11,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "handler-hooks-show-") do
     edit_layout :product, show_handler_module: Aurora.UixWeb.ShowHandlerHook do

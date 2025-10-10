@@ -22,7 +22,7 @@ defmodule Aurora.UixWeb.LocalDemoTest do
     auix_resource_metadata(:product, context: Inventory, schema: Product) do
     end
 
-    # This link is already routed in test/support/app_web/router.exs as:
+    # This link is already routed in test/support/app_web/routes.ex as:
     # live("/local-demo-products", LocalDemoTest.TestModule.Product.Index, :index)
     # live("/local-demo-products/new", LocalDemoTest.TestModule.Product.Index, :new)
     # live("/local-demo-products/:id/edit", LocalDemoTest.TestModule.Product.Index, :edit)
