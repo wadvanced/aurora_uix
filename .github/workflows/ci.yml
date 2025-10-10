@@ -62,7 +62,9 @@ jobs:
         mix deps.compile
 
     - name: Compile app
-      run: mix compile --force
+      run: | 
+        mix compile --force
+        MIX_ENV=test mix compile --force
 
     - name: Check consistency
       run: mix consistency
