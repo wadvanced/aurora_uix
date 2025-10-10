@@ -70,7 +70,7 @@ jobs:
       run: mix compile --force
 
     - name: Compile app in test environment  
-      run: compile --force
+      run: mix compile --force
       env:
         MIX_ENV: test
 
