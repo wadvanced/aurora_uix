@@ -24,7 +24,14 @@ defmodule Aurora.UixWeb.Router do
     pipe_through(:browser)
   end
 
-  inject_test_routes()
+  if Application.compile_env(:aurora_uix, :test_routes) do
+      scope "/", Aurora.UixWeb.Test do
+        pipe_through(:browser)
+        require Aurora.UixWeb.Test.Routes
+        Aurora.UixWeb.Test.Routes.load_routes()
+      end
+  end
+  # inject_test_routes()
 
   # Other scopes may use custom stacks.
   # scope "/api", Aurora.UixWeb do
