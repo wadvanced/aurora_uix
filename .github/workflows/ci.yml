@@ -70,7 +70,9 @@ jobs:
       run: mix compile --force
 
     - name: Compile app in test environment  
-      run: MIX_ENV=test mix compile --force
+      run: compile --force
+      env:
+        MIX_ENV: test
 
     - name: Check consistency
       run: mix consistency
