@@ -67,20 +67,20 @@ jobs:
         mix assets.build    
 
     - name: Compile app
-      run: mix compile --force
-
-    - name: Compile app in test environment  
-      run: compile --force
-      env:
-        MIX_ENV: test
+      run: MIX_ENV=test mix compile --force
 
     - name: Check consistency
       run: mix consistency
 
     - name: create db and migration
       run: |
-        mix uix.test.task ecto.create
-        mix uix.test.task ecto.migrate 
+        mix ecto.create
+        mix ecto.migrate
+
+    - name: Compile for test
+      run: |
+        mix clean
+        mix compile    
     
     - name: Run tests
       run: mix test
