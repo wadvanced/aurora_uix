@@ -60,6 +60,11 @@ jobs:
       run: |
         mix deps.get
         mix deps.compile
+    
+    - name: Setup assets
+      run: |
+        mix assets.setup
+        mix assets.build    
 
     - name: Compile app
       run: | 
