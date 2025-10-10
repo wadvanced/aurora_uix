@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
   import Phoenix.Component, only: [sigil_H: 2]
 
@@ -27,7 +27,7 @@ defmodule Aurora.Uix.Test.Web.CreateUILayoutTest do
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "create-ui-layout-" do
     index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],

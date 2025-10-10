@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          type: String.t(),
+          type: binary(),
           quantity: Decimal.t(),
           cost: Decimal.t(),
           product_id: Ecto.UUID.t() | nil,

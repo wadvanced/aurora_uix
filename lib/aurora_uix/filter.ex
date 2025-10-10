@@ -77,7 +77,7 @@ defmodule Aurora.Uix.Filter do
 
   ## Parameters
 
-  - `attrs` (map() | atom() | String.t()) - Filter configuration where:
+  - `attrs` (map() | atom() | binary()) - Filter configuration where:
     - Map must contain `:key` (atom) and `:condition` (atom)
     - Atom creates equality filter for that key
     - String converts to atom and creates equality filter
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Filter do
   %Aurora.Uix.Filter{key: :created_at, condition: :eq, enabled?: false, values: [nil]}
   ```
   """
-  @spec new(map() | atom() | String.t()) :: t()
+  @spec new(map() | atom() | binary()) :: t()
   def new(%{key: key, condition: condition} = attrs) when is_map(attrs) or is_list(attrs),
     do: struct(%__MODULE__{key: key, condition: condition}, attrs)
 
@@ -145,7 +145,7 @@ defmodule Aurora.Uix.Filter do
 
   ## Returns
 
-  - `list({String.t(), atom()})` - Ordered list of condition mappings
+  - `list({binary(), atom()})` - Ordered list of condition mappings
 
   ## Examples
 
@@ -162,6 +162,6 @@ defmodule Aurora.Uix.Filter do
   ]
   ```
   """
-  @spec conditions() :: list({String.t(), atom()})
+  @spec conditions() :: list({binary(), atom()})
   def conditions, do: @conditions
 end

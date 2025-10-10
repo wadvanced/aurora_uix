@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.Test.HandlerHooksFormTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
   use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Test.Inventory
@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "handler-hooks-form-" do
     index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand])
@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
       inline([:list_price, :rrp])
     end
 
-    edit_layout :product, edit_handler_module: Aurora.Uix.Test.Web.FormHandlerHook do
+    edit_layout :product, edit_handler_module: Aurora.UixWeb.FormHandlerHook do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])
       inline([:list_price, :rrp])
@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksFormTest do
   end
 end
 
-defmodule Aurora.Uix.Test.Web.FormHandlerHook do
+defmodule Aurora.UixWeb.FormHandlerHook do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
   alias Aurora.Uix.Templates.Basic.Handlers.FormImpl

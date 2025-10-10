@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Repo.Migrations.CreateRelationships do
+defmodule Aurora.Uix.Repo.Migrations.CreateRelationships do
   use Ecto.Migration
 
   def change do

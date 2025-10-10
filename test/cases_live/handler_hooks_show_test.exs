@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
@@ -11,10 +11,10 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "handler-hooks-show-") do
-    edit_layout :product, show_handler_module: Aurora.Uix.Test.Web.ShowHandlerHook do
+    edit_layout :product, show_handler_module: Aurora.UixWeb.ShowHandlerHook do
       stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
     end
   end
@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   @spec create_multiple_transactions(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp create_multiple_transactions({conn, view}, product_id, suffix \\ :show) do
@@ -174,7 +174,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   @spec edit_single_transaction(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp edit_single_transaction({conn, view}, product_id, suffix) do
@@ -224,7 +224,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   @spec delete_single_transaction(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          String.t()
+          binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp delete_single_transaction({conn, view}, product_id, suffix) do
@@ -256,7 +256,7 @@ defmodule Aurora.Uix.Test.Web.HandlerHooksShowTest do
   end
 end
 
-defmodule Aurora.Uix.Test.Web.ShowHandlerHook do
+defmodule Aurora.UixWeb.ShowHandlerHook do
   use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
 
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]

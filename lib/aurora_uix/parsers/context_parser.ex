@@ -181,7 +181,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   ## PRIVATE
 
-  @spec create_function_reference(module(), list(String.t()), integer()) :: function()
+  @spec create_function_reference(module(), list(binary()), integer()) :: function()
   defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions

@@ -1,14 +1,20 @@
-defmodule Aurora.Uix.Test.Web.Endpoint do
+defmodule Aurora.UixWeb.Endpoint do
+  @moduledoc """
+  The application's entry point for web requests.
+
+  It defines the endpoint's configuration and the plug pipeline
+  that all requests go through.
+  """
   use Phoenix.Endpoint, otp_app: :aurora_uix
 
-  alias Aurora.Uix.Test.Web
+  alias Aurora.UixWeb, as: Web
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_aurora_uix_test_key",
+    key: "_aurora_uix_key",
     signing_salt: "17ECouB/",
     same_site: "Lax"
   ]
@@ -20,7 +26,7 @@ defmodule Aurora.Uix.Test.Web.Endpoint do
 
   plug(Plug.Static,
     at: "/",
-    from: "test/_priv/static",
+    from: "priv/static",
     gzip: false,
     only: Web.static_paths()
   )

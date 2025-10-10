@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
+defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorAtomTest do
+  use Aurora.UixWeb.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Test.Web.AssociationMany2OneSelectorAtomTest do
     field(:product_location_id, option_label: :name, order_by: [desc: :name])
   end
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "association-many_to_one_selector-atom-") do
     edit_layout :product_location do

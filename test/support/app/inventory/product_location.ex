@@ -23,9 +23,9 @@ defmodule Aurora.Uix.Test.Inventory.ProductLocation do
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          reference: String.t() | nil,
-          name: String.t() | nil,
-          type: String.t() | nil,
+          reference: binary() | nil,
+          name: binary() | nil,
+          type: binary() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

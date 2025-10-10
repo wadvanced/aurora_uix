@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.Test.MetadataWithoutOptionsTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase
   auix_resource_metadata(:product)
 
   test "Test default without options - no schema, no context" do

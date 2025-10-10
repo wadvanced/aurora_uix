@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.PagesBarTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.Test.PagesBarTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Test.Web.PagesBarTest do
     order_by: :reference
   )
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui(link_prefix: "pages-bar-") do
     index_columns(:product, [:id, :reference, :name, :cost], order_by: :name)

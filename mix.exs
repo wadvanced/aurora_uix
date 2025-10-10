@@ -19,7 +19,7 @@ defmodule Aurora.Uix.MixProject do
         ignore_warnings: ".dialyzer.ignore-warnings"
       ],
       aliases: aliases(),
-
+      listeners: [Phoenix.CodeReloader],
       # Hex
       description: "Low code UI for the elixir's Phoenix Framework",
       package: [
@@ -61,7 +61,8 @@ defmodule Aurora.Uix.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      mod: {Aurora.Uix.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -70,28 +71,42 @@ defmodule Aurora.Uix.MixProject do
     [
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
-      {:ecto_sql, "~> 3.10"},
       {:bandit, "~> 1.5"},
+      {:ecto_sql, "~> 3.10"},
       {:gettext, "~> 1.0"},
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.2.0",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.6"},
+      {:phoenix_html, "~> 4.1"},
+      {:phoenix_live_dashboard, "~> 0.8"},
       {:phoenix_live_view, "~> 1.1"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:postgrex, ">= 0.0.0"},
       {:struct_inspect, "~> 0.1"},
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.0"},
 
       ## Dev dependencies
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.4", runtime: Mix.env() == :dev},
+
+      ## Test dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
-      {:esbuild, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:lazy_html, ">= 0.0.0", only: :test},
-      {:tailwind, "~> 0.2", only: [:dev, :test], runtime: false}
+      {:lazy_html, ">= 0.0.0", only: :test}
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support/"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(:test), do: ["lib", "test/support/", "test/cases_live"]
+  defp elixirc_paths(_), do: ["lib", "test/support/app_web"]
 
   defp xref(:test) do
     "test/cases_live"
@@ -136,6 +151,19 @@ defmodule Aurora.Uix.MixProject do
 
   defp aliases do
     [
+      "assets.build": [
+        "phx.digest.clean --all",
+        "tailwind aurora_uix",
+        "esbuild aurora_uix",
+        "phx.digest"
+      ],
+      "assets.deploy": [
+        "phx.digest.clean --all",
+        "tailwind aurora_uix",
+        "esbuild aurora_uix",
+        "phx.digest"
+      ],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       consistency: [
         "format",
         "compile --warnings-as-errors",

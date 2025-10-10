@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Parsers.IndexParser do
   ## Index Options
   - `:get_streams` (function()): Reference to an arity one function.
         By default is `Aurora.Uix.Parsers.IndexParser.get_streams/1`.
-  - `:index_new_link` (String.t()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
+  - `:index_new_link` (binary()): URL for the "new" link. Default: "/<link_prefix><source>/new" or "#" if disabled.
   """
 
   @behaviour Aurora.Uix.Parser

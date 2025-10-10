@@ -134,7 +134,7 @@
           {Credo.Check.Refactor.FilterCount, []},
           {Credo.Check.Refactor.FilterFilter, []},
           {Credo.Check.Refactor.FunctionArity, []},
-          {Credo.Check.Refactor.LongQuoteBlocks, []},
+          {Credo.Check.Refactor.LongQuoteBlocks, [files: %{excluded: ["test/support/app_web/routes.ex"]}]},
           {Credo.Check.Refactor.MapMap, []}, ## PREVIOUSLY DISABLED
           {Credo.Check.Refactor.MapJoin, []},
           {Credo.Check.Refactor.MatchInCondition, []},

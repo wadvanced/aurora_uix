@@ -18,8 +18,8 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
     strategy:
       matrix: 
-        elixir: ['1.17.3']
-        otp: ['27.1.2']
+        elixir: ['1.18.4-otp-28']
+        otp: ['28.0.1']
 
     services:
       postgres:
@@ -60,17 +60,22 @@ jobs:
       run: |
         mix deps.get
         mix deps.compile
+    
+    - name: Setup assets
+      run: |
+        mix assets.setup
+        mix assets.build    
 
     - name: Compile app
       run: mix compile --force
-
+      
     - name: Check consistency
       run: mix consistency
 
     - name: create db and migration
       run: |
-        mix uix.test.task ecto.create
-        mix uix.test.task ecto.migrate 
-    
+        mix ecto.create
+        mix ecto.migrate
+
     - name: Run tests
       run: mix test

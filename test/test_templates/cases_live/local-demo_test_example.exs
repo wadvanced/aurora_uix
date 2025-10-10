@@ -1,14 +1,14 @@
-defmodule Aurora.Uix.Test.Web.LocalDemoTest do
+defmodule Aurora.UixWeb.LocalDemoTest do
   @moduledoc """
   Use this module as a reference to create local, not versioned, tests.
   """
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
 
   defmodule TestModule do
     # Makes the modules attributes persistent.
-    use Aurora.Uix.Test.Web, :aurora_uix_for_test
+    use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
     alias Aurora.Uix.Test.Inventory
     alias Aurora.Uix.Test.Inventory.Product
@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Test.Web.LocalDemoTest do
     auix_resource_metadata(:product, context: Inventory, schema: Product) do
     end
 
-    # This link is already routed in test/support/app_web/router.exs as:
+    # This link is already routed in test/support/app_web/routes.ex as:
     # live("/local-demo-products", LocalDemoTest.TestModule.Product.Index, :index)
     # live("/local-demo-products/new", LocalDemoTest.TestModule.Product.Index, :new)
     # live("/local-demo-products/:id/edit", LocalDemoTest.TestModule.Product.Index, :edit)

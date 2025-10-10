@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Test.Web.ManualResourceTest do
-  use Aurora.Uix.Test.Web, :aurora_uix_for_test
-  use Aurora.Uix.Test.Web.UICase, :phoenix_case
+defmodule Aurora.UixWeb.Test.ManualResourceTest do
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+  use Aurora.UixWeb.UICase, :phoenix_case
 
   @auix_resource_metadata %{
     product_location: %Aurora.Uix.Resource{
@@ -225,7 +225,7 @@ defmodule Aurora.Uix.Test.Web.ManualResourceTest do
     }
   }
 
-  # When you define a link in a test, add a line to test/support/app_web/router.exs
+  # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui link_prefix: "manual-resource-" do
     index_columns(:product, [:reference, :name, :description, :product_location_id],

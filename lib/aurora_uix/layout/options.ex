@@ -178,7 +178,7 @@ defmodule Aurora.Uix.Layout.Options do
   ## Parameters
 
   - `assigns` (map()) - The assigns map, which must contain an `:auix` key with a
-    `%{layout_tree: %{tag: atom, name: String.t()}}` structure.
+    `%{layout_tree: %{tag: atom, name: binary()}}` structure.
   - `option` (atom()) - The option key to retrieve.
 
   ## Returns
