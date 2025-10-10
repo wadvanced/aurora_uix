@@ -67,9 +67,10 @@ jobs:
         mix assets.build    
 
     - name: Compile app
-      run: | 
-        mix compile --force
-        MIX_ENV=test mix compile --force
+      run: mix compile --force
+
+    - name: Compile app in test environment  
+      run: MIX_ENV=test mix compile --force
 
     - name: Check consistency
       run: mix consistency
