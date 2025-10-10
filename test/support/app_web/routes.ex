@@ -11,8 +11,8 @@ defmodule Aurora.UixWeb.Test.Routes do
   @doc """
   Injects all test routes into the calling module.
   """
-  @spec load_routes() :: Macro.t()
-  defmacro load_routes() do
+  @spec load_test_routes() :: Macro.t()
+  defmacro load_test_routes do
     routes =
       quote do
         require Aurora.UixWeb.Test.RoutesHelper
