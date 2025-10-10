@@ -67,10 +67,8 @@ jobs:
         mix assets.build    
 
     - name: Compile app
-      run: |
-        mix clean
-        MIX_ENV=test mix compile --force
-
+      run: mix compile --force
+      
     - name: Check consistency
       run: mix consistency
 
@@ -79,10 +77,5 @@ jobs:
         mix ecto.create
         mix ecto.migrate
 
-    - name: Compile for test
-      run: |
-        mix clean
-        mix compile    
-    
     - name: Run tests
       run: mix test
