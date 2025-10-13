@@ -62,7 +62,7 @@ defmodule Aurora.Uix.MixProject do
   def application do
     [
       mod: {Aurora.Uix.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :inets]
     ]
   end
 
@@ -74,13 +74,7 @@ defmodule Aurora.Uix.MixProject do
       {:bandit, "~> 1.5"},
       {:ecto_sql, "~> 3.10"},
       {:gettext, "~> 1.0"},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.2.0",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
+
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.6"},
       {:phoenix_html, "~> 4.1"},
@@ -94,7 +88,6 @@ defmodule Aurora.Uix.MixProject do
 
       ## Dev dependencies
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.4", runtime: Mix.env() == :dev},
 
       ## Test dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -153,17 +146,15 @@ defmodule Aurora.Uix.MixProject do
     [
       "assets.build": [
         "phx.digest.clean --all",
-        "tailwind aurora_uix",
         "esbuild aurora_uix",
         "phx.digest"
       ],
       "assets.deploy": [
         "phx.digest.clean --all",
-        "tailwind aurora_uix",
         "esbuild aurora_uix",
         "phx.digest"
       ],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.setup": ["esbuild.install --if-missing"],
       consistency: [
         "format",
         "compile --warnings-as-errors",
