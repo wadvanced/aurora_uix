@@ -147,8 +147,6 @@ defmodule Aurora.UixWeb do
       use Gettext, backend: Aurora.UixWeb.Gettext
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      # import Aurora.UixWeb.CoreComponents
 
       # Common modules used in templates
       alias Aurora.UixWeb

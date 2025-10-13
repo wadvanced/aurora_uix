@@ -87,12 +87,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
   # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do
-    input_classes =
-      "block w-full rounded-md border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-
-    assigns =
+    assigns = 
       assigns
-      |> assign(:input_classes, input_classes)
       |> assign(:select_opts, BasicHelpers.get_select_options(assigns))
 
     ~H"""
@@ -101,7 +97,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
         {if @auix.layout_type == :form, do: %{name: @auix.form[@field.key].name, value: @auix.form[@field.key].value},
          else: %{name: @field.key, value: @auix.entity[@field.key]}} />
     <% else %>
-      <div class="flex flex-col">
+      <div class="form-field">
         <.input
           id={"#{@field.html_id}-#{@auix.layout_type}"}
           {if @auix.layout_type == :form,
@@ -113,7 +109,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
           disabled={@field.disabled or @auix.layout_type == :show}
-          class={@input_classes}
         />
       </div>
     <% end %>

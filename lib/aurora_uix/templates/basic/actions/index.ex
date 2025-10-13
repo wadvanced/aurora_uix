@@ -37,8 +37,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:index)
-  @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
-  @selected_button_class "#{@filters_button_class}"
+  @filters_button_class "button-alt"
+  @selected_button_class "button-alt"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
@@ -155,7 +155,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected-delete_all"
         name={"auix-selected_delete_all-#{@auix.module}"}>
-      {gettext("Delete selected")} <span class="text-xs align-sub border">{@auix.selection.selected_count}</span>
+      {gettext("Delete selected")} <span class="button-badge">{@auix.selection.selected_count}</span>
     </.button>
     """
   end
@@ -309,13 +309,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec toggle_filters_action(map()) :: Rendered.t()
   def toggle_filters_action(assigns) do
     ~H"""
-      <div :if={Map.get(@auix, :filters) != []} class="relative w-14 pr-1">
-        <div class="relative whitespace-nowrap py-2 text-right text-sm font-medium">
-          <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+      <div :if={Map.get(@auix, :filters) != []} class="toggle-filters-container">
+        <div class="toggle-filters-content">
+          <span class="toggle-filters-focus-ring" />
           <%= if Map.get(@auix, :filters_enabled?) do %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="toggle-filters-close-link">
               <.icon name="hero-funnel" class=""/>
-              <.icon name="hero-x-mark" class="align-super size-3"/>
+              <.icon name="hero-x-mark" class="icon-3"/>
             </a>
           <% else %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
@@ -403,24 +403,24 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       )
       when pages_count > 1 do
     ~H"""
-      <div name={"auix-pages_bar-#{@auix.source}"} class="mt-0">
-        <hr class="mb-4"/>
-        <div class="h-0 invisible 2xl:visible" name={"auix-pages_bar-#{@auix.source}-xl2"}>
+      <div name={"auix-pages_bar-#{@auix.source}"} class="pagination-container">
+        <hr class="pagination-divider"/>
+        <div class="pagination-breakpoint-xl2" name={"auix-pages_bar-#{@auix.source}-xl2"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible xl:visible 2xl:invisible" name={"auix-pages_bar-#{@auix.source}-xl"}>
+        <div class="pagination-breakpoint-xl" name={"auix-pages_bar-#{@auix.source}-xl"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible lg:visible xl:invisible" name={"auix-pages_bar-#{@auix.source}-lg"}>
+        <div class="pagination-breakpoint-lg" name={"auix-pages_bar-#{@auix.source}-lg"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible md:visible lg:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-md"}>
+        <div class="pagination-breakpoint-md" name={"auix-pages_bar-#{@auix.source}-md"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
               selected_in_page={@auix.selection.selected_in_page}/>

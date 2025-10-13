@@ -7,8 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   ## Key Features
   - Provides modal, table, form, flash, and input components for LiveView UIs.
-  - All components are built with Tailwind CSS utility classes for easy customization.
-    See the [Tailwind CSS documentation](https://tailwindcss.com).
+  - All components are built with pure CSS for easy customization.
   - Includes icon support via [Heroicons](https://heroicons.com). See `icon/1` for usage.
   - Designed for extensibility and override in your own application.
   - Well-documented with doc strings and declarative assigns for each component.
@@ -58,35 +57,34 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-50 hidden"
+      class="modal"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="modal-background" aria-hidden="true" />
       <div
-        class="fixed inset-0 overflow-y-auto"
+        class="modal-container"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
         tabindex="0"
       >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
+        <div class="modal-content">
+          <div class="modal-box">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="modal-focus-wrap"
             >
-              <div class="absolute top-6 right-5">
+              <div class="modal-close-button-container">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="modal-close-button"
                   aria-label={gettext("close")}
                 >
-                  <.icon
-                  name="hero-x-mark-solid" class="h-5 w-5" />
+                  <.icon name="hero-x-mark-solid" class="icon-5" />
                 </button>
               </div>
               <div id={"#{@id}-content"}>
@@ -126,21 +124,17 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
       role="alert"
-      class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
-      ]}
+      class={["flash", "flash-#{@kind}"]}
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
+      <p :if={@title} class="flash-title">
+        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="icon-4" />
+        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="icon-4" />
         {@title}
       </p>
-      <p class="mt-2 text-sm leading-5">{msg}</p>
-      <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
+      <p class="flash-message">{msg}</p>
+      <button type="button" class="flash-close-button" aria-label={gettext("close")}>
+        <.icon name="hero-x-mark-solid" class="icon-5" />
       </button>
     </div>
     """
@@ -171,7 +165,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         hidden
       >
         {gettext("Attempting to reconnect")}
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="hero-arrow-path" class="icon-3 animate-spin" />
       </.flash>
 
       <.flash
@@ -183,7 +177,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         hidden
       >
         {gettext("Hang in there while we get back on track")}
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="hero-arrow-path" class="icon-3 animate-spin" />
       </.flash>
     </div>
     """
@@ -198,7 +192,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         <.input field={@form[:email]} label="Email"/>
         <.input field={@form[:username]} label="Username" />
         <:actions>
-          <.button>Save</.button>
+          <.button>Save</<.button>
         </:actions>
       </.simple_form>
   """
@@ -217,9 +211,9 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="simple-form-content">
         {render_slot(@inner_block, f)}
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
+        <div :for={action <- @actions} class="simple-form-actions">
           {render_slot(action, f)}
         </div>
       </div>
@@ -246,11 +240,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <button
       type={@type}
-      class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
-        @class
-      ]}
+      class={["button", @class]}
       {@rest}
     >
       {render_slot(@inner_block)}
@@ -333,8 +323,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       end)
 
     ~H"""
-    <div>
-      <label class={["flex items-center gap-4 text-sm leading-6 text-zinc-600", @label_class]}>
+    <fieldset class="fieldset">
+      <label class={["checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -342,26 +332,26 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class={["rounded border-zinc-300 text-zinc-900 focus:ring-0", @input_class]}
+          class={["checkbox", @input_class]}
           {@rest}
         />
         <%= if is_binary(@label) do %>
-          {@label}
+          <span class="checkbox-text">{@label}</span>
         <% end %>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div>
+    <fieldset class="fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <select
         id={@id}
         name={@name}
-        class={["mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm", @input_class]}
+        class={["select", @errors != [] && "input-error", @input_class]}
         multiple={@multiple}
         {@rest}
       >
@@ -369,50 +359,40 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         {Phoenix.HTML.Form.options_for_select(@options, @value)}
       </select>
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div>
+    <fieldset class="fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <textarea
         id={@id}
         name={@name}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400",
-          @input_class
-        ]}
+        class={["textarea", @errors != [] && "input-error", @input_class]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div>
+    <fieldset class="fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400",
-          @input_class
-        ]}
+        class={["input", @errors != [] && "input-error", @input_class]}
         {@rest}
       />
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
@@ -426,7 +406,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec label(map) :: Rendered.t()
   def label(assigns) do
     ~H"""
-    <label for={@for} class={["block text-sm font-semibold leading-6 text-zinc-800", @class]}>
+    <label for={@for} class={["label", @class]}>
       {render_slot(@inner_block)}
     </label>
     """
@@ -440,8 +420,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec error(map) :: Rendered.t()
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
+    <p class="error-message">
+      <.icon name="hero-exclamation-circle-mini" class="icon-5" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -459,16 +439,16 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec header(map) :: Rendered.t()
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+    <header class={["header", @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <h1 class="header-title">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <p :if={@subtitle != []} class="header-subtitle">
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="header-actions">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -490,11 +470,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec list(map) :: Rendered.t()
   def list(assigns) do
     ~H"""
-    <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
-        <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
-          <dd class="text-zinc-700">{render_slot(item)}</dd>
+    <div class="list">
+      <dl class="list-container">
+        <div :for={item <- @item} class="list-item">
+          <dt class="list-item-title">{item.title}</dt>
+          <dd class="list-item-content">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>
@@ -514,12 +494,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec back(map) :: Rendered.t()
   def back(assigns) do
     ~H"""
-    <div class="mt-16">
+    <div class="back-link-container">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="back-link"
       >
-        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="hero-arrow-left-solid" class="icon-3" />
         {render_slot(@inner_block)}
       </.link>
     </div>
@@ -530,25 +510,27 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
+  By default, the outline style is used. You can specify the
+  style by using the `-solid` and `-mini`
+  suffixes on the `name` attribute.
 
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
 
-  Icons are extracted from the `deps/heroicons` directory and bundled within
-  your compiled app.css by the plugin in your `assets/tailwind.config.js`.
+  Icons are extracted from the hero icons main github url and bundled within
+  your compiled app.css by the `mix icons` task.
 
   ## Examples
 
-      <.icon name="hero-x-mark-solid" />
-      <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
+      <.icon name="x-mark" />
+      <.icon name="x-mark-solid" />
+      <.icon name="hero-arrow-path" class="icon-3" />
   """
   attr(:name, :string, required: true)
   attr(:class, :string, default: nil)
 
   @spec icon(map) :: Rendered.t()
-  def icon(%{name: "hero-" <> _} = assigns) do
+  def icon(assigns) do
     ~H"""
     <span class={[@name, @class]} />
     """
@@ -569,9 +551,9 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       to: selector,
       time: 300,
       transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
+        {"show-transition",
+         "opacity-0 translate-y-4 scale-95",
+         "opacity-100 translate-y-0 scale-100"}
     )
   end
 
@@ -588,9 +570,9 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       to: selector,
       time: 200,
       transition:
-        {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+        {"hide-transition",
+         "opacity-100 translate-y-0 scale-100",
+         "opacity-0 translate-y-4 scale-95"}
     )
   end
 
