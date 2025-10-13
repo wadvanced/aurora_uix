@@ -1,0 +1,32 @@
+:root {
+  --primary-color: #793ef9;
+  --primary-content-color: #ffffff;
+  --secondary-color: #f000b8;
+  --secondary-content-color: #ffffff;
+  --accent-color: #37cdbe;
+  --accent-content-color: #ffffff;
+  --neutral-color: #2a2e37;
+  --neutral-content-color: #ffffff;
+  --base-100-color: #3d4451;
+  --base-200-color: #2a2e37;
+  --base-300-color: #1f2937;
+  --base-content-color: #ffffff;
+  --info-color: #3abff8;
+  --info-content-color: #002b3d;
+  --success-color: #36d399;
+  --success-content-color: #003320;
+  --warning-color: #fbbd23;
+  --warning-content-color: #382800;
+  --error-color: #f87272;
+  --error-content-color: #470000;
+
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+  --animation-btn: 0.25s;
+  --animation-input: 0.2s;
+  --btn-focus-scale: 0.95;
+  --border-btn: 1px;
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+}
