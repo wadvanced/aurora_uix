@@ -439,7 +439,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec header(map) :: Rendered.t()
   def header(assigns) do
     ~H"""
-    <header class={["header", @class]}>
+    <header class={[@actions != [] && "header", @class]}>
       <div>
         <h1 class="header-title">
           {render_slot(@inner_block)}
