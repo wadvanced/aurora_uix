@@ -322,7 +322,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             <span>1</span>
             <.selected_count selected_in_page={@selected_in_page} page={1} />
           </a>
-          <a name="auix-pages_bar_page-left"class="pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
+          <a name="auix-pages_bar_page-left" class="pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={1} to={@pages_start_index} />
           </a>

@@ -1,0 +1,92 @@
+modal, 'relative z-50 hidden'
+modal-background, 'bg-zinc-50/90 fixed inset-0 transition-opacity'
+modal-container, 'fixed inset-0 overflow-y-auto'
+modal-content, 'flex min-h-full items-center justify-center'
+modal-box, 'w-full max-w-3xl p-4 sm:p-6 lg:py-8'
+modal-focus-wrap, 'shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition'
+modal-close-button-container, 'absolute top-6 right-5'
+modal-close-button, '-m-3 flex-none p-3 opacity-20 hover:opacity-40'
+
+
+flash, 'fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1'
+flash-info, 'bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900'
+flash-error, 'bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900'
+flash-title, 'flex items-center gap-1.5 text-sm font-semibold leading-6'
+flash-message, 'mt-2 text-sm leading-5'
+flash-close-button, 'group absolute top-1 right-1 p-2'
+
+simple-form-content, 'mt-10 space-y-8 bg-white'
+simple-form-actions, 'mt-2 flex items-center justify-between gap-6'
+
+button, 'phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 text-sm font-semibold leading-6 text-white active:text-white/80'
+
+checkbox-label, 'flex items-center gap-4 text-sm leading-6 text-zinc-600'
+checkbox, 'rounded border-zinc-300 text-zinc-900 focus:ring-0'
+
+---
+select, 'mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm'
+
+textarea, 'mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] border-zinc-300 focus:border-zinc-400'
+input_error, 'border-rose-400 focus:border-rose-400'
+
+input, 'mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 border-zinc-300 focus:border-zinc-400'
+input_error, 'border-rose-400 focus:border-rose-400'
+
+label, 'block text-sm font-semibold leading-6 text-zinc-800'
+
+error-message, 'mt-3 flex gap-3 text-sm leading-6 text-rose-600'
+
+header, 'flex items-center justify-between gap-6'
+header-title, 'text-lg font-semibold leading-8 text-zinc-800'
+header-subtitle, 'mt-2 text-sm leading-6 text-zinc-600'
+header-actions, 'flex-none'
+
+---
+
+list, 'mt-14'
+list-container, '-my-4 divide-y divide-zinc-100'
+list-item, 'flex gap-4 py-4 text-sm leading-6 sm:gap-8'
+list-item-title, 'w-1/4 flex-none text-zinc-500'
+list-item-content, 'text-zinc-700'
+
+back-link-container, 'mt-16'
+back-link, 'text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700'
+
+---
+
+simple-form-container, 'mt-0 space-y-8 bg-white'
+simple-form-actions, 'mt-2 flex items-center justify-between gap-6'
+
+auix-items-desktop, 'hidden md:block'
+auix-items-mobile, 'md:hidden mt-0'
+
+auix-items-table-container, 'overflow-y-scroll px-4 sm:overflow-visible sm:px-0'
+auix-items-table, 'w-[40rem] mt-0 sm:w-full'
+auix-items-table-header, 'text-sm text-left leading-6 text-zinc-500'
+auix-items-table-header-filter-cell, 'p-0 pb-4 pr-6 font-normal h-full align-bottom'
+auix-items-table-header-cell, 'p-0 pb-4 pr-6 font-normal h-full align-bottom'
+auix-items-table-header-cell-content, 'font-bold inline-flex'
+auix-items-table-body, 'relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700'
+auix-items-table-row, 'group hover:bg-zinc-50'
+auix-items-table-cell, 'relative p-0'
+auix-items-table-cell-clickable, 'hover:cursor-pointer'
+auix-items-table-cell-content, 'block py-4 pr-6'
+auix-items-table-cell-focus-ring, 'absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl'
+auix-items-table-cell-text, 'relative'
+auix-items-table-cell-text-first, 'font-semibold text-zinc-900'
+auix-items-table-action-cell, 'relative w-14 p-0'
+auix-items-table-action-cell-content, 'relative whitespace-nowrap py-4 text-right text-sm font-medium'
+auix-items-table-action-cell-focus-ring, 'absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl'
+auix-items-table-action-button, 'relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700'
+
+auix-items-card-container, 'space-y-4'
+auix-items-card-list, 'overflow-y-scroll block w-full h-[calc(100svh-15rem)]'
+auix-items-card-item, 'bg-white rounded-lg shadow p-4 border border-gray-200'
+auix-items-card-item-content, 'inline-flex'
+auix-items-card-item-label, 'flex mr-1'
+
+pagination-bar, 'flex flex-row gap-3 justify-center overflow-x-clip'
+pagination-bar-link, 'flex flex-col gap-1'
+pagination-bar-current-page, 'mt-0 mb-0 p-0 flex flex-col gap-1'
+pagination-bar-current-page-number, 'border border-zinc-400 rounded-full py-0 px-1'
+pagination-bar-selected-count, 'text-xs text-center align-sub border'
