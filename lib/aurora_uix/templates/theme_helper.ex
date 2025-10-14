@@ -1,5 +1,4 @@
 defmodule Aurora.Uix.Templates.ThemeHelper do
-
   use Phoenix.Component
   import Phoenix.HTML, only: [raw: 1]
 
@@ -8,6 +7,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   @theme Application.compile_env(:aurora_uix, :theme_module, @default_theme)
 
   attr(:rules, :list, default: [])
+
   def css_rules(%{rules: rules} = assigns) do
     assigns =
       rules
@@ -37,9 +37,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   defp maybe_add_root(parsed_css_rules, rules) do
-    with false <- Enum.any?(rules, & &1 == :root),
-      true <-  String.contains?(parsed_css_rules, "var(--") do
-        @theme.rule(:root) <> parsed_css_rules
+    with false <- Enum.any?(rules, &(&1 == :root)),
+         true <- String.contains?(parsed_css_rules, "var(--") do
+      @theme.rule(:root) <> parsed_css_rules
     else
       _ -> parsed_css_rules
     end

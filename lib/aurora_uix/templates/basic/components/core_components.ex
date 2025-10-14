@@ -54,36 +54,37 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec modal(map) :: Rendered.t()
   def modal(assigns) do
     ~H"""
+    <ThemeHelper.css_rules rules={[:core_modal_all]} />
     <div
       id={@id}
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-50 hidden"
+      class="core-modal"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="core-modal-background" aria-hidden="true" />
       <div
-        class="fixed inset-0 overflow-y-auto"
+        class="core-modal-container"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
         tabindex="0"
       >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
+        <div class="core-modal-content">
+          <div class="core-modal-box">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="core-modal-focus-wrap"
             >
-              <div class="absolute top-6 right-5">
+              <div class="core-modal-close-button-container">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="core-modal-close-button"
                   aria-label={gettext("close")}
                 >
                   <.icon
