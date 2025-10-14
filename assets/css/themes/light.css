@@ -1,7 +1,23 @@
 /* */
 :root {
-    --primary-color: #18181b;
-    --primary-hover: #3f3f46;
-    --text-color: #ffffff;
+    /* Backgrounds */
+    --color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
+    --color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
+    --color-bg-hover: #FAFAFA; /* zinc-50 */
+
+    /* Text */
+    --color-text-primary: #18181B; /* zinc-900 */
+    --color-text-hover: #47474a;   /* zinc-700 */
+    --color-text-on-accent: #FFFFFF; /* white text on dark/accent background */
+    --color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
+
+      /* Borders */
+    --color-border-default: #D4D4D8; /* zinc-300 */
+    
+    /* Focus States (Focus Ring / Border) */
+    --color-focus-ring: #6366F1; /* indigo-500 */
+
+
+    --color-text-button: #ffffff;
     --text-active: rgba(255, 255, 255, 0.8);
 }

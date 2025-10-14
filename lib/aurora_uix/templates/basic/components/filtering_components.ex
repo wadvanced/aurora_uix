@@ -15,8 +15,6 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.Rendered
 
-  @class_for_input "block w-full pb-0 pt-0 mt-1 rounded-sm border-zinc-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-
   @doc """
   Renders a styled filter input field for filterable? fields.
 
@@ -34,8 +32,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   @spec filter_field(map()) :: Rendered.t()
   def filter_field(%{field: %{filterable?: true}} = assigns) do
     ~H"""
-    <div class="flex flex-col gap-0 items-center">
-      <div class="w-full text-center pb-2">
+    <div class="filter-field">
+      <div class="filter-field-content">
         <div>
           <.render_filter_condition field={@field} filter={@filter} infix={@infix}/>
         </div>
@@ -57,14 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   ## PRIVATE
   @spec render_filter_input(map()) :: Rendered.t()
   defp render_filter_input(%{filter: %Filter{}} = assigns) do
-    assigns =
-      assigns
-      |> Map.put(:class, @class_for_input)
-      |> Map.put(:input_class, "!h-50 !pb-0 !pt-0 !mt-1 ")
-      |> Map.put(
-        :select_opts,
-        BasicHelpers.get_select_options(assigns)
-      )
+    assigns = Map.put(assigns, :select_opts, BasicHelpers.get_select_options(assigns))
 
     ~H"""
       <div>
@@ -74,8 +65,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             value={(@filter.from)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
-            class={@class}
-            input_class={@input_class}
+            class="filter-input"
+            input_class="filter-input-field"
           />
         <.input
             id={"#{@field.html_id}#{@infix}-filter_to"}
@@ -83,8 +74,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             value={(@filter.to)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
-            class={@class}
-            input_class={@input_class <> if @filter.condition != :between, do: "!bg-zinc-400", else: ""}
+            class="filter-input"
+            input_class={if @filter.condition != :between, do: "filter-input-field-disabled", else: "filter-input-field"}
             readonly={@filter.condition != :between}
             disabled={@filter.condition != :between}
           />
@@ -94,20 +85,15 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
 
   @spec render_filter_condition(map()) :: Rendered.t()
   defp render_filter_condition(assigns) do
-    input_class =
-      "w-full bg-zinc-100 block pb-0 pt-0 rounded-sm border-zinc-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-
-    assigns = Map.put(assigns, :input_class, input_class)
-
     ~H"""
-      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="md:hidden !h-[0.8rem]">{@field.label}</.label>
+      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="filter-condition-label">{@field.label}</.label>
       <.input
           id={"#{@field.html_id}#{@infix}-filter_condition"}
           name={"filter_condition__#{@infix}#{@field.key}"}
           value={(@filter.condition)}
           type="select"
           options={Filter.conditions()}
-          input_class={@input_class}
+          input_class="filter-condition-input"
         />
     """
   end

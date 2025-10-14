@@ -1,22 +1,22 @@
 .button {
   border-radius: 0.5rem;
-  background-color: var(--primary-color);
+  background-color: var(--color-text-primary);
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.5rem;
-  color: var(--text-color);
+  color: var(--color-text-on-accent);
 }
 
 .button:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--color-text-hover);
 }
 
 .button:active {
-  color: var(--text-active);
+  color: var(--color-text-on-accent-active);
 }
 
-.button.phx-submit-loading {
+.button[phx-submit-loading] {
   opacity: 0.75;
 }
 
@@ -89,7 +89,7 @@
 
 /* Hover state for parent group */
 .group:hover .index-filter-element-actions-focus-ring {
-  background-color: #FAFAFA;      /* group-hover:bg-zinc-50 */
+  background-color: var(--color-bg-hover);
 }
 
 /* Small breakpoint (sm) and up */
@@ -105,10 +105,113 @@
   margin-left: 1rem;             /* ml-4 (4 * 0.25rem = 1rem) */
   font-weight: 600;              /* font-semibold */
   line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
-  color: #18181B;                /* text-zinc-900 */
+  color: var(--color-text-primary);
 }
 
 /* Hover state */
 .index-filter-element-action-button:hover {
-  color: #47474a;                /* hover:text-zinc-700 */
+  color: var(--color-text-hover);
+}
+
+filter-input {
+  /* block w-full pb-0 pt-0 mt-1 rounded-sm border-zinc-300 shadow-sm */
+  display: block;
+  width: 100%;
+  padding-bottom: 0;
+  padding-top: 0;
+  margin-top: 0.25rem;
+  border-radius: 0.125rem;
+  border-color: var(--color-border-default);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
+.filter-input:focus {
+  border-color: var(--color-focus-ring);
+  --tw-ring-color: var(--color-focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 
+    var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color), 
+    var(--tw-shadow);
+}
+
+/* Small breakpoint (sm) and up (sm:text-sm) */
+@media (min-width: 640px) {
+  .filter-input {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+.filter-field {
+  display: flex;         /* flex */
+  flex-direction: column; /* flex-col */
+  gap: 0;                /* gap-0 */
+  align-items: center;   /* items-center */
+}
+
+.filter-field-content {
+  width: 100%;                  /* w-full */
+  text-align: center;           /* text-center */
+  padding-bottom: 0.5rem;       /* pb-2 (2 * 0.25rem = 0.5rem) */
+}
+
+.filter-condition-label {
+  /* !h-[0.8rem] */
+  height: 0.8rem !important; 
+}
+
+/* Medium breakpoint (md) and up */
+@media (min-width: 768px) {
+  .filter-condition-label {
+    /* md:hidden */
+    display: none; 
+  }
+}
+
+.filter-condition-input {
+  /* w-full bg-zinc-100 block pb-0 pt-0 rounded-sm border-zinc-100 shadow-sm */
+  width: 100%;                  /* w-full */
+  background-color: var(--color-bg-light);
+  display: block;               /* block */
+  padding-bottom: 0;            /* pb-0 */
+  padding-top: 0;               /* pt-0 */
+  border-radius: 0.125rem;      /* rounded-sm */
+  border-color: var(--color-bg-light);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+}
+
+/* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
+.filter-condition-input:focus {
+  border-color: var(--color-focus-ring); /* focus:border-indigo-500 */
+  --tw-ring-color: var(--color-focus-ring); /* focus:ring-indigo-500 */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 
+    var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color), 
+    var(--tw-shadow);
+}
+
+/* Small breakpoint (sm) and up (sm:text-sm) */
+@media (min-width: 640px) {
+  .filter-condition-input {
+    font-size: 0.875rem;        /* sm:text-sm */
+    line-height: 1.25rem;
+  }
+}
+
+.filter-input-field {
+  /* !pb-0 !pt-0 !mt-1 */
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0.25rem !important; /* 1 * 0.25rem = 0.25rem */
+}
+
+.filter-input-field-disabled {
+  /* !bg-zinc-400 */
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0.25rem !important; /* 1 * 0.25rem = 0.25rem */
+  background-color: var(--color-bg-disabled) !important;
 }
