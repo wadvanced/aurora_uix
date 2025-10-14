@@ -1,0 +1,114 @@
+.button {
+  border-radius: 0.5rem;
+  background-color: var(--primary-color);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  color: var(--text-color);
+}
+
+.button:hover {
+  background-color: var(--primary-hover);
+}
+
+.button:active {
+  color: var(--text-active);
+}
+
+.button.phx-submit-loading {
+  opacity: 0.75;
+}
+
+.index-container {
+  max-width: max-content; /* max-w-max */
+  padding: 1rem;          /* p-4 - 16px */
+  margin-left: auto;      /* mx-auto */
+  margin-right: auto;     /* mx-auto */
+}
+
+@media (min-width: 640px) { /* sm:p-6 (Min-width: 640px) */
+  .index-container {
+    padding: 1.5rem; /* p-6 - 24px */
+  }
+}
+
+@media (min-width: 1024px) { /* lg:py-8 (Min-width: 1024px) */
+  .index-container {
+    padding-top: 2rem;    /* py-8 - 32px */
+    padding-bottom: 2rem; /* py-8 - 32px */
+    padding-left: 1.5rem; /* The padding-left from sm:p-6 is retained */
+    padding-right: 1.5rem;/* The padding-right from sm:p-6 is retained */
+  }
+}
+
+.index-actions {
+  display: flex;                /* flex */
+  justify-content: space-between; /* justify-between */
+  width: 100%;                  /* w-full */
+  margin-top: 0.5rem;           /* mt-2 - 8px */
+  margin-bottom: 0.5rem;        /* mb-2 - 8px */
+}
+
+.index-select-actions {
+  justify-self: start;  /* justify-self-start (Aligns item to the start of its grid area on the inline axis) */
+  vertical-align: middle; /* align-middle (Aligns element with the baseline plus half the x-height of the parent) */
+}
+
+.index-header-actions {
+  display: flex;                /* flex */
+  justify-self: end;            /* justify-self-end (Aligns the item to the end of its grid area/cell) */
+  vertical-align: middle;       /* align-middle (Aligns the element's content/vertical position) */
+}
+
+.index-filter-element-actions {
+  display: flex;                /* flex */
+  justify-content: space-between; /* justify-between */
+  width: 100%;                  /* w-full */
+  margin-top: 0.5rem;           /* mt-2 (2 * 0.25rem = 0.5rem) */
+  margin-bottom: 0.5rem;        /* mb-2 (2 * 0.25rem = 0.5rem) */
+}
+
+.index-filter-element-actions-content {
+  position: relative;            /* relative */
+  white-space: nowrap;           /* whitespace-nowrap */
+  padding-top: 1rem;             /* py-4 (4 * 0.25rem = 1rem) */
+  padding-bottom: 1rem;          /* py-4 */
+  text-align: right;             /* text-right */
+  font-size: 0.875rem;           /* text-sm */
+  font-weight: 500;              /* font-medium */
+}
+
+.index-filter-element-actions-focus-ring {
+  position: absolute;             /* absolute */
+  top: -1px;                      /* -inset-y-px */
+  bottom: -1px;                   /* -inset-y-px */
+  right: -1rem;                   /* -right-4 (4 * 0.25rem = 1rem) */
+  left: 0;                        /* left-0 */
+}
+
+/* Hover state for parent group */
+.group:hover .index-filter-element-actions-focus-ring {
+  background-color: #FAFAFA;      /* group-hover:bg-zinc-50 */
+}
+
+/* Small breakpoint (sm) and up */
+@media (min-width: 640px) {
+  .index-filter-element-actions-focus-ring {
+    border-top-right-radius: 1rem;    /* sm:rounded-r-xl */
+    border-bottom-right-radius: 1rem; /* sm:rounded-r-xl */
+  }
+}
+
+.index-filter-element-action-button {
+  position: relative;            /* relative */
+  margin-left: 1rem;             /* ml-4 (4 * 0.25rem = 1rem) */
+  font-weight: 600;              /* font-semibold */
+  line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
+  color: #18181B;                /* text-zinc-900 */
+}
+
+/* Hover state */
+.index-filter-element-action-button:hover {
+  color: #47474a;                /* hover:text-zinc-700 */
+}

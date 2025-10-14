@@ -1,0 +1,7 @@
+/* */
+:root {
+    --primary-color: #18181b;
+    --primary-hover: #3f3f46;
+    --text-color: #ffffff;
+    --text-active: rgba(255, 255, 255, 0.8);
+}
