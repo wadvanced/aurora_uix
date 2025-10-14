@@ -1,24 +1,3 @@
-.button {
-  border-radius: 0.5rem;
-  background-color: var(--color-text-primary);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.5rem;
-  color: var(--color-text-on-accent);
-}
-
-.button:hover {
-  background-color: var(--color-text-hover);
-}
-
-.button:active {
-  color: var(--color-text-on-accent-active);
-}
-
-.button[phx-submit-loading] {
-  opacity: 0.75;
-}
 
 .index-container {
   max-width: max-content; /* max-w-max */
