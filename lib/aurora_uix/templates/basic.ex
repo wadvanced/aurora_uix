@@ -25,6 +25,7 @@ defmodule Aurora.Uix.Templates.Basic do
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
+  alias Aurora.Uix.Templates.Basic.Themes.Light, as: BasicLightTheme
 
   @doc """
   Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
@@ -42,6 +43,7 @@ defmodule Aurora.Uix.Templates.Basic do
     to: ModulesGenerator
 
   @impl true
+  @spec layout_tags() :: list()
   def layout_tags, do: [:index, :form, :show]
 
   @doc """
@@ -51,8 +53,12 @@ defmodule Aurora.Uix.Templates.Basic do
     - `module()` - The default core components module.
   """
   @impl true
-  @spec default_core_components_module() :: module
+  @spec default_core_components_module() :: module()
   def default_core_components_module do
     Aurora.Uix.Templates.Basic.CoreComponents
   end
+
+  @impl true
+  @spec default_theme_module() :: module()
+  def default_theme_module, do: BasicLightTheme
 end
