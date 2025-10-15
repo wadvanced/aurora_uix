@@ -1,6 +1,13 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.Base do
+  @moduledoc """
+  The base theme for the Basic template.
+
+  This theme defines a set of CSS rules for the base theme.
+  """
   use Aurora.Uix.Templates.Theme
 
+  @impl true
+  @spec rule(:core_modal) :: binary()
   def rule(:core_modal) do
     """
       .core-modal {
@@ -12,6 +19,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_background) :: binary()
   def rule(:core_modal_background) do
     """
       .core-modal-background {
@@ -32,6 +41,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_container) :: binary()
   def rule(:core_modal_container) do
     """
       .core-modal-container {
@@ -46,6 +57,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_content) :: binary()
   def rule(:core_modal_content) do
     """
     .core-modal-content {
@@ -58,6 +71,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_box) :: binary()
   def rule(:core_modal_box) do
     """
       .core-modal-box {
@@ -85,6 +100,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_focus_wrap) :: binary()
   def rule(:core_modal_focus_wrap) do
     """
       .core-modal-focus-wrap {
@@ -116,6 +133,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_close_button_container) :: binary()
   def rule(:core_modal_close_button_container) do
     """
       .core-modal-close-button-container {
@@ -127,6 +146,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:core_modal_close_button) :: binary()
   def rule(:core_modal_close_button) do
     """
       .core-modal-close-button {
@@ -145,6 +166,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:button) :: binary()
   def rule(:button) do
     """
       .button {
@@ -171,6 +194,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:checkbox) :: binary()
   def rule(:checkbox) do
     """
     .checkbox {
@@ -206,6 +231,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(:checkbox_label) :: binary()
   def rule(:checkbox_label) do
     """
       .checkbox-label {
@@ -219,5 +246,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  @impl true
+  @spec rule(atom()) :: binary()
   def rule(_), do: ""
 end

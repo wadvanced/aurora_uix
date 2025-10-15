@@ -1,5 +1,5 @@
 %Doctor.Config{
-  ignore_modules: [Aurora.Uix.Gettext, Aurora.Uix.Layout.CreateLayout, Aurora.Uix.Layout.Options, Aurora.Uix.Layout.ResourceMetadata],
+  ignore_modules: [Aurora.Uix.Gettext, Aurora.Uix.Layout.CreateLayout, Aurora.Uix.Layout.Options, Aurora.Uix.Layout.ResourceMetadata, Aurora.Uix.Templates.Theme],
   ignore_paths: [~r".+/-local-.*"],
   min_module_doc_coverage: 100,
   min_module_spec_coverage: 100,

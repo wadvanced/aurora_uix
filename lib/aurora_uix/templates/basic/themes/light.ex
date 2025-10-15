@@ -1,9 +1,15 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.Light do
+  @moduledoc """
+  The light theme for the Basic template.
+
+  This theme defines the CSS variables for the light theme and delegates the rest of the rules to the `Base` theme.
+  """
   use Aurora.Uix.Templates.Theme
 
   alias Aurora.Uix.Templates.Basic.Themes.Base
 
   @impl true
+  @spec rule(atom()) :: binary()
   def rule(:root) do
     """
     /* */
@@ -53,5 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
     """
   end
 
+  @impl true
+  @spec rule(atom()) :: binary()
   def rule(rule), do: Base.rule(rule)
 end
