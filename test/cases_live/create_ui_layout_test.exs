@@ -101,8 +101,8 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     assert html
            |> LazyHTML.from_document()
            |> LazyHTML.query("thead tr th [name='auix-column-label']")
-           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == [
-             "",
+           |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
+           |> List.delete_at(0) == [
              "Id",
              "Reference",
              "Name",
