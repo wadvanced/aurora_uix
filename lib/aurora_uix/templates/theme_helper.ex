@@ -89,10 +89,15 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   use Phoenix.Component
 
-  @css_rule_marker "css_rules:"
+  import Phoenix.HTML, only: [raw: 1]
+
+  alias Phoenix.LiveView.Rendered
+
+  @css_rule_marker ":css_rules:"
   @template Aurora.Uix.Template.uix_template()
   @default_theme @template.default_theme_module()
   @theme Application.compile_env(:aurora_uix, :theme_module, @default_theme)
+  @dynamic_themes Application.compile_env(:aurora_uix, :dynamic_themes, false)
 
   @doc """
   A sigil to embed theme-based styles within `HEEx` templates.
@@ -108,7 +113,6 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ## Raises
 
   - `RuntimeError` - If the `assigns` variable is not available in the calling context.
-
   """
   @spec sigil_AH(tuple(), list()) :: Macro.t()
   defmacro sigil_AH({:<<>>, meta, [expr]}, modifiers)
@@ -117,9 +121,14 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
       raise "~H requires a variable named \"assigns\" to exist and be set to a map"
     end
 
-    scanned_rules = scan_rules(expr)
+    theme =
+      if @dynamic_themes,
+        do: Application.get_env(:aurora_uix, :theme_module, @default_theme),
+        else: @theme
 
-    styles = generate_style(scanned_rules)
+    scanned_rules = scan_rules(expr, theme)
+
+    styles = generate_style(scanned_rules, theme, @dynamic_themes)
 
     expr =
       expr
@@ -139,17 +148,46 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     EEx.compile_string(expr, options)
   end
 
+  @doc """
+  A function component that generates a `<style>` tag with the themed CSS rules at runtime.
+
+  ## Attributes
+
+  - `rules` (list(atom())) - A list of rule names to include in the style tag.
+
+  ## Returns
+
+  A `Phoenix.LiveView.Rendered` struct containing the `<style>` tag.
+  """
+  attr(:rules, :list, default: [])
+  @spec css_rules(map()) :: Rendered.t()
+  def css_rules(%{rules: rules} = assigns) do
+    theme =
+      if @dynamic_themes,
+        do: Application.get_env(:aurora_uix, :theme_module, @theme),
+        else: @theme
+
+    css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
+    assigns = Map.put(assigns, :css_rules, css_rules)
+
+    ~H"""
+    <style>
+      <%= raw(@css_rules) %>
+    </style>
+    """
+  end
+
   # PRIVATE
 
   # Scans the expression for CSS rule markers, dynamic expressions, and stylesheets.
-  @spec scan_rules(binary()) :: list()
-  defp scan_rules(expr) do
+  @spec scan_rules(binary(), module()) :: list()
+  defp scan_rules(expr, theme) do
     expr
     |> String.split("\n")
     |> Enum.filter(&Regex.match?(~r/^[ \t]*#{@css_rule_marker}/, &1))
     |> Enum.map(&rule_names_from_line/1)
     |> scan_expressions(expr)
-    |> detect_stylesheet(expr)
+    |> detect_stylesheet(expr, theme)
   end
 
   # Extracts rule names from a line containing the CSS rule marker.
@@ -174,8 +212,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   # Detects the presence of a stylesheet marker and returns all rule names from the theme.
-  @spec detect_stylesheet(list(), binary()) :: list()
-  defp detect_stylesheet(scanned_rules, expr) do
+  @spec detect_stylesheet(list(), binary(), module()) :: list()
+  defp detect_stylesheet(scanned_rules, expr, theme) do
     stylesheet =
       ~r/^[ \t]*:stylesheet:[ \t]*/
       |> Regex.scan(expr)
@@ -184,18 +222,18 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     if stylesheet == [] do
       scanned_rules
     else
-      Enum.reduce(stylesheet, [], &[{&1, @theme.rule_names(), ""} | &2])
+      Enum.reduce(stylesheet, [], &[{&1, theme.rule_names(), ""} | &2])
     end
   end
 
   # Generates the final CSS string from the list of rule lines.
-  @spec generate_style(list()) :: binary()
-  defp generate_style(rule_lines) do
-    rule_lines
+  @spec generate_style(list(), module(), boolean()) :: binary()
+  defp generate_style(scanned_rules, theme, dynamic_themes?) do
+    scanned_rules
     |> List.flatten()
     |> Enum.reduce([], fn {_rule_line, rule_name, _replacement}, acc -> [rule_name | acc] end)
     |> List.flatten()
-    |> style()
+    |> style(theme, dynamic_themes?)
   end
 
   # Removes the scanned rule lines from the expression.
@@ -213,12 +251,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   # Generates the `<style>` tag with the CSS rules.
-  @spec style(list(binary())) :: binary()
-  defp style(rules) do
-    css_rules =
-      rules
-      |> Enum.map_join(" ", &read_rule/1)
-      |> maybe_add_root(rules)
+  @spec style(list(binary()), module(), binary) :: binary()
+  defp style(rules, theme, false) do
+    css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
 
     """
     <style>
@@ -227,12 +262,20 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     """
   end
 
+  defp style(rules, _theme, _dynamic_themes?) do
+    css_rules = Enum.map_join(rules, ", ", &":#{&1}")
+
+    """
+    <.css_rules rules={[#{css_rules}]} />
+    """
+  end
+
   # Reads a single CSS rule from the theme.
-  @spec read_rule(binary()) :: binary()
-  defp read_rule(rule) do
+  @spec read_rule(binary(), module()) :: binary()
+  defp read_rule(rule, theme) do
     rule
     |> convert_dashes()
-    |> @theme.rule()
+    |> theme.rule()
   end
 
   # Converts a string with dashes to a snake_case atom.
@@ -242,16 +285,5 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     |> to_string()
     |> String.replace("-", "_")
     |> String.to_atom()
-  end
-
-  # Adds the `:root` rule if CSS variables are used and the `:root` rule is not already present.
-  @spec maybe_add_root(binary(), list()) :: binary()
-  defp maybe_add_root(parsed_css_rules, rule_names) do
-    with false <- Enum.any?(rule_names, &(&1 == :root)),
-         true <- String.contains?(parsed_css_rules, "var(--") do
-      @theme.rule(:root) <> parsed_css_rules
-    else
-      _ -> parsed_css_rules
-    end
   end
 end
