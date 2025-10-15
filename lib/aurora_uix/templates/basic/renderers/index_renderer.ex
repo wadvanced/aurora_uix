@@ -14,8 +14,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
+  import Aurora.Uix.Templates.ThemeHelper
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -36,7 +38,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    ~H"""
+    ~AH"""
+    :stylesheet:
     <div class="index-container">
       <.header>
         <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>

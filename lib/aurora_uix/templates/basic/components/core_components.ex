@@ -23,7 +23,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   use Aurora.Uix.Gettext
   use Phoenix.Component
 
-  alias Aurora.Uix.Templates.ThemeHelper
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -54,7 +53,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec modal(map) :: Rendered.t()
   def modal(assigns) do
     ~H"""
-    <ThemeHelper.css_rules rules={[:core_modal_all]} />
     <div
       id={@id}
       phx-mounted={@show && show_modal(@id)}
@@ -246,7 +244,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec button(map) :: Rendered.t()
   def button(assigns) do
     ~H"""
-    <ThemeHelper.css_rules rules={[:button]} />
     <button
       type={@type}
       class={["button", @class]}
@@ -332,7 +329,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       end)
 
     ~H"""
-    <ThemeHelper.css_rules rules={[:checkbox, :checkbox_label]} />
     <fieldset class="fieldset">
       <label class={["checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
