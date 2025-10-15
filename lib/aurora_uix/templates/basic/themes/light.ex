@@ -1,5 +1,5 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.Light do
-  @behaviour Aurora.Uix.Theme
+  use Aurora.Uix.Templates.Theme
 
   alias Aurora.Uix.Templates.Basic.Themes.Base
 

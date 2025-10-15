@@ -1,5 +1,5 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.Base do
-  @behaviour Aurora.Uix.Theme
+  use Aurora.Uix.Templates.Theme
 
   def rule(:core_modal) do
     """
@@ -143,22 +143,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         opacity: 0.4;              /* hover:opacity-40 */
       }
     """
-  end
-
-  def rule(:core_modal_all) do
-    [
-      :core_modal,
-      :core_modal_background,
-      :core_modal_container,
-      :core_modal_content,
-      :core_modal_box,
-      :core_modal_focus_wrap,
-      :core_modal_close_button_container,
-      :core_modal_close_button
-    ]
-    |> Enum.map(&rule/1)
-    |> Enum.join("\n")
-    |> IO.inspect(label: "******** core_modal_all")
   end
 
   def rule(:button) do
