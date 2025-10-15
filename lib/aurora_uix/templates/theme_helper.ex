@@ -9,82 +9,102 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   - **Themed Styles**: Leverages the configured theme module to apply consistent styling.
   - **Inline CSS Rules**: Define component-specific styles directly in the template.
-  - **Scanneable CSS Rules by Markers**: Use `!expression!` syntax automatically include `expression` css rule.
+  - **Scanneable CSS Rules by Markers**: Use `!expression!` syntax to automatically include `expression` css rule.
 
-  ## Compile Time Style Generation Usage
+  ## Usage
 
-  With the `~AH`, first, add `import Aurora.Uix.Templates.ThemeHelper` to the module where you want to use it,
-  then use the `~AH` sigil instead of `~H` sigil.
+  To use the `~AH` sigil, first `import Aurora.Uix.Templates.ThemeHelper` into the module where you want to use it, then use the `~AH` sigil instead of `~H`.
 
-  ### Example
-  #### Defining style for the component
-    ```elixir
-    def my_component(assigns) do
-      ~AH""
-        :css_rules: my-component, button
-        <div class="my-component">
-          <.button class="button">Click me</.button>
-        </div>
-      ""
-    end
-    ```
-    Will be transformed into HEEX equivalent:
-    ```elixir
-    def my_component(assigns) do
-      ~H""
-        <style>
-          .my-component {
-            /* css rules for my-component */
-          }
-          .my-component:hover {
-            /* css rules for my-component when hovering */
-          }
-          .button{
-            /* css rules for button'
-          }
-        </style>
-        <div class="my-component">
-          <.button class="button">Click me</.button>
-        </div>
-      ""
-    end
-    ```
+  ### `:css_rules`
 
-  #### Defining the style by marking the css_rules
+  You can specify a list of CSS rules to be included.
 
-    ```elixir
-    def my_component(assigns) do
-      ~AH""
-        <div class="!my-component!">
-          <.button class="!button!">Click me</.button>
-        </div>
-      ""
-    end
-    ```
+  #### Example
 
-    Will pick the needed rules by scanning !expression!. The above example will produce the following HEEX:
+  ```elixir
+  def my_component(assigns) do
+    ~AH\"\"\"
+      :css_rules: my-component, button
+      <div class="my-component">
+        <.button class="button">Click me</.button>
+      </div>
+    \"\"\"
+  end
+  ```
 
-    ```elixir
-    def my_component(assigns) do
-      ~H""
-        <style>
-          .my-component {
-            /* css rules for my-component */
-          }
-          .my-component:hover {
-            /* css rules for my-component when hovering */
-          }
-          .button{
-            /* css rules for button'
-          }
-        </style>
-        <div class="my-component">
-          <.button class="button">Click me</.button>
-        </div>
-      ""
-    end
-    ```
+  This will be transformed into the HEEX equivalent with a `<style>` tag containing the CSS for `my-component` and `button`.
 
+  ```elixir
+  def my_component(assigns) do
+    ~H\"\"\"
+      <style>
+        .my-component {
+          /* css rules for my-component */
+        }
+        .my-component:hover {
+          /* css rules for my-component when hovering */
+        }
+        .button{
+          /* css rules for button'
+        }
+      </style>
+      <div class="my-component">
+        <.button class="button">Click me</.button>
+      </div>
+    \"\"\"
+  end
+  ```
+
+  ### Marked Rules
+
+  You can mark elements with `!rule-name!` to automatically include the corresponding CSS rules.
+
+  #### Example
+
+  ```elixir
+  def my_component(assigns) do
+    ~AH\"\"\"
+      <div class="!my-component!">
+        <.button class="!button!">Click me</.button>
+      </div>
+    \"\"\"
+  end
+  ```
+
+  This will scan for `!expression!` and produce the same HEEX as the `:css_rules` example.
+
+  ### `:stylesheet`
+
+  You can include all the rules from your theme module by using `:stylesheet:`.
+
+  #### Example
+
+  ```elixir
+  def my_component(assigns) do
+    ~AH\"\"\"
+      :stylesheet:
+      <div class="my-component">
+        <.button class="button">Click me</.button>
+      </div>
+    \"\"\"
+  end
+  ```
+
+  This will include all CSS rules defined in your theme module inside a `<style>` tag.
+
+  ## Style Duplication
+
+  When using `:css_rules` or marked rules within reusable components, the same CSS rules might be duplicated if the component is used multiple times on the same page. This can lead to unnecessarily large style blocks.
+
+  To avoid this, it is recommended to use the `:stylesheet:` directive in your top-level LiveViews (e.g., `index.html.heex`, `show.html.heex`) to include all necessary styles once. Components will then be rendered correctly without needing to embed their own styles.
+
+  ## Dynamic vs. Compile-Time Themes
+
+  By default, Aurora.Uix operates in a **compile-time theme** mode. This means that the theme module is determined at compile time, and the CSS rules are injected into the HEEx templates as static text. This is the most performant option as it avoids any runtime computation for styles.
+
+  However, you can enable **dynamic themes** by setting `config :aurora_uix, :dynamic_themes, true`. When enabled, the theme can be swapped at runtime. Instead of injecting static styles, the `~AH` sigil will generate a call to the `<.css_rules>` component. This component will then fetch the appropriate CSS rules from the currently active theme at runtime.
+
+  The main consequence of enabling dynamic themes is a performance trade-off. While it offers flexibility, it introduces a runtime overhead for generating the styles on every render where the sigil is used.
   """
 
   use Phoenix.Component
