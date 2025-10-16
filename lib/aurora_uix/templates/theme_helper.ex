@@ -271,23 +271,23 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   # Generates the `<style>` tag with the CSS rules.
-  @spec style(list(binary()), module(), binary) :: binary()
-  defp style(rules, theme, false) do
-    css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
+  @spec style(list(binary()), module(), boolean()) :: binary()
+  defp style(rules, theme, dynamic_themes?) do
+    if dynamic_themes? do
+      css_rules = Enum.map_join(rules, ", ", &":#{&1}")
 
-    """
-    <style>
-      #{css_rules}
-    </style>
-    """
-  end
+      """
+      <.css_rules rules={[#{css_rules}]} />
+      """
+    else
+      css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
 
-  defp style(rules, _theme, _dynamic_themes?) do
-    css_rules = Enum.map_join(rules, ", ", &":#{&1}")
-
-    """
-    <.css_rules rules={[#{css_rules}]} />
-    """
+      """
+      <style>
+        #{css_rules}
+      </style>
+      """
+    end
   end
 
   # Reads a single CSS rule from the theme.
