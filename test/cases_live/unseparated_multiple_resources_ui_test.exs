@@ -66,6 +66,8 @@ defmodule Aurora.UixWeb.Test.UnseparatedMultipleResourcesUITest do
   end
 
   test "Test CREATE new, context, basic layout for product_transactions", %{conn: conn} do
+    delete_all_sample_data()
+
     {:ok, product} =
       Inventory.create_product(%{
         reference: "test-product-001",

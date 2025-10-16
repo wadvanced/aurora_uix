@@ -1,0 +1,308 @@
+
+.index-container {
+  max-width: max-content; /* max-w-max */
+  padding: 1rem;          /* p-4 - 16px */
+  margin-left: auto;      /* mx-auto */
+  margin-right: auto;     /* mx-auto */
+}
+
+@media (min-width: 640px) { /* sm:p-6 (Min-width: 640px) */
+  .index-container {
+    padding: 1.5rem; /* p-6 - 24px */
+  }
+}
+
+@media (min-width: 1024px) { /* lg:py-8 (Min-width: 1024px) */
+  .index-container {
+    padding-top: 2rem;    /* py-8 - 32px */
+    padding-bottom: 2rem; /* py-8 - 32px */
+    padding-left: 1.5rem; /* The padding-left from sm:p-6 is retained */
+    padding-right: 1.5rem;/* The padding-right from sm:p-6 is retained */
+  }
+}
+
+.index-actions {
+  display: flex;                /* flex */
+  justify-content: space-between; /* justify-between */
+  width: 100%;                  /* w-full */
+  margin-top: 0.5rem;           /* mt-2 - 8px */
+  margin-bottom: 0.5rem;        /* mb-2 - 8px */
+}
+
+.index-select-actions {
+  justify-self: start;  /* justify-self-start (Aligns item to the start of its grid area on the inline axis) */
+  vertical-align: middle; /* align-middle (Aligns element with the baseline plus half the x-height of the parent) */
+}
+
+.index-header-actions {
+  display: flex;                /* flex */
+  justify-self: end;            /* justify-self-end (Aligns the item to the end of its grid area/cell) */
+  vertical-align: middle;       /* align-middle (Aligns the element's content/vertical position) */
+}
+
+.index-filter-element-actions {
+  display: flex;                /* flex */
+  justify-content: space-between; /* justify-between */
+  width: 100%;                  /* w-full */
+  margin-top: 0.5rem;           /* mt-2 (2 * 0.25rem = 0.5rem) */
+  margin-bottom: 0.5rem;        /* mb-2 (2 * 0.25rem = 0.5rem) */
+}
+
+.index-filter-element-actions-content {
+  position: relative;            /* relative */
+  white-space: nowrap;           /* whitespace-nowrap */
+  padding-top: 1rem;             /* py-4 (4 * 0.25rem = 1rem) */
+  padding-bottom: 1rem;          /* py-4 */
+  text-align: right;             /* text-right */
+  font-size: 0.875rem;           /* text-sm */
+  font-weight: 500;              /* font-medium */
+}
+
+.index-filter-element-actions-focus-ring {
+  position: absolute;             /* absolute */
+  top: -1px;                      /* -inset-y-px */
+  bottom: -1px;                   /* -inset-y-px */
+  right: -1rem;                   /* -right-4 (4 * 0.25rem = 1rem) */
+  left: 0;                        /* left-0 */
+}
+
+/* Hover state for parent group */
+.group:hover .index-filter-element-actions-focus-ring {
+  background-color: var(--color-bg-hover);
+}
+
+/* Small breakpoint (sm) and up */
+@media (min-width: 640px) {
+  .index-filter-element-actions-focus-ring {
+    border-top-right-radius: 1rem;    /* sm:rounded-r-xl */
+    border-bottom-right-radius: 1rem; /* sm:rounded-r-xl */
+  }
+}
+
+.index-filter-element-action-button {
+  position: relative;            /* relative */
+  margin-left: 1rem;             /* ml-4 (4 * 0.25rem = 1rem) */
+  font-weight: 600;              /* font-semibold */
+  line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
+  color: var(--color-text-primary);
+}
+
+/* Hover state */
+.index-filter-element-action-button:hover {
+  color: var(--color-text-hover);
+}
+
+filter-input {
+  /* block w-full pb-0 pt-0 mt-1 rounded-sm border-zinc-300 shadow-sm */
+  display: block;
+  width: 100%;
+  padding-bottom: 0;
+  padding-top: 0;
+  margin-top: 0.25rem;
+  border-radius: 0.125rem;
+  border-color: var(--color-border-default);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
+.filter-input:focus {
+  border-color: var(--color-focus-ring);
+  --tw-ring-color: var(--color-focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 
+    var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color), 
+    var(--tw-shadow);
+}
+
+/* Small breakpoint (sm) and up (sm:text-sm) */
+@media (min-width: 640px) {
+  .filter-input {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+.filter-field {
+  display: flex;         /* flex */
+  flex-direction: column; /* flex-col */
+  gap: 0;                /* gap-0 */
+  align-items: center;   /* items-center */
+}
+
+.filter-field-content {
+  width: 100%;                  /* w-full */
+  text-align: center;           /* text-center */
+  padding-bottom: 0.5rem;       /* pb-2 (2 * 0.25rem = 0.5rem) */
+}
+
+.filter-condition-label {
+  /* !h-[0.8rem] */
+  height: 0.8rem !important; 
+}
+
+/* Medium breakpoint (md) and up */
+@media (min-width: 768px) {
+  .filter-condition-label {
+    /* md:hidden */
+    display: none; 
+  }
+}
+
+.filter-condition-input {
+  /* w-full bg-zinc-100 block pb-0 pt-0 rounded-sm border-zinc-100 shadow-sm */
+  width: 100%;                  /* w-full */
+  background-color: var(--color-bg-light);
+  display: block;               /* block */
+  padding-bottom: 0;            /* pb-0 */
+  padding-top: 0;               /* pt-0 */
+  border-radius: 0.125rem;      /* rounded-sm */
+  border-color: var(--color-bg-light);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+}
+
+/* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
+.filter-condition-input:focus {
+  border-color: var(--color-focus-ring); /* focus:border-indigo-500 */
+  --tw-ring-color: var(--color-focus-ring); /* focus:ring-indigo-500 */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 
+    var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color), 
+    var(--tw-shadow);
+}
+
+/* Small breakpoint (sm) and up (sm:text-sm) */
+@media (min-width: 640px) {
+  .filter-condition-input {
+    font-size: 0.875rem;        /* sm:text-sm */
+    line-height: 1.25rem;
+  }
+}
+
+.filter-input-field {
+  /* !pb-0 !pt-0 !mt-1 */
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0.25rem !important; /* 1 * 0.25rem = 0.25rem */
+}
+
+.filter-input-field-disabled {
+  /* !bg-zinc-400 */
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0.25rem !important; /* 1 * 0.25rem = 0.25rem */
+  background-color: var(--color-bg-disabled) !important;
+}
+
+.input {
+  /* mt-2 p-1 block w-full rounded-lg text-zinc-900 */
+  margin-top: 0.5rem;               /* mt-2 (2 * 0.25rem = 0.5rem) */
+  padding: 0.25rem;                 /* p-1 (1 * 0.25rem = 0.25rem) */
+  display: block;                   /* block */
+  width: 100%;                      /* w-full */
+  border-radius: 0.5rem;            /* rounded-lg */
+  color: var(--color-text-primary); /* text-zinc-900 */
+
+  /* border border-zinc-300 */
+  border-width: 1px;                /* border */
+  border-style: solid;              /* border (default style) */
+  border-color: var(--color-border-default); /* border-zinc-300 */
+}
+
+/* Focus state */
+.input:focus {
+  /* focus:ring-0 focus:border-zinc-400 */
+  --tw-ring-color: transparent;     /* focus:ring-0 (Removes the ring color) */
+  box-shadow: none;                 /* focus:ring-0 (Removes the ring shadow) */
+  outline: none;                    /* focus:ring-0 (Ensures no native outline) */
+  border-color: var(--color-border-focus); /* focus:border-zinc-400 */
+}
+
+/* Small breakpoint (sm) and up */
+@media (min-width: 640px) {
+  .input {
+    /* sm:text-sm sm:leading-6 */
+    font-size: 0.875rem;            /* sm:text-sm */
+    line-height: 1.5rem;            /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
+  }
+}
+
+.input-with-errors {
+  /* Inherited from 'input': mt-2 p-1 block w-full rounded-lg text-zinc-900 border border-zinc-300 */
+  margin-top: 0.5rem;               /* mt-2 */
+  padding: 0.25rem;                 /* p-1 */
+  display: block;                   /* block */
+  width: 100%;                      /* w-full */
+  border-radius: 0.5rem;            /* rounded-lg */
+  color: var(--color-text-primary); /* text-zinc-900 */
+  
+  border-width: 1px;                /* border */
+  border-style: solid;              /* border (default style) */
+  border-color: var(--color-error); /* New: border-rose-400 */
+}
+
+/* Focus state */
+.input-with-errors:focus {
+  /* focus:ring-0 focus:border-rose-400 */
+  --tw-ring-color: transparent;     /* focus:ring-0 */
+  box-shadow: none;                 /* focus:ring-0 */
+  outline: none;                    /* focus:ring-0 */
+  border-color: var(--color-error); /* focus:border-rose-400 */
+}
+
+/* Small breakpoint (sm) and up */
+@media (min-width: 640px) {
+  .input-with-errors {
+    /* sm:text-sm sm:leading-6 */
+    font-size: 0.875rem;            /* sm:text-sm */
+    line-height: 1.5rem;            /* sm:leading-6 */
+  }
+}
+
+.select {
+  /* ... (Existing styles: mt-2 p-1 block w-full rounded-md border border-gray-300 bg-white shadow-sm) ... */
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-white);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-border-default);
+
+  /* 👇 FIX 1: Remove the native OS-specific styling and arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* 👇 FIX 2: Add extra right padding to ensure text doesn't hit the chevron */
+  padding-right: 1.5rem; /* A generous value to make room for a custom chevron */
+}
+
+/* Focus state */
+.select:focus {
+  /* focus:border-zinc-400 focus:ring-0 */
+  border-color: var(--color-border-focus); /* focus:border-zinc-400 */
+  --tw-ring-color: transparent;     /* focus:ring-0 (Removes the ring color) */
+  box-shadow: none;                 /* focus:ring-0 (Removes the ring shadow) */
+  outline: none;                    /* focus:ring-0 (Ensures no native outline) */
+}
+
+/* Small breakpoint (sm) and up */
+@media (min-width: 640px) {
+  .select {
+    /* sm:text-sm */
+    font-size: 0.875rem;            /* sm:text-sm */
+    line-height: 1.25rem;           /* sm:text-sm (default line-height) */
+  }
+}
+
+.select-label {
+  /* Placeholder for future theme styles, ignored by the current theme */
+  content-visibility: visible; 
+}
+

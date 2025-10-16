@@ -58,31 +58,31 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-50 hidden"
+      class="core-modal"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="core-modal-background" aria-hidden="true" />
       <div
-        class="fixed inset-0 overflow-y-auto"
+        class="core-modal-container"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
         tabindex="0"
       >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
+        <div class="core-modal-content">
+          <div class="core-modal-box">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="core-modal-focus-wrap"
             >
-              <div class="absolute top-6 right-5">
+              <div class="core-modal-close-button-container">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="core-modal-close-button"
                   aria-label={gettext("close")}
                 >
                   <.icon
@@ -246,11 +246,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <button
       type={@type}
-      class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
-        @class
-      ]}
+      class={["button", @class]}
       {@rest}
     >
       {render_slot(@inner_block)}
@@ -305,8 +301,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2")
   attr(:multiple, :boolean, default: false, doc: "the multiple flag for select inputs")
 
-  attr(:label_class, :string, default: nil, doc: "optional label class override")
-  attr(:input_class, :string, default: nil, doc: "optional input class override")
+  attr(:label_class, :string, default: "", doc: "optional label class override")
+  attr(:input_class, :string, default: "", doc: "optional input class override")
   attr(:option_class, :string, default: "", doc: "optional option class override for select")
 
   attr(:rest, :global,
@@ -333,8 +329,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       end)
 
     ~H"""
-    <div>
-      <label class={["flex items-center gap-4 text-sm leading-6 text-zinc-600", @label_class]}>
+    <fieldset class="fieldset">
+      <label class={["checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -342,7 +338,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class={["rounded border-zinc-300 text-zinc-900 focus:ring-0", @input_class]}
+          class={["checkbox", @input_class]}
           {@rest}
         />
         <%= if is_binary(@label) do %>
@@ -350,18 +346,18 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         <% end %>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div>
-      <.label class={@label_class} for={@id}>{@label}</.label>
+      <.label class={"select-label " <> @label_class} for={@id}>{@label}</.label>
       <select
         id={@id}
         name={@name}
-        class={["mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm", @input_class]}
+        class={["select", @input_class]}
         multiple={@multiple}
         {@rest}
       >
@@ -396,23 +392,18 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div>
+    <fieldset class="fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400",
-          @input_class
-        ]}
+        class={if @errors == [], do: "input", else: "input-with-errors"}
         {@rest}
       />
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 

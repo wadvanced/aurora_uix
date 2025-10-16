@@ -8,7 +8,10 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   alias Aurora.Uix.Test.Inventory.ProductTransaction
   alias Aurora.Uix.TreePath
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product)
+  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+    field(:inactive, disabled: false)
+  end
+
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
@@ -63,6 +66,15 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
             name: :product_transactions
           }
         ]
+      },
+      %TreePath{
+        tag: :inline,
+        inner_elements: [
+          %TreePath{
+            tag: :field,
+            name: :inactive
+          }
+        ]
       }
     ]
   }
@@ -107,6 +119,15 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
           %TreePath{
             tag: :field,
             name: :product_transactions
+          }
+        ]
+      },
+      %TreePath{
+        tag: :inline,
+        inner_elements: [
+          %TreePath{
+            tag: :field,
+            name: :inactive
           }
         ]
       }
