@@ -137,7 +137,8 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
   auix_create_ui do
     index_columns(:product, [:reference, :name, :description, :product_location_id],
-      order_by: :name
+      order_by: :name,
+      page_subtitle: "Manual view"
     )
   end
 
