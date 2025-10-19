@@ -400,17 +400,42 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_textarea_errors) do
+  def rule(:auix_textarea__errors) do
     """
-      #{common_text_area_css("-errors")}
-      .auix-textarea-errors {
+      #{common_text_area_css("--errors")}
+      .auix-textarea--errors {
         border-color: var(--auix-color-error); /* border-rose-400 */
       }
-      .auix-textarea-errors:focus {
+      .auix-textarea--errors:focus {
         border-color: var(--auix-color-error); /* focus:border-rose-400 */
       }
     """
   end
+
+  def rule(:auix_input) do
+    """
+      #{common_input_css()}
+      .auix-input {
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+      }
+      .auix-input:focus {
+        border-color: var(--auix-color-border-focus); /* focus:border-zinc-400 */
+      }
+    """
+  end
+
+  def rule(:auix_input__errors) do
+    """
+      #{common_input_css("--errors")}
+      .auix-input--errors {
+        border-color: var(--auix-color-error); /* border-rose-400 */
+      }
+      .auix-input--errors:focus {
+        border-color: var(--auix-color-error); /* focus:border-rose-400 */
+      }
+    """
+  end
+
 
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
@@ -471,6 +496,39 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           line-height: 1.5rem;            /* sm:leading-6 */
         }
       }
+    """
+  end
+
+  @spec common_input_css(binary()) :: binary()
+  defp common_input_css(suffix \\ "") do
+    """
+      .auix-input#{suffix} {
+        /* mt-2 p-1 block w-full rounded-lg text-zinc-900 */
+        margin-top: 0.5rem;               /* mt-2 (2 * 0.25rem = 0.5rem) */
+        padding: 0.25rem;                 /* p-1 (1 * 0.25rem = 0.25rem) */
+        display: block;                   /* block */
+        width: 100%;                      /* w-full */
+        border-radius: 0.5rem;            /* rounded-lg */
+        color: var(--color-text-primary); /* text-zinc-900 */
+
+        /* border border-zinc-300 */
+        border-width: 1px;                /* border */
+        border-style: solid;              /* border (default style) */
+      }
+      /* Focus state */
+      .auix-input#{suffix}:focus {
+        /* focus:ring-0 focus:border-zinc-400 */
+        --tw-ring-color: transparent;     /* focus:ring-0 (Removes the ring color) */
+        box-shadow: none;                 /* focus:ring-0 (Removes the ring shadow) */
+        outline: none;                    /* focus:ring-0 (Ensures no native outline) */
+      }
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-input#{suffix} {
+          /* sm:text-sm sm:leading-6 */
+          font-size: 0.875rem;            /* sm:text-sm */
+          line-height: 1.5rem;            /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
+        }
     """
   end
 end

@@ -373,7 +373,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         id={@id}
         name={@name}
         class={[(if @errors == [], do: "auix-textarea",
-            else: "auix-textarea-errors"),
+            else: "auix-textarea--errors"),
           @input_class
         ]}
         {@rest}
@@ -393,7 +393,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={if @errors == [], do: "input", else: "input-with-errors"}
+        class={if @errors == [], do: "auix-input", else: "auix-input--errors"}
         {@rest}
       />
       <.error :for={msg <- @errors}>{msg}</.error>
