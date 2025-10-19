@@ -411,7 +411,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec label(map) :: Rendered.t()
   def label(assigns) do
     ~H"""
-    <label for={@for} class={["block text-sm font-semibold leading-6 text-zinc-800", @class]}>
+    <label for={@for} class={["auix-label", @class]}>
       {render_slot(@inner_block)}
     </label>
     """

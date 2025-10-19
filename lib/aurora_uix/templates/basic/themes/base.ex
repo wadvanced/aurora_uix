@@ -436,6 +436,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_label) do
+    """
+      .auix-label {
+        /* block text-sm font-semibold leading-6 text-zinc-800 */
+        display: block;                  /* block */
+        font-size: 0.875rem;             /* text-sm */
+        font-weight: 600;                /* font-semibold */
+        line-height: 1.5rem;             /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-label); /* text-zinc-800 */
+      }
+    """
+  end
 
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
