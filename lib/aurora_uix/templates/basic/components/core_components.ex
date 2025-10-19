@@ -242,7 +242,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <button
       type={@type}
-      class={["button", @class]}
+      class={["auix-button", @class]}
       {@rest}
     >
       {render_slot(@inner_block)}

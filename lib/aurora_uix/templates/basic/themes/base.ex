@@ -247,9 +247,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:button) do
+  def rule(:auix_button) do
     """
-      .button {
+      .auix-button {
         border-radius: 0.5rem;
         background-color: var(--auix-color-text-primary);
         padding: 0.5rem 0.75rem;
@@ -259,15 +259,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         color: var(--auix-color-text-on-accent);
       }
 
-      .button:hover {
+      .auix-button:hover {
         background-color: var(--auix-color-text-hover);
       }
 
-      .button:active {
+      .auix-button:active {
         color: var(--auix-color-text-on-accent-active);
       }
 
-      .button[phx-submit-loading] {
+      .auix-button[phx-submit-loading] {
         opacity: 0.75;
       }
     """
