@@ -59,13 +59,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-shadow-zinc-700-10: 0 4px 6px -1px var(--auix-color-zinc-700-10), 0 2px 4px -2px var(--auix-color-zinc-700-10);
 
       /* ring-zinc-700/10 (1px ring is achieved via box-shadow) */
-      --auix-ring-zinc-700-10: var(--auix-tw-ring-inset) 0 0 0 calc(1px + var(--auix-tw-ring-offset-width)) var(--auix-color-zinc-700-10);
+      --auix-ring-zinc-700-10: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-zinc-700-10);
 
-      /* Generic Shadow/Ring Variables (Needed for Tailwind's box-shadow implementation) */
-      --auix-tw-shadow: var(--auix-shadow-lg); /* Use shadow-lg as the primary shadow */
-      --auix-tw-ring-inset: ;
-      --auix-tw-ring-offset-shadow: 0 0 #0000;
-      --auix-tw-ring-offset-width: 0px;
+      /* Generic Shadow/Ring Variables */
+      --auix-primary-shadow: var(--auix-shadow-lg); /* Use shadow-lg as the primary shadow */
+      --auix-ring-inset: ;
+      --auix-ring-offset-shadow: 0 0 #0000;
+      --auix-ring-offset-width: 0px;
 
     }
     """

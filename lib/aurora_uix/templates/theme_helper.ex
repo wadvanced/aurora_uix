@@ -296,6 +296,26 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     rule
     |> convert_dashes()
     |> theme.rule()
+    |> trim_rule()
+  end
+
+  @spec trim_rule(binary()) :: binary()
+  defp trim_rule(rule) do
+    rule
+    |> String.replace(~r"/\*.+\*/", "")
+    |> String.trim()
+    |> replace_conditionally(~r/[ \t\n]+\n/, "\n")
+  end
+
+  @spec replace_conditionally(binary(), Regex.t(), binary()) :: binary()
+  defp replace_conditionally(rule, finder, replacement) do
+    if Regex.scan(finder, rule) != [] do
+      rule
+      |> String.replace(finder, replacement)
+      |> replace_conditionally(finder, replacement)
+    else
+      rule
+    end
   end
 
   # Converts a string with dashes to a snake_case atom.

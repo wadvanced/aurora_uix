@@ -110,9 +110,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         box-shadow: var(--auix-shadow-lg), var(--auix-shadow-zinc-700-10); /* shadow-lg & shadow-zinc-700/10 */
 
         /* RING */
-        --auix-tw-ring-offset-shadow: 0 0 #0000;
-        --auix-tw-ring-shadow: var(--auix-ring-zinc-700-10); /* ring-zinc-700/10 (opacity 10) */
-        box-shadow: var(--auix-tw-ring-offset-shadow), var(--auix-tw-ring-shadow), var(--auix-tw-shadow);
+        --auix-calc-ring-offset-shadow: 0 0 #0000;
+        --auix-calc-ring-shadow: var(--auix-ring-zinc-700-10); /* ring-zinc-700/10 (opacity 10) */
+        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-calc-shadow);
         border-width: 1px;             /* ring-1 (The ring effect is achieved via box-shadow in Tailwind) */
 
         /* TRANSITION */
@@ -163,10 +163,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         fill: var(--auix-color-icon-fill);    /* fill-cyan-900 (For internal SVG/Icon) */
 
         /* RING */
-        --tw-ring-color: var(--auix-color-info-ring); /* ring-emerald-500 (sets ring color) */
-        --tw-ring-offset-shadow: 0 0 #0000;
-        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+        --auix-calc-ring-color: var(--auix-color-info-ring); /* ring-emerald-500 (sets ring color) */
+        --auix-calc-ring-offset-shadow: 0 0 #0000;
+        --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-calc-ring-color);
+        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-primary-shadow);
       }
     """
   end
@@ -182,8 +182,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         fill: var(--auix-color-error-text);
 
         /* RING & SHADOW */
-        --auix-calc-tw-ring-shadow: var(--auix-tw-ring-inset) 0 0 0 calc(1px + var(--auix-tw-ring-offset-width)) var(--auix-color-error-ring);
-        box-shadow: var(--auix-tw-ring-offset-shadow), var(--auix-calc-tw-ring-shadow), var(--auix-shadow-md);
+        --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-error-ring);
+        box-shadow: var(--auix-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-shadow-md);
       }
     """
   end
@@ -220,6 +220,29 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         inset-inline-end: 0.25rem;  /* right-1 */
         inset-block-start: 0.25rem;             /* top-1 (1 * 0.25rem = 0.25rem) */
         padding: 0.5rem;         /* p-2 (2 * 0.25rem = 0.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_simple_form_content) do
+    """
+      .auix-simple-form-content {
+        /* mt-10 space-y-8 bg-white */
+        margin-top: 2.0rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
+        background-color: var(--auix-color-bg-white); /* bg-white */
+      }
+    """
+  end
+
+  def rule(:auix_simple_form_actions) do
+    """
+      .auix-simple-form-actions {
+        /* mt-2 flex items-center justify-between gap-6 */
+        margin-top: 0.5rem;          /* mt-2 (2 * 0.25rem = 0.5rem) */
+        display: flex;               /* flex */
+        align-items: center;         /* items-center */
+        justify-content: space-between; /* justify-between */
+        gap: 1.5rem;                 /* gap-6 (6 * 0.25rem = 1.5rem) */
       }
     """
   end
@@ -268,8 +291,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         background-color: var(--auix-color-bg-white);
         color: var(--auix-color-text-primary);
 
-
-        --auix-tw-ring-color: transparent;
         box-shadow: none;
         outline: none;
         background-image: none;
