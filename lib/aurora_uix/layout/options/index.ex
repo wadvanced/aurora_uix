@@ -128,6 +128,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
   defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}} = assigns, :page_title),
     do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
 
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :page_subtitle),
+    do: {:ok, ""}
+
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),
     do: {:ok, &__MODULE__.page_bar_range_offset/2}
 

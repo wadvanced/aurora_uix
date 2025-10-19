@@ -45,6 +45,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
+        <:subtitle>
+          {@auix.layout_options.page_subtitle}
+        </:subtitle>
       </.header>
       <div class="index-actions">
         <div class="index-select-actions" name="auix-index-select-actions">
