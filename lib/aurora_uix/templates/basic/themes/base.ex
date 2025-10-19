@@ -449,6 +449,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_error_message) do
+    """
+      .auix-error-message {
+        /* mt-3 flex gap-3 text-sm leading-6 text-rose-600 */
+        margin-top: 0.25rem;                       /* mt-3 (3 * 0.25rem = 0.75rem) */
+        display: flex;                             /* flex */
+        gap: 0.75rem;                              /* gap-3 (3 * 0.25rem = 0.75rem) */
+        font-size: 0.875rem;                       /* text-sm */
+        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-error-text-default); /* text-rose-600 */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

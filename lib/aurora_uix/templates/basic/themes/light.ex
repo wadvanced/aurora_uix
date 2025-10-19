@@ -30,7 +30,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
 
       /* Status Colors */
-      --auix-color-error: #FB7185; /* rose-400 for input error borders */
+      --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
+      --auix-color-error: #FB7185;          /* rose-400 for input error borders */
       --auix-color-info-bg: #F0FDF4;        /* emerald-50 (Info Background) */
       --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
       --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
