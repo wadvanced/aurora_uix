@@ -273,6 +273,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_fieldset) do
+    """
+      .auix-fieldset {
+        display: grid;
+        gap: calc(0.25rem * 1.5);
+        padding-block: calc(0.25rem * 1);
+        font-size: 0.75rem;
+        grid-template-columns: 1fr;
+        grid-auto-rows: max-content;
+      }
+    """
+  end
+
   def rule(:auix_checkbox) do
     """
     .auix-checkbox {

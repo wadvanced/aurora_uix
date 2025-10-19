@@ -325,7 +325,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       end)
 
     ~H"""
-    <fieldset class="fieldset">
+    <fieldset class="auix-fieldset">
       <label class={["auix-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
@@ -388,7 +388,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <fieldset class="fieldset">
+    <fieldset class="auix-fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <input
         type={@type}
