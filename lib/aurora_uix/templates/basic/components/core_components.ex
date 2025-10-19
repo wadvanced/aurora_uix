@@ -444,16 +444,16 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec header(map) :: Rendered.t()
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+    <header class={[(if @actions == [], do: "auix-header", else: "auix-header--top-actions"), @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <h1 class="auix-header-title">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <p :if={@subtitle != []} class="auix-header-subtitle">
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="auix-header--bottom-actions">{render_slot(@actions)}</div>
     </header>
     """
   end

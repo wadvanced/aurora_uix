@@ -463,6 +463,61 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_header) do
+    """
+      .auix-header{
+        all: unset;
+      }
+    """
+  end
+
+  def rule(:auix_header__top_actions) do
+    """
+      .auix-header--top-actions {
+        /* flex items-center justify-between gap-6 */
+        display: flex;                 /* flex */
+        align-items: center;           /* items-center */
+        justify-content: space-between;  /* justify-between */
+        gap: 1.5rem;                   /* gap-6 (6 * 0.25rem = 1.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_header_title) do
+    """
+      .auix-header-title {
+        /* text-lg font-semibold leading-8 text-zinc-800 */
+        font-size: 1.125rem;                      /* text-lg */
+        font-weight: 600;                         /* font-semibold */
+        line-height: 2rem;                        /* leading-8 (8 * 0.25rem = 2rem) */
+        color: var(--auix-color-text-label);      /* text-zinc-800 */
+      }
+    """
+  end
+
+  def rule(:auix_header_subtitle) do
+    """
+      .auix-header-subtitle {
+        /* mt-2 text-sm leading-6 text-zinc-600 */
+        margin-top: 0.1rem;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-secondary);   /* text-zinc-600 */
+      }
+    """
+  end
+
+  def rule(:auix_header__bottom_actions) do
+    """
+      .auix-header--bottom-actions {
+        /* flex-none */
+        flex-shrink: 0;   /* flex-none */
+        flex-grow: 0;     /* flex-none */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
