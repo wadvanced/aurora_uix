@@ -332,6 +332,62 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_select) do
+    """
+      .auix-select {
+        margin-top: 0.5rem;
+        padding: 0.25rem;
+        display: block;
+        width: 100%;
+        border-radius: 0.375rem;
+        background-color: var(--auix-color-bg-white);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        border-width: 1px;
+        border-style: solid;
+        border-color: var(--auix-color-border-default);
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+      }
+      .auix-select:not(:disabled) {
+        background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1rem 1rem;
+        padding-right: 1.5rem;
+      }
+      .auix-select:disabled {
+        background-image: none;
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1rem 1rem;
+        padding-right: 0.5rem;
+        cursor: not-allowed;
+      }
+
+      .auix-select:focus {
+        border-color: var(--auix-color-border-focus);
+        --auix-ring-color: transparent;
+        box-shadow: none;
+        outline: none;
+      }
+      @media (min-width: 640px) {
+        .auix-select {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_select_label) do
+    """
+    .auix-select-label {
+      content-visibility: visible;
+    }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

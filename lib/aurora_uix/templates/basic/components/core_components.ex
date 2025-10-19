@@ -349,11 +349,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div>
-      <.label class={"select-label " <> @label_class} for={@id}>{@label}</.label>
+      <.label class={"auix-select-label " <> @label_class} for={@id}>{@label}</.label>
       <select
         id={@id}
         name={@name}
-        class={["select", @input_class]}
+        class={["auix-select", @input_class]}
         multiple={@multiple}
         {@rest}
       >
