@@ -273,9 +273,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:checkbox) do
+  def rule(:auix_checkbox) do
     """
-    .checkbox {
+    .auix-checkbox {
         appearance: none;
         padding: 0;
         display: inline-block;
@@ -296,7 +296,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         background-image: none;
       }
 
-      .checkbox:disabled {
+      .auix-checkbox:disabled {
         background-color: var(--auix-color-bg-light);
         color: var(--auix-color-text-secondary);
 
@@ -306,9 +306,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:checkbox_label) do
+  def rule(:auix_checkbox_label) do
     """
-      .checkbox-label {
+      .auix-checkbox-label {
         display: flex;
         align-items: center;
         gap: 0.5rem;

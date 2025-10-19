@@ -326,7 +326,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
     ~H"""
     <fieldset class="fieldset">
-      <label class={["checkbox-label", @label_class]}>
+      <label class={["auix-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -334,7 +334,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class={["checkbox", @input_class]}
+          class={["auix-checkbox", @input_class]}
           {@rest}
         />
         <%= if is_binary(@label) do %>
