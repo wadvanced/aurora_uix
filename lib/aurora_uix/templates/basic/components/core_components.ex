@@ -58,31 +58,31 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="core-modal"
+      class="auix-modal"
     >
-      <div id={"#{@id}-bg"} class="core-modal-background" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="auix-modal-background" aria-hidden="true" />
       <div
-        class="core-modal-container"
+        class="auix-modal-container"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
         tabindex="0"
       >
-        <div class="core-modal-content">
-          <div class="core-modal-box">
+        <div class="auix-modal-content">
+          <div class="auix-modal-box">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="core-modal-focus-wrap"
+              class="auix-modal-focus-wrap"
             >
-              <div class="core-modal-close-button-container">
+              <div class="auix-modal-close-button-container">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="core-modal-close-button"
+                  class="auix-modal-close-button"
                   aria-label={gettext("close")}
                 >
                   <.icon
@@ -126,20 +126,16 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
       role="alert"
-      class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
-      ]}
+      class={"auix-flash--#{@kind}"}
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
+      <p :if={@title} class="auix-flash-title">
         <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
         {@title}
       </p>
-      <p class="mt-2 text-sm leading-5">{msg}</p>
-      <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
+      <p class="auix-flash-message">{msg}</p>
+      <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
         <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
     </div>

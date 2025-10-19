@@ -7,10 +7,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   use Aurora.Uix.Templates.Theme
 
   @impl true
-  @spec rule(:core_modal) :: binary()
-  def rule(:core_modal) do
+  @spec rule(atom()) :: binary()
+  def rule(:auix_modal) do
     """
-      .core-modal {
+      .auix-modal {
         /* relative z-50 hidden */
         position: relative; /* relative */
         z-index: 50;        /* z-50 */
@@ -19,12 +19,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_background) :: binary()
-  def rule(:core_modal_background) do
+  def rule(:auix_modal_background) do
     """
-      .core-modal-background {
-        background-color: var(--color-bg-backdrop);
+      .auix-modal-background {
+        background-color: var(--auix-color-bg-backdrop);
 
         /* fixed inset-0 */
         position: fixed;
@@ -41,11 +39,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_container) :: binary()
-  def rule(:core_modal_container) do
+  def rule(:auix_modal_container) do
     """
-      .core-modal-container {
+      .auix-modal-container {
         /* fixed inset-0 overflow-y-auto */
         position: fixed;
         top: 0;
@@ -57,11 +53,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_content) :: binary()
-  def rule(:core_modal_content) do
+  def rule(:auix_modal_content) do
     """
-    .core-modal-content {
+    .auix-modal-content {
       /* flex min-h-full items-center justify-center */
       display: flex;
       min-height: 100%;
@@ -71,11 +65,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_box) :: binary()
-  def rule(:core_modal_box) do
+  def rule(:auix_modal_box) do
     """
-      .core-modal-box {
+      .auix-modal-box {
         /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
         max-width: max-content;         /* max-w-max (Overridden by max-w-3xl) */
         padding: 1rem;                  /* p-4 (4 * 0.25rem = 1rem) */
@@ -85,14 +77,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       /* Small breakpoint (sm) and up */
       @media (min-width: 640px) {
-        .core-modal-box {
+        .auix-modal-box {
           padding: 1.5rem;              /* sm:p-6 (6 * 0.25rem = 1.5rem) */
         }
       }
 
       /* Large breakpoint (lg) and up */
       @media (min-width: 1024px) {
-        .core-modal-box {
+        .auix-modal-box {
           padding-top: 2rem;            /* lg:py-8 (8 * 0.25rem = 2rem) */
           padding-bottom: 2rem;         /* lg:py-8 */
         }
@@ -100,11 +92,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_focus_wrap) :: binary()
-  def rule(:core_modal_focus_wrap) do
+  def rule(:auix_modal_focus_wrap) do
     """
-      .core-modal-focus-wrap {
+      .auix-modal-focus-wrap {
         /* shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition */
 
         /* POSITIONING & VISIBILITY */
@@ -113,16 +103,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         /* BOX STYLES */
         border-radius: 1rem;           /* rounded-2xl (16px) */
-        background-color: var(--color-bg-white); /* bg-white */
+        background-color: var(--auix-color-bg-white); /* bg-white */
         padding: 3.5rem;               /* p-14 (14 * 0.25rem = 3.5rem) */
 
         /* SHADOW */
-        box-shadow: var(--shadow-lg), var(--shadow-zinc-700-10); /* shadow-lg & shadow-zinc-700/10 */
+        box-shadow: var(--auix-shadow-lg), var(--auix-shadow-zinc-700-10); /* shadow-lg & shadow-zinc-700/10 */
 
         /* RING */
-        --tw-ring-offset-shadow: 0 0 #0000;
-        --tw-ring-shadow: var(--ring-zinc-700-10); /* ring-zinc-700/10 (opacity 10) */
-        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+        --auix-tw-ring-offset-shadow: 0 0 #0000;
+        --auix-tw-ring-shadow: var(--auix-ring-zinc-700-10); /* ring-zinc-700/10 (opacity 10) */
+        box-shadow: var(--auix-tw-ring-offset-shadow), var(--auix-tw-ring-shadow), var(--auix-tw-shadow);
         border-width: 1px;             /* ring-1 (The ring effect is achieved via box-shadow in Tailwind) */
 
         /* TRANSITION */
@@ -133,11 +123,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_close_button_container) :: binary()
-  def rule(:core_modal_close_button_container) do
+  def rule(:auix_modal_close_button_container) do
     """
-      .core-modal-close-button-container {
+      .auix-modal-close-button-container {
         /* absolute top-6 right-5 */
         position: absolute;
         top: 1.5rem;   /* top-6 (6 * 0.25rem = 1.5rem) */
@@ -146,11 +134,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:core_modal_close_button) :: binary()
-  def rule(:core_modal_close_button) do
+  def rule(:auix_modal_close_button) do
     """
-      .core-modal-close-button {
+      .auix-modal-close-button {
         /* -m-3 flex-none p-3 opacity-20 hover:opacity-40 */
         margin: -0.75rem;          /* -m-3 (-3 * 0.25rem = -0.75rem) */
         flex-shrink: 0;            /* flex-none (shorthand for flex-shrink: 0 and flex-grow: 0) */
@@ -160,32 +146,102 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
       /* Hover state */
-      .core-modal-close-button:hover {
+      .auix-modal-close-button:hover {
         opacity: 0.4;              /* hover:opacity-40 */
       }
     """
   end
 
-  @impl true
-  @spec rule(:button) :: binary()
+  def rule(:auix_flash__info) do
+    """
+      .auix-flash--info {
+        #{common_flash_css()}
+        background-color: var(--auix-color-info-bg); /* bg-emerald-50 */
+
+        /* TEXT & ICON */
+        color: var(--auix-color-info-text);   /* text-emerald-800 */
+        fill: var(--auix-color-icon-fill);    /* fill-cyan-900 (For internal SVG/Icon) */
+
+        /* RING */
+        --tw-ring-color: var(--auix-color-info-ring); /* ring-emerald-500 (sets ring color) */
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+      }
+    """
+  end
+
+  def rule(:auix_flash__error) do
+    """
+      .auix-flash--error {
+        #{common_flash_css()}
+        background-color: var(--auix-color-error-bg);
+
+        /* TEXT & ICON */
+        color: var(--auix-color-error-text);
+        fill: var(--auix-color-error-text);
+
+        /* RING & SHADOW */
+        --auix-calc-tw-ring-shadow: var(--auix-tw-ring-inset) 0 0 0 calc(1px + var(--auix-tw-ring-offset-width)) var(--auix-color-error-ring);
+        box-shadow: var(--auix-tw-ring-offset-shadow), var(--auix-calc-tw-ring-shadow), var(--auix-shadow-md);
+      }
+    """
+  end
+
+  def rule(:auix_flash_title) do
+    """
+      .auix-flash-title {
+        /* flex items-center gap-1.5 text-sm font-semibold leading-6 */
+        display: flex;         /* flex */
+        align-items: center;   /* items-center */
+        gap: 0.375rem;         /* gap-1.5 (1.5 * 0.25rem = 0.375rem) */
+        font-size: 0.875rem;   /* text-sm */
+        font-weight: 600;      /* font-semibold */
+        line-height: 1.5rem;   /* leading-6 (6 * 0.25rem = 1.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_flash_message) do
+    """
+      .auix-flash-message {
+        /* mt-2 text-sm leading-5 */
+        margin-top: 0.5rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        font-size: 0.875rem;  /* text-sm */
+        line-height: 1.25rem; /* leading-5 (5 * 0.25rem = 1.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_flash_close_button) do
+    """
+      .auix-flash-close-button {
+        position: absolute;       /* absolute */
+        inset-inline-end: 0.25rem;  /* right-1 */
+        inset-block-start: 0.25rem;             /* top-1 (1 * 0.25rem = 0.25rem) */
+        padding: 0.5rem;         /* p-2 (2 * 0.25rem = 0.5rem) */
+      }
+    """
+  end
+
   def rule(:button) do
     """
       .button {
         border-radius: 0.5rem;
-        background-color: var(--color-text-primary);
+        background-color: var(--auix-color-text-primary);
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
         font-weight: 600;
         line-height: 1.5rem;
-        color: var(--color-text-on-accent);
+        color: var(--auix-color-text-on-accent);
       }
 
       .button:hover {
-        background-color: var(--color-text-hover);
+        background-color: var(--auix-color-text-hover);
       }
 
       .button:active {
-        color: var(--color-text-on-accent-active);
+        color: var(--auix-color-text-on-accent-active);
       }
 
       .button[phx-submit-loading] {
@@ -194,8 +250,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:checkbox) :: binary()
   def rule(:checkbox) do
     """
     .checkbox {
@@ -210,20 +264,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-style: solid;
 
         border-radius: 0.25rem;
-        border-color: var(--color-border-default);
-        background-color: var(--color-bg-white);
-        color: var(--color-text-primary);
+        border-color: var(--auix-color-border-default);
+        background-color: var(--auix-color-bg-white);
+        color: var(--auix-color-text-primary);
 
 
-        --tw-ring-color: transparent;
+        --auix-tw-ring-color: transparent;
         box-shadow: none;
         outline: none;
         background-image: none;
       }
 
       .checkbox:disabled {
-        background-color: var(--color-bg-light);
-        color: var(--color-text-secondary);
+        background-color: var(--auix-color-bg-light);
+        color: var(--auix-color-text-secondary);
 
         opacity: 1;
         cursor: not-allowed;
@@ -231,8 +285,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @impl true
-  @spec rule(:checkbox_label) :: binary()
   def rule(:checkbox_label) do
     """
       .checkbox-label {
@@ -241,12 +293,30 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         gap: 0.5rem;
         font-size: 0.875rem;
         line-height: 1.5rem;
-        color: var(--color-text-secondary);
+        color: var(--auix-color-text-secondary);
       }
     """
   end
 
-  @impl true
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
+
+  ## PRIVATE
+  @spec common_flash_css() :: binary()
+  defp common_flash_css do
+    """
+      /* POSITIONING & SIZE */
+      position: fixed;                 /* fixed */
+      top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
+      right: 0.5rem;                   /* right-2 */
+      margin-right: 0.5rem;            /* mr-2 */
+      width: 20rem;                    /* w-80 (80 * 0.25rem = 20rem) */
+      z-index: 50;                     /* z-50 */
+
+      /* BOX STYLES */
+      border-radius: 0.5rem;           /* rounded-lg */
+      padding: 0.75rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
+
+    """
+  end
 end
