@@ -388,6 +388,30 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_textarea) do
+    """
+      #{common_text_area_css()}
+      .auix-textarea {
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+      }
+      .auix-textarea:focus {
+        border-color: var(--auix-color-border-focus); /* focus:border-zinc-400 */
+      }
+    """
+  end
+
+  def rule(:auix_textarea_errors) do
+    """
+      #{common_text_area_css("-errors")}
+      .auix-textarea-errors {
+        border-color: var(--auix-color-error); /* border-rose-400 */
+      }
+      .auix-textarea-errors:focus {
+        border-color: var(--auix-color-error); /* focus:border-rose-400 */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
@@ -407,6 +431,46 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-radius: 0.5rem;           /* rounded-lg */
       padding: 0.75rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
 
+    """
+  end
+
+  @spec common_text_area_css(binary()) :: binary()
+  defp common_text_area_css(suffix \\ "") do
+    """
+      .auix-textarea#{suffix} {
+        /* mt-2 block w-full rounded-lg text-zinc-900 min-h-[6rem] */
+        margin-top: 0.5rem;               /* mt-2 */
+        display: block;                   /* block */
+        width: 100%;                      /* w-full */
+        border-radius: 0.5rem;            /* rounded-lg */
+        min-height: 6rem;                 /* min-h-[6rem] */
+        color: var(--auix-color-text-primary); /* text-zinc-900 */
+        padding: 0.25rem;
+
+        /* focus:ring-0 */
+        box-shadow: none;
+        outline: none;
+
+        /* Default border style (width and type) */
+        border-width: 1px;
+        border-style: solid;
+      }
+
+      /* Common Focus & Small Breakpoint Styles */
+
+      .auix-textarea#{suffix}:focus {
+        /* focus:ring-0 */
+        box-shadow: none;
+        outline: none;
+      }
+
+      @media (min-width: 640px) {
+        .auix-textarea#{suffix} {
+          /* sm:text-sm sm:leading-6 */
+          font-size: 0.875rem;            /* sm:text-sm */
+          line-height: 1.5rem;            /* sm:leading-6 */
+        }
+      }
     """
   end
 end

@@ -367,21 +367,19 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div>
+    <fieldset class="auix-fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <textarea
         id={@id}
         name={@name}
-        class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400",
+        class={[(if @errors == [], do: "auix-textarea",
+            else: "auix-textarea-errors"),
           @input_class
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
+    </fieldset>
     """
   end
 
