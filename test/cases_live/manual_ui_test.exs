@@ -10,6 +10,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
   auix_resource_metadata(:product, context: Inventory, schema: Product) do
     field(:inactive, disabled: false)
+    field(:description, html_type: :textarea)
   end
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
@@ -160,7 +161,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
     assert has_element?(view, "input[name='product[reference]']")
     assert has_element?(view, "input[name='product[name]']")
-    assert has_element?(view, "input[name='product[description]']")
+    assert has_element?(view, "textarea[name='product[description]']")
     assert has_element?(view, "input[name='product[quantity_at_hand]']")
     assert has_element?(view, "input[name='product[quantity_initial]']")
     assert has_element?(view, "input[name='product[list_price]']")
@@ -184,7 +185,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
     assert has_element?(view, "input[name='reference']")
     assert has_element?(view, "input[name='name']")
-    assert has_element?(view, "input[name='description']")
+    assert has_element?(view, "textarea[name='description']")
     assert has_element?(view, "input[name='quantity_at_hand']")
     assert has_element?(view, "input[name='quantity_initial']")
     refute has_element?(view, "input[name='list_price']")
