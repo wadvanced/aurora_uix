@@ -1139,6 +1139,59 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_pagination_bar) do
+    """
+      .auix-pagination-bar {
+        /* flex flex-row gap-3 justify-center overflow-x-clip */
+        display: flex;         /* flex */
+        flex-direction: row;   /* flex-row */
+        gap: 0.75rem;          /* gap-3 (3 * 0.25rem = 0.75rem) */
+        justify-content: center; /* justify-center */
+        overflow-x: clip;      /* overflow-x-clip */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_link) do
+    """
+      .auix-pagination-bar-link {
+        /* flex flex-col gap-1 */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+        gap: 0.25rem;          /* gap-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_current_page) do
+    """
+      .auix-pagination-bar-current-page {
+        /* mt-0 mb-0 p-0 flex flex-col gap-1 */
+        margin-top: 0;         /* mt-0 */
+        margin-bottom: 0;      /* mb-0 */
+        padding: 0;            /* p-0 */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+        gap: 0.25rem;          /* gap-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_current_page_number) do
+    """
+      .auix-pagination-bar-current-page-number {
+        /* border border-zinc-400 rounded-full py-0 px-1 */
+        border-width: 1px;                                /* border */
+        border-color: var(--auix-color-border-subtle);   /* border-zinc-400 (Typically #A1A1AA) */
+        border-radius: 9999px;                            /* rounded-full (A huge value makes it perfectly circular/oval) */
+        padding-top: 0;                                   /* py-0 */
+        padding-bottom: 0;                                /* py-0 */
+        padding-left: 0.25rem;                            /* px-1 (1 * 0.25rem = 0.25rem) */
+        padding-right: 0.25rem;                           /* px-1 */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

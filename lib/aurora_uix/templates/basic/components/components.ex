@@ -315,28 +315,28 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       |> maybe_augment_range()
 
     ~H"""
-      <div class="flex flex-row gap-3 justify-center overflow-x-clip">
+      <div class="auix-pagination-bar">
         <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
         <%= if @pages_start_index > 1 do %>
-          <a name="auix-pages_bar_page-first" class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={1}>
+          <a name="auix-pages_bar_page-first" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={1}>
             <span>1</span>
             <.selected_count selected_in_page={@selected_in_page} page={1} />
           </a>
-          <a name="auix-pages_bar_page-left"class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
+          <a name="auix-pages_bar_page-left"class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={1} to={@pages_start_index} />
           </a>
         <% end %>
         <div :for={page_index <- @pages_start_index..@pages_end_index}>
           <%= if page_index == @pagination.page do %>
-            <div class="mt-0 mb-0 p-0 flex flex-col gap-1">
-              <span name="auix-pages_bar_page-current" class="border border-zinc-400 rounded-full py-0 px-1">
+            <div class="auix-pagination-bar-current-page">
+              <span name="auix-pages_bar_page-current" class="auix-pagination-bar-current-page-number">
                 {page_index}
               </span>
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </div>
           <% else %>
-            <a name={"auix-pages_bar_page-#{page_index}"} class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={page_index}>
+            <a name={"auix-pages_bar_page-#{page_index}"} class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={page_index}>
               <span>{page_index}</span>
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </a>
@@ -344,11 +344,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         </div>
 
         <%= if @pages_end_index < @pagination.pages_count do %>
-          <a name="auix-pages_bar_page-right"class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pages_right_index}>
+          <a name="auix-pages_bar_page-right" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_right_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={@pages_end_index} to={@pagination.pages_count} />
           </a>
-          <a name="auix-pages_bar_page-last" class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>
+          <a name="auix-pages_bar_page-last" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>
             <span>{@pagination.pages_count}</span>
             <.selected_count selected_in_page={@selected_in_page} page={@pagination.pages_count} />
           </a>
