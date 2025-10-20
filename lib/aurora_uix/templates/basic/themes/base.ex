@@ -939,13 +939,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table_cell) do
     """
-      #{common_items_table_cell()}
+      #{common_items_table_cell_css()}
     """
   end
 
   def rule(:auix_items_table_cell_clickable) do
     """
-      #{common_items_table_cell("-clickable")}
+      #{common_items_table_cell_css("-clickable")}
 
       .auix-items-table-cell-clickable:hover {
         /* hover:cursor-pointer */
@@ -1204,6 +1204,96 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_filter_field) do
+    """
+      .auix-filter-field {
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+        gap: 0;                /* gap-0 */
+        align-items: center;   /* items-center */
+      }
+
+    """
+  end
+
+  def rule(:auix_filter_field_content) do
+    """
+      .auix-filter-field-content {
+        width: 100%;                  /* w-full */
+        text-align: center;           /* text-center */
+        padding-bottom: 0.5rem;       /* pb-2 (2 * 0.25rem = 0.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_filter_input) do
+    """
+      .auix-filter-input {
+        /* block w-full pb-0 pt-0 mt-1 rounded-sm border-zinc-300 shadow-sm */
+        display: block;
+        width: 100%;
+        padding-bottom: 0;
+        padding-top: 0;
+        margin-top: 0.1rem;
+        border-radius: 0.125rem;
+        border-color: var(--color-border-default);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
+
+      /* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
+      .auix-filter-input:focus {
+        border-color: var(--color-focus-ring);
+        --tw-ring-color: var(--color-focus-ring);
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        box-shadow:
+          var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color),
+          var(--tw-shadow);
+      }
+
+      /* Small breakpoint (sm) and up (sm:text-sm) */
+      @media (min-width: 640px) {
+        .auix-filter-input {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_filter_input_field) do
+    """
+      #{common_filter_input_field_css()}
+    """
+  end
+
+  def rule(:auix_filter_input_field__disabled) do
+    """
+      #{common_filter_input_field_css("--disabled")}
+
+      .auix-filter-input-field--disabled {
+        background-color: var(--auix-color-bg-disabled) !important;
+      }
+    """
+  end
+
+  def rule(:auix_filter_condition_input) do
+    """
+      .auix-filter-condition-label {
+        /* !h-[0.8rem] */
+        height: 0.8rem !important;
+      }
+
+      /* Medium breakpoint (md) and up */
+      @media (min-width: 768px) {
+        .auix-filter-condition-label {
+          /* md:hidden */
+          display: none;
+        }
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
@@ -1299,13 +1389,25 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @spec common_items_table_cell(binary()) :: binary()
-  defp common_items_table_cell(suffix \\ "") do
+  @spec common_items_table_cell_css(binary()) :: binary()
+  defp common_items_table_cell_css(suffix \\ "") do
     """
       .auix-items-table-cell#{suffix} {
         /* relative p-0 */
         position: relative; /* relative */
         padding: 0;         /* p-0 */
+      }
+    """
+  end
+
+  @spec common_filter_input_field_css(binary()) :: binary()
+  defp common_filter_input_field_css(suffix \\ "") do
+    """
+      .auix-filter-input-field#{suffix} {
+        /* !pb-0 !pt-0 !mt-1 */
+        padding-bottom: 0 !important;
+        padding-top: 0 !important;
+        margin-top: 0.125rem !important; /* 1 * 0.25rem = 0.25rem */
       }
     """
   end

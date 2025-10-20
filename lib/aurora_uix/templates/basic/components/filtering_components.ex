@@ -32,8 +32,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   @spec filter_field(map()) :: Rendered.t()
   def filter_field(%{field: %{filterable?: true}} = assigns) do
     ~H"""
-    <div class="filter-field">
-      <div class="filter-field-content">
+    <div class="auix-filter-field">
+      <div class="auix-filter-field-content">
         <div>
           <.render_filter_condition field={@field} filter={@filter} infix={@infix}/>
         </div>
@@ -65,8 +65,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             value={(@filter.from)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
-            class="filter-input"
-            input_class="filter-input-field"
+            class="auix-filter-input"
+            input_class="auix-filter-input-field"
           />
         <.input
             id={"#{@field.html_id}#{@infix}-filter_to"}
@@ -74,8 +74,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             value={(@filter.to)}
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
-            class="filter-input"
-            input_class={if @filter.condition != :between, do: "filter-input-field-disabled", else: "filter-input-field"}
+            class="auix-filter-input"
+            input_class={if @filter.condition != :between, do: "auix-filter-input-field--disabled", else: "auix-filter-input-field"}
             readonly={@filter.condition != :between}
             disabled={@filter.condition != :between}
           />
@@ -86,14 +86,14 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   @spec render_filter_condition(map()) :: Rendered.t()
   defp render_filter_condition(assigns) do
     ~H"""
-      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="filter-condition-label">{@field.label}</.label>
+      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="auix-filter-condition-label">{@field.label}</.label>
       <.input
           id={"#{@field.html_id}#{@infix}-filter_condition"}
           name={"filter_condition__#{@infix}#{@field.key}"}
           value={(@filter.condition)}
           type="select"
           options={Filter.conditions()}
-          input_class="filter-condition-input"
+          input_class="auix-filter-condition-input"
         />
     """
   end

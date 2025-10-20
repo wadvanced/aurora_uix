@@ -92,7 +92,7 @@
   color: var(--color-text-hover);
 }
 
-filter-input {
+.filter-input {
   /* block w-full pb-0 pt-0 mt-1 rounded-sm border-zinc-300 shadow-sm */
   display: block;
   width: 100%;
