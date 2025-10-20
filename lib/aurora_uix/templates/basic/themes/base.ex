@@ -776,6 +776,40 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_desktop) do
+    """
+      .auix-items-desktop {
+        /* md:block */
+        display: none;
+      }
+
+      /* Medium breakpoint (md) and up */
+      @media (min-width: 768px) {
+        .auix-items-desktop {
+          /* md:block */
+          display: block;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_mobile) do
+    """
+      .auix-items-mobile {
+        /* mt-0 */
+        margin-top: 0;
+      }
+
+      /* Medium breakpoint (md) and up */
+      @media (min-width: 768px) {
+        .auix-items-mobile {
+          /* md:hidden */
+          display: none;
+        }
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

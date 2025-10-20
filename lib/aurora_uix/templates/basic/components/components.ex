@@ -112,11 +112,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items(map) :: Rendered.t()
   def auix_items(assigns) do
     ~H"""
-    <div class="hidden md:block">
+    <div class="auix-items-desktop">
       {auix_items_table(assign_rows(assigns, @streams, @auix.source_key))}
     </div>
 
-    <div class="md:hidden mt-0">
+    <div class="auix-items-mobile">
       {auix_items_card(assign_rows(assigns, @streams, @auix.source_key, "mobile"))}
     </div>
     """
