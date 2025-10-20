@@ -594,6 +594,33 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_back_link_container) do
+    """
+      .auix-back-link-container {
+        /* mt-16 */
+        margin-top: 4rem; /* 16 * 0.25rem = 4rem */
+      }
+    """
+  end
+
+  def rule(:auix_back_link) do
+    """
+      .auix-back-link {
+        /* text-sm font-semibold leading-6 text-zinc-900 */
+        font-size: 0.875rem;                       /* text-sm */
+        font-weight: 600;                          /* font-semibold */
+        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-primary);     /* text-zinc-900 */
+      }
+
+      /* Hover state */
+      .auix-back-link:hover {
+        /* hover:text-zinc-700 */
+        color: var(--auix-color-text-hover);       /* hover:text-zinc-700 */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

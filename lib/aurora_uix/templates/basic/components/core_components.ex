@@ -499,10 +499,10 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec back(map) :: Rendered.t()
   def back(assigns) do
     ~H"""
-    <div class="mt-16">
+    <div class="auix-back-link-container">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="auix-back-link"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
