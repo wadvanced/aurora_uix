@@ -273,7 +273,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(assigns) do
     ~H"""
-    <div name="auix-items-card" class="space-y-4">
+    <div name="auix-items-card" class="auix-items-card-container">
       <div :if={Map.get(@auix, :filters_enabled?)}>
         <div :for={filter_element <- @filter_element}>
           {render_slot(filter_element, "--mobile--")}
@@ -284,12 +284,12 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
-          class="overflow-y-scroll block w-full h-[calc(100svh-15rem)]"
+          class="auix-items-card-list"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item">
           <div :for={col <- @col}>
-            <div class="inline-flex">
-              <div class="flex mr-1" :if={!is_function(col.label, 1)}  name="auix-column-label">
+            <div class="auix-items-card-item-content">
+              <div class="auix-items-card-item-label" :if={!is_function(col.label, 1)}  name="auix-column-label">
                 <.label>{col.label}</.label>:
               </div>
               <div name="auix-column-value">

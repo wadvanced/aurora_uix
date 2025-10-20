@@ -928,7 +928,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_items_table_row__hover) do
+  def rule(:auix_items_table_row) do
     """
       .auix-items-table-row:hover {
         /* hover:bg-zinc-50 */
@@ -1081,6 +1081,60 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-items-table-action-button:hover {
         /* hover:text-zinc-700 */
         color: var(--auix-color-text-hover);            /* hover:text-zinc-700 */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_container) do
+    """
+      .auix-items-card-container {
+        /* space-y-4 */
+        margin-top: 1rem;       /* Equivalent to Tailwind's space-y-4 on subsequent direct siblings */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_list) do
+    """
+      .auix-items-card-list {
+        /* overflow-y-scroll block w-full h-[calc(100svh-15rem)] */
+        overflow-y: scroll;                           /* overflow-y-scroll */
+        display: block;                               /* block */
+        width: 100%;                                  /* w-full */
+        height: calc(100svh - 15rem);                 /* h-[calc(100svh-15rem)] */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item) do
+    """
+      .auix-items-card-item {
+        /* bg-white rounded-lg shadow p-4 border border-gray-200 */
+        background-color: #ffffff;                         /* bg-white */
+        border-radius: 0.5rem;                             /* rounded-lg (8px) */
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow (Default medium shadow) */
+        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+        border-width: 1px;                                 /* border */
+        border-color: var(--auix-color-border-secondary);  /* border-gray-200 (#E5E7EB) */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item_content) do
+    """
+      .auix-items-card-item-content {
+        /* inline-flex */
+        display: inline-flex; /* inline-flex */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item_label) do
+    """
+      .auix-items-card-item-label {
+        /* flex mr-1 */
+        display: flex;         /* flex */
+        margin-right: 0.25rem; /* mr-1 (1 * 0.25rem = 0.25rem) */
       }
     """
   end
