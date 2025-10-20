@@ -1192,6 +1192,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_pagination_bar_selected_count) do
+    """
+      .auix-pagination-bar-selected-count {
+        /* text-xs text-center align-sub border */
+        font-size: 0.75rem;     /* text-xs (12px) */
+        text-align: center;     /* text-center */
+        vertical-align: sub;    /* align-sub */
+        border-width: 1px;      /* border */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 

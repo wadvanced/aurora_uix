@@ -389,7 +389,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
     <%= if @count > 0 do %>
-      <span class="text-xs text-center align-sub border">
+      <span class="auix-pagination-bar-selected-count">
         {@count}
       </span>
     <% end %>
@@ -401,7 +401,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
     <%= if MapSet.size(@items) > 0 do %>
-      <span class="text-xs text-center align-sub border">
+      <span class="auix-pagination-bar-selected-count">
         {MapSet.size(@items)}
       </span>
     <% end %>
