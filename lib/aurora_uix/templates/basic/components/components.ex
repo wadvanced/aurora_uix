@@ -55,9 +55,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   def auix_simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-0 space-y-8 bg-white">
+      <div class="auix-simple-form-content">
         {render_slot(@inner_block, f)}
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
+        <div :for={action <- @actions} class="auix-simple-form-actions">
           {render_slot(action, f)}
         </div>
       </div>
@@ -112,11 +112,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items(map) :: Rendered.t()
   def auix_items(assigns) do
     ~H"""
-    <div class="hidden md:block">
+    <div class="auix-items-desktop">
       {auix_items_table(assign_rows(assigns, @streams, @auix.source_key))}
     </div>
 
-    <div class="md:hidden mt-0">
+    <div class="auix-items-mobile">
       {auix_items_card(assign_rows(assigns, @streams, @auix.source_key, "mobile"))}
     </div>
     """
@@ -169,17 +169,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items_table(map()) :: Rendered.t()
   def auix_items_table(assigns) do
     ~H"""
-    <div name="auix-items-table" class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-0 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
+    <div name="auix-items-table" class="auix-items-table-container">
+      <table class="auix-items-table">
+        <thead class="auix-items-table-header">
           <tr :if={Map.get(@auix, :filters_enabled?)} >
-            <th :for={filter_element <- @filter_element} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
+            <th :for={filter_element <- @filter_element} class="auix-items-table-header-filter-cell">
               {render_slot(filter_element, "")}
             </th>
           </tr>
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
-              <div class="font-bold inline-flex">
+            <th :for={col <- @col} class="auix-items-table-header-cell">
+              <div class="auix-items-table-header-cell-content">
                 <div name="auix-column-label">
                   <.table_column_label auix={@auix} label={col.label} />
                 </div>
@@ -193,27 +193,27 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          class="auix-items-table-body"
         >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row">
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={if @row_click, do: "auix-items-table-cell-clickable", else: "auix-items-table-cell"}
             >
-              <div class="block py-4 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
+              <div class="auix-items-table-cell-content">
+                <span class="auix-items-table-cell-focus-ring" />
+                <span class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
                   {render_slot(col, @row_item.(row))}
                 </span>
               </div>
             </td>
-            <td :if={@action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+            <td :if={@action != []} class="auix-items-table-action-cell">
+              <div class="auix-items-table-action-cell-content">
+                <span class="auix-items-table-action-cell-focus-ring" />
                 <span
                   :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+                  class="auix-items-table-action-button"
                 >
                   {render_slot(action, @row_item.(row))}
                 </span>
@@ -273,7 +273,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(assigns) do
     ~H"""
-    <div name="auix-items-card" class="space-y-4">
+    <div name="auix-items-card" class="auix-items-card-container">
       <div :if={Map.get(@auix, :filters_enabled?)}>
         <div :for={filter_element <- @filter_element}>
           {render_slot(filter_element, "--mobile--")}
@@ -284,12 +284,12 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
-          class="overflow-y-scroll block w-full h-[calc(100svh-15rem)]"
+          class="auix-items-card-list"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item">
           <div :for={col <- @col}>
-            <div class="inline-flex">
-              <div class="flex mr-1" :if={!is_function(col.label, 1)}  name="auix-column-label">
+            <div class="auix-items-card-item-content">
+              <div class="auix-items-card-item-label" :if={!is_function(col.label, 1)}  name="auix-column-label">
                 <.label>{col.label}</.label>:
               </div>
               <div name="auix-column-value">
@@ -315,28 +315,28 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       |> maybe_augment_range()
 
     ~H"""
-      <div class="flex flex-row gap-3 justify-center overflow-x-clip">
+      <div class="auix-pagination-bar">
         <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
         <%= if @pages_start_index > 1 do %>
-          <a name="auix-pages_bar_page-first" class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={1}>
+          <a name="auix-pages_bar_page-first" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={1}>
             <span>1</span>
             <.selected_count selected_in_page={@selected_in_page} page={1} />
           </a>
-          <a name="auix-pages_bar_page-left"class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
+          <a name="auix-pages_bar_page-left"class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={1} to={@pages_start_index} />
           </a>
         <% end %>
         <div :for={page_index <- @pages_start_index..@pages_end_index}>
           <%= if page_index == @pagination.page do %>
-            <div class="mt-0 mb-0 p-0 flex flex-col gap-1">
-              <span name="auix-pages_bar_page-current" class="border border-zinc-400 rounded-full py-0 px-1">
+            <div class="auix-pagination-bar-current-page">
+              <span name="auix-pages_bar_page-current" class="auix-pagination-bar-current-page-number">
                 {page_index}
               </span>
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </div>
           <% else %>
-            <a name={"auix-pages_bar_page-#{page_index}"} class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={page_index}>
+            <a name={"auix-pages_bar_page-#{page_index}"} class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={page_index}>
               <span>{page_index}</span>
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </a>
@@ -344,11 +344,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         </div>
 
         <%= if @pages_end_index < @pagination.pages_count do %>
-          <a name="auix-pages_bar_page-right"class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pages_right_index}>
+          <a name="auix-pages_bar_page-right" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_right_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={@pages_end_index} to={@pagination.pages_count} />
           </a>
-          <a name="auix-pages_bar_page-last" class="flex flex-col gap-1" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>
+          <a name="auix-pages_bar_page-last" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>
             <span>{@pagination.pages_count}</span>
             <.selected_count selected_in_page={@selected_in_page} page={@pagination.pages_count} />
           </a>
@@ -389,7 +389,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
     <%= if @count > 0 do %>
-      <span class="text-xs text-center align-sub border">
+      <span class="auix-pagination-bar-selected-count">
         {@count}
       </span>
     <% end %>
@@ -401,7 +401,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
     <%= if MapSet.size(@items) > 0 do %>
-      <span class="text-xs text-center align-sub border">
+      <span class="auix-pagination-bar-selected-count">
         {MapSet.size(@items)}
       </span>
     <% end %>

@@ -776,6 +776,434 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_desktop) do
+    """
+      .auix-items-desktop {
+        /* md:block */
+        display: none;
+      }
+
+      /* Medium breakpoint (md) and up */
+      @media (min-width: 768px) {
+        .auix-items-desktop {
+          /* md:block */
+          display: block;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_mobile) do
+    """
+      .auix-items-mobile {
+        /* mt-0 */
+        margin-top: 0;
+      }
+
+      /* Medium breakpoint (md) and up */
+      @media (min-width: 768px) {
+        .auix-items-mobile {
+          /* md:hidden */
+          display: none;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_table_container) do
+    """
+      .auix-items-table-container {
+        /* overflow-y-scroll px-4 */
+        overflow-y: scroll;               /* overflow-y-scroll */
+        padding-left: 1rem;               /* px-4 (4 * 0.25rem = 1rem) */
+        padding-right: 1rem;              /* px-4 */
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-items-table-container {
+          /* sm:overflow-visible sm:px-0 */
+          overflow-y: visible;            /* sm:overflow-visible (allows content to flow outside) */
+          padding-left: 0;                /* sm:px-0 */
+          padding-right: 0;               /* sm:px-0 */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_table) do
+    """
+      .auix-items-table {
+        /* w-[40rem] mt-0 */
+        width: 40rem;         /* w-[40rem] (Explicitly set width) */
+        margin-top: 0;        /* mt-0 */
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-items-table {
+          /* sm:w-full */
+          width: 100%;        /* sm:w-full */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_table_header) do
+    """
+      .auix-items-table-header {
+        /* text-sm text-left leading-6 text-zinc-500 */
+        font-size: 0.875rem;                       /* text-sm */
+        text-align: left;                          /* text-left */
+        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-tertiary);    /* text-zinc-500 */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_header_filter_cell) do
+    """
+      .auix-items-table-header-filter-cell {
+        /* p-0 pb-4 pr-6 font-normal h-full align-bottom */
+        padding: 0;           /* p-0 */
+        padding-bottom: 1rem; /* pb-4 (4 * 0.25rem = 1rem) */
+        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
+        font-weight: 400;     /* font-normal */
+        height: 100%;         /* h-full */
+        vertical-align: bottom; /* align-bottom */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_header_cell) do
+    """
+      .auix-items-table-header-cell {
+        /* p-0 pb-4 pr-6 font-normal h-full align-bottom */
+        padding: 0;           /* p-0 */
+        padding-bottom: 1rem; /* pb-4 (4 * 0.25rem = 1rem) */
+        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
+        font-weight: 400;     /* font-normal */
+        height: 100%;         /* h-full */
+        vertical-align: bottom; /* align-bottom */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_header_cell_content) do
+    """
+      .auix-items-table-header-cell-content {
+        /* font-bold inline-flex */
+        font-weight: 700;    /* font-bold */
+        display: inline-flex; /* inline-flex */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_body) do
+    """
+      .auix-items-table-body {
+        /* relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700 */
+        position: relative;                             /* relative */
+
+        /* Divider Rules (divide-y and divide-zinc-100 are translated into border-bottom on children) */
+        /* Since we cannot apply divide-y directly to the parent, we apply border-top to the body
+          and assume the row children handle the rest of the dividers. */
+        border-top-width: 1px;                          /* border-t */
+        border-top-color: var(--auix-color-border-secondary); /* border-zinc-200 */
+
+        font-size: 0.875rem;                            /* text-sm */
+        line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-hover);            /* text-zinc-700 */
+      }
+
+      /* * NOTE ON DIVIDERS:
+      * Tailwind's `divide-y` actually applies a border to children.
+      * To fully replicate `divide-y divide-zinc-100`, you would need an additional rule
+      * targeting immediate children (table rows):
+      */
+      .auix-items-table-body > tr:not(:last-child) {
+        border-bottom-width: 1px;
+        border-bottom-color: var(--auix-color-border-tertiary); /* Equivalent to divide-zinc-100 */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_row) do
+    """
+      .auix-items-table-row:hover {
+        /* hover:bg-zinc-50 */
+        background-color: var(--auix-color-bg-hover); /* Zinc 50 */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_cell) do
+    """
+      #{common_items_table_cell()}
+    """
+  end
+
+  def rule(:auix_items_table_cell_clickable) do
+    """
+      #{common_items_table_cell("-clickable")}
+
+      .auix-items-table-cell-clickable:hover {
+        /* hover:cursor-pointer */
+        cursor: pointer;    /* hover:cursor-pointer */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_cell_content) do
+    """
+      .auix-items-table-cell-content {
+        /* block py-4 pr-6 */
+        display: block;       /* block */
+        padding-top: 1rem;    /* py-4 (4 * 0.25rem = 1rem) */
+        padding-bottom: 1rem; /* py-4 */
+        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_cell_focus_ring) do
+    """
+      .auix-items-table-cell-focus-ring {
+        /* absolute -inset-y-px right-0 -left-4 */
+        position: absolute;                   /* absolute */
+        top: -1px;                            /* -inset-y-px */
+        bottom: -1px;                         /* -inset-y-px */
+        right: 0;                             /* right-0 */
+        left: -1rem;                          /* -left-4 (4 * 0.25rem = 1rem) */
+      }
+
+      .auix-items-table-row:hover .auix-items-table-cell-focus-ring {
+        /* group-hover:bg-zinc-50 */
+        background-color: var(--auix-color-background-hover); /* Zinc 50 */
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-items-table-cell-focus-ring {
+          /* sm:rounded-l-xl */
+          border-top-left-radius: 0.75rem;    /* rounded-l-xl (12 * 0.0625rem = 0.75rem) */
+          border-bottom-left-radius: 0.75rem;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_table_cell_text) do
+    """
+      .auix-items-table-cell-text {
+        /* relative */
+        position: relative; /* relative */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_cell_text__first) do
+    """
+      .auix-items-table-cell-text--first {
+        /* relative font-semibold text-zinc-900 */
+        position: relative;                             /* relative */
+        font-weight: 600;                               /* font-semibold */
+        color: var(--auix-color-text-primary);          /* text-zinc-900 */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_action_cell) do
+    """
+      .auix-items-table-action-cell {
+        /* relative w-14 p-0 */
+        position: relative; /* relative */
+        width: 3.5rem;      /* w-14 (14 * 0.25rem = 3.5rem) */
+        padding: 0;         /* p-0 */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_action_cell_content) do
+    """
+      .auix-items-table-action-cell-content {
+        /* relative whitespace-nowrap py-4 text-right text-sm font-medium */
+        position: relative;          /* relative */
+        white-space: nowrap;         /* whitespace-nowrap */
+        padding-top: 1rem;           /* py-4 (4 * 0.25rem = 1rem) */
+        padding-bottom: 1rem;        /* py-4 */
+        text-align: right;           /* text-right */
+        font-size: 0.875rem;         /* text-sm */
+        font-weight: 500;            /* font-medium */
+      }
+    """
+  end
+
+  def rule(:auix_items_table_action_cell_focus_ring) do
+    """
+      .auix-items-table-action-cell-focus-ring {
+        /* absolute -inset-y-px -right-4 left-0 */
+        position: absolute;                   /* absolute */
+        top: -1px;                            /* -inset-y-px */
+        bottom: -1px;                         /* -inset-y-px */
+        right: -1rem;                         /* -right-4 (4 * 0.25rem = 1rem) */
+        left: 0;                              /* left-0 */
+      }
+
+      /* Group-hover interaction */
+      .auix-items-table-row:hover .auix-items-table-action-cell-focus-ring {
+        /* group-hover:bg-zinc-50 */
+        background-color: var(--auix-color-background-hover); /* Zinc 50 */
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-items-table-action-cell-focus-ring {
+          /* sm:rounded-r-xl */
+          border-top-right-radius: 0.75rem;    /* rounded-r-xl (12 * 0.0625rem = 0.75rem) */
+          border-bottom-right-radius: 0.75rem;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_items_table_action_button) do
+    """
+      .auix-items-table-action-button {
+        /* relative ml-4 font-semibold leading-6 text-zinc-900 */
+        position: relative;                             /* relative */
+        margin-left: 1rem;                              /* ml-4 (4 * 0.25rem = 1rem) */
+        font-weight: 600;                               /* font-semibold */
+        line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--auix-color-text-primary);          /* text-zinc-900 */
+      }
+
+      .auix-items-table-action-button:hover {
+        /* hover:text-zinc-700 */
+        color: var(--auix-color-text-hover);            /* hover:text-zinc-700 */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_container) do
+    """
+      .auix-items-card-container {
+        /* space-y-4 */
+        margin-top: 1rem;       /* Equivalent to Tailwind's space-y-4 on subsequent direct siblings */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_list) do
+    """
+      .auix-items-card-list {
+        /* overflow-y-scroll block w-full h-[calc(100svh-15rem)] */
+        overflow-y: scroll;                           /* overflow-y-scroll */
+        display: block;                               /* block */
+        width: 100%;                                  /* w-full */
+        height: calc(100svh - 15rem);                 /* h-[calc(100svh-15rem)] */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item) do
+    """
+      .auix-items-card-item {
+        /* bg-white rounded-lg shadow p-4 border border-gray-200 */
+        background-color: #ffffff;                         /* bg-white */
+        border-radius: 0.5rem;                             /* rounded-lg (8px) */
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow (Default medium shadow) */
+        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+        border-width: 1px;                                 /* border */
+        border-color: var(--auix-color-border-secondary);  /* border-gray-200 (#E5E7EB) */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item_content) do
+    """
+      .auix-items-card-item-content {
+        /* inline-flex */
+        display: inline-flex; /* inline-flex */
+      }
+    """
+  end
+
+  def rule(:auix_items_card_item_label) do
+    """
+      .auix-items-card-item-label {
+        /* flex mr-1 */
+        display: flex;         /* flex */
+        margin-right: 0.25rem; /* mr-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar) do
+    """
+      .auix-pagination-bar {
+        /* flex flex-row gap-3 justify-center overflow-x-clip */
+        display: flex;         /* flex */
+        flex-direction: row;   /* flex-row */
+        gap: 0.75rem;          /* gap-3 (3 * 0.25rem = 0.75rem) */
+        justify-content: center; /* justify-center */
+        overflow-x: clip;      /* overflow-x-clip */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_link) do
+    """
+      .auix-pagination-bar-link {
+        /* flex flex-col gap-1 */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+        gap: 0.25rem;          /* gap-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_current_page) do
+    """
+      .auix-pagination-bar-current-page {
+        /* mt-0 mb-0 p-0 flex flex-col gap-1 */
+        margin-top: 0;         /* mt-0 */
+        margin-bottom: 0;      /* mb-0 */
+        padding: 0;            /* p-0 */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+        gap: 0.25rem;          /* gap-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_current_page_number) do
+    """
+      .auix-pagination-bar-current-page-number {
+        /* border border-zinc-400 rounded-full py-0 px-1 */
+        border-width: 1px;                                /* border */
+        border-color: var(--auix-color-border-subtle);   /* border-zinc-400 (Typically #A1A1AA) */
+        border-radius: 9999px;                            /* rounded-full (A huge value makes it perfectly circular/oval) */
+        padding-top: 0;                                   /* py-0 */
+        padding-bottom: 0;                                /* py-0 */
+        padding-left: 0.25rem;                            /* px-1 (1 * 0.25rem = 0.25rem) */
+        padding-right: 0.25rem;                           /* px-1 */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_bar_selected_count) do
+    """
+      .auix-pagination-bar-selected-count {
+        /* text-xs text-center align-sub border */
+        font-size: 0.75rem;     /* text-xs (12px) */
+        text-align: center;     /* text-center */
+        vertical-align: sub;    /* align-sub */
+        border-width: 1px;      /* border */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
@@ -868,6 +1296,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           font-size: 0.875rem;            /* sm:text-sm */
           line-height: 1.5rem;            /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
         }
+    """
+  end
+
+  @spec common_items_table_cell(binary()) :: binary()
+  defp common_items_table_cell(suffix \\ "") do
+    """
+      .auix-items-table-cell#{suffix} {
+        /* relative p-0 */
+        position: relative; /* relative */
+        padding: 0;         /* p-0 */
+      }
     """
   end
 end

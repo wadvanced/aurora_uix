@@ -280,13 +280,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
       <.css_rules rules={[#{css_rules}]} />
       """
     else
-      css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
-
-      """
-      <style>
-        #{css_rules}
-      </style>
-      """
+      Enum.map(rules, &"<style>#{read_rule(&1, theme)}</style>\n")
     end
   end
 
