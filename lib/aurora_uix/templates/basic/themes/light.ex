@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* Text */
       --auix-color-text-primary: #18181B; /* zinc-900 */
       --auix-color-text-secondary: #52525B;  /* zinc-600 for secondary text */
+      --auix-color-text-tertiary: #71717A;   /* zinc-500 for tertiary/muted text */
       --auix-color-text-label: #27272A;      /* zinc-800 for label text */
       --auix-color-text-hover: #47474a;   /* zinc-700 */
       --auix-color-text-on-accent: #FFFFFF; /* white text on dark/accent background */

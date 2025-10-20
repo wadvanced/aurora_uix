@@ -475,11 +475,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec list(map) :: Rendered.t()
   def list(assigns) do
     ~H"""
-    <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
-        <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
-          <dd class="text-zinc-700">{render_slot(item)}</dd>
+    <div class="auix-list">
+      <dl class="auix-list-container">
+        <div :for={item <- @item} class="auix-list-item">
+          <dt class="auix-list-item-title">{item.title}</dt>
+          <dd class="auix-list-item-content">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>

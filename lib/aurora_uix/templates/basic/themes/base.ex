@@ -518,6 +518,82 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_list) do
+    """
+      .auix-list {
+        /* mt-14 */
+        margin-top: 3.5rem; /* 14 * 0.25rem = 3.5rem */
+      }
+    """
+  end
+
+  def rule(:auix_list_container) do
+    """
+      .auix-list-container {
+        /* -my-4 divide-y divide-zinc-100 */
+        margin-top: -1rem;                  /* -my-4 (-4 * 0.25rem = -1rem) */
+        margin-bottom: -1rem;               /* -my-4 */
+
+        /* Divide-y (applies horizontal border/divider between vertical siblings) */
+        /* This is the complex CSS needed to mimic Tailwind's divide-y utility */
+        --auix-divide-y-reverse: 0;
+      }
+
+      /* Selector to apply the divider styles to all children except the first one */
+      .auix-list-container > :not([hidden]) ~ :not([hidden]) {
+        /* Divide-y */
+        border-top-width: calc(1px * calc(1 - var(--auix-divide-y-reverse)));
+        border-bottom-width: calc(1px * var(--auix-divide-y-reverse));
+        border-style: solid; /* Default Tailwind border style for dividers */
+
+        /* divide-zinc-100 */
+        border-color: var(--auix-color-bg-light); /* Using zinc-100 for the divider color */
+      }
+    """
+  end
+
+  def rule(:auix_list_item) do
+    """
+      .auix-list-item {
+        /* flex gap-4 py-4 text-sm leading-6 sm:gap-8 */
+        display: flex;                 /* flex */
+        gap: 1rem;                     /* gap-4 (4 * 0.25rem = 1rem) */
+        padding-top: 1rem;             /* py-4 */
+        padding-bottom: 1rem;          /* py-4 */
+        font-size: 0.875rem;           /* text-sm */
+        line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-list-item {
+          gap: 2rem;                   /* sm:gap-8 (8 * 0.25rem = 2rem) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_list_item_title) do
+    """
+      .auix-list-item-title {
+        /* w-1/4 flex-none text-zinc-500 */
+        width: 25%;                              /* w-1/4 */
+        flex-shrink: 0;                          /* flex-none */
+        flex-grow: 0;                            /* flex-none */
+        color: var(--auix-color-text-tertiary);  /* text-zinc-500 */
+      }
+    """
+  end
+
+  def rule(:auix_list_item_content) do
+    """
+      .auix-list-item-content {
+        /* text-zinc-700 */
+        color: var(--auix-color-text-hover); /* text-zinc-700 (Alias for --auix-color-text-hover) */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
