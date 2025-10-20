@@ -591,10 +591,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     |> JS.show(
       to: "##{id}-bg",
       time: 300,
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+      transition:
+        {"auix-show-modal-transition", "auix-show-modal-transition--start",
+         "auix-show-modal-transition--end"}
     )
     |> uix_show("##{id}-container")
-    |> JS.add_class("overflow-hidden", to: "body")
+    |> JS.add_class("auix-show-modal", to: "body")
     |> JS.focus_first(to: "##{id}-content")
   end
 
@@ -612,11 +614,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     js
     |> JS.hide(
       to: "##{id}-bg",
-      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
+      transition:
+        {"auix-hide-modal-transition", "auix-hide-modal-transition--start",
+         "auix-hide-modal-transition--end"}
     )
     |> uix_hide("##{id}-container")
-    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
-    |> JS.remove_class("overflow-hidden", to: "body")
+    |> JS.remove_class("auix-hide-modal", to: "body")
     |> JS.pop_focus()
   end
 

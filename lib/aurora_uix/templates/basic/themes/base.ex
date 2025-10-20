@@ -705,6 +705,77 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_show_modal_transition) do
+    """
+      .auix-show-modal-transition {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1); /* Tailwind default ease-out */
+        transition-duration: 300ms;
+      }
+    """
+  end
+
+  def rule(:auix_show_modal_transition__start) do
+    """
+      .auix-show-modal-transition--start {
+        opacity: 0;
+      }
+    """
+  end
+
+  def rule(:auix_show_modal_transition__end) do
+    """
+      .auix-show-modal-transition--end {
+        opacity: 1;
+      }
+    """
+  end
+
+  def rule(:auix_show_modal) do
+    """
+      .auix-show-modal {
+        /* overflow-hidden */
+        overflow: hidden;
+      }
+    """
+  end
+
+  def rule(:auix_hide_modal_transition) do
+    """
+      .auix-hide-modal-transition {
+        /* transition-all ease-in duration-200 */
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1); /* Tailwind default ease-in */
+        transition-duration: 200ms;
+      }
+    """
+  end
+
+  def rule(:auix_hide_modal_transition__start) do
+    """
+      .auix-hide-modal-transition--start {
+        opacity: 1;
+      }
+    """
+  end
+
+  def rule(:auix_hide_modal_transition__end) do
+    """
+      .auix-hide-modal-transition--end {
+        opacity: 0;
+      }
+    """
+  end
+
+  def rule(:auix_hide_modal) do
+    """
+      .auix-hide-modal {
+        /* overflow-hidden */
+        overflow: hidden;
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
