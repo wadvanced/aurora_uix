@@ -621,6 +621,90 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_show_transition) do
+    """
+      .auix-show-transition {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
+        transition-duration: 300ms;
+      }
+    """
+  end
+
+  def rule(:auix_show_transition__start) do
+    """
+      .auix-show-transition--start {
+        opacity: 0;
+        transform: translateY(1rem);
+      }
+
+      @media (min-width: 640px) {
+        .auix-show-transition--start {
+          /* sm:translate-y-0 sm:scale-95 */
+          transform: translateY(0) scale(0.95);
+        }
+      }
+    """
+  end
+
+  def rule(:auix_show_transition__end) do
+    """
+      .auix-show-transition-end {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (min-width: 640px) {
+        .auix-show-transition-end {
+          /* sm:scale-100 (translateY(0) is already set, only need to reset scale) */
+          transform: scale(1);
+        }
+      }
+    """
+  end
+
+  def rule(:auix_hide_transition) do
+    """
+      .auix-hide-transition {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1); /* Tailwind default ease-in */
+        transition-duration: 200ms;
+      }
+    """
+  end
+
+  def rule(:auix_hide_transition__start) do
+    """
+      .auix-hide-transition--start {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (min-width: 640px) {
+        .auix-hide-transition--start {
+          /* sm:scale-100 */
+          transform: scale(1);
+        }
+      }
+    """
+  end
+
+  def rule(:auix_hide_transition__end) do
+    """
+      .auix-hide-transition--end {
+        opacity: 0;
+        transform: translateY(1rem); /* Base size */
+      }
+
+      @media (min-width: 640px) {
+        .auix-hide-transition--end {
+          /* sm:translate-y-0 sm:scale-95 */
+          transform: translateY(0) scale(0.95);
+        }
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
