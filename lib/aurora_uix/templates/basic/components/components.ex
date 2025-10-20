@@ -169,17 +169,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec auix_items_table(map()) :: Rendered.t()
   def auix_items_table(assigns) do
     ~H"""
-    <div name="auix-items-table" class="overflow-y-scroll px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-0 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
+    <div name="auix-items-table" class="auix-items-table-container">
+      <table class="auix-items-table">
+        <thead class="auix-items-table-header">
           <tr :if={Map.get(@auix, :filters_enabled?)} >
-            <th :for={filter_element <- @filter_element} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
+            <th :for={filter_element <- @filter_element} class="auix-items-table-header-filter-cell">
               {render_slot(filter_element, "")}
             </th>
           </tr>
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal h-full align-bottom">
-              <div class="font-bold inline-flex">
+            <th :for={col <- @col} class="auix-items-table-header-cell">
+              <div class="auix-items-table-header-cell-content">
                 <div name="auix-column-label">
                   <.table_column_label auix={@auix} label={col.label} />
                 </div>
@@ -193,27 +193,27 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
           phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          class="auix-items-table-body"
         >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row">
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={if @row_click, do: "auix-items-table-cell-clickable", else: "auix-items-table-cell"}
             >
-              <div class="block py-4 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
+              <div class="auix-items-table-cell-content">
+                <span class="auix-items-table-cell-focus-ring" />
+                <span class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
                   {render_slot(col, @row_item.(row))}
                 </span>
               </div>
             </td>
-            <td :if={@action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+            <td :if={@action != []} class="auix-items-table-action-cell">
+              <div class="auix-items-table-action-cell-content">
+                <span class="auix-items-table-action-cell-focus-ring" />
                 <span
                   :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+                  class="auix-items-table-action-button"
                 >
                   {render_slot(action, @row_item.(row))}
                 </span>
