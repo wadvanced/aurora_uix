@@ -53,6 +53,8 @@ defmodule Aurora.Uix.Template do
   """
   @callback default_core_components_module() :: module()
 
+  @callback default_theme_module() :: module()
+
   @doc """
   Validates and returns the configured UIX template module.
 

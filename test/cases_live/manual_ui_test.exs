@@ -8,7 +8,11 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   alias Aurora.Uix.Test.Inventory.ProductTransaction
   alias Aurora.Uix.TreePath
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product)
+  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+    field(:inactive, disabled: false)
+    field(:description, html_type: :textarea)
+  end
+
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
@@ -63,6 +67,15 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
             name: :product_transactions
           }
         ]
+      },
+      %TreePath{
+        tag: :inline,
+        inner_elements: [
+          %TreePath{
+            tag: :field,
+            name: :inactive
+          }
+        ]
       }
     ]
   }
@@ -109,13 +122,23 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
             name: :product_transactions
           }
         ]
+      },
+      %TreePath{
+        tag: :inline,
+        inner_elements: [
+          %TreePath{
+            tag: :field,
+            name: :inactive
+          }
+        ]
       }
     ]
   }
 
   auix_create_ui do
     index_columns(:product, [:reference, :name, :description, :product_location_id],
-      order_by: :name
+      order_by: :name,
+      page_subtitle: "Manual view"
     )
   end
 
@@ -139,7 +162,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
     assert has_element?(view, "input[name='product[reference]']")
     assert has_element?(view, "input[name='product[name]']")
-    assert has_element?(view, "input[name='product[description]']")
+    assert has_element?(view, "textarea[name='product[description]']")
     assert has_element?(view, "input[name='product[quantity_at_hand]']")
     assert has_element?(view, "input[name='product[quantity_initial]']")
     assert has_element?(view, "input[name='product[list_price]']")
@@ -163,7 +186,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
 
     assert has_element?(view, "input[name='reference']")
     assert has_element?(view, "input[name='name']")
-    assert has_element?(view, "input[name='description']")
+    assert has_element?(view, "textarea[name='description']")
     assert has_element?(view, "input[name='quantity_at_hand']")
     assert has_element?(view, "input[name='quantity_initial']")
     refute has_element?(view, "input[name='list_price']")

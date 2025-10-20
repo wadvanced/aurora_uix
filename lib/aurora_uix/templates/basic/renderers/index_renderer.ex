@@ -14,8 +14,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
+  import Aurora.Uix.Templates.ThemeHelper
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -36,20 +38,24 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    ~H"""
-    <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
+    ~AH"""
+    :stylesheet:
+    <div class="index-container">
       <.header>
         <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
+        <:subtitle>
+          {@auix.layout_options.page_subtitle}
+        </:subtitle>
       </.header>
-      <div class="flex justify-between w-full mt-2">
-        <div class="justify-self-start align-middle" name="auix-index-select-actions">
+      <div class="index-actions">
+        <div class="index-select-actions" name="auix-index-select-actions">
           <%= for %{function_component: action} <- @auix.index_selected_actions do %>
             {action.(%{auix: @auix})}
           <% end %>
         </div>
-        <div class="flex justify-self-end align-middle" name="auix-index-header-actions">
+        <div class="index-header-actions" name="auix-index-header-actions">
           <%= for %{function_component: action} <- @auix.index_header_actions do %>
             {action.(%{auix: @auix})}
           <% end %>
@@ -69,10 +75,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           streams={@auix.layout_options.get_streams.(assigns)}
           row_id={Map.get(@auix.layout_options, :row_id)}
         >
-          <:filter_action :for={%{function_component: action} <- @auix.index_filters_actions}>
-            {action.(%{auix: @auix})}
-          </:filter_action>
-
           <:filter_element :for={field <- @auix.index_fields} :let={infix}>
                 <FilteringComponents.filter_field
                       field={field}
@@ -82,12 +84,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           </:filter_element>
 
           <:filter_element>
-            <div :if={@auix.index_filters_actions != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+            <div :if={@auix.index_filters_actions != []} class="index-filter-element-actions">
+              <div class="index-filter-element-actions-content">
+                <span class="index-filter-element-actions-focus-ring" />
                 <span
                   :for={%{function_component: action} <- @auix.index_filters_actions}
-                      class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+                      class="index-filter-element-action-button">
                   {action.(%{auix: @auix})}
                 </span>
               </div>

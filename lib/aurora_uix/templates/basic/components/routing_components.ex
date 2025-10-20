@@ -102,11 +102,11 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   @spec auix_back(map()) :: Rendered.t()
   def auix_back(assigns) do
     ~H"""
-    <div class="mt-16">
+    <div class="auix-back-link-container">
       <a
         phx-click="auix_route_back"
         phx-no-format
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="auix-back-link"
         {@rest}
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
