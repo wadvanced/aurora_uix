@@ -103,17 +103,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         /* BOX STYLES */
         border-radius: 1rem;           /* rounded-2xl (16px) */
-        background-color: var(--auix-color-bg-white); /* bg-white */
+        background-color: var(--auix-color-bg-default); /* bg-white */
         padding: 3.5rem;               /* p-14 (14 * 0.25rem = 3.5rem) */
 
-        /* SHADOW */
-        box-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary); /* shadow-lg & shadow-zinc-700/10 */
-
         /* RING */
-        --auix-calc-ring-offset-shadow: 0 0 #0000;
-        --auix-calc-ring-shadow: var(--auix-ring-secondary); /* ring-zinc-700/10 (opacity 10) */
-        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-calc-shadow);
-        border-width: 1px;             /* ring-1 (The ring effect is achieved via box-shadow ) */
+        --auix-calc-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary);
+
+        box-shadow:
+          var(--auix-ring-offset-shadow),
+          var(--auix-ring-secondary),
+          var(--auix-calc-shadow);
+
+        border-width: 1px;
 
         /* TRANSITION */
         transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter; /* transition (all properties) */
@@ -156,17 +157,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-flash--info {
         #{common_flash_css()}
-        background-color: var(--auix-color-info-bg); /* bg-emerald-50 */
+        background-color: var(--auix-color-bg-info); /* bg-emerald-50 */
 
         /* TEXT & ICON */
         color: var(--auix-color-info-text);   /* text-emerald-800 */
         fill: var(--auix-color-icon-fill);    /* fill-cyan-900 (For internal SVG/Icon) */
 
         /* RING */
-        --auix-calc-ring-color: var(--auix-color-info-ring); /* ring-emerald-500 (sets ring color) */
-        --auix-calc-ring-offset-shadow: 0 0 #0000;
-        --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-calc-ring-color);
-        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-shadow-primary);
+        --auix-calc-shadow: var(--auix-shadow-primary);
+        box-shadow:
+          var(--auix-ring-offset-shadow),
+          var(--auix-ring-info),
+          var(--auix-calc-shadow);
       }
     """
   end
@@ -183,7 +185,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         /* RING & SHADOW */
         --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-error-ring);
-        box-shadow: var(--auix-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-shadow-md);
+        --auix-calc-shadow: var(--auix-shadow-md);
+        box-shadow:
+          var(--auix-ring-offset-shadow),
+          var(--auix-calc-ring-shadow),
+          var(--auix-calc-shadow);
       }
     """
   end
@@ -229,7 +235,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-simple-form-content {
         /* mt-10 space-y-8 bg-white */
         margin-top: 2.0rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
-        background-color: var(--auix-color-bg-white); /* bg-white */
+        background-color: var(--auix-color-bg-default); /* bg-white */
       }
     """
   end
@@ -301,7 +307,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         border-radius: 0.25rem;
         border-color: var(--auix-color-border-default);
-        background-color: var(--auix-color-bg-white);
+        background-color: var(--auix-color-bg-default);
         color: var(--auix-color-text-primary);
 
         box-shadow: none;
@@ -340,8 +346,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: block;
         width: 100%;
         border-radius: 0.375rem;
-        background-color: var(--auix-color-bg-white);
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        background-color: var(--auix-color-bg-default);
+        box-shadow: var(--auix-shadow-sm);
         border-width: 1px;
         border-style: solid;
         border-color: var(--auix-color-border-default);
@@ -371,6 +377,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         box-shadow: none;
         outline: none;
       }
+
       @media (min-width: 640px) {
         .auix-select {
           font-size: 0.875rem;
@@ -1112,7 +1119,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* bg-white rounded-lg shadow p-4 border border-gray-200 */
         background-color: #ffffff;                         /* bg-white */
         border-radius: 0.5rem;                             /* rounded-lg (8px) */
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow (Default medium shadow) */
+        box-shadow: var(--auix-shadow-default)
         padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
         border-width: 1px;                                 /* border */
         border-color: var(--auix-color-border-secondary);  /* border-gray-200 (#E5E7EB) */
@@ -1237,7 +1244,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-top: 0.1rem;
         border-radius: 0.125rem;
         border-color: var(--auix-color-border-default);
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        box-shadow: var(--auix-shadow-sm);
       }
 
       /* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
@@ -1245,9 +1252,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-color: var(--auix-color-focus-ring);
         outline: 2px solid transparent;
         outline-offset: 2px;
-        box-shadow:
-          var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-ring-color),
-          var(--auix-shadow-primary);
+
+      box-shadow:
+        var(--auix-ring-offset-shadow),
+        var(--auix-ring-default),
+        var(--auix-shadow-primary);
       }
 
       /* Small breakpoint (sm) and up (sm:text-sm) */
@@ -1414,6 +1423,51 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       /* Hover state */
       .auix-index-filter-element-action-button:hover {
         color: var(--color-text-hover);
+      }
+    """
+  end
+
+  def rule(:auix_show_container) do
+    """
+      .auix-show-container {
+        /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
+        max-width: max-content; /* max-w-max (Sets max-width based on content size) */
+        /* max-w-3xl is a conflicting utility that overwrites max-w-max,
+          but we'll prioritize the last one as per Tailwind's cascade */
+        max-width: 48rem;       /* max-w-3xl (A specific maximum width of 48rem or 768px) */
+        padding: 1rem;          /* p-4 */
+        margin-left: auto;      /* mx-auto (Centers the block horizontally) */
+        margin-right: auto;     /* mx-auto */
+      }
+
+      /* --- Responsive Overrides (from Tailwind's default breakpoints) --- */
+
+      /* Small screens (sm) - typically >= 640px */
+      @media (min-width: 640px) {
+        .auix-show-container {
+          padding: 1.5rem;      /* sm:p-6 (6 * 0.25rem = 1.5rem) */
+        }
+      }
+
+      /* Large screens (lg) - typically >= 1024px */
+      @media (min-width: 1024px) {
+        .auix-show-container {
+          padding-top: 2rem;    /* lg:py-8 (8 * 0.25rem = 2rem) */
+          padding-bottom: 2rem; /* lg:py-8 */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_show_content) do
+    """
+      .auix-show-content {
+        /* p-4 border rounded-lg shadow bg-white */
+        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+        border-width: 1px;                                 /* border */
+        border-radius: 0.5rem;                             /* rounded-lg (8px) */
+        box-shadow: var(--auix-shadow-md);
+        background-color: var(--auix-color-bg-default);
       }
     """
   end
