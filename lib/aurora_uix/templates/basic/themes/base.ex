@@ -1474,18 +1474,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_form_container) do
     """
-      .auix-form-container {
-        /* p-4 border rounded-lg shadow bg-white */
+        .auix-form-container {
+          /* p-4 border rounded-lg shadow bg-white */
 
-        /* BOX MODEL */
-        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
-        border-radius: 0.5rem;                             /* rounded-lg (8px) */
-        border-width: 1px;                                 /* border */
+          /* BOX MODEL */
+          padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+          border-radius: 0.5rem;                             /* rounded-lg (8px) */
+          border-width: 1px;                                 /* border */
 
-        background-color: var(--auix-color-bg-default);   /* bg-white */
-        box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
-      }
-  """
+          background-color: var(--auix-color-bg-default);   /* bg-white */
+          box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
+        }
+    """
   end
 
   def rule(:auix_sections_container) do
@@ -1518,10 +1518,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_sections_tab_button) do
+  def rule(:auix_sections_tab_button__active) do
     """
-      #{common_sections_tab_button_css()}
-      .auix-sections-tab-button {
+      #{common_sections_tab_button_css("--active")}
+      .auix-sections-tab-button--active {
         /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
 
         /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
@@ -1539,9 +1539,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
 
         /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
-        font-weight: 500;               /* font-medium */
-        color: #a1a1aa;                 /* text-zinc-400 */
-        background-color: var(--auix-color-bg-hover); /* bg-zinc-50 */
+        font-weight: 500;
+        color: var(--auix-color-text-inactive);
+        background-color: var(--auix-color-bg-hover);
       }
     """
   end
@@ -1563,6 +1563,155 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-top-right-radius: 0.5rem;  /* rounded-tr-lg */
         border-bottom-right-radius: 0.5rem; /* rounded-br-lg */
         border-bottom-left-radius: 0.5rem;  /* rounded-bl-lg */
+      }
+    """
+  end
+
+  def rule(:auix_form_field_container) do
+    """
+      .auix-form-field-container {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+      }
+    """
+  end
+
+  def rule(:auix_form_field_input) do
+    """
+      .auix-form-field-input {
+        /* block w-full rounded-md border-zinc-300 shadow-sm sm:text-sm */
+
+        /* BASE STYLES */
+        display: block;                               /* block */
+        width: 100%;                                  /* w-full */
+
+        /* BORDER & SHAPE */
+        border-width: 1px;                            /* Default border width */
+        border-style: solid;                          /* Default border style */
+        border-radius: 0.375rem;                      /* rounded-md (6px) */
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+
+        /* SHADOW */
+        box-shadow: var(--auix-shadow-sm);             /* shadow-sm */
+
+        /* Default text size (will be overridden by sm:text-sm) */
+        font-size: 1rem;
+        line-height: 1.5rem;
+      }
+
+      /* --- Focus State (focus:border-indigo-500 focus:ring-indigo-500) --- */
+
+      .auix-form-field-input:focus {
+        /* Prevent default browser focus outline */
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+
+        /* BORDER COLOR */
+        border-color: var(--auix-color-focus-ring);   /* focus:border-indigo-500 */
+
+        /* RING & SHADOW: Stacks the focus ring ON TOP of the base shadow */
+        box-shadow:
+          0 0 0 3px var(--auix-color-focus-ring),      /* The visible focus ring (3px wide) */
+          var(--auix-shadow-sm);                       /* The base elevation shadow */
+      }
+
+      /* --- Responsive Override --- */
+
+      /* Small screens (sm) - typically >= 640px */
+      @media (min-width: 640px) {
+        .auix-form-field-input {
+          font-size: 0.875rem;                       /* sm:text-sm (14px) */
+          line-height: 1.25rem;                      /* sm:text-sm (Default line height for text-sm) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_field) do
+    """
+      .auix-one-to-many-field {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_header) do
+    """
+      .auix-one-to-many-header {
+        /* flex-row gap-4 mt-1 */
+
+        /* FLEX CONTAINER */
+        display: flex;             /* Implicit 'flex' */
+        flex-direction: row;       /* flex-row (Arranges items horizontally) */
+
+        /* SPACING */
+        gap: 1rem;                 /* gap-4 (4 * 0.25rem = 1rem) */
+        margin-top: 0.25rem;       /* mt-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_header_actions) do
+    """
+      .auix-one-to-many-header-actions {
+        /* inline */
+        display: inline;
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_container) do
+    """
+      .auix-one-to-many-container {
+        /* w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4 */
+
+        /* LAYOUT & BORDER */
+        width: 100%;                                  /* w-full */
+        border-width: 1px;                            /* border */
+        border-style: solid;                          /* Implicit border style */
+        border-radius: 0.5rem;                        /* rounded-lg (8px) */
+
+        /* SPACING */
+        padding-left: 1rem;                           /* px-4 (4 * 0.25rem = 1rem) */
+        padding-right: 1rem;                          /* px-4 */
+
+        /* COLORS */
+        color: var(--auix-color-text-primary);        /* text-zinc-900 */
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-one-to-many-container {
+          font-size: 0.875rem;                       /* sm:text-sm (14px) */
+          line-height: 1.5rem;                       /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_footer) do
+    """
+      .auix-one-to-many-footer {
+        /* flex-row */
+
+        /* FLEX CONTAINER */
+        display: flex;         /* Implicit 'flex' (required for flex-direction to work) */
+        flex-direction: row;   /* flex-row (Arranges items horizontally) */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_footer_actions) do
+    """
+      .auix-one-to-many-footer-actions {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
       }
     """
   end
@@ -1685,7 +1834,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  defp common_sections_tab_button_css(suffix \\ "") do
+  @spec common_sections_tab_button_css(binary()) :: binary()
+  defp common_sections_tab_button_css(suffix) do
     """
     .auix-sections-tab-button#{suffix} {
         padding-left: 1rem;

@@ -25,10 +25,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     active_classes =
-      "auix-tab-button"
+      "auix-sections-tab-button--active"
 
     inactive_classes =
-      "auix-tab-button--inactive"
+      "auix-sections-tab-button--inactive"
 
     unique_id = :erlang.unique_integer([:positive])
 
