@@ -608,6 +608,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         align-items: center;           /* items-center */
         justify-content: space-between;  /* justify-between */
         gap: 1.5rem;                   /* gap-6 (6 * 0.25rem = 1.5rem) */
+        width: 100%;
       }
     """
   end
@@ -1553,10 +1554,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-show-container {
         /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
-        max-width: max-content; /* max-w-max (Sets max-width based on content size) */
-        /* max-w-3xl is a conflicting utility that overwrites max-w-max,
-          but we'll prioritize the last one as per Tailwind's cascade */
-        max-width: 48rem;       /* max-w-3xl (A specific maximum width of 48rem or 768px) */
+        width: max-content; /* max-w-max (Sets max-width based on content size) */
         padding: 1rem;          /* p-4 */
         margin-left: auto;      /* mx-auto (Centers the block horizontally) */
         margin-right: auto;     /* mx-auto */
@@ -1590,6 +1588,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-radius: 0.5rem;                             /* rounded-lg (8px) */
         box-shadow: var(--auix-shadow-md);
         background-color: var(--auix-color-bg-default);
+        width: max-content;
       }
     """
   end
@@ -1989,6 +1988,77 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           visibility: hidden;
           height: 0;                /* Reset height when hidden to avoid taking up space */
         }
+      }
+    """
+  end
+
+  def rule(:auix_group_container) do
+    """
+      .auix-group-container {
+        /* p-3 border rounded-md bg-gray-100 */
+
+        /* SPACING */
+        padding: 0.75rem;                       /* p-3 (3 * 0.25rem = 0.75rem / 12px) */
+
+        /* BORDERS & SHAPE */
+        border-width: 1px;                      /* border */
+        border-style: solid;                    /* Implicit border style */
+        border-color: var(--auix-color-border-default); /* Assuming border is standard */
+        border-radius: 0.375rem;                /* rounded-md (6px) */
+
+        /* BACKGROUND COLOR */
+        background-color: var(--auix-color-bg-light); /* bg-gray-100 */
+      }
+    """
+  end
+
+  def rule(:auix_group_title) do
+    """
+      .auix-group-title {
+        /* font-semibold text-lg */
+
+        /* TYPOGRAPHY */
+        font-weight: 600;     /* font-semibold */
+        font-size: 1.125rem;  /* text-lg (18px) */
+        line-height: 1.75rem; /* Standard line-height for text-lg (lh-7) */
+      }
+    """
+  end
+
+  def rule(:auix_inline_container) do
+    """
+      .auix-inline-container {
+        /* flex flex-col gap-2 */
+
+        /* BASE STYLES (Mobile-First: flex-col) */
+        display: flex;             /* flex */
+        flex-direction: column;    /* flex-col (Stacks items vertically) */
+        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem) */
+        width: max-content;
+      }
+
+      /* --- Responsive Override (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-inline-container {
+          /* sm:flex-row (Overrides flex-col to arrange items horizontally) */
+          flex-direction: row;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_stacked_container) do
+    """
+      .auix-stacked-container {
+        /* flex flex-col gap-2 */
+
+        /* FLEX CONTAINER */
+        display: flex;             /* flex */
+        flex-direction: column;    /* flex-col (Stacks items vertically) */
+
+        /* SPACING */
+        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem / 8px) */
       }
     """
   end
