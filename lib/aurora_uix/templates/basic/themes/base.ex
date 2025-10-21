@@ -279,6 +279,128 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_button_alt) do
+    """
+      .auix-button-alt {
+        /* !bg-zinc-100 !text-zinc-500 border border-zinc-800 */
+
+        /* BACKGROUND */
+        background-color: var(--auix-color-bg-light) !important; /* !bg-zinc-100 */
+
+        /* TEXT COLOR */
+        color: var(--auix-color-text-tertiary) !important;      /* !text-zinc-500 */
+
+        /* BORDERS */
+        border-width: 1px;                                     /* border */
+        border-style: solid;                                   /* Implicit border style */
+        border-color: var(--auix-color-text-label);            /* border-zinc-800 */
+      }
+    """
+  end
+
+  def rule(:auix_button_badge) do
+    """
+      .auix-button-badge {
+        /* text-xs align-sub border */
+
+        /* TYPOGRAPHY */
+        font-size: 0.75rem;     /* text-xs (12px) */
+        vertical-align: sub;    /* align-sub */
+
+        /* BORDER */
+        border-width: 1px;      /* border */
+        border-style: solid;    /* Implicit border style */
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_container) do
+    """
+      .auix-button-toggle-filters-container {
+        /* relative w-14 pr-1 */
+
+        /* POSITIONING & LAYOUT */
+        position: relative;         /* relative */
+        width: 3.5rem;              /* w-14 (14 * 0.25rem = 3.5rem / 56px) */
+
+        /* SPACING */
+        padding-right: 0.25rem;     /* pr-1 (1 * 0.25rem = 0.25rem / 4px) */
+
+        border: 0;
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_content) do
+    """
+      .auix-button-toggle-filters-content {
+        /* relative whitespace-nowrap py-2 text-right text-sm font-medium */
+
+        /* POSITIONING & CONTENT FLOW */
+        position: relative;         /* relative */
+        white-space: nowrap;        /* whitespace-nowrap (Prevents text wrapping) */
+
+        /* PADDING & ALIGNMENT */
+        padding-top: 0.5rem;        /* py-2 (2 * 0.25rem = 0.5rem) */
+        padding-bottom: 0.5rem;     /* py-2 */
+        text-align: right;          /* text-right */
+
+        /* TYPOGRAPHY */
+        font-size: 0.875rem;        /* text-sm (14px) */
+        font-weight: 500;           /* font-medium */
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_focus_ring) do
+    """
+      .auix-button-toggle-filters-focus-ring {
+        /* absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl */
+
+        /* POSITIONING & SIZE */
+        position: absolute;         /* absolute */
+        top: -1px;                  /* -inset-y-px */
+        bottom: -1px;               /* -inset-y-px (The -y-px means top: -1px and bottom: -1px) */
+        right: -1rem;               /* -right-4 (4 * 0.25rem = 1rem, negative value) */
+        left: 0;                    /* left-0 */
+        width: 100%;
+
+        /* SHAPE */
+        border-top-right-radius: 0;   /* Reset any default rounding */
+        border-bottom-right-radius: 0;/* Reset any default rounding */
+
+        /* BACKGROUND (Default state - usually transparent) */
+        background-color: transparent;
+      }
+
+      /* --- Group Hover State (Triggered when the parent group is hovered) --- */
+
+      .auix-button-toggle-filters-container:hover .auix-button-toggle-filters-focus-ring {
+        /* group-hover:bg-zinc-50 */
+        background-color: var(--auix-color-bg-hover); /* bg-zinc-50 */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-button-toggle-filters-focus-ring {
+          /* sm:rounded-r-xl */
+          border-top-right-radius: 0.75rem;    /* rounded-r-xl (8 * 0.25rem = 2rem, but xl is 0.75rem or 12px) */
+          border-bottom-right-radius: 0.75rem; /* rounded-r-xl */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_close_link) do
+    """
+      .auix-button-toggle-filters-close-link {
+        /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
+        margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
+      }
+  """
+  end
+
   def rule(:auix_fieldset) do
     """
       .auix-fieldset {
@@ -1715,6 +1837,26 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
     """
   end
+
+  def rule(:auix_visually_hidden) do
+    """
+      .auix-visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0); /* Older standard */
+        clip-path: inset(50%); /* Modern standard, moves element out of view */
+        white-space: nowrap;
+        border-width: 0;
+      }
+    """
+  end
+
+
+
 
   @spec rule(atom()) :: binary()
   def rule(_), do: ""

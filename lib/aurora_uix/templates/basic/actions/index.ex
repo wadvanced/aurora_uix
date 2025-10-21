@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:index)
-  @filters_button_class "!bg-zinc-100 !text-zinc-500 border border-zinc-800"
+  @filters_button_class "auix-button-alt"
   @selected_button_class "#{@filters_button_class}"
 
   @doc """
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
     ~H"""
-      <div class="sr-only">
+      <div class="auix-visually-hidden">
         <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>{gettext("Show")}</.auix_link>
       </div>
     """
@@ -155,7 +155,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected-delete_all"
         name={"auix-selected_delete_all-#{@auix.module}"}>
-      {gettext("Delete selected")} <span class="text-xs align-sub border">{@auix.selection.selected_count}</span>
+      {gettext("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
     </.button>
     """
   end
@@ -309,11 +309,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec toggle_filters_action(map()) :: Rendered.t()
   def toggle_filters_action(assigns) do
     ~H"""
-      <div :if={Map.get(@auix, :filters) != []} class="relative w-14 pr-1">
-        <div class="relative whitespace-nowrap py-2 text-right text-sm font-medium">
-          <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
+      <div :if={Map.get(@auix, :filters) != []} class="auix-button-toggle-filters-container">
+        <div class="auix-button-toggle-filters-content">
+          <span class="auix-button-toggle-filters-focus-ring" />
           <%= if Map.get(@auix, :filters_enabled?) do %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="-space-x-2">
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
               <.icon name="hero-funnel" class=""/>
               <.icon name="hero-x-mark" class="align-super size-3"/>
             </a>
