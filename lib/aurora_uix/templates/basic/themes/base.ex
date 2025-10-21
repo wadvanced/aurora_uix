@@ -107,13 +107,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding: 3.5rem;               /* p-14 (14 * 0.25rem = 3.5rem) */
 
         /* SHADOW */
-        box-shadow: var(--auix-shadow-lg), var(--auix-shadow-zinc-700-10); /* shadow-lg & shadow-zinc-700/10 */
+        box-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary); /* shadow-lg & shadow-zinc-700/10 */
 
         /* RING */
         --auix-calc-ring-offset-shadow: 0 0 #0000;
-        --auix-calc-ring-shadow: var(--auix-ring-zinc-700-10); /* ring-zinc-700/10 (opacity 10) */
+        --auix-calc-ring-shadow: var(--auix-ring-secondary); /* ring-zinc-700/10 (opacity 10) */
         box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-calc-shadow);
-        border-width: 1px;             /* ring-1 (The ring effect is achieved via box-shadow in Tailwind) */
+        border-width: 1px;             /* ring-1 (The ring effect is achieved via box-shadow ) */
 
         /* TRANSITION */
         transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter; /* transition (all properties) */
@@ -166,7 +166,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         --auix-calc-ring-color: var(--auix-color-info-ring); /* ring-emerald-500 (sets ring color) */
         --auix-calc-ring-offset-shadow: 0 0 #0000;
         --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-calc-ring-color);
-        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-primary-shadow);
+        box-shadow: var(--auix-calc-ring-offset-shadow), var(--auix-calc-ring-shadow), var(--auix-shadow-primary);
       }
     """
   end
@@ -1236,19 +1236,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-top: 0;
         margin-top: 0.1rem;
         border-radius: 0.125rem;
-        border-color: var(--color-border-default);
+        border-color: var(--auix-color-border-default);
         box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
       }
 
       /* Focus state (focus:border-indigo-500 focus:ring-indigo-500) */
       .auix-filter-input:focus {
-        border-color: var(--color-focus-ring);
-        --tw-ring-color: var(--color-focus-ring);
+        border-color: var(--auix-color-focus-ring);
         outline: 2px solid transparent;
         outline-offset: 2px;
         box-shadow:
-          var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color),
-          var(--tw-shadow);
+          var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-ring-color),
+          var(--auix-shadow-primary);
       }
 
       /* Small breakpoint (sm) and up (sm:text-sm) */
@@ -1290,6 +1289,131 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           /* md:hidden */
           display: none;
         }
+      }
+    """
+  end
+
+  def rule(:auix_index_container) do
+    """
+      .auix-index-container {
+        max-width: max-content; /* max-w-max */
+        padding: 1rem;          /* p-4 - 16px */
+        margin-left: auto;      /* mx-auto */
+        margin-right: auto;     /* mx-auto */
+      }
+
+      @media (min-width: 640px) { /* sm:p-6 (Min-width: 640px) */
+        .auix-index-container {
+          padding: 1.5rem; /* p-6 - 24px */
+        }
+      }
+
+      @media (min-width: 1024px) { /* lg:py-8 (Min-width: 1024px) */
+        .auix-index-container {
+          padding-top: 2rem;    /* py-8 - 32px */
+          padding-bottom: 2rem; /* py-8 - 32px */
+          padding-left: 1.5rem; /* The padding-left from sm:p-6 is retained */
+          padding-right: 1.5rem;/* The padding-right from sm:p-6 is retained */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_index_actions) do
+    """
+      .auix-index-actions {
+        display: flex;                /* flex */
+        justify-content: space-between; /* justify-between */
+        width: 100%;                  /* w-full */
+        margin-top: 0.5rem;           /* mt-2 - 8px */
+        margin-bottom: 0.5rem;        /* mb-2 - 8px */
+      }
+    """
+  end
+
+  def rule(:auix_index_select_actions) do
+    """
+      .auix-index-select-actions {
+        justify-self: start;  /* justify-self-start (Aligns item to the start of its grid area on the inline axis) */
+        vertical-align: middle; /* align-middle (Aligns element with the baseline plus half the x-height of the parent) */
+      }
+    """
+  end
+
+  def rule(:auix_index_header_actions) do
+    """
+      .auix-index-header-actions {
+        display: flex;                /* flex */
+        justify-self: end;            /* justify-self-end (Aligns the item to the end of its grid area/cell) */
+        vertical-align: middle;       /* align-middle (Aligns the element's content/vertical position) */
+      }
+    """
+  end
+
+  def rule(:auix_index_filter_element_actions) do
+    """
+      .auix-index-filter-element-actions {
+        display: flex;                /* flex */
+        justify-content: space-between; /* justify-between */
+        width: 100%;                  /* w-full */
+        margin-top: 0.5rem;           /* mt-2 (2 * 0.25rem = 0.5rem) */
+        margin-bottom: 0.5rem;        /* mb-2 (2 * 0.25rem = 0.5rem) */
+      }
+    """
+  end
+
+  def rule(:auix_index_filter_element_actions_content) do
+    """
+      .auix-index-filter-element-actions-content {
+        position: relative;            /* relative */
+        white-space: nowrap;           /* whitespace-nowrap */
+        padding-top: 1rem;             /* py-4 (4 * 0.25rem = 1rem) */
+        padding-bottom: 1rem;          /* py-4 */
+        text-align: right;             /* text-right */
+        font-size: 0.875rem;           /* text-sm */
+        font-weight: 500;              /* font-medium */
+      }
+    """
+  end
+
+  def rule(:auix_index_filter_element_actions_focus_ring) do
+    """
+      .auix-index-filter-element-actions-focus-ring {
+        position: absolute;             /* absolute */
+        top: -1px;                      /* -inset-y-px */
+        bottom: -1px;                   /* -inset-y-px */
+        right: -1rem;                   /* -right-4 (4 * 0.25rem = 1rem) */
+        left: 0;                        /* left-0 */
+      }
+
+      /* Hover state for parent group */
+      .group:hover .auix-index-filter-element-actions-focus-ring {
+        background-color: var(--color-bg-hover);
+      }
+
+      /* Small breakpoint (sm) and up */
+      @media (min-width: 640px) {
+        .auix-index-filter-element-actions-focus-ring {
+          border-top-right-radius: 1rem;    /* sm:rounded-r-xl */
+          border-bottom-right-radius: 1rem; /* sm:rounded-r-xl */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_index_filter_element_action_button) do
+    """
+      .auix-index-filter-element-action-button {
+        position: relative;            /* relative */
+        margin-left: 1rem;             /* ml-4 (4 * 0.25rem = 1rem) */
+        font-weight: 600;              /* font-semibold */
+        line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
+        color: var(--color-text-primary);
+      }
+
+      /* Hover state */
+      .auix-index-filter-element-action-button:hover {
+        color: var(--color-text-hover);
       }
     """
   end
@@ -1375,7 +1499,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       /* Focus state */
       .auix-input#{suffix}:focus {
         /* focus:ring-0 focus:border-zinc-400 */
-        --tw-ring-color: transparent;     /* focus:ring-0 (Removes the ring color) */
+        --auix-ring-color: transparent;     /* focus:ring-0 (Removes the ring color) */
         box-shadow: none;                 /* focus:ring-0 (Removes the ring shadow) */
         outline: none;                    /* focus:ring-0 (Ensures no native outline) */
       }

@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   def render(assigns) do
     ~AH"""
     :stylesheet:
-    <div class="index-container">
+    <div class="auix-index-container">
       <.header>
         <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
           {@auix.layout_options.page_title}
@@ -49,13 +49,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           {@auix.layout_options.page_subtitle}
         </:subtitle>
       </.header>
-      <div class="index-actions">
-        <div class="index-select-actions" name="auix-index-select-actions">
+      <div class="auix-index-actions">
+        <div class="auix-index-select-actions" name="auix-index-select-actions">
           <%= for %{function_component: action} <- @auix.index_selected_actions do %>
             {action.(%{auix: @auix})}
           <% end %>
         </div>
-        <div class="index-header-actions" name="auix-index-header-actions">
+        <div class="auix-index-header-actions" name="auix-index-header-actions">
           <%= for %{function_component: action} <- @auix.index_header_actions do %>
             {action.(%{auix: @auix})}
           <% end %>
@@ -84,12 +84,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           </:filter_element>
 
           <:filter_element>
-            <div :if={@auix.index_filters_actions != []} class="index-filter-element-actions">
-              <div class="index-filter-element-actions-content">
-                <span class="index-filter-element-actions-focus-ring" />
+            <div :if={@auix.index_filters_actions != []} class="auix-index-filter-element-actions">
+              <div class="auix-index-filter-element-actions-content">
+                <span class="auix-index-filter-element-actions-focus-ring" />
                 <span
                   :for={%{function_component: action} <- @auix.index_filters_actions}
-                      class="index-filter-element-action-button">
+                      class="auix-index-filter-element-action-button">
                   {action.(%{auix: @auix})}
                 </span>
               </div>

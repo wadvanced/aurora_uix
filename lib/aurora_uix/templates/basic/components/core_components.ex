@@ -297,7 +297,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2")
   attr(:multiple, :boolean, default: false, doc: "the multiple flag for select inputs")
 
-  attr(:class, :string, default: "", doc: "optional class adendum")
   attr(:label_class, :string, default: "", doc: "optional label class adendum")
   attr(:input_class, :string, default: "", doc: "optional input class adendum")
   attr(:option_class, :string, default: "", doc: "optional option class adendum for select")
@@ -326,7 +325,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       end)
 
     ~H"""
-    <fieldset class={["auix-fieldset", @class]}>
+    <fieldset class="auix-fieldset">
       <label class={["auix-checkbox-label", @label_class]}>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
@@ -349,7 +348,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <fieldset class={["auix-fieldset", @class]}>
+    <fieldset class="auix-fieldset">
       <.label class={"auix-select-label " <> @label_class} for={@id}>{@label}</.label>
       <select
         id={@id}
@@ -368,7 +367,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <fieldset class={["auix-fieldset", @class]}>
+    <fieldset class="auix-fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <textarea
         id={@id}
@@ -387,7 +386,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <fieldset class={["auix-fieldset", @class]}>
+    <fieldset class="auix-fieldset">
       <.label class={@label_class} for={@id}>{@label}</.label>
       <input
         type={@type}
