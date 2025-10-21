@@ -403,24 +403,24 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       )
       when pages_count > 1 do
     ~H"""
-      <div name={"auix-pages_bar-#{@auix.source}"} class="mt-0">
-        <hr class="mb-4"/>
-        <div class="h-0 invisible 2xl:visible" name={"auix-pages_bar-#{@auix.source}-xl2"}>
+      <div name={"auix-pages_bar-#{@auix.source}"} class="auix-pagination-container">
+        <hr class="auix-pagination-divider"/>
+        <div class="auix-pagination-breakpoint-xl2" name={"auix-pages_bar-#{@auix.source}-xl2"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible xl:visible 2xl:invisible" name={"auix-pages_bar-#{@auix.source}-xl"}>
+        <div class="auix-pagination-breakpoint-xl" name={"auix-pages_bar-#{@auix.source}-xl"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible lg:visible xl:invisible" name={"auix-pages_bar-#{@auix.source}-lg"}>
+        <div class="auix-pagination-breakpoint-lg " name={"auix-pages_bar-#{@auix.source}-lg"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)}
               selected_in_page={@auix.selection.selected_in_page}/>
         </div>
-        <div class="h-0 invisible md:visible lg:invisible text-sm" name={"auix-pages_bar-#{@auix.source}-md"}>
+        <div class="auix-pagination-breakpoint-md" name={"auix-pages_bar-#{@auix.source}-md"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
               selected_in_page={@auix.selection.selected_in_page}/>

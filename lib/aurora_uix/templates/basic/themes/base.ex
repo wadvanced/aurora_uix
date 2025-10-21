@@ -394,11 +394,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_button_toggle_filters_close_link) do
     """
-      .auix-button-toggle-filters-close-link {
-        /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
-        margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
-      }
-  """
+        .auix-button-toggle-filters-close-link {
+          /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
+          margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
+        }
+    """
   end
 
   def rule(:auix_fieldset) do
@@ -1855,10 +1855,144 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_pagination_container) do
+    """
+      .auix-pagination-container {
+        /* mt-0 */
+        margin-top: 0;   /* mt-0 (Resets any default or inherited top margin) */
+      }
+    """
+  end
 
+  def rule(:auix_pagination_divider) do
+    """
+      .auix-pagination-divider {
+        /* mb-4 */
+        margin-bottom: 1rem;   /* mb-4 (4 * 0.25rem = 1rem) */
+      }
+    """
+  end
 
+  def rule(:auix_pagination_breakpoint_xl2) do
+    """
+      .auix-pagination-breakpoint-xl2 {
+        /* h-0 invisible */
 
-  @spec rule(atom()) :: binary()
+        /* Initial state (for screens < 1536px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- 2XL Breakpoint (min-width: 1536px) --- */
+
+      @media (min-width: 1536px) {
+        .auix-pagination-breakpoint-xl2 {
+          visibility: visible;
+          height: auto; /* Added for correct layout, assuming this was the intent */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_xl) do
+    """
+      .auix-pagination-breakpoint-xl {
+        /* h-0 invisible */
+
+        /* Initial state (for screens < 1280px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- XL Breakpoint (min-width: 1280px) --- */
+
+      @media (min-width: 1280px) {
+        .auix-pagination-breakpoint-xl {
+          /* xl:visible (Makes it visible and corrects the height) */
+          visibility: visible;
+          height: auto;             /* Per your requirement */
+        }
+      }
+
+      /* --- 2XL Breakpoint (min-width: 1536px) --- */
+
+      @media (min-width: 1536px) {
+        .auix-pagination-breakpoint-xl {
+          /* 2xl:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_lg) do
+    """
+      .auix-pagination-breakpoint-lg {
+        /* h-0 invisible */
+
+        /* Initial state (for screens < 1024px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- LG Breakpoint (min-width: 1024px) --- */
+
+      @media (min-width: 1024px) {
+        .auix-pagination-breakpoint-lg {
+          /* lg:visible (Makes it visible and sets height to auto) */
+          visibility: visible;
+          height: auto;             /* Per the requirement to take up space when visible */
+        }
+      }
+
+      /* --- XL Breakpoint (min-width: 1280px) --- */
+
+      @media (min-width: 1280px) {
+        .auix-pagination-breakpoint-lg {
+          /* xl:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_md) do
+    """
+      .auix-pagination-breakpoint-md {
+        /* h-0 invisible text-sm (Default styles for screens < 768px) */
+
+        /* Initial State: Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+
+        /* Default Typography */
+        font-size: 0.875rem;        /* text-sm (14px) */
+      }
+
+      /* --- MD Breakpoint (min-width: 768px) --- */
+
+      @media (min-width: 768px) {
+        .auix-pagination-breakpoint-md {
+          /* md:visible (Makes it visible and sets height to auto) */
+          visibility: visible;
+          height: auto;             /* Takes up natural space */
+        }
+      }
+
+      /* --- LG Breakpoint (min-width: 1024px) --- */
+
+      @media (min-width: 1024px) {
+        .auix-pagination-breakpoint-md {
+          /* lg:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE
