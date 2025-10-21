@@ -51,8 +51,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-focus-ring: #6366F1; /* indigo-500 */
 
       /* SHADOWS & RINGS */
+
+      /* Generic Shadow/Ring Variables */
+      --auix-ring-inset: ;
+      --auix-ring-offset-shadow: 0 0 #0000;
+      --auix-ring-offset-width: 0px;
+      --auix-ring-color: rgba(63, 63, 70, 0.1);
+
       /* Zinc 700 is #47474a. Opacity 10% is 0.1 */
-      --auix-color-zinc-700-10: rgba(71, 71, 74, 0.1);
+      --auix-color-shadow-alpha: rgba(71, 71, 74, 0.1);
 
       /* shadow-md (0 4px 6px -1px, 0 2px 4px -2px with 10% black opacity) */
       --auix-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -60,17 +67,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* shadow-lg (Example based on Tailwind default values) */
       --auix-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
+      --auix-shadow-primary: var(--auix-shadow-lg); /* Use shadow-lg as the primary shadow */
+
       /* shadow-zinc-700/10 */
-      --auix-shadow-zinc-700-10: 0 4px 6px -1px var(--auix-color-zinc-700-10), 0 2px 4px -2px var(--auix-color-zinc-700-10);
+      --auix-shadow-secondary: 0 4px 6px -1px var(--auix-color-shadow-alpha), 0 2px 4px -2px var(--auix-color-shadow-alpha);
 
       /* ring-zinc-700/10 (1px ring is achieved via box-shadow) */
-      --auix-ring-zinc-700-10: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-zinc-700-10);
-
-      /* Generic Shadow/Ring Variables */
-      --auix-primary-shadow: var(--auix-shadow-lg); /* Use shadow-lg as the primary shadow */
-      --auix-ring-inset: ;
-      --auix-ring-offset-shadow: 0 0 #0000;
-      --auix-ring-offset-width: 0px;
+      --auix-ring-secondary: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-shadow-alpha);
 
     }
     """
