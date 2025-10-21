@@ -29,7 +29,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutInlineTest do
       html
       |> LazyHTML.from_document()
       |> LazyHTML.query(
-        "form#auix-product-form div.auix-form-container>div.sm\\:flex-row.flex-col input:not([type='hidden'])"
+        "form#auix-product-form div.auix-form-container>div.auix-inline-container input:not([type='hidden'])"
       )
       |> Enum.map(fn input ->
         input

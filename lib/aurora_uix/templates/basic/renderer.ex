@@ -49,8 +49,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   # Group renderer
   def render(%{auix: %{layout_tree: %{tag: :group}}} = assigns) do
     ~H"""
-    <div id={@auix.layout_tree.config[:group_id]} class="p-3 border rounded-md bg-gray-100">
-      <h3 class="font-semibold text-lg"><%= @auix.layout_tree.config[:title] %></h3>
+    <div id={@auix.layout_tree.config[:group_id]} class="auix-group-container">
+      <h3 class="auix-group-title"><%= @auix.layout_tree.config[:title] %></h3>
       <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """
@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   # Layout renderers
   def render(%{auix: %{layout_tree: %{tag: :inline}}} = assigns) do
     ~H"""
-    <div class="flex flex-col gap-2 sm:flex-row">
+    <div class="auix-inline-container">
       <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """
@@ -67,7 +67,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
 
   def render(%{auix: %{layout_tree: %{tag: :stacked}}} = assigns) do
     ~H"""
-    <div class="flex flex-col gap-2">
+    <div class="auix-stacked-container">
       <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
     </div>
     """

@@ -279,6 +279,128 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_button_alt) do
+    """
+      .auix-button-alt {
+        /* !bg-zinc-100 !text-zinc-500 border border-zinc-800 */
+
+        /* BACKGROUND */
+        background-color: var(--auix-color-bg-light) !important; /* !bg-zinc-100 */
+
+        /* TEXT COLOR */
+        color: var(--auix-color-text-tertiary) !important;      /* !text-zinc-500 */
+
+        /* BORDERS */
+        border-width: 1px;                                     /* border */
+        border-style: solid;                                   /* Implicit border style */
+        border-color: var(--auix-color-text-label);            /* border-zinc-800 */
+      }
+    """
+  end
+
+  def rule(:auix_button_badge) do
+    """
+      .auix-button-badge {
+        /* text-xs align-sub border */
+
+        /* TYPOGRAPHY */
+        font-size: 0.75rem;     /* text-xs (12px) */
+        vertical-align: sub;    /* align-sub */
+
+        /* BORDER */
+        border-width: 1px;      /* border */
+        border-style: solid;    /* Implicit border style */
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_container) do
+    """
+      .auix-button-toggle-filters-container {
+        /* relative w-14 pr-1 */
+
+        /* POSITIONING & LAYOUT */
+        position: relative;         /* relative */
+        width: 3.5rem;              /* w-14 (14 * 0.25rem = 3.5rem / 56px) */
+
+        /* SPACING */
+        padding-right: 0.25rem;     /* pr-1 (1 * 0.25rem = 0.25rem / 4px) */
+
+        border: 0;
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_content) do
+    """
+      .auix-button-toggle-filters-content {
+        /* relative whitespace-nowrap py-2 text-right text-sm font-medium */
+
+        /* POSITIONING & CONTENT FLOW */
+        position: relative;         /* relative */
+        white-space: nowrap;        /* whitespace-nowrap (Prevents text wrapping) */
+
+        /* PADDING & ALIGNMENT */
+        padding-top: 0.5rem;        /* py-2 (2 * 0.25rem = 0.5rem) */
+        padding-bottom: 0.5rem;     /* py-2 */
+        text-align: right;          /* text-right */
+
+        /* TYPOGRAPHY */
+        font-size: 0.875rem;        /* text-sm (14px) */
+        font-weight: 500;           /* font-medium */
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_focus_ring) do
+    """
+      .auix-button-toggle-filters-focus-ring {
+        /* absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl */
+
+        /* POSITIONING & SIZE */
+        position: absolute;         /* absolute */
+        top: -1px;                  /* -inset-y-px */
+        bottom: -1px;               /* -inset-y-px (The -y-px means top: -1px and bottom: -1px) */
+        right: -1rem;               /* -right-4 (4 * 0.25rem = 1rem, negative value) */
+        left: 0;                    /* left-0 */
+        width: 100%;
+
+        /* SHAPE */
+        border-top-right-radius: 0;   /* Reset any default rounding */
+        border-bottom-right-radius: 0;/* Reset any default rounding */
+
+        /* BACKGROUND (Default state - usually transparent) */
+        background-color: transparent;
+      }
+
+      /* --- Group Hover State (Triggered when the parent group is hovered) --- */
+
+      .auix-button-toggle-filters-container:hover .auix-button-toggle-filters-focus-ring {
+        /* group-hover:bg-zinc-50 */
+        background-color: var(--auix-color-bg-hover); /* bg-zinc-50 */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-button-toggle-filters-focus-ring {
+          /* sm:rounded-r-xl */
+          border-top-right-radius: 0.75rem;    /* rounded-r-xl (8 * 0.25rem = 2rem, but xl is 0.75rem or 12px) */
+          border-bottom-right-radius: 0.75rem; /* rounded-r-xl */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_button_toggle_filters_close_link) do
+    """
+        .auix-button-toggle-filters-close-link {
+          /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
+          margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
+        }
+    """
+  end
+
   def rule(:auix_fieldset) do
     """
       .auix-fieldset {
@@ -486,6 +608,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         align-items: center;           /* items-center */
         justify-content: space-between;  /* justify-between */
         gap: 1.5rem;                   /* gap-6 (6 * 0.25rem = 1.5rem) */
+        width: 100%;
       }
     """
   end
@@ -1431,10 +1554,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-show-container {
         /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
-        max-width: max-content; /* max-w-max (Sets max-width based on content size) */
-        /* max-w-3xl is a conflicting utility that overwrites max-w-max,
-          but we'll prioritize the last one as per Tailwind's cascade */
-        max-width: 48rem;       /* max-w-3xl (A specific maximum width of 48rem or 768px) */
+        width: max-content; /* max-w-max (Sets max-width based on content size) */
         padding: 1rem;          /* p-4 */
         margin-left: auto;      /* mx-auto (Centers the block horizontally) */
         margin-right: auto;     /* mx-auto */
@@ -1468,6 +1588,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-radius: 0.5rem;                             /* rounded-lg (8px) */
         box-shadow: var(--auix-shadow-md);
         background-color: var(--auix-color-bg-default);
+        width: max-content;
       }
     """
   end
@@ -1716,7 +1837,232 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  @spec rule(atom()) :: binary()
+  def rule(:auix_visually_hidden) do
+    """
+      .auix-visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0); /* Older standard */
+        clip-path: inset(50%); /* Modern standard, moves element out of view */
+        white-space: nowrap;
+        border-width: 0;
+      }
+    """
+  end
+
+  def rule(:auix_pagination_container) do
+    """
+      .auix-pagination-container {
+        /* mt-0 */
+        margin-top: 0;   /* mt-0 (Resets any default or inherited top margin) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_divider) do
+    """
+      .auix-pagination-divider {
+        /* mb-4 */
+        margin-bottom: 1rem;   /* mb-4 (4 * 0.25rem = 1rem) */
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_xl2) do
+    """
+      .auix-pagination-breakpoint-xl2 {
+        /* h-0 invisible */
+
+        /* Initial state (for screens < 1536px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- 2XL Breakpoint (min-width: 1536px) --- */
+
+      @media (min-width: 1536px) {
+        .auix-pagination-breakpoint-xl2 {
+          visibility: visible;
+          height: auto; /* Added for correct layout, assuming this was the intent */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_xl) do
+    """
+      .auix-pagination-breakpoint-xl {
+        /* h-0 invisible */
+
+        /* Initial state (for screens < 1280px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- XL Breakpoint (min-width: 1280px) --- */
+
+      @media (min-width: 1280px) {
+        .auix-pagination-breakpoint-xl {
+          /* xl:visible (Makes it visible and corrects the height) */
+          visibility: visible;
+          height: auto;             /* Per your requirement */
+        }
+      }
+
+      /* --- 2XL Breakpoint (min-width: 1536px) --- */
+
+      @media (min-width: 1536px) {
+        .auix-pagination-breakpoint-xl {
+          /* 2xl:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_lg) do
+    """
+      .auix-pagination-breakpoint-lg {
+        /* h-0 invisible */
+
+        /* Initial state (for screens < 1024px): Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+      }
+
+      /* --- LG Breakpoint (min-width: 1024px) --- */
+
+      @media (min-width: 1024px) {
+        .auix-pagination-breakpoint-lg {
+          /* lg:visible (Makes it visible and sets height to auto) */
+          visibility: visible;
+          height: auto;             /* Per the requirement to take up space when visible */
+        }
+      }
+
+      /* --- XL Breakpoint (min-width: 1280px) --- */
+
+      @media (min-width: 1280px) {
+        .auix-pagination-breakpoint-lg {
+          /* xl:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_pagination_breakpoint_md) do
+    """
+      .auix-pagination-breakpoint-md {
+        /* h-0 invisible text-sm (Default styles for screens < 768px) */
+
+        /* Initial State: Hidden and takes no height */
+        height: 0;                /* h-0 */
+        visibility: hidden;         /* invisible */
+
+        /* Default Typography */
+        font-size: 0.875rem;        /* text-sm (14px) */
+      }
+
+      /* --- MD Breakpoint (min-width: 768px) --- */
+
+      @media (min-width: 768px) {
+        .auix-pagination-breakpoint-md {
+          /* md:visible (Makes it visible and sets height to auto) */
+          visibility: visible;
+          height: auto;             /* Takes up natural space */
+        }
+      }
+
+      /* --- LG Breakpoint (min-width: 1024px) --- */
+
+      @media (min-width: 1024px) {
+        .auix-pagination-breakpoint-md {
+          /* lg:invisible (Hides it again on larger screens) */
+          visibility: hidden;
+          height: 0;                /* Reset height when hidden to avoid taking up space */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_group_container) do
+    """
+      .auix-group-container {
+        /* p-3 border rounded-md bg-gray-100 */
+
+        /* SPACING */
+        padding: 0.75rem;                       /* p-3 (3 * 0.25rem = 0.75rem / 12px) */
+
+        /* BORDERS & SHAPE */
+        border-width: 1px;                      /* border */
+        border-style: solid;                    /* Implicit border style */
+        border-color: var(--auix-color-border-default); /* Assuming border is standard */
+        border-radius: 0.375rem;                /* rounded-md (6px) */
+
+        /* BACKGROUND COLOR */
+        background-color: var(--auix-color-bg-light); /* bg-gray-100 */
+      }
+    """
+  end
+
+  def rule(:auix_group_title) do
+    """
+      .auix-group-title {
+        /* font-semibold text-lg */
+
+        /* TYPOGRAPHY */
+        font-weight: 600;     /* font-semibold */
+        font-size: 1.125rem;  /* text-lg (18px) */
+        line-height: 1.75rem; /* Standard line-height for text-lg (lh-7) */
+      }
+    """
+  end
+
+  def rule(:auix_inline_container) do
+    """
+      .auix-inline-container {
+        /* flex flex-col gap-2 */
+
+        /* BASE STYLES (Mobile-First: flex-col) */
+        display: flex;             /* flex */
+        flex-direction: column;    /* flex-col (Stacks items vertically) */
+        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem) */
+        width: max-content;
+      }
+
+      /* --- Responsive Override (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-inline-container {
+          /* sm:flex-row (Overrides flex-col to arrange items horizontally) */
+          flex-direction: row;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_stacked_container) do
+    """
+      .auix-stacked-container {
+        /* flex flex-col gap-2 */
+
+        /* FLEX CONTAINER */
+        display: flex;             /* flex */
+        flex-direction: column;    /* flex-col (Stacks items vertically) */
+
+        /* SPACING */
+        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem / 8px) */
+      }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE
