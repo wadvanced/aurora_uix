@@ -341,8 +341,7 @@ defmodule Aurora.UixWeb.Test.SectionHelper do
       |> render()
       |> LazyHTML.from_fragment()
       |> LazyHTML.attribute("class")
-      |> List.first() =~
-        "active"
+      |> List.first() =~ "--active"
 
     lazy_html = view |> render() |> LazyHTML.from_document()
 
