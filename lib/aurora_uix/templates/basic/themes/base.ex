@@ -1472,6 +1472,101 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_form_container) do
+    """
+      .auix-form-container {
+        /* p-4 border rounded-lg shadow bg-white */
+
+        /* BOX MODEL */
+        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+        border-radius: 0.5rem;                             /* rounded-lg (8px) */
+        border-width: 1px;                                 /* border */
+
+        background-color: var(--auix-color-bg-default);   /* bg-white */
+        box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
+      }
+  """
+  end
+
+  def rule(:auix_sections_container) do
+    """
+      .auix-sections-container {
+        /* Ensures block is not empty for linters */
+        content-visibility: visible;
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_container) do
+    """
+      .auix-sections-tab-container {
+        /* mt-2 flex flex-col sm:flex-row */
+
+        /* BASE STYLES (Mobile-first, applies to all screen sizes) */
+        margin-top: 0.5rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        display: flex;        /* flex */
+        flex-direction: column; /* flex-col (Stacks items vertically by default) */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-sections-tab-container {
+          flex-direction: row; /* sm:flex-row (Arranges items horizontally on small screens and up) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_button) do
+    """
+      #{common_sections_tab_button_css()}
+      .auix-sections-tab-button {
+        /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
+
+        /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
+        font-weight: 600;              /* font-semibold */
+        color: var(--auix-color-text-label); /* text-zinc-800 */
+        background-color: var(--auix-color-bg-light); /* bg-zinc-100 */
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_button__inactive) do
+    """
+      #{common_sections_tab_button_css("--inactive")}
+      .auix-sections-tab-button--inactive {
+        /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
+
+        /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
+        font-weight: 500;               /* font-medium */
+        color: #a1a1aa;                 /* text-zinc-400 */
+        background-color: var(--auix-color-bg-hover); /* bg-zinc-50 */
+      }
+    """
+  end
+
+  def rule(:auix_sections_content) do
+    """
+      .auix-sections-content {
+        /* p-4 border border-gray-300 rounded-tr-lg rounded-br-lg rounded-bl-lg */
+
+        /* PADDING */
+        padding: 1rem;            /* p-4 (4 * 0.25rem = 1rem) */
+
+        /* BORDER */
+        border-width: 1px;        /* border */
+        /* Using semantic variable for border color */
+        border-color: var(--auix-color-border-default); /* border-gray-300 (Maps to #D4D4D8 / zinc-300) */
+
+        /* BORDER RADIUS */
+        border-top-right-radius: 0.5rem;  /* rounded-tr-lg */
+        border-bottom-right-radius: 0.5rem; /* rounded-br-lg */
+        border-bottom-left-radius: 0.5rem;  /* rounded-bl-lg */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
@@ -1586,6 +1681,25 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-bottom: 0 !important;
         padding-top: 0 !important;
         margin-top: 0.125rem !important; /* 1 * 0.25rem = 0.25rem */
+      }
+    """
+  end
+
+  defp common_sections_tab_button_css(suffix \\ "") do
+    """
+    .auix-sections-tab-button#{suffix} {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        font-size: 0.875rem;
+        border-bottom-width: 2px;
+        border-color: transparent;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 200ms;
       }
     """
   end
