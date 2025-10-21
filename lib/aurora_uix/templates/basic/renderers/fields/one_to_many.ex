@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       get_in(auix.configurations, [data.resource, :resource_config])
 
     related_class =
-      "w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4"
+      "auix-one-to-many-container"
 
     parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
 
@@ -76,10 +76,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       |> apply_options()
 
     ~H"""
-    <div class="flex flex-col" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
-      <div class="flex-row gap-4 mt-1">
+    <div class="auix-one-to-many-field" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
+      <div class="auix-one-to-many-header">
         <.label for={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@auix.association.related_parsed_opts.title} Elements"}
-            <div name="auix-one_to_many-header-actions" class="inline">
+            <div name="auix-one_to_many-header-actions" class="auix-one-to-many-header-actions">
               <%= for %{function_component: action} <- @auix.one_to_many_header_actions do %>
                 {action.(%{auix: @auix, field: @field})}
               <% end %>
@@ -101,8 +101,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           </:action>
         </.auix_items>
       </div>
-      <div class="flex-row">
-        <div class="flex flex-col" name="auix-one_to_many-footer_actions">
+      <div class="auix-one-to-many-footer">
+        <div class="auix-one-to-many-footer-actions" name="auix-one_to_many-footer_actions">
           <%= for %{function_component: action} <- @auix.one_to_many_footer_actions do %>
             {action.(%{auix: @auix, field: @field})}
           <% end %>
