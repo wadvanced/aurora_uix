@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
     ~AH"""
     :stylesheet:
-    <div class="max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto">
+    <div class="auix-show-container">
       <.header>
         {@auix.layout_options.page_title}
         <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
@@ -50,7 +50,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
         </:actions>
       </.header>
 
-      <div class="auix-show-container p-4 border rounded-lg shadow bg-white" data-layout="#{name}">
+      <div class="auix-show-content" data-layout="#{name}">
         <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
       </div>
 

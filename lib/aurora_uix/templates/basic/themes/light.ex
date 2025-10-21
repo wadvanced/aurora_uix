@@ -15,10 +15,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
     /* */
     :root {
       /* Backgrounds */
+      --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
       --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
+      --auix-color-bg-info: #F0FDF4;  /* emerald-50 (Info Background) */
       --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
       --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
-      --auix-color-bg-white: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
       --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
 
       /* Text */
@@ -33,7 +34,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* Status Colors */
       --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
       --auix-color-error: #FB7185;          /* rose-400 for input error borders */
-      --auix-color-info-bg: #F0FDF4;        /* emerald-50 (Info Background) */
       --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
       --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
       --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
@@ -57,24 +57,49 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-ring-offset-shadow: 0 0 #0000;
       --auix-ring-offset-width: 0px;
       --auix-ring-color: rgba(63, 63, 70, 0.1);
+      --auix-ring-info:
+        var(--auix-ring-inset)
+        0 0 0
+        calc(1px + var(--auix-ring-offset-width))
+        var(--auix-color-info-ring);
 
       /* Zinc 700 is #47474a. Opacity 10% is 0.1 */
       --auix-color-shadow-alpha: rgba(71, 71, 74, 0.1);
+      --auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.1);
+      --auix-color-shadow-black-alpha-sm: rgba(0, 0, 0, 0.05);
 
-      /* shadow-md (0 4px 6px -1px, 0 2px 4px -2px with 10% black opacity) */
-      --auix-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      /* Equivalent to Tailwind's 'shadow' (Default/Smallest) */
+      --auix-shadow-default:
+        0 1px 3px 0 var(--auix-color-shadow-black-alpha),
+        0 1px 2px -1px var(--auix-color-shadow-black-alpha);
 
-      /* shadow-lg (Example based on Tailwind default values) */
-      --auix-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      /* Equivalent to Tailwind's 'shadow-sm' (Single-layer small shadow) */
+      --auix-shadow-sm: 0 1px 2px 0 var(--auix-color-shadow-black-alpha-sm);
+
+      /* Equivalent to Tailwind's 'shadow-md' (Medium size) */
+      --auix-shadow-md:
+        0 4px 6px -1px var(--auix-color-shadow-black-alpha),
+        0 2px 4px -2px var(--auix-color-shadow-black-alpha);
+
+      /* Equivalent to Tailwind's 'shadow-lg' (Large size) */
+      --auix-shadow-lg:
+        0 10px 15px -3px var(--auix-color-shadow-black-alpha),
+        0 4px 6px -4px var(--auix-color-shadow-black-alpha);
 
       --auix-shadow-primary: var(--auix-shadow-lg); /* Use shadow-lg as the primary shadow */
 
-      /* shadow-zinc-700/10 */
-      --auix-shadow-secondary: 0 4px 6px -1px var(--auix-color-shadow-alpha), 0 2px 4px -2px var(--auix-color-shadow-alpha);
+      /* Secondary/Colored shadow (Uses -md offsets but with a custom Zinc color) */
+      --auix-shadow-secondary:
+        0 4px 6px -1px var(--auix-color-shadow-alpha),
+        0 2px 4px -2px var(--auix-color-shadow-alpha);
 
       /* ring-zinc-700/10 (1px ring is achieved via box-shadow) */
+      --auix-ring-default:
+        var(--auix-ring-inset)
+        0 0 0
+        calc(1px + var(--auix-ring-offset-width))
+        var(--auix-ring-color);
       --auix-ring-secondary: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-shadow-alpha);
-
     }
     """
   end
