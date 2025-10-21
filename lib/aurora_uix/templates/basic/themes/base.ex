@@ -8,6 +8,31 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   @impl true
   @spec rule(atom()) :: binary()
+
+  def rule(:auix_html) do
+    """
+      html, :host {
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        tab-size: 4;
+        font-family: var(--auix-default-font-family, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
+        font-feature-settings: var(--auix-default-font-feature-settings, normal);
+        font-variation-settings: var(--auix-default-font-variation-settings, normal);
+        -webkit-tap-highlight-color: transparent;
+      }
+  """
+  end
+
+  def rule(:auix_tag_a) do
+    """
+      a {
+        color: inherit;
+        -webkit-text-decoration: inherit;
+        text-decoration: inherit;
+      }
+    """
+  end
+
   def rule(:auix_modal) do
     """
       .auix-modal {
@@ -410,6 +435,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         font-size: 0.75rem;
         grid-template-columns: 1fr;
         grid-auto-rows: max-content;
+        margin-inline: 0rem;
+        border-width: 0rem;
+        padding-inline: 0rem;
       }
     """
   end
