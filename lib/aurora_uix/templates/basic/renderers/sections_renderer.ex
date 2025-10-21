@@ -25,10 +25,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     active_classes =
-      "auix-tab-button active px-4 py-2 text-sm font-semibold transition-all duration-200 text-zinc-800 bg-zinc-100 border-b-2 border-transparent rounded-t-md"
+      "auix-sections-tab-button--active"
 
     inactive_classes =
-      "auix-tab-button px-4 py-2 text-sm font-medium transition-all duration-200 text-zinc-400 bg-zinc-50 hover:bg-zinc-200 border-b-2 border-transparent rounded-t-md"
+      "auix-sections-tab-button--inactive"
 
     unique_id = :erlang.unique_integer([:positive])
 
@@ -39,11 +39,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
       |> assign(:unique_id, unique_id)
 
     ~H"""
-    <div id={"sections-#{@unique_id}-#{@auix.layout_type}"} class="" data-sections-index={@auix.layout_tree.config[:index]}>
-      <div class="auix-button-tabs-container mt-2 flex flex-col sm:flex-row">
+    <div id={"sections-#{@unique_id}-#{@auix.layout_type}"} class="auix-sections-container" data-sections-index={@auix.layout_tree.config[:index]}>
+      <div class="auix-sections-tab-container">
         <%= for tab <- @auix.layout_tree.config[:tabs] do %>
           <button type="button"
-            class={"tab-button " <> if @auix._sections[tab.sections_id] == tab.tab_id or (@auix._sections[tab.sections_id] == nil and tab.active), do: @active_classes, else: @inactive_classes}
+            class={if @auix._sections[tab.sections_id] == tab.tab_id or (@auix._sections[tab.sections_id] == nil and tab.active), do: @active_classes, else: @inactive_classes}
             data-button-sections-index={tab.sections_index}
             data-button-tab-index={tab.tab_index}
             phx-click="switch_section"
@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
           </button>
         <% end %>
       </div>
-      <div class="auix-sections-content p-4 border border-gray-300 rounded-tr-lg rounded-br-lg rounded-bl-lg">
+      <div class="auix-sections-content">
         <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
       </div>
     </div>

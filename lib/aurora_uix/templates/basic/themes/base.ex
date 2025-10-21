@@ -1472,6 +1472,250 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_form_container) do
+    """
+        .auix-form-container {
+          /* p-4 border rounded-lg shadow bg-white */
+
+          /* BOX MODEL */
+          padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+          border-radius: 0.5rem;                             /* rounded-lg (8px) */
+          border-width: 1px;                                 /* border */
+
+          background-color: var(--auix-color-bg-default);   /* bg-white */
+          box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
+        }
+    """
+  end
+
+  def rule(:auix_sections_container) do
+    """
+      .auix-sections-container {
+        /* Ensures block is not empty for linters */
+        content-visibility: visible;
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_container) do
+    """
+      .auix-sections-tab-container {
+        /* mt-2 flex flex-col sm:flex-row */
+
+        /* BASE STYLES (Mobile-first, applies to all screen sizes) */
+        margin-top: 0.5rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        display: flex;        /* flex */
+        flex-direction: column; /* flex-col (Stacks items vertically by default) */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-sections-tab-container {
+          flex-direction: row; /* sm:flex-row (Arranges items horizontally on small screens and up) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_button__active) do
+    """
+      #{common_sections_tab_button_css("--active")}
+      .auix-sections-tab-button--active {
+        /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
+
+        /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
+        font-weight: 600;              /* font-semibold */
+        color: var(--auix-color-text-label); /* text-zinc-800 */
+        background-color: var(--auix-color-bg-light); /* bg-zinc-100 */
+      }
+    """
+  end
+
+  def rule(:auix_sections_tab_button__inactive) do
+    """
+      #{common_sections_tab_button_css("--inactive")}
+      .auix-sections-tab-button--inactive {
+        /* PADDING & SIZE, BORDERS, TRANSITION properties MOVED to shared base */
+
+        /* FONT WEIGHT & COLORS ONLY REMAIN HERE */
+        font-weight: 500;
+        color: var(--auix-color-text-inactive);
+        background-color: var(--auix-color-bg-hover);
+      }
+    """
+  end
+
+  def rule(:auix_sections_content) do
+    """
+      .auix-sections-content {
+        /* p-4 border border-gray-300 rounded-tr-lg rounded-br-lg rounded-bl-lg */
+
+        /* PADDING */
+        padding: 1rem;            /* p-4 (4 * 0.25rem = 1rem) */
+
+        /* BORDER */
+        border-width: 1px;        /* border */
+        /* Using semantic variable for border color */
+        border-color: var(--auix-color-border-default); /* border-gray-300 (Maps to #D4D4D8 / zinc-300) */
+
+        /* BORDER RADIUS */
+        border-top-right-radius: 0.5rem;  /* rounded-tr-lg */
+        border-bottom-right-radius: 0.5rem; /* rounded-br-lg */
+        border-bottom-left-radius: 0.5rem;  /* rounded-bl-lg */
+      }
+    """
+  end
+
+  def rule(:auix_form_field_container) do
+    """
+      .auix-form-field-container {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+      }
+    """
+  end
+
+  def rule(:auix_form_field_input) do
+    """
+      .auix-form-field-input {
+        /* block w-full rounded-md border-zinc-300 shadow-sm sm:text-sm */
+
+        /* BASE STYLES */
+        display: block;                               /* block */
+        width: 100%;                                  /* w-full */
+
+        /* BORDER & SHAPE */
+        border-width: 1px;                            /* Default border width */
+        border-style: solid;                          /* Default border style */
+        border-radius: 0.375rem;                      /* rounded-md (6px) */
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+
+        /* SHADOW */
+        box-shadow: var(--auix-shadow-sm);             /* shadow-sm */
+
+        /* Default text size (will be overridden by sm:text-sm) */
+        font-size: 1rem;
+        line-height: 1.5rem;
+      }
+
+      /* --- Focus State (focus:border-indigo-500 focus:ring-indigo-500) --- */
+
+      .auix-form-field-input:focus {
+        /* Prevent default browser focus outline */
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+
+        /* BORDER COLOR */
+        border-color: var(--auix-color-focus-ring);   /* focus:border-indigo-500 */
+
+        /* RING & SHADOW: Stacks the focus ring ON TOP of the base shadow */
+        box-shadow:
+          0 0 0 3px var(--auix-color-focus-ring),      /* The visible focus ring (3px wide) */
+          var(--auix-shadow-sm);                       /* The base elevation shadow */
+      }
+
+      /* --- Responsive Override --- */
+
+      /* Small screens (sm) - typically >= 640px */
+      @media (min-width: 640px) {
+        .auix-form-field-input {
+          font-size: 0.875rem;                       /* sm:text-sm (14px) */
+          line-height: 1.25rem;                      /* sm:text-sm (Default line height for text-sm) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_field) do
+    """
+      .auix-one-to-many-field {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_header) do
+    """
+      .auix-one-to-many-header {
+        /* flex-row gap-4 mt-1 */
+
+        /* FLEX CONTAINER */
+        display: flex;             /* Implicit 'flex' */
+        flex-direction: row;       /* flex-row (Arranges items horizontally) */
+
+        /* SPACING */
+        gap: 1rem;                 /* gap-4 (4 * 0.25rem = 1rem) */
+        margin-top: 0.25rem;       /* mt-1 (1 * 0.25rem = 0.25rem) */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_header_actions) do
+    """
+      .auix-one-to-many-header-actions {
+        /* inline */
+        display: inline;
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_container) do
+    """
+      .auix-one-to-many-container {
+        /* w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4 */
+
+        /* LAYOUT & BORDER */
+        width: 100%;                                  /* w-full */
+        border-width: 1px;                            /* border */
+        border-style: solid;                          /* Implicit border style */
+        border-radius: 0.5rem;                        /* rounded-lg (8px) */
+
+        /* SPACING */
+        padding-left: 1rem;                           /* px-4 (4 * 0.25rem = 1rem) */
+        padding-right: 1rem;                          /* px-4 */
+
+        /* COLORS */
+        color: var(--auix-color-text-primary);        /* text-zinc-900 */
+        border-color: var(--auix-color-border-default); /* border-zinc-300 */
+      }
+
+      /* --- Responsive Overrides (Small screens and up: sm) --- */
+
+      @media (min-width: 640px) {
+        .auix-one-to-many-container {
+          font-size: 0.875rem;                       /* sm:text-sm (14px) */
+          line-height: 1.5rem;                       /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
+        }
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_footer) do
+    """
+      .auix-one-to-many-footer {
+        /* flex-row */
+
+        /* FLEX CONTAINER */
+        display: flex;         /* Implicit 'flex' (required for flex-direction to work) */
+        flex-direction: row;   /* flex-row (Arranges items horizontally) */
+      }
+    """
+  end
+
+  def rule(:auix_one_to_many_footer_actions) do
+    """
+      .auix-one-to-many-footer-actions {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
+      }
+    """
+  end
+
   @spec rule(atom()) :: binary()
   def rule(_), do: ""
 
@@ -1586,6 +1830,26 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-bottom: 0 !important;
         padding-top: 0 !important;
         margin-top: 0.125rem !important; /* 1 * 0.25rem = 0.25rem */
+      }
+    """
+  end
+
+  @spec common_sections_tab_button_css(binary()) :: binary()
+  defp common_sections_tab_button_css(suffix) do
+    """
+    .auix-sections-tab-button#{suffix} {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        font-size: 0.875rem;
+        border-bottom-width: 2px;
+        border-color: transparent;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 200ms;
       }
     """
   end
