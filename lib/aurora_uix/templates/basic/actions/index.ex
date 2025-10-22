@@ -314,8 +314,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
           <span class="auix-button-toggle-filters-focus-ring" />
           <%= if Map.get(@auix, :filters_enabled?) do %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
-              <.icon name="hero-funnel" class=""/>
-              <.icon name="hero-x-mark" class="align-super size-3"/>
+              <.icon name="hero-funnel"/>
+              <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
             </a>
           <% else %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />

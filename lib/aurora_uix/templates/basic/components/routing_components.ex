@@ -109,7 +109,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
         class="auix-back-link"
         {@rest}
       >
-        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="hero-arrow-left-solid" class="auix-icon-size-3" />
         {render_slot(@inner_block)}
       </a>
     </div>

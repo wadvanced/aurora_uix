@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
                   aria-label={gettext("close")}
                 >
                   <.icon
-                  name="hero-x-mark-solid" class="h-5 w-5" />
+                  name="hero-x-mark-solid" class="auix-icon-size-5" />
                 </button>
               </div>
               <div id={"#{@id}-content"}>
@@ -130,13 +130,13 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       {@rest}
     >
       <p :if={@title} class="auix-flash-title">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
+        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
+        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
         {@title}
       </p>
       <p class="auix-flash-message">{msg}</p>
       <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
+        <.icon name="hero-x-mark-solid" class="auix-icon-size-5" />
       </button>
     </div>
     """
@@ -167,7 +167,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         hidden
       >
         {gettext("Attempting to reconnect")}
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
       </.flash>
 
       <.flash
@@ -179,7 +179,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         hidden
       >
         {gettext("Hang in there while we get back on track")}
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
       </.flash>
     </div>
     """
@@ -426,7 +426,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def error(assigns) do
     ~H"""
     <p class="auix-error-message">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
+      <.icon name="hero-exclamation-circle-mini" class="auix-icon-size-5" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -504,7 +504,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         navigate={@navigate}
         class="auix-back-link"
       >
-        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="hero-arrow-left-solid" class="auix-icon-size-3" />
         {render_slot(@inner_block)}
       </.link>
     </div>
@@ -521,13 +521,13 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
 
-  Icons are extracted from the `deps/heroicons` directory and bundled within
-  your compiled app.css by the plugin in your `assets/tailwind.config.js`.
+  Icons are generated from the `deps/heroicons` directory and put in assets/css/icons.css,
+  then esbuild compiles the app.css.
 
   ## Examples
 
       <.icon name="hero-x-mark-solid" />
-      <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
+      <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
   """
   attr(:name, :string, required: true)
   attr(:class, :string, default: nil)

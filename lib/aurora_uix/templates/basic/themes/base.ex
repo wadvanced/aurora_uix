@@ -11,16 +11,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_html) do
     """
-      html, :host {
-        line-height: 1.5;
-        -webkit-text-size-adjust: 100%;
-        tab-size: 4;
-        font-family: var(--auix-default-font-family, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
-        font-feature-settings: var(--auix-default-font-feature-settings, normal);
-        font-variation-settings: var(--auix-default-font-variation-settings, normal);
-        -webkit-tap-highlight-color: transparent;
-      }
-  """
+        html, :host {
+          line-height: 1.5;
+          -webkit-text-size-adjust: 100%;
+          tab-size: 4;
+          font-family: var(--auix-default-font-family, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
+          font-feature-settings: var(--auix-default-font-feature-settings, normal);
+          font-variation-settings: var(--auix-default-font-variation-settings, normal);
+          -webkit-tap-highlight-color: transparent;
+        }
+    """
   end
 
   def rule(:auix_tag_a) do
@@ -229,6 +229,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         font-size: 0.875rem;   /* text-sm */
         font-weight: 600;      /* font-semibold */
         line-height: 1.5rem;   /* leading-6 (6 * 0.25rem = 1.5rem) */
+        margin-top: 0.125rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.5rem;
       }
     """
   end
@@ -237,9 +240,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-flash-message {
         /* mt-2 text-sm leading-5 */
-        margin-top: 0.5rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        margin-top: 0.250rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        margin-bottom: 0.5rem;
         font-size: 0.875rem;  /* text-sm */
         line-height: 1.25rem; /* leading-5 (5 * 0.25rem = 1.25rem) */
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
     """
   end
@@ -250,7 +256,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         position: absolute;       /* absolute */
         inset-inline-end: 0.25rem;  /* right-1 */
         inset-block-start: 0.25rem;             /* top-1 (1 * 0.25rem = 0.25rem) */
-        padding: 0.5rem;         /* p-2 (2 * 0.25rem = 0.5rem) */
+        padding: 0.125rem;
+        background: transparent;
+        border: none;
       }
     """
   end
@@ -346,7 +354,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         /* POSITIONING & LAYOUT */
         position: relative;         /* relative */
-        width: 3.5rem;              /* w-14 (14 * 0.25rem = 3.5rem / 56px) */
+        width: max-content;              /* w-14 (14 * 0.25rem = 3.5rem / 56px) */
 
         /* SPACING */
         padding-right: 0.25rem;     /* pr-1 (1 * 0.25rem = 0.25rem / 4px) */
@@ -364,6 +372,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* POSITIONING & CONTENT FLOW */
         position: relative;         /* relative */
         white-space: nowrap;        /* whitespace-nowrap (Prevents text wrapping) */
+        width: max-content;
 
         /* PADDING & ALIGNMENT */
         padding-top: 0.5rem;        /* py-2 (2 * 0.25rem = 0.5rem) */
@@ -386,9 +395,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         position: absolute;         /* absolute */
         top: -1px;                  /* -inset-y-px */
         bottom: -1px;               /* -inset-y-px (The -y-px means top: -1px and bottom: -1px) */
-        right: -1rem;               /* -right-4 (4 * 0.25rem = 1rem, negative value) */
-        left: 0;                    /* left-0 */
-        width: 100%;
+        right: 0rem;               /* -right-4 (4 * 0.25rem = 1rem, negative value) */
+        left: -0.25rem;
+        width: 1.5rem;
 
         /* SHAPE */
         border-top-right-radius: 0;   /* Reset any default rounding */
@@ -419,10 +428,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_button_toggle_filters_close_link) do
     """
-        .auix-button-toggle-filters-close-link {
-          /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
-          margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
-        }
+      .auix-button-toggle-filters-close-link {
+        /* -space-x-2 (Applies to the container's margin to compensate for internal spacing) */
+        margin-left: -0.5rem;    /* -2 * 0.25rem = -0.5rem */
+      }
     """
   end
 
@@ -610,7 +619,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-error-message {
         /* mt-3 flex gap-3 text-sm leading-6 text-rose-600 */
-        margin-top: 0.25rem;                       /* mt-3 (3 * 0.25rem = 0.75rem) */
+        margin-top: 0.125rem;                       /* mt-3 (3 * 0.25rem = 0.75rem) */
+        margin-bottom: 0.5rem;
         display: flex;                             /* flex */
         gap: 0.75rem;                              /* gap-3 (3 * 0.25rem = 0.75rem) */
         font-size: 0.875rem;                       /* text-sm */
@@ -2091,23 +2101,88 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_icon_size_3) do
+    """
+      .auix-icon-size-3 {
+        width: 0.75rem;          /* size-3 (3 * 0.25rem = 0.75rem) */
+        height: 0.75rem;         /* size-3 */
+      }
+    """
+  end
+
+  def rule(:auix_icon_size_4) do
+    """
+      .auix-icon-size-4 {
+        width: 1rem;          /* size-4 (4 * 0.25rem = 1rem) */
+        height: 1rem;         /* size-4 */
+      }
+    """
+  end
+
+  def rule(:auix_icon_size_5) do
+    """
+      .auix-icon-size-5 {
+        width: 1.25rem;          /* size-5 (5 * 0.25rem = 1.25rem) */
+        height: 1.25rem;         /* size-5 */
+      }
+    """
+  end
+
+  def rule(:auix_icon_size_6) do
+    """
+      .auix-icon-size-6 { // default
+        width: 1.5rem;          /* size-6 (6 * 0.25rem = 1.5rem) */
+        height: 1.5rem;         /* size-6 */
+      }
+    """
+  end
+
+  def rule(:auix_vertical_align_super) do
+    """
+    .auix-vertical-align-super {
+      /* ALIGNMENT */
+      vertical-align: super;   /* align-super */
+    }
+    """
+  end
+
+  def rule(:auix_animate_spin) do
+    """
+      .auix-animate-spin {
+        /* animate-spin */
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE
   @spec common_flash_css() :: binary()
   defp common_flash_css do
     """
+      /* CONTAINER */
+
       /* POSITIONING & SIZE */
       position: fixed;                 /* fixed */
       top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
       right: 0.5rem;                   /* right-2 */
       margin-right: 0.5rem;            /* mr-2 */
-      width: 20rem;                    /* w-80 (80 * 0.25rem = 20rem) */
+      width: max-content;                    /* w-80 (80 * 0.25rem = 20rem) */
       z-index: 50;                     /* z-50 */
 
       /* BOX STYLES */
       border-radius: 0.5rem;           /* rounded-lg */
-      padding: 0.75rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
+      padding: 0.125rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
 
     """
   end
