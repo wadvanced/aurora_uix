@@ -13,7 +13,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
   def rule(:root) do
     """
     /* */
-    :root {
+    :root, :host {
+
+
       /* Backgrounds */
       --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
       --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
@@ -21,6 +23,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
       --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
       --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
+
+      /* Font */
+      --auix-font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+      --auix-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      --auix-default-font-family: var(--auix-font-sans);
 
       /* Text */
       --auix-color-text-primary: #18181B; /* zinc-900 */

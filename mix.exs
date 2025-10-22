@@ -94,7 +94,6 @@ defmodule Aurora.Uix.MixProject do
 
       ## Dev dependencies
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.4", runtime: Mix.env() == :dev},
 
       ## Test dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -153,17 +152,17 @@ defmodule Aurora.Uix.MixProject do
     [
       "assets.build": [
         "phx.digest.clean --all",
-        "tailwind aurora_uix",
+        "auix.icons",
         "esbuild aurora_uix",
         "phx.digest"
       ],
       "assets.deploy": [
         "phx.digest.clean --all",
-        "tailwind aurora_uix",
+        "auix.icons",
         "esbuild aurora_uix",
         "phx.digest"
       ],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.setup": ["esbuild.install --if-missing"],
       consistency: [
         "format",
         "compile --warnings-as-errors",
