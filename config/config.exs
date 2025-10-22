@@ -24,7 +24,6 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
   live_view: [signing_salt: "I9hzS6Y2"]
 
 # Configure esbuild (the version is required)
-# Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
   aurora_uix: [

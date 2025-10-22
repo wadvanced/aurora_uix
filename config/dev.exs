@@ -25,7 +25,7 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "gs1QUYJOans/xmI8ulM3SrYrhPn9pim0OF0Ciji2NRabaXy5KLK/FkNwB3MYnAkB",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]},
+    esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]}
   ]
 
 # Watch static and templates for browser reloading.

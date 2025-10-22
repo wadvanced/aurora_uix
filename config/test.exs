@@ -27,7 +27,7 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
   server: true,
   secret_key_base: "IxHRUjPWSSjebX94pT1TbP1TojKBJmMzFFklknykyzf0EkuvGLrcG5I54+kTQzg3",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]},
+    esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]}
   ]
 
 # Enable dev routes for dashboard
