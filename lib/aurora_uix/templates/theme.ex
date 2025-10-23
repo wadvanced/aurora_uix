@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Templates.Theme do
     quote do
       @doc false
       @spec rule_names() :: list()
-      def rule_names, do: unquote(rule_names)
+      def rule_names, do: List.flatten(unquote(rule_names))
     end
   end
 

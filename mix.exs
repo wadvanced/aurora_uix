@@ -72,6 +72,7 @@ defmodule Aurora.Uix.MixProject do
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.5"},
+      {:css_parser, "~> 0.1"},
       {:ecto_sql, "~> 3.10"},
       {:gettext, "~> 1.0"},
       {:heroicons,

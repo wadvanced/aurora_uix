@@ -35,6 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -142,6 +143,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
+    theme_module = ThemeHelper.theme_module()
+
     {:ok,
      socket
      |> assign_auix(:form_component, form_component)
@@ -149,6 +152,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:selection, Selection.new())
      |> assign_auix(:list_function_selected, auix.list_function_paginated)
      |> assign_auix(:reset_stream?, true)
+     |> assign_auix_new(:theme_module, theme_module)
+     |> assign_stylesheet()
      |> assign_layout_options()
      |> IndexActions.set_actions()
      |> assign_index_fields()
@@ -834,6 +839,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
     |> assign_auix(:filters, filters)
     |> assign_auix(:index_layout_form, to_form(filters))
+  end
+
+  @spec assign_stylesheet(Socket.t()) :: Socket.t()
+  defp assign_stylesheet(%{assigns: %{auix: %{theme_module: theme_module}}} = socket) do
+    stylesheet = ThemeHelper.generate_stylesheet(theme_module)
+
+    assign_auix(socket, :stylesheet, stylesheet)
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()

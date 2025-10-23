@@ -633,7 +633,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header) do
     """
       .auix-header{
-        all: unset;
+        content-visibility: visible;
       }
     """
   end
@@ -680,8 +680,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-header--bottom-actions {
         /* flex-none */
-        flex-shrink: 0;   /* flex-none */
-        flex-grow: 0;     /* flex-none */
+        flex-shrink: 0;
+        flex-grow: 0;
       }
     """
   end
@@ -1071,7 +1071,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-items-table-body {
         /* relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700 */
-        position: relative;                             /* relative */
+        position: relative;
 
         /* Divider Rules (divide-y and divide-zinc-100 are translated into border-bottom on children) */
         /* Since we cannot apply divide-y directly to the parent, we apply border-top to the body
@@ -1081,17 +1081,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         font-size: 0.875rem;                            /* text-sm */
         line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
-        color: var(--auix-color-text-hover);            /* text-zinc-700 */
+        color: var(--auix-color-text-hover);
       }
 
-      /* * NOTE ON DIVIDERS:
-      * Tailwind's `divide-y` actually applies a border to children.
-      * To fully replicate `divide-y divide-zinc-100`, you would need an additional rule
-      * targeting immediate children (table rows):
-      */
       .auix-items-table-body > tr:not(:last-child) {
         border-bottom-width: 1px;
-        border-bottom-color: var(--auix-color-border-tertiary); /* Equivalent to divide-zinc-100 */
+        border-bottom-color: var(--auix-color-border-tertiary);
       }
     """
   end
@@ -2257,6 +2252,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           font-size: 0.875rem;            /* sm:text-sm */
           line-height: 1.5rem;            /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
         }
+      }
     """
   end
 
