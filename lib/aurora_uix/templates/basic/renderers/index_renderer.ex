@@ -17,10 +17,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
-  import Aurora.Uix.Templates.ThemeHelper
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.ThemeHelper
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -38,8 +38,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
-    ~AH"""
-    :stylesheet:
+    ~H"""
+    <ThemeHelper.stylesheet stylesheet={@auix.stylesheet} />
+
     <div class="auix-index-container">
       <.header>
         <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
