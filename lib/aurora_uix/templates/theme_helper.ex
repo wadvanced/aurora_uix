@@ -1,194 +1,204 @@
 defmodule Aurora.Uix.Templates.ThemeHelper do
   @moduledoc """
-  Provides the `~AH` sigil to embed theme-based compiled time styles within `HEEx` templates.
+  Provides helper functions for embedding theme-based styles within `HEEx` templates.
 
-  This module offers a convenient way to include compiled or dynamic themeable stylesheets.
-  It allows you to apply CSS rules per component, per tag or the entire stylesheets from the configured theme module.
+  Offers a convenient way to include compiled or dynamic themeable stylesheets, allowing
+  CSS rules to be applied per component, per tag, or as entire stylesheets from the
+  configured theme module.
 
   ## Key Features
 
-  - **Themed Styles**: Leverages the configured theme module to apply consistent styling.
-  - **Inline CSS Rules**: Define component-specific styles directly in the template.
-  - **Scanneable CSS Rules by Markers**: Use `!expression!` syntax to automatically include `expression` css rule.
+  - **Themed Styles**: Leverages the configured theme module to apply consistent styling
+  - **Runtime CSS Generation**: Components for dynamically generating CSS at runtime
+  - **Theme Module Management**: Access and generate complete stylesheets from themes
+  - **Compile-Time or Dynamic Themes**: Choose between static injection for performance
+    or runtime theme swapping for flexibility
 
   ## Usage
 
-  To use the `~AH` sigil, first `import Aurora.Uix.Templates.ThemeHelper` into the module where you want to use it, then use the `~AH` sigil instead of `~H`.
+  Import `Aurora.Uix.Templates.ThemeHelper` to access the CSS helper components.
 
-  ### `:css_rules`
+  ### Using `css_rules` Component
 
-  You can specify a list of CSS rules to be included.
-
-  #### Example
-
-  ```elixir
-  def my_component(assigns) do
-    ~AH\"\"\"
-      :css_rules: my-component, button
-      <div class="my-component">
-        <.button class="button">Click me</.button>
-      </div>
-    \"\"\"
-  end
-  ```
-
-  This will be transformed into the HEEX equivalent with a `<style>` tag containing the CSS for `my-component` and `button`.
+  Generate style tags with specific CSS rules:
 
   ```elixir
   def my_component(assigns) do
     ~H\"\"\"
-      <style>
-        .my-component {
-          /* css rules for my-component */
-        }
-        .my-component:hover {
-          /* css rules for my-component when hovering */
-        }
-        .button{
-          /* css rules for button'
-        }
-      </style>
-      <div class="my-component">
-        <.button class="button">Click me</.button>
-      </div>
+    <.css_rules rules={[:my_component, :button]} />
+    <div class="my-component">
+      <button class="button">Click me</button>
+    </div>
     \"\"\"
   end
   ```
 
-  ### Marked Rules
+  ### Using `stylesheet` Component
 
-  You can mark elements with `!rule-name!` to automatically include the corresponding CSS rules.
-
-  #### Example
+  Include complete stylesheet content:
 
   ```elixir
   def my_component(assigns) do
-    ~AH\"\"\"
-      <div class="!my-component!">
-        <.button class="!button!">Click me</.button>
-      </div>
+    ~H\"\"\"
+    <.stylesheet stylesheet={@theme_styles} />
+    <div class="my-component">
+      <button class="button">Click me</button>
+    </div>
     \"\"\"
   end
   ```
-
-  This will scan for `!expression!` and produce the same HEEX as the `:css_rules` example.
-
-  ### `:stylesheet`
-
-  You can include all the rules from your theme module by using `:stylesheet:`.
-
-  #### Example
-
-  ```elixir
-  def my_component(assigns) do
-    ~AH\"\"\"
-      :stylesheet:
-      <div class="my-component">
-        <.button class="button">Click me</.button>
-      </div>
-    \"\"\"
-  end
-  ```
-
-  This will include all CSS rules defined in your theme module inside a `<style>` tag.
 
   ## Style Duplication
 
-  When using `:css_rules` or marked rules within reusable components, the same CSS rules might be duplicated if the component is used multiple times on the same page. This can lead to unnecessarily large style blocks.
-
-  To avoid this, it is recommended to use the `:stylesheet:` directive in your top-level LiveViews (e.g., `index.html.heex`, `show.html.heex`) to include all necessary styles once. Components will then be rendered correctly without needing to embed their own styles.
+  When using `css_rules` within reusable components, the same CSS rules might be
+  duplicated if the component is used multiple times on the same page. To avoid this,
+  generate and include all necessary styles once at the top-level LiveView.
 
   ## Dynamic vs. Compile-Time Themes
 
-  By default, Aurora.Uix operates in a **compile-time theme** mode. This means that the theme module is determined at compile time, and the CSS rules are injected into the HEEx templates as static text. This is the most performant option as it avoids any runtime computation for styles.
+  By default, Aurora.Uix operates in **compile-time theme** mode. The theme module is
+  determined at compile time, and CSS rules are injected into HEEx templates as static
+  text. This is the most performant option as it avoids runtime computation for styles.
 
-  However, you can enable **dynamic themes** by setting `config :aurora_uix, :dynamic_themes, true`. When enabled, the theme can be swapped at runtime. Instead of injecting static styles, the `~AH` sigil will generate a call to the `<.css_rules>` component. This component will then fetch the appropriate CSS rules from the currently active theme at runtime.
+  Enable **dynamic themes** by setting `config :aurora_uix, :dynamic_themes, true`. When
+  enabled, the theme can be swapped at runtime. The `css_rules/1` component will fetch
+  the appropriate CSS rules from the currently active theme at runtime.
 
-  The main consequence of enabling dynamic themes is a performance trade-off. While it offers flexibility, it introduces a runtime overhead for generating the styles on every render where the sigil is used.
+  The main consequence of enabling dynamic themes is a performance trade-off. While it
+  offers flexibility, it introduces runtime overhead for generating styles on every
+  render.
   """
 
   use Phoenix.Component
 
   import Phoenix.HTML, only: [raw: 1]
 
+  alias Aurora.Uix.Templates.CssSanitizer
   alias Phoenix.LiveView.Rendered
 
-  @css_rule_marker ":css_rules:"
   @template Aurora.Uix.Template.uix_template()
   @default_theme @template.default_theme_module()
-  @theme Application.compile_env(:aurora_uix, :theme_module, @default_theme)
+  @theme_module Application.compile_env(:aurora_uix, :theme_module, @default_theme)
   @dynamic_themes Application.compile_env(:aurora_uix, :dynamic_themes, false)
 
   @doc """
-  A sigil to embed theme-based styles within `HEEx` templates.
+  Generates `<style>` tags with named themed CSS rules at runtime.
 
-  It processes the content inside the sigil to extract CSS rule definitions,
-  scans for dynamic expressions, and generates a `<style>` tag with the
-  corresponding themed CSS rules. See `Phoenix.Component.sigil_H/2` for details on the parameters.
+  Accepts either a specific theme module or uses the configured default theme module.
+  When no theme module is provided, respects the dynamic themes configuration.
+
+  ## Parameters
+
+  - `assigns` (`map()`) - Map containing the CSS rules to be included:
+    - `:rules` - List of CSS rule names to fetch from the theme module
+    - `:theme_module` (optional) - Atom representing the theme module to use
 
   ## Returns
 
-  An `EEx` compiled string containing the generated `<style>` tag and the processed `HEEx` content.
+  `Phoenix.LiveView.Rendered.t()` - Struct containing the `<style>` tag with the
+  requested CSS rules.
 
-  ## Raises
+  ## Examples
 
-  - `RuntimeError` - If the `assigns` variable is not available in the calling context.
+      iex> css_rules(%{rules: [:button, :card]})
+      %Phoenix.LiveView.Rendered{static: ["<style>\\n  ", "\\n</style>\\n"]}
+
+      iex> css_rules(%{rules: [:button], theme_module: MyApp.CustomTheme})
+      %Phoenix.LiveView.Rendered{static: ["<style>\\n  ", "\\n</style>\\n"]}
   """
-  @spec sigil_AH(tuple(), list()) :: Macro.t()
-  defmacro sigil_AH({:<<>>, meta, [expr]}, modifiers)
-           when modifiers == [] or modifiers == ~c"noformat" do
-    if not Macro.Env.has_var?(__CALLER__, {:assigns, nil}) do
-      raise "~H requires a variable named \"assigns\" to exist and be set to a map"
-    end
-
-    theme =
+  attr(:rules, :list, default: [])
+  attr(:theme_module, :atom, default: nil)
+  @spec css_rules(map()) :: Rendered.t()
+  def css_rules(%{rules: rule_names, theme_module: theme_module}) when is_nil(theme_module) do
+    theme_module =
       if @dynamic_themes,
-        do: Application.get_env(:aurora_uix, :theme_module, @default_theme),
-        else: @theme
+        do: Application.get_env(:aurora_uix, :theme_module, @theme_module),
+        else: @theme_module
 
-    scanned_rules = scan_rules(expr, theme)
+    generate_css_rules(theme_module, rule_names)
+  end
 
-    styles = generate_style(scanned_rules, theme, @dynamic_themes)
-
-    expr =
-      expr
-      |> remove_scanned_rules(scanned_rules)
-      |> add_styles(styles)
-
-    options = [
-      engine: Phoenix.LiveView.TagEngine,
-      file: __CALLER__.file,
-      line: __CALLER__.line + 1,
-      caller: __CALLER__,
-      indentation: meta[:indentation] || 0,
-      source: expr,
-      tag_handler: Phoenix.LiveView.HTMLEngine
-    ]
-
-    EEx.compile_string(expr, options)
+  def css_rules(%{rules: rule_names, theme_module: theme_module}) do
+    generate_css_rules(theme_module, rule_names)
   end
 
   @doc """
-  A function component that generates a `<style>` tag with the themed CSS rules at runtime.
+  Generates `<style>` tags with the full stylesheet content.
 
-  ## Attributes
+  ## Parameters
 
-  - `rules` (list(atom())) - A list of rule names to include in the style tag.
+  - `assigns` (`map()`) - Map with the stylesheet content:
+    - `:stylesheet` - String containing the complete stylesheet CSS
 
   ## Returns
 
-  A `Phoenix.LiveView.Rendered` struct containing the `<style>` tag.
-  """
-  attr(:rules, :list, default: [])
-  @spec css_rules(map()) :: Rendered.t()
-  def css_rules(%{rules: rules} = assigns) do
-    theme =
-      if @dynamic_themes,
-        do: Application.get_env(:aurora_uix, :theme_module, @theme),
-        else: @theme
+  `Phoenix.LiveView.Rendered.t()` - Struct containing the stylesheet wrapped in raw HTML.
 
-    css_rules = Enum.map_join(rules, " ", &read_rule(&1, theme))
-    assigns = Map.put(assigns, :css_rules, css_rules)
+  ## Examples
+
+      iex> stylesheet(%{stylesheet: ".button { color: blue; }"})
+      %Phoenix.LiveView.Rendered{static: ["\\n  ", "\\n"]}
+  """
+  attr(:stylesheet, :string, default: "")
+  @spec stylesheet(map()) :: Rendered.t()
+  def stylesheet(assigns) do
+    ~H"""
+      <%= raw(@stylesheet) %>
+    """
+  end
+
+  @doc """
+  Generates a complete stylesheet from all rules in the theme module.
+
+  ## Parameters
+
+  - `theme_module` (`module()`) - The theme module containing rule definitions
+
+  ## Returns
+
+  `binary()` - String containing all CSS rules from the theme module.
+
+  ## Examples
+
+      iex> generate_stylesheet(MyApp.Theme)
+      "<style>.button { color: blue; }</style>\\n<style>.card { ... }</style>\\n"
+  """
+  @spec generate_stylesheet(module()) :: binary()
+  def generate_stylesheet(theme_module) do
+    rule_names = theme_module.rule_names()
+
+    rule_names
+    |> List.flatten()
+    |> style(theme_module, false)
+  end
+
+  @doc """
+  Generates CSS rules from a theme module and wraps them in a `<style>` tag.
+
+  Reads the specified CSS rules from the theme module, processes them, and returns
+  a rendered component with the styles ready for inclusion in a template.
+
+  ## Parameters
+
+  - `theme_module` (`module()`) - The theme module containing CSS rule definitions
+  - `rule_names` (`list()`) - List of CSS rule names (atoms or strings) to include
+
+  ## Returns
+
+  `Phoenix.LiveView.Rendered.t()` - Struct containing the `<style>` tag with the
+  processed CSS rules.
+
+  ## Examples
+
+      iex> generate_css_rules(MyApp.Theme, [:button, :card])
+      %Phoenix.LiveView.Rendered{static: ["<style>\\n  ", "\\n</style>\\n"]}
+  """
+  @spec generate_css_rules(module(), list()) :: Rendered.t()
+  def generate_css_rules(theme_module, rule_names) do
+    assigns =
+      rule_names
+      |> Enum.map_join(" ", &read_rule(&1, theme_module))
+      |> then(&%{css_rules: &1})
 
     ~H"""
     <style>
@@ -197,81 +207,28 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     """
   end
 
-  # PRIVATE
+  @doc """
+  Returns the configured theme module.
 
-  # Scans the expression for CSS rule markers, dynamic expressions, and stylesheets.
-  @spec scan_rules(binary(), module()) :: list()
-  defp scan_rules(expr, theme) do
-    expr
-    |> String.split("\n")
-    |> Enum.filter(&Regex.match?(~r/^[ \t]*#{@css_rule_marker}/, &1))
-    |> Enum.map(&rule_names_from_line/1)
-    |> scan_expressions(expr)
-    |> detect_stylesheet(expr, theme)
+  ## Returns
+
+  `module()` - The theme module configured at compile time.
+
+  ## Examples
+
+      iex> theme_module()
+      Aurora.Uix.Themes.Default
+  """
+  @spec theme_module() :: module()
+  def theme_module do
+    @theme_module
   end
 
-  # Extracts rule names from a line containing the CSS rule marker.
-  @spec rule_names_from_line(binary()) :: {binary(), list(), binary()}
-  defp rule_names_from_line(line) do
-    line
-    |> String.replace("#{@css_rule_marker} ", "")
-    |> String.split(",")
-    |> Enum.map(&String.trim/1)
-    |> then(&{"#{line}\n", &1, ""})
-  end
-
-  # Scans for dynamic expressions in the form of `!expression!`.
-  @spec scan_expressions(list(), binary()) :: list()
-  defp scan_expressions(scanned_rules, expr) do
-    ~r/![a-z][0-9a-z-]*!/
-    |> Regex.scan(expr)
-    |> List.flatten()
-    |> Enum.map(&String.slice(&1, 1..-2//1))
-    |> Enum.reduce(scanned_rules, &[{"!#{&1}!", &1, &1} | &2])
-    |> List.flatten()
-  end
-
-  # Detects the presence of a stylesheet marker and returns all rule names from the theme.
-  @spec detect_stylesheet(list(), binary(), module()) :: list()
-  defp detect_stylesheet(scanned_rules, expr, theme) do
-    stylesheet =
-      ~r/^[ \t]*:stylesheet:[ \t]*/
-      |> Regex.scan(expr)
-      |> List.flatten()
-
-    if stylesheet == [] do
-      scanned_rules
-    else
-      Enum.reduce(stylesheet, [], &[{&1, theme.rule_names(), ""} | &2])
-    end
-  end
-
-  # Generates the final CSS string from the list of rule lines.
-  @spec generate_style(list(), module(), boolean()) :: binary()
-  defp generate_style(scanned_rules, theme, dynamic_themes?) do
-    scanned_rules
-    |> List.flatten()
-    |> Enum.reduce([], fn {_rule_line, rule_name, _replacement}, acc -> [rule_name | acc] end)
-    |> List.flatten()
-    |> style(theme, dynamic_themes?)
-  end
-
-  # Removes the scanned rule lines from the expression.
-  @spec remove_scanned_rules(binary(), list()) :: binary()
-  defp remove_scanned_rules(expr, scanned_rules) do
-    Enum.reduce(scanned_rules, expr, fn {rule_line, _rule_name, replacement}, acc ->
-      String.replace(acc, rule_line, replacement)
-    end)
-  end
-
-  # Adds the generated styles to the expression.
-  @spec add_styles(binary(), binary()) :: binary()
-  defp add_styles(expr, styles) do
-    "#{styles}\n#{expr}"
-  end
+  ## PRIVATE
 
   # Generates the `<style>` tag with the CSS rules.
-  @spec style(list(binary()), module(), boolean()) :: binary()
+  # For dynamic themes, generates a component call. For static themes, embeds CSS directly.
+  @spec style(list(), module(), boolean()) :: binary()
   defp style(rules, theme, dynamic_themes?) do
     if dynamic_themes? do
       css_rules = Enum.map_join(rules, ", ", &":#{&1}")
@@ -285,14 +242,18 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   # Reads a single CSS rule from the theme.
-  @spec read_rule(binary(), module()) :: binary()
+  # Converts dashed names to snake_case atoms and fetches the rule from the theme module.
+  @spec read_rule(binary() | atom(), module()) :: binary()
   defp read_rule(rule, theme) do
     rule
     |> convert_dashes()
     |> theme.rule()
     |> trim_rule()
+    |> CssSanitizer.sanitize_css()
   end
 
+  # Trims unnecessary whitespace and comments from a CSS rule.
+  # Removes CSS comments and excessive whitespace while preserving structure.
   @spec trim_rule(binary()) :: binary()
   defp trim_rule(rule) do
     rule
@@ -301,6 +262,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     |> replace_conditionally(~r/[ \t\n]+\n/, "\n")
   end
 
+  # Recursively replaces matches of a regex pattern until no more matches are found.
+  # Used to normalize whitespace in CSS rules.
   @spec replace_conditionally(binary(), Regex.t(), binary()) :: binary()
   defp replace_conditionally(rule, finder, replacement) do
     if Regex.scan(finder, rule) != [] do
@@ -313,7 +276,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   # Converts a string with dashes to a snake_case atom.
-  @spec convert_dashes(binary()) :: atom()
+  # Used to convert CSS class names (kebab-case) to Elixir function names (snake_case).
+  @spec convert_dashes(binary() | atom()) :: atom()
   defp convert_dashes(rule) do
     rule
     |> to_string()
