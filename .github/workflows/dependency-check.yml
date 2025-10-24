@@ -63,7 +63,7 @@ jobs:
             fi
 
             if [ -n "$issue_title" ]; then
-              existing_issue=$(gh issue list --label "dependencies" --search "in:title \"$issue_title\"" --json title -q ".[] | select(.title==\"$issue_title\")")
+              existing_issue=$(gh issue list --label "bump" --search "in:title \"$issue_title\"" --json title -q ".[] | select(.title==\"$issue_title\")")
               if [ -z "$existing_issue" ]; then
                 gh issue create --title "$issue_title" --body "$issue_body" --label "$issue_labels"
               fi
