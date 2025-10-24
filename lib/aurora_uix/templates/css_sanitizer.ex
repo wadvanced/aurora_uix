@@ -264,6 +264,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
       #{Enum.join(sanitized_properties, ", ")}
       """)
     end
+
     :ok
   end
 
