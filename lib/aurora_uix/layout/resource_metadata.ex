@@ -439,8 +439,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     Code.ensure_compiled(schema)
 
     if function_exported?(schema, :__schema__, 1) do
+      embeds = schema.__schema__(:embeds)
+
       :fields
       |> schema.__schema__()
+      |> Enum.reject(&(&1 in embeds))
       |> Enum.map(&parse_field(schema, resource_name, &1))
     else
       []

@@ -13,8 +13,8 @@ config :aurora_uix,
 
 # Configures the endpoint
 config :aurora_uix, Aurora.UixWeb.Endpoint,
-  url: [host: "localhost"],
-  http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4001")],
+  url: [host: "0.0.0.0"],
+  http: [ip: {0, 0, 0, 0}, port: String.to_integer(System.get_env("PORT") || "4001")],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: Aurora.UixWeb.ErrorHTML, json: Aurora.UixWeb.ErrorJSON],
