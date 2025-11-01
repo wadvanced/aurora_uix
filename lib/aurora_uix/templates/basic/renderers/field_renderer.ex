@@ -30,7 +30,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: auix} = assigns) do
-    field = get_field_info(auix)
+    field =
+      get_field_info(auix)
 
     assigns = assign(assigns, :field, field)
 
@@ -84,6 +85,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   # Delegates many-to-one association rendering
   defp default_render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
+
+  defp default_render(%{field: %{type: :embed_one}} = assigns) do
+    ~H"""
+      EMBED_ONE field type rendering not yet implemented: <%= inspect(@field.key) %>
+    """
+  end
 
   # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do

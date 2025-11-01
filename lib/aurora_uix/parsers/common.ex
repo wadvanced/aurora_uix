@@ -31,8 +31,10 @@ defmodule Aurora.Uix.Parsers.Common do
 
   @behaviour Aurora.Uix.Parser
 
+  alias Aurora.Uix.Helpers.Common, as: CommonHelper
+
   @doc """
-  Returns the list of supported option keys for schema metadata extraction.
+  Returns the list of supported option keys for schma metadata extraction.
 
   ## Returns
   list(atom()) - List of supported option keys.
@@ -87,7 +89,7 @@ defmodule Aurora.Uix.Parsers.Common do
   def default_value(_parsed_opts, %{schema: module}, :source), do: module.__schema__(:source)
 
   def default_value(_parsed_opts, %{schema: module}, :source_key),
-    do: :source |> module.__schema__() |> String.to_atom()
+    do: :source |> module.__schema__() |> CommonHelper.safe_atom()
 
   def default_value(_parsed_opts, _resource_config, :link_prefix), do: ""
 
@@ -107,7 +109,9 @@ defmodule Aurora.Uix.Parsers.Common do
   ## PRIVATE
 
   # Converts a string to capitalized words, splitting on underscores.
-  @spec capitalize(binary()) :: binary()
+  @spec capitalize(binary() | nil) :: binary()
+  defp capitalize(nil), do: ""
+
   defp capitalize(string) do
     string
     |> Macro.underscore()

@@ -37,6 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
 
@@ -66,7 +67,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         default
       ) do
     related_key
-    |> safe_existing_atom()
+    |> CommonHelper.safe_existing_atom()
     |> maybe_set_related_to_new_entity(socket, parent_id, default)
   end
 
@@ -562,27 +563,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     end)
     |> Enum.map_join("<br>", &"#{elem(&1, 0)}: #{elem(&1, 1)}")
   end
-
-  @doc """
-  Safely converts a binary to an existing atom.
-
-  ## Parameters
-  - `name` (`term()` | `nil`) - The name to convert to an atom.
-
-  ## Returns
-  `atom()` | `nil` - The existing atom if it exists, otherwise nil.
-
-  """
-  @spec safe_existing_atom(term() | nil) :: atom() | nil
-  def safe_existing_atom(name) when is_binary(name) do
-    String.to_existing_atom(name)
-  catch
-    _ -> nil
-  end
-
-  def safe_existing_atom(name) when is_atom(name), do: name
-
-  def safe_existing_atom(_name), do: nil
 
   @doc """
   Gets the value of an entity's primary key.

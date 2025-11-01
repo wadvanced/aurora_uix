@@ -780,7 +780,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     layout_tree.inner_elements
     |> Enum.filter(&(&1.tag == :field))
     |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
-    |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association]))
+    |> Enum.reject(&(&1.type in [:one_to_many_association, :many_to_one_association, :embed_one]))
     |> then(&[select_field | &1])
     |> then(&assign_auix(socket, :index_fields, &1))
   end

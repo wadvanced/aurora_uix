@@ -87,6 +87,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
+  alias Ecto.Embedded
+
+  @doc false
   @spec __using__(any()) ::
           {:__block__, [], [{:@ | :import | {any(), any(), any()}, [...], [...]}, ...]}
   defmacro __using__(_opts) do
@@ -262,9 +265,54 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp resource_metadata(module) do
     module
     |> Module.get_attribute(:_auix_process_resource_config)
+    |> embedded_resources()
     |> configure_fields()
     |> add_associations()
     |> convert_fields_to_map()
+  end
+
+  @spec embedded_resources([map()]) :: [map()]
+  defp embedded_resources(resource_configs) do
+    resource_configs
+    |> Enum.map(&embedded_resource_config_data/1)
+    |> Enum.reduce(resource_configs, &embedded_resource/2)
+  end
+
+  @spec embedded_resource_config_data(map()) :: {atom(), module()} | nil
+  defp embedded_resource_config_data(%{name: name, tag: :resource, opts: opts}) do
+    if schema_module = Keyword.get(opts, :schema), do: {name, schema_module}, else: nil
+  end
+
+  @spec embedded_resource({atom(), module()} | nil, [map()]) :: [map()]
+  defp embedded_resource(nil, result), do: result
+
+  defp embedded_resource({_parent_resource_name, schema_module} = parent_resource, result) do
+    :embeds
+    |> schema_module.__schema__()
+    |> Enum.map(&schema_module.__schema__(:embed, &1))
+    |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
+  end
+
+  @spec embedded_resource_config(
+          {atom(), module()},
+          map(),
+          [map()]
+        ) :: [map()]
+  defp embedded_resource_config(
+         {parent_resource_name, schema_module},
+         %Embedded{field: field, related: embed_schema},
+         result
+       ) do
+    resource_name = LayoutHelpers.field_embedded_resource(parent_resource_name, field)
+
+    [
+      Resource.new(
+        name: resource_name,
+        tag: :resource,
+        opts: [related_schema: schema_module, schema: embed_schema]
+      )
+      | result
+    ]
   end
 
   # creates the function for each resource.
@@ -442,6 +490,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       :fields
       |> schema.__schema__()
       |> Enum.map(&parse_field(schema, resource_name, &1))
+      |> List.flatten()
     else
       []
     end
@@ -454,8 +503,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec parse_field(module(), atom(), atom()) :: Field.t()
   defp parse_field(module, resource_name, field_key) do
     type = module.__schema__(:type, field_key)
-    association = module.__schema__(:association, field_key)
-    LayoutHelpers.parse_field(field_key, type, resource_name, association)
+
+    association_or_embed =
+      module.__schema__(:association, field_key) || module.__schema__(:embed, field_key)
+
+    LayoutHelpers.parse_field(field_key, type, resource_name, association_or_embed)
   end
 
   # Finds matching resource for an association

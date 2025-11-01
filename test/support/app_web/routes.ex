@@ -192,6 +192,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           ManualTreesTest,
           "manual-trees-"
         )
+
+        RoutesHelper.register_crud(
+          EmbedOneTest.User,
+          "embed-one-users"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
