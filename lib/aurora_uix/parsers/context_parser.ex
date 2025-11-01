@@ -179,9 +179,25 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
+  @doc """
+  Placeholder function used when no valid function reference is found.
+  ## Parameters
+  - `_arg1` (any()) - First argument (ignored).
+  - `_arg2` (any()) - Second argument (ignored, defaults to nil).
+
+  ## Returns
+  - `nil` - Always returns nil.
+  """
+  @spec undefined_function(any(), any()) :: nil
+  def undefined_function(_arg1, _arg2 \\ nil), do: nil
+
   ## PRIVATE
 
   @spec create_function_reference(module(), list(binary()), integer()) :: function()
+
+  defp create_function_reference(nil, _functions, _expected_arity),
+    do: &__MODULE__.undefined_function/2
+
   defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
     implemented_functions =
       :functions

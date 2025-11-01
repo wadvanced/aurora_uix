@@ -26,6 +26,11 @@ defmodule Aurora.Uix.Layout.Helpers do
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
+  alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
+  alias Ecto.Association.Has, as: AssociationHas
+
+  alias Ecto.Embedded
+
   require Logger
 
   @one_to_many_action_names :one_to_many |> Action.available_actions() |> Map.keys()
@@ -42,6 +47,7 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   ## Returns
   `{term(), Keyword.t()}` - A tuple containing the extracted block and the remaining options.
+    LayoutHelpers.parse_embedded_field(embed_one, resource_name)
   """
   @spec extract_block_options(Keyword.t() | list(), term()) :: {term(), Keyword.t()}
   def extract_block_options(opts, block \\ nil)
@@ -160,19 +166,19 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `field_key` (`atom()`) - The field identifier.
   - `type` (`atom()`) - The Elixir type (e.g., `:string`, `:integer`).
   - `resource_name` (`atom()`) - The name of the resource this field belongs to.
-  - `association` (`map()` | `nil`) - Association metadata with cardinality information.
+  - `association_embed` (`map()` | `nil`) - Association metadata with cardinality information.
 
   ## Returns
   `t:Field.t/0` - A fully configured field struct.
   """
   @spec parse_field(atom(), atom(), atom(), map() | nil) :: Field.t()
-  def parse_field(field_key, type, resource_name, association \\ nil) do
+  def parse_field(field_key, type, resource_name, association_or_embed \\ nil) do
     attrs = %{
       key: field_key,
       label: field_label(field_key),
       placeholder: field_placeholder(field_key, type),
-      type: field_type(type, association),
-      html_type: field_html_type(type, association),
+      type: field_type(type, association_or_embed),
+      html_type: field_html_type(type, association_or_embed),
       length: field_length(type),
       precision: field_precision(type),
       scale: field_scale(type),
@@ -181,7 +187,7 @@ defmodule Aurora.Uix.Layout.Helpers do
       hidden: field_hidden(field_key),
       filterable?: field_filterable(type),
       resource: resource_name,
-      data: field_data(association)
+      data: field_data(association_or_embed, resource_name)
     }
 
     Field.new(attrs)
@@ -244,10 +250,13 @@ defmodule Aurora.Uix.Layout.Helpers do
   @spec field_type(atom(), map() | nil) :: atom()
   def field_type(type, nil), do: type
 
-  def field_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
+  def field_type(nil, %AssociationHas{cardinality: :many} = _association),
+    do: :one_to_many_association
 
-  def field_type(nil, %{cardinality: :one} = _association),
+  def field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
     do: :many_to_one_association
+
+  def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embed_one
 
   @doc """
   Maps an Elixir type to an HTML input type.
@@ -280,12 +289,15 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   def field_html_type(type, nil), do: type
 
-  def field_html_type(nil, %{cardinality: :many} = _association), do: :one_to_many_association
+  def field_html_type(nil, %AssociationHas{cardinality: :many} = _association),
+    do: :one_to_many_association
 
-  def field_html_type(nil, %{cardinality: :one} = _association),
+  def field_html_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
     do: :many_to_one_association
 
-  def field_html_type(nil, _association), do: :unimplemented
+  def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embed_one
+
+  def field_html_type(_type, _association), do: :unimplemented
 
   @doc """
   Determines the display length for a field based on its type.
@@ -417,15 +429,43 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   `map()` - An association metadata map, or an empty map if there is no association.
   """
-  @spec field_data(map() | nil) :: map()
-  def field_data(nil), do: %{}
+  @spec field_data(map() | nil, atom()) :: map()
+  def field_data(association_or_embed, resource_name \\ nil)
 
-  def field_data(association),
+  def field_data(nil, _resource_name), do: %{}
+
+  def field_data(%Embedded{} = embedded, resource_name) do
+    %{
+      related: embedded.related,
+      owner: embedded.owner,
+      resource: field_embedded_resource(resource_name, embedded)
+    }
+  end
+
+  def field_data(%{} = association, _resource_name),
     do: %{
       related: association.related,
       related_key: association.related_key,
       owner_key: association.owner_key
     }
+
+  @doc """
+  Generates a unique resource identifier for embedded fields.
+
+  ## Parameters
+  - `parent_resource_name` (`atom()`) - The name of the parent resource.
+  - `field` (`map()` | `atom()`) - The embedded field (%Ecto.Embedded) or the field name.
+
+  ## Returns
+  `binary()` - A unique identifier for the embedded resource.
+  """
+  @spec field_embedded_resource(atom(), map() | atom()) :: atom()
+  def field_embedded_resource(parent_resource_name, %Embedded{field: field}),
+    do: field_embedded_resource(parent_resource_name, field)
+
+  def field_embedded_resource(parent_resource_name, field) do
+    String.to_atom("#{parent_resource_name}__#{field}")
+  end
 
   @doc """
   Creates a macro expression to store layout options in the module attributes.
