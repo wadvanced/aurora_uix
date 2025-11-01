@@ -11,6 +11,16 @@ defmodule Aurora.Uix.Test.Accounts.User do
 
   alias Aurora.Uix.Test.Accounts.User
 
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t(),
+          full_name: binary() | nil,
+          email: binary() | nil,
+          avatar_url: binary() | nil,
+          confirmed_at: NaiveDateTime.t() | nil,
+          profile: Profile.t() | nil,
+          inserted_at: NaiveDateTime.t() | nil,
+          updated_at: NaiveDateTime.t() | nil
+        }
   @doc """
   Defines the `users` table schema.
 
