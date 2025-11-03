@@ -1,4 +1,4 @@
-defmodule Aurora.UixWeb.UICase do
+defmodule Aurora.UixWeb.Test.UICase do
   @moduledoc """
   Support for testing schema metadata behaviour.
 
@@ -144,7 +144,7 @@ defmodule Aurora.UixWeb.UICase do
   def test_case do
     quote do
       use Aurora.UixWeb.Test.ConnCase
-      import Aurora.UixWeb.UICase
+      import Aurora.UixWeb.Test.UICase
     end
   end
 
@@ -154,7 +154,7 @@ defmodule Aurora.UixWeb.UICase do
       use Aurora.UixWeb.Test.ConnCase
       import Phoenix.LiveViewTest
       import Aurora.Uix.Test.Helper
-      import Aurora.UixWeb.UICase
+      import Aurora.UixWeb.Test.UICase
       import Aurora.UixWeb.Test.SectionHelper
     end
   end

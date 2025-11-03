@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
-  use Aurora.UixWeb.UICase
+  use Aurora.UixWeb.Test.UICase
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product
   alias Aurora.Uix.Test.Inventory.ProductTransaction

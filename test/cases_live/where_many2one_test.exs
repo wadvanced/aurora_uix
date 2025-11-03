@@ -1,5 +1,5 @@
 defmodule Aurora.UixWeb.Test.WhereMany2OneTest do
-  use Aurora.UixWeb.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
   alias Aurora.Uix.Test.Inventory

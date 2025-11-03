@@ -1,21 +1,11 @@
-defmodule Aurora.UixWeb do
+defmodule Aurora.UixWeb.Test do
   @moduledoc """
-  The entrypoint for defining your web interface, such
-  as controllers, components, channels, and so on.
-
-  This can be used in your application as:
-
-      use Aurora.UixWeb, :controller
-      use Aurora.UixWeb, :html
-
-  The definitions below will be executed for every controller,
-  component, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below. Instead, define additional modules and import
-  those modules here.
+  The entrypoint for defining your web interface.
   """
+
+  alias Aurora.UixWeb.Test, as: TestWeb
+  alias Aurora.UixWeb.Test.Endpoint, as: TestEndpoint
+  alias Aurora.UixWeb.Test.Routes, as: TestRoutes
 
   @doc """
   Returns the list of static paths.
@@ -35,16 +25,7 @@ defmodule Aurora.UixWeb do
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
-    end
-  end
-
-  @doc """
-  Defines a channel with all the necessary imports.
-  """
-  @spec channel() :: Macro.t()
-  def channel do
-    quote do
-      use Phoenix.Channel
+      import TestRoutes
     end
   end
 
@@ -96,9 +77,9 @@ defmodule Aurora.UixWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Aurora.UixWeb.Endpoint,
-        router: Aurora.UixWeb.Router,
-        statics: Aurora.UixWeb.static_paths()
+        endpoint: TestEndpoint,
+        router: TestRouter,
+        statics: TestWeb.static_paths()
     end
   end
 
@@ -124,8 +105,8 @@ defmodule Aurora.UixWeb do
       # import Aurora.UixWeb.CoreComponents
 
       # Common modules used in templates
-      alias Aurora.UixWeb
-      alias Aurora.UixWeb.Layouts
+      alias Aurora.UixWeb.Test
+      alias Aurora.UixWeb.Test.Layouts
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil

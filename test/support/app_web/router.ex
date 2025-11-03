@@ -1,17 +1,17 @@
-defmodule Aurora.UixWeb.Router do
+defmodule Aurora.UixWeb.Test.Router do
   @moduledoc """
   Defines the application's routes and pipelines.
 
   This module is responsible for defining the application's routes and
   the pipelines that requests go through.
   """
-  use Aurora.UixWeb, :router
+  use Aurora.UixWeb.Test, :router
 
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
     plug(:fetch_live_flash)
-    plug(:put_root_layout, {Aurora.UixWeb.Layouts, :root})
+    plug(:put_root_layout, {Aurora.UixWeb.Test.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
   end
@@ -22,6 +22,11 @@ defmodule Aurora.UixWeb.Router do
 
   scope "/", Aurora.UixWeb do
     pipe_through(:browser)
+  end
+
+  scope "/", Aurora.UixWeb.Test do
+    pipe_through(:browser)
+    load_test_routes()
   end
 
   # Other scopes may use custom stacks.

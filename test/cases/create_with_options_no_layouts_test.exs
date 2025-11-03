@@ -1,6 +1,6 @@
 defmodule Aurora.UixWeb.CreateWithOptionsNoLayoutsTest do
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
-  use Aurora.UixWeb.UICase
 
   alias Aurora.Uix.Test.Inventory
   alias Aurora.Uix.Test.Inventory.Product

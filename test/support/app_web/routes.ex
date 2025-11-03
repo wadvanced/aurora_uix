@@ -193,9 +193,9 @@ defmodule Aurora.UixWeb.Test.Routes do
           "manual-trees-"
         )
 
-        RoutesHelper.register_crud(
-          EmbedOneTest.User,
-          "embed-one-users"
+        RoutesHelper.register_user_crud(
+          EmbedOneTest,
+          "embed-one-"
         )
       end
 

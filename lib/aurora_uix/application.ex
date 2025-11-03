@@ -5,32 +5,42 @@ defmodule Aurora.Uix.Application do
 
   use Application
 
-  alias Aurora.UixWeb.Endpoint
-
   @impl true
   def start(_type, _args) do
-    children = [
-      Aurora.UixWeb.Telemetry,
-      Aurora.Uix.Repo,
-      # {DNSCluster, query: Application.get_env(:aurora_uix, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Aurora.Uix.PubSub},
-      # Start a worker by calling: Aurora.Uix.Worker.start_link(arg)
-      # {Aurora.Uix.Worker, arg},
-      # Start to serve requests, typically the last entry
-      Aurora.UixWeb.Endpoint
-    ]
-
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
+    endpoint = Application.get_env(:aurora_uix, :endpoint)
     opts = [strategy: :one_for_one, name: Aurora.Uix.Supervisor]
-    Supervisor.start_link(children, opts)
+
+    if endpoint do
+      children =
+        [
+          Aurora.UixWeb.Telemetry,
+          Aurora.Uix.Repo,
+          # {DNSCluster, query: Application.get_env(:aurora_uix, :dns_cluster_query) || :ignore},
+          {Phoenix.PubSub, name: Aurora.Uix.PubSub},
+          # Start a worker by calling: Aurora.Uix.Worker.start_link(arg)
+          # {Aurora.Uix.Worker, arg},
+          # Start to serve requests, typically the last entry
+          endpoint
+        ]
+
+      # See https://hexdocs.pm/elixir/Supervisor.html
+      # for other strategies and supported options
+      Supervisor.start_link(children, opts)
+    else
+      Supervisor.start_link([], opts)
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    Endpoint.config_change(changed, removed)
+    endpoint_module = Application.get_env(:aurora_uix, :endpoint)
+
+    if endpoint_module do
+      endpoint_module.config_change(changed, removed)
+    end
+
     :ok
   end
 end

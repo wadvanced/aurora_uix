@@ -28,7 +28,7 @@ defmodule Aurora.Uix.MixProject do
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
         files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib),
-        exclude_patterns: [~r"/-local-.*"]
+        exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*"]
       ],
 
       # Docs
@@ -64,6 +64,8 @@ defmodule Aurora.Uix.MixProject do
       mod: {Aurora.Uix.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
+
+    # end
   end
 
   # Mix deps.
@@ -108,7 +110,7 @@ defmodule Aurora.Uix.MixProject do
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support/", "test/cases_live"]
-  defp elixirc_paths(_), do: ["lib", "test/support/app_web"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp xref(:test) do
     "test/cases_live"
