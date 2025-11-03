@@ -7,8 +7,6 @@ defmodule Aurora.UixWeb.Router do
   """
   use Aurora.UixWeb, :router
 
-  import Aurora.UixWeb.Test.Routes
-
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -25,15 +23,6 @@ defmodule Aurora.UixWeb.Router do
   scope "/", Aurora.UixWeb do
     pipe_through(:browser)
   end
-
-  if Application.compile_env(:aurora_uix, :test_routes) do
-    scope "/", Aurora.UixWeb.Test do
-      pipe_through(:browser)
-      load_test_routes()
-    end
-  end
-
-  # inject_test_routes()
 
   # Other scopes may use custom stacks.
   # scope "/api", Aurora.UixWeb do

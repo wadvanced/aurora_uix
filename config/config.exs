@@ -11,6 +11,10 @@ config :aurora_uix,
   ecto_repos: [Aurora.Uix.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Configure modules
+config :aurora_uix,
+  endpoint: Aurora.UixWeb.Endpoint
+
 # Configures the endpoint
 config :aurora_uix, Aurora.UixWeb.Endpoint,
   url: [host: "0.0.0.0"],

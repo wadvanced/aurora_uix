@@ -35,8 +35,6 @@ defmodule Aurora.UixWeb do
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
-
-      import Aurora.UixWeb, only: [inject_test_routes: 0]
     end
   end
 
@@ -101,31 +99,6 @@ defmodule Aurora.UixWeb do
         endpoint: Aurora.UixWeb.Endpoint,
         router: Aurora.UixWeb.Router,
         statics: Aurora.UixWeb.static_paths()
-    end
-  end
-
-  @doc """
-  Injects test routes into the router.
-
-  This function checks if the `Aurora.UixWeb.Test.Routes` module is loaded
-  and, if so, injects the test routes into the router.
-  """
-  @spec inject_test_routes() :: Macro.t()
-  defmacro inject_test_routes do
-    routes =
-      if Code.ensure_loaded?(Aurora.UixWeb.Test.Routes) do
-        quote do
-          scope "/", Aurora.UixWeb.Test do
-            pipe_through(:browser)
-            use Aurora.UixWeb.Test.Routes
-          end
-        end
-      else
-        :ok
-      end
-
-    quote do
-      unquote(routes)
     end
   end
 

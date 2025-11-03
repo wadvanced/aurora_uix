@@ -10,6 +10,10 @@ config :aurora_uix, Aurora.Uix.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# Configure modules
+config :aurora_uix,
+  endpoint: Aurora.UixWeb.Endpoint
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
