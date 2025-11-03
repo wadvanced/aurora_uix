@@ -31,6 +31,7 @@ config :aurora_uix, Aurora.UixWeb.Test.Endpoint,
   debug_errors: true,
   server: true,
   secret_key_base: "IxHRUjPWSSjebX94pT1TbP1TojKBJmMzFFklknykyzf0EkuvGLrcG5I54+kTQzg3",
+  pubsub_server: Aurora.Uix.PubSub,
   live_view: [signing_salt: "I9hzS6Y2"],
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]}
