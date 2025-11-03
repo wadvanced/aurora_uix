@@ -108,7 +108,7 @@ defmodule Aurora.Uix.MixProject do
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support/", "test/cases_live"]
-  defp elixirc_paths(_), do: ["lib", "test/support/app_web"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp xref(:test) do
     "test/cases_live"
