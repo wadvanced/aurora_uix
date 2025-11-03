@@ -8,6 +8,7 @@ defmodule Aurora.Uix.Application do
   @impl true
   def start(_type, _args) do
     endpoint = Application.get_env(:aurora_uix, :endpoint)
+    opts = [strategy: :one_for_one, name: Aurora.Uix.Supervisor]
 
     if endpoint do
       children =
@@ -24,10 +25,9 @@ defmodule Aurora.Uix.Application do
 
       # See https://hexdocs.pm/elixir/Supervisor.html
       # for other strategies and supported options
-      opts = [strategy: :one_for_one, name: Aurora.Uix.Supervisor]
       Supervisor.start_link(children, opts)
     else
-      Supervisor.start_link([], [])
+      Supervisor.start_link([], opts)
     end
   end
 
