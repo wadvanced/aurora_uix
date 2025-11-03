@@ -454,7 +454,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_checkbox) do
     """
     .auix-checkbox {
-        appearance: none;
         padding: 0;
         display: inline-block;
         vertical-align: middle;
