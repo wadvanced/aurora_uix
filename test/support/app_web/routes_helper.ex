@@ -19,7 +19,6 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
     routes =
       quote do
         link = "/#{unquote(link_prefix)}"
-        # auix_live_resources(link, unquote(module))
         index_module = Module.concat(unquote(module), Index)
         show_module = Module.concat(unquote(module), Show)
         live("/#{link}", index_module, :index)
@@ -58,6 +57,25 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
       unquote(module)
       |> Module.concat(ProductLocation)
       |> RoutesHelper.register_crud("#{unquote(prefix)}product_locations")
+    end
+  end
+
+  @doc """
+  Registers CRUD routes for user-related modules.
+
+  ## Parameters
+  - `module` (module()) - The base module.
+  - `prefix` (binary()) - The URL prefix for the routes.
+
+  ## Returns
+  Macro.t() - CRUD routes configuration quote for user modules.
+  """
+  @spec register_user_crud(module(), binary()) :: Macro.t()
+  defmacro register_user_crud(module, prefix) do
+    quote do
+      unquote(module)
+      |> Module.concat(User)
+      |> RoutesHelper.register_crud("#{unquote(prefix)}users")
     end
   end
 end

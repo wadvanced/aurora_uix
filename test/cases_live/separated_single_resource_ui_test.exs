@@ -1,6 +1,6 @@
 defmodule Aurora.UixWeb.Test.SeparatedSingleResourceUITest do
+  use(Aurora.UixWeb.Test.UICase, :phoenix_case)
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
-  use Aurora.UixWeb.UICase, :phoenix_case
 
   defmodule TestResources do
     alias Aurora.Uix.Test.Inventory

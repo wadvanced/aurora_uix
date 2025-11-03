@@ -2,7 +2,7 @@ defmodule Aurora.UixWeb.LocalDemoTest do
   @moduledoc """
   Use this module as a reference to create local, not versioned, tests.
   """
-  use Aurora.UixWeb.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
 
   alias Aurora.Uix.Test.Inventory
 

@@ -1,5 +1,5 @@
 defmodule Aurora.Uix.Test.Cases.CreateWithoutOptions do
-  use Aurora.UixWeb.UICase
+  use Aurora.UixWeb.Test.UICase
 
   defmodule DefaultWithoutOptions do
     # Makes the modules attributes persistent.
