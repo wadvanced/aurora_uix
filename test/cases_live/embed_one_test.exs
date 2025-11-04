@@ -19,6 +19,6 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
   end
 
   test "Show data", %{conn: conn} do
-    live(conn, "/embed-one-users")
+    live(conn, "/embed-one-users/new")
   end
 end
