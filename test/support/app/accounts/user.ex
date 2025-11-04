@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
   @spec changeset(User.t(), map()) :: Ecto.Changeset.t()
   def changeset(%User{} = user, attrs \\ %{}) do
     user
-    |> cast(attrs, [:full_name, :email])
+    |> cast(attrs, [:full_name, :email, :avatar_url])
     |> cast_embed(:profile, required: true, with: &profile_changeset/2)
   end
 

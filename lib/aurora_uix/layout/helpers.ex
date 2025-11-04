@@ -173,22 +173,23 @@ defmodule Aurora.Uix.Layout.Helpers do
   """
   @spec parse_field(atom(), atom(), atom(), map() | nil) :: Field.t()
   def parse_field(field_key, type, resource_name, association_or_embed \\ nil) do
-    attrs = %{
-      key: field_key,
-      label: field_label(field_key),
-      placeholder: field_placeholder(field_key, type),
-      type: field_type(type, association_or_embed),
-      html_type: field_html_type(type, association_or_embed),
-      length: field_length(type),
-      precision: field_precision(type),
-      scale: field_scale(type),
-      disabled: field_disabled(field_key),
-      omitted: field_omitted(field_key),
-      hidden: field_hidden(field_key),
-      filterable?: field_filterable(type),
-      resource: resource_name,
-      data: field_data(association_or_embed, resource_name)
-    }
+    attrs =
+      %{
+        key: field_key,
+        label: field_label(field_key),
+        placeholder: field_placeholder(field_key, type),
+        type: field_type(type, association_or_embed),
+        html_type: field_html_type(type, association_or_embed),
+        length: field_length(type),
+        precision: field_precision(type),
+        scale: field_scale(type),
+        disabled: field_disabled(field_key),
+        omitted: field_omitted(field_key),
+        hidden: field_hidden(field_key),
+        filterable?: field_filterable(type),
+        resource: resource_name,
+        data: field_data(association_or_embed, resource_name, type)
+      }
 
     Field.new(attrs)
   end
@@ -248,6 +249,8 @@ defmodule Aurora.Uix.Layout.Helpers do
   `atom()` - The mapped field type for UI rendering.
   """
   @spec field_type(atom(), map() | nil) :: atom()
+  def field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
+
   def field_type(type, nil), do: type
 
   def field_type(nil, %AssociationHas{cardinality: :many} = _association),
@@ -286,6 +289,8 @@ defmodule Aurora.Uix.Layout.Helpers do
   def field_html_type(type, _association) when type in [:time, :time_usec], do: :time
 
   def field_html_type(:boolean, _association), do: :checkbox
+
+  def field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
 
   def field_html_type(type, nil), do: type
 
@@ -429,12 +434,21 @@ defmodule Aurora.Uix.Layout.Helpers do
   ## Returns
   `map()` - An association metadata map, or an empty map if there is no association.
   """
-  @spec field_data(map() | nil, atom()) :: map()
-  def field_data(association_or_embed, resource_name \\ nil)
+  @spec field_data(map() | nil, atom(), atom()) :: map()
+  def field_data(association_or_embed, resource_name \\ nil, type \\ nil)
 
-  def field_data(nil, _resource_name), do: %{}
+  def field_data(
+        _association_or_embed,
+        _resource_name,
+        {:parameterized, {Ecto.Enum, %{on_load: opts}}}
+      ) do
+    opts = Enum.map(opts, fn {text, key} -> {field_label(text), key} end)
+    %{select: %{opts: opts, multiple: false}}
+  end
 
-  def field_data(%Embedded{} = embedded, resource_name) do
+  def field_data(nil, _resource_name, _type), do: %{}
+
+  def field_data(%Embedded{} = embedded, resource_name, _type) do
     %{
       related: embedded.related,
       owner: embedded.owner,
@@ -442,7 +456,7 @@ defmodule Aurora.Uix.Layout.Helpers do
     }
   end
 
-  def field_data(%{} = association, _resource_name),
+  def field_data(%{} = association, _resource_name, _type),
     do: %{
       related: association.related,
       related_key: association.related_key,

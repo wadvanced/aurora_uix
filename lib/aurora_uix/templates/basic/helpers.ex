@@ -495,6 +495,62 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
+  Retrieves the configuration for a specific resource from the assigns or auix map.
+
+  ## Parameters
+  - assigns_or_auix (map()) - The assigns map or auix map containing configurations
+  - resource_name (atom()) - The name of the resource to retrieve configuration for
+
+  ## Returns
+    - map() - The configuration map for the specified resource, or an empty map if not_found
+  """
+  @spec get_configuration(map(), atom()) :: map()
+  def get_configuration(%{auix: %{configurations: configurations}} = _assigns, resource_name),
+    do: Map.get(configurations, resource_name, %{})
+
+  def get_configuration(%{configurations: configurations} = _auix, resource_name),
+    do: Map.get(configurations, resource_name, %{})
+
+  @doc """
+  Retrieves a specific resource configuration key from the assigns or auix map.
+
+  ## Parameters
+  - assigns_or_auix (map()) - The assigns map or auix map containing configurations
+  - resource_name (atom()) - The name of the resource to retrieve configuration for
+  - key (atom()) - The specific key to retrieve from the resource configuration
+
+  ## Returns
+    - map() - The value for the specified key in the resource configuration, 
+    or an empty map if not found    
+  """
+  @spec get_resource(map(), atom(), atom()) :: map()
+  def get_resource(assigns_or_auix, resource_name, key) do
+    assigns_or_auix
+    |> get_configuration(resource_name)
+    |> Map.get(key, %{})
+  end
+
+  @doc """
+  Retrieves the layout tree for a specific resource and layout type.
+
+  ## Parameters
+  - assigns_or_auix (map()) - The assigns ma wp or auix map containing configurations
+  - resource_name (atom()) - The name of the resource to retrieve layout for
+  - layout_type (atom()) - The type of layout to retrieve (e.g., :form, :index)
+
+  ## Returns
+    - map() - The layout tree map for the specified resource and layout type, 
+    or an empty map if not found
+    
+  """
+  @spec get_layout(map(), atom(), atom()) :: map()
+  def get_layout(assigns_or_auix, resource_name, layout_type) do
+    assigns_or_auix
+    |> get_resource(resource_name, :layout_trees)
+    |> Map.get(layout_type, %{})
+  end
+
+  @doc """
   Extracts association fields from preload configuration grouped by association type.
 
   ## Parameters

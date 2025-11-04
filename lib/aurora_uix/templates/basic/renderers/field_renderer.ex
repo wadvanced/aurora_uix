@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderers.EmbedOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
@@ -86,11 +87,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   defp default_render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
 
-  defp default_render(%{field: %{type: :embed_one}} = assigns) do
-    ~H"""
-      EMBED_ONE field type rendering not yet implemented: <%= inspect(@field.key) %>
-    """
-  end
+  defp default_render(%{field: %{type: :embed_one}} = assigns),
+    do: EmbedOneRenderer.render(assigns)
 
   # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do
@@ -106,21 +104,54 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
          else: %{name: @field.key, value: @auix.entity[@field.key]}} />
     <% else %>
       <div class="auix-form-field-container">
+        <.default_render_input 
+            auix={@auix}
+            field={@field}
+            input_classes={@input_classes}
+            select_opts={@select_opts} 
+        />
+      </div>
+    <% end %>
+    """
+  end
+
+  @spec default_render_input(map()) :: Phoenix.LiveView.Rendered.t()
+  defp default_render_input(%{auix: %{layout_type: :form}} = assigns) do
+    ~H"""
+      <div class="auix-form-field-container">
         <.input
           id={"#{@field.html_id}-#{@auix.layout_type}"}
-          {if @auix.layout_type == :form,
-            do: %{field: @auix.form[@field.key]},
-            else: %{name: @field.key, value: Map.get(@auix.entity || %{}, @field.key)}}
+          field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
           label={@field.label}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
-          disabled={@field.disabled or @auix.layout_type == :show}
+          disabled={@field.disabled}
           class={@input_classes}
         />
       </div>
-    <% end %>
+
+    """
+  end
+
+  defp default_render_input(%{auix: %{layout_type: :show}} = assigns) do
+    ~H"""
+      <div class="auix-form-field-container">
+        <.input
+          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          name={@field.key}
+          value={Map.get(@auix.entity || %{}, @field.key)}
+          type={"#{@field.html_type}"}
+          label={@field.label}
+          options={@select_opts[:options]}
+          multiple={@select_opts[:multiple]}
+          readonly={@field.readonly}
+          disabled={true}
+          class={@input_classes}
+        />
+      </div>
+
     """
   end
 end
