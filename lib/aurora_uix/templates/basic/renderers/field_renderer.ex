@@ -147,7 +147,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
-          disabled={@field.disabled}
+          disabled={true}
           class={@input_classes}
         />
       </div>

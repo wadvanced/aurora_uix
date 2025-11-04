@@ -21,10 +21,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedOneRenderer do
   def render(
         %{
           field: %{data: %{resource: embed_resource_name}},
-          auix: %{layout_type: layout_type}
+          auix: %{layout_type: :form}
         } = assigns
       ) do
-    layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, layout_type)
+    layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :form)
 
     assigns =
       assigns
@@ -37,5 +37,20 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedOneRenderer do
       </.inputs_for>
 
     """
+  end
+
+  def render(
+        %{
+          field: %{key: key, data: %{resource: embed_resource_name}},
+          auix: %{entity: entity, layout_type: :show}
+        } = assigns
+      ) do
+    layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :show)
+
+    assigns
+    |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
+    |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
+    |> BasicHelpers.assign_auix(:entity, Map.get(entity, key))
+    |> Renderer.render_inner_elements()
   end
 end

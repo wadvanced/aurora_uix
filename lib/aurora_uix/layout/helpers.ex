@@ -442,6 +442,7 @@ defmodule Aurora.Uix.Layout.Helpers do
         _resource_name,
         {:parameterized, {Ecto.Enum, %{on_load: opts}}}
       ) do
+    opts = Enum.map(opts, fn {text, key} -> {field_label(text), key} end)
     %{select: %{opts: opts, multiple: false}}
   end
 
