@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedOneRenderer do
   - assigns (map()) - LiveView assigns.
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t() - The rendered embed_one component
+  - Phoenix.LiveView.Rendered.t() - The rendered embeds_one component
   """
 
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()

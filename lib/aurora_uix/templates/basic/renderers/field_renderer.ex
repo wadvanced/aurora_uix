@@ -87,7 +87,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   defp default_render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
 
-  defp default_render(%{field: %{type: :embed_one}} = assigns),
+  defp default_render(%{field: %{type: :embeds_one}} = assigns),
     do: EmbedOneRenderer.render(assigns)
 
   # Renders standard field types with appropriate HTML structure
