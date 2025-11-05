@@ -47,7 +47,7 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   ## Returns
   `{term(), Keyword.t()}` - A tuple containing the extracted block and the remaining options.
-    LayoutHelpers.parse_embedded_field(embed_one, resource_name)
+    LayoutHelpers.parse_embedded_field(embeds_one, resource_name)
   """
   @spec extract_block_options(Keyword.t() | list(), term()) :: {term(), Keyword.t()}
   def extract_block_options(opts, block \\ nil)
@@ -259,7 +259,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   def field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
     do: :many_to_one_association
 
-  def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embed_one
+  def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
 
   @doc """
   Maps an Elixir type to an HTML input type.
@@ -300,7 +300,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   def field_html_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
     do: :many_to_one_association
 
-  def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embed_one
+  def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
 
   def field_html_type(_type, _association), do: :unimplemented
 
