@@ -103,6 +103,25 @@ defmodule Aurora.Uix.Test.Helper do
     Repo.delete_all(ProductLocation)
   end
 
+  @doc """
+  Converts to boolean
+  """
+  @spec to_boolean(term()) :: boolean()
+  def to_boolean(nil), do: false
+
+  def to_boolean(value) when is_binary(value) do
+    value
+    |> String.downcase()
+    |> String.trim()
+    |> Kernel.==("true")
+  end
+
+  def to_boolean(value) when is_number(value), do: value != 0
+
+  def to_boolean(_value), do: false
+
+  ## PRIVATE ##
+
   @spec create_sample_product_transactions({binary(), Ecto.Schema.t()}, integer()) ::
           {binary(), Ecto.Schema.t()}
   defp create_sample_product_transactions(product, transactions_count) do
