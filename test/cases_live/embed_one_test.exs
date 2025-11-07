@@ -9,12 +9,12 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
   auix_resource_metadata(:user, context: Accounts, schema: User)
 
   auix_create_ui link_prefix: "embed-one-" do
-    index_columns(:user, [:full_name, :email, :profile])
+    index_columns(:user, [:given_name, :family_name, :profile])
 
     edit_layout :user,
       new_title: "Embed one" do
       stacked do
-        inline([:full_name, :email])
+        inline([:given_name, :family_name])
         inline([:avatar_url])
         inline([:profile])
       end
@@ -28,7 +28,7 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
 
     {:ok, view, html} = live(conn, "/embed-one-users")
     refute html =~ "Profile"
-    assert html =~ "Full name"
+    assert html =~ "Given name"
 
     assert(
       view
@@ -51,8 +51,8 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
       "#auix-user-form",
       %{
         "user" => %{
-          "full_name" => "John Test",
-          "email" => "thetest@test.com",
+          "given_name" => "John Test",
+          "family_name" => "thetest@test.com",
           "avatar_url" => "https://noexist-avatar.svg",
           "profile" => %{
             "online" => true,
@@ -68,8 +68,8 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
 
     users
     |> List.first()
-    |> tap(&assert(&1.full_name == "John Test"))
-    |> tap(&assert(&1.email == "thetest@test.com"))
+    |> tap(&assert(&1.given_name == "John Test"))
+    |> tap(&assert(&1.family_name == "thetest@test.com"))
     |> tap(&assert(&1.avatar_url == "https://noexist-avatar.svg"))
     |> tap(&assert(&1.profile.online == true))
     |> tap(&assert(&1.profile.dark_mode == false))
@@ -86,8 +86,8 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
     Enum.each(
       1..count,
       &Accounts.create_user(%{
-        full_name: "John #{&1}",
-        email: "john#{&1}@doe.com",
+        given_name: "John #{&1}",
+        family_name: "john#{&1}@doe.com",
         avatar_url: "https://noexist-avatar-#{&1}.svg",
         profile: %{online: false, dark_mode: false, visibility: :public}
       })

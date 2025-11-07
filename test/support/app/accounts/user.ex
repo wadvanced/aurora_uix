@@ -13,8 +13,8 @@ defmodule Aurora.Uix.Test.Accounts.User do
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          full_name: binary() | nil,
-          email: binary() | nil,
+          given_name: binary() | nil,
+          family_name: binary() | nil,
           avatar_url: binary() | nil,
           confirmed_at: NaiveDateTime.t() | nil,
           profile: Profile.t() | nil,
@@ -25,15 +25,15 @@ defmodule Aurora.Uix.Test.Accounts.User do
   Defines the `users` table schema.
 
   Fields:
-    - full_name: User's full name.
-    - email: User's email address.
+    - given_name: User's given_name.
+    - family_name: User's last name.
     - avatar_url: URL to user's avatar image.
     - confirmed_at: Timestamp when the user was confirmed.
     - profile: Embedded profile with online status, dark mode, and visibility.
   """
   schema "users" do
-    field(:full_name, :string)
-    field(:email, :string)
+    field(:given_name, :string)
+    field(:family_name, :string)
     field(:avatar_url, :string)
     field(:confirmed_at, :naive_datetime)
 
@@ -49,12 +49,13 @@ defmodule Aurora.Uix.Test.Accounts.User do
   @doc """
   Builds a changeset for a user.
 
-  Casts `:full_name` and `:email` fields and requires an embedded profile.
+  Casts fields and requires an embedded profile.
   """
   @spec changeset(User.t(), map()) :: Ecto.Changeset.t()
   def changeset(%User{} = user, attrs \\ %{}) do
     user
-    |> cast(attrs, [:full_name, :email, :avatar_url, :confirmed_at])
+    |> cast(attrs, [:given_name, :family_name, :avatar_url, :confirmed_at])
+    |> validate_required([:given_name])
     |> cast_embed(:profile, required: true, with: &profile_changeset/2)
   end
 
