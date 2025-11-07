@@ -193,6 +193,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "manual-trees-"
         )
 
+        RoutesHelper.register_product_crud(
+          SelectedTest,
+          "selected-"
+        )
+
         RoutesHelper.register_user_crud(
           EmbedOneTest,
           "embed-one-"

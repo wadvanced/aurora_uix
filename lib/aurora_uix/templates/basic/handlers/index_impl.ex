@@ -391,6 +391,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, cancel_async(socket, :auix_selection_toggle_all, :cancel)}
   end
 
+  def handle_event("selected-delete_all", _params, socket) do
+    {:noreply, assign_async_delete_all(socket)}
+  end
+
   def handle_event(
         "pagination_to_page",
         %{"page" => page},
@@ -506,6 +510,27 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply,
      socket
      |> assign_auix(:selection, struct(selection, %{toggle_all_mode: :none}))
+     |> assign_selected_states()
+     |> refresh_current_page()}
+  end
+
+  def handle_async(
+        :auix_selection_delete_all,
+        result,
+        %{assigns: %{auix: %{selection: current_selection}}} = socket
+      ) do
+    new_selection =
+      case result do
+        {:ok, _} ->
+          Selection.new()
+
+        _error ->
+          current_selection
+      end
+
+    {:noreply,
+     socket
+     |> assign_auix(:selection, new_selection)
      |> assign_selected_states()
      |> refresh_current_page()}
   end
@@ -829,6 +854,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> start_async(:auix_selection_toggle_all, function)
     |> assign_auix(:selection, struct(selection, %{toggle_all_mode: toggle_all_mode}))
     |> refresh_current_page()
+  end
+
+  @spec assign_async_delete_all(Socket.t()) :: Socket.t()
+  defp assign_async_delete_all(%{assigns: %{auix: %{selection: selection} = auix}} = socket) do
+    function =
+      fn ->
+        selection.selected
+        |> Enum.map(&auix.get_function.(&1, []))
+        |> Enum.each(&auix.delete_function.(&1))
+      end
+
+    start_async(socket, :auix_selection_delete_all, function)
   end
 
   @spec assign_filters(Socket.t()) :: Socket.t()
