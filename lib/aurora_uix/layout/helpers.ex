@@ -261,6 +261,8 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
 
+  def field_type(_type, %Embedded{cardinality: :many} = _embed), do: :embeds_many
+
   @doc """
   Maps an Elixir type to an HTML input type.
 
@@ -301,6 +303,8 @@ defmodule Aurora.Uix.Layout.Helpers do
     do: :many_to_one_association
 
   def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
+
+  def field_html_type(nil, %Embedded{cardinality: :many} = _embed), do: :embeds_many
 
   def field_html_type(_type, _association), do: :unimplemented
 
