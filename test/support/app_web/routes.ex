@@ -200,7 +200,7 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_user_crud(
           EmbedOneTest,
-          "embed-one-"
+          "embeds-one-"
         )
       end
 

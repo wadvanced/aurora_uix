@@ -43,6 +43,11 @@ defmodule Aurora.Uix.Test.Accounts.User do
       field(:visibility, Ecto.Enum, values: [:public, :private, :friends_only])
     end
 
+    embeds_many :emails, Email do
+      field(:email, :string)
+      field(:name, :string)
+    end
+
     timestamps()
   end
 

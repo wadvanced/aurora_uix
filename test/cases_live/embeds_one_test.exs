@@ -1,4 +1,4 @@
-defmodule Aurora.UixWeb.Test.EmbedOneTest do
+defmodule Aurora.UixWeb.Test.EmbedsOneTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
@@ -8,11 +8,11 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
 
   auix_resource_metadata(:user, context: Accounts, schema: User)
 
-  auix_create_ui link_prefix: "embed-one-" do
+  auix_create_ui link_prefix: "embeds-one-" do
     index_columns(:user, [:given_name, :family_name, :profile])
 
     edit_layout :user,
-      new_title: "Embed one" do
+      new_title: "Embeds one" do
       stacked do
         inline([:given_name, :family_name])
         inline([:avatar_url])
@@ -26,7 +26,7 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
     delete_all_users()
     create_users(test_count)
 
-    {:ok, view, html} = live(conn, "/embed-one-users")
+    {:ok, view, html} = live(conn, "/embeds-one-users")
     refute html =~ "Profile"
     assert html =~ "Given name"
 
@@ -42,8 +42,8 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
   test "New data", %{conn: conn} do
     delete_all_users()
 
-    {:ok, view, html} = live(conn, "/embed-one-users/new")
-    assert html =~ "Embed one"
+    {:ok, view, html} = live(conn, "/embeds-one-users/new")
+    assert html =~ "Embeds one"
     assert html =~ "Creates a new <strong>User</strong> record in your database"
 
     view
