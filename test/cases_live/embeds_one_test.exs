@@ -2,7 +2,6 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Repo
   alias Aurora.Uix.Test.Accounts
   alias Aurora.Uix.Test.Accounts.User
 
@@ -23,8 +22,8 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
 
   test "Show data", %{conn: conn} do
     test_count = 5
-    delete_all_users()
-    create_users(test_count)
+    delete_all_accounts_data()
+    create_sample_users(test_count)
 
     {:ok, view, html} = live(conn, "/embeds-one-users")
     refute html =~ "Profile"
@@ -40,7 +39,7 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
   end
 
   test "New data", %{conn: conn} do
-    delete_all_users()
+    delete_all_accounts_data()
 
     {:ok, view, html} = live(conn, "/embeds-one-users/new")
     assert html =~ "Embeds one"
@@ -74,23 +73,5 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
     |> tap(&assert(&1.profile.online == true))
     |> tap(&assert(&1.profile.dark_mode == false))
     |> tap(&assert(&1.profile.visibility == :friends_only))
-  end
-
-  @spec delete_all_users() :: {integer(), nil | [term()]}
-  defp delete_all_users do
-    Repo.delete_all(User)
-  end
-
-  @spec create_users(non_neg_integer()) :: :ok
-  defp create_users(count) do
-    Enum.each(
-      1..count,
-      &Accounts.create_user(%{
-        given_name: "John #{&1}",
-        family_name: "john#{&1}@doe.com",
-        avatar_url: "https://noexist-avatar-#{&1}.svg",
-        profile: %{online: false, dark_mode: false, visibility: :public}
-      })
-    )
   end
 end

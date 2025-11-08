@@ -63,7 +63,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/create-ui-layout-products/new")
 
     assert html =~ "Please fill <strong"
@@ -92,7 +92,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test index layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(5, :test)
 
     {:ok, _view, html} = live(conn, "/create-ui-layout-products")
@@ -113,7 +113,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test main links", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(5, :test)
 
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
@@ -150,7 +150,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test main show link", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(5, :test)
 
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
@@ -171,7 +171,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test show link - edit link", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(5, :test)
 
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
@@ -188,7 +188,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test main edit link", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(5, :test)
 
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
@@ -215,7 +215,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   end
 
   test "Test main delete link", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     # Can only test up to the data-confirm existance
     create_sample_products(5, :test)
 

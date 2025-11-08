@@ -199,8 +199,13 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_user_crud(
-          EmbedOneTest,
+          EmbedsOneTest,
           "embeds-one-"
+        )
+
+        RoutesHelper.register_user_crud(
+          EmbedsManyTest,
+          "embeds-many-"
         )
       end
 

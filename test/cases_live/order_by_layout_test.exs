@@ -65,7 +65,7 @@ defmodule Aurora.UixWeb.Test.OrderByLayoutTest do
   end
 
   test "Test UI default order", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_shuffled_products(@shuffled_references)
 
     {:ok, _view, html} = live(conn, "/order-by-layout-products")

@@ -14,7 +14,7 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
   end
 
   test "Test select / deselect all", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(35, :test)
 
     {:ok, view, _html} = live(conn, "/selected-products")
@@ -45,7 +45,7 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
   end
 
   test "Test delete_all selected", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(35, :test)
 
     {:ok, view, _html} = live(conn, "/selected-products")

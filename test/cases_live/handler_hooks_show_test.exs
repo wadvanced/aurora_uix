@@ -20,7 +20,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   end
 
   test "Test one-to-many relationship UI workflow", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     # Create sample data with 1 product
     product_id =
       3

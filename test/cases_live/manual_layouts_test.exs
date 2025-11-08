@@ -51,7 +51,7 @@ defmodule Aurora.UixWeb.Test.ManualLayoutsTest do
   end
 
   test "Test validate the fields displayed in NEW", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/manual-layouts-products/new")
 
     assert html =~ "New Product"
@@ -68,7 +68,7 @@ defmodule Aurora.UixWeb.Test.ManualLayoutsTest do
   end
 
   test "Test validate the fields displayed in SHOW", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
 
     product_id =
       3
@@ -92,7 +92,7 @@ defmodule Aurora.UixWeb.Test.ManualLayoutsTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/manual-layouts-products/new")
 
     assert html =~ "New Product"
