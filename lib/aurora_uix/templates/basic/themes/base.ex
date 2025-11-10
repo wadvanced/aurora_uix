@@ -267,7 +267,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-simple-form-content {
         /* mt-10 space-y-8 bg-white */
-        margin-top: 2.0rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
+        margin-top: 1rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
         background-color: var(--auix-color-bg-default); /* bg-white */
       }
     """
@@ -633,7 +633,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header) do
     """
       .auix-header{
-        content-visibility: visible;
+        margin-bottom: 0.5rem;
       }
     """
   end
@@ -645,8 +645,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: flex;                 /* flex */
         align-items: center;           /* items-center */
         justify-content: space-between;  /* justify-between */
+        margin-bottom: 0.5rem;
         gap: 1.5rem;                   /* gap-6 (6 * 0.25rem = 1.5rem) */
         width: 100%;
+      }
+    """
+  end
+
+  def rule(:auix_header_title_container) do
+    """
+      .auix-header-title-container {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
       }
     """
   end
@@ -657,7 +668,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* text-lg font-semibold leading-8 text-zinc-800 */
         font-size: 1.125rem;                      /* text-lg */
         font-weight: 600;                         /* font-semibold */
-        line-height: 2rem;                        /* leading-8 (8 * 0.25rem = 2rem) */
+        line-height: 2rem;
+        margin: 0;
         color: var(--auix-color-text-label);      /* text-zinc-800 */
       }
     """
@@ -667,10 +679,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-header-subtitle {
         /* mt-2 text-sm leading-6 text-zinc-600 */
-        margin-top: 0.1rem;
-        margin-bottom: 1.5rem;
+        margin-top: 0rem;
+        margin-bottom: 0rem;
         font-size: 1rem;
-        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        line-height: 1.5rem;                
         color: var(--auix-color-text-secondary);   /* text-zinc-600 */
       }
     """
