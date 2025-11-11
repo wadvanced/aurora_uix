@@ -2,7 +2,6 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Repo
   alias Aurora.Uix.Test.Accounts
   alias Aurora.Uix.Test.Accounts.User
 
@@ -42,7 +41,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   test "New data", %{conn: conn} do
     delete_all_accounts_data()
 
-    {:ok, view, html} = live(conn, "/embeds-many-users/new")
+    {:ok, _view, html} = live(conn, "/embeds-many-users/new")
     assert html =~ "Embeds many"
     assert html =~ "Creates a new <strong>User</strong> record in your database"
   end
