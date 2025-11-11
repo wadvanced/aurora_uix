@@ -224,6 +224,42 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     @theme_module
   end
 
+  @doc """
+  Extracts the rule contents and replace and create a new rule using the target_name.
+
+  ## Parameters
+  - `rule_source` (`atom()`) - rule name to import from.
+  - `target_name` (`binary()` | `atom()`) - rule to create.
+
+  ## Returns
+  - `binary()` - The new css rule.
+
+  """
+  @spec import_rule(atom(), binary() | atom()) :: Macro.t()
+  defmacro import_rule(rule_source, target_name) do
+    parsed_rule_source =
+      rule_source
+      |> to_string()
+      |> String.replace("_", "-")
+
+    parsed_target_name =
+      target_name
+      |> to_string()
+      |> String.replace("_", "-")
+
+    quote do
+      unquote(rule_source)
+      |> rule()
+      |> then(
+        &Regex.replace(
+          ~r"\.#{unquote(parsed_rule_source)}\b",
+          &1,
+          ".#{unquote(parsed_target_name)}"
+        )
+      )
+    end
+  end
+
   ## PRIVATE
 
   # Generates the `<style>` tag with the CSS rules.

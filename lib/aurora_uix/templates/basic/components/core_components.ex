@@ -443,8 +443,6 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   @spec header(map) :: Rendered.t()
   def header(assigns) do
-    IO.inspect(assigns.subtitle, label: "*** assigns.subtitle in header *****")
-
     ~H"""
     <header class={[(if @actions == [], do: "auix-header", else: "auix-header--top-actions"), @class]}>
       <div class="auix-header-title-container">
