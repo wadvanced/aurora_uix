@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Test.Helper do
   Deletes all inventory data. 
   """
   @spec delete_all_inventory_data() :: :ok
-  def delete_all_inventory_data() do
+  def delete_all_inventory_data do
     Repo.delete_all(ProductTransaction)
     Repo.delete_all(Product)
     Repo.delete_all(ProductLocation)
@@ -128,7 +128,7 @@ defmodule Aurora.Uix.Test.Helper do
   Deletes all account data.
   """
   @spec delete_all_accounts_data() :: :ok
-  def delete_all_accounts_data() do
+  def delete_all_accounts_data do
     Repo.delete_all(User)
   end
 

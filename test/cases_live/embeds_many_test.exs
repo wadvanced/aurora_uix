@@ -16,15 +16,15 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
       stacked do
         inline([:given_name, :family_name])
         inline([:avatar_url])
-        inline([:emails])
+        stacked([:profile, :emails])
       end
     end
   end
 
   test "Show data", %{conn: conn} do
     test_count = 5
-    delete_all_users()
-    create_users(test_count)
+    delete_all_accounts_data()
+    create_sample_users(test_count)
 
     {:ok, view, html} = live(conn, "/embeds-many-users")
     refute html =~ "Emails"
@@ -40,28 +40,10 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   end
 
   test "New data", %{conn: conn} do
-    delete_all_users()
+    delete_all_accounts_data()
 
-    {:ok, view, html} = live(conn, "/embeds-one-users/new")
-    assert html =~ "Embeds one"
+    {:ok, view, html} = live(conn, "/embeds-many-users/new")
+    assert html =~ "Embeds many"
     assert html =~ "Creates a new <strong>User</strong> record in your database"
-  end
-
-  @spec delete_all_users() :: {integer(), nil | [term()]}
-  defp delete_all_users do
-    Repo.delete_all(User)
-  end
-
-  @spec create_users(non_neg_integer()) :: :ok
-  defp create_users(count) do
-    Enum.each(
-      1..count,
-      &Accounts.create_user(%{
-        given_name: "John #{&1}",
-        family_name: "john#{&1}@doe.com",
-        avatar_url: "https://noexist-avatar-#{&1}.svg",
-        profile: %{online: false, dark_mode: false, visibility: :public}
-      })
-    )
   end
 end
