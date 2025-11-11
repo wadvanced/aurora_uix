@@ -37,6 +37,17 @@ config :aurora_uix, Aurora.UixWeb.Test.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:aurora_uix, ~w(--sourcemap=inline --watch)]}
   ]
 
+# Watch static and templates for browser reloading.
+config :aurora_uix, Aurora.UixWeb.Test.Endpoint,
+  live_reload: [
+    web_console_logger: true,
+    patterns: [
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/aurora_uix_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+    ]
+  ]
+
 # Enable dev routes for dashboard
 config :aurora_uix, dev_routes: true
 
