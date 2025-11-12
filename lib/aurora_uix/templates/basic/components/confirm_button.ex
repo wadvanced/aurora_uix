@@ -68,6 +68,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
      |> assign(:id, assigns.id)
      |> assign(:value, assigns.value)
      |> assign(:event, assigns.event)
+     |> assign(:type, Map.get(assigns, :type, "button"))
      |> assign(:content, Map.get(assigns, :content))
      |> assign(:confirm_message, Map.get(assigns, :confirm_message))
      |> assign(:accept_message, Map.get(assigns, :accept_message))
@@ -89,7 +90,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
   def render(assigns) do
     ~H"""
       <div id={@id} class="auix-confirm-button--container">
-        <.button type="button" class={@class} phx-click="show-modal" phx-target={@myself}>
+        <.button type={@type} class={@class} phx-click="show-modal" phx-target={@myself}>
           <%= if @content do %>
             {render_slot(@content)}
           <% end %>
