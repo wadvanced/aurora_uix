@@ -306,7 +306,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-button {
         border-radius: 0.5rem;
-        background-color: var(--auix-color-text-primary);
+        background-color: var(--auix-color-bg-default--reverted);
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
         font-weight: 600;
@@ -315,7 +315,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
       .auix-button:hover {
-        background-color: var(--auix-color-text-hover);
+        background-color: var(--auix-color-bg-hover--reverted);
       }
 
       .auix-button:active {
@@ -331,18 +331,21 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_button__alt) do
     """
       .auix-button--alt {
-        /* !bg-zinc-100 !text-zinc-500 border border-zinc-800 */
-
         /* BACKGROUND */
-        background-color: var(--auix-color-bg-light) !important; /* !bg-zinc-100 */
+        background-color: var(--auix-color-bg-light) !important;
 
         /* TEXT COLOR */
-        color: var(--auix-color-text-tertiary) !important;      /* !text-zinc-500 */
+        color: var(--auix-color-text-tertiary) !important;
 
         /* BORDERS */
         border-width: 1px;                                     /* border */
         border-style: solid;                                   /* Implicit border style */
-        border-color: var(--auix-color-text-label);            /* border-zinc-800 */
+        border-color: var(--auix-color-text-label);         
+      }
+
+      .auix-button--alt:disabled {
+        background-color: var(--auix-color-bg-backdrop) !important;
+        color: var(--auix-color-text-inactive) !important;
       }
     """
   end

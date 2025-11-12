@@ -18,10 +18,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       /* Backgrounds */
       --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
+      --auix-color-bg-default--reverted: #18181B; /* zinc-900 */
       --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
       --auix-color-bg-info: #F0FDF4;  /* emerald-50 (Info Background) */
       --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
       --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
+      --auix-color-bg-hover--reverted: #47474a;   /* zinc-700 */
       --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
       --auix-color-bg-inner-container: rgba(250, 250, 250, 0.8); /* zinc-50 with 80% opacity */
       --auix-color-bg-danger: #FB7185;     /* rose-400 */
