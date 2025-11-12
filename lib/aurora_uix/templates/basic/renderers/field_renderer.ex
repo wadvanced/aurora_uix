@@ -124,7 +124,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          id={"#{@field.html_id}--#{@auix.form[:id].value}--#{@auix.layout_type}"}
           field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
           label={@field.label}

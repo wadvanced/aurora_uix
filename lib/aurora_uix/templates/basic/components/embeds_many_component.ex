@@ -38,9 +38,10 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   use Aurora.Uix.Gettext
   use Phoenix.LiveComponent
 
-  alias Aurora.Uix.Helpers.Common, as: CommonHelper
+  import Aurora.Uix.Templates.Basic.Helpers,
+    only: [assign_auix: 3, assign_auix_new: 3, get_layout: 3, get_resource: 3]
+
   alias Aurora.Uix.Templates.Basic.Actions.EmbedsMany, as: EmbedsManyActions
-  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveView.JS
@@ -54,7 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      |> assign(:auix, assigns.auix)
      |> assign(:field, assigns.field)
      |> assign_new_embeds_many_form()
-     |> BasicHelpers.assign_auix_new(:enable_add_embeds, false)}
+     |> assign_auix_new(:enable_add_embeds, false)}
   end
 
   @doc """
@@ -86,19 +87,15 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
           auix: %{layout_type: :form}
         } = assigns
       ) do
-    layout_tree =
-      BasicHelpers.get_layout(assigns, embed_resource_name, :form)
+    layout_tree = get_layout(assigns, embed_resource_name, :form)
 
-    field =
-      assigns
-      |> BasicHelpers.get_resource(embed_resource_name, [:resource_config, :name])
-      |> CommonHelper.capitalize()
-      |> then(&struct(field, label: &1))
+    fields_to_reject = get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
 
     assigns =
       assigns
-      |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
-      |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
+      |> assign_auix(:layout_tree, layout_tree)
+      |> assign_auix(:resource_name, embed_resource_name)
+      |> assign_auix(:fields_to_reject, fields_to_reject)
       |> assign(:field, field)
       |> EmbedsManyActions.set_actions()
 
@@ -114,44 +111,48 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
             <div class="auix-embeds-many-existing-container">
               <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
                 <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
-                  {action.(%{auix: @auix, field: @field, entry_id: embed_form[:id].value, myself: @myself})}
+                  {action.(%{auix: @auix, field: @field, entry_id: embed_form[:id].value, target: @myself})}
                 <% end %>
               </div>
             </div>
           </div>
         </.inputs_for>
-        <%= if @auix.enable_add_embeds do %>
-          <.modal id={"auix-embeds-many-add-#{@field.html_id}"} show={@auix.enable_add_embeds} on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
-            <.header>
-              {gettext("Add new entry")}
-            </.header>
-            <.simple_form
-              for={@auix.form}
-              id={"auix-#{@field.html_id}-form"}
-              phx-target={@myself}
-              phx-change="validate"
-              phx-submit="add-embed-many"
-            >
-              <Renderer.render_inner_elements auix={Map.put(@auix, :form, @auix.new_form)} />
-              
-              <div class="auix-embeds-many-new-entry-container">
-                <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
-                  <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
-                    {action.(%{auix: @auix, field: @field, myself: @myself})}
-                  <% end %>
+        <div :if={@auix.enable_add_embeds} >
+          <.portal id={"auix-embeds-many-add-#{@field.html_id}-wrapper"} target="#portal-target">
+            <.modal id={"auix-embeds-many-add-#{@field.html_id}"} 
+                      show={@auix.enable_add_embeds}
+                      on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
+              <.header>
+                {gettext("Add new entry")}
+              </.header>
+              <.simple_form
+                for={@auix.new_entry_form}
+                id={"auix-#{@field.html_id}-add-form"}
+                phx-target={@myself}
+                phx-change={JS.push("validate", target: @myself)}
+                phx-submit="add-embeds-many"
+                phx-click={JS.exec("phx-remove-class", to: "#modal")}
+              >
+                <Renderer.render_inner_elements auix={Map.merge(@auix, %{form: @auix.new_entry_form, fields_to_reject: @auix.fields_to_reject})} />
+                
+                <div class="auix-embeds-many-new-entry-container">
+                  <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
+                    <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
+                      {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-#{@field.html_id}-add-form"})}
+                    <% end %>
+                  </div>
                 </div>
-              </div>
-            </.simple_form>
-          </.modal>
-        <% else %>
-          <div class="auix-embeds-many-footer-container">
-            <div class="auix-embeds-many-footer-actions" name="auix-embeds_many-footer_actions">
-              <%= for %{function_component: action} <- @auix.embeds_many_footer_actions do %>
-                {action.(%{auix: @auix, field: @field, myself: @myself})}
-              <% end %>
-            </div>
+              </.simple_form>
+            </.modal>
+          </.portal>      
+        </div>        
+        <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-footer-container">
+          <div class="auix-embeds-many-footer-actions" name="auix-embeds_many-footer_actions">
+            <%= for %{function_component: action} <- @auix.embeds_many_footer_actions do %>
+              {action.(%{auix: @auix, field: @field, target: @myself})}
+            <% end %>
           </div>
-        <% end %>
+        </div>
       </div>
     """
   end
@@ -176,12 +177,55 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   @impl Phoenix.LiveComponent
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("validate", _params, socket) do
-    {:noreply, socket}
+  def handle_event("validate", params, %{assigns: %{auix: auix, field: field}} = socket) do
+    params = cast_params(params)
+
+    errors =
+      auix.entity
+      |> auix.change_function.(%{field.key => [params]})
+      |> get_in([Access.key(:changes), field.key])
+      |> Enum.filter(&(&1.action == :insert))
+      |> List.first(%{})
+      |> Map.get(:errors, [])
+
+    new_entry_form =
+      params
+      |> to_form()
+      |> struct(%{errors: errors, action: :validate})
+
+    {:noreply, assign_auix(socket, :new_entry_form, new_entry_form)}
   end
 
-  def handle_event("add-embed-many", _params, socket) do
-    {:noreply, socket}
+  def handle_event(
+        "add-embeds-many",
+        _params,
+        %{assigns: %{auix: %{new_entry_form: %{action: action}}}} = socket
+      )
+      when is_nil(action) do
+    {:no_reply, socket}
+  end
+
+  def handle_event(
+        "add-embeds-many",
+        params,
+        %{assigns: %{auix: %{new_entry_form: %{errors: []}} = auix, field: field}} =
+          socket
+      ) do
+    changes = add_embed_entry_changes(auix.entity, field.key, params)
+
+    form =
+      auix.entity
+      |> auix.change_function.(%{field.key => changes})
+      |> to_form()
+
+    {:noreply,
+     socket
+     |> assign_auix(:form, form)
+     |> assign_auix(:enable_add_embeds, false)}
+  end
+
+  def handle_event("add-embeds-many", _params, socket) do
+    {:noreply, put_flash(socket, :error, gettext("Entry contains errors"))}
   end
 
   def handle_event(
@@ -189,7 +233,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
         _params,
         %{assigns: %{auix: %{enable_add_embeds: enable_add_embeds}}} = socket
       ) do
-    {:noreply, BasicHelpers.assign_auix(socket, :enable_add_embeds, not enable_add_embeds)}
+    {:noreply, assign_auix(socket, :enable_add_embeds, not enable_add_embeds)}
+  end
+
+  def handle_event(_event, _params, socket) do
+    {:noreply, socket}
   end
 
   ## PRIVATE
@@ -205,10 +253,29 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
          %{assigns: %{field: %{data: %{resource: embed_resource_name}}} = assigns} = socket
        ) do
     assigns
-    |> BasicHelpers.get_resource(embed_resource_name, [:resource_config, :fields])
+    |> get_resource(embed_resource_name, [:resource_config, :fields])
     |> Map.new(&map_embed_field/1)
     |> to_form()
-    |> then(&BasicHelpers.assign_auix(socket, :new_form, &1))
+    |> then(&assign_auix(socket, :new_entry_form, &1))
+  end
+
+  @spec add_embed_entry_changes(map(), atom(), map()) :: list()
+  defp add_embed_entry_changes(entity, field_key, params) do
+    params = cast_params(params)
+
+    entity
+    |> Map.get(field_key, [])
+    |> Enum.map(&Map.from_struct/1)
+    |> Enum.reverse()
+    |> then(&[params | &1])
+    |> Enum.reverse()
+  end
+
+  @spec cast_params(map()) :: map()
+  defp cast_params(params) do
+    params
+    |> Enum.reject(fn {key, _value} -> String.starts_with?(key, "_") end)
+    |> Map.new()
   end
 
   # Maps a field definition to a tuple of field name and default value.

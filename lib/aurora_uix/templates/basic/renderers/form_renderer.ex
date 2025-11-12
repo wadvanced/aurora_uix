@@ -63,6 +63,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
           </div>
         </:actions>
       </.simple_form>
+
+      <div id="portal-target"> </div>
     </div>
     """
   end

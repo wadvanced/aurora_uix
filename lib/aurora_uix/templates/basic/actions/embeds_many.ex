@@ -70,7 +70,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @spec enable_add_entry(map()) :: Rendered.t()
   def enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
-      <.button type="button" phx-click="toggle-add-embeds" phx-target={@myself}>
+      <.button type="button" phx-click="toggle-add-embeds" phx-target={@target}>
         <.icon name="hero-plus" />
         <span>{gettext("Add new entry")}</span>
       </.button>
@@ -90,11 +90,23 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
   """
   @spec add_entry(map()) :: Rendered.t()
-  def add_entry(%{auix: %{layout_type: :form}} = assigns) do
+  def add_entry(%{auix: %{layout_type: :form, new_entry_form: new_entry_form}} = assigns) do
+    disabled =
+      with errors_count when errors_count == 0 <-
+             new_entry_form |> Map.get(:errors, []) |> length(),
+           false <- Map.get(new_entry_form, :action) != nil do
+        false
+      else
+        _ -> true
+      end
+
+    assigns = Map.put(assigns, :disabled, disabled)
+
     ~H"""
-      <.button type="submit" phx-target={@myself}>
+      <.button type="submit" class="auix-button--alt" form={@form_id} phx-target={@target}
+          disabled={@disabled}>
         <.icon name="hero-plus" />
-        <span>{gettext("Add")}</span>
+        <span>{gettext("Add")}</span><br>
       </.button>
     """
   end
@@ -120,7 +132,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
         class="auix-button--danger"
         value={%{entry_id: @entry_id}}
         event="remove-entry"
-        target={@myself}
+        target={@target}
       >
         <:content>
           <.icon name="hero-minus-circle" />
@@ -129,7 +141,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
         <:confirm_message>
           <div class="auix-embeds-many--remove-entry-action">
-            <span>{@entry_id}</span>
+            <span class="auix-header-title">{@entry_id}</span>
             <span>{gettext("Do you want to remove this entry?")}</span>
           </div>
         </:confirm_message>
