@@ -53,7 +53,8 @@ defmodule Aurora.Uix.Helpers.Common do
     |> to_string()
     |> Macro.underscore()
     |> String.replace("__", "_")
-    |> String.split("_")
+    |> String.replace("_", " ")
+    |> String.split(" ")
     |> Enum.map_join(" ", &String.capitalize/1)
   end
 end
