@@ -2343,6 +2343,33 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_embeds_many_entry__badge) do
+    """
+      .auix-embeds-many-entry--badge {
+        display: flex;
+        flex-direction: row-reverse;
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_entry__badge_text) do
+    """
+      .auix-embeds-many-entry--badge-text {
+        display: inline-block;
+        padding: 4px 8px;
+        background-color: var(--auix-color-bg-default--reverted);
+        color: var(--auix-color-text-on-accent);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE
