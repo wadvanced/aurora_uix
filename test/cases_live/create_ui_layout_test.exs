@@ -108,7 +108,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
              "Reference",
              "Name",
              "Description",
-             "Quantity at hand"
+             "Quantity At Hand"
            ]
   end
 

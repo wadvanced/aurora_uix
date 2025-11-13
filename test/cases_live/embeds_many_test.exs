@@ -27,7 +27,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
 
     {:ok, view, html} = live(conn, "/embeds-many-users")
     refute html =~ "Emails"
-    assert html =~ "Given name"
+    assert html =~ "Given Name"
 
     assert(
       view

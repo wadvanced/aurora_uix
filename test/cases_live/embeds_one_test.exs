@@ -27,7 +27,7 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
 
     {:ok, view, html} = live(conn, "/embeds-one-users")
     refute html =~ "Profile"
-    assert html =~ "Given name"
+    assert html =~ "Given Name"
 
     assert(
       view
