@@ -91,14 +91,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   """
   @spec add_entry(map()) :: Rendered.t()
   def add_entry(%{auix: %{layout_type: :form, new_entry_form: new_entry_form}} = assigns) do
-    disabled =
-      with errors_count when errors_count == 0 <-
-             new_entry_form |> Map.get(:errors, []) |> length(),
-           false <- Map.get(new_entry_form, :action) != nil do
-        false
-      else
-        _ -> true
-      end
+    disabled = Map.get(new_entry_form, :errors) != [] or Map.get(new_entry_form, :action) == nil
 
     assigns = Map.put(assigns, :disabled, disabled)
 
@@ -106,7 +99,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
       <.button type="submit" class="auix-button--alt" form={@form_id} phx-target={@target}
           disabled={@disabled}>
         <.icon name="hero-plus" />
-        <span>{gettext("Add")}</span><br>
+        <span>{gettext("Add")}</span>
       </.button>
     """
   end
@@ -124,13 +117,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
   """
   @spec remove_entry(map()) :: Rendered.t()
+
   def remove_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.live_component 
-        id={"#{@entry_id}-remove-button"}
+        id={"auix-remove-button-#{@entry_index}"}
         module={ConfirmButton}
         class="auix-button--danger"
-        value={%{entry_id: @entry_id}}
+        value={%{entry_index: @entry_index}}
         event="remove-entry"
         target={@target}
       >
@@ -141,7 +135,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
         <:confirm_message>
           <div class="auix-embeds-many--remove-entry-action">
-            <span class="auix-header-title">{@entry_id}</span>
+            <span class="auix-header-title">{@entry_index + 1}</span>
             <span>{gettext("Do you want to remove this entry?")}</span>
           </div>
         </:confirm_message>
