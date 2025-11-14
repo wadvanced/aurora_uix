@@ -2274,6 +2274,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-embeds-many-container {
         #{common_container_css()}
+
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_header_container) do
+    """
+      .auix-embeds-many-header-container {
+
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_header_actions) do
+    """
+      .auix-embeds-many-header-actions {
+        display: flex;
+        gap: 0.5rem;
       }
     """
   end
