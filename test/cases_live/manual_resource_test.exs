@@ -252,7 +252,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
   end
 
   test "Test ensure all fields are displayed in NEW", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/manual-resource-products/new")
 
     assert html =~ "New Product"
@@ -269,7 +269,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
   end
 
   test "Test ensure all fields are displayed in SHOW", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
 
     product_id =
       3
@@ -293,7 +293,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/manual-resource-products/new")
 
     assert html =~ "New Product"

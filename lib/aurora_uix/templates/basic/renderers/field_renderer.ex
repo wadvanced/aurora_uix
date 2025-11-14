@@ -14,7 +14,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   use Aurora.Uix.CoreComponentsImporter
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Templates.Basic.Renderers.EmbedOneRenderer
+  alias Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer
+  alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
@@ -88,7 +89,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     do: ManyToOne.render(assigns)
 
   defp default_render(%{field: %{type: :embeds_one}} = assigns),
-    do: EmbedOneRenderer.render(assigns)
+    do: EmbedsOneRenderer.render(assigns)
+
+  defp default_render(%{field: %{type: :embeds_many}} = assigns),
+    do: EmbedsManyRenderer.render(assigns)
 
   # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do
@@ -120,7 +124,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          id={"#{@field.html_id}--#{@auix.form[:id].value}--#{@auix.layout_type}"}
           field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
           label={@field.label}

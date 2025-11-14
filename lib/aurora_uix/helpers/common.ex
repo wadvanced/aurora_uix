@@ -35,4 +35,26 @@ defmodule Aurora.Uix.Helpers.Common do
   def safe_atom(name) when is_binary(name), do: String.to_atom(name)
   def safe_atom(name) when is_atom(name), do: name
   def safe_atom(_name), do: nil
+
+  @doc """
+  Capitalizes a given string by converting underscores to spaces and capitalizing each word.
+
+  ## Parameters
+  - `string` (`binary()` | `nil`) - The string to capitalize.
+
+  ## Returns
+  `binary()` - The capitalized string.
+  """
+  @spec capitalize(binary() | nil) :: binary()
+  def capitalize(nil), do: ""
+
+  def capitalize(string) do
+    string
+    |> to_string()
+    |> Macro.underscore()
+    |> String.replace("__", "_")
+    |> String.replace("_", " ")
+    |> String.split(" ")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
 end

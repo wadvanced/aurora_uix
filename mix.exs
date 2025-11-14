@@ -156,12 +156,14 @@ defmodule Aurora.Uix.MixProject do
   defp aliases do
     [
       "assets.build": [
+        "compile",
         "phx.digest.clean --all",
         "auix.icons",
         "esbuild aurora_uix",
         "phx.digest"
       ],
       "assets.deploy": [
+        "compile",
         "phx.digest.clean --all",
         "auix.icons",
         "esbuild aurora_uix",

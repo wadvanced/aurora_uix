@@ -105,7 +105,23 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   @spec render_inner_elements(map()) :: Phoenix.LiveView.Rendered.t()
   def render_inner_elements(assigns) do
     ~H"""
-    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix.entity} :for={inner_path <- @auix.layout_tree.inner_elements} />
+    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix.entity} :for={inner_path <- inner_path(@auix)} />
     """
+  end
+
+  ## PRIVATE ##
+  @spec inner_path(map()) :: list()
+  defp inner_path(%{
+         layout_tree: %{inner_elements: inner_elements},
+         fields_to_reject: fields_to_reject
+       }) do
+    Enum.reject(inner_elements, fn
+      %{tag: :field, name: name} -> name in fields_to_reject
+      _other -> false
+    end)
+  end
+
+  defp inner_path(%{layout_tree: %{inner_elements: inner_elements}}) do
+    inner_elements
   end
 end

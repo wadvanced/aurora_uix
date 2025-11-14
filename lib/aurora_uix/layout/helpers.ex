@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Helpers.Common, as: CommonHelpers
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
@@ -176,7 +177,7 @@ defmodule Aurora.Uix.Layout.Helpers do
     attrs =
       %{
         key: field_key,
-        label: field_label(field_key),
+        label: field_label(field_key, resource_name, association_or_embed),
         placeholder: field_placeholder(field_key, type),
         type: field_type(type, association_or_embed),
         html_type: field_html_type(type, association_or_embed),
@@ -202,15 +203,23 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   ## Parameters
   - `name` (`atom()` | `nil`) - The field name to format.
+  - `association_or_embed` (`map()` | `nil`) - The optional association.
 
   ## Returns
   `binary()` - The formatted display label.
   """
-  @spec field_label(atom() | nil) :: binary()
-  def field_label(nil), do: ""
+  @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
 
-  def field_label(name),
-    do: name |> to_string() |> String.replace("_", " ") |> String.capitalize()
+  def field_label(name, resource_name \\ nil, association_or_embed \\ nil)
+
+  def field_label(nil, _resource_name, _association_or_embed), do: ""
+
+  def field_label(name, resource_name, %Embedded{cardinality: :many}) do
+    CommonHelpers.capitalize("#{resource_name} #{name}")
+  end
+
+  def field_label(name, _resource_name, _association_or_embed),
+    do: CommonHelpers.capitalize(name)
 
   @doc """
   Determines the default placeholder text for a field based on its type.
@@ -233,7 +242,7 @@ defmodule Aurora.Uix.Layout.Helpers do
       do: "yyyy/MM/dd HH:mm:ss"
 
   def field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
-  def field_placeholder(name, _type), do: name |> to_string() |> String.capitalize()
+  def field_placeholder(name, _type), do: CommonHelpers.capitalize(name)
 
   @doc """
   Maps an Elixir type to a field type, handling associations.
@@ -260,6 +269,8 @@ defmodule Aurora.Uix.Layout.Helpers do
     do: :many_to_one_association
 
   def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
+
+  def field_type(_type, %Embedded{cardinality: :many} = _embed), do: :embeds_many
 
   @doc """
   Maps an Elixir type to an HTML input type.
@@ -301,6 +312,8 @@ defmodule Aurora.Uix.Layout.Helpers do
     do: :many_to_one_association
 
   def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
+
+  def field_html_type(nil, %Embedded{cardinality: :many} = _embed), do: :embeds_many
 
   def field_html_type(_type, _association), do: :unimplemented
 

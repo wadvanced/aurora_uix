@@ -18,13 +18,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       /* Backgrounds */
       --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
+      --auix-color-bg-default--reverted: #18181B; /* zinc-900 */
       --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
       --auix-color-bg-info: #F0FDF4;  /* emerald-50 (Info Background) */
       --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
       --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
+      --auix-color-bg-hover--reverted: #47474a;   /* zinc-700 */
       --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
+      --auix-color-bg-inner-container: rgba(250, 250, 250, 0.8); /* zinc-50 with 80% opacity */
+      --auix-color-bg-danger: #FB7185;     /* rose-400 */
+      --auix-color-bg-danger-hover: #E11D48; /* rose-600 */
 
-      /* Font */
+    /* Font */
       --auix-font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
       --auix-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
       --auix-default-font-family: var(--auix-font-sans);
@@ -38,6 +43,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-text-hover: #47474a;   /* zinc-700 */
       --auix-color-text-on-accent: #FFFFFF; /* white text on dark/accent background */
       --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
+
 
       /* Status Colors */
       --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */

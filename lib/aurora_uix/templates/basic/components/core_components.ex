@@ -445,13 +445,15 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def header(assigns) do
     ~H"""
     <header class={[(if @actions == [], do: "auix-header", else: "auix-header--top-actions"), @class]}>
-      <div>
+      <div class="auix-header-title-container">
         <h1 class="auix-header-title">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="auix-header-subtitle">
-          {render_slot(@subtitle)}
-        </p>
+        <%= if @subtitle != [] do %>
+          <p class="auix-header-subtitle">
+            {render_slot(@subtitle)}
+          </p>
+        <% end %>
       </div>
       <div class="auix-header--bottom-actions">{render_slot(@actions)}</div>
     </header>

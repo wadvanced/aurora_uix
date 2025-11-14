@@ -523,11 +523,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     - map() - The value for the specified key in the resource configuration, 
     or an empty map if not found    
   """
-  @spec get_resource(map(), atom(), atom()) :: map()
-  def get_resource(assigns_or_auix, resource_name, key) do
+  @spec get_resource(map(), atom(), atom() | list()) :: term()
+  def get_resource(assigns_or_auix, resource_name, key) when is_atom(key) do
+    get_resource(assigns_or_auix, resource_name, [key])
+  end
+
+  def get_resource(assigns_or_auix, resource_name, keys) do
     assigns_or_auix
     |> get_configuration(resource_name)
-    |> Map.get(key, %{})
+    |> get_in(keys)
+    |> Kernel.||(%{})
   end
 
   @doc """

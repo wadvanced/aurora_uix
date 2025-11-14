@@ -12,6 +12,8 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Test.Inventory.ProductLocation
   alias Aurora.Uix.Test.Inventory.ProductTransaction
 
+  alias Aurora.Uix.Test.Accounts.User
+
   require Logger
 
   @doc """
@@ -94,13 +96,49 @@ defmodule Aurora.Uix.Test.Helper do
   end
 
   @doc """
-  Deletes all the products
+  Creates sample products.
   """
-  @spec delete_all_sample_data() :: :ok
-  def delete_all_sample_data do
+  @spec create_sample_users(non_neg_integer(), map()) :: :ok
+  def create_sample_users(count, attrs \\ %{}) do
+    Enum.map(
+      1..count,
+      &(%User{
+          given_name: "John #{&1}",
+          family_name: "john#{&1}@doe.com",
+          avatar_url: "https://noexist-avatar-#{&1}.svg",
+          profile: %{online: false, dark_mode: false, visibility: :public}
+        }
+        |> struct(attrs)
+        |> Repo.insert()
+        |> elem(1))
+    )
+  end
+
+  @doc """
+  Deletes all inventory data. 
+  """
+  @spec delete_all_inventory_data() :: :ok
+  def delete_all_inventory_data do
     Repo.delete_all(ProductTransaction)
     Repo.delete_all(Product)
     Repo.delete_all(ProductLocation)
+  end
+
+  @doc """
+  Deletes all account data.
+  """
+  @spec delete_all_accounts_data() :: :ok
+  def delete_all_accounts_data do
+    Repo.delete_all(User)
+  end
+
+  @doc """
+  Deletes all sample data
+  """
+  @spec delete_all_sample_data() :: :ok
+  def delete_all_sample_data do
+    delete_all_inventory_data()
+    delete_all_accounts_data()
   end
 
   @doc """

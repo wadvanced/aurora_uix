@@ -18,6 +18,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
           avatar_url: binary() | nil,
           confirmed_at: NaiveDateTime.t() | nil,
           profile: Profile.t() | nil,
+          emails: Email.t() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
         }
@@ -43,6 +44,11 @@ defmodule Aurora.Uix.Test.Accounts.User do
       field(:visibility, Ecto.Enum, values: [:public, :private, :friends_only])
     end
 
+    embeds_many :emails, Email, on_replace: :delete do
+      field(:email, :string)
+      field(:name, :string)
+    end
+
     timestamps()
   end
 
@@ -57,6 +63,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
     |> cast(attrs, [:given_name, :family_name, :avatar_url, :confirmed_at])
     |> validate_required([:given_name])
     |> cast_embed(:profile, required: true, with: &profile_changeset/2)
+    |> cast_embed(:emails, with: &email_changeset/2)
   end
 
   @doc """
@@ -71,5 +78,20 @@ defmodule Aurora.Uix.Test.Accounts.User do
     profile
     |> cast(attrs, [:online, :dark_mode, :visibility])
     |> validate_required([:online, :visibility])
+  end
+
+  @doc """
+  Builds a changeset for each embedded email.
+  Casts `:email` and `:name` fields.
+  Requires and validates the email format.
+  """
+  @spec email_changeset(Email.t(), map()) :: Ecto.Changeset.t()
+  def email_changeset(email, attrs \\ %{}) do
+    email
+    |> cast(attrs, [:email, :name])
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must be a valid email address")
+
+    # |> unique_constraint(:email)
   end
 end

@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   alias Phoenix.LiveView.Socket
 
   @actions Action.available_actions(:index)
-  @filters_button_class "auix-button-alt"
+  @filters_button_class "auix-button--alt"
   @selected_button_class "#{@filters_button_class}"
 
   @doc """

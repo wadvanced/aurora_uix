@@ -1,18 +1,17 @@
-defmodule Aurora.UixWeb.Test.EmbedOneTest do
+defmodule Aurora.UixWeb.Test.EmbedsOneTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Repo
   alias Aurora.Uix.Test.Accounts
   alias Aurora.Uix.Test.Accounts.User
 
   auix_resource_metadata(:user, context: Accounts, schema: User)
 
-  auix_create_ui link_prefix: "embed-one-" do
+  auix_create_ui link_prefix: "embeds-one-" do
     index_columns(:user, [:given_name, :family_name, :profile])
 
     edit_layout :user,
-      new_title: "Embed one" do
+      new_title: "Embeds one" do
       stacked do
         inline([:given_name, :family_name])
         inline([:avatar_url])
@@ -23,12 +22,12 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
 
   test "Show data", %{conn: conn} do
     test_count = 5
-    delete_all_users()
-    create_users(test_count)
+    delete_all_accounts_data()
+    create_sample_users(test_count)
 
-    {:ok, view, html} = live(conn, "/embed-one-users")
+    {:ok, view, html} = live(conn, "/embeds-one-users")
     refute html =~ "Profile"
-    assert html =~ "Given name"
+    assert html =~ "Given Name"
 
     assert(
       view
@@ -40,10 +39,10 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
   end
 
   test "New data", %{conn: conn} do
-    delete_all_users()
+    delete_all_accounts_data()
 
-    {:ok, view, html} = live(conn, "/embed-one-users/new")
-    assert html =~ "Embed one"
+    {:ok, view, html} = live(conn, "/embeds-one-users/new")
+    assert html =~ "Embeds one"
     assert html =~ "Creates a new <strong>User</strong> record in your database"
 
     view
@@ -74,23 +73,5 @@ defmodule Aurora.UixWeb.Test.EmbedOneTest do
     |> tap(&assert(&1.profile.online == true))
     |> tap(&assert(&1.profile.dark_mode == false))
     |> tap(&assert(&1.profile.visibility == :friends_only))
-  end
-
-  @spec delete_all_users() :: {integer(), nil | [term()]}
-  defp delete_all_users do
-    Repo.delete_all(User)
-  end
-
-  @spec create_users(non_neg_integer()) :: :ok
-  defp create_users(count) do
-    Enum.each(
-      1..count,
-      &Accounts.create_user(%{
-        given_name: "John #{&1}",
-        family_name: "john#{&1}@doe.com",
-        avatar_url: "https://noexist-avatar-#{&1}.svg",
-        profile: %{online: false, dark_mode: false, visibility: :public}
-      })
-    )
   end
 end

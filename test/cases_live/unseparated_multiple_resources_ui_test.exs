@@ -30,7 +30,7 @@ defmodule Aurora.UixWeb.Test.UnseparatedMultipleResourcesUITest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, html} = live(conn, "/unseparated-multiple-resources-products/new")
 
     assert html =~ "New Product"
@@ -66,7 +66,7 @@ defmodule Aurora.UixWeb.Test.UnseparatedMultipleResourcesUITest do
   end
 
   test "Test CREATE new, context, basic layout for product_transactions", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
 
     {:ok, product} =
       Inventory.create_product(%{

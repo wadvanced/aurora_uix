@@ -21,6 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.ThemeHelper
+
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -62,6 +63,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           <% end %>
         </div>
       </div>
+
+      
       <.auix_simple_form :let={index_layout_form} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
         <.auix_items
           id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
@@ -114,11 +117,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         </.auix_items>
       </.auix_simple_form>
 
+
       <div name="auix-index-footer-actions">
         <%= for %{function_component: action} <- @auix.index_footer_actions do %>
           {action.(%{auix: @auix})}
         <% end %>
       </div>
+
 
       <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>

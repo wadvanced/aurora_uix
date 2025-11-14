@@ -22,7 +22,7 @@ defmodule Aurora.UixWeb.Test.InfinityScrollTest do
   end
 
   test "Test UI page bar needed", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(1000, :test)
 
     {:ok, view, html} = live(conn, "/infinity-scroll-products")

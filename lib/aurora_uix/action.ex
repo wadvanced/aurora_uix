@@ -79,6 +79,24 @@ defmodule Aurora.Uix.Action do
       insert_row_action: {:one_to_many_row_actions, :insert_auix_action},
       replace_row_action: {:one_to_many_row_actions, :replace_auix_action},
       remove_row_action: {:one_to_many_row_actions, :remove_auix_action}
+    },
+    embeds_many: %{
+      add_header_action: {:embeds_many_header_actions, :add_auix_action},
+      insert_header_action: {:embeds_many_header_actions, :insert_auix_action},
+      replace_header_action: {:embeds_many_header_actions, :replace_auix_action},
+      remove_header_action: {:embeds_many_header_actions, :remove_auix_action},
+      add_footer_action: {:embeds_many_footer_actions, :add_auix_action},
+      insert_footer_action: {:embeds_many_footer_actions, :insert_auix_action},
+      replace_footer_action: {:embeds_many_footer_actions, :replace_auix_action},
+      remove_footer_action: {:embeds_many_footer_actions, :remove_auix_action},
+      add_new_entry_action: {:embeds_many_new_entry_actions, :add_auix_action},
+      insert_new_entry_action: {:embeds_many_new_entry_actions, :insert_auix_action},
+      replace_new_entry_action: {:embeds_many_new_entry_actions, :replace_auix_action},
+      remove_new_entry_action: {:embeds_many_new_entry_actions, :remove_auix_action},
+      add_existing_action: {:embeds_many_existing_actions, :add_auix_action},
+      insert_existing_action: {:embeds_many_existing_actions, :insert_auix_action},
+      replace_existing_action: {:embeds_many_existing_actions, :replace_auix_action},
+      remove_existing_action: {:embeds_many_existing_actions, :remove_auix_action}
     }
   }
 

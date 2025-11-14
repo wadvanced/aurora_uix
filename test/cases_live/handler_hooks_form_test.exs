@@ -28,7 +28,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksFormTest do
   end
 
   test "Test CREATE new, context, basic layout", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     {:ok, view, _html} = live(conn, "/handler-hooks-form-products/new")
 
     reference =
@@ -54,7 +54,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksFormTest do
   end
 
   test "Test main edit link", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
 
     product =
       1

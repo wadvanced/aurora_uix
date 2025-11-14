@@ -18,7 +18,7 @@ defmodule Aurora.UixWeb.Test.PagesBarTest do
   end
 
   test "Test UI page bar not needed", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(30, :test)
 
     {:ok, view, html} = live(conn, "/pages-bar-products")
@@ -28,7 +28,7 @@ defmodule Aurora.UixWeb.Test.PagesBarTest do
   end
 
   test "Test UI page bar needed", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
     create_sample_products(1000, :test)
 
     {:ok, view, html} = live(conn, "/pages-bar-products")

@@ -52,7 +52,7 @@ defmodule Aurora.UixWeb.Test.WhereMany2OneTest do
   end
 
   test "Test selector where", %{conn: conn} do
-    delete_all_sample_data()
+    delete_all_inventory_data()
 
     location_id =
       20

@@ -6,6 +6,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   """
   use Aurora.Uix.Templates.Theme
 
+  import Aurora.Uix.Templates.ThemeHelper, only: [import_rule: 2]
+
   @impl true
   @spec rule(atom()) :: binary()
 
@@ -178,15 +180,34 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_flash) do
+    """
+      .auix-flash {
+        /* POSITIONING & SIZE */
+        position: fixed;                 /* fixed */
+        top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
+        right: 0.5rem;                   /* right-2 */
+        margin-right: 0.5rem;            /* mr-2 */
+        width: max-content;                    /* w-80 (80 * 0.25rem = 20rem) */
+        z-index: 50;                     /* z-50 */
+
+        /* BOX STYLES */
+        border-radius: 0.5rem;           /* rounded-lg */
+        padding: 0.125rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
+      }
+    """
+  end
+
   def rule(:auix_flash__info) do
     """
+      #{import_rule(:auix_flash, :auix_flash__info)}
+
       .auix-flash--info {
-        #{common_flash_css()}
-        background-color: var(--auix-color-bg-info); /* bg-emerald-50 */
+        background-color: var(--auix-color-bg-info);
 
         /* TEXT & ICON */
-        color: var(--auix-color-info-text);   /* text-emerald-800 */
-        fill: var(--auix-color-icon-fill);    /* fill-cyan-900 (For internal SVG/Icon) */
+        color: var(--auix-color-info-text);
+        fill: var(--auix-color-icon-fill);
 
         /* RING */
         --auix-calc-shadow: var(--auix-shadow-primary);
@@ -267,7 +288,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-simple-form-content {
         /* mt-10 space-y-8 bg-white */
-        margin-top: 2.0rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
+        margin-top: 1rem;             /* mt-10 (10 * 0.25rem = 2.5rem) */
         background-color: var(--auix-color-bg-default); /* bg-white */
       }
     """
@@ -276,12 +297,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_simple_form_actions) do
     """
       .auix-simple-form-actions {
-        /* mt-2 flex items-center justify-between gap-6 */
-        margin-top: 0.5rem;          /* mt-2 (2 * 0.25rem = 0.5rem) */
-        display: flex;               /* flex */
-        align-items: center;         /* items-center */
-        justify-content: space-between; /* justify-between */
-        gap: 1.5rem;                 /* gap-6 (6 * 0.25rem = 1.5rem) */
+        #{common_actions_css()}
       }
     """
   end
@@ -290,7 +306,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-button {
         border-radius: 0.5rem;
-        background-color: var(--auix-color-text-primary);
+        background-color: var(--auix-color-bg-default--reverted);
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
         font-weight: 600;
@@ -299,7 +315,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
       .auix-button:hover {
-        background-color: var(--auix-color-text-hover);
+        background-color: var(--auix-color-bg-hover--reverted);
       }
 
       .auix-button:active {
@@ -312,21 +328,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_button_alt) do
+  def rule(:auix_button__alt) do
     """
-      .auix-button-alt {
-        /* !bg-zinc-100 !text-zinc-500 border border-zinc-800 */
-
+      .auix-button--alt {
         /* BACKGROUND */
-        background-color: var(--auix-color-bg-light) !important; /* !bg-zinc-100 */
+        background-color: var(--auix-color-bg-light) !important;
 
         /* TEXT COLOR */
-        color: var(--auix-color-text-tertiary) !important;      /* !text-zinc-500 */
+        color: var(--auix-color-text-tertiary) !important;
 
         /* BORDERS */
         border-width: 1px;                                     /* border */
         border-style: solid;                                   /* Implicit border style */
-        border-color: var(--auix-color-text-label);            /* border-zinc-800 */
+        border-color: var(--auix-color-text-label);         
+      }
+
+      .auix-button--alt:disabled {
+        background-color: var(--auix-color-bg-backdrop) !important;
+        color: var(--auix-color-text-inactive) !important;
       }
     """
   end
@@ -343,6 +362,32 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* BORDER */
         border-width: 1px;      /* border */
         border-style: solid;    /* Implicit border style */
+      }
+    """
+  end
+
+  def rule(:auix_button__danger) do
+    """
+      .auix-button--danger {
+        border-radius: 0.5rem;
+        background-color: var(--auix-color-bg-danger);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1.5rem;
+        color: var(--auix-color-text-on-accent);
+      }
+
+      .auix-button--danger:hover {
+        background-color: var(--auix-color-bg-danger-hover);
+      }
+
+      .auix-button--danger:active {
+        color: var(--auix-color-text-on-accent-active);
+      }
+
+      .auix-button--danger[phx-submit-loading] {
+        opacity: 0.75;
       }
     """
   end
@@ -447,6 +492,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-inline: 0rem;
         border-width: 0rem;
         padding-inline: 0rem;
+        width: fit-content;
       }
     """
   end
@@ -480,6 +526,63 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         opacity: 1;
         cursor: not-allowed;
       }
+    """
+  end
+
+  def rule(:auix_confirm_button_container) do
+    """
+      .auix-confirm-button--container {
+        visibility: visible;
+      }
+    """
+  end
+
+  def rule(:auix_confirm_button__modal) do
+    """
+      .auix-confirm-button--modal {
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+      }
+    """
+  end
+
+  def rule(:auix_confirm_button__confirm_message) do
+    """
+      .auix-confirm-button--confirm-message {
+        
+      }
+    """
+  end
+
+  def rule(:auix_confirm_button__actions) do
+    """
+      .auix-confirm-button--actions {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+    """
+  end
+
+  def rule(:auix_confirm_button__accept_action) do
+    """
+      .auix-confirm-button--accept-action {
+
+      }
+
+    """
+  end
+
+  def rule(:auix_confirm_button__cancel_action) do
+    """
+      .auix-confirm-button--cancel-action {
+
+      }
+
     """
   end
 
@@ -608,7 +711,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: block;                  /* block */
         font-size: 0.875rem;             /* text-sm */
         font-weight: 600;                /* font-semibold */
-        line-height: 1.5rem;             /* leading-6 (6 * 0.25rem = 1.5rem) */
+        line-height: 1rem;
         color: var(--auix-color-text-label); /* text-zinc-800 */
       }
     """
@@ -632,7 +735,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header) do
     """
       .auix-header{
-        content-visibility: visible;
+        margin-bottom: 0.5rem;
       }
     """
   end
@@ -640,12 +743,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header__top_actions) do
     """
       .auix-header--top-actions {
-        /* flex items-center justify-between gap-6 */
-        display: flex;                 /* flex */
-        align-items: center;           /* items-center */
-        justify-content: space-between;  /* justify-between */
-        gap: 1.5rem;                   /* gap-6 (6 * 0.25rem = 1.5rem) */
+        #{common_actions_css()}
         width: 100%;
+      }
+    """
+  end
+
+  def rule(:auix_header_title_container) do
+    """
+      .auix-header-title-container {
+        /* flex flex-col */
+        display: flex;         /* flex */
+        flex-direction: column; /* flex-col */
       }
     """
   end
@@ -656,7 +765,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* text-lg font-semibold leading-8 text-zinc-800 */
         font-size: 1.125rem;                      /* text-lg */
         font-weight: 600;                         /* font-semibold */
-        line-height: 2rem;                        /* leading-8 (8 * 0.25rem = 2rem) */
+        line-height: 2rem;
+        margin: 0;
         color: var(--auix-color-text-label);      /* text-zinc-800 */
       }
     """
@@ -666,10 +776,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-header-subtitle {
         /* mt-2 text-sm leading-6 text-zinc-600 */
-        margin-top: 0.1rem;
-        margin-bottom: 1.5rem;
+        margin-top: 0rem;
+        margin-bottom: 0rem;
         font-size: 1rem;
-        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
+        line-height: 1.5rem;                
         color: var(--auix-color-text-secondary);   /* text-zinc-600 */
       }
     """
@@ -1486,11 +1596,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_actions) do
     """
       .auix-index-actions {
-        display: flex;                /* flex */
-        justify-content: space-between; /* justify-between */
-        width: 100%;                  /* w-full */
-        margin-top: 0.5rem;           /* mt-2 - 8px */
-        margin-bottom: 0.5rem;        /* mb-2 - 8px */
+        #{common_actions_css()}
+        width: 100%;
       }
     """
   end
@@ -1517,11 +1624,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_filter_element_actions) do
     """
       .auix-index-filter-element-actions {
-        display: flex;                /* flex */
-        justify-content: space-between; /* justify-between */
-        width: 100%;                  /* w-full */
-        margin-top: 0.5rem;           /* mt-2 (2 * 0.25rem = 0.5rem) */
-        margin-bottom: 0.5rem;        /* mb-2 (2 * 0.25rem = 0.5rem) */
+        #{common_actions_css()}
+        width: 100%;
       }
     """
   end
@@ -2158,14 +2262,138 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_embeds_one_container) do
+    """
+      .auix-embeds-one-container {
+        #{common_container_css()}
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_container) do
+    """
+      .auix-embeds-many-container {
+        #{common_container_css()}
+
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_header_container) do
+    """
+      .auix-embeds-many-header-container {
+
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_header_actions) do
+    """
+      .auix-embeds-many-header-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_footer_container) do
+    """
+      .auix-embeds-many-footer-container {
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_footer_actions) do
+    """
+      .auix-embeds-many-footer-actions {
+        #{common_actions_css()}
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_new_entry_container) do
+    """
+      .auix-embeds-many-new-entry-container {
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_new_entry_actions) do
+    """
+      .auix-embeds-many-new-entry-actions {
+        #{common_actions_css()}
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_existing_container) do
+    """
+      .auix-embeds-many-existing-container {
+        display: flex;
+        justify-content: flex-end;
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_existing_actions) do
+    """
+      .auix-embeds-many-existing-actions {
+        #{common_actions_css()}
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many__remove_entry_action) do
+    """
+      .auix-embeds-many--remove-entry-action {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_entry_contents) do
+    """
+      .auix-embeds-many-entry-contents {
+        #{common_container_css()}
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_entry__badge) do
+    """
+      .auix-embeds-many-entry--badge {
+        display: flex;
+        flex-direction: row-reverse;
+      }
+    """
+  end
+
+  def rule(:auix_embeds_many_entry__badge_text) do
+    """
+      .auix-embeds-many-entry--badge-text {
+        display: inline-block;
+        padding: 4px 8px;
+        background-color: var(--auix-color-bg-default--reverted);
+        color: var(--auix-color-text-on-accent);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE
   @spec common_flash_css() :: binary()
   defp common_flash_css do
     """
-      /* CONTAINER */
-
       /* POSITIONING & SIZE */
       position: fixed;                 /* fixed */
       top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
@@ -2226,10 +2454,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-input#{suffix} {
         /* mt-2 p-1 block w-full rounded-lg text-zinc-900 */
-        margin-top: 0.5rem;               /* mt-2 (2 * 0.25rem = 0.5rem) */
+        margin-top: 0rem;               /* mt-2 (2 * 0.25rem = 0.5rem) */
         padding: 0.25rem;                 /* p-1 (1 * 0.25rem = 0.25rem) */
         display: block;                   /* block */
-        width: 100%;                      /* w-full */
+        width: auto;                      /* w-full */
         border-radius: 0.5rem;            /* rounded-lg */
         color: var(--color-text-primary); /* text-zinc-900 */
 
@@ -2295,6 +2523,33 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         transition-duration: 200ms;
       }
+    """
+  end
+
+  @spec common_container_css() :: binary()
+  defp common_container_css do
+    """
+      /* BOX MODEL */
+      padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
+      border-radius: 0.5rem;                             /* rounded-lg (8px) */
+      border-width: 1px;                                 /* border */
+      border-style: solid;
+      /* COLORS */
+      border-color: var(--auix-color-border-secondary);
+      background-color: var(--auix-color-bg-inner-container);
+      box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
+    """
+  end
+
+  @spec common_actions_css() :: binary()
+  defp common_actions_css do
+    """
+      margin-top: 0.5rem;  
+      margin-bottom: 0.5rem; 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
     """
   end
 end

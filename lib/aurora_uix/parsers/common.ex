@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Parsers.Common do
     module
     |> Module.split()
     |> List.last()
-    |> capitalize()
+    |> CommonHelper.capitalize()
   end
 
   def default_value(_parsed_opts, %{schema: module}, :source), do: module.__schema__(:source)
@@ -96,7 +96,7 @@ defmodule Aurora.Uix.Parsers.Common do
   def default_value(_parsed_opts, %{schema: module}, :title) do
     :source
     |> module.__schema__()
-    |> capitalize()
+    |> CommonHelper.capitalize()
   end
 
   def default_value(_parsed_opts, %{schema: module}, :primary_key) do
@@ -104,18 +104,5 @@ defmodule Aurora.Uix.Parsers.Common do
       [] -> :fields |> module.__schema__() |> List.first() |> then(&[&1])
       key -> key
     end
-  end
-
-  ## PRIVATE
-
-  # Converts a string to capitalized words, splitting on underscores.
-  @spec capitalize(binary() | nil) :: binary()
-  defp capitalize(nil), do: ""
-
-  defp capitalize(string) do
-    string
-    |> Macro.underscore()
-    |> String.split("_")
-    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end
