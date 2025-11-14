@@ -2282,7 +2282,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_embeds_many_header_container) do
     """
       .auix-embeds-many-header-container {
-
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
       }
     """
   end
@@ -2307,6 +2309,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-embeds-many-footer-actions {
         #{common_actions_css()}
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
       }
     """
   end

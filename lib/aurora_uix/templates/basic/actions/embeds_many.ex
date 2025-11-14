@@ -92,7 +92,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @spec footer_enable_add_entry(map()) :: Rendered.t()
   def footer_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
-      <.button type="button" phx-click="toggle-add-embeds" phx-target={@target}>
+      <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
         <.icon name="hero-plus" />
         <span>{gettext("Add new entry")}</span>
       </.button>
