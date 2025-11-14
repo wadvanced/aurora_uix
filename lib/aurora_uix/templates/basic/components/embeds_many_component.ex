@@ -331,10 +331,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
   defp get_entries_changes(entries), do: entries
 
-  @spec extract_changes(map()) :: map()
+  @spec extract_changes(map()) :: map() | nil
   defp extract_changes(%{params: params}), do: params
   defp extract_changes(entry), do: entry
 
+  @spec convert_to_map(map() | nil) :: map() | nil
   defp convert_to_map(entry) when is_non_struct_map(entry), do: entry
   defp convert_to_map(entry) when is_struct(entry), do: Map.from_struct(entry)
   defp convert_to_map(nil), do: nil

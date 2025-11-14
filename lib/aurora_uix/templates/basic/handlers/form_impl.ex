@@ -199,11 +199,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       ) do
     entity_params = entity_params(params, socket)
 
-    entity_params =
-      if Map.get(entity_params, "emails") == "",
-        do: Map.put(entity_params, "emails", []),
-        else: entity_params
-
     socket = Phoenix.LiveView.clear_flash(socket)
 
     changeset = auix.change_function.(socket.assigns[:auix][:entity], entity_params)
