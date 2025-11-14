@@ -51,6 +51,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def set_actions(assigns) do
     assigns
     |> Actions.remove_all_actions(@actions)
+    |> add_default_header_actions()
     |> add_default_footer_actions()
     |> add_default_new_entry_actions()
     |> add_default_existing_actions()
@@ -67,8 +68,29 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   Phoenix.LiveView.Rendered.t() - Rendered button component.
 
   """
-  @spec enable_add_entry(map()) :: Rendered.t()
-  def enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
+  @spec header_enable_add_entry(map()) :: Rendered.t()
+  def header_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
+    ~H"""
+      <div phx-click="toggle-add-embeds" phx-target={@target}>
+        <.icon name="hero-plus-circle"/> 
+      </div>
+    """
+  end
+
+  def header_enable_add_entry(assigns), do: ~H""
+
+  @doc """
+  Renders a button for enabling the addition of a new entry for a embeds-many association form.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing association and entity context.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered button component.
+
+  """
+  @spec footer_enable_add_entry(map()) :: Rendered.t()
+  def footer_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.button type="button" phx-click="toggle-add-embeds" phx-target={@target}>
         <.icon name="hero-plus" />
@@ -77,7 +99,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
     """
   end
 
-  def enable_add_entry(assigns), do: ~H""
+  def footer_enable_add_entry(assigns), do: ~H""
 
   @doc """
   Renders a button for adding / save a new entry in a embeds-many association form.
@@ -147,10 +169,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def remove_entry(assigns), do: ~H""
 
   ## PRIVATE
+
+  @spec add_default_header_actions(map()) :: map()
+  defp add_default_header_actions(assigns) do
+    Actions.add_actions(assigns, :embeds_many_header_actions,
+      default_header_enable_add_entry: &header_enable_add_entry/1
+    )
+  end
+
   @spec add_default_footer_actions(map()) :: map()
   defp add_default_footer_actions(assigns) do
     Actions.add_actions(assigns, :embeds_many_footer_actions,
-      default_enable_add_entry: &enable_add_entry/1
+      default_footer_enable_add_entry: &footer_enable_add_entry/1
     )
   end
 

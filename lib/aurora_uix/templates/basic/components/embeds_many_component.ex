@@ -56,12 +56,14 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
           {:ok, Phoenix.LiveView.Socket.t()}
   def update(
         %{
-          field: %{data: %{resource: embed_resource_name}},
+          field: %{data: %{resource: embed_resource_name}, key: key},
           auix: %{layout_type: :form}
         } = assigns,
         socket
       ) do
     layout_tree = get_layout(assigns, embed_resource_name, :form)
+
+    field_key = to_string(key)
 
     primary_key = get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
 
@@ -85,6 +87,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      |> assign_auix(:resource_name, embed_resource_name)
      |> assign_auix(:primary_key, primary_key)
      |> assign_auix(:primary_key_type, primary_key_type)
+     |> assign_auix(:field_key, field_key)
      |> EmbedsManyActions.set_actions()}
   end
 
@@ -115,24 +118,39 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
     ~H"""
       <div class="auix-embeds-many-container">
         <.header>
-          {@field.label}
-        </.header>
-
-        <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
-          <div class="auix-embeds-many-entry-contents">
-            <div class="auix-embeds-many-entry--badge">
-              <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
-            </div>
-            <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
-            <div class="auix-embeds-many-existing-container">
-              <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
-                <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
-                  {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @myself})}
+          <%= if @auix.enable_add_embeds do %>
+            {@field.label}
+          <% else %>
+            <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-header-container">
+              <div class="auix-embeds-many-header-actions" name="auix-embeds_many-header_actions">
+                {@field.label}
+                <%= for %{function_component: action} <- @auix.embeds_many_header_actions do %>
+                  {action.(%{auix: @auix, field: @field, target: @myself})}
                 <% end %>
               </div>
             </div>
-          </div>
-        </.inputs_for>
+          <% end %>  
+        </.header>
+
+        <%= if Map.get(@auix.form.params, @auix.field_key) == [] do %>
+            <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"} name={@auix.form[@field.key].name} value={[]} />
+        <% else %>
+          <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
+            <div class="auix-embeds-many-entry-contents">
+              <div class="auix-embeds-many-entry--badge">
+                <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
+              </div>
+              <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
+              <div class="auix-embeds-many-existing-container">
+                <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
+                  <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
+                    {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @myself})}
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </.inputs_for>
+        <% end %>    
         <div :if={@auix.enable_add_embeds} >
           <.portal id={"auix-embeds-many-add-#{@field.html_id}-wrapper"} target="#portal-target">
             <.modal id={"auix-embeds-many-add-#{@field.html_id}"} 
@@ -303,12 +321,23 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   defp get_entries(form, field_key) do
     form[field_key]
     |> Map.get(:value, [])
-    |> Enum.map(fn
-      %{params: params} -> params
-      entry -> Map.from_struct(entry)
-    end)
+    |> get_entries_changes()
+    |> Enum.map(&(&1 |> extract_changes() |> convert_to_map()))
     |> Enum.reject(&is_nil/1)
   end
+
+  @spec get_entries_changes(map() | list()) :: list()
+  defp get_entries_changes(entries) when is_map(entries), do: Map.values(entries)
+
+  defp get_entries_changes(entries), do: entries
+
+  @spec extract_changes(map()) :: map()
+  defp extract_changes(%{params: params}), do: params
+  defp extract_changes(entry), do: entry
+
+  defp convert_to_map(entry) when is_non_struct_map(entry), do: entry
+  defp convert_to_map(entry) when is_struct(entry), do: Map.from_struct(entry)
+  defp convert_to_map(nil), do: nil
 
   @spec add_embed_entry_changes(map(), atom(), map()) :: list()
   defp add_embed_entry_changes(%{form: form}, field_key, params) do
