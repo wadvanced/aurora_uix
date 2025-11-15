@@ -41,8 +41,78 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   test "New data", %{conn: conn} do
     delete_all_accounts_data()
 
-    {:ok, _view, html} = live(conn, "/embeds-many-users/new")
+    {:ok, view, html} = live(conn, "/embeds-many-users/new")
     assert html =~ "Embeds many"
     assert html =~ "Creates a new <strong>User</strong> record in your database"
+
+    view
+    |> form("#auix-user-form", %{
+      user: %{
+        given_name: "John",
+        family_name: "DoeTest",
+        profile: %{online: false, visibility: :private}
+      }
+    })
+    |> render_change()
+
+    # Checks the details expand
+    assert_details_state(view, false)
+
+    view
+    |> element("details[phx-click='toggle-details-state']")
+    |> render_click()
+
+    assert_details_state(view, true)
+
+    # Checks the add embeds state
+    assert_add_embeds_state(view, false)
+
+    view
+    |> element("button[phx-click='toggle-add-embeds']")
+    |> render_click
+
+    assert_add_embeds_state(view, true)
+
+    # Add a couple of emails
+
+    view
+    |> render()
+    |> LazyHTML.from_document()
+    |> LazyHTML.query("[id^='auix-embeds-many-add-auix-field-user-emails-'][id$='-wrapper']")
+    # |> LazyHTML.child_nodes()
+    |> IO.inspect(label: "********* found")
+
+    # view
+    # |> form("form[id^='auix-embeds-many-auix-field-user-emails-'][id$='-add-form']", %{
+    #   "email" => "thedoe@test.com",
+    #   "name" => "home"
+    # })
+    # |> render_change()
+    #
+    # assert view
+    #        |> element(
+    #          "button[form^='auix-embeds-many-auix-field-user-emails-'][form$='-add-form']"
+    #        )
+    #        |> render_click =~ "Entry added successfully"
+  end
+
+  defp assert_details_state(view, state) do
+    assert view
+           |> render()
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("details[phx-click='toggle-details-state']")
+           |> LazyHTML.attribute("open")
+           |> Kernel.==([""]) == state
+  end
+
+  defp assert_add_embeds_state(view, state) do
+    assert view
+           |> render()
+           |> LazyHTML.from_document()
+           |> LazyHTML.query(
+             "[id^='auix-embeds-many-add-auix-field-user-emails-'][id$='-wrapper']"
+           )
+           |> LazyHTML.attributes()
+           |> Kernel.!=([]) == state
   end
 end
