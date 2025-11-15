@@ -69,7 +69,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
 
     view
     |> element("button[phx-click='toggle-add-embeds']")
-    |> render_click
+    |> render_click()
 
     assert_add_embeds_state(view, true)
 
@@ -79,8 +79,9 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
     |> render()
     |> LazyHTML.from_document()
     |> LazyHTML.query("[id^='auix-embeds-many-add-auix-field-user-emails-'][id$='-wrapper']")
+
     # |> LazyHTML.child_nodes()
-    |> IO.inspect(label: "********* found")
+    # |> IO.inspect(label: "********* found")
 
     # view
     # |> form("form[id^='auix-embeds-many-auix-field-user-emails-'][id$='-add-form']", %{
@@ -96,6 +97,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
     #        |> render_click =~ "Entry added successfully"
   end
 
+  @spec assert_details_state(map(), boolean()) :: boolean()
   defp assert_details_state(view, state) do
     assert view
            |> render()
@@ -105,6 +107,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
            |> Kernel.==([""]) == state
   end
 
+  @spec assert_add_embeds_state(map(), boolean()) :: boolean()
   defp assert_add_embeds_state(view, state) do
     assert view
            |> render()
