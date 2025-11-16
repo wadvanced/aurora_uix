@@ -46,14 +46,11 @@ jobs:
         elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
         otp-version: ${{ matrix.otp }}     # [Required] Define the Erlang/OTP version
 
-    - name: Install Chrome and ChromeDriver
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
-
-    - name: Set ChromeDriver path
-      run: |
-        echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
+    - name: 🚀 Setup Chrome and ChromeDriver
+      uses: browser-actions/setup-chrome@v1 # Use a community action to ensure compatibility
+      with:
+        chrome-version: 'stable' # or a specific version like '126.0.6478.126'
+        # This action automatically downloads the correct chromedriver and sets the PATH.
 
     - name: Restore dependencies cache
       id: cache-deps
