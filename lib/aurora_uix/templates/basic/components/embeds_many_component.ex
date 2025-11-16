@@ -50,18 +50,20 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   alias Aurora.Uix.Templates.Basic.Renderer
 
   alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.Rendered
+  alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveComponent
-  @spec update(map(), Phoenix.LiveView.Socket.t()) ::
-          {:ok, Phoenix.LiveView.Socket.t()}
+  @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
   def update(
         %{
           field: %{data: %{resource: embed_resource_name}, key: key},
-          auix: %{layout_type: :form}
+          auix: %{layout_type: layout_type}
         } = assigns,
         socket
-      ) do
-    layout_tree = get_layout(assigns, embed_resource_name, :form)
+      )
+      when layout_type in [:form, :show] do
+    layout_tree = get_layout(assigns, embed_resource_name, layout_type)
 
     field_key = to_string(key)
 
@@ -103,8 +105,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   ## Parameters
 
   * `assigns` (map()) - Component assigns containing:
-    * `:auix` (map()) - Aurora.Uix context with `:layout_type` set to `:form`,
-      `:form` for the parent form, and action configurations
+    * `:auix` (map()) - Aurora.Uix context with `:layout_type` set to `:form` or `:show`.
     * `:field` (map()) - Field definition with `:data` map containing
       `:resource` atom identifying the embedded schema
 
@@ -114,11 +115,12 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   interface.
   """
   @impl Phoenix.LiveComponent
-  @spec render(map()) :: Phoenix.LiveView.Rendered.t()
+  @spec render(map()) :: Rendered.t()
   def render(assigns) do
     ~H"""
       <div class="auix-embeds-many-container">
-        <details name={"auix-details-#{@field.html_id}"} open={@auix.details_opened} phx-click="toggle-details-state" phx-target={@myself}>
+        <details name={"auix-details-#{@field.html_id}"} open={@auix.details_opened} 
+            phx-click="toggle-details-state" phx-target={@myself}>
           <summary class="auix-header-title">
             {@field.label}
           </summary>
@@ -129,40 +131,21 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                   {action.(%{auix: @auix, field: @field, target: @myself})}
                 <% end %>
               </div>
-              {gettext("Add new entry")}
+              <span :if={@auix.layout_type == :form}>{gettext("Add new entry")}</span>
             </div>
           </.header>
-
-          <%= if Map.get(@auix.form.params, @auix.field_key) == [] do %>
-              <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"} name={@auix.form[@field.key].name} value={[]} />
-          <% else %>
-            <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
-              <div class="auix-embeds-many-entry-contents">
-                <div class="auix-embeds-many-entry--badge">
-                  <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
-                </div>
-                <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
-                <div class="auix-embeds-many-existing-container">
-                  <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
-                    <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
-                      {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @myself})}
-                    <% end %>
-                  </div>
-                </div>
-              </div>
-            </.inputs_for>
-          <% end %>    
-          <div :if={@auix.enable_add_embeds} >
-            <.portal id={"auix-embeds-many-add-#{@field.html_id}-wrapper"} target="#portal-target">
-              <.modal id={"auix-embeds-many-add-#{@field.html_id}"} 
+          <.embedded_entries auix={@auix} field={@field} target={@myself}/>
+         <div :if={@auix.enable_add_embeds} >
+            <.portal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-wrapper"} target="#portal-target">
+              <.modal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-modal"} 
                         show={@auix.enable_add_embeds}
                         on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
                 <.header>
-                  {gettext("Add new entry")}
+                  <span>{gettext("Add new entry")}</span>
                 </.header>
                 <.simple_form
                   for={@auix.new_entry_form}
-                  id={"auix-embeds-many-#{@field.html_id}-add-form"}
+                  id={"auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"}
                   phx-target={@myself}
                   phx-change={JS.push("validate", target: @myself)}
                   phx-submit="add-embeds-many"
@@ -173,7 +156,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                   <div class="auix-embeds-many-new-entry-container">
                     <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
                       <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
-                        {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-embeds-many-#{@field.html_id}-add-form"})}
+                        {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"})}
                       <% end %>
                     </div>
                   </div>
@@ -190,6 +173,66 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
           </div>
         </details>
       </div>
+    """
+  end
+
+  @doc """
+  Renders the embedded many entries.
+
+  ## Parameters
+
+  * `assigns` (map()) - Component assigns.
+  """
+  attr(:auix, :map)
+  attr(:field, :map)
+  attr(:target, :string)
+  @spec embedded_entries(map()) :: Rendered.t()
+  def embedded_entries(%{auix: %{layout_type: :form}} = assigns) do
+    ~H"""
+    <%= if Map.get(@auix.form.params, @auix.field_key) == [] do %>
+        <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"} name={@auix.form[@field.key].name} value={[]} />
+    <% else %>
+      <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
+        <div class="auix-embeds-many-entry-contents">
+          <div class="auix-embeds-many-entry--badge">
+            <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
+          </div>
+          <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
+          <div class="auix-embeds-many-existing-container">
+            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
+              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
+                {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @target})}
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </.inputs_for>
+    <% end %>    
+    """
+  end
+
+  def embedded_entries(%{auix: %{entity: entity, layout_type: :show}, field: field} = assigns) do
+    assigns =
+      entity
+      |> Map.get(field.key, [])
+      |> then(&assign_auix(assigns, :embedded_entries, &1))
+
+    ~H"""
+    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries) do %>
+        <div class="auix-embeds-many-entry-contents">
+          <div class="auix-embeds-many-entry--badge">
+            <span class="auix-embeds-many-entry--badge-text">{entry_index + 1}</span>
+          </div>
+          <Renderer.render_inner_elements auix={Map.put(@auix, :entity, embed_entry)} />
+          <div class="auix-embeds-many-existing-container">
+            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
+              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
+                {action.(%{auix: @auix, field: @field, entry_index: entry_index, target: @target})}
+              <% end %>
+            </div>
+          </div>
+        </div>
+    <% end %>
     """
   end
 
