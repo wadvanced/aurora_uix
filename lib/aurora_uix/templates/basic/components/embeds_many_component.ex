@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   def render(assigns) do
     ~H"""
       <div class="auix-embeds-many-container">
-        <details open={@auix.details_opened} phx-click="toggle-details-state" phx-target={@myself}>
+        <details name={"auix-details-#{@field.html_id}"} open={@auix.details_opened} phx-click="toggle-details-state" phx-target={@myself}>
           <summary class="auix-header-title">
             {@field.label}
           </summary>

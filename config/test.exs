@@ -15,7 +15,8 @@ config :aurora_uix, Aurora.Uix.Repo,
 
 # Configure modules
 config :aurora_uix,
-  endpoint: Aurora.UixWeb.Test.Endpoint
+  endpoint: Aurora.UixWeb.Test.Endpoint,
+  sandbox: Ecto.Adapters.SQL.Sandbox
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -63,3 +64,14 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+config :wallaby,
+  base_url: "http://localhost:4001",
+  driver: Wallaby.Chrome,
+  screenshot_on_failure: true,
+  screenshot_dir: "tmp",
+  hackney_options: [timeout: 5_000],
+  chromedriver: [
+    headless: true,
+    javascriptEnabled: true
+  ]
