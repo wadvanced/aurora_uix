@@ -105,7 +105,8 @@ defmodule Aurora.Uix.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false},
-      {:lazy_html, ">= 0.0.0", only: :test}
+      {:lazy_html, ">= 0.0.0", only: :test},
+      {:wallaby, "~> 0.30", only: :test, runtime: false}
     ]
   end
 

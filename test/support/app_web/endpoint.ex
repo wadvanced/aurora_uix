@@ -22,10 +22,6 @@ defmodule Aurora.UixWeb.Test.Endpoint do
     same_site: "Lax"
   ]
 
-  if Application.compile_env(:aurora_uix, :sandbox, false) do
-    plug(Phoenix.Ecto.SQL.Sandbox)
-  end
-
   socket("/live", Socket,
     websocket: [connect_info: [:user_agent, session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
