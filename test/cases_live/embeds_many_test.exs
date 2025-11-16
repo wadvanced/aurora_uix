@@ -138,6 +138,22 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
     |> Kernel.tap(&assert_emails(&1, emails))
   end
 
+  feature "Show elements of embeds many ", %{session: session} do
+    delete_all_accounts_data()
+
+    user_id =
+      %{
+        given_name: "Paul",
+        family_name: "Test",
+        profile: %{online: true, visibility: :private},
+        emails: [%{email: "is_paul@test.com", name: "Work"}]
+      }
+      |> Accounts.create_user!()
+      |> Map.get(:id)
+
+    visit(session, "/embeds-many-users/#{user_id}")
+  end
+
   @spec main_form(atom()) :: Query.t()
   defp main_form(field) do
     Query.css("form#auix-user-form [id^='auix-field-user-#{field}-'][id$='--form']")
