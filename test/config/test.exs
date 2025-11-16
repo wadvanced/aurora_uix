@@ -1,6 +1,6 @@
 # This configuration is ALWAYS read during development,
 # HOWEVER, you can author a config/test.exs file with the keys
-# that you need to override in order to meet your requirements. 
+# that you need to override in order to meet your requirements
 
 import Config
 
