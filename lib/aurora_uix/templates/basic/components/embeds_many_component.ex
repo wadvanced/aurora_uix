@@ -118,7 +118,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   def render(assigns) do
     ~H"""
       <div class="auix-embeds-many-container">
-        <details open={@auix.details_opened} phx-click="toggle-details-opened" phx-target={@myself}>
+        <details name={"auix-details-#{@field.html_id}"} open={@auix.details_opened} phx-click="toggle-details-state" phx-target={@myself}>
           <summary class="auix-header-title">
             {@field.label}
           </summary>
@@ -162,7 +162,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                 </.header>
                 <.simple_form
                   for={@auix.new_entry_form}
-                  id={"auix-#{@field.html_id}-add-form"}
+                  id={"auix-embeds-many-#{@field.html_id}-add-form"}
                   phx-target={@myself}
                   phx-change={JS.push("validate", target: @myself)}
                   phx-submit="add-embeds-many"
@@ -173,7 +173,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                   <div class="auix-embeds-many-new-entry-container">
                     <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
                       <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
-                        {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-#{@field.html_id}-add-form"})}
+                        {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-embeds-many-#{@field.html_id}-add-form"})}
                       <% end %>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   end
 
   def handle_event(
-        "toggle-details-opened",
+        "toggle-details-state",
         _params,
         %{assigns: %{auix: %{details_opened: details_opened}}} = socket
       ) do
