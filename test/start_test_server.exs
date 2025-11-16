@@ -1,7 +1,6 @@
 # Mix.Tasks.Uix.Test.Assets.Build.run("")
 
 Logger.configure(level: :debug)
-Code.require_file("test/env_loader.exs")
 
 Code.require_file("test/start_test_app.exs")
 

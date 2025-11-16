@@ -47,4 +47,12 @@ config :phoenix, :json_library, Jason
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{config_env()}.exs"
+# there are default configuration files at dev/config and test/config
+# DO NOT TOUCH them, instead create any of the test.exs or dev.exs files
+# under the config folder, they are not under version control and you
+# can tailor the development and testing environment according to your requirements.
+if config_env() in [:test, :dev] do
+  import_config "../#{config_env()}/config/#{config_env()}.exs"
+end
+
+if File.exists?("config/#{config_env()}.exs"), do: import_config("#{config_env()}.exs")
