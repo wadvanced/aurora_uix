@@ -7,6 +7,11 @@
 # The directory Mix downloads your dependencies sources to.
 /deps/
 
+# The developer and test configuration
+/conf/test.exs
+/conf/dev.exs
+
+# Icons css, they are generated
 /assets/css/icons.css
 
 # Where third-party dependencies like ExDoc output generated docs.
