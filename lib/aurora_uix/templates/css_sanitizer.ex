@@ -368,6 +368,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
     #   _ ->
     #     :ok
     # end
+    :ok
   end
 
   # Helper function for regex-based property allowlist matching
