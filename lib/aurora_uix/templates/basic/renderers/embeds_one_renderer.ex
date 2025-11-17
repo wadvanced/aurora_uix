@@ -62,7 +62,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
     assigns
     |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
     |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
-    |> BasicHelpers.assign_auix(:entity, Map.get(entity, key))
+    |> BasicHelpers.assign_auix(:entity, Map.get(entity || %{}, key))
     |> Renderer.render_inner_elements()
   end
 end
