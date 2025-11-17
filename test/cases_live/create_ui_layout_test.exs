@@ -70,7 +70,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     assert html =~ "Product&#39;s</strong> values properly"
 
     assert view
-           |> element("div#auix-product-modal header")
+           |> element("div#auix-product-form-modal header")
            |> render() =~ "Add a Product"
 
     assert view
@@ -145,7 +145,10 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     view
     |> tap(&assert has_element?(&1, "[name='auix-save-product']"))
     |> tap(
-      &assert has_element?(&1, "div#auix-product-modal-container div button[phx-click*='exec']")
+      &assert has_element?(
+                &1,
+                "div#auix-product-form-modal-container div button[phx-click*='exec']"
+              )
     )
   end
 
@@ -205,11 +208,11 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     |> tap(&assert &1 =~ "auix-save-product")
 
     assert view
-           |> element("div#auix-product-modal header")
+           |> element("div#auix-product-form-modal header")
            |> render() =~ "Modify Product: #item_"
 
     assert view
-           |> element("div#auix-product-modal header")
+           |> element("div#auix-product-form-modal header")
            |> render() =~
              "Entries are validated before saving"
   end

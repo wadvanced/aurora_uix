@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
           {action.(%{auix: @auix})}
         <% end %>
       </div>
-      <.modal :if={@live_action == :edit} id={"auix-#{@auix.module}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action == :edit} id={"auix-#{@auix.module}-show-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix.form_component}
