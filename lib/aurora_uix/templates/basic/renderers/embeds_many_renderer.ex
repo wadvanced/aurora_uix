@@ -48,7 +48,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer do
   def render(assigns) do
     ~H"""
     <.live_component
-      id={"auix-#{@field.html_id}"}
+      id={"#{@field.html_id}-#{@auix.layout_type}"}
       module={EmbedsManyComponent}
       auix={@auix}
       field={@field}
