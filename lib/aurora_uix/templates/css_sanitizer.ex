@@ -111,7 +111,6 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   @spec validate_theme_rules(module()) :: :ok
   def validate_theme_rules(theme_module) do
     Logger.configure(level: :debug)
-    :ets.delete(:parsed)
 
     rule_names = theme_module.rule_names()
 
@@ -362,13 +361,13 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   # Ensures ETS table exists for CSS parser caching
   @spec ensure_ets_table() :: :ok
   defp ensure_ets_table do
-    case :ets.info(:parsed) do
-      :undefined ->
-        :ets.new(:parsed, [:named_table, :public, :set, :compressed])
-
-      _ ->
-        :ok
-    end
+    # case :ets.info(:parsed) do
+    #   :undefined ->
+    #     :ets.new(:parsed, [:named_table, :public, :set, :compressed])
+    #
+    #   _ ->
+    #     :ok
+    # end
   end
 
   # Helper function for regex-based property allowlist matching
