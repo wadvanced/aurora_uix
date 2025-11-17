@@ -81,7 +81,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def show_row_action(assigns) do
     ~H"""
       <div class="auix-visually-hidden">
-        <.auix_link navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>{gettext("Show")}</.auix_link>
+        <.auix_link href="#" navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>{gettext("Show")}</.auix_link>
       </div>
     """
   end
@@ -103,7 +103,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>{gettext("Edit")}</.auix_link>
+      <.auix_link href="#" patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>{gettext("Edit")}</.auix_link>
     """
   end
 
