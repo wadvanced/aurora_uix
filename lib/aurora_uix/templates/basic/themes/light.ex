@@ -15,7 +15,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
     /* */
     :root, :host {
 
+      /* ---------- SIZES and DIMENSIONS ----------- */
 
+      --auix-radius-border-default: 0.5rem;
+      --auix-width-border-default: 0.0625rem;
+
+      /* -------- COLORS, BORDERS, TRANSITIONS ------*/
       /* Backgrounds */
       --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
       --auix-color-bg-default--reverted: #18181B; /* zinc-900 */
@@ -114,6 +119,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
         calc(1px + var(--auix-ring-offset-width))
         var(--auix-ring-color);
       --auix-ring-secondary: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-shadow-alpha);
+
     }
     """
   end
