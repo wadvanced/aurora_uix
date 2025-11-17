@@ -111,6 +111,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   @spec validate_theme_rules(module()) :: :ok
   def validate_theme_rules(theme_module) do
     Logger.configure(level: :debug)
+    :ets.delete(:parsed)
 
     rule_names = theme_module.rule_names()
 
