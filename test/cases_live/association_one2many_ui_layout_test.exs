@@ -166,7 +166,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
           |> follow_redirect(conn)
 
         # Verify modal appears for new transaction and the parent id field is correctly set
-        assert has_element?(new_view, "#auix-product_transaction-modal")
+        assert has_element?(new_view, "#auix-product_transaction-#{suffix}-modal")
 
         assert new_view
                |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")
@@ -221,7 +221,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
       |> follow_redirect(conn)
 
     # Verify edit modal appears
-    assert has_element?(edit_view, "#auix-product_transaction-modal")
+    assert has_element?(edit_view, "#auix-product_transaction-#{suffix}-modal")
 
     assert edit_view
            |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")

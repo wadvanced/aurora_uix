@@ -157,6 +157,8 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   """
   @spec sanitize_css(binary()) :: binary()
   def sanitize_css(css) when is_binary(css) do
+    refresh_ets_table()
+
     parsed_css =
       case parse_css(css) do
         {:ok, parsed_css} ->
@@ -349,25 +351,16 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   # Parses CSS with ETS table caching and error handling
   @spec parse_css(binary()) :: {:ok, binary() | map()} | {:error, map()}
   defp parse_css(css) do
-    ensure_ets_table()
-
-    try do
-      {:ok, CssParser.parse(css)}
-    rescue
-      e in CaseClauseError -> {:error, e}
-    end
+    {:ok, CssParser.parse(css)}
+  rescue
+    e in CaseClauseError -> {:error, e}
   end
 
   # Ensures ETS table exists for CSS parser caching
-  @spec ensure_ets_table() :: :ok
-  defp ensure_ets_table do
-    case :ets.info(:parsed) do
-      :undefined ->
-        :ets.new(:parsed, [:named_table, :public, :set, :compressed])
-
-      _ ->
-        :ok
-    end
+  @spec refresh_ets_table() :: :ok
+  defp refresh_ets_table do
+    if :ets.info(:parsed) != :undefined, do: :ets.delete(:parsed)
+    :ets.new(:parsed, [:named_table, :public, :set])
   end
 
   # Helper function for regex-based property allowlist matching

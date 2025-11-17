@@ -32,7 +32,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
     |> visit_products_index()
     |> select_product(product_id)
     |> edit_product()
-    |> create_multiple_transactions(product_id)
+    |> create_multiple_transactions(product_id, :form)
   end
 
   test "Test one-to-many relationship UI workflow new Product", %{conn: conn} do
@@ -121,7 +121,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
           binary()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp create_multiple_transactions({conn, view}, product_id, suffix \\ :show) do
+  defp create_multiple_transactions({conn, view}, product_id, suffix) do
     transactions = [
       %{quantity: 10, type: "in", cost: 13.4},
       %{quantity: 15, type: "out", cost: 14.5},
@@ -138,7 +138,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
           |> follow_redirect(conn)
 
         # Verify modal appears for new transaction and the parent id field is correctly set
-        assert has_element?(new_view, "#auix-product_transaction-modal")
+        assert has_element?(new_view, "#auix-product_transaction-#{suffix}-modal")
 
         assert new_view
                |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")
@@ -193,7 +193,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
       |> follow_redirect(conn)
 
     # Verify edit modal appears
-    assert has_element?(edit_view, "#auix-product_transaction-modal")
+    assert has_element?(edit_view, "#auix-product_transaction-#{suffix}-modal")
 
     assert edit_view
            |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")

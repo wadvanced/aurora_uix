@@ -120,11 +120,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   end
 
   @spec default_render_input(map()) :: Phoenix.LiveView.Rendered.t()
-  defp default_render_input(%{auix: %{layout_type: :form}} = assigns) do
+  defp default_render_input(%{auix: %{layout_type: :form, primary_key: primary_key}} = assigns) do
+    primary_key = if is_list(primary_key), do: List.first(primary_key), else: primary_key
+    assigns = BasicHelpers.assign_auix(assigns, :primary_key, primary_key)
+
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}--#{@auix.form[:id].value}--#{@auix.layout_type}"}
+          id={"#{@field.html_id}--#{@auix.form[@auix.primary_key].value}--#{@auix.layout_type}"}
           field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
           label={@field.label}
@@ -139,11 +142,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     """
   end
 
-  defp default_render_input(%{auix: %{layout_type: :show}} = assigns) do
+  defp default_render_input(%{auix: %{layout_type: :show, primary_key: primary_key}} = assigns) do
+    primary_key = if is_list(primary_key), do: List.first(primary_key), else: primary_key
+    assigns = BasicHelpers.assign_auix(assigns, :primary_key, primary_key)
+
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          id={"#{@field.html_id}--#{Map.get(@auix.entity || %{}, @auix.primary_key)}--#{@auix.layout_type}"}
           name={@field.key}
           value={Map.get(@auix.entity || %{}, @field.key)}
           type={"#{@field.html_type}"}
