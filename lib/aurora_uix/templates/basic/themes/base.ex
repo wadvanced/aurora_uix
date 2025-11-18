@@ -1437,6 +1437,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding: 1rem;
         margin-left: auto;
         margin-right: auto;
+        caret-color: transparent;
       }
 
       @media (min-width: 640px) {
