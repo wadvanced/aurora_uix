@@ -330,23 +330,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_button__alt) do
     """
-      .auix-button--alt {
-        /* BACKGROUND */
-        background-color: var(--auix-color-bg-light) !important;
+    .auix-button--alt {
+      background-color: var(--auix-color-bg-light) !important;
 
-        /* TEXT COLOR */
-        color: var(--auix-color-text-tertiary) !important;
+      color: var(--auix-color-text-tertiary) !important;
 
-        /* BORDERS */
-        border-width: 1px;                                     /* border */
-        border-style: solid;                                   /* Implicit border style */
-        border-color: var(--auix-color-text-label);         
-      }
+      border-width: 1px;
+      border-style: solid;
+      border-color: var(--auix-color-text-label);         
+    }
 
-      .auix-button--alt:disabled {
-        background-color: var(--auix-color-bg-backdrop) !important;
-        color: var(--auix-color-text-inactive) !important;
-      }
+    .auix-button--alt:disabled {
+      background-color: var(--auix-color-bg-backdrop) !important;
+      color: var(--auix-color-text-inactive) !important;
+    }
+
+    .auix-button--alt:hover {
+      background-color: var(--auix-color-bg-hover) !important;
+    }
     """
   end
 
@@ -1452,6 +1453,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           padding-right: 1.5rem;
         } 
       }
+    """
+  end
+
+  def rule(:auix_index_actions) do
+    """
+    .auix-index-actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
     """
   end
 
