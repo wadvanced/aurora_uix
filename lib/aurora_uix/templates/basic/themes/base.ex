@@ -1110,31 +1110,33 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table) do
     """
-      .auix-items-table {
-        /* w-[40rem] mt-0 */
-        width: 40rem;         /* w-[40rem] (Explicitly set width) */
-        margin-top: 0;        /* mt-0 */
-      }
+    .auix-items-table {
+      width: 40rem;
+      margin-top: 0;
+    }
 
-      /* Small breakpoint (sm) and up */
-      @media (min-width: 640px) {
-        .auix-items-table {
-          /* sm:w-full */
-          width: 100%;        /* sm:w-full */
-        }
+    @media (min-width: 640px) {
+      .auix-items-table {
+        width: 100%;
       }
+    }
     """
   end
 
   def rule(:auix_items_table_header) do
     """
-      .auix-items-table-header {
-        /* text-sm text-left leading-6 text-zinc-500 */
-        font-size: 0.875rem;                       /* text-sm */
-        text-align: left;                          /* text-left */
-        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
-        color: var(--auix-color-text-tertiary);    /* text-zinc-500 */
-      }
+    .auix-items-table-header {
+      font-size: 0.875rem;
+      color: var(--auix-color-text-tertiary);
+    }
+    """
+  end
+
+  def rule(:auix_items_table_header_row) do
+    """
+    .auix-items-table-header-row {
+      text-align: left;
+    }
     """
   end
 
@@ -1154,58 +1156,45 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table_header_cell) do
     """
-      .auix-items-table-header-cell {
-        /* p-0 pb-4 pr-6 font-normal h-full align-bottom */
-        padding: 0;           /* p-0 */
-        padding-bottom: 1rem; /* pb-4 (4 * 0.25rem = 1rem) */
-        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
-        font-weight: 400;     /* font-normal */
-        height: 100%;         /* h-full */
-        vertical-align: bottom; /* align-bottom */
-      }
+    .auix-items-table-header-cell {
+    }
     """
   end
 
-  def rule(:auix_items_table_header_cell_content) do
+  def rule(:auix_items_table_header_cell__first) do
     """
-      .auix-items-table-header-cell-content {
-        /* font-bold inline-flex */
-        font-weight: 700;    /* font-bold */
-        display: inline-flex; /* inline-flex */
-      }
+    #{import_rule(:auix_items_table_header_cell, :auix_items_table_header_cell__first)}
+    .auix-items-table-header-cell--first {
+    }
     """
   end
 
   def rule(:auix_items_table_body) do
     """
-      .auix-items-table-body {
-        
-        position: relative;
+    .auix-items-table-body {
+      
+      position: relative;
 
-        /* Divider Rules (divide-y and divide-zinc-100 are translated into border-bottom on children) */
-        /* Since we cannot apply divide-y directly to the parent, we apply border-top to the body
-          and assume the row children handle the rest of the dividers. */
-        border-top-width: 1px;                          /* border-t */
-        border-top-color: var(--auix-color-border-secondary); /* border-zinc-200 */
+      border-top-width: 1px;
+      border-top-color: var(--auix-color-border-secondary);
 
-        font-size: 0.875rem;                            /* text-sm */
-        line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
-        color: var(--auix-color-text-hover);
-      }
+      font-size: 0.875rem;
+      line-height: 1.5rem;
+      color: var(--auix-color-text-hover);
+    }
 
-      .auix-items-table-body > tr:not(:last-child) {
-        border-bottom-width: 1px;
-        border-bottom-color: var(--auix-color-border-tertiary);
-      }
+    .auix-items-table-body > tr:not(:last-child) {
+      border-bottom-width: 1px;
+      border-bottom-color: var(--auix-color-border-tertiary);
+    }
     """
   end
 
   def rule(:auix_items_table_row) do
     """
-      .auix-items-table-row:hover {
-        /* hover:bg-zinc-50 */
-        background-color: var(--auix-color-bg-hover); /* Zinc 50 */
-      }
+    .auix-items-table-row:hover {
+      background-color: var(--auix-color-bg-hover);
+    }
     """
   end
 
@@ -1247,7 +1236,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         top: -1px;                            /* -inset-y-px */
         bottom: -1px;                         /* -inset-y-px */
         right: 0;                             /* right-0 */
-        left: -1rem;                          /* -left-4 (4 * 0.25rem = 1rem) */
+        left: 0rem;                          /* -left-4 (4 * 0.25rem = 1rem) */
       }
 
       .auix-items-table-row:hover .auix-items-table-cell-focus-ring {
@@ -1634,7 +1623,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         top: -1px;
         bottom: -1px;
         right: 0;
-        left: -1rem;
+        left: 0rem;
         display: flex;
         align-items: center;
         z-index: 1;

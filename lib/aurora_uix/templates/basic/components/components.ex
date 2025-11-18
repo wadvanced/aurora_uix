@@ -177,13 +177,10 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               {render_slot(filter_element, "")}
             </th>
           </tr>
-          <tr>
-            <th :for={col <- @col} class="auix-items-table-header-cell">
-              <div class="auix-items-table-header-cell-content">
-                <div name="auix-column-label">
-                  <.table_column_label auix={@auix} label={col.label} />
-                </div>
-              </div>
+          <tr class="auix-items-table-header-row">
+            <th :for={{col, i} <- Enum.with_index(@col)} 
+                class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}> 
+              <.table_column_label auix={@auix} label={col.label} />
             </th>
           </tr>
         </thead>
@@ -195,29 +192,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
           class="auix-items-table-body"
         >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row">
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row"> 
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
-              class={if @row_click, do: "auix-items-table-cell-clickable", else: "auix-items-table-cell"}
             >
-              <div class="auix-items-table-cell-content">
-                <span class="auix-items-table-cell-focus-ring" />
-                <div class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
-                  {render_slot(col, @row_item.(row))}
-                </div>
-              </div>
+                {render_slot(col, @row_item.(row))}
             </td>
             <td :if={@action != []} class="auix-items-table-action-cell">
-              <div class="auix-items-table-action-cell-content">
-                <span class="auix-items-table-action-cell-focus-ring" />
-                <span
-                  :for={action <- @action}
-                  class="auix-items-table-action-button"
-                >
+                <div :for={action <- @action}>
                   {render_slot(action, @row_item.(row))}
-                </span>
-              </div>
+                </div>
             </td>
           </tr>
         </tbody>
