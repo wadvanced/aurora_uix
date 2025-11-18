@@ -38,8 +38,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal) do
     """
       .auix-modal {
-        /* relative z-50 hidden */
-        position: relative; /* relative */
+        
+        position: relative; 
         z-index: 50;        /* z-50 */
         display: none;
       }
@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition */
 
         /* POSITIONING & VISIBILITY */
-        position: relative;            /* relative */
+        position: relative;            
         display: none;                 /* hidden */
 
         /* BOX STYLES */
@@ -395,10 +395,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_button_toggle_filters_container) do
     """
       .auix-button-toggle-filters-container {
-        /* relative w-14 pr-1 */
+        
 
         /* POSITIONING & LAYOUT */
-        position: relative;         /* relative */
+        position: relative;         
         width: max-content;              /* w-14 (14 * 0.25rem = 3.5rem / 56px) */
 
         /* SPACING */
@@ -412,10 +412,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_button_toggle_filters_content) do
     """
       .auix-button-toggle-filters-content {
-        /* relative whitespace-nowrap py-2 text-right text-sm font-medium */
+        
 
         /* POSITIONING & CONTENT FLOW */
-        position: relative;         /* relative */
+        position: relative;         
         white-space: nowrap;        /* whitespace-nowrap (Prevents text wrapping) */
         width: max-content;
 
@@ -1179,7 +1179,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_body) do
     """
       .auix-items-table-body {
-        /* relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700 */
+        
         position: relative;
 
         /* Divider Rules (divide-y and divide-zinc-100 are translated into border-bottom on children) */
@@ -1234,6 +1234,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-top: 1rem;    /* py-4 (4 * 0.25rem = 1rem) */
         padding-bottom: 1rem; /* py-4 */
         padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
+        position: relative;
       }
     """
   end
@@ -1268,8 +1269,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_cell_text) do
     """
       .auix-items-table-cell-text {
-        /* relative */
-        position: relative; /* relative */
+        
+        position: relative; 
+        display: flex;
+        height: 1rem;
       }
     """
   end
@@ -1277,8 +1280,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_cell_text__first) do
     """
       .auix-items-table-cell-text--first {
-        /* relative font-semibold text-zinc-900 */
-        position: relative;                             /* relative */
+        
+        position: relative;                             
+        display: flex;
+        align-items: stretch;
+        min-height: 100%;
         font-weight: 600;                               /* font-semibold */
         color: var(--auix-color-text-primary);          /* text-zinc-900 */
       }
@@ -1288,8 +1294,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_action_cell) do
     """
       .auix-items-table-action-cell {
-        /* relative w-14 p-0 */
-        position: relative; /* relative */
+        
+        position: relative; 
         width: 3.5rem;      /* w-14 (14 * 0.25rem = 3.5rem) */
         padding: 0;         /* p-0 */
       }
@@ -1299,8 +1305,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_action_cell_content) do
     """
       .auix-items-table-action-cell-content {
-        /* relative whitespace-nowrap py-4 text-right text-sm font-medium */
-        position: relative;          /* relative */
+        
+        position: relative;          
         white-space: nowrap;         /* whitespace-nowrap */
         padding-top: 1rem;           /* py-4 (4 * 0.25rem = 1rem) */
         padding-bottom: 1rem;        /* py-4 */
@@ -1342,8 +1348,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_action_button) do
     """
       .auix-items-table-action-button {
-        /* relative ml-4 font-semibold leading-6 text-zinc-900 */
-        position: relative;                             /* relative */
+        
+        position: relative;                             
         margin-left: 1rem;                              /* ml-4 (4 * 0.25rem = 1rem) */
         font-weight: 600;                               /* font-semibold */
         line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
@@ -1621,6 +1627,29 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_index_cell_content_link) do
+    """
+      .auix-index-cell-content-link {
+        position: absolute;
+        top: -1px;
+        bottom: -1px;
+        right: 0;
+        left: -1rem;
+        display: flex;
+        align-items: center;
+        z-index: 1;
+      }
+
+      @media(min-width: 640px) {
+        .auix-index-cell-content-link {
+          border-top-left-radius: 0.75rem;
+          border-bottom-left-radius: 0.75rem;
+        }
+      }
+
+    """
+  end
+
   def rule(:auix_index_filter_element_actions) do
     """
       .auix-index-filter-element-actions {
@@ -1633,7 +1662,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_filter_element_actions_content) do
     """
       .auix-index-filter-element-actions-content {
-        position: relative;            /* relative */
+        position: relative;            
         white-space: nowrap;           /* whitespace-nowrap */
         padding-top: 1rem;             /* py-4 (4 * 0.25rem = 1rem) */
         padding-bottom: 1rem;          /* py-4 */
@@ -1672,7 +1701,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_filter_element_action_button) do
     """
       .auix-index-filter-element-action-button {
-        position: relative;            /* relative */
+        position: relative;            
         margin-left: 1rem;             /* ml-4 (4 * 0.25rem = 1rem) */
         font-weight: 600;              /* font-semibold */
         line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
@@ -2492,8 +2521,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   defp common_items_table_cell_css(suffix \\ "") do
     """
       .auix-items-table-cell#{suffix} {
-        /* relative p-0 */
-        position: relative; /* relative */
+        
+        position: relative; 
         padding: 0;         /* p-0 */
       }
     """

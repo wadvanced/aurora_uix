@@ -104,7 +104,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             <%= if field.key == :selected_check__ do %>
               <.field_value entity={entity} field={field} auix={@auix}/>
             <% else %>
-              <.auix_link href="#" navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
+              <.auix_link class="auix-index-cell-content-link" href="#" navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
                 <.field_value entity={entity} field={field} auix={@auix}/>
               </.auix_link>
             <% end %>

@@ -203,9 +203,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             >
               <div class="auix-items-table-cell-content">
                 <span class="auix-items-table-cell-focus-ring" />
-                <span class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
+                <div class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
                   {render_slot(col, @row_item.(row))}
-                </span>
+                </div>
               </div>
             </td>
             <td :if={@action != []} class="auix-items-table-action-cell">
