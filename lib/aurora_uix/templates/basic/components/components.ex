@@ -193,7 +193,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           class="auix-items-table-body"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row"> 
-            <td
+            <td class="auix-items-table-cell"
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
             >

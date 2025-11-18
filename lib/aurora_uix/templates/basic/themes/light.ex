@@ -55,10 +55,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-error: #FB7185;          /* rose-400 for input error borders */
       --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
       --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
-      --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
       --auix-color-error-bg: #FFF1F2;       /* rose-50 (Error Background) */
       --auix-color-error-text: #831843;     /* rose-900 (Error Text/Fill) */
       --auix-color-error-ring: #F43F5E;     /* rose-500 (Error Ring) */
+      --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
+      --auix-color-icon-default: #18181B;   /* zinc-900 */
+      --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions */
+      --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions */
 
       /* Borders */
       --auix-color-border-default: #D4D4D8; /* zinc-300 */

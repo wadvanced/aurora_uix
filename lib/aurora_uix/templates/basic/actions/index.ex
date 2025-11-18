@@ -64,29 +64,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
-  Renders the "show" action link for an entity in the index layout.
-
-  ## Parameters
-  - `assigns` (map()) - Assigns map containing:
-    * `:auix` (map()) - Required context with:
-      - `:link_prefix` (binary()) - URL path prefix
-      - `:source` (binary()) - Data source identifier
-      - `:row_info` (tuple()) - Entity row information
-      - `:module` (atom()) - Context module name
-
-  ## Returns
-  Rendered.t() - The rendered "show" action link (screen-reader only)
-  """
-  @spec show_row_action(map()) :: Rendered.t()
-  def show_row_action(assigns) do
-    ~H"""
-      <div class="auix-visually-hidden">
-        <.auix_link href="#" navigate={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>{gettext("Show")}</.auix_link>
-      </div>
-    """
-  end
-
-  @doc """
   Renders the "edit" action link for an entity in the index layout.
 
   ## Parameters
@@ -103,7 +80,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link href="#" patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>{gettext("Edit")}</.auix_link>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
+        <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil-square" />
+      </.auix_link>
     """
   end
 
@@ -130,7 +109,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
             name={"auix-delete-#{@auix.module}"}
             data-confirm={gettext("Are you sure?")}
           >
-            Delete
+        <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
       </.link>
     """
   end
@@ -439,7 +418,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec add_default_row_actions(Socket.t()) :: Socket.t()
   defp add_default_row_actions(socket) do
     Actions.add_actions(socket, :index_row_actions,
-      default_row_show: &show_row_action/1,
       default_row_edit: &edit_row_action/1,
       default_row_delete: &remove_row_action/1
     )

@@ -1192,6 +1192,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table_row) do
     """
+    .auix-items-table-row {
+    }
     .auix-items-table-row:hover {
       background-color: var(--auix-color-bg-hover);
     }
@@ -1200,154 +1202,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table_cell) do
     """
-      #{common_items_table_cell_css()}
-    """
-  end
-
-  def rule(:auix_items_table_cell_clickable) do
-    """
-      #{common_items_table_cell_css("-clickable")}
-
-      .auix-items-table-cell-clickable:hover {
-        /* hover:cursor-pointer */
-        cursor: pointer;    /* hover:cursor-pointer */
-      }
-    """
-  end
-
-  def rule(:auix_items_table_cell_content) do
-    """
-      .auix-items-table-cell-content {
-        /* block py-4 pr-6 */
-        display: block;       /* block */
-        padding-top: 1rem;    /* py-4 (4 * 0.25rem = 1rem) */
-        padding-bottom: 1rem; /* py-4 */
-        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
-        position: relative;
-      }
-    """
-  end
-
-  def rule(:auix_items_table_cell_focus_ring) do
-    """
-      .auix-items-table-cell-focus-ring {
-        /* absolute -inset-y-px right-0 -left-4 */
-        position: absolute;                   /* absolute */
-        top: -1px;                            /* -inset-y-px */
-        bottom: -1px;                         /* -inset-y-px */
-        right: 0;                             /* right-0 */
-        left: 0rem;                          /* -left-4 (4 * 0.25rem = 1rem) */
-      }
-
-      .auix-items-table-row:hover .auix-items-table-cell-focus-ring {
-        /* group-hover:bg-zinc-50 */
-        background-color: var(--auix-color-background-hover); /* Zinc 50 */
-      }
-
-      /* Small breakpoint (sm) and up */
-      @media (min-width: 640px) {
-        .auix-items-table-cell-focus-ring {
-          /* sm:rounded-l-xl */
-          border-top-left-radius: 0.75rem;    /* rounded-l-xl (12 * 0.0625rem = 0.75rem) */
-          border-bottom-left-radius: 0.75rem;
-        }
-      }
-    """
-  end
-
-  def rule(:auix_items_table_cell_text) do
-    """
-      .auix-items-table-cell-text {
-        
-        position: relative; 
-        display: flex;
-        height: 1rem;
-      }
-    """
-  end
-
-  def rule(:auix_items_table_cell_text__first) do
-    """
-      .auix-items-table-cell-text--first {
-        
-        position: relative;                             
-        display: flex;
-        align-items: stretch;
-        min-height: 100%;
-        font-weight: 600;                               /* font-semibold */
-        color: var(--auix-color-text-primary);          /* text-zinc-900 */
-      }
+    .auix-items-table-cell {
+    }
     """
   end
 
   def rule(:auix_items_table_action_cell) do
     """
       .auix-items-table-action-cell {
-        
-        position: relative; 
-        width: 3.5rem;      /* w-14 (14 * 0.25rem = 3.5rem) */
-        padding: 0;         /* p-0 */
-      }
-    """
-  end
-
-  def rule(:auix_items_table_action_cell_content) do
-    """
-      .auix-items-table-action-cell-content {
-        
-        position: relative;          
-        white-space: nowrap;         /* whitespace-nowrap */
-        padding-top: 1rem;           /* py-4 (4 * 0.25rem = 1rem) */
-        padding-bottom: 1rem;        /* py-4 */
-        text-align: right;           /* text-right */
-        font-size: 0.875rem;         /* text-sm */
-        font-weight: 500;            /* font-medium */
-      }
-    """
-  end
-
-  def rule(:auix_items_table_action_cell_focus_ring) do
-    """
-      .auix-items-table-action-cell-focus-ring {
-        /* absolute -inset-y-px -right-4 left-0 */
-        position: absolute;                   /* absolute */
-        top: -1px;                            /* -inset-y-px */
-        bottom: -1px;                         /* -inset-y-px */
-        right: -1rem;                         /* -right-4 (4 * 0.25rem = 1rem) */
-        left: 0;                              /* left-0 */
-      }
-
-      /* Group-hover interaction */
-      .auix-items-table-row:hover .auix-items-table-action-cell-focus-ring {
-        /* group-hover:bg-zinc-50 */
-        background-color: var(--auix-color-background-hover); /* Zinc 50 */
-      }
-
-      /* Small breakpoint (sm) and up */
-      @media (min-width: 640px) {
-        .auix-items-table-action-cell-focus-ring {
-          /* sm:rounded-r-xl */
-          border-top-right-radius: 0.75rem;    /* rounded-r-xl (12 * 0.0625rem = 0.75rem) */
-          border-bottom-right-radius: 0.75rem;
-        }
-      }
-    """
-  end
-
-  def rule(:auix_items_table_action_button) do
-    """
-      .auix-items-table-action-button {
-        
-        position: relative;                             
-        margin-left: 1rem;                              /* ml-4 (4 * 0.25rem = 1rem) */
-        font-weight: 600;                               /* font-semibold */
-        line-height: 1.5rem;                            /* leading-6 (6 * 0.25rem = 1.5rem) */
-        color: var(--auix-color-text-primary);          /* text-zinc-900 */
-      }
-
-      .auix-items-table-action-button:hover {
-        /* hover:text-zinc-700 */
-        color: var(--auix-color-text-hover);            /* hover:text-zinc-700 */
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        padding-top: 0.250rem;
+        padding-left: 0.875rem;
       }
     """
   end
@@ -1565,44 +1432,33 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_container) do
     """
       .auix-index-container {
-        max-width: max-content; /* max-w-max */
-        padding: 1rem;          /* p-4 - 16px */
-        margin-left: auto;      /* mx-auto */
-        margin-right: auto;     /* mx-auto */
+        max-width: max-content;
+        padding: 1rem;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      @media (min-width: 640px) { /* sm:p-6 (Min-width: 640px) */
+      @media (min-width: 640px) {
         .auix-index-container {
-          padding: 1.5rem; /* p-6 - 24px */
+          padding: 1.5rem;
         }
       }
 
-      @media (min-width: 1024px) { /* lg:py-8 (Min-width: 1024px) */
+      @media (min-width: 1024px) {
         .auix-index-container {
-          padding-top: 2rem;    /* py-8 - 32px */
-          padding-bottom: 2rem; /* py-8 - 32px */
-          padding-left: 1.5rem; /* The padding-left from sm:p-6 is retained */
-          padding-right: 1.5rem;/* The padding-right from sm:p-6 is retained */
-        }
+          padding-top: 2rem;
+          padding-bottom: 2rem;
+          padding-left: 1.5rem;
+          padding-right: 1.5rem;
+        } 
       }
     """
   end
 
-  def rule(:auix_index_actions) do
+  def rule(:auix_index_row_action) do
     """
-      .auix-index-actions {
-        #{common_actions_css()}
-        width: 100%;
-      }
-    """
-  end
-
-  def rule(:auix_index_select_actions) do
-    """
-      .auix-index-select-actions {
-        justify-self: start;  /* justify-self-start (Aligns item to the start of its grid area on the inline axis) */
-        vertical-align: middle; /* align-middle (Aligns element with the baseline plus half the x-height of the parent) */
-      }
+    .auix-index-row-action{
+    }
     """
   end
 
@@ -1613,29 +1469,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         justify-self: end;            /* justify-self-end (Aligns the item to the end of its grid area/cell) */
         vertical-align: middle;       /* align-middle (Aligns the element's content/vertical position) */
       }
-    """
-  end
-
-  def rule(:auix_index_cell_content_link) do
-    """
-      .auix-index-cell-content-link {
-        position: absolute;
-        top: -1px;
-        bottom: -1px;
-        right: 0;
-        left: 0rem;
-        display: flex;
-        align-items: center;
-        z-index: 1;
-      }
-
-      @media(min-width: 640px) {
-        .auix-index-cell-content-link {
-          border-top-left-radius: 0.75rem;
-          border-bottom-left-radius: 0.75rem;
-        }
-      }
-
     """
   end
 
@@ -2246,10 +2079,34 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_icon_size_6) do
     """
-      .auix-icon-size-6 { // default
+      .auix-icon-size-6 {
         width: 1.5rem;          /* size-6 (6 * 0.25rem = 1.5rem) */
         height: 1.5rem;         /* size-6 */
       }
+    """
+  end
+
+  def rule(:auix_icon_default) do
+    """
+    .auix-icon-default {
+      color: var(--auix-color-icon-default)
+    }
+    """
+  end
+
+  def rule(:auix_icon_safe) do
+    """
+    .auix-icon-safe {
+      color: var(--auix-color-icon-safe)
+    }
+    """
+  end
+
+  def rule(:auix_icon_danger) do
+    """
+    .auix-icon-danger {
+      color: var(--auix-color-icon-danger)
+    }
     """
   end
 
@@ -2502,17 +2359,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           font-size: 0.875rem;            /* sm:text-sm */
           line-height: 1.5rem;            /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
         }
-      }
-    """
-  end
-
-  @spec common_items_table_cell_css(binary()) :: binary()
-  defp common_items_table_cell_css(suffix \\ "") do
-    """
-      .auix-items-table-cell#{suffix} {
-        
-        position: relative; 
-        padding: 0;         /* p-0 */
       }
     """
   end
