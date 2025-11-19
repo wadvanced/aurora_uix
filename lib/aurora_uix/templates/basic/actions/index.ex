@@ -59,7 +59,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     |> add_default_select_all_actions()
     |> add_default_header_actions()
     |> add_default_footer_actions()
-    |> add_default_filters_actions()
     |> Actions.modify_actions(@actions)
   end
 
@@ -270,7 +269,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(assigns) do
     ~H"""
-    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"}>
+    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"} role="button">
       <.button>{gettext("New")} {@auix.name}</.button>
     </.auix_link>
     """
@@ -290,14 +289,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     ~H"""
       <div :if={Map.get(@auix, :filters) != []} class="auix-button-toggle-filters-container">
         <div class="auix-button-toggle-filters-content">
-          <span class="auix-button-toggle-filters-focus-ring" />
           <%= if Map.get(@auix, :filters_enabled?) do %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
-              <.icon name="hero-funnel"/>
+            <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive"}/>
               <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
+            <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
             </a>
           <% else %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
+            <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
           <% end %>
         </div>
       </div>
@@ -317,13 +317,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Uses predefined button styling from module attribute @filters_button_class
   """
   @spec clear_filters_action(map()) :: Rendered.t()
-  def clear_filters_action(assigns) do
+  def clear_filters_action(%{auix: %{filters_enabled?: true}} = assigns) do
     assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
 
     ~H"""
     <.button type="button" class={@filters_button_class} phx-click="filters-clear" name={"auix-filters_clear-#{@auix.module}"}>{gettext("Clear Filters")}</.button>
     """
   end
+
+  def clear_filters_action(assigns), do: ~H""
 
   @doc """
   Renders a button to submit current filter selections in the index layout.
@@ -338,13 +340,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Uses predefined button styling from module attribute @filters_button_class
   """
   @spec submit_filters_action(map()) :: Rendered.t()
-  def submit_filters_action(assigns) do
+  def submit_filters_action(%{auix: %{filters_enabled?: true}} = assigns) do
     assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
 
     ~H"""
     <.button type="button" class={@filters_button_class} phx-click="filters-submit" name={"auix-filters_submit-#{@auix.module}"}>{gettext("Submit")}</.button>
     """
   end
+
+  def submit_filters_action(assigns), do: ~H""
 
   @doc """
   Renders pagination controls for the index layout.
@@ -446,6 +450,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   defp add_default_header_actions(socket) do
     Actions.add_actions(socket, :index_header_actions,
       default_toggle_filters: &toggle_filters_action/1,
+      default_clear: &clear_filters_action/1,
+      default_submit: &submit_filters_action/1,
       default_new: &new_header_action/1
     )
   end
@@ -455,15 +461,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   defp add_default_footer_actions(socket),
     do:
       Actions.add_actions(socket, :index_footer_actions, default_pagination: &pagination_action/1)
-
-  # Adds filter management actions (clear/submit) to assigns
-  @spec add_default_filters_actions(Socket.t()) :: Socket.t()
-  defp add_default_filters_actions(socket) do
-    Actions.add_actions(socket, :index_filters_actions,
-      default_clear: &clear_filters_action/1,
-      default_submit: &submit_filters_action/1
-    )
-  end
 
   # Extracts primary key value from row_info tuple {index, entity_map}
   @spec row_info_id(map()) :: term() | nil

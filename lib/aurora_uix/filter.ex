@@ -52,13 +52,13 @@ defmodule Aurora.Uix.Filter do
   """
 
   @conditions [
-    {"=", :eq},
-    {">", :gt},
-    {"<", :lt},
-    {"≥", :ge},
-    {"≤", :le},
-    {"<>", :between},
-    {"[]", :in}
+    {"equals (=)", :eq},
+    {"greater than (>)", :gt},
+    {"less than (<)", :lt},
+    {"greater equal than (≥)", :ge},
+    {"less equal than (≤)", :le},
+    {"between (<o>)", :between},
+    {"in list ([o])", :in}
   ]
 
   @enforce_keys [:key, :condition]

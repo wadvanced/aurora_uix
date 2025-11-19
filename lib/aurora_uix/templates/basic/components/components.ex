@@ -265,7 +265,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     ~H"""
     <div name="auix-items-card" class="auix-items-card-container">
       <div :if={Map.get(@auix, :filters_enabled?)}>
-        <div :for={filter_element <- @filter_element}>
+        <div :for={filter_element <- @filter_element} class="auix-filter-card">
           {render_slot(filter_element, "--mobile--")}
         </div>
       </div>

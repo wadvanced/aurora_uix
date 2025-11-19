@@ -270,9 +270,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def handle_event("filters-clear", _params, %{assigns: %{auix: %{filters: filters}}} = socket) do
     {:noreply,
-     Enum.reduce(filters, socket, fn {key, _filter}, acc_socket ->
+     filters
+     |> Enum.reduce(socket, fn {key, _filter}, acc_socket ->
        update_filter(acc_socket, key, %{condition: :eq, from: nil, to: nil})
-     end)}
+     end)
+     |> assign_filters_selected_count()}
   end
 
   def handle_event(
@@ -280,28 +282,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         _params,
         %{assigns: %{auix: %{filters: filters}}} = socket
       ) do
-    filters =
-      filters
-      |> Enum.reject(fn
-        {_key, %{condition: :between} = filter} ->
-          is_nil(filter.from) or is_nil(filter.to)
-
-        {_key, filter} ->
-          is_nil(filter.from)
-      end)
-      |> Enum.map(fn
-        {_key, %{condition: :eq} = filter} ->
-          {filter.key, filter.from}
-
-        {_key, %{condition: :between} = filter} ->
-          {filter.key, filter.condition, filter.from, filter.to}
-
-        {_key, filter} ->
-          {filter.key, filter.condition, filter.from}
-      end)
+    filters = get_selected_filters(filters)
 
     {:noreply,
      socket
+     |> assign_filters_selected_count()
      |> prepare_query_options(where: filters)
      |> refresh_current_page()}
   end
@@ -878,7 +863,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     socket
     |> assign_auix(:filters, filters)
+    |> assign_filters_selected_count()
     |> assign_auix(:index_layout_form, to_form(filters))
+  end
+
+  @spec assign_filters_selected_count(Socket.t()) :: Socket.t()
+  defp assign_filters_selected_count(%{assigns: %{auix: %{filters: filters}}} = socket) do
+    filters = get_selected_filters(filters)
+    assign_auix(socket, :filters_selected_count, Enum.count(filters))
   end
 
   @spec assign_stylesheet(Socket.t()) :: Socket.t()
@@ -901,6 +893,28 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
     |> put_in([Access.key!(:assigns), :auix, :filters], filters)
     |> assign_auix(:index_layout_form, to_form(filters))
+  end
+
+  @spec get_selected_filters(list()) :: list()
+  defp get_selected_filters(filters) do
+    filters
+    |> Enum.reject(fn
+      {_key, %{condition: :between} = filter} ->
+        is_nil(filter.from) or is_nil(filter.to)
+
+      {_key, filter} ->
+        is_nil(filter.from)
+    end)
+    |> Enum.map(fn
+      {_key, %{condition: :eq} = filter} ->
+        {filter.key, filter.from}
+
+      {_key, %{condition: :between} = filter} ->
+        {filter.key, filter.condition, filter.from, filter.to}
+
+      {_key, filter} ->
+        {filter.key, filter.condition, filter.from}
+    end)
   end
 
   @spec previous_page(map()) :: integer()
