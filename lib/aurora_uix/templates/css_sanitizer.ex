@@ -359,8 +359,9 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   # Ensures ETS table exists for CSS parser caching
   @spec refresh_ets_table() :: :ok
   defp refresh_ets_table do
-    if :ets.info(:parsed) != :undefined, do: :ets.delete(:parsed)
-    :ets.new(:parsed, [:named_table, :public, :set])
+    if :ets.info(:parsed) != :undefined,
+      do: :ets.delete_all_objects(:parsed),
+      else: :ets.new(:parsed, [:named_table, :public, :set])
   end
 
   # Helper function for regex-based property allowlist matching
