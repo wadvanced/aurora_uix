@@ -92,7 +92,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
   defp select_product({conn, view}, product_id) do
     {:ok, view, _html} =
       view
-      |> element("tr[id^='products-#{product_id}'] a[name='auix-show-product']")
+      |> element("tr[id^='products-#{product_id}'] td:nth-child(2) a[name='auix-show-product']")
       |> render_click()
       |> follow_redirect(conn)
 

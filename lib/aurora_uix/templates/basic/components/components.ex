@@ -177,14 +177,16 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               {render_slot(filter_element, "")}
             </th>
           </tr>
-          <tr>
-            <th :for={col <- @col} class="auix-items-table-header-cell">
-              <div class="auix-items-table-header-cell-content">
-                <div name="auix-column-label">
-                  <.table_column_label auix={@auix} label={col.label} />
-                </div>
-              </div>
+          <tr class="auix-items-table-header-row">
+            <th :for={{col, i} <- Enum.with_index(@col)} 
+                class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}
+                name="auix-column-label"> 
+              <.table_column_label auix={@auix} label={col.label} />
             </th>
+          </tr>
+          <tr class="auix-items-table-header-row">
+            <td colspan={Enum.count(@col) + 1} class="auix-horizontal-divider">
+            </td>
           </tr>
         </thead>
 
@@ -195,29 +197,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
           class="auix-items-table-body"
         >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row">
-            <td
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row"> 
+            <td class="auix-items-table-cell"
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={evaluate_phx_click(assigns, row)}
-              class={if @row_click, do: "auix-items-table-cell-clickable", else: "auix-items-table-cell"}
             >
-              <div class="auix-items-table-cell-content">
-                <span class="auix-items-table-cell-focus-ring" />
-                <span class={if i == 0, do: "auix-items-table-cell-text--first", else: "auix-items-table-cell-text"}>
-                  {render_slot(col, @row_item.(row))}
-                </span>
-              </div>
+                {render_slot(col, @row_item.(row))}
             </td>
             <td :if={@action != []} class="auix-items-table-action-cell">
-              <div class="auix-items-table-action-cell-content">
-                <span class="auix-items-table-action-cell-focus-ring" />
-                <span
-                  :for={action <- @action}
-                  class="auix-items-table-action-button"
-                >
+                <div :for={action <- @action}>
                   {render_slot(action, @row_item.(row))}
-                </span>
-              </div>
+                </div>
             </td>
           </tr>
         </tbody>
@@ -286,17 +276,28 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           class="auix-items-card-list"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item">
-          <div :for={col <- @col}>
-            <div class="auix-items-card-item-content">
-              <div class="auix-items-card-item-label" :if={!is_function(col.label, 1)}  name="auix-column-label">
-                <.label>{col.label}</.label>:
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 
+            class={if even?(row), do: "auix-items-card-item-content--even", else: "auix-items-card-item-content--odd"}>
+          <%= if Enum.at(@col, 0) do %>
+            <div class="auix-items-card-item-group">
+              <div class="auix-items-card-item--clickable">
+                {render_slot(Enum.at(@col, 0), @row_item.(row))}
               </div>
-              <div name="auix-column-value">
-                {render_slot(col, @row_item.(row))}
+              <div class="auix-items-card-item">
+                <div :for={col <- List.delete_at(@col, 0)} class="auix-items-card-item-fieldset">
+                  <div class="auix-items-card-item-label">{col.label}</div>
+                  <div class="auix-items-card-item-value" name="auix-column-value">
+                    {render_slot(col, @row_item.(row))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+            <div :if={@action != []} class="auix-items-card-actions">
+                <div :for={action <- @action}>
+                  {render_slot(action, @row_item.(row))}
+                </div>
+            </div>
+          <% end %>
         </div>
 
       </div>
@@ -499,4 +500,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   defp assign_rows(assigns, rows, _source_key, _suffix), do: assign(assigns, :rows, rows)
+
+  @spec even?(tuple) :: boolean()
+  defp even?({_id, entity}) do
+    entity
+    |> Kernel.||(%{})
+    |> Map.get(:_even?, false)
+  end
+
+  defp even?(_), do: false
 end

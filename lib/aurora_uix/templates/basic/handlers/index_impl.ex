@@ -712,11 +712,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
          } = socket
        ) do
     entries =
-      Enum.map(entries, fn entry ->
+      Enum.with_index(entries, fn entry, index ->
         item_id = BasicHelpers.primary_key_value(entry, auix.primary_key)
 
         entry
         |> Map.from_struct()
+        |> Map.put(:_even?, rem(index, 2) == 0)
         |> Selection.set_item_select_state(item_id, auix.selection)
       end)
 
