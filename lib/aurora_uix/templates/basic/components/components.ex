@@ -271,17 +271,28 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           class="auix-items-card-list"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item">
-          <div :for={col <- @col}>
-            <div class="auix-items-card-item-content">
-              <div class="auix-items-card-item-label" :if={!is_function(col.label, 1)}  name="auix-column-label">
-                <.label>{col.label}</.label>:
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 
+            class={if even?(row), do: "auix-items-card-item-content--even", else: "auix-items-card-item-content--odd"}>
+          <%= if Enum.at(@col, 0) do %>
+            <div class="auix-items-card-item-group">
+              <div class="auix-items-card-item--clickable">
+                {render_slot(Enum.at(@col, 0), @row_item.(row))}
               </div>
-              <div name="auix-column-value">
-                {render_slot(col, @row_item.(row))}
+              <div class="auix-items-card-item">
+                <div :for={col <- List.delete_at(@col, 0)} class="auix-items-card-item-fieldset">
+                  <div class="auix-items-card-item-label">{col.label}</div>
+                  <div class="auix-items-card-item-value" name="auix-column-value">
+                    {render_slot(col, @row_item.(row))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+            <div :if={@action != []} class="auix-items-card-actions">
+                <div :for={action <- @action}>
+                  {render_slot(action, @row_item.(row))}
+                </div>
+            </div>
+          <% end %>
         </div>
 
       </div>
@@ -484,4 +495,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   defp assign_rows(assigns, rows, _source_key, _suffix), do: assign(assigns, :rows, rows)
+
+  @spec even?(tuple) :: boolean()
+  defp even?({_id, entity}) do
+    entity
+    |> Kernel.||(%{})
+    |> Map.get(:_even?, false)
+  end
 end

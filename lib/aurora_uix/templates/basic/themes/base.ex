@@ -1223,54 +1223,94 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_card_container) do
     """
       .auix-items-card-container {
-        /* space-y-4 */
-        margin-top: 1rem;       /* Equivalent to Tailwind's space-y-4 on subsequent direct siblings */
-      }
-    """
-  end
-
-  def rule(:auix_items_card_list) do
-    """
-      .auix-items-card-list {
-        /* overflow-y-scroll block w-full h-[calc(100svh-15rem)] */
-        overflow-y: scroll;                           /* overflow-y-scroll */
-        display: block;                               /* block */
-        width: 100%;                                  /* w-full */
-        height: calc(100svh - 15rem);                 /* h-[calc(100svh-15rem)] */
-      }
-    """
-  end
-
-  def rule(:auix_items_card_item) do
-    """
-      .auix-items-card-item {
-        /* bg-white rounded-lg shadow p-4 border border-gray-200 */
-        background-color: #ffffff;                         /* bg-white */
-        border-radius: 0.5rem;                             /* rounded-lg (8px) */
-        box-shadow: var(--auix-shadow-default)
-        padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
-        border-width: 1px;                                 /* border */
-        border-color: var(--auix-color-border-secondary);  /* border-gray-200 (#E5E7EB) */
       }
     """
   end
 
   def rule(:auix_items_card_item_content) do
     """
-      .auix-items-card-item-content {
-        /* inline-flex */
-        display: inline-flex; /* inline-flex */
-      }
+    .auix-items-card-item-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-top: 0.25rem;
+      padding-right: 0.5rem;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.25rem;
+      border-radius: 0.5rem;
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item_content__even) do
+    """
+    #{import_rule(:auix_items_card_item_content, :auix_items_card_item_content__even)}
+    .auix-items-card-item-content--even {
+      background-color: var(--auix-color-bg-secondary);
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item_content__odd) do
+    """
+    #{import_rule(:auix_items_card_item_content, :auix_items_card_item_content__odd)}
+    .auix-items-card-item-content--odd {
+      background-color: var(--auix-color-bg-default);
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item_group) do
+    """
+    .auix-items-card-item-group {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item) do
+    """
+    .auix-items-card-item {
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item_fieldset) do
+    """
+    .auix-items-card-item-fieldset {
+      line-height: 1rem;
+    }
     """
   end
 
   def rule(:auix_items_card_item_label) do
     """
-      .auix-items-card-item-label {
-        /* flex mr-1 */
-        display: flex;         /* flex */
-        margin-right: 0.25rem; /* mr-1 (1 * 0.25rem = 0.25rem) */
-      }
+    .auix-items-card-item-label {
+      font-size: 0.875rem;
+      font-weight: bold;
+    }
+    """
+  end
+
+  def rule(:auix_items_card_item_value) do
+    """
+    .auix-items-card-item-value {
+      padding-left: 0.250rem;
+      font-style: italic;
+    }
+    """
+  end
+
+  def rule(:auix_items_card_actions) do
+    """
+    .auix-items-card-actions{
+
+    }
     """
   end
 
@@ -1433,16 +1473,22 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_container) do
     """
       .auix-index-container {
-        max-width: max-content;
+        max-widtH: 100%;
         padding: 1rem;
-        margin-left: auto;
-        margin-right: auto;
         caret-color: transparent;
       }
 
       @media (min-width: 640px) {
         .auix-index-container {
           padding: 1.5rem;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .auix-index-container {
+          max-width: max-content;
+          margin-left: auto;
+          margin-right: auto;
         }
       }
 
