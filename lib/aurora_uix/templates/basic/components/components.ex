@@ -179,7 +179,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           </tr>
           <tr class="auix-items-table-header-row">
             <th :for={{col, i} <- Enum.with_index(@col)} 
-                class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}> 
+                class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}
+                name="auix-column-label"> 
               <.table_column_label auix={@auix} label={col.label} />
             </th>
           </tr>
@@ -502,4 +503,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> Kernel.||(%{})
     |> Map.get(:_even?, false)
   end
+
+  defp even?(_), do: false
 end

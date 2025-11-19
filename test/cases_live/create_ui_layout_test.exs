@@ -101,7 +101,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
 
     assert html
            |> LazyHTML.from_document()
-           |> LazyHTML.query("thead tr th [name='auix-column-label']")
+           |> LazyHTML.query("thead tr th[name='auix-column-label']")
            |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
            |> List.delete_at(0) == [
              "Id",
@@ -121,16 +121,22 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     view
     |> tap(&assert has_element?(&1, "a[name='auix-new-product']"))
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+      &assert has_element?(
+                &1,
+                "tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']"
+              )
     )
     |> tap(
       &assert has_element?(
                 &1,
-                "tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']"
+                "tr[id^='products']:nth-of-type(1) a[name='auix-edit-product']"
               )
     )
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
+      &assert has_element?(
+                &1,
+                "tr[id^='products']:nth-of-type(1) a[name='auix-delete-product']"
+              )
     )
   end
 
@@ -160,9 +166,12 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
 
     view
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+      &assert has_element?(
+                &1,
+                "tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']"
+              )
     )
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+    |> element("tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']")
     |> render_click()
     |> follow_redirect(conn)
     |> elem(1)
@@ -180,7 +189,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-layout-products")
 
     view
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-show-product']")
+    |> element("tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']")
     |> render_click()
     |> follow_redirect(conn)
     |> elem(1)
@@ -200,10 +209,10 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     |> tap(
       &assert has_element?(
                 &1,
-                "tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']"
+                "tr[id^='products']:nth-of-type(1) a[name='auix-edit-product']"
               )
     )
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-edit-product']")
+    |> element("tr[id^='products']:nth-of-type(1) a[name='auix-edit-product']")
     |> render_click()
     |> tap(&assert &1 =~ "auix-save-product")
 
@@ -226,9 +235,9 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
 
     view
     |> tap(
-      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
+      &assert has_element?(&1, "tr[id^='products']:nth-of-type(1) a[name='auix-delete-product']")
     )
-    |> element("tr[id^='products']:nth-of-type(1)  a[name='auix-delete-product']")
+    |> element("tr[id^='products']:nth-of-type(1) a[name='auix-delete-product']")
     |> render()
     |> LazyHTML.from_fragment()
     |> tap(&assert &1 |> LazyHTML.attribute("data-confirm") |> List.first() =~ "Are you sure?")
