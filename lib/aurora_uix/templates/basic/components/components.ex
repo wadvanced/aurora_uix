@@ -184,6 +184,10 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               <.table_column_label auix={@auix} label={col.label} />
             </th>
           </tr>
+          <tr class="auix-items-table-header-row">
+            <td colspan={Enum.count(@col) + 1} class="auix-horizontal-divider">
+            </td>
+          </tr>
         </thead>
 
         <tbody

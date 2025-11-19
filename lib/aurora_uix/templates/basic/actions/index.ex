@@ -383,7 +383,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       when pages_count > 1 do
     ~H"""
       <div name={"auix-pages_bar-#{@auix.source}"} class="auix-pagination-container">
-        <hr class="auix-pagination-divider"/>
+        <div class="auix-horizontal-divider"></div>
         <div class="auix-pagination-breakpoint-xl2" name={"auix-pages_bar-#{@auix.source}-xl2"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}

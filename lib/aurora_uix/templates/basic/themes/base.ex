@@ -25,6 +25,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_horizontal_divider) do
+    """
+    .auix-horizontal-divider {
+      border-top: 1px solid var(--auix-color-border-default);
+      margin-top: 0.125rem;
+      margin-bottom: 0.250rem;
+    }
+    """
+  end
+
   def rule(:auix_tag_a) do
     """
       a {
@@ -1146,13 +1156,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_header_filter_cell) do
     """
       .auix-items-table-header-filter-cell {
-        /* p-0 pb-4 pr-6 font-normal h-full align-bottom */
-        padding: 0;           /* p-0 */
-        padding-bottom: 1rem; /* pb-4 (4 * 0.25rem = 1rem) */
-        padding-right: 1.5rem;/* pr-6 (6 * 0.25rem = 1.5rem) */
-        font-weight: 400;     /* font-normal */
-        height: 100%;         /* h-full */
-        vertical-align: bottom; /* align-bottom */
+        padding: 0;
+        padding-bottom: 1rem;
+        padding-right: 1.5rem;
+        font-weight: 400;
+        height: 100%;
+        vertical-align: bottom;
       }
     """
   end
@@ -1354,13 +1363,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_bar_current_page_number) do
     """
     .auix-pagination-bar-current-page-number {
-      border-width: 1px;
-      border-color: var(--auix-color-border-subtle);
+      border: 1px solid var(--auix-color-border-focus);
       border-radius: 9999px;
       padding-top: 0;
       padding-bottom: 0;
-      padding-left: 0.25rem;
-      padding-right: 0.25rem;
+      padding-left: 0.250rem;
+      padding-right: 0.250rem;
+      color: var(--auix-color-text-on-accent);
+      background-color: var(--auix-color-bg-default--reverted);
     }
     """
   end
@@ -1899,17 +1909,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_container) do
     """
       .auix-pagination-container {
-        /* mt-0 */
-        margin-top: 0;   /* mt-0 (Resets any default or inherited top margin) */
-      }
-    """
-  end
-
-  def rule(:auix_pagination_divider) do
-    """
-      .auix-pagination-divider {
-        /* mb-4 */
-        margin-bottom: 1rem;   /* mb-4 (4 * 0.25rem = 1rem) */
+        margin-top: 0;
       }
     """
   end
@@ -1920,8 +1920,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* h-0 invisible */
 
         /* Initial state (for screens < 1536px): Hidden and takes no height */
-        height: 0;                /* h-0 */
-        visibility: hidden;         /* invisible */
+        height: 0;
+        visibility: hidden;
       }
 
       /* --- 2XL Breakpoint (min-width: 1536px) --- */
@@ -1929,7 +1929,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       @media (min-width: 1536px) {
         .auix-pagination-breakpoint-xl2 {
           visibility: visible;
-          height: auto; /* Added for correct layout, assuming this was the intent */
+          height: auto;
         }
       }
     """
@@ -1941,17 +1941,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         /* h-0 invisible */
 
         /* Initial state (for screens < 1280px): Hidden and takes no height */
-        height: 0;                /* h-0 */
-        visibility: hidden;         /* invisible */
+        height: 0;
+        visibility: hidden;
       }
 
       /* --- XL Breakpoint (min-width: 1280px) --- */
 
       @media (min-width: 1280px) {
         .auix-pagination-breakpoint-xl {
-          /* xl:visible (Makes it visible and corrects the height) */
           visibility: visible;
-          height: auto;             /* Per your requirement */
+          height: auto;
         }
       }
 
@@ -1961,7 +1960,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         .auix-pagination-breakpoint-xl {
           /* 2xl:invisible (Hides it again on larger screens) */
           visibility: hidden;
-          height: 0;                /* Reset height when hidden to avoid taking up space */
+          height: 0;
         }
       }
     """
@@ -1981,9 +1980,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       @media (min-width: 1024px) {
         .auix-pagination-breakpoint-lg {
-          /* lg:visible (Makes it visible and sets height to auto) */
           visibility: visible;
-          height: auto;             /* Per the requirement to take up space when visible */
+          height: auto;
         }
       }
 
@@ -1993,7 +1991,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         .auix-pagination-breakpoint-lg {
           /* xl:invisible (Hides it again on larger screens) */
           visibility: hidden;
-          height: 0;                /* Reset height when hidden to avoid taking up space */
+          height: 0;
         }
       }
     """
@@ -2016,9 +2014,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       @media (min-width: 768px) {
         .auix-pagination-breakpoint-md {
-          /* md:visible (Makes it visible and sets height to auto) */
           visibility: visible;
-          height: auto;             /* Takes up natural space */
+          height: auto;
         }
       }
 
@@ -2026,9 +2023,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       @media (min-width: 1024px) {
         .auix-pagination-breakpoint-md {
-          /* lg:invisible (Hides it again on larger screens) */
           visibility: hidden;
-          height: 0;                /* Reset height when hidden to avoid taking up space */
+          height: 0; 
         }
       }
     """
