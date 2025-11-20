@@ -1551,6 +1551,28 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_index_select_actions) do
+    """
+    .auix-index-select-actions {
+      display: flex;
+      flex-direction: row;
+      gap: 0.25rem;
+    }
+    """
+  end
+
+  def rule(:auix_index_delete_all_action_button) do
+    """
+    #{import_rule(:auix_button__alt, :auix_index_delete_all_action_button)}
+
+    .auix-index-delete-all-action-button {
+      display: flex;
+      flex-direction: row;
+      gap: 0.25rem;
+    }
+    """
+  end
+
   def rule(:auix_show_container) do
     """
       .auix-show-container {
