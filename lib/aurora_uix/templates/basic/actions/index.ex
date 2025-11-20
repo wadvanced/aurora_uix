@@ -27,10 +27,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
-  import Phoenix.Component, only: [sigil_H: 2, link: 1]
+  import Phoenix.Component, only: [sigil_H: 2, link: 1, live_component: 1]
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions
+  alias Aurora.Uix.Templates.Basic.ConfirmButton
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -131,10 +132,29 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-delete_all"
-        name={"auix-selected_delete_all-#{@auix.module}"}>
-      {gettext("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
-    </.button>
+      <.live_component 
+        id={"auix-delete-all-button-#{@auix.module}"}
+        module={ConfirmButton}
+        class={@selected_button_class}
+        value={%{delete_all: true}}
+        event="selected-delete_all"
+        target={@auix.index_form_id}
+      >
+        <:content>
+          {gettext("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
+        </:content>
+
+        <:confirm_message>
+          <div>
+            <%= if @auix.selection.selected_count == 1 do %>
+              <span>{gettext("Do you want to remove the selected item?")}</span>
+            <% else %>
+              <span>{gettext("Do you want to remove all the selected items?")}</span>
+            <% end %>
+          </div>
+        </:confirm_message>
+        
+      </.live_component>
     """
   end
 

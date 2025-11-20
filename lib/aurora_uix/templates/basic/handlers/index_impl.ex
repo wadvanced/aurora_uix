@@ -145,6 +145,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     theme_module = ThemeHelper.theme_module()
 
+    index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
+
     {:ok,
      socket
      |> assign_auix(:form_component, form_component)
@@ -152,6 +154,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:selection, Selection.new())
      |> assign_auix(:list_function_selected, auix.list_function_paginated)
      |> assign_auix(:reset_stream?, true)
+     |> assign_auix(:index_form_id, index_form_id)
      |> assign_auix_new(:theme_module, theme_module)
      |> assign_stylesheet()
      |> assign_layout_options()

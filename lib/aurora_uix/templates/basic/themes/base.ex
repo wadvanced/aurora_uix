@@ -360,15 +360,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_button_badge) do
     """
       .auix-button-badge {
-        /* text-xs align-sub border */
-
-        /* TYPOGRAPHY */
-        font-size: 0.75rem;     /* text-xs (12px) */
-        vertical-align: sub;    /* align-sub */
-
-        /* BORDER */
-        border-width: 1px;      /* border */
-        border-style: solid;    /* Implicit border style */
+        font-size: 0.75rem;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 9999px;
+        padding-left: 0.250rem;
+        padding-right: 0.250rem;
       }
     """
   end
