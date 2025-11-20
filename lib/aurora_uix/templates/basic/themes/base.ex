@@ -1169,6 +1169,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_cell) do
     """
     .auix-items-table-cell {
+      padding-right: 1rem;
     }
     """
   end
@@ -1453,7 +1454,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_container) do
     """
     .auix-index-container {
-      max-widtH: 100%;
+      max-width: 100%;
       padding: 1rem;
       caret-color: transparent;
     }
@@ -1466,7 +1467,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     @media (min-width: 768px) {
       .auix-index-container {
-        max-width: max-content;
         margin-left: auto;
         margin-right: auto;
       }
@@ -1480,6 +1480,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-right: 1.5rem;
       } 
     }
+
     """
   end
 
