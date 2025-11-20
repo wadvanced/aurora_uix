@@ -32,7 +32,7 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
            |> selected_states()
            |> Enum.all?(& &1)
 
-    assert has_element?(view, "button[name='auix-selected_delete_all-product']")
+    assert has_element?(view, "#auix-delete-all-button-product>button", "Delete selected")
 
     # Test uncheck all button
     view
@@ -63,7 +63,13 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
 
     # Lets delete them
     view
-    |> element("button[name='auix-selected_delete_all-product']")
+    |> element("#auix-delete-all-button-product>button")
+    |> render_click()
+
+    view
+    |> element(
+      "#auix-delete-all-button-product-modal-content button.auix-confirm-button--accept-action"
+    )
     |> render_click()
 
     assert view
