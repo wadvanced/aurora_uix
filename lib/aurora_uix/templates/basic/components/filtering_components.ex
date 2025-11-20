@@ -66,7 +66,9 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
             class="auix-filter-input"
+            fieldset_class="auix-filter-fieldset"
             input_class="auix-filter-input-field"
+            omit_label?={true}
           />
         <.input
             id={"#{@field.html_id}#{@infix}-filter_to"}
@@ -75,9 +77,11 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
             type={"#{@field.html_type}"}
             options={@select_opts[:options]}
             class="auix-filter-input"
+            fieldset_class="auix-filter-fieldset"
             input_class={if @filter.condition != :between, do: "auix-filter-input-field--disabled", else: "auix-filter-input-field"}
             readonly={@filter.condition != :between}
             disabled={@filter.condition != :between}
+            omit_label?={true}
           />
         </div>
     """
@@ -93,7 +97,9 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
           value={(@filter.condition)}
           type="select"
           options={Filter.conditions()}
+          fieldset_class="auix-filter-fieldset"
           input_class="auix-filter-condition-input"
+          omit_label?={true}
         />
     """
   end

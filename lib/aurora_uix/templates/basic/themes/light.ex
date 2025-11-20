@@ -63,9 +63,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-icon-default: #18181B;   /* zinc-900 */
       --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions */
       --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions */
+      --auix-color-icon-inactive: #D4D4D8;  /* zinc-300 for inactive or low relevance actions */
 
       /* Borders */
-      --auix-color-border-default: #D4D4D8; /* zinc-300 */
+      --auix-color-border-primary: #D4D4D8; /* zinc-300 */
       --auix-color-border-secondary: #E4E4E7; /* zinc-200 */
       --auix-color-border-tertiary: #F4F4F5; /* zinc-100 */
       --auix-color-border-focus: #A1A1AA;   /* zinc-400 for input focus border */

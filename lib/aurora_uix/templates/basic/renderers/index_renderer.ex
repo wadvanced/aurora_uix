@@ -64,7 +64,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         </div>
       </div>
 
-      
       <.auix_simple_form :let={index_layout_form} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
         <.auix_items
           id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
@@ -85,19 +84,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
                       infix={infix}
                       filter={get_in(@auix, [:index_layout_form, field.key, Access.key!(:value)])}
                       auix={@auix}/>
-          </:filter_element>
-
-          <:filter_element>
-            <div :if={@auix.index_filters_actions != []} class="auix-index-filter-element-actions">
-              <div class="auix-index-filter-element-actions-content">
-                <span class="auix-index-filter-element-actions-focus-ring" />
-                <span
-                  :for={%{function_component: action} <- @auix.index_filters_actions}
-                      class="auix-index-filter-element-action-button">
-                  {action.(%{auix: @auix})}
-                </span>
-              </div>
-            </div>
           </:filter_element>
 
           <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={field.label} field={field}>

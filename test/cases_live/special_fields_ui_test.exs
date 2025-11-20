@@ -83,7 +83,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
            |> List.first() == "item_group_3d-1"
 
     view
-    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -108,7 +108,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
            |> List.first() == "item_group_3d-2"
 
     view
-    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -134,7 +134,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
            |> List.first() == "item_group_3c"
 
     view
-    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -164,7 +164,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
            |> List.first() == locations["id_3"].id
 
     view
-    |> element("[name='auix-items-table'] [name='auix-filters_submit-product']")
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']")
     |> render_click()
 
     assert view
@@ -191,7 +191,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
 
   @spec prepare_filters_test(Phoenix.Conn.t()) :: View.t()
   defp prepare_filters_test(conn) do
-    delete_all_inventory_data()
+    delete_all_sample_data()
     locations = create_sample_product_locations(5, :flt)
 
     create_sample_products(2, :group_1a, %{
