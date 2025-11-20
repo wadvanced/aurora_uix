@@ -64,7 +64,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         </div>
       </div>
 
-      <.auix_simple_form :let={index_layout_form} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
+      <.auix_simple_form :let={index_layout_form} id={@auix.index_form_id} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
         <.auix_items
           id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
           auix={%{configurations: @auix.configurations,
