@@ -77,5 +77,5 @@ config :wallaby,
   hackney_options: [timeout: 5_000],
   chromedriver: [
     headless: true,
-    javascriptEnabled: true
+    javascriptEnabled: false
   ]
