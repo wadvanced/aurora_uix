@@ -12,7 +12,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   @save_button Query.css("button[name='auix-save-user']")
   @expand_details_button Query.css("details[name^='auix-details-auix-field-user-emails-']")
   @add_embed_button Query.css(
-                      "div[name='auix-embeds_many-header_actions'] > div[phx-click='toggle-add-embeds']"
+                      "div[name='auix-embeds_many-header_actions'] > button[phx-click='toggle-add-embeds']"
                     )
   @do_add_button Query.css(
                    "div[name='auix-embeds_many-new_entry_actions'] > button[form^='auix-embeds-many-']"
