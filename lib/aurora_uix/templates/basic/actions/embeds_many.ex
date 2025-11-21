@@ -71,9 +71,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @spec header_enable_add_entry(map()) :: Rendered.t()
   def header_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
-      <div phx-click="toggle-add-embeds" phx-target={@target}>
+      <.button class="auix-button--alt" type="button" phx-click="toggle-add-embeds" phx-target={@target}>
         <.icon name="hero-plus-circle"/> 
-      </div>
+        <span>{gettext("Add new entry")}</span>
+      </.button>
     """
   end
 
@@ -92,17 +93,19 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @spec footer_enable_add_entry(map()) :: Rendered.t()
   def footer_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
-      <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
-        <.icon name="hero-plus" />
-        <span>{gettext("Add new entry")}</span>
-      </.button>
+      <%= if Enum.count(@auix.form[@field.key].value) > 0 do %>
+        <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
+          <.icon name="hero-plus-circle" />
+          <span>{gettext("Add new entry")}</span>
+        </.button>
+      <% end %>
     """
   end
 
   def footer_enable_add_entry(assigns), do: ~H""
 
   @doc """
-  Renders a button for adding / save a new entry in a embeds-many association form.
+  Renders a button fo{r adding / save a new entry in a embeds-many association form.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
@@ -145,19 +148,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
       <.live_component 
         id={"auix-remove-button-#{@entry_index}"}
         module={ConfirmButton}
-        class="auix-button--danger"
+        class="auix-button--iconized"
         value={%{entry_index: @entry_index}}
         event="remove-entry"
         target={@target}
       >
         <:content>
-          <.icon name="hero-minus-circle" />
-          <span>{gettext("Remove")}</span>
+          <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
         </:content>
 
         <:confirm_message>
           <div class="auix-embeds-many--remove-entry-action">
-            <span class="auix-header-title">{@entry_index + 1}</span>
+            <span class="auix-header-title">{gettext("Entry:")} {@entry_index + 1}</span>
             <span>{gettext("Do you want to remove this entry?")}</span>
           </div>
         </:confirm_message>
