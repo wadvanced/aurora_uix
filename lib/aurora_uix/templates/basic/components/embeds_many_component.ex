@@ -131,11 +131,10 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                   {action.(%{auix: @auix, field: @field, target: @myself})}
                 <% end %>
               </div>
-              <span :if={@auix.layout_type == :form}>{gettext("Add new entry")}</span>
             </div>
           </.header>
           <.embedded_entries auix={@auix} field={@field} target={@myself}/>
-         <div :if={@auix.enable_add_embeds} >
+          <div :if={@auix.enable_add_embeds} >
             <.portal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-wrapper"} target="#portal-target">
               <.modal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-modal"} 
                         show={@auix.enable_add_embeds}

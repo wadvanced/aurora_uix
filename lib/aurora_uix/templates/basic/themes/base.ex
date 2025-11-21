@@ -322,6 +322,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       .auix-button:hover {
         background-color: var(--auix-color-bg-hover--reverted);
+        cursor: pointer;
       }
 
       .auix-button:active {
@@ -353,6 +354,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     .auix-button--alt:hover {
       background-color: var(--auix-color-bg-hover) !important;
+      cursor: pointer;
     }
     """
   end
@@ -370,29 +372,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_button__danger) do
+  def rule(:auix_button__iconized) do
     """
-      .auix-button--danger {
-        border-radius: 0.5rem;
-        background-color: var(--auix-color-bg-danger);
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.5rem;
-        color: var(--auix-color-text-on-accent);
-      }
-
-      .auix-button--danger:hover {
-        background-color: var(--auix-color-bg-danger-hover);
-      }
-
-      .auix-button--danger:active {
-        color: var(--auix-color-text-on-accent-active);
-      }
-
-      .auix-button--danger[phx-submit-loading] {
-        opacity: 0.75;
-      }
+    .auix-button--iconized {
+      background-color: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+    .auix-button--iconized:hover {
+      background-color: var(--auix-color-bg-secondary);
+      cursor: pointer;
+    }
     """
   end
 

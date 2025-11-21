@@ -8,8 +8,8 @@
 /deps/
 
 # The developer and test configuration
-/conf/test.exs
-/conf/dev.exs
+/config/test.exs
+/config/dev.exs
 
 # Icons css, they are generated
 /assets/css/icons.css
