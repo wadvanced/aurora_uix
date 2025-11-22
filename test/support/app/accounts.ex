@@ -10,9 +10,5 @@ defmodule Aurora.Uix.Test.Accounts do
   alias Aurora.Uix.Repo
   alias Aurora.Uix.Test.Accounts.User
 
-  def list_users do
-    Repo.all(User)
-  end
-
   ctx_register_schema(User, Repo)
 end

@@ -7,6 +7,9 @@ defmodule Aurora.UixWeb.Test.Router do
   """
   use Aurora.UixWeb.Test, :router
 
+  alias Aurora.UixWeb.Test.RoutesHelper
+  require Aurora.UixWeb.Test.RoutesHelper
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -27,6 +30,15 @@ defmodule Aurora.UixWeb.Test.Router do
   scope "/", Aurora.UixWeb.Test do
     pipe_through(:browser)
     load_test_routes()
+  end
+
+  scope "/", Aurora.UixWeb.Guides do
+    pipe_through(:browser)
+
+    RoutesHelper.register_product_crud(
+      Overview,
+      "guide-overview-"
+    )
   end
 
   # Other scopes may use custom stacks.
