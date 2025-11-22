@@ -1457,6 +1457,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-index-container {
         margin-left: auto;
         margin-right: auto;
+        width: max-content;
+        max-width: max-content;
       }
     }
 
