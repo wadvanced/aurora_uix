@@ -5,8 +5,8 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsFormTest do
   use Aurora.Uix.CoreComponentsImporter
   import Phoenix.Component, only: [sigil_H: 2]
 
-  alias Aurora.Uix.Inventory
-  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
 
   @spec custom_form_header_action(map()) :: Rendered.t()
   def custom_form_header_action(assigns) do

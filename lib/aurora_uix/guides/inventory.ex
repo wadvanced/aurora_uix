@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Inventory do
+defmodule Aurora.Uix.Guides.Inventory do
   @moduledoc """
   Inventory context for guides and test support. 
   This module and its children are excluded from package builds and documentation, 
@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Inventory do
 
   use Aurora.Ctx
 
-  alias Aurora.Uix.Inventory.{Product, ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Guides.Inventory.{Product, ProductLocation, ProductTransaction}
   alias Aurora.Uix.Repo
 
   @doc """

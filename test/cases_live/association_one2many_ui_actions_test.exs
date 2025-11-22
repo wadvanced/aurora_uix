@@ -7,10 +7,10 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUIActionsTest do
   import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2]
 
-  alias Aurora.Uix.Inventory
-  alias Aurora.Uix.Inventory.Product
-  alias Aurora.Uix.Inventory.ProductLocation
-  alias Aurora.Uix.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
   @spec custom_new_child(map()) :: Rendered.t()
   def custom_new_child(assigns) do

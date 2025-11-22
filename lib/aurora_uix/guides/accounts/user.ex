@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Accounts.User do
+defmodule Aurora.Uix.Guides.Accounts.User do
   @moduledoc """
   Ecto schema for test users in the Aurora.Uix application.
 
@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Accounts.User do
 
   import Ecto.Changeset
 
-  alias Aurora.Uix.Accounts.User
+  alias Aurora.Uix.Guides.Accounts.User
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),

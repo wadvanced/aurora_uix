@@ -194,7 +194,7 @@ defmodule Aurora.Uix.MixProject do
   end
 
   defp process_starts_with(module) do
-    ["Elixir.Aurora.Uix.Accounts", "Elixir.Aurora.UixWeb"]
+    ["Elixir.Aurora.Uix.Guides", "Elixir.Aurora.UixWeb"]
     |> Enum.map(fn string -> module |> String.starts_with?(string) |> Kernel.!() end)
     |> Enum.all?()
   end

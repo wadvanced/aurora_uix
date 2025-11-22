@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Inventory.ProductLocation do
+defmodule Aurora.Uix.Guides.Inventory.ProductLocation do
   @moduledoc """
   Symbolic Ecto schema for product locations in test inventory scenarios.
 
@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Inventory.ProductLocation do
     field(:name, :string)
     field(:type, :string)
 
-    has_many(:products, Aurora.Uix.Inventory.Product)
+    has_many(:products, Aurora.Uix.Guides.Inventory.Product)
 
     timestamps()
   end

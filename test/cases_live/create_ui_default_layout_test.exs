@@ -2,8 +2,8 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Inventory
-  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 

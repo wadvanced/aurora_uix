@@ -7,10 +7,10 @@ defmodule Aurora.Uix.Test.Helper do
   - Generates products, product locations, and transactions for test scenarios.
   """
 
-  alias Aurora.Uix.Accounts.User
-  alias Aurora.Uix.Inventory.Product
-  alias Aurora.Uix.Inventory.ProductLocation
-  alias Aurora.Uix.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Accounts.User
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory.ProductTransaction
   alias Aurora.Uix.Repo
 
   require Logger

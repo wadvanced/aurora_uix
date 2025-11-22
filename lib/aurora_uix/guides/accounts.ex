@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Accounts do
+defmodule Aurora.Uix.Guides.Accounts do
   @moduledoc """
   Provides guides and test context for user accounts in the Aurora.Uix application. 
   This module and its children are excluded from package builds and documentation, 
@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Accounts do
 
   use Aurora.Ctx
 
-  alias Aurora.Uix.Accounts.User
+  alias Aurora.Uix.Guides.Accounts.User
   alias Aurora.Uix.Repo
 
   ctx_register_schema(User, Repo)

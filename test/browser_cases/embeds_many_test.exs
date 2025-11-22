@@ -3,8 +3,8 @@ defmodule Aurora.UixWeb.Test.BrowserEmbedsManyTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
 
-  alias Aurora.Uix.Accounts
-  alias Aurora.Uix.Accounts.User
+  alias Aurora.Uix.Guides.Accounts
+  alias Aurora.Uix.Guides.Accounts.User
   alias Wallaby.Query
   alias Wallaby.Session
 

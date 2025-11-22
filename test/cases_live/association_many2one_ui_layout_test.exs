@@ -2,10 +2,10 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneUILayoutTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Inventory
-  alias Aurora.Uix.Inventory.Product
-  alias Aurora.Uix.Inventory.ProductLocation
-  alias Aurora.Uix.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
   auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
     field(:products, omitted: true)
