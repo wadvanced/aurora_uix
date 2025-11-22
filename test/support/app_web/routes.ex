@@ -207,6 +207,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           EmbedsManyTest,
           "embeds-many-"
         )
+
+        RoutesHelper.register_user_crud(
+          BrowserEmbedsManyTest,
+          "browser-embeds-many-"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
