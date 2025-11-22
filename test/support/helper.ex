@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Test.Inventory.ProductLocation
   alias Aurora.Uix.Test.Inventory.ProductTransaction
 
-  alias Aurora.Uix.Test.Accounts.User
+  alias Aurora.Uix.Accounts.User
 
   require Logger
 
