@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Inventory.Product do
+defmodule Aurora.Uix.Inventory.Product do
   @moduledoc """
   Ecto schema for products in test inventory scenarios.
 
@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Test.Inventory.Product do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Aurora.Uix.Test.Inventory.{ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Inventory.{ProductLocation, ProductTransaction}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]

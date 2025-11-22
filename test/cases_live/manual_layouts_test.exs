@@ -2,10 +2,10 @@ defmodule Aurora.UixWeb.Test.ManualLayoutsTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Aurora.UixWeb.Test.UICase, :phoenix_case
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductLocation
-  alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Inventory.ProductLocation
+  alias Aurora.Uix.Inventory.ProductTransaction
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)

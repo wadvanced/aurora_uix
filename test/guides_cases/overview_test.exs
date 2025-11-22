@@ -1,10 +1,10 @@
 defmodule Aurora.UixWeb.Guides.Overview do
   use Aurora.Uix
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductLocation
-  alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Inventory.ProductLocation
+  alias Aurora.Uix.Inventory.ProductTransaction
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 

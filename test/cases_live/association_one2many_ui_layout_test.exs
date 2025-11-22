@@ -2,10 +2,10 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductLocation
-  alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Inventory.ProductLocation
+  alias Aurora.Uix.Inventory.ProductTransaction
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
@@ -282,7 +282,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
     {conn, view}
   end
 
-  @spec get_single_transaction(integer()) :: Aurora.Uix.Test.Inventory.ProductTransaction.t()
+  @spec get_single_transaction(integer()) :: Aurora.Uix.Inventory.ProductTransaction.t()
   defp get_single_transaction(product_id) do
     product_id
     |> Inventory.get_product!(preload: [:product_transactions], order_by: [:id])

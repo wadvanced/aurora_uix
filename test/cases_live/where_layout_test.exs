@@ -2,8 +2,8 @@ defmodule Aurora.UixWeb.Test.WhereLayoutTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
 
   @test_references [
     "Item test_order-05",

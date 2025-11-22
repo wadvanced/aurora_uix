@@ -2,9 +2,9 @@ defmodule Aurora.UixWeb.Test.SeparatedMultipleResourcesUITest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
+  alias Aurora.Uix.Inventory.ProductTransaction
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
@@ -12,9 +12,9 @@ defmodule Aurora.UixWeb.Test.SeparatedMultipleResourcesUITest do
   defmodule TestResources do
     use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-    alias Aurora.Uix.Test.Inventory
-    alias Aurora.Uix.Test.Inventory.Product
-    alias Aurora.Uix.Test.Inventory.ProductTransaction
+    alias Aurora.Uix.Inventory
+    alias Aurora.Uix.Inventory.Product
+    alias Aurora.Uix.Inventory.ProductTransaction
     auix_resource_metadata(:product, context: Inventory, schema: Product)
     auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
   end

@@ -2,9 +2,9 @@ defmodule Aurora.UixWeb.Test.OrderByLayoutTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
   alias Aurora.Uix.Repo
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
 
   @shuffled_references [
     "test_order-11",

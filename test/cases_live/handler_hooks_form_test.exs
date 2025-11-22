@@ -4,8 +4,8 @@ defmodule Aurora.UixWeb.Test.HandlerHooksFormTest do
 
   use Aurora.Uix.CoreComponentsImporter
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 

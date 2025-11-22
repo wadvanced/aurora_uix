@@ -7,8 +7,8 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
   import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2]
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Inventory
+  alias Aurora.Uix.Inventory.Product
 
   @spec custom_row_action_to_add(map()) :: Rendered.t()
   def custom_row_action_to_add(assigns) do

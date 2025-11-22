@@ -5,8 +5,8 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
   @auix_resource_metadata %{
     product_location: %Aurora.Uix.Resource{
       name: :product_location,
-      schema: Aurora.Uix.Test.Inventory.ProductLocation,
-      context: Aurora.Uix.Test.Inventory,
+      schema: Aurora.Uix.Inventory.ProductLocation,
+      context: Aurora.Uix.Inventory,
       fields: %{
         name: %Aurora.Uix.Field{
           key: :name,
@@ -30,8 +30,8 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
     },
     product_transaction: %Aurora.Uix.Resource{
       name: :product_transaction,
-      schema: Aurora.Uix.Test.Inventory.ProductTransaction,
-      context: Aurora.Uix.Test.Inventory,
+      schema: Aurora.Uix.Inventory.ProductTransaction,
+      context: Aurora.Uix.Inventory,
       fields: %{
         type: %Aurora.Uix.Field{
           key: :type,
@@ -48,7 +48,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
           data: %{
             resource: :product,
             owner_key: :product_id,
-            related: Aurora.Uix.Test.Inventory.Product,
+            related: Aurora.Uix.Inventory.Product,
             related_key: :id
           }
         },
@@ -84,7 +84,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
           data: %{
             resource: :product,
             owner_key: :product_id,
-            related: Aurora.Uix.Test.Inventory.Product,
+            related: Aurora.Uix.Inventory.Product,
             related_key: :id
           }
         }
@@ -92,8 +92,8 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
     },
     product: %Aurora.Uix.Resource{
       name: :product,
-      schema: Aurora.Uix.Test.Inventory.Product,
-      context: Aurora.Uix.Test.Inventory,
+      schema: Aurora.Uix.Inventory.Product,
+      context: Aurora.Uix.Inventory,
       fields: %{
         name: %Aurora.Uix.Field{
           key: :name,
@@ -157,7 +157,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
           filterable?: false,
           data: %{
             resource: :product_transaction,
-            related: Aurora.Uix.Test.Inventory.ProductTransaction,
+            related: Aurora.Uix.Inventory.ProductTransaction,
             related_key: :product_id,
             owner_key: :id
           }
@@ -172,7 +172,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
           data: %{
             resource: :product_location,
             owner_key: :product_location_id,
-            related: Aurora.Uix.Test.Inventory.ProductLocation,
+            related: Aurora.Uix.Inventory.ProductLocation,
             option_label: :name,
             related_key: :id
           }
