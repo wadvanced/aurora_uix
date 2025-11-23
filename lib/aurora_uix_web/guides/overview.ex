@@ -1,4 +1,10 @@
 defmodule Aurora.UixWeb.Guides.Overview do
+  @moduledoc """
+  Guide overview for Aurora UIX demonstrating inventory management.
+  Provides resource metadata and UI configurations for products, product locations, and product transactions.
+
+  This module won't be packaged nor included in the documentation.
+  """
   use Aurora.Uix
 
   alias Aurora.Uix.Guides.Inventory
@@ -14,7 +20,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
     field(:product_location_id, option_label: :name)
   end
 
-  auix_create_ui(link_prefix: "guide-overview-") do
+  auix_create_ui link_prefix: "guide-overview-" do
     index_columns(:product, [:reference, :name, :description, :quantity_at_hand])
     index_columns(:product_transaction, [:type, :quantity, :cost])
 

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
+defmodule Aurora.Uix.Guides.Inventory.ProductTransaction do
   @moduledoc """
   Symbolic Ecto schema for product transactions in test inventory scenarios.
 
@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Test.Inventory.ProductTransaction do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.Product
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),

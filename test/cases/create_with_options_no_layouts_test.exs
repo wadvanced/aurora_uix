@@ -2,8 +2,8 @@ defmodule Aurora.UixWeb.CreateWithOptionsNoLayoutsTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
 
@@ -30,8 +30,8 @@ defmodule Aurora.UixWeb.CreateWithOptionsNoLayoutsTest do
   test "Test the `auix_resource` function with a single resource" do
     product = __MODULE__.auix_resource(:product).product
 
-    assert product.schema == Aurora.Uix.Test.Inventory.Product
-    assert product.context == Aurora.Uix.Test.Inventory
+    assert product.schema == Aurora.Uix.Guides.Inventory.Product
+    assert product.context == Aurora.Uix.Guides.Inventory
     assert product.fields != nil
     assert product.fields != []
   end

@@ -5,11 +5,11 @@ defmodule Aurora.UixWeb.Test.LocalDemoTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
+  alias Aurora.Uix.Guides.Inventory
 
-  alias Aurora.Uix.Test.Inventory.Product
-  # alias Aurora.Uix.Test.Inventory.ProductLocation
-  # alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory.Product
+  # alias Aurora.Uix.Guides.Inventory.ProductLocation
+  # alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
   # auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 

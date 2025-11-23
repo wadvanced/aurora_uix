@@ -5,8 +5,8 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   use Aurora.Uix.CoreComponentsImporter
   import Phoenix.Component, only: [sigil_H: 2]
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
 
   @spec page_title(map()) :: term()
   def page_title(assigns) do

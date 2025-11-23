@@ -28,7 +28,7 @@ defmodule Aurora.Uix.MixProject do
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
         files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib),
-        exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*"]
+        exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", "/aurora_uix/lib/guides/**/*"]
       ],
 
       # Docs
@@ -53,7 +53,9 @@ defmodule Aurora.Uix.MixProject do
           Core: ~r{guides/core/.*},
           Advanced: ~r{guides/advanced/.*}
         ],
-        before_closing_body_tag: &before_closing_body_tag/1
+        exclude: ["lib/aurora_uix_web/**/*", "lib/aurora_uix/guides/**/*"],
+        before_closing_body_tag: &before_closing_body_tag/1,
+        filter_modules: &filter_modules/2
       ]
     ]
   end
@@ -184,4 +186,16 @@ defmodule Aurora.Uix.MixProject do
   defp before_closing_body_tag(_),
     do:
       ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
+
+  defp filter_modules(module, _map) do
+    module
+    |> to_string()
+    |> process_starts_with()
+  end
+
+  defp process_starts_with(module) do
+    ["Elixir.Aurora.Uix.Guides", "Elixir.Aurora.UixWeb"]
+    |> Enum.map(fn string -> module |> String.starts_with?(string) |> Kernel.!() end)
+    |> Enum.all?()
+  end
 end

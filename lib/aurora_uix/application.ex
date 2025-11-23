@@ -15,10 +15,12 @@ defmodule Aurora.Uix.Application do
         [
           Aurora.UixWeb.Telemetry,
           Aurora.Uix.Repo,
+          Aurora.Uix.CounterAgent,
           # {DNSCluster, query: Application.get_env(:aurora_uix, :dns_cluster_query) || :ignore},
           {Phoenix.PubSub, name: Aurora.Uix.PubSub},
           # Start a worker by calling: Aurora.Uix.Worker.start_link(arg)
           # {Aurora.Uix.Worker, arg},
+
           # Start to serve requests, typically the last entry
           endpoint
         ]

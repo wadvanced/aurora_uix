@@ -8,8 +8,8 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsShowTest do
 
   import Phoenix.Component, only: [sigil_H: 2]
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
 
   @spec custom_header_action(map()) :: Rendered.t()
   def custom_header_action(assigns) do

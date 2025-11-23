@@ -2,9 +2,9 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
 
   alias Phoenix.LiveViewTest.View
 
@@ -262,7 +262,7 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
   end
 end
 
-# %Aurora.Uix.Test.Inventory.Product{
+# %Aurora.Uix.Guides.Inventory.Product{
 #     __meta__: #Ecto.Schema.Metadata<:loaded, "products">,
 #     id: "03ae4c02-ea92-485c-9fe1-53e0b4fc144c",
 #     reference: "item_group_3d-4",

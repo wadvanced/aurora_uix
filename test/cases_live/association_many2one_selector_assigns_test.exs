@@ -2,10 +2,10 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorAssignsTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Inventory
-  alias Aurora.Uix.Test.Inventory.Product
-  alias Aurora.Uix.Test.Inventory.ProductLocation
-  alias Aurora.Uix.Test.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
   @spec option_label(map(), term()) :: binary()
   def option_label(assigns, entity), do: "#{assigns.auix.layout_type}: #{entity.name}"

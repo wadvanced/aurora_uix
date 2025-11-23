@@ -2,8 +2,8 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  alias Aurora.Uix.Test.Accounts
-  alias Aurora.Uix.Test.Accounts.User
+  alias Aurora.Uix.Guides.Accounts
+  alias Aurora.Uix.Guides.Accounts.User
 
   auix_resource_metadata(:user, context: Accounts, schema: User)
 

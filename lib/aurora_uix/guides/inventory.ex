@@ -1,16 +1,18 @@
-defmodule Aurora.Uix.Test.Inventory do
+defmodule Aurora.Uix.Guides.Inventory do
   @moduledoc """
-  Inventory context for test support.
+  Inventory context for guides and test support. 
+  This module and its children are excluded from package builds and documentation, 
+  since they are intended for use in test and dev environments only.
 
   ## Key Features
   - Provides CRUD operations for products, product transactions, and product locations.
-  - Registers schemas for use in tests.
+  - Registers schemas for use in guides and tests.
   """
 
   use Aurora.Ctx
 
+  alias Aurora.Uix.Guides.Inventory.{Product, ProductLocation, ProductTransaction}
   alias Aurora.Uix.Repo
-  alias Aurora.Uix.Test.Inventory.{Product, ProductLocation, ProductTransaction}
 
   @doc """
   Lists all products.

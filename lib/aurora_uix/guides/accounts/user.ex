@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Test.Accounts.User do
+defmodule Aurora.Uix.Guides.Accounts.User do
   @moduledoc """
   Ecto schema for test users in the Aurora.Uix application.
 
@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
 
   import Ecto.Changeset
 
-  alias Aurora.Uix.Test.Accounts.User
+  alias Aurora.Uix.Guides.Accounts.User
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
@@ -17,8 +17,8 @@ defmodule Aurora.Uix.Test.Accounts.User do
           family_name: binary() | nil,
           avatar_url: binary() | nil,
           confirmed_at: NaiveDateTime.t() | nil,
-          profile: Profile.t() | nil,
-          emails: Email.t() | nil,
+          profile: Ecto.Schema.t() | nil,
+          emails: Ecto.Schema.t() | nil,
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
         }
@@ -73,7 +73,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
   Requires `:online` and `:visibility`.
   """
 
-  @spec profile_changeset(Profile.t(), map()) :: Ecto.Changeset.t()
+  @spec profile_changeset(Ecto.Schema.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def profile_changeset(profile, attrs \\ %{}) do
     profile
     |> cast(attrs, [:online, :dark_mode, :visibility])
@@ -85,7 +85,7 @@ defmodule Aurora.Uix.Test.Accounts.User do
   Casts `:email` and `:name` fields.
   Requires and validates the email format.
   """
-  @spec email_changeset(Email.t(), map()) :: Ecto.Changeset.t()
+  @spec email_changeset(Ecto.Schema.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
   def email_changeset(email, attrs \\ %{}) do
     email
     |> cast(attrs, [:email, :name])

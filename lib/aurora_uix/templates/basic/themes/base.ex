@@ -129,18 +129,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_focus_wrap) do
     """
       .auix-modal-focus-wrap {
-        /* shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition */
 
-        /* POSITIONING & VISIBILITY */
         position: relative;            
-        display: none;                 /* hidden */
+        display: none;
 
-        /* BOX STYLES */
-        border-radius: 1rem;           /* rounded-2xl (16px) */
-        background-color: var(--auix-color-bg-default); /* bg-white */
-        padding: 3.5rem;               /* p-14 (14 * 0.25rem = 3.5rem) */
+        border-radius: 1rem;
+        background-color: var(--auix-color-bg-default); 
+        padding: 3.5rem; 
 
-        /* RING */
         --auix-calc-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary);
 
         box-shadow:
@@ -150,8 +146,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         border-width: 1px;
 
-        /* TRANSITION */
-        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter; /* transition (all properties) */
+        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         transition-duration: 150ms;
       }
@@ -769,24 +764,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_list_container) do
     """
       .auix-list-container {
-        /* -my-4 divide-y divide-zinc-100 */
-        margin-top: -1rem;                  /* -my-4 (-4 * 0.25rem = -1rem) */
-        margin-bottom: -1rem;               /* -my-4 */
+        margin-top: -1rem;
+        margin-bottom: -1rem;
 
-        /* Divide-y (applies horizontal border/divider between vertical siblings) */
-        /* This is the complex CSS needed to mimic Tailwind's divide-y utility */
         --auix-divide-y-reverse: 0;
       }
 
-      /* Selector to apply the divider styles to all children except the first one */
       .auix-list-container > :not([hidden]) ~ :not([hidden]) {
-        /* Divide-y */
         border-top-width: calc(1px * calc(1 - var(--auix-divide-y-reverse)));
         border-bottom-width: calc(1px * var(--auix-divide-y-reverse));
         border-style: solid; /* Default Tailwind border style for dividers */
 
-        /* divide-zinc-100 */
-        border-color: var(--auix-color-bg-light); /* Using zinc-100 for the divider color */
+        border-color: var(--auix-color-bg-light);
       }
     """
   end
@@ -1827,8 +1816,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding: 0;
         margin: -1px;
         overflow: hidden;
-        clip: rect(0, 0, 0, 0); /* Older standard */
-        clip-path: inset(50%); /* Modern standard, moves element out of view */
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
         white-space: nowrap;
         border-width: 0;
       }

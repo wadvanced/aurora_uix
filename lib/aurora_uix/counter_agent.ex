@@ -68,7 +68,7 @@ defmodule Aurora.Uix.CounterAgent do
   """
   @spec start_link(term()) :: {:ok, pid()} | {:error, term()}
   def start_link(_) do
-    Agent.start_link(fn -> 0 end, name: :auix_fields)
+    {:ok, start_counter(:auix_fields)}
   end
 
   @doc """
@@ -90,7 +90,7 @@ defmodule Aurora.Uix.CounterAgent do
   # => #PID<...>
   ```
   """
-  @spec start_counter(atom() | binary() | nil, integer()) :: atom() | binary() | pid()
+  @spec start_counter(atom() | binary() | nil, integer()) :: pid()
   def start_counter(name \\ nil, initial \\ 0)
 
   def start_counter(nil, initial) do
