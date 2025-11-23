@@ -74,7 +74,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   def section(assigns) do
     ~H"""
     <div
-      class={"auix-section-tab " <> if @auix._sections[@auix.layout_tree.config[:sections_id]] == @auix.layout_tree.config[:tab_id] or (@auix._sections[@auix.layout_tree.config[:sections_id]] == nil and @auix.layout_tree.config[:active]), do: "", else: "hidden"}
+      class={"auix-section-tab " <> if @auix._sections[@auix.layout_tree.config[:sections_id]] == @auix.layout_tree.config[:tab_id] or (@auix._sections[@auix.layout_tree.config[:sections_id]] == nil and @auix.layout_tree.config[:active]), do: "", else: "auix-visually-hidden"}
       id={@auix.layout_tree.config[:tab_id]}
       data-tab-label={@auix.layout_tree.config[:label]}
       data-tab-sections-id={@auix.layout_tree.config[:sections_id]}
