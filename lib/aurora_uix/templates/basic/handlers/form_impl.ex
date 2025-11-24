@@ -85,7 +85,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
             params,
             %{assigns: %{action: action, auix: auix}} = socket
           ) do
-        entity_params = FormImpl.entity_params(params, socket)
+        entity_params = Map.get(params, auix.module)
 
         case save_entity(socket, entity_params) do
           {:ok, entity} ->
@@ -161,7 +161,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> assign_auix_new(:_sections, %{})
      |> assign_auix(:_myself, socket.assigns.myself)
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
-     |> assign_auix(:embeds_many_fields, embeds_many_fields(auix))
      |> assign_layout_options()
      |> FormActions.set_actions()
      |> render_with(&Renderer.render/1)}
@@ -197,7 +196,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         params,
         %{assigns: %{auix: auix}} = socket
       ) do
-    entity_params = entity_params(params, socket)
+    entity_params = Map.get(params, auix.module)
 
     socket = Phoenix.LiveView.clear_flash(socket)
 
@@ -311,51 +310,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
-  @doc """
-  Gets the entity params and fix empty embeds many fields.
-
-  ## Parameters
-  - `params` (`map()`) - Map of parameters changed in the UI.
-  - `socket` (`Phoenix.Socket.t()`) - Phoenix socket.
-
-  ## Returns
-  `map()` - With the appropriate UI parameters
-
-  """
-  @spec entity_params(map(), Socket.t()) :: map()
-  def entity_params(params, %{assigns: %{auix: auix}}) do
-    params
-    |> Map.get(auix.module)
-    |> Map.new(&maybe_fix_embeds_many(&1, auix.embeds_many_fields))
-  end
-
-  @spec maybe_fix_embeds_many(tuple(), list()) :: tuple()
-  defp maybe_fix_embeds_many({key, _value} = entry, embeds_many_fields),
-    do: maybe_change_embeds_many_value(entry, key in embeds_many_fields)
-
-  @spec maybe_change_embeds_many_value(tuple(), boolean()) :: tuple()
-  defp maybe_change_embeds_many_value({key, ""}, true), do: {key, []}
-  defp maybe_change_embeds_many_value(entry, _embeds_many_field?), do: entry
-
-  ## PRIVATE ##
-
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
     :form
     |> LayoutOptions.available_options()
     |> Enum.reduce(socket, &BasicHelpers.assign_auix_option(&2, &1))
-  end
-
-  @spec embeds_many_fields(map()) :: list()
-  defp embeds_many_fields(%{modules: %{module: module}}) do
-    if function_exported?(module, :__schema__, 2) do
-      :embeds
-      |> module.__schema__()
-      |> Enum.map(&module.__schema__(:embed, &1))
-      |> Enum.filter(fn %{cardinality: cardinality} -> cardinality == :many end)
-      |> Enum.map(&to_string(&1.field))
-    else
-      []
-    end
   end
 end

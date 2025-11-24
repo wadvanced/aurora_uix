@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
     <div class="auix-index-container">
       <.header>
-        <div id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index-title"}>
+        <div id={"auix-table-#{@auix.uri_path}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
         <:subtitle>
@@ -66,7 +66,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
       <.auix_simple_form :let={index_layout_form} id={@auix.index_form_id} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
         <.auix_items
-          id={"auix-table-#{@auix.link_prefix}#{@auix.source}-index"}
+          id={"auix-table-#{@auix.uri_path}-index"}
           auix={%{configurations: @auix.configurations,
               filters: Map.get(@auix, :filters, %{}),
               index_layout_form: index_layout_form,
@@ -90,7 +90,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             <%= if field.key == :selected_check__ do %>
               <.field_value entity={entity} field={field} auix={@auix}/>
             <% else %>
-              <.auix_link href="#" name={"auix-show-#{@auix.module}"} navigate={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
+              <.auix_link href="#" name={"auix-show-#{@auix.module}"} navigate={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
                 <.field_value entity={entity} field={field} auix={@auix}/>
               </.auix_link>
             <% end %>

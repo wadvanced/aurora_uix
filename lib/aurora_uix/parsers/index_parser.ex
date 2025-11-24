@@ -46,6 +46,11 @@ defmodule Aurora.Uix.Parsers.IndexParser do
 
   """
   @spec default_value(map(), map(), atom()) :: term()
-  def default_value(parsed_opts, _resource_config, :index_new_link),
-    do: "/#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/new"
+  def default_value(parsed_opts, _resource_config, :index_new_link) do
+    if parsed_opts[:link_prefix] do
+      "/#{parsed_opts[:link_prefix]}#{parsed_opts[:source]}/new"
+    else
+      nil
+    end
+  end
 end

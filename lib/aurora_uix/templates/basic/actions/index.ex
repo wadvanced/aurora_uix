@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   - Assumes assigns contain `:auix` with required subkeys:
     * `:row_info` - Entity row information
-    * `:link_prefix` - URL path prefix
+    * `:link_prefix` - Optional URL path prefix. When used will form uri_path along with source.
     * `:source` - Data source identifier
     * `:module` - Context module name
   - Only intended for use in index page layouts
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.link_prefix}#{@auix.source}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
         <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil-square" />
       </.auix_link>
     """

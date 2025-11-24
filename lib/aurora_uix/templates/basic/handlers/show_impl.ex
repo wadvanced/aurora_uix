@@ -67,7 +67,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign_auix_current_path()
+     |> assign_auix_uri_path()
+     |> assign_auix_index_new_link()}
   end
 
   @doc """
@@ -99,7 +103,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
      |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
        type: :navigate,
-       path: "/#{auix.link_prefix}#{auix.source}"
+       path: "/#{auix.uri_path}"
      })
      |> assign_layout_options()
      |> ShowActions.set_actions()

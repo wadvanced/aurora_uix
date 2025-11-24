@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Parsers.Common do
   When a property is not present in the metadata, this module provides default values:
   - `:module` - Defaults to underscored module name (e.g., "blog_post" from MyApp.BlogPost)
   - `:module_name` - Defaults to last part of module name (e.g., "BlogPost" from MyApp.BlogPost)
-  - `:link_prefix` - Defaults to empty string
+  - `:link_prefix` - Defaults to nil
   - `:name` - Defaults to capitalized module name (e.g., "Blog Post" from MyApp.BlogPost)
   - `:source` - Defaults to schema table name from `__schema__(:source)`
   - `:title` - Defaults to capitalized schema source name
@@ -91,7 +91,7 @@ defmodule Aurora.Uix.Parsers.Common do
   def default_value(_parsed_opts, %{schema: module}, :source_key),
     do: :source |> module.__schema__() |> CommonHelper.safe_atom()
 
-  def default_value(_parsed_opts, _resource_config, :link_prefix), do: ""
+  def default_value(_parsed_opts, _resource_config, :link_prefix), do: nil
 
   def default_value(_parsed_opts, %{schema: module}, :title) do
     :source

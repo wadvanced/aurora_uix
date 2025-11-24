@@ -160,15 +160,72 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - url (binary()) - Actual url.
+  - url (binary() | nil) - Actual url.
 
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
   @spec assign_auix_current_path(Socket.t(), binary() | URI.t()) ::
           Socket.t()
+  def assign_auix_current_path(socket, url \\ nil)
+
+  def assign_auix_current_path(socket, nil) do
+    if get_connect_info(socket, :uri) do
+      current_path =
+        socket
+        |> get_connect_info(:uri)
+        |> Map.get(:path)
+
+      assign_auix(socket, :_current_path, current_path)
+    else
+      socket
+    end
+  end
+
   def assign_auix_current_path(socket, url) do
     assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
+  end
+
+  @doc """
+  Sets the global uri path, relies on auix_current_path.
+
+  ## Parameters
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  ## Returns
+  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+  """
+  @spec assign_auix_uri_path(Socket.t()) ::
+          Socket.t()
+  def assign_auix_uri_path(%{assigns: %{auix: auix}} = socket) do
+    uri_path =
+      if auix[:link_prefix],
+        do: "#{auix.link_prefix}#{auix.source}",
+        else:
+          auix._current_path
+          |> String.replace_leading("/", "")
+          |> String.split("/")
+          |> List.first()
+
+    assign_auix(socket, :uri_path, uri_path)
+  end
+
+  @doc """
+  Sets the index new link value. Relies on the existence of auix.uri_path key.
+
+  ## Parameters
+  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  ## Returns
+  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+  """
+  @spec assign_auix_index_new_link(Socket.t()) ::
+          Socket.t()
+  def assign_auix_index_new_link(%{assigns: %{auix: auix}} = socket) do
+    index_new_link =
+      if auix[:index_new_link], do: auix.index_new_link, else: "/#{auix[:uri_path]}/new"
+
+    assign_auix(socket, :index_new_link, index_new_link)
   end
 
   @doc """
@@ -785,17 +842,18 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     routing_stack
     |> Map.from_struct()
     |> Jason.encode!()
-    |> :zlib.compress()
-    |> Base.encode64()
-    |> URI.encode_www_form()
+
+    # |> :zlib.compress()
+    # |> Base.encode64()
+    # |> URI.encode_www_form()
   end
 
   # Decodes an obfuscated routing stack string back into a stack struct
   @spec decode_routing_stack(binary()) :: struct()
   defp decode_routing_stack(obfuscated) do
     obfuscated
-    |> Base.decode64!()
-    |> :zlib.uncompress()
+    # |> Base.decode64!()
+    # |> :zlib.uncompress()
     |> Jason.decode!()
     |> Map.get("values", [])
     |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})

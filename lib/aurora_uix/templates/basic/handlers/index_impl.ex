@@ -155,6 +155,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:list_function_selected, auix.list_function_paginated)
      |> assign_auix(:reset_stream?, true)
      |> assign_auix(:index_form_id, index_form_id)
+     |> assign_auix_current_path()
+     |> assign_auix_uri_path()
+     |> assign_auix_index_new_link()
      |> assign_auix_new(:theme_module, theme_module)
      |> assign_stylesheet()
      |> assign_layout_options()
@@ -181,13 +184,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
-  def auix_handle_params(params, url, %{assigns: %{auix: auix}} = socket) do
+  def auix_handle_params(params, _url, %{assigns: %{auix: auix}} = socket) do
     {:noreply,
      socket
-     |> assign_auix_current_path(url)
      |> assign_auix_routing_stack(params, %{
        type: :patch,
-       path: "/#{auix.link_prefix}#{auix.source}"
+       path: "/#{auix.uri_path}"
      })
      |> render_with(&Renderer.render/1)}
   end
@@ -388,8 +390,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{"page" => page},
         %{assigns: %{auix: %{pagination: %Pagination{}} = auix}} = socket
       ) do
-    {:noreply,
-     auix_route_forward(socket, patch: "/#{auix.link_prefix}#{auix.source}?page=#{page}")}
+    {:noreply, auix_route_forward(socket, patch: "/#{auix.uri_path}?page=#{page}")}
   end
 
   def handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
@@ -407,12 +408,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           }
         } = socket
       ) do
+    IO.inspect(auix.uri_path, label: "******** uri_path")
+
     if pagination_disabled? or Map.get(params, "pagination_disabled?") do
       {:noreply, paginate(socket, pagination.page - 1, Map.get(params, "items_per_page"))}
     else
       {:noreply,
        auix_route_forward(socket,
-         patch: "/#{auix.link_prefix}#{auix.source}?page=#{previous_page(pagination)}"
+         patch: "/#{auix.uri_path}?page=#{previous_page(pagination)}"
        )}
     end
   end
@@ -437,7 +440,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     else
       {:noreply,
        auix_route_forward(socket,
-         patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
+         patch: "/#{auix.uri_path}?page=#{next_page(pagination)}"
        )}
     end
   end
