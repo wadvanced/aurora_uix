@@ -13,21 +13,21 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
   @spec custom_row_action_to_add(map()) :: Rendered.t()
   def custom_row_action_to_add(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-added"}>Custom Added</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-added"}>Custom Added</.auix_link>
     """
   end
 
   @spec custom_row_action_to_replace(map()) :: Rendered.t()
   def custom_row_action_to_replace(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Custom Removed and Added</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Custom Removed and Added</.auix_link>
     """
   end
 
   @spec custom_row_action_to_insert(map()) :: Rendered.t()
   def custom_row_action_to_insert(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-inserted"}>Custom Inserted</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-inserted"}>Custom Inserted</.auix_link>
     """
   end
 

@@ -26,7 +26,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUIActionsTest do
   @spec custom_edit_row_action(map()) :: Rendered.t()
   def custom_edit_row_action(assigns) do
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.link_prefix}#{@auix.association.related_parsed_opts.source}/#{elem(@auix.row_info, 0)}"}
+      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}"}
         name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
           Custom edit
       </.auix_link>

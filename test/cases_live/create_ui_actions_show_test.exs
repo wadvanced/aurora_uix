@@ -14,7 +14,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsShowTest do
   @spec custom_header_action(map()) :: Rendered.t()
   def custom_header_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{@auix.entity.id}/show/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link patch={"/#{@auix.uri_path}/#{@auix.entity.id}/show/edit"} name={"auix-edit-#{@auix.module}"}>
         <.button>Edit Custom {@auix.name}</.button>
       </.auix_link>
     """
