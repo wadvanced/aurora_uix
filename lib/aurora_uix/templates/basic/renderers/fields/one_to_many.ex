@@ -43,23 +43,26 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   def render(
         %{
           field: %{type: :one_to_many_association, data: data} = field,
-          auix: %{layout_tree: layout_tree} = auix
+          auix: %{layout_tree: layout_tree, uri_path: uri_path} = auix
         } = assigns
       ) do
+    parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
+
     related_fields =
       field
       |> get_association_fields(auix.configurations)
       |> Enum.reject(&(&1.key == auix.resource_name))
 
-    related_parsed_opts = get_in(auix.configurations, [data.resource, :parsed_opts])
+    related_parsed_opts =
+      auix.configurations
+      |> get_in([data.resource, :parsed_opts])
+      |> set_related_uri_path(parsed_opts, uri_path)
 
     related_resource_config =
       get_in(auix.configurations, [data.resource, :resource_config])
 
     related_class =
       "auix-one-to-many-container"
-
-    parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
 
     assigns =
       assigns
@@ -194,5 +197,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
   defp merge_keys([owner_key | owner_keys], [related_key | related_keys], result) do
     merge_keys(owner_keys, related_keys, [{related_key, owner_key} | result])
+  end
+
+  @spec set_related_uri_path(map(), map(), binary()) :: map()
+  defp set_related_uri_path(
+         %{source: related_source} = related_parsed_opts,
+         %{source: source} = _parsed_optsi,
+         uri_path
+       ) do
+    uri_path
+    |> String.replace(source, related_source)
+    |> then(&Map.put(related_parsed_opts, :uri_path, &1))
   end
 end

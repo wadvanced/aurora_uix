@@ -115,7 +115,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @spec show_child_action(map()) :: Rendered.t()
   def show_child_action(assigns) do
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.link_prefix}#{@auix.association.related_parsed_opts.source}/#{elem(@auix.row_info, 0)}"}
+      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}"}
         name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
           <.icon name="hero-eye" />
       </.auix_link>
@@ -134,7 +134,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @spec edit_child_action(map()) :: Rendered.t()
   def edit_child_action(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.link_prefix}#{@auix.association.related_parsed_opts.source}/#{elem(@auix.row_info, 0)}/edit"}
+      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
           <.icon name="hero-pencil" />
       </.auix_link>

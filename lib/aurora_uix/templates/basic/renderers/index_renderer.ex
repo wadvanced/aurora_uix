@@ -117,7 +117,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             module={@auix.form_component}
             id={entity_id(@auix) || :new}
             action={@live_action}
-            auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack}}
+            auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack, uri_path: @auix.uri_path}}
           />
         </div>
       </.modal>
