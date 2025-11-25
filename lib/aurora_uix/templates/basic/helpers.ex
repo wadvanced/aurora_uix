@@ -165,7 +165,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
   """
-  @spec assign_auix_current_path(Socket.t(), binary() | URI.t()) ::
+  @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) ::
           Socket.t()
   def assign_auix_current_path(socket, url \\ nil)
 

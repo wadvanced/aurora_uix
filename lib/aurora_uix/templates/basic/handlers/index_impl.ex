@@ -408,8 +408,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           }
         } = socket
       ) do
-    IO.inspect(auix.uri_path, label: "******** uri_path")
-
     if pagination_disabled? or Map.get(params, "pagination_disabled?") do
       {:noreply, paginate(socket, pagination.page - 1, Map.get(params, "items_per_page"))}
     else
