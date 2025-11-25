@@ -136,7 +136,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         class={@selected_button_class}
         value={%{delete_all: true}}
         event="selected-delete_all"
-        target={@auix.index_form_id}
+        target={"##{@auix.index_form_id}"}
       >
         <:content>
           {gettext("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
