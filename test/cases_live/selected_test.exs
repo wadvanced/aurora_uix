@@ -9,7 +9,7 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(link_prefix: "selected-") do
+  auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :description, :quantity_initial])
   end
 

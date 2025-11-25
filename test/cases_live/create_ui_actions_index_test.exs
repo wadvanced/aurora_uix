@@ -71,7 +71,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui link_prefix: "create-ui-actions-index-" do
+  auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
       remove_row_action: :default_row_edit,
       add_row_action: {:custom_row_action_replaced, &__MODULE__.custom_row_action_to_replace/1},

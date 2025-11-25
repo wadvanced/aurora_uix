@@ -35,7 +35,7 @@ defmodule Aurora.UixWeb.Test.LocalDemoTest do
   # live("/local-demo-product_locations/:id/edit", LocalDemoTest.TestModule.ProductLocation.Index, :edit)
   # live("/local-demo-product_locations/:id", LocalDemoTest.TestModule.ProductLocation.Show, :show)
   # live("/local-demo-product_locations/:id/show/edit", LocalDemoTest.TestModule.ProductLocation.Show, :edit)
-  auix_create_ui(link_prefix: "local-demo-")
+  auix_create_ui()
 
   test "Local empty_test", %{conn: conn} do
     live(conn, "/local-demo-products")

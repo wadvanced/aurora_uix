@@ -14,7 +14,7 @@ defmodule Aurora.UixWeb.Test.InfinityScrollTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(link_prefix: "infinity-scroll-") do
+  auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :cost],
       order_by: :name,
       pagination_disabled?: true

@@ -16,7 +16,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  @auix_layout_opts link_prefix: "manual-ui-"
+  @auix_layout_opts []
 
   @auix_layout_trees %TreePath{
     tag: :form,
