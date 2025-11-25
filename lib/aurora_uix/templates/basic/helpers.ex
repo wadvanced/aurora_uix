@@ -167,21 +167,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   """
   @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) ::
           Socket.t()
-  def assign_auix_current_path(socket, url \\ nil)
-
-  def assign_auix_current_path(socket, nil) do
-    if get_connect_info(socket, :uri) do
-      current_path =
-        socket
-        |> get_connect_info(:uri)
-        |> Map.get(:path)
-
-      assign_auix(socket, :_current_path, current_path)
-    else
-      socket
-    end
-  end
-
   def assign_auix_current_path(socket, url) do
     assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
   end
