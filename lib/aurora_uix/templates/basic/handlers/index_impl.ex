@@ -353,7 +353,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def handle_event(
         "index-layout-change",
-        %{"_target" => ["selected_in_page__"]},
+        %{"_target" => ["selected_in_page__"], "_unused_selected_in_page__" => ""} = _params,
+        socket
+      ) do
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["selected_in_page__"]} = _params,
         %{assigns: %{auix: %{selection: selection} = auix}} = socket
       ) do
     new_selected_any_in_page? = !auix.selection.selected_any_in_page?
