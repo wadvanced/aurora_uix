@@ -15,7 +15,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   - Assumes assigns contain `:auix` with required subkeys:
     * `:row_info` - Entity row information
-    * `:link_prefix` - Optional URL path prefix. When used will form uri_path along with source.
     * `:source` - Data source identifier
     * `:module` - Context module name
   - Only intended for use in index page layouts
@@ -69,7 +68,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:link_prefix` (binary()) - URL path prefix
       - `:source` (binary()) - Data source identifier
       - `:row_info` (tuple()) - Entity row information
       - `:module` (atom()) - Context module name

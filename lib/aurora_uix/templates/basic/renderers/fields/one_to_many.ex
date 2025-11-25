@@ -57,6 +57,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       auix.configurations
       |> get_in([data.resource, :parsed_opts])
       |> set_related_uri_path(parsed_opts, uri_path)
+      |> set_related_new_link()
 
     related_resource_config =
       get_in(auix.configurations, [data.resource, :resource_config])
@@ -208,5 +209,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
     uri_path
     |> String.replace(source, related_source)
     |> then(&Map.put(related_parsed_opts, :uri_path, &1))
+  end
+
+  @spec set_related_new_link(map()) :: map()
+  defp set_related_new_link(%{uri_path: uri_path} = related_parsed_opts) do
+    Map.put(related_parsed_opts, :index_new_link, "/#{uri_path}/new")
   end
 end

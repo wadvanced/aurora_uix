@@ -199,13 +199,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
           Socket.t()
   def assign_auix_uri_path(%{assigns: %{auix: auix}} = socket) do
     uri_path =
-      if auix[:link_prefix],
-        do: "#{auix.link_prefix}#{auix.source}",
-        else:
-          auix._current_path
-          |> String.replace_leading("/", "")
-          |> String.split("/")
-          |> List.first()
+      auix._current_path
+      |> String.replace_leading("/", "")
+      |> String.split("/")
+      |> List.first()
 
     assign_auix(socket, :uri_path, uri_path)
   end
