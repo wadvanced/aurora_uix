@@ -140,29 +140,25 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
+  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
     theme_module = ThemeHelper.theme_module()
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
-    {:ok,
-     socket
-     |> assign_auix(:form_component, form_component)
-     |> assign_auix(:filters_enabled?, false)
-     |> assign_auix(:selection, Selection.new())
-     |> assign_auix(:list_function_selected, auix.list_function_paginated)
-     |> assign_auix(:reset_stream?, true)
-     |> assign_auix(:index_form_id, index_form_id)
-     |> assign_auix_new(:theme_module, theme_module)
-     |> assign_stylesheet()
-     |> assign_layout_options()
-     |> IndexActions.set_actions()
-     |> assign_index_fields()
-     |> assign_filters()
-     |> prepare_initial_pagination(params)
-     |> load_items()}
+    {
+      :ok,
+      socket
+      |> assign_auix(:form_component, form_component)
+      |> assign_auix(:filters_enabled?, false)
+      |> assign_auix(:selection, Selection.new())
+      |> assign_auix(:list_function_selected, auix.list_function_paginated)
+      |> assign_auix(:reset_stream?, true)
+      |> assign_auix(:index_form_id, index_form_id)
+      |> assign_auix_new(:theme_module, theme_module)
+      |> assign_stylesheet()
+    }
   end
 
   @doc """
@@ -181,14 +177,24 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
-  def auix_handle_params(params, url, %{assigns: %{auix: auix}} = socket) do
+  def auix_handle_params(params, url, socket) do
     {:noreply,
      socket
      |> assign_auix_current_path(url)
-     |> assign_auix_routing_stack(params, %{
-       type: :patch,
-       path: "/#{auix.link_prefix}#{auix.source}"
-     })
+     |> assign_auix_uri_path()
+     |> assign_auix_index_new_link()
+     |> assign_layout_options()
+     |> IndexActions.set_actions()
+     |> assign_index_fields()
+     |> assign_filters()
+     |> prepare_initial_pagination(params)
+     |> load_items()
+     |> then(
+       &assign_auix_routing_stack(&1, params, %{
+         type: :patch,
+         path: "/#{&1.assigns.auix.uri_path}"
+       })
+     )
      |> render_with(&Renderer.render/1)}
   end
 
@@ -388,8 +394,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{"page" => page},
         %{assigns: %{auix: %{pagination: %Pagination{}} = auix}} = socket
       ) do
-    {:noreply,
-     auix_route_forward(socket, patch: "/#{auix.link_prefix}#{auix.source}?page=#{page}")}
+    {:noreply, auix_route_forward(socket, patch: "/#{auix.uri_path}?page=#{page}")}
   end
 
   def handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
@@ -412,7 +417,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     else
       {:noreply,
        auix_route_forward(socket,
-         patch: "/#{auix.link_prefix}#{auix.source}?page=#{previous_page(pagination)}"
+         patch: "/#{auix.uri_path}?page=#{previous_page(pagination)}"
        )}
     end
   end
@@ -437,7 +442,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     else
       {:noreply,
        auix_route_forward(socket,
-         patch: "/#{auix.link_prefix}#{auix.source}?page=#{next_page(pagination)}"
+         patch: "/#{auix.uri_path}?page=#{next_page(pagination)}"
        )}
     end
   end

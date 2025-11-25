@@ -13,21 +13,21 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
   @spec custom_row_action_to_add(map()) :: Rendered.t()
   def custom_row_action_to_add(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-added"}>Custom Added</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-added"}>Custom Added</.auix_link>
     """
   end
 
   @spec custom_row_action_to_replace(map()) :: Rendered.t()
   def custom_row_action_to_replace(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Custom Removed and Added</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}"}>Custom Removed and Added</.auix_link>
     """
   end
 
   @spec custom_row_action_to_insert(map()) :: Rendered.t()
   def custom_row_action_to_insert(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-inserted"}>Custom Inserted</.auix_link>
+      <.auix_link patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} name={"auix-edit-#{@auix.module}-inserted"}>Custom Inserted</.auix_link>
     """
   end
 
@@ -71,7 +71,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui link_prefix: "create-ui-actions-index-" do
+  auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
       remove_row_action: :default_row_edit,
       add_row_action: {:custom_row_action_replaced, &__MODULE__.custom_row_action_to_replace/1},

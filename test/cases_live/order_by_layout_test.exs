@@ -60,7 +60,7 @@ defmodule Aurora.UixWeb.Test.OrderByLayoutTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(link_prefix: "order-by-layout-") do
+  auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :cost], order_by: :name)
   end
 

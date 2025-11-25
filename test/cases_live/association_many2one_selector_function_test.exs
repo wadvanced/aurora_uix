@@ -26,7 +26,7 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorFunctionTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(link_prefix: "association-many_to_one_selector-function-") do
+  auix_create_ui do
     edit_layout :product_location do
       inline([:reference, :name, :type])
     end

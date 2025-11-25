@@ -13,7 +13,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(link_prefix: "handler-hooks-show-") do
+  auix_create_ui do
     edit_layout :product, show_handler_module: Aurora.UixWeb.ShowHandlerHook do
       stacked([:reference, :name, :description, :quantity_initial, :product_transactions])
     end

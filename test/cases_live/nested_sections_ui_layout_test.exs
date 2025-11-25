@@ -9,7 +9,7 @@ defmodule Aurora.UixWeb.Test.NestedSectionsUILayoutTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui link_prefix: "nested-sections-ui-layout-" do
+  auix_create_ui do
     edit_layout :product, [] do
       # sections_index_1
       sections do

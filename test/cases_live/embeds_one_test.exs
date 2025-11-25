@@ -7,7 +7,7 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
 
   auix_resource_metadata(:user, context: Accounts, schema: User)
 
-  auix_create_ui link_prefix: "embeds-one-" do
+  auix_create_ui do
     index_columns(:user, [:given_name, :family_name, :profile])
 
     edit_layout :user,

@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
 
   ## Key Constraints
 
-  - Assumes assigns contain `:auix` with `:entity`, `:link_prefix`, `:source`, `:module`, `:name`, and `:title`.
+  - Assumes assigns contain `:auix` with `:entity`, `:source`, `:module`, `:name`, and `:title`.
   - Only intended for use in show page layouts.
   """
 
@@ -56,21 +56,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Show do
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:link_prefix`, `:source`, `:entity`, `:module`, and `:name`.
+    - Must include `:auix` with `:source`, `:entity`, `:module`, and `:name`.
 
   ## Returns
   Rendered.t() - The rendered "edit" action link.
 
-  ## Examples
-
-      iex> assigns = %{auix: %{link_prefix: "admin/", source: "users", entity: %{id: 1}, module: "User", name: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Show.edit_header_action(assigns)
-      %Phoenix.LiveView.Rendered{}
   """
   @spec edit_header_action(map()) :: Rendered.t()
   def edit_header_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.link_prefix}#{@auix.source}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show/edit"} name={"auix-edit-#{@auix.module}"}>
         <.button>Edit {@auix.name}</.button>
       </.auix_link>
     """

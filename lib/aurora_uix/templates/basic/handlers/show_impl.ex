@@ -66,9 +66,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
     - `{:ok, Socket.t()}` - The initialized socket.
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
+  def mount(_params, _session, socket), do: {:ok, socket}
 
   @doc """
   Handles URL parameter changes and loads the entity for display.
@@ -97,10 +95,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
      |> assign_auix_new(:theme_module, theme_module)
      |> assign_stylesheet()
      |> assign_auix_current_path(url)
-     |> assign_auix_routing_stack(params, %{
-       type: :navigate,
-       path: "/#{auix.link_prefix}#{auix.source}"
-     })
+     |> assign_auix_uri_path()
+     |> assign_auix_index_new_link()
+     |> then(
+       &assign_auix_routing_stack(&1, params, %{
+         type: :navigate,
+         path: "/#{&1.assigns.auix.uri_path}"
+       })
+     )
      |> assign_layout_options()
      |> ShowActions.set_actions()
      |> render_with(&Renderer.render/1)}

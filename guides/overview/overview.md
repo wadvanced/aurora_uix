@@ -39,7 +39,7 @@ defmodule MyAppWeb.ProductViews do
       field(:product_location_id, option_label: :name)
     end
 
-    auix_create_ui(link_prefix: "basic-demo-") do
+    auix_create_ui do
       index_columns :product, [:reference, :name, :description, :quantity_at_hand]
       index_columns :product_transaction, [:type, :quantity, :cost]
 

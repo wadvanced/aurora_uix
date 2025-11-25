@@ -16,7 +16,6 @@ defmodule Aurora.Uix.Parser do
 
   alias Aurora.Uix.Parsers.Common
   alias Aurora.Uix.Parsers.ContextParser
-  alias Aurora.Uix.Parsers.IndexParser
 
   @doc """
   Returns the list of supported configuration option keys for the parser.
@@ -45,7 +44,6 @@ defmodule Aurora.Uix.Parser do
   - `resource_config` (map()) - Module configuration info.
   - `opts` (keyword()) - Optional config settings. Options are delegated to:
     * Aurora.Uix.Parsers.Common
-    * Aurora.Uix.Parsers.IndexParser
     * Aurora.Uix.Parsers.ContextParser
 
   ## Returns
@@ -58,7 +56,7 @@ defmodule Aurora.Uix.Parser do
       List.flatten(opts)
 
     Enum.reduce(
-      [Common, IndexParser, ContextParser],
+      [Common, ContextParser],
       %{},
       &parser_process_options(&1, &2, resource_config, opts)
     )

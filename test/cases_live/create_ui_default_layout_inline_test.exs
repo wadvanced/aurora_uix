@@ -9,10 +9,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutInlineTest do
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
-  auix_create_ui(
-    link_prefix: "create-ui-default-layout-inline-",
-    default_fields_layout: :inline
-  )
+  auix_create_ui(default_fields_layout: :inline)
 
   test "Check field, inline order", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/create-ui-default-layout-inline-products/new")

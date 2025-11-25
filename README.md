@@ -117,16 +117,15 @@ Find all guides in the [`guides/`](./guides/) directory.
 
 - Follow the provided formatter, Credo, and Doctor configs.
 
-#### Test UI Setup: Unique Link Option & Router
+#### Test UI Setup: Router
 
-- **Each test UI must have a unique `link_prefix` in its `auix_create_ui` block.**  
   Example:
   ```elixir
-  auix_create_ui link_prefix: "create-ui-layout-" do
+  auix_create_ui do
     # ...
   end
   ```
-- The generated module name and link prefix are used to register routes in the test router.
+- The generated module name is used to register routes in the test router.
 - See [`test/support/app_web/router.ex`](test/support/app_web/router.ex) for how all test CRUD UIs are registered using `register_crud` and `register_product_crud`.
 - This setup is required for the test server to mount and test all CRUD UIs at predictable URLs.
 

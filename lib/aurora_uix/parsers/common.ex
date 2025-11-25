@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Parsers.Common do
 
   ## Key features
   - Resolves default values for eight core schema properties: `:module`, `:module_name`,
-    `:link_prefix`, `:name`, `:source`, `:title`, and `:primary_key`.
+    `:name`, `:source`, `:title`, and `:primary_key`.
   - Automatically extracts schema source and primary key information using `__schema__/1`.
   - Transforms module names into user-friendly formats with proper capitalization.
   - Provides consistent naming conventions across the Aurora.Uix system.
@@ -22,7 +22,6 @@ defmodule Aurora.Uix.Parsers.Common do
   When a property is not present in the metadata, this module provides default values:
   - `:module` - Defaults to underscored module name (e.g., "blog_post" from MyApp.BlogPost)
   - `:module_name` - Defaults to last part of module name (e.g., "BlogPost" from MyApp.BlogPost)
-  - `:link_prefix` - Defaults to empty string
   - `:name` - Defaults to capitalized module name (e.g., "Blog Post" from MyApp.BlogPost)
   - `:source` - Defaults to schema table name from `__schema__(:source)`
   - `:title` - Defaults to capitalized schema source name
@@ -44,7 +43,6 @@ defmodule Aurora.Uix.Parsers.Common do
     [
       :module,
       :module_name,
-      :link_prefix,
       :name,
       :source,
       :source_key,
@@ -90,8 +88,6 @@ defmodule Aurora.Uix.Parsers.Common do
 
   def default_value(_parsed_opts, %{schema: module}, :source_key),
     do: :source |> module.__schema__() |> CommonHelper.safe_atom()
-
-  def default_value(_parsed_opts, _resource_config, :link_prefix), do: ""
 
   def default_value(_parsed_opts, %{schema: module}, :title) do
     :source

@@ -7,7 +7,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
 
   auix_resource_metadata(:user, context: Accounts, schema: User)
 
-  auix_create_ui link_prefix: "embeds-many-" do
+  auix_create_ui do
     index_columns(:user, [:given_name, :family_name, :emails])
 
     edit_layout :user,
