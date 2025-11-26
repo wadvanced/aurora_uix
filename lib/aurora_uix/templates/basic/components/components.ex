@@ -302,7 +302,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             </div>
           <% end %>
         </div>
-
+      </div>
+      <div :if={@auix.empty_list?} class="auix-items-card-empty">
+        {gettext("No items to show")}
       </div>
     </div>
     """

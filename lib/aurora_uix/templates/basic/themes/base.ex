@@ -1182,6 +1182,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_card_empty) do
+    """
+    #{import_rule(:auix_items_table_empty, :auix_items_card_empty)}
+    """
+  end
+
   def rule(:auix_items_card_item_content) do
     """
     .auix-items-card-item-content {
