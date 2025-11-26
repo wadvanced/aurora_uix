@@ -157,6 +157,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:list_function_selected, auix.list_function_paginated)
       |> assign_auix(:reset_stream?, true)
       |> assign_auix(:index_form_id, index_form_id)
+      |> assign_auix(:empty_list?, true)
       |> assign_auix_new(:theme_module, theme_module)
       |> assign_stylesheet()
     }
@@ -730,6 +731,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
     |> assign_auix(:pagination, pagination)
     |> assign_auix(:read_items, nil)
+    |> assign_auix(:empty_list?, Enum.empty?(entries))
     |> assign_auix(:reset_stream?, !auix.layout_options.pagination_disabled?)
     |> stream(
       auix.source_key,

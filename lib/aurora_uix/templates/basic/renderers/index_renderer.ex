@@ -73,7 +73,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               filters_enabled?: @auix.filters_enabled?,
               selection: @auix.selection,
               layout_options: @auix.layout_options,
-              source_key: @auix.source_key
+              source_key: @auix.source_key,
+              empty_list?: @auix.empty_list? 
               }}
           streams={@auix.layout_options.get_streams.(assigns)}
           row_id={Map.get(@auix.layout_options, :row_id)}

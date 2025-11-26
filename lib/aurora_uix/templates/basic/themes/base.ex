@@ -1143,6 +1143,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_table_empty) do
+    """
+    .auix-items-table-empty {
+      width: 100%;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    """
+  end
+
   def rule(:auix_items_table_cell) do
     """
     .auix-items-table-cell {
@@ -1168,6 +1179,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-items-card-container {
         margin-top: 0.5rem;
       }
+    """
+  end
+
+  def rule(:auix_items_card_empty) do
+    """
+    #{import_rule(:auix_items_table_empty, :auix_items_card_empty)}
     """
   end
 

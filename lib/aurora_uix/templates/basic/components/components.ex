@@ -212,6 +212,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           </tr>
         </tbody>
       </table>
+      <div :if={@auix.empty_list?} class="auix-items-table-empty">
+        {gettext("No items to show")}
+      </div>
     </div>
     """
   end
@@ -299,7 +302,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             </div>
           <% end %>
         </div>
-
+      </div>
+      <div :if={@auix.empty_list?} class="auix-items-card-empty">
+        {gettext("No items to show")}
       </div>
     </div>
     """
@@ -499,7 +504,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     assign(assigns, :rows, result)
   end
 
-  defp assign_rows(assigns, rows, _source_key, _suffix), do: assign(assigns, :rows, rows)
+  defp assign_rows(assigns, rows, _source_key, _suffix) do
+    assigns
+    |> assign(:rows, rows)
+    |> put_in([:auix, :empty_list?], Enum.empty?(rows))
+  end
 
   @spec even?(tuple) :: boolean()
   defp even?({_id, entity}) do
