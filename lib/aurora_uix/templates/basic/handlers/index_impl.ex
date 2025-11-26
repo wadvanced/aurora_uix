@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
   """
+  use Aurora.Uix.Gettext
 
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
@@ -230,7 +231,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       with %{} = entity <- get_function.(id, []),
            {:ok, _changeset} <- delete_function.(entity) do
         socket
-        |> put_flash(:info, "Item deleted successfully")
+        |> put_flash(:info, gettext("Item deleted successfully"))
         |> push_patch(to: socket.assigns.auix[:_current_path])
       else
         _ -> socket
@@ -246,7 +247,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply,
      socket
      |> stream_delete(auix.source_key, entity)
-     |> assign_selected_states()}
+     |> assign_selected_states()
+     |> put_flash(:info, gettext("Item deleted successfully"))
+     |> refresh_current_page()}
   end
 
   def handle_event(
@@ -353,7 +356,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   def handle_event(
         "index-layout-change",
-        %{"_target" => ["selected_in_page__"]},
+        %{"_target" => ["selected_in_page__"], "_unused_selected_in_page__" => ""} = _params,
+        socket
+      ) do
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "index-layout-change",
+        %{"_target" => ["selected_in_page__"]} = _params,
         %{assigns: %{auix: %{selection: selection} = auix}} = socket
       ) do
     new_selected_any_in_page? = !auix.selection.selected_any_in_page?
