@@ -212,6 +212,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           </tr>
         </tbody>
       </table>
+      <div :if={@auix.empty_list?} class="auix-items-table-empty">
+        {gettext("No items to show")}
+      </div>
     </div>
     """
   end

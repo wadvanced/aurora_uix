@@ -1143,6 +1143,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_table_empty) do
+    """
+    .auix-items-table-empty {
+      width: 100%;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    """
+  end
+
   def rule(:auix_items_table_cell) do
     """
     .auix-items-table-cell {
