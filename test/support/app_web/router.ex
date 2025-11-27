@@ -7,6 +7,10 @@ defmodule Aurora.UixWeb.Test.Router do
   """
   use Aurora.UixWeb.Test, :router
 
+  import Aurora.Uix.RouteHelper
+  import Aurora.UixWeb.Routes
+  import Aurora.UixWeb.Test.Routes
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -22,6 +26,12 @@ defmodule Aurora.UixWeb.Test.Router do
 
   scope "/", Aurora.UixWeb do
     pipe_through(:browser)
+  end
+
+  scope "/", Aurora.UixWeb.Guides do
+    pipe_through(:browser)
+
+    load_routes()
   end
 
   scope "/", Aurora.UixWeb.Test do
