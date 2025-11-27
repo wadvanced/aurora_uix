@@ -8,6 +8,7 @@ defmodule Aurora.UixWeb.Router do
   use Aurora.UixWeb, :router
 
   import Aurora.Uix.RouteHelper
+  import Aurora.UixWeb.Routes
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -29,7 +30,7 @@ defmodule Aurora.UixWeb.Router do
   scope "/", Aurora.UixWeb.Guides do
     pipe_through(:browser)
 
-    auix_live_resources("/guide-overview-products", Overview.Product)
+    load_routes()
   end
 
   # Other scopes may use custom stacks.
