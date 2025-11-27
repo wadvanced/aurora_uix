@@ -21,7 +21,10 @@ defmodule Aurora.UixWeb.Guides.Overview do
   end
 
   auix_create_ui do
-    index_columns(:product, [:reference, :name, :description, :quantity_at_hand])
+    index_columns(:product, [:reference, :name, :description, :quantity_at_hand],
+      pagination_items_per_page: 15
+    )
+
     index_columns(:product_transaction, [:type, :quantity, :cost])
 
     edit_layout :product_location do
@@ -32,7 +35,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
       stacked do
         inline([:reference, :name, :description])
         inline([:description])
-        inline([:product_location])
+        inline([:product_location, :product_transactions])
       end
     end
 
