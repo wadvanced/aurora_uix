@@ -29,51 +29,62 @@ replaced completely.
 ## Example Usage
 
 ```elixir
-defmodule MyAppWeb.ProductViews do
-  use Aurora.Uix.Layout.CreateUI
+defmodule Aurora.UixWeb.Guides.Overview do
+  use Aurora.Uix
 
-    auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductLocation
+  alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
-    auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+  auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
-    auix_resource_metadata(:product, context: Inventory, schema: Product) do
-      field(:product_location_id, option_label: :name)
+  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
+
+  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+    field(:product_location_id, option_label: :name)
+  end
+
+  auix_create_ui do
+    index_columns(:product, [:reference, :name, :description, :quantity_at_hand],
+      pagination_items_per_page: 15
+    )
+
+    index_columns(:product_transaction, [:type, :quantity, :cost])
+
+    edit_layout :product_location do
+      inline([:reference, :name, :type])
     end
 
-    auix_create_ui do
-      index_columns :product, [:reference, :name, :description, :quantity_at_hand]
-      index_columns :product_transaction, [:type, :quantity, :cost]
-
-      edit_layout :product_location do
-        inline([:reference, :name, :type])
+    show_layout :product do
+      stacked do
+        inline([:reference, :name, :description])
+        inline([:description])
+        inline([:product_location, :product_transactions])
       end
+    end
 
-      show_layout :product do
-        stacked do
-          inline [:reference, :name, :description]
-          inline [:description]
-          inline [:product_location]
-        end
-      end
+    edit_layout :product do
+      stacked do
+        inline([:reference])
 
-      edit_layout :product do
-        stacked do
-          inline [:reference]
-          sections do
-            section "Description" do
-              stacked [:name, :description]
-            end
-            section "Quantities" do
-              stacked [:quantity_initial, :quantity_entries, :quantities_exits]
-            end
+        sections do
+          section "Description" do
+            stacked([:name, :description])
           end
-          inline [:product_transactions]
+
+          section "Quantities" do
+            stacked([:quantity_initial, :quantity_entries, :quantities_exits])
+          end
         end
+
+        inline([:product_transactions])
       end
     end
   end
 end
 ```
+
 Will produce the whole UI interface for **C**reating, **R**eading (showing), **U**pdating (editing) and **D**eleting along with validation, association handling. The following images shows part of the automatically generated UI:
 
 #### Index listing
@@ -84,6 +95,18 @@ Will produce the whole UI interface for **C**reating, **R**eading (showing), **U
 
 #### Record editing
 <img src="images/edit.png" width="600"/>
+
+Views are responsive, in a mobile you'll have this:
+
+#### Index listing
+<img src="images/index-mobile.png" width="600"/>
+
+#### Record showing
+<img src="images/show-mobile.png" width="600"/>
+
+#### Record editing
+<img src="images/edit-mobile.png" width="600"/>
+
 
 ## When to Use Aurora UIX
 
