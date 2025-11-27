@@ -46,7 +46,8 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/layouts.md",
           "guides/core/liveview.md",
           "guides/advanced/advanced_usage.md",
-          "guides/advanced/troubleshooting.md"
+          "guides/advanced/troubleshooting.md",
+          "CONTRIBUTING.md"
         ],
         groups_for_extras: [
           Introduction: ~r{guides/introduction/.*},

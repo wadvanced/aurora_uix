@@ -4,16 +4,17 @@ Aurora UIX is a low-code UI framework for the Elixir Phoenix ecosystem, designed
 
 ## Core Concepts
 
-- **Resource Metadata**: Define schema-based resource configurations using `auix_resource_metadata/3`, 
+- **Resource Metadata**: Define schema-based resource UI configuration, 
 specifying field-level UI options, associations, and validation rules.
-- **Layout DSL**: Compose layouts for forms, lists, and detail views using macros like `edit_layout`,
-`show_layout`, `index_columns`, `group`, `inline`, `stacked`, and `sections`.
+- **Layout DSL**: Compose layouts for forms, lists, and detail views having nested elements like 
+groups, stacks, sections, inline.
 - **Compile-Time UI Generation**: Aurora UIX generates LiveView modules and HEEx templates at compile time,
 ensuring fast runtime performance and type safety.
 - **Extensible Templates**: The system supports pluggable template engines and customizable rendering logic, 
 allowing for advanced UI customization and integration with custom components.
 - **Interchangeable Theme Support**: Comes with light and dark themes, which can be customized or 
 replaced completely.
+
 ## Features
 
 - Declarative resource and field configuration
