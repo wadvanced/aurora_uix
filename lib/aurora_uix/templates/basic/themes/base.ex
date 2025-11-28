@@ -1739,9 +1739,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_field) do
     """
       .auix-one-to-many-field {
-        /* flex flex-col */
-        display: flex;         /* flex */
-        flex-direction: column; /* flex-col */
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
       }
     """
   end
@@ -1749,15 +1749,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_header) do
     """
       .auix-one-to-many-header {
-        /* flex-row gap-4 mt-1 */
-
-        /* FLEX CONTAINER */
-        display: flex;             /* Implicit 'flex' */
-        flex-direction: row;       /* flex-row (Arranges items horizontally) */
-
-        /* SPACING */
-        gap: 1rem;                 /* gap-4 (4 * 0.25rem = 1rem) */
-        margin-top: 0.25rem;       /* mt-1 (1 * 0.25rem = 0.25rem) */
+        display: flex;
       }
     """
   end
@@ -1765,7 +1757,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_header_actions) do
     """
       .auix-one-to-many-header-actions {
-        /* inline */
         display: inline;
       }
     """
@@ -1774,29 +1765,23 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_container) do
     """
       .auix-one-to-many-container {
-        /* w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6 border border-zinc-300 px-4 */
+        width: auto;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 0.5rem;
 
-        /* LAYOUT & BORDER */
-        width: 100%;                                  /* w-full */
-        border-width: 1px;                            /* border */
-        border-style: solid;                          /* Implicit border style */
-        border-radius: 0.5rem;                        /* rounded-lg (8px) */
+        padding-left: 0.125rem;
+        padding-right: 0.125rem;
 
-        /* SPACING */
-        padding-left: 1rem;                           /* px-4 (4 * 0.25rem = 1rem) */
-        padding-right: 1rem;                          /* px-4 */
-
-        /* COLORS */
-        color: var(--auix-color-text-primary);        /* text-zinc-900 */
-        border-color: var(--auix-color-border-primary); /* border-zinc-300 */
+        color: var(--auix-color-text-primary);
+        border-color: var(--auix-color-border-primary);
       }
 
-      /* --- Responsive Overrides (Small screens and up: sm) --- */
 
       @media (min-width: 640px) {
         .auix-one-to-many-container {
-          font-size: 0.875rem;                       /* sm:text-sm (14px) */
-          line-height: 1.5rem;                       /* sm:leading-6 (6 * 0.25rem = 1.5rem) */
+          font-size: 0.875rem;
+          line-height: 1.5rem;
         }
       }
     """
@@ -1805,11 +1790,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_footer) do
     """
       .auix-one-to-many-footer {
-        /* flex-row */
-
-        /* FLEX CONTAINER */
-        display: flex;         /* Implicit 'flex' (required for flex-direction to work) */
-        flex-direction: row;   /* flex-row (Arranges items horizontally) */
+        display: flex;
+        flex-direction: row;
       }
     """
   end
@@ -1817,9 +1799,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_one_to_many_footer_actions) do
     """
       .auix-one-to-many-footer-actions {
-        /* flex flex-col */
-        display: flex;         /* flex */
-        flex-direction: column; /* flex-col */
+        display: flex;
+        flex-direction: column;
       }
     """
   end
