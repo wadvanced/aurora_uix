@@ -193,8 +193,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          phx-viewport-top={@auix.layout_options.pagination_disabled? && "pagination_previous"}
-          phx-viewport-bottom={@auix.layout_options.pagination_disabled? && "pagination_next"}
+          phx-viewport-top={if @auix[:enable_viewport?], do: @auix.layout_options.pagination_disabled? && "pagination_previous"}
+          phx-viewport-bottom={if @auix[:enable_viewport?], do: @auix.layout_options.pagination_disabled? && "pagination_next"}
           class="auix-items-table-body"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="auix-items-table-row"> 
@@ -275,8 +275,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
       <div id={"#{@id}-mobile"}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          phx-viewport-top={JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
-          phx-viewport-bottom={JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
+          phx-viewport-top={if @auix[:enable_viewport?], do: JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
+          phx-viewport-bottom={if @auix[:enable_viewport?], do: JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
           class="auix-items-card-list"
         >
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 

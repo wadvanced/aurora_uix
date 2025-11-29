@@ -177,6 +177,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
     {:noreply, auix_route_back(socket)}
   end
 
+  def handle_event(event, params, socket) do
+    IO.puts("Receive unhandled event: #{inspect(event)}")
+    IO.puts("Params:\n#{inspect(params)}")
+    {:noreply, socket}
+  end
+
   ## PRIVATE
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do

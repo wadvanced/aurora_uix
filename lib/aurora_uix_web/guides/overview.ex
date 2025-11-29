@@ -33,7 +33,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
     show_layout :product do
       stacked do
-        inline([:reference, :name, :description])
+        inline([:reference, :name])
         inline([:description])
         inline([:product_location, :product_transactions])
       end
