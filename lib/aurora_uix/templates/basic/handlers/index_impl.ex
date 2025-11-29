@@ -154,6 +154,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:form_component, form_component)
       |> assign_auix(:filters_enabled?, false)
       |> assign_auix(:selection, Selection.new())
+      |> assign_auix(:enable_viewport?, true)
       |> assign_auix(:list_function_selected, auix.list_function_paginated)
       |> assign_auix(:reset_stream?, true)
       |> assign_auix(:index_form_id, index_form_id)
@@ -182,6 +183,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def auix_handle_params(params, url, socket) do
     {:noreply,
      socket
+     |> assign_auix(:enable_viewport?, true)
      |> assign_auix_current_path(url)
      |> assign_auix_uri_path()
      |> assign_auix_index_new_link()
