@@ -36,7 +36,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
-  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -144,8 +143,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
-    theme_module = ThemeHelper.theme_module()
-
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
     {
@@ -159,8 +156,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:reset_stream?, true)
       |> assign_auix(:index_form_id, index_form_id)
       |> assign_auix(:empty_list?, true)
-      |> assign_auix_new(:theme_module, theme_module)
-      |> assign_stylesheet()
     }
   end
 
@@ -894,13 +889,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp assign_filters_selected_count(%{assigns: %{auix: %{filters: filters}}} = socket) do
     filters = get_selected_filters(filters)
     assign_auix(socket, :filters_selected_count, Enum.count(filters))
-  end
-
-  @spec assign_stylesheet(Socket.t()) :: Socket.t()
-  defp assign_stylesheet(%{assigns: %{auix: %{theme_module: theme_module}}} = socket) do
-    stylesheet = ThemeHelper.generate_stylesheet(theme_module)
-
-    assign_auix(socket, :stylesheet, stylesheet)
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()

@@ -16,7 +16,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
-  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView.JS
 
@@ -36,7 +35,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
     ~H"""
-    <ThemeHelper.stylesheet stylesheet={@auix.stylesheet} />
     <div class="auix-show-container">
       <.header>
         {@auix.layout_options.page_title}
