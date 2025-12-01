@@ -8,13 +8,14 @@
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?gen=#{System.os_time()}"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
     <script>
       (() => {
         const setTheme = (theme) => {
           if (theme === "system") {
-            localStorage.removeItem("phx:theme");
+            localStorage.removeItem;
             document.documentElement.removeAttribute("data-theme");
           } else {
             localStorage.setItem("phx:theme", theme);

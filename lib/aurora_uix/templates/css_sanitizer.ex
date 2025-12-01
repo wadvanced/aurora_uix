@@ -23,6 +23,8 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   @property_catch ~r/(?<property>[\w\-*]+)\s*:\s*(?<value>[^;]+)\s*;?/i
 
   @allowed_properties MapSet.new([
+                        # --- Properties ---
+                        "--auix-[a-z-]+",
                         # --- Structural/Layout ---
                         "display",
                         "position",
@@ -77,14 +79,15 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
                         "from",
                         "to",
                         "cursor",
-                        # --- Properties ---
-                        "--auix-[a-z-]+",
+                        "pointer-events",
                         # --- Browser behavior ---
                         "appearance",
                         "-moz-appearance",
                         "-webkit-appearance",
                         "-webkit-text-size-adjust",
-                        "-webkit-tap-highlight-color"
+                        "-webkit-tap-highlight-color",
+                        # --- assistive technologies --
+                        "aria-(hidden|expanded|checked|disabled|selected|pressed|current|invalid|haspopup)"
                       ])
 
   # CssParser uses "elements" for standard selector blocks.
@@ -162,7 +165,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
     parsed_css =
       case parse_css(css) do
         {:ok, parsed_css} ->
-          parsed_css
+          Enum.reject(parsed_css, &(&1.type == "universal" and &1.selectors == "*"))
 
         {:error, error} ->
           Logger.error("""
@@ -185,10 +188,12 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
     if Enum.count(parsed_rules) < Enum.count(parsed_css) do
       Logger.debug("""
         \n#{IO.ANSI.red()}Rules count do not match#{IO.ANSI.reset()}
-        \nPARSED:
+        \nPARSED RULES:
         #{result}
-          \nCSS:
-          css
+        \nORIGINAL CSS:
+        #{css}
+        \nPARSED CSS:
+        #{inspect(parsed_css)}
       """)
     end
 

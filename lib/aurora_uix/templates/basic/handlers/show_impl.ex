@@ -28,7 +28,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
-  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -85,15 +84,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   def handle_params(%{"id" => id} = params, url, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
 
-    theme_module = ThemeHelper.theme_module()
-
     {:noreply,
      socket
      |> assign_auix_new(:_sections, %{})
      |> assign_auix(:entity, auix.get_function.(id, preload: auix.preload))
      |> assign_auix(:form_component, form_component)
-     |> assign_auix_new(:theme_module, theme_module)
-     |> assign_stylesheet()
      |> assign_auix_current_path(url)
      |> assign_auix_uri_path()
      |> assign_auix_index_new_link()
@@ -189,12 +184,5 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
     :show
     |> LayoutOptions.available_options()
     |> Enum.reduce(socket, &BasicHelpers.assign_auix_option(&2, &1))
-  end
-
-  @spec assign_stylesheet(Socket.t()) :: Socket.t()
-  defp assign_stylesheet(%{assigns: %{auix: %{theme_module: theme_module}}} = socket) do
-    stylesheet = ThemeHelper.generate_stylesheet(theme_module)
-
-    assign_auix(socket, :stylesheet, stylesheet)
   end
 end

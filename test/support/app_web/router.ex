@@ -24,6 +24,12 @@ defmodule Aurora.UixWeb.Test.Router do
     plug(:accepts, ["json"])
   end
 
+  scope "/auix/assets/", Aurora.Uix do
+    pipe_through(:api)
+
+    get("/css/stylesheet.css", Templates.CssServer, :generate)
+  end
+
   scope "/", Aurora.UixWeb do
     pipe_through(:browser)
   end

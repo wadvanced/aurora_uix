@@ -20,7 +20,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -31,17 +30,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   ## Parameters
   - assigns (map()) - LiveView assigns containing:
     - auix: Aurora UIX context with configurations and layout_tree info
-    - live_action: Current live action (:new, :edit)
+    - live_action: Current live action (:new, :edit
     - page_title: Page title for modals
 
   ## Returns
   - Phoenix.LiveView.Rendered.t() - Rendered index page with table and actions
   """
+
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <ThemeHelper.stylesheet stylesheet={@auix.stylesheet} />
-
     <div class="auix-index-container">
       <.header>
         <div id={"auix-table-#{@auix.uri_path}-index-title"}>

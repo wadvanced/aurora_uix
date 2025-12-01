@@ -48,7 +48,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal) do
     """
       .auix-modal {
-        
         position: relative; 
         z-index: 50; 
         display: none;
@@ -90,7 +89,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_content) do
     """
     .auix-modal-content {
-      /* flex min-h-full items-center justify-center */
       display: flex;
       min-height: 100%;
       align-items: center;
@@ -102,25 +100,22 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_box) do
     """
       .auix-modal-box {
-        /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
-        max-width: max-content;         /* max-w-max (Overridden by max-w-3xl) */
-        padding: 1rem;                  /* p-4 (4 * 0.25rem = 1rem) */
-        margin-left: auto;              /* mx-auto */
-        margin-right: auto;             /* mx-auto */
+        max-width: max-content;         
+        padding: 1rem;                  
+        margin-left: auto;              
+        margin-right: auto;             
       }
 
-      /* Small breakpoint (sm) and up */
       @media (min-width: 640px) {
         .auix-modal-box {
-          padding: 1.5rem;              /* sm:p-6 (6 * 0.25rem = 1.5rem) */
+          padding: 1.5rem;              
         }
       }
 
-      /* Large breakpoint (lg) and up */
       @media (min-width: 1024px) {
         .auix-modal-box {
-          padding-top: 2rem;            /* lg:py-8 (8 * 0.25rem = 2rem) */
-          padding-bottom: 2rem;         /* lg:py-8 */
+          padding-top: 2rem;            
+          padding-bottom: 2rem;         
         }
       }
     """
@@ -156,10 +151,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_close_button_container) do
     """
       .auix-modal-close-button-container {
-        /* absolute top-6 right-5 */
         position: absolute;
-        top: 1.5rem;   /* top-6 (6 * 0.25rem = 1.5rem) */
-        right: 1.25rem; /* right-5 (5 * 0.25rem = 1.25rem) */
+        top: 1.5rem;   
+        right: 1.25rem; 
       }
     """
   end
@@ -167,17 +161,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_close_button) do
     """
       .auix-modal-close-button {
-        /* -m-3 flex-none p-3 opacity-20 hover:opacity-40 */
-        margin: -0.75rem;          /* -m-3 (-3 * 0.25rem = -0.75rem) */
-        flex-shrink: 0;            /* flex-none (shorthand for flex-shrink: 0 and flex-grow: 0) */
-        flex-grow: 0;              /* flex-none */
-        padding: 0.75rem;          /* p-3 (3 * 0.25rem = 0.75rem) */
-        opacity: 0.2;              /* opacity-20 */
+        margin: -0.75rem;          
+        flex-shrink: 0;            
+        flex-grow: 0;              
+        padding: 0.75rem;          
+        opacity: 0.2;              
       }
 
-      /* Hover state */
       .auix-modal-close-button:hover {
-        opacity: 0.4;              /* hover:opacity-40 */
+        opacity: 0.4;              
       }
     """
   end
@@ -185,17 +177,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_flash) do
     """
       .auix-flash {
-        /* POSITIONING & SIZE */
-        position: fixed;                 /* fixed */
-        top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
-        right: 0.5rem;                   /* right-2 */
-        margin-right: 0.5rem;            /* mr-2 */
-        width: max-content;                    /* w-80 (80 * 0.25rem = 20rem) */
-        z-index: 50;                     /* z-50 */
+        position: fixed;                 
+        top: 0.5rem;                     
+        right: 0.5rem;                   
+        margin-right: 0.5rem;            
+        width: max-content;                    
+        z-index: 50;                     
 
-        /* BOX STYLES */
-        border-radius: 0.5rem;           /* rounded-lg */
-        padding: 0.125rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
+        border-radius: 0.5rem;           
+        padding: 0.125rem;                
       }
     """
   end
@@ -207,11 +197,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-flash--info {
         background-color: var(--auix-color-bg-info);
 
-        /* TEXT & ICON */
         color: var(--auix-color-info-text);
         fill: var(--auix-color-icon-fill);
 
-        /* RING */
         --auix-calc-shadow: var(--auix-shadow-primary);
         box-shadow:
           var(--auix-ring-offset-shadow),
@@ -227,11 +215,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         #{common_flash_css()}
         background-color: var(--auix-color-error-bg);
 
-        /* TEXT & ICON */
         color: var(--auix-color-error-text);
         fill: var(--auix-color-error-text);
 
-        /* RING & SHADOW */
         --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-error-ring);
         --auix-calc-shadow: var(--auix-shadow-md);
         box-shadow:
@@ -245,13 +231,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_flash_title) do
     """
       .auix-flash-title {
-        /* flex items-center gap-1.5 text-sm font-semibold leading-6 */
-        display: flex;         /* flex */
-        align-items: center;   /* items-center */
-        gap: 0.375rem;         /* gap-1.5 (1.5 * 0.25rem = 0.375rem) */
-        font-size: 0.875rem;   /* text-sm */
-        font-weight: 600;      /* font-semibold */
-        line-height: 1.5rem;   /* leading-6 (6 * 0.25rem = 1.5rem) */
+        display: flex;         
+        align-items: center;   
+        gap: 0.375rem;         
+        font-size: 0.875rem;   
+        font-weight: 600;      
+        line-height: 1.5rem;   
         margin-top: 0.125rem;
         margin-bottom: 0.5rem;
         padding-left: 0.5rem;
@@ -262,11 +247,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_flash_message) do
     """
       .auix-flash-message {
-        /* mt-2 text-sm leading-5 */
-        margin-top: 0.250rem;   /* mt-2 (2 * 0.25rem = 0.5rem) */
+        margin-top: 0.250rem;   
         margin-bottom: 0.5rem;
-        font-size: 0.875rem;  /* text-sm */
-        line-height: 1.25rem; /* leading-5 (5 * 0.25rem = 1.25rem) */
+        font-size: 0.875rem;  
+        line-height: 1.25rem; 
         padding-left: 0.5rem;
         padding-right: 0.5rem;
       }
@@ -507,7 +491,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_confirm_button__confirm_message) do
     """
       .auix-confirm-button--confirm-message {
-        
       }
     """
   end
@@ -653,10 +636,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       #{common_input_css("--errors")}
       .auix-input--errors {
-        border-color: var(--auix-color-error); /* border-rose-400 */
+        border-color: var(--auix-color-error); 
       }
       .auix-input--errors:focus {
-        border-color: var(--auix-color-error); /* focus:border-rose-400 */
+        border-color: var(--auix-color-error); 
       }
     """
   end
@@ -664,12 +647,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_label) do
     """
       .auix-label {
-        /* block text-sm font-semibold leading-6 text-zinc-800 */
-        display: block;                  /* block */
-        font-size: 0.875rem;             /* text-sm */
-        font-weight: 600;                /* font-semibold */
+        display: block;                  
+        font-size: 0.875rem;             
+        font-weight: 600;                
         line-height: 1rem;
-        color: var(--auix-color-text-label); /* text-zinc-800 */
+        color: var(--auix-color-text-label); 
       }
     """
   end
@@ -677,14 +659,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_error_message) do
     """
       .auix-error-message {
-        /* mt-3 flex gap-3 text-sm leading-6 text-rose-600 */
-        margin-top: 0.125rem;                       /* mt-3 (3 * 0.25rem = 0.75rem) */
+        margin-top: 0.125rem;                       
         margin-bottom: 0.5rem;
-        display: flex;                             /* flex */
-        gap: 0.75rem;                              /* gap-3 (3 * 0.25rem = 0.75rem) */
-        font-size: 0.875rem;                       /* text-sm */
-        line-height: 1.5rem;                       /* leading-6 (6 * 0.25rem = 1.5rem) */
-        color: var(--auix-color-error-text-default); /* text-rose-600 */
+        display: flex;                             
+        gap: 0.75rem;                              
+        font-size: 0.875rem;                       
+        line-height: 1.5rem;                       
+        color: var(--auix-color-error-text-default); 
       }
     """
   end
@@ -709,9 +690,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header_title_container) do
     """
       .auix-header-title-container {
-        /* flex flex-col */
-        display: flex;         /* flex */
-        flex-direction: column; /* flex-col */
+        display: flex;         
+        flex-direction: column; 
       }
     """
   end
@@ -719,12 +699,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header_title) do
     """
       .auix-header-title {
-        /* text-lg font-semibold leading-8 text-zinc-800 */
-        font-size: 1.125rem;                      /* text-lg */
-        font-weight: 600;                         /* font-semibold */
+        font-size: 1.125rem;                      
+        font-weight: 600;                         
         line-height: 2rem;
         margin: 0;
-        color: var(--auix-color-text-label);      /* text-zinc-800 */
+        color: var(--auix-color-text-label);      
       }
     """
   end
@@ -732,12 +711,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header_subtitle) do
     """
       .auix-header-subtitle {
-        /* mt-2 text-sm leading-6 text-zinc-600 */
         margin-top: 0rem;
         margin-bottom: 0rem;
         font-size: 1rem;
         line-height: 1.5rem;                
-        color: var(--auix-color-text-secondary);   /* text-zinc-600 */
+        color: var(--auix-color-text-secondary);   
       }
     """
   end
@@ -745,7 +723,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header__bottom_actions) do
     """
       .auix-header--bottom-actions {
-        /* flex-none */
         flex-shrink: 0;
         flex-grow: 0;
       }
@@ -755,8 +732,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_list) do
     """
       .auix-list {
-        /* mt-14 */
-        margin-top: 3.5rem; /* 14 * 0.25rem = 3.5rem */
+        margin-top: 3.5rem; 
       }
     """
   end
@@ -773,7 +749,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-list-container > :not([hidden]) ~ :not([hidden]) {
         border-top-width: calc(1px * calc(1 - var(--auix-divide-y-reverse)));
         border-bottom-width: calc(1px * var(--auix-divide-y-reverse));
-        border-style: solid; /* Default Tailwind border style for dividers */
+        border-style: solid; 
 
         border-color: var(--auix-color-bg-light);
       }
@@ -783,19 +759,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_list_item) do
     """
       .auix-list-item {
-        /* flex gap-4 py-4 text-sm leading-6 sm:gap-8 */
-        display: flex;                 /* flex */
-        gap: 1rem;                     /* gap-4 (4 * 0.25rem = 1rem) */
-        padding-top: 1rem;             /* py-4 */
-        padding-bottom: 1rem;          /* py-4 */
-        font-size: 0.875rem;           /* text-sm */
-        line-height: 1.5rem;           /* leading-6 (6 * 0.25rem = 1.5rem) */
+        display: flex;                 
+        gap: 1rem;                     
+        padding-top: 1rem;             
+        padding-bottom: 1rem;          
+        font-size: 0.875rem;           
+        line-height: 1.5rem;           
       }
 
-      /* Small breakpoint (sm) and up */
       @media (min-width: 640px) {
         .auix-list-item {
-          gap: 2rem;                   /* sm:gap-8 (8 * 0.25rem = 2rem) */
+          gap: 2rem;                   
         }
       }
     """
@@ -815,7 +789,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_list_item_content) do
     """
       .auix-list-item-content {
-        /* text-zinc-700 */
         color: var(--auix-color-text-hover);
       }
     """
@@ -838,9 +811,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         color: var(--auix-color-text-primary);
       }
 
-      /* Hover state */
       .auix-back-link:hover {
-        /* hover:text-zinc-700 */
         color: var(--auix-color-text-hover);
       }
     """
@@ -865,7 +836,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       @media (min-width: 640px) {
         .auix-show-transition--start {
-          /* sm:translate-y-0 sm:scale-95 */
           transform: translateY(0) scale(0.95);
         }
       }
@@ -1035,19 +1005,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_container) do
     """
       .auix-items-table-container {
-        /* overflow-y-scroll px-4 */
-        overflow-y: scroll;               /* overflow-y-scroll */
-        padding-left: 1rem;               /* px-4 (4 * 0.25rem = 1rem) */
-        padding-right: 1rem;              /* px-4 */
+        overflow-y: scroll;               
+        padding-left: 1rem;               
+        padding-right: 1rem;              
       }
 
-      /* Small breakpoint (sm) and up */
       @media (min-width: 640px) {
         .auix-items-table-container {
-          /* sm:overflow-visible sm:px-0 */
-          overflow-y: visible;            /* sm:overflow-visible (allows content to flow outside) */
-          padding-left: 0;                /* sm:px-0 */
-          padding-right: 0;               /* sm:px-0 */
+          overflow-y: visible;            
+          padding-left: 0;                
+          padding-right: 0;               
         }
       }
     """
@@ -1115,7 +1082,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_body) do
     """
     .auix-items-table-body {
-      
       position: relative;
 
       border-top-width: 1px;
@@ -1428,7 +1394,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       margin-top: 1rem;
     }
 
-    /* Medium breakpoint (md) and up */
+
     @media (min-width: 768px) {
       .auix-filter-condition-label {
         display: none;
@@ -1572,27 +1538,23 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_show_container) do
     """
       .auix-show-container {
-        /* max-w-max max-w-3xl p-4 sm:p-6 lg:py-8 mx-auto */
-        width: max-content; /* max-w-max (Sets max-width based on content size) */
-        padding: 1rem;          /* p-4 */
-        margin-left: auto;      /* mx-auto (Centers the block horizontally) */
-        margin-right: auto;     /* mx-auto */
+        width: max-content; 
+        padding: 1rem;          
+        margin-left: auto;      
+        margin-right: auto;     
       }
 
-      /* --- Responsive Overrides (from Tailwind's default breakpoints) --- */
 
-      /* Small screens (sm) - typically >= 640px */
       @media (min-width: 640px) {
         .auix-show-container {
-          padding: 1.5rem;      /* sm:p-6 (6 * 0.25rem = 1.5rem) */
+          padding: 1.5rem;      
         }
       }
 
-      /* Large screens (lg) - typically >= 1024px */
       @media (min-width: 1024px) {
         .auix-show-container {
-          padding-top: 2rem;    /* lg:py-8 (8 * 0.25rem = 2rem) */
-          padding-bottom: 2rem; /* lg:py-8 */
+          padding-top: 2rem;    
+          padding-bottom: 2rem; 
         }
       }
     """
@@ -1672,20 +1634,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_sections_content) do
     """
       .auix-sections-content {
-        /* p-4 border border-gray-300 rounded-tr-lg rounded-br-lg rounded-bl-lg */
 
-        /* PADDING */
-        padding: 1rem;            /* p-4 (4 * 0.25rem = 1rem) */
+        padding: 1rem;            
 
-        /* BORDER */
-        border-width: 1px;        /* border */
-        /* Using semantic variable for border color */
-        border-color: var(--auix-color-border-primary); /* border-gray-300 (Maps to #D4D4D8 / zinc-300) */
+        border-width: 1px;        
+        border-color: var(--auix-color-border-primary); 
 
-        /* BORDER RADIUS */
-        border-top-right-radius: 0.5rem;  /* rounded-tr-lg */
-        border-bottom-right-radius: 0.5rem; /* rounded-br-lg */
-        border-bottom-left-radius: 0.5rem;  /* rounded-bl-lg */
+        border-top-right-radius: 0.5rem;  
+        border-bottom-right-radius: 0.5rem; 
+        border-bottom-left-radius: 0.5rem;  
       }
     """
   end
@@ -1693,9 +1650,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_form_field_container) do
     """
       .auix-form-field-container {
-        /* flex flex-col */
-        display: flex;         /* flex */
-        flex-direction: column; /* flex-col */
+        display: flex;         
+        flex-direction: column; 
       }
     """
   end
@@ -1833,14 +1789,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_breakpoint_xl2) do
     """
       .auix-pagination-breakpoint-xl2 {
-        /* h-0 invisible */
 
-        /* Initial state (for screens < 1536px): Hidden and takes no height */
         height: 0;
         visibility: hidden;
       }
 
-      /* --- 2XL Breakpoint (min-width: 1536px) --- */
 
       @media (min-width: 1536px) {
         .auix-pagination-breakpoint-xl2 {
@@ -1854,14 +1807,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_breakpoint_xl) do
     """
       .auix-pagination-breakpoint-xl {
-        /* h-0 invisible */
 
-        /* Initial state (for screens < 1280px): Hidden and takes no height */
         height: 0;
         visibility: hidden;
       }
 
-      /* --- XL Breakpoint (min-width: 1280px) --- */
 
       @media (min-width: 1280px) {
         .auix-pagination-breakpoint-xl {
@@ -1870,11 +1820,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         }
       }
 
-      /* --- 2XL Breakpoint (min-width: 1536px) --- */
 
       @media (min-width: 1536px) {
         .auix-pagination-breakpoint-xl {
-          /* 2xl:invisible (Hides it again on larger screens) */
           visibility: hidden;
           height: 0;
         }
@@ -1885,14 +1833,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_breakpoint_lg) do
     """
       .auix-pagination-breakpoint-lg {
-        /* h-0 invisible */
 
-        /* Initial state (for screens < 1024px): Hidden and takes no height */
-        height: 0;                /* h-0 */
-        visibility: hidden;         /* invisible */
+        height: 0;                
+        visibility: hidden;         
       }
 
-      /* --- LG Breakpoint (min-width: 1024px) --- */
 
       @media (min-width: 1024px) {
         .auix-pagination-breakpoint-lg {
@@ -1901,11 +1846,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         }
       }
 
-      /* --- XL Breakpoint (min-width: 1280px) --- */
 
       @media (min-width: 1280px) {
         .auix-pagination-breakpoint-lg {
-          /* xl:invisible (Hides it again on larger screens) */
           visibility: hidden;
           height: 0;
         }
@@ -1916,17 +1859,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_breakpoint_md) do
     """
       .auix-pagination-breakpoint-md {
-        /* h-0 invisible text-sm (Default styles for screens < 768px) */
 
-        /* Initial State: Hidden and takes no height */
-        height: 0;                /* h-0 */
-        visibility: hidden;         /* invisible */
+        height: 0;                
+        visibility: hidden;         
 
-        /* Default Typography */
-        font-size: 0.875rem;        /* text-sm (14px) */
+        font-size: 0.875rem;        
       }
 
-      /* --- MD Breakpoint (min-width: 768px) --- */
 
       @media (min-width: 768px) {
         .auix-pagination-breakpoint-md {
@@ -1935,7 +1874,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         }
       }
 
-      /* --- LG Breakpoint (min-width: 1024px) --- */
 
       @media (min-width: 1024px) {
         .auix-pagination-breakpoint-md {
@@ -1964,12 +1902,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_group_title) do
     """
       .auix-group-title {
-        /* font-semibold text-lg */
 
-        /* TYPOGRAPHY */
-        font-weight: 600;     /* font-semibold */
-        font-size: 1.125rem;  /* text-lg (18px) */
-        line-height: 1.75rem; /* Standard line-height for text-lg (lh-7) */
+        font-weight: 600;     
+        font-size: 1.125rem;  
+        line-height: 1.75rem; 
       }
     """
   end
@@ -1977,20 +1913,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_inline_container) do
     """
       .auix-inline-container {
-        /* flex flex-col gap-2 */
 
-        /* BASE STYLES (Mobile-First: flex-col) */
-        display: flex;             /* flex */
-        flex-direction: column;    /* flex-col (Stacks items vertically) */
-        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem) */
+        display: flex;             
+        flex-direction: column;    
+        gap: 0.5rem;               
         width: max-content;
       }
 
-      /* --- Responsive Override (Small screens and up: sm) --- */
 
       @media (min-width: 640px) {
         .auix-inline-container {
-          /* sm:flex-row (Overrides flex-col to arrange items horizontally) */
           flex-direction: row;
         }
       }
@@ -2000,14 +1932,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_stacked_container) do
     """
       .auix-stacked-container {
-        /* flex flex-col gap-2 */
 
-        /* FLEX CONTAINER */
-        display: flex;             /* flex */
-        flex-direction: column;    /* flex-col (Stacks items vertically) */
+        display: flex;             
+        flex-direction: column;    
 
-        /* SPACING */
-        gap: 0.5rem;               /* gap-2 (2 * 0.25rem = 0.5rem / 8px) */
+        gap: 0.5rem;               
       }
     """
   end
@@ -2015,8 +1944,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_icon_size_3) do
     """
       .auix-icon-size-3 {
-        width: 0.75rem;          /* size-3 (3 * 0.25rem = 0.75rem) */
-        height: 0.75rem;         /* size-3 */
+        width: 0.75rem;          
+        height: 0.75rem;         
       }
     """
   end
@@ -2024,8 +1953,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_icon_size_4) do
     """
       .auix-icon-size-4 {
-        width: 1rem;          /* size-4 (4 * 0.25rem = 1rem) */
-        height: 1rem;         /* size-4 */
+        width: 1rem;          
+        height: 1rem;         
       }
     """
   end
@@ -2033,8 +1962,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_icon_size_5) do
     """
       .auix-icon-size-5 {
-        width: 1.25rem;          /* size-5 (5 * 0.25rem = 1.25rem) */
-        height: 1.25rem;         /* size-5 */
+        width: 1.25rem;          
+        height: 1.25rem;         
       }
     """
   end
@@ -2042,8 +1971,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_icon_size_6) do
     """
       .auix-icon-size-6 {
-        width: 1.5rem;          /* size-6 (6 * 0.25rem = 1.5rem) */
-        height: 1.5rem;         /* size-6 */
+        width: 1.5rem;          
+        height: 1.5rem;         
       }
     """
   end
@@ -2091,7 +2020,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_animate_spin) do
     """
       .auix-animate-spin {
-        /* animate-spin */
         animation: spin 1s linear infinite;
       }
 
@@ -2243,17 +2171,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   @spec common_flash_css() :: binary()
   defp common_flash_css do
     """
-      /* POSITIONING & SIZE */
-      position: fixed;                 /* fixed */
-      top: 0.5rem;                     /* top-2 (2 * 0.25rem = 0.5rem) */
-      right: 0.5rem;                   /* right-2 */
-      margin-right: 0.5rem;            /* mr-2 */
-      width: max-content;                    /* w-80 (80 * 0.25rem = 20rem) */
-      z-index: 50;                     /* z-50 */
+      position: fixed;                 
+      top: 0.5rem;                     
+      right: 0.5rem;                   
+      margin-right: 0.5rem;            
+      width: max-content;                    
+      z-index: 50;                     
 
-      /* BOX STYLES */
-      border-radius: 0.5rem;           /* rounded-lg */
-      padding: 0.125rem;                /* p-3 (3 * 0.25rem = 0.75rem) */
+      border-radius: 0.5rem;           
+      padding: 0.125rem;                
 
     """
   end
@@ -2262,37 +2188,31 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   defp common_text_area_css(suffix \\ "") do
     """
       .auix-textarea#{suffix} {
-        /* mt-2 block w-full rounded-lg text-zinc-900 min-h-[6rem] */
-        margin-top: 0.5rem;               /* mt-2 */
-        display: block;                   /* block */
-        width: 100%;                      /* w-full */
-        border-radius: 0.5rem;            /* rounded-lg */
-        min-height: 6rem;                 /* min-h-[6rem] */
-        color: var(--auix-color-text-primary); /* text-zinc-900 */
+        margin-top: 0.5rem;               
+        display: block;                   
+        width: 100%;                      
+        border-radius: 0.5rem;            
+        min-height: 6rem;                 
+        color: var(--auix-color-text-primary); 
         padding: 0.25rem;
 
-        /* focus:ring-0 */
         box-shadow: none;
         outline: none;
 
-        /* Default border style (width and type) */
         border-width: 1px;
         border-style: solid;
       }
 
-      /* Common Focus & Small Breakpoint Styles */
 
       .auix-textarea#{suffix}:focus {
-        /* focus:ring-0 */
         box-shadow: none;
         outline: none;
       }
 
       @media (min-width: 640px) {
         .auix-textarea#{suffix} {
-          /* sm:text-sm sm:leading-6 */
-          font-size: 0.875rem;            /* sm:text-sm */
-          line-height: 1.5rem;            /* sm:leading-6 */
+          font-size: 0.875rem;            
+          line-height: 1.5rem;            
         }
       }
     """
@@ -2352,15 +2272,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   @spec common_container_css() :: binary()
   defp common_container_css do
     """
-      /* BOX MODEL */
-      padding: 1rem;                                     /* p-4 (4 * 0.25rem = 1rem) */
-      border-radius: 0.5rem;                             /* rounded-lg (8px) */
-      border-width: 1px;                                 /* border */
+      padding: 1rem;                                     
+      border-radius: 0.5rem;                             
+      border-width: 1px;                                 
       border-style: solid;
-      /* COLORS */
       border-color: var(--auix-color-border-secondary);
       background-color: var(--auix-color-bg-inner-container);
-      box-shadow: var(--auix-shadow-default);            /* shadow (Replaces 0 1px 3px 0 rgb(0 0 0 / 0.1), ...) */
+      box-shadow: var(--auix-shadow-default);            
     """
   end
 
