@@ -8,7 +8,7 @@ defmodule Aurora.Uix.MixProject do
     [
       app: :aurora_uix,
       version: @version,
-      elixir: "~> 1.17",
+      elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       deps: deps(),

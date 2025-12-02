@@ -60,7 +60,9 @@ config :aurora_uix, dev_routes: true
 config :aurora_uix, test_routes: true, start_application: true
 
 # Print only warnings and errors during test
-config :logger, level: :warning
+config :logger,
+  level: :error,
+  truncate: :infinity
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

@@ -18,8 +18,8 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
     strategy:
       matrix: 
-        elixir: ['1.18.4-otp-28']
-        otp: ['28.0.1']
+        elixir: ['1.19.4-otp-28']
+        otp: ['28.2']
 
     services:
       postgres:
