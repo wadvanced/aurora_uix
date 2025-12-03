@@ -12,7 +12,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
   @spec rule(atom()) :: binary()
   def rule(:root) do
     """
-    /* */
+    /* Colors are based on tailwind palette */
+    /* https://tailscan.com/colors */
+
     :root, :host {
 
       /* ---------- SIZES and DIMENSIONS ----------- */
@@ -61,8 +63,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-error-ring: #F43F5E;     /* rose-500 (Error Ring) */
       --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
       --auix-color-icon-default: #18181B;   /* zinc-900 */
-      --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions */
-      --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions */
+      --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions (like save) */
+      --auix-color-icon-info: #1D4ED8;      /* blue-700 for informative actions (like show) */
+      --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions (like delete) */
       --auix-color-icon-inactive: #D4D4D8;  /* zinc-300 for inactive or low relevance actions */
 
       /* Borders */

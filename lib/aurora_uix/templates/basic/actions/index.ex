@@ -63,12 +63,32 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
+  Renders the "show" action link for an entity in the index layout.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:row_info` (tuple()) - Entity row information
+      - `:module` (atom()) - Context module name
+
+  ## Returns
+  Rendered.t() - The rendered "edit" action link
+  """
+  @spec show_row_action(map()) :: Rendered.t()
+  def show_row_action(assigns) do
+    ~H"""
+      <.auix_link class="auix-index-row-action" href="#" navigate={"/#{@auix.uri_path}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>
+        <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+      </.auix_link>
+    """
+  end
+
+  @doc """
   Renders the "edit" action link for an entity in the index layout.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
-      - `:source` (binary()) - Data source identifier
       - `:row_info` (tuple()) - Entity row information
       - `:module` (atom()) - Context module name
 
@@ -309,12 +329,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         <div class="auix-button-toggle-filters-content">
           <%= if Map.get(@auix, :filters_enabled?) do %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
-            <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive"}/>
+              <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive", else: "auix-icon-info"}/>
               <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
             <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
             </a>
           <% else %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel" />
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel auix-icon-info" />
             <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
           <% end %>
         </div>
@@ -440,6 +460,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec add_default_row_actions(Socket.t()) :: Socket.t()
   defp add_default_row_actions(socket) do
     Actions.add_actions(socket, :index_row_actions,
+      default_row_show: &show_row_action/1,
       default_row_edit: &edit_row_action/1,
       default_row_delete: &remove_row_action/1
     )
@@ -449,8 +470,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec add_default_selected_actions(Socket.t()) :: Socket.t()
   defp add_default_selected_actions(socket) do
     Actions.add_actions(socket, :index_selected_actions,
-      default_selected_delete_all: &selected_delete_all_action/1,
       default_selected_uncheck_all: &selected_uncheck_all_action/1,
+      default_selected_delete_all: &selected_delete_all_action/1,
       default_selected_check_all: &selected_check_all_action/1
     )
   end

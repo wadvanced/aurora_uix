@@ -20,53 +20,58 @@ Fetch dependencies:
 mix deps.get
 ```
 
-## Tailwind Configuration
+## CSS Configuration
 
-### Versions 4.x
-After following the [installation](https://tailwindcss.com/docs/installation/framework-guides/phoenix) guide for phoenix, 
-open assets/css/app.css and look for the following lines.
+Aurora UIX can render UI using custom templates and/or custom themes.
+So, we decided to used our own set of css rules.
 
-```css
-@import "tailwindcss" source(none);
-@source "../css";
-@source "../js";
-@source "../../lib/your_app_web";
-...
+A `basic` template along with the `light` and `dark` themes are included as default 
+in the package distribution.
+
+Css stylesheet resolution needs some configuration for it to work.
+
+### Configure Stylesheet Service
+Add auix's stylesheet path to a :api pipeline in the `router.ex` module.
+Here is a code snippet example for setting the path route.
+
+```elixir
+  pipeline :api do
+    plug(:accepts, ["json"])
+  end
+
+  scope "/auix/assets/", Aurora.Uix do
+    pipe_through(:api)
+    get("/css/stylesheet.css", Templates.CssServer, :generate)
+  end
 ```
 
-Add this source reference after yours app reference.
-```css
-@source "../../deps/aurora_uix/lib";
-```
+[!NOTE] You can set another path for the stylesheet, 
+if you do so, reflect that change in the corresponding `link` tag declaration that
+must be included in the main layout (usually root.html.heex or app.html.heex).
 
-You should have something like the following:
-```css
-@import "tailwindcss" source(none);
-@source "../css";
-@source "../js";
-@source "../../lib/your_app_web";
-@source "../../deps/aurora_uix/lib";
-```
-
-Now you can build your tailwind classes.
-
-### Versions 3.x
-Add Aurora UIX to your `tailwind.config.js` content paths to ensure all styles are included ('aurora_demo' used as an application example):
-
-```js
-module.exports = {
-  content: [
-    "./js/**/*.js",
-    "../lib/aurora_demo_web.ex",
-    "../lib/aurora_demo_web/**/*.*ex",
-    "../deps/aurora_uix/**/*.ex"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-```
+### Include Stylesheet in Main Layout
+In your main layout (root.html.heex, app.html.heex) add a link to `/auix/assets/css/stylesheet.css`.
+The head might look like the following:
+```html
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="Aurora.Uix" suffix=" · Phoenix Framework">
+      {assigns[:page_title]}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <!-- Add this vvvvvvvvv line -->
+    <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css"} />
+    <!-- ^^^^^^^^^^^^^^^^^^^ -->
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    <!-- .... other tags .... -->
+  </head>
+  ```
+> [!NOTE] Stylesheet loaded thru url are bound to be cached by browsers, if you experience that changes to rules does not apply upon reloading, replace the header link tag with the following:
+> ```html
+> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?gen=#{System.os_time()}"} />
+> ```
 
 ## Basic Usage
 
@@ -107,16 +112,27 @@ end
 Add the generated LiveView modules to your router:
 
 ```elixir
-live "/products", MyAppWeb.ProductViews.Product.Index
-live "/products/new", MyAppWeb.ProductViews.Product.Index, :new
-live "/products/:id/edit", MyAppWeb.ProductViews.Product.Index, :edit
-
-live "/products/:id", MyAppWeb.ProductViews.Product.Show, :show
-live "/products/:id/show/edit", MyAppWeb.ProductViews.Product.Show, :edit
-
+scope "/inventory", Aurora.UixWeb.Guides do
+  pipe_through(:browser)
+  live "/products", Overview.Product.Index
+  live "/products/new", Overview.Product.Index, :new
+  live "/products/:id/edit", Overview.Product.Index, :edit
+  live "/products/:id", Overview.Product.Show, :show
+  live "/products/:id/show/edit", Overview.Product.Show, :edit
+end
 ```
 
-> **Note:** You can simplify route registration by using the `Aurora.Uix.RouteHelper` macro. It automatically generates these routes for you.
+[!NOTE] You can simplify route registration by using the `Aurora.Uix.RouteHelper` macro. 
+It automatically generates these routes for you.
+
+```elixir
+import Aurora.Uix.RouteHelper
+
+scope "/inventory", Aurora.UixWeb.Guides do
+  pipe_through(:browser)
+  auix_live_resources("/products", Overview.Product)
+end
+```
 
 
 4. **Run Your App**

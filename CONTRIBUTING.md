@@ -245,13 +245,16 @@ If you enter the iex as explained in the section [`Starting the Phoenix Server i
 
 ```bash
 ## Create 100 sample products with 3 transactions each
-Aurora.Uix.Test.Helper.create_sample_products_with_transactions(100, 3, :use_any_prefix)
+iex> Aurora.Uix.Test.Helper.create_sample_products_with_transactions(100, 3, :use_any_prefix)
+
+## Create 5 product locations
+iex> Aurora.Uix.Test.Helper.create_sample_product_locations(5, :eraseme)
 
 ## Create 1 sample user with a couple of email
-Aurora.Uix.Test.Helper.create_sample_users(1, %{emails: [%{email: "one@test.com", name: "work"}, %{email: "home@yahoo.com", name: "home"}]})
+iex> Aurora.Uix.Test.Helper.create_sample_users(1, %{emails: [%{email: "one@test.com", name: "work"}, %{email: "home@yahoo.com", name: "home"}]})
 
 ## Delete all sample data (inventory and accounts) 
-Aurora.Uix.Test.Helper.delete_all_sample_data()
+iex> Aurora.Uix.Test.Helper.delete_all_sample_data()
 
 ```
 
@@ -287,7 +290,7 @@ After launching Phoenix Server, you can try in a Mac:
 
 You can capture the image with the tool of your preference, in the MacOS there is the included `Screenshot` application.
 
-The included screenshots were captured using the Firefox add-ons [`Awesome Screenshot & Screen Recorder`](https://addons.mozilla.org/en-US/firefox/addon/screenshot-capture-annotate/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search).
+The included screenshots were captured using the Firefox add-ons [`Full Page Screen Capture — FireShot`](http://getfireshot.com/)
 
 
 ## Code of Conduct

@@ -9,6 +9,8 @@ defmodule Aurora.UixWeb.Routes do
   defmacro load_routes do
     quote do
       auix_live_resources("/guide-overview-products", Overview.Product)
+      auix_live_resources("/guide-overview-product-locations", Overview.ProductLocation)
+      auix_live_resources("/guide-overview-product_transactions", Overview.ProductTransaction)
     end
   end
 end
