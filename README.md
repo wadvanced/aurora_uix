@@ -12,148 +12,232 @@
 
 # Aurora UIX
 
-A low-code UI framework for Elixir's Phoenix, generating CRUD UIs with minimal code.
+**Declarative, compile-time CRUD UI generation for Elixir's Phoenix LiveView.** Build feature-rich, responsive interfaces with minimal code using metadata-driven configuration and a powerful layout DSL.
+
+> ⚠️ **Alpha Status**: Aurora UIX is actively developed. Monitor [CHANGELOG.md](./CHANGELOG.md) for breaking changes between releases.
 
 ---
 ## 📖 Overview
 
-Aurora UIX is a low-code UI framework for Elixir's Phoenix LiveView that helps you build feature-rich CRUD interfaces with minimal configuration. It is designed to be highly extensible, allowing you to customize every aspect of the UI, from fields and layouts to actions and templates.
+Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that lets you rapidly generate complete CRUD interfaces from your Ecto schemas. Instead of writing repetitive form and list code, define your resource once and get a fully functional, responsive UI with built-in validation, association handling, and real-time updates.
 
-- **Key Features**:
-  - **Low-Code**: Generate complete CRUD UIs from your Ecto schemas with just a few lines of code.
-  - **Highly Extensible**: Customize fields, layouts, actions, and templates to fit your needs.
-  - **LiveView Native**: Built on top of Phoenix LiveView for real-time user experiences.
-  - **Association Support**: Built-in support for `belongs_to` and `has_many` associations.
-- **Technology Stack**:
-  - Elixir `1.15.x`
-  - Phoenix `1.7.x`
-  - Ecto `3.10.x`
+**Why Aurora UIX?**
+- **Rapid Development** — Build CRUD interfaces in minutes, not days. Define resource metadata once, get complete index, show, and edit views.
+- **Type-Safe Code Generation** — All UI code is generated at compile-time, not runtime. Full type safety with zero overhead.
+- **Extensible by Design** — Customize every layer: field renderers, layouts, templates, themes, and LiveView event handlers.
+- **Production-Ready Features** — Built-in pagination, validation, error handling, i18n, responsive design, and real-time updates via LiveView.
+
+**Key Features:**
+- **Declarative Resource Metadata** — Define fields, validation, labels, and associations in a single, maintainable place.
+- **Flexible Layout DSL** — Compose complex UIs using `inline`, `stacked`, and `section` layout primitives.
+- **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
+- **Association Support** — First-class support for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`.
+- **Responsive Design** — Mobile-first layouts that work seamlessly on all devices.
+- **i18n Support** — Built-in internationalization via configurable Gettext backend.
+- **Customizable Themes** — Light and dark themes included; create your own or override components.
+
+**Technology Stack:**
+- Elixir `1.19.x+`
+- Phoenix `1.8.x+`
+- Phoenix LiveView `1.1.x+`
+- Ecto `3.10.x+`
+
+---
+## ⚡ Quick Example
+
+See Aurora UIX in action. In just a few lines of code, generate a complete, responsive product management interface:
+
+```elixir
+defmodule MyAppWeb.Products do
+  use Aurora.Uix
+  alias MyApp.Inventory.Product
+
+  # 1. Define resource metadata (once)
+  auix_resource_metadata :product, context: MyApp.Inventory, schema: Product do
+    field :name, placeholder: "Product name", required: true
+    field :price, precision: 12, scale: 2
+    field :stock, required: true
+  end
+
+  # 2. Define layouts for each view
+  auix_create_ui do
+    # Index with pagination
+    index_columns :product, [:name, :price, :stock],
+      pagination_items_per_page: 20
+
+    # Organized edit form
+    edit_layout :product do
+      stacked do
+        inline [:name]
+        sections do
+          section "Pricing" do
+            stacked [:price]
+          end
+          section "Inventory" do
+            stacked [:stock]
+          end
+        end
+      end
+    end
+
+    # Detailed show view
+    show_layout :product do
+      stacked do
+        inline [:name, :price, :stock]
+      end
+    end
+  end
+end
+```
+
+**Result:** Complete, responsive CRUD interface with:
+- ✅ Paginated list view with sorting and filtering
+- ✅ Organized multi-section edit form
+- ✅ Detailed product view
+- ✅ Automatic validation and error handling
+- ✅ Real-time updates via Phoenix LiveView
+- ✅ Mobile-responsive design
+- ✅ Light/dark theme support
 
 ---
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Ensure you have the following installed on your local machine:
-- [Elixir](https://elixir-lang.org/install.html)
-- [Erlang](https://www.erlang.org/downloads)
+Ensure you have the following installed:
+- [Elixir](https://elixir-lang.org/install.html) 1.19+
+- [Erlang](https://www.erlang.org/downloads) OTP 26+
+- [Phoenix](https://phoenixframework.org/blog/phoenix-1-8-released) 1.8+
 
 ### Installation
 
-1. **Add to your dependencies**  
-   In `mix.exs`:
-   ```elixir
-   def deps do
-     [
-       {:aurora_uix, "~> 0.1.0"}
-     ]
-   end
-   ```
-   Then run:
-   ```shell
-   mix deps.get
-   ```
+#### 1. Add Dependency
 
-2. **Configure Tailwind**  
-   Add Aurora UIX to your `tailwind.config.js`:
-   ```js
-   module.exports = {
-     content: [
-       "./js/**/*.js",
-       "../lib/aurora_uix_demo_web.ex",
-       "../lib/aurora_uix_demo_web/**/*.*ex",
-       "../dev/aurora_uix/**/*.ex"
-     ],
-     // ...
-   }
-   ```
+Add Aurora UIX to your `mix.exs`:
 
-3. **Next Steps**  
-   - Learn how to define resources, layouts, and customize your UI in the [Getting Started Guide](./guides/introduction/getting_started.md).
-   - For advanced configuration, see the [full documentation](#-documentation--guides).
+```elixir
+def deps do
+  [
+    {:aurora_uix, "~> 0.1.0-alpha.1"}
+  ]
+end
+```
+
+Then run:
+```shell
+mix deps.get
+```
+
+#### 2. Configure Routes & Layout
+
+Add the stylesheet route to your router (`lib/my_app_web/router.ex`):
+
+```elixir
+scope "/auix/assets/", Aurora.Uix do
+  pipe_through(:api)
+  get("/css/stylesheet.css", Templates.CssServer, :generate)
+end
+```
+
+Add the stylesheet link to your layout (`lib/my_app_web/components/layouts/root.html.heex`):
+
+```html
+<head>
+  <!-- ... other meta tags ... -->
+  <link rel="stylesheet" href={~p"/assets/css/app.css"} />
+  <!-- Aurora UIX Stylesheet -->
+  <link rel="stylesheet" href="/auix/assets/css/stylesheet.css" />
+  <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}></script>
+</head>
+```
+
+> **Tip**: If styles don't apply after reload, add a cache-buster:
+> ```html
+> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?v=#{System.os_time()}"} />
+> ```
+
+#### 3. Create Your First CRUD UI
+
+Create a module (e.g., `lib/my_app_web/auix/product_ui.ex`) and use the example from the Quick Example section above. Then register routes in your router to test.
+
+### 📚 Next Steps
+
+- **[Complete Getting Started Guide](./guides/introduction/getting_started.md)** — Detailed setup with a working example
+- **[Resource Metadata Guide](./guides/core/resource_metadata.md)** — Learn field configuration, validation, and associations
+- **[Layout System Guide](./guides/core/layouts.md)** — Master the layout DSL for complex UIs
+- **[LiveView Integration](./guides/core/liveview.md)** — Handle events and business logic
 
 ---
+## 💡 Use Cases
 
-### 📚 Documentation & Guides
+Aurora UIX excels in these scenarios:
 
-- [Getting Started](./guides/introduction/getting_started.md)
-- [Resource Metadata](./guides/core/resource_metadata.md)
-- [Layout System](./guides/core/layouts.md)
-- [Customizing Fields](./guides/core/fields.md)
-- [LiveView Integration](./guides/core/liveview.md)
-- [Advanced Usage](./guides/advanced/advanced_usage.md)
-- [Troubleshooting](./guides/advanced/troubleshooting.md)
+| Use Case | Why Aurora UIX? |
+|----------|----------------|
+| **Admin Panels** | Generate admin dashboards for internal tools in hours, not weeks |
+| **Data Management Apps** | Build CRUD-heavy applications focused on data entry and management |
+| **Rapid Prototyping** | Quickly validate ideas and MVPs without UI boilerplate |
+| **Internal Tools** | Create tools for your team without investing in custom UI |
+| **CRUD-First Apps** | Applications where 80% of the UI is standard CRUD operations |
 
-Find all guides in the [`guides/`](./guides/) directory.
-
----
-
-> 💡 **Tips**
->
-> - **Styling**: If you see unexpected layout constraints, check for `max-w-2xl` or similar classes in your `app.html.heex` and remove them for full-width layouts.
-> - **Field Customization**: Use field options like `readonly`, `hidden`, `renderer`, and `option_label` for fine-grained control.
-> - **Associations**: Aurora UIX supports both `has_many` and `belongs_to` associations with customizable labels.
+Aurora UIX is **best suited** when:
+- Your primary need is CRUD operations with standard UI patterns
+- You want compile-time safety and performance
+- Consistency across the application is important
+- You value maintainable, declarative configuration
 
 ---
-## 🧪 Running Tests
+## 📖 Documentation & Guides
 
-- Run all tests:
-  ```shell
-  mix test
-  ```
-- Start an interactive test app:
-  ```shell
-  MIX_ENV=test iex --dot-iex "test/start_test_app.exs" -S mix
-  ```
-- Start the test server with all live cases:
-  ```shell
-  MIX_ENV=test iex --dot-iex "test/start_test_server.exs" -S mix
-  ```
-- Run the consistency check:
-  ```shell
-  mix consistency
-  ```
-  This checks formatting, compilation, Credo, Dialyzer, and documentation.
+Complete documentation is available in the [guides/](./guides/) directory and on [HexDocs](https://hexdocs.pm/aurora_uix):
 
-- Follow the provided formatter, Credo, and Doctor configs.
-
-#### Test UI Setup: Router
-
-  Example:
-  ```elixir
-  auix_create_ui do
-    # ...
-  end
-  ```
-- The generated module name is used to register routes in the test router.
-- See [`test/support/app_web/router.ex`](test/support/app_web/router.ex) for how all test CRUD UIs are registered using `register_crud` and `register_product_crud`.
-- This setup is required for the test server to mount and test all CRUD UIs at predictable URLs.
+- **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
+- **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
+- **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
+- **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
+- **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
+- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
+- **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---
 ## 🚢 Deployment
 
-- **Building for production:**
-  ```bash
-  MIX_ENV=prod mix release
-  ```
-- **Running migrations in production:**
-  ```bash
-  prod/rel/[your-app]/bin/[your-app] eval "MyApp.Release.migrate"
-  ```
-- **Hosting details** (e.g., Gigalixir, Fly.io, or self-hosted).
+Building your Aurora UIX application for production:
+
+```bash
+# Build the release
+MIX_ENV=prod mix release
+
+# Run the release
+_build/prod/rel/aurora_uix/bin/aurora_uix start
+```
+
+For complete deployment guidance, see the [Phoenix Deployment Guide](https://hexdocs.pm/phoenix/deployment.html).
 
 ---
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+We welcome contributions! Aurora UIX is maintained by WAdvanced and community members.
+
+**Before contributing**, read the [Contributing Guidelines](CONTRIBUTING.md) which includes:
+- How to report bugs and suggest features
+- Development setup and testing procedures
+- Code style and commit message conventions
+- Pull request process
+
+**Quick links:**
+- [GitHub Issues](https://github.com/wadvanced/aurora_uix/issues) — Report bugs or suggest features
+- [GitHub Discussions](https://github.com/wadvanced/aurora_uix/discussions) — Ask questions
+- [Contributing Guidelines](CONTRIBUTING.md) — Full contribution details
 
 ---
 ## 📜 License
 
-This project is licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE).
 
 ---
 ## 📧 Contact
 
-- **WAdvanced** - contact@wadvanced.com
-- **Project Link** - [https://github.com/wadvanced/aurora_uix](https://github.com/wadvanced/aurora_uix)
+- **Email:** [contact@wadvanced.com](mailto:contact@wadvanced.com)
+- **Repository:** [https://github.com/wadvanced/aurora_uix](https://github.com/wadvanced/aurora_uix)
+
