@@ -117,7 +117,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}"}
         name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
-          <.icon name="hero-eye" />
+          <.icon name="hero-eye" class="auix-icon-info"/>
       </.auix_link>
     """
   end
@@ -136,7 +136,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
-          <.icon name="hero-pencil" />
+          <.icon name="hero-pencil-square" class="auix-icon-safe"/>
       </.auix_link>
     """
   end
@@ -166,7 +166,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
         name={"auix-delete-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
         data-confirm="Are you sure?"
       >
-        <.icon name="hero-trash" />
+        <.icon name="hero-trash" class="auix-icon-danger"/>
       </.link>
     """
   end

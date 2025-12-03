@@ -82,7 +82,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
     ~H"""
     <div class="auix-one-to-many-field" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
       <div class="auix-one-to-many-header">
-        <.label for={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@auix.association.related_parsed_opts.title} Elements"}
+        <.label for={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>{"#{@auix.association.related_parsed_opts.title} Items"}
             <div name="auix-one_to_many-header-actions" class="auix-one-to-many-header-actions">
               <%= for %{function_component: action} <- @auix.one_to_many_header_actions do %>
                 {action.(%{auix: @auix, field: @field})}
@@ -93,6 +93,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
         <.auix_items
           id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
+          first_column_not_checkbox?={true}    
           auix={%{filters: %{}, source_key: @auix.source_key,
             layout_options: %{pagination_disabled?: false, infinite_scroll_items_load: nil}}}
           streams={get_in(@auix, [:entity, Access.key!(@field.key)])}

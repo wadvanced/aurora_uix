@@ -1123,7 +1123,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_items_table_cell) do
     """
     .auix-items-table-cell {
-      padding-right: 1rem;
+      padding-right: 0.625rem;
     }
     """
   end
@@ -1133,9 +1133,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-items-table-action-cell {
         display: flex;
         flex-direction: row;
+        justify-content: flex-end;
         gap: 0.5rem;
         padding-top: 0.250rem;
-        padding-left: 0.875rem;
+        padding-left: 0rem;
       }
     """
   end
@@ -1537,26 +1538,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_show_container) do
     """
-      .auix-show-container {
-        width: max-content; 
-        padding: 1rem;          
-        margin-left: auto;      
-        margin-right: auto;     
-      }
-
-
-      @media (min-width: 640px) {
-        .auix-show-container {
-          padding: 1.5rem;      
-        }
-      }
-
-      @media (min-width: 1024px) {
-        .auix-show-container {
-          padding-top: 2rem;    
-          padding-bottom: 2rem; 
-        }
-      }
+    #{import_rule(:auix_index_container, :auix_show_container)}
     """
   end
 
@@ -1568,7 +1550,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-radius: 0.5rem;
       box-shadow: var(--auix-shadow-md);
       background-color: var(--auix-color-bg-default);
-      width: max-content;
+      width: 100%;
     }
     """
   end
@@ -1698,6 +1680,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: flex;
         flex-direction: column;
         gap: 0.375rem;
+        width: 100%;
       }
     """
   end
@@ -1913,17 +1896,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_inline_container) do
     """
       .auix-inline-container {
-
         display: flex;             
         flex-direction: column;    
         gap: 0.5rem;               
-        width: max-content;
+        width: auto;
       }
 
 
       @media (min-width: 640px) {
         .auix-inline-container {
           flex-direction: row;
+          width: 100%;
         }
       }
     """
@@ -1987,8 +1970,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_icon_safe) do
     """
-    .auix-icon-safe {
+    .auix-icon-safe:hover {
       color: var(--auix-color-icon-safe)
+    }
+    """
+  end
+
+  def rule(:auix_icon_info) do
+    """
+    .auix-icon-info:hover {
+      color: var(--auix-color-icon-info)
     }
     """
   end

@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def header_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.button class="auix-button--alt" type="button" phx-click="toggle-add-embeds" phx-target={@target}>
-        <.icon name="hero-plus-circle"/> 
+        <.icon name="hero-plus"/> 
         <span>{gettext("Add new entry")}</span>
       </.button>
     """
@@ -95,7 +95,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
     ~H"""
       <%= if Enum.count(@auix.form[@field.key].value) > 0 do %>
         <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
-          <.icon name="hero-plus-circle" />
+          <.icon name="hero-plus" />
           <span>{gettext("Add new entry")}</span>
         </.button>
       <% end %>

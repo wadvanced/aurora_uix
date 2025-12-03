@@ -97,6 +97,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   attr(:auix, :map, default: %{})
 
+  attr(:first_column_not_checkbox?, :boolean, default: false)
+
   slot :col, required: true do
     attr(:label, :string)
   end
@@ -117,7 +119,10 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     </div>
 
     <div class="auix-items-mobile">
-      {auix_items_card(assign_rows(assigns, @streams, @auix.source_key, "mobile"))}
+      {assigns 
+        |> assign_rows(@streams, @auix.source_key, "mobile")
+        |> Map.put(:first_column_not_checkbox?, @first_column_not_checkbox?)
+        |> auix_items_card}
     </div>
     """
   end
@@ -153,6 +158,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   )
 
   attr(:auix, :map, default: %{})
+
+  attr(:first_column_not_checkbox?, :boolean, default: false)
 
   slot :col, required: true do
     attr(:label, :string)
@@ -251,6 +258,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   attr(:auix, :map, default: %{})
 
+  attr(:first_column_not_checkbox?, :boolean, default: false)
+
   slot :col, required: true do
     attr(:label, :string)
   end
@@ -281,13 +290,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         >
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 
             class={if even?(row), do: "auix-items-card-item-content--even", else: "auix-items-card-item-content--odd"}>
-          <%= if Enum.at(@col, 0) do %>
+          <%= if Enum.at(@col, 0) != nil do %>
             <div class="auix-items-card-item-group">
-              <div class="auix-items-card-item--clickable">
+              <div :if={!@first_column_not_checkbox?} class="auix-items-card-item--clickable">
                 {render_slot(Enum.at(@col, 0), @row_item.(row))}
               </div>
               <div class="auix-items-card-item">
-                <div :for={col <- List.delete_at(@col, 0)} class="auix-items-card-item-fieldset">
+                <div :for={col <- get_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
                   <div class="auix-items-card-item-label">{col.label}</div>
                   <div class="auix-items-card-item-value" name="auix-column-value">
                     {render_slot(col, @row_item.(row))}
@@ -518,4 +527,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   defp even?(_), do: false
+
+  @spec get_cols(list(), boolean) :: list()
+  defp get_cols([], _first_column_not_checkbox?), do: []
+
+  defp get_cols(cols, true = _first_column_not_checkbox?), do: cols
+
+  defp get_cols(cols, _first_column_not_checkbox), do: List.delete_at(cols, 0)
 end
