@@ -41,7 +41,6 @@ defmodule Aurora.Uix.MixProject do
           "CHANGELOG.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
-          "guides/core/fields.md",
           "guides/core/resource_metadata.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
