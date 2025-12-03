@@ -2,15 +2,15 @@
 
 Welcome to **Aurora UIX**! This guide helps you add Aurora UIX to your Phoenix project and build your first CRUD UI with minimal code.
 
-## A Note About Alpha Version
-This library is still in alpha stage. 
+Aurora UIX is a low-code framework for building dynamic, metadata-driven UIs in Phoenix LiveView applications. It lets you define schema metadata once and automatically generate complete CRUD interfaces.
 
-There are several functionalities left to be implemented, and existing ones bound to be improved.
-Therefore, expect important changes in future releases.
+## Alpha Version Notice
+
+This library is currently in alpha stage. Several functionalities are still being implemented, and existing APIs are subject to improvement. We recommend monitoring the [CHANGELOG.md](../CHANGELOG.md) for breaking changes between releases.
 
 ## Installation
 
-Add `aurora_uix` to your `mix.exs` dependencies:
+Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.7+ (which includes LiveView support):
 
 ```elixir
 def deps do
@@ -20,7 +20,7 @@ def deps do
 end
 ```
 
-Fetch dependencies:
+Then fetch the dependencies:
 
 ```shell
 mix deps.get
@@ -28,17 +28,13 @@ mix deps.get
 
 ## CSS Configuration
 
-Aurora UIX can render UI using custom templates and/or custom themes.
-So, we decided to used our own set of css rules.
+Aurora UIX renders UI with pre-built CSS themes. A `basic` template with `light` and `dark` themes are included by default.
 
-A `basic` template along with the `light` and `dark` themes are included as default 
-in the package distribution.
+For styling to work, you need to configure the CSS stylesheet service in your router and add the stylesheet link to your layout.
 
-Css stylesheet resolution needs some configuration for it to work.
+### Step 1: Add Stylesheet Route
 
-### Configure Stylesheet Service
-Add auix's stylesheet path to a :api pipeline in the `router.ex` module.
-Here is a code snippet example for setting the path route.
+In your `router.ex`, add a route to serve the dynamically generated CSS:
 
 ```elixir
   pipeline :api do
@@ -51,43 +47,41 @@ Here is a code snippet example for setting the path route.
   end
 ```
 
-> #### Note {: .info}
-> You can set another path for the stylesheet, 
-> if you do so, reflect that change in the corresponding `link` tag declaration that
-> must be included in the main layout (usually root.html.heex or app.html.heex).
+The path can be customized, but you'll need to update the stylesheet link in your layout accordingly.
 
-### Include Stylesheet in Main Layout
-In your main layout (root.html.heex, app.html.heex) add a link to `/auix/assets/css/stylesheet.css`.
-The head might look like the following:
+### Step 2: Include Stylesheet Link in Layout
+
+In your main layout file (typically `root.html.heex` or `app.html.heex`), add a link to the generated stylesheet in the `<head>` section:
+
 ```html
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Aurora.Uix" suffix=" · Phoenix Framework">
-      {assigns[:page_title]}
-    </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
-    <!-- Add this vvvvvvvvv line -->
-    <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css"} />
-    <!-- ^^^^^^^^^^^^^^^^^^^ -->
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
-    <!-- .... other tags .... -->
-  </head>
-  ```
-> #### Note {: .info}
-> Browsers cache stylesheet, if you experience that changes to rules are not applied, even after reloading, replace the header link tag with the following code snippet:
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="csrf-token" content={get_csrf_token()} />
+  <.live_title default="Aurora.Uix" suffix=" · Phoenix Framework">
+    {assigns[:page_title]}
+  </.live_title>
+  <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+  <!-- Aurora UIX Stylesheet -->
+  <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css"} />
+  <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+  </script>
+</head>
+```
+
+> #### Stylesheet Caching {: .info}
+> Browsers may cache stylesheets aggressively. If style changes aren't appearing after reloading, update the link to bust the cache:
 > ```html
-> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?gen=#{System.os_time()}"} />
+> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?v=#{System.os_time()}"} />
 > ```
 
 ## Basic Usage
 
-1. **Define Resource Metadata**
+Aurora UIX works in three main steps:
 
-The resource metadata allows to define the UI characteristics of each of the fields in the schema.
+### 1. Define Resource Metadata
 
-In the following example, the use of macro `auix_resource_metadata` aids into defining fields' properties:
+Resource metadata describes the UI characteristics of fields in your Ecto schema. Use the `auix_resource_metadata/3` macro to configure how each field should be rendered:
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
@@ -104,27 +98,34 @@ defmodule MyAppWeb.ProductViews do
 end
 ```
 
-You can learn more about the resource_metadata syntax in the [`Resource Metadata`](../../guides/core/resource_metadata.md)i guide.
+This tells Aurora UIX:
+- How to label and validate fields
+- What input types to render (text, number, checkbox, etc.)
+- Which fields are required, readonly, or hidden
 
-2. **Generate UI Layout**
+For detailed configuration options, see the [Resource Metadata Guide](../core/resource_metadata.md).
 
-Use the layout DSL to define your UI (or rely on sensible defaults):
+### 2. Generate UI Layout
+
+Use the layout DSL to define which fields appear in your index (list), show, and form views. You can use sensible defaults or customize the layout:
 
 ```elixir
-auix_create_ui do
-  index_columns :product, [:name, :price]
-  edit_layout :product do
-    inline [:name, :price, :description]
+  auix_create_ui do
+    index_columns :product, [:name, :price]
+    edit_layout :product do
+      inline [:name, :price, :description]
+    end
   end
-end
 ```
 
-3. **Add Paths to Router**
+For more layout options, see the [Layouts Guide](../core/layouts.md).
 
-Add the generated LiveView modules to your router:
+### 3. Add Routes to Router
+
+Add the generated LiveView modules to your router. The standard pattern includes index, show, new, and edit views:
 
 ```elixir
-scope "/inventory", Aurora.UixWeb.Guides do
+scope "/inventory" do
   pipe_through(:browser)
   live "/products", Overview.Product.Index
   live "/products/new", Overview.Product.Index, :new
@@ -134,9 +135,7 @@ scope "/inventory", Aurora.UixWeb.Guides do
 end
 ```
 
-> #### Note {: .info}
-> CRUD paths can be simplified by the `Aurora.Uix.RouteHelper.auix_live_resources/2` macro. 
-> It automatically generates the same previously shown paths.
+**Alternatively, use the route helper for shorter syntax:**
 
 ```elixir
 import Aurora.Uix.RouteHelper
@@ -147,10 +146,44 @@ scope "/inventory", Aurora.UixWeb.Guides do
 end
 ```
 
+This automatically generates all the routes above with the standard CRUD pattern:
+- Index: `GET /products`
+- New: `GET /products/new`
+- Create: `POST /products` (handled by LiveView)
+- Show: `GET /products/:id`
+- Edit: `GET /products/:id/edit`
+- Update: `PATCH /products/:id` (handled by LiveView)
 
-4. **Run Your App**
+For more details on routing, see the [LiveView Integration Guide](../core/liveview.md).
 
-Start your Phoenix server and visit any of the defined paths to access a complete and functional CRUD UI.
+### Run Your App
 
-To learn more, get acquainted with the [`Resource Metadata`](../../guides/core/resource_metadata.md) guide and the 
-[`Layout System`](../../guides/core/layouts.md) guide.
+Start your Phoenix server and navigate to the defined paths to see your complete CRUD UI:
+
+```shell
+mix phx.server
+```
+
+Visit `http://localhost:4000/inventory/products` to see your generated interface with list, detail, create, and edit views.
+
+## Next Steps
+
+Now that you have Aurora UIX running, here are some recommended next steps:
+
+### Learn More
+
+- **[Resource Metadata Guide](../core/resource_metadata.md)** - Deep dive into field configuration, associations, and custom renderers
+- **[Layouts Guide](../core/layouts.md)** - Master the layout DSL for customizing UI composition
+- **[LiveView Integration Guide](../core/liveview.md)** - Integrate Aurora UIX with your LiveView event handlers
+- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom components, themes, and extending Aurora UIX
+
+### Common Tasks
+
+- **Add field validation** - Configure `required`, `readonly`, and custom validation in resource metadata
+- **Handle associations** - Configure many-to-one selects and one-to-many lists
+- **Customize styling** - Create custom themes to match your design system
+- **Add business logic** - Connect Aurora UIX with your context functions for CRUD operations
+
+### Troubleshooting
+
+If you encounter issues, check the [Troubleshooting Guide](../advanced/troubleshooting.md).
