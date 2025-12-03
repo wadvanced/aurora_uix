@@ -1,138 +1,200 @@
-# Aurora UIX
+# Aurora UIX Overview
 
-Aurora UIX is a low-code UI framework for the Elixir Phoenix ecosystem, designed to rapidly generate CRUD user interfaces with minimal boilerplate. It leverages resource metadata, a declarative layout DSL, and compile-time code generation to produce maintainable, extensible, and consistent LiveView-based UIs.
+Welcome to **Aurora UIX** — a low-code, metadata-driven UI framework for Elixir's Phoenix ecosystem.
 
-## Core Concepts
+Aurora UIX helps you rapidly generate complete CRUD user interfaces with minimal boilerplate code. By leveraging declarative resource metadata and a powerful layout DSL, you can build feature-rich, maintainable UIs with compile-time code generation and automatic LiveView integration.
 
-- **Resource Metadata**: Define schema-based resource UI configuration, 
-specifying field-level UI options, associations, and validation rules.
-- **Layout DSL**: Compose layouts for forms, lists, and detail views having nested elements like 
-groups, stacks, sections, inline.
-- **Compile-Time UI Generation**: Aurora UIX generates LiveView modules and HEEx templates at compile time,
-ensuring fast runtime performance and type safety.
-- **Extensible Templates**: The system supports pluggable template engines and customizable rendering logic, 
-allowing for advanced UI customization and integration with custom components.
-- **Interchangeable Theme Support**: Comes with light and dark themes, which can be customized or 
-replaced completely.
+## Core Architecture
 
-## Features
+Aurora UIX is built on three interconnected components:
 
-- Declarative resource and field configuration
-- Automatic CRUD UI generation (index, form, show)
-- Flexible, composable layouts with grouping and tabbed sections
-- Association handling (one_to_many, many_to_one, embeds_one, embeds_many)
-- Compile-time generation for minimal runtime overhead
-- Extensible template and component system
-- Configurable and runtime switchable themes
-- Integrated i18n support via configurable Gettext backend
-
-## Example Usage
+### 1. Resource Metadata
+Define UI configuration declaratively using the `auix_resource_metadata/3` macro. Specify field-level options, validation rules, labels, and association handling all in one place.
 
 ```elixir
-defmodule Aurora.UixWeb.Guides.Overview do
-  use Aurora.Uix
+auix_resource_metadata :product, context: Inventory, schema: Product do
+  field :name, placeholder: "Product name", required: true
+  field :price, precision: 12, scale: 2
+end
+```
 
-  alias Aurora.Uix.Guides.Inventory
-  alias Aurora.Uix.Guides.Inventory.Product
-  alias Aurora.Uix.Guides.Inventory.ProductLocation
-  alias Aurora.Uix.Guides.Inventory.ProductTransaction
+### 2. Layout DSL
+Compose complex, nested layouts for index, show, and edit views using a flexible declarative syntax. Combine layout elements like `inline`, `stacked`, and `sections` to organize your UI.
 
-  auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
-
-  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
-
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
-    field(:product_location_id, option_label: :name)
-  end
-
-  auix_create_ui do
-    index_columns(:product, [:reference, :name, :description, :quantity_at_hand],
-      pagination_items_per_page: 15
-    )
-
-    index_columns(:product_transaction, [:type, :quantity, :cost])
-
-    edit_layout :product_location do
-      inline([:reference, :name, :type])
-    end
-
-    show_layout :product do
-      stacked do
-        inline([:reference, :name])
-        inline([:description])
-        inline([:product_location, :product_transactions])
-      end
-    end
-
-    edit_layout :product do
-      stacked do
-        inline([:reference])
-
-        sections do
-          section "Description" do
-            stacked([:name, :description])
-          end
-
-          section "Quantities" do
-            stacked([:quantity_initial, :quantity_entries, :quantities_exits])
-          end
-        end
-
-        stacked do
-          inline([:product_location_id])
-          inline([:product_transactions])
-        end
+```elixir
+show_layout :product do
+  stacked do
+    inline [:name, :price]
+    sections do
+      section "Details" do
+        stacked [:description, :category]
       end
     end
   end
 end
 ```
 
-Will produce the whole UI interface for **C**reating, **R**eading (showing), **U**pdating (editing) 
-and **D**eleting along with validation, association handling, among other features and functionalities.
-Each schema gets its own set of interfaces.
-The following images depicts some of the automatically generated UI:
+### 3. Compile-Time Code Generation
+Aurora UIX generates optimized LiveView modules and HEEx templates at compile time, not runtime. This ensures fast performance, type safety, and maintainable code.
 
-#### Index listing
-<img src="images/index-desktop.png" width="600"/>
+## Key Features
 
-#### Record showing
-<img src="images/show-desktop.png" width="600"/>
+- **Declarative Configuration** - Define resources and layouts as Elixir code, no templates to manage
+- **Automatic CRUD UIs** - Generate complete Create, Read, Update, Delete interfaces automatically
+- **Association Support** - Built-in handling for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`
+- **Responsive Design** - Layouts work seamlessly on desktop and mobile devices
+- **Customizable Themes** - Includes light and dark themes, fully customizable or replaceable
+- **Extensible** - Override templates, create custom renderers, integrate custom components
+- **i18n Support** - Built-in internationalization via configurable Gettext backend
+- **Minimal Overhead** - Compile-time generation means fast runtime performance
 
-#### Record editing
-<img src="images/edit-desktop.png" width="600"/>
+## Complete Example
 
-- **Section Switching**
+Here's a example showing Resource Metadata and Layout DSL working together to create a complete inventory management interface:
 
-<img src="images/edit-desktop-section_switching.png" width="600"/>
+```elixir
+defmodule MyAppWeb.InventoryViews do
+  use Aurora.Uix
 
-Views are responsive, in a mobile you'll have this:
+  alias MyApp.Inventory
+  alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
 
-#### Index listing
-<img src="images/index-mobile.png" width="300"/>
+  # Define UI metadata for each resource
+  auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
-#### Record showing
-<img src="images/show-mobile.png" width="300"/>
+  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-#### Record editing
-<img src="images/edit-mobile.png" width="300"/>
+  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+    field :name, placeholder: "Product name", required: true
+    field :price, precision: 12, scale: 2
+  end
 
-- **Section Switching**
+  # Define layouts for each view
+  auix_create_ui do
+    # Index view configuration
+    index_columns :product, [:reference, :name, :price, :quantity_at_hand],
+      pagination_items_per_page: 15
 
-<img src="images/edit-mobile-section_switching.png" width="300"/>
+    # Show view configuration
+    show_layout :product do
+      stacked do
+        inline [:reference, :name]
+        inline [:description]
+        inline [:price, :quantity_at_hand]
+        inline [:product_location, :product_transactions]
+      end
+    end
+
+    # Edit view configuration with organized sections
+    edit_layout :product do
+      stacked do
+        inline [:reference]
+        sections do
+          section "Basic Information" do
+            stacked [:name, :description]
+          end
+          section "Pricing" do
+            stacked [:price, :cost]
+          end
+          section "Inventory" do
+            stacked [:quantity_initial, :quantity_entries]
+          end
+        end
+        inline [:product_location_id]
+      end
+    end
+  end
+end
+```
+
+**Result**: A complete product management interface with:
+- ✅ Responsive list view with pagination
+- ✅ Detailed product view with organized sections
+- ✅ Editable form with grouped fields
+- ✅ Association handling (location selection, transaction links)
+- ✅ Automatic validation and error handling
+- ✅ Real-time updates via LiveView
+
+## Generated UI Examples
+
+Aurora UIX generates complete, responsive CRUD interfaces. Here are examples of automatically generated interfaces:
+
+### Desktop Views
+
+#### List View (Index)
+<img src="images/index-desktop.png" width="600" alt="Product list with pagination and filtering"/>
+
+#### Detail View (Show)
+<img src="images/show-desktop.png" width="600" alt="Product detail view"/>
+
+#### Edit View with Sections
+<img src="images/edit-desktop.png" width="600" alt="Product form with organized sections"/>
+
+#### Section Navigation
+<img src="images/edit-desktop-section_switching.png" width="600" alt="Switching between form sections"/>
+
+### Mobile Views
+
+Aurora UIX layouts are fully responsive and adapt to mobile devices:
+
+#### Mobile List
+<img src="images/index-mobile.png" width="300" alt="Mobile product list"/>
+
+#### Mobile Detail
+<img src="images/show-mobile.png" width="300" alt="Mobile product detail"/>
+
+#### Mobile Edit Form
+<img src="images/edit-mobile.png" width="300" alt="Mobile product form"/>
+
+#### Mobile Section Switching
+<img src="images/edit-mobile-section_switching.png" width="300" alt="Mobile section navigation"/>
 
 
-## When to Use Aurora UIX
+## Who Should Use Aurora UIX?
 
-- Rapid prototyping of Phoenix CRUD interfaces
-- Projects that benefit from convention-over-configuration and consistent UI patterns
-- Teams seeking to minimize repetitive UI code and focus on business logic
+Aurora UIX is ideal for:
 
-## Extending Aurora UIX
+- **Rapid Prototyping** - Build CRUD interfaces in minutes, not days
+- **Internal Tools & Admin Panels** - Generate admin interfaces for business logic
+- **MVP Development** - Focus on business logic, not UI boilerplate
+- **Data Management Apps** - Applications centered around data entry and management
+- **Convention-Driven Teams** - Teams that value consistency and predictable patterns
 
-- Implement custom templates or override rendering logic
-- Author custom field renderers or extend the layout DSL
-- Integrate with your own Phoenix components and styles
+Aurora UIX works best when:
+- Your primary need is CRUD operations with standard UI patterns
+- You want to minimize repetitive form and list code
+- Consistency across the application is important
+- You want compile-time safety and performance
 
-See the guides and documentation for more details on configuration, 
-customization, and advanced usage.
+## Getting Started
+
+Ready to build your first Aurora UIX interface? Follow these steps:
+
+1. **[Quick Start Guide](../introduction/getting_started.md)** - 10-minute setup and first CRUD interface
+2. **[Resource Metadata Guide](../core/resource_metadata.md)** - Learn how to configure resources
+3. **[Layout System Guide](../core/layouts.md)** - Master the layout DSL
+
+## Customization & Extension
+
+Aurora UIX is built to be extensible:
+
+- **Custom Field Renderers** - Implement custom rendering logic for specialized fields
+- **Layout Components** - Create reusable layout compositions
+- **Custom Templates** - Override the default template system
+- **Theme Customization** - Modify existing themes or create new ones from scratch
+- **LiveView Integration** - Hook into LiveView events for business logic
+
+For details on advanced customization, see:
+- [Advanced Usage Guide](../advanced/advanced_usage.md)
+- [LiveView Integration](../core/liveview.md)
+
+## Documentation & Next Steps
+
+Ready to get started? Here's your learning path:
+
+- **[Getting Started](../introduction/getting_started.md)** - Installation and first CRUD interface
+- **[Resource Metadata](../core/resource_metadata.md)** - Complete field configuration reference
+- **[Layouts](../core/layouts.md)** - Layout DSL deep dive
+- **[LiveView Integration](../core/liveview.md)** - Event handling and business logic
+- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom components and themes
+- **[Troubleshooting](../advanced/troubleshooting.md)** - Common issues and solutions
