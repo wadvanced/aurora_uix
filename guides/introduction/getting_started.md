@@ -2,6 +2,12 @@
 
 Welcome to **Aurora UIX**! This guide helps you add Aurora UIX to your Phoenix project and build your first CRUD UI with minimal code.
 
+## A Note About Alpha Version
+This library is still in alpha stage. 
+
+There are several functionalities left to be implemented, and existing ones bound to be improved.
+Therefore, expect important changes in future releases.
+
 ## Installation
 
 Add `aurora_uix` to your `mix.exs` dependencies:
@@ -9,7 +15,7 @@ Add `aurora_uix` to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.0"}
+    {:aurora_uix, "~> 0.1.0-alpha.1"}
   ]
 end
 ```
@@ -45,9 +51,10 @@ Here is a code snippet example for setting the path route.
   end
 ```
 
-[!NOTE] You can set another path for the stylesheet, 
-if you do so, reflect that change in the corresponding `link` tag declaration that
-must be included in the main layout (usually root.html.heex or app.html.heex).
+> #### Note {: .info}
+> You can set another path for the stylesheet, 
+> if you do so, reflect that change in the corresponding `link` tag declaration that
+> must be included in the main layout (usually root.html.heex or app.html.heex).
 
 ### Include Stylesheet in Main Layout
 In your main layout (root.html.heex, app.html.heex) add a link to `/auix/assets/css/stylesheet.css`.
@@ -68,7 +75,8 @@ The head might look like the following:
     <!-- .... other tags .... -->
   </head>
   ```
-> [!NOTE] Stylesheet loaded thru url are bound to be cached by browsers, if you experience that changes to rules does not apply upon reloading, replace the header link tag with the following:
+> #### Note {: .info}
+> Browsers cache stylesheet, if you experience that changes to rules are not applied, even after reloading, replace the header link tag with the following code snippet:
 > ```html
 > <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?gen=#{System.os_time()}"} />
 > ```
@@ -77,7 +85,9 @@ The head might look like the following:
 
 1. **Define Resource Metadata**
 
-Describe your schema and UI options using the DSL:
+The resource metadata allows to define the UI characteristics of each of the fields in the schema.
+
+In the following example, the use of macro `auix_resource_metadata` aids into defining fields' properties:
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
@@ -94,6 +104,8 @@ defmodule MyAppWeb.ProductViews do
 end
 ```
 
+You can learn more about the resource_metadata syntax in the [`Resource Metadata`](../../guides/core/resource_metadata.md)i guide.
+
 2. **Generate UI Layout**
 
 Use the layout DSL to define your UI (or rely on sensible defaults):
@@ -107,7 +119,7 @@ auix_create_ui do
 end
 ```
 
-3. **Add to Router**
+3. **Add Paths to Router**
 
 Add the generated LiveView modules to your router:
 
@@ -122,8 +134,9 @@ scope "/inventory", Aurora.UixWeb.Guides do
 end
 ```
 
-[!NOTE] You can simplify route registration by using the `Aurora.Uix.RouteHelper` macro. 
-It automatically generates these routes for you.
+> #### Note {: .info}
+> CRUD paths can be simplified by the `Aurora.Uix.RouteHelper.auix_live_resources/2` macro. 
+> It automatically generates the same previously shown paths.
 
 ```elixir
 import Aurora.Uix.RouteHelper
@@ -137,6 +150,7 @@ end
 
 4. **Run Your App**
 
-Start your Phoenix server and visit `/products` to see your UI.
+Start your Phoenix server and visit any of the defined paths to access a complete and functional CRUD UI.
 
-For more details on field options and advanced layouts, see the [Resource Metadata guide](../../guides/core/resource_metadata.md).
+To learn more, get acquainted with the [`Resource Metadata`](../../guides/core/resource_metadata.md) guide and the 
+[`Layout System`](../../guides/core/layouts.md) guide.
