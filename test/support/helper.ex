@@ -15,6 +15,9 @@ defmodule Aurora.Uix.Test.Helper do
 
   require Logger
 
+  @transaction_types ~w(entry exit returns move_in move_out)
+  @transaction_types_count Enum.count(@transaction_types)
+
   @doc """
   Creates a sequence of sample products with incremental IDs.
 
@@ -37,8 +40,15 @@ defmodule Aurora.Uix.Test.Helper do
       name = "Item #{reference_id}"
       description = "This is the item #{reference_id} as described."
       cost = index / 100 + 123
+      quantity_at_hand = :rand.uniform(10_000)
 
-      %Product{reference: reference, name: name, description: description, cost: cost}
+      %Product{
+        reference: reference,
+        name: name,
+        description: description,
+        cost: cost,
+        quantity_at_hand: quantity_at_hand
+      }
       |> struct(attrs)
       |> Repo.insert()
       |> elem(1)
@@ -166,7 +176,7 @@ defmodule Aurora.Uix.Test.Helper do
     |> Enum.map(fn index ->
       Repo.insert(%ProductTransaction{
         product: elem(product, 1),
-        type: "enter",
+        type: transaction_type(),
         quantity: index * 2,
         cost: index / 100 + 456
       })
@@ -189,5 +199,12 @@ defmodule Aurora.Uix.Test.Helper do
     |> then(&(length - &1))
     |> then(&String.duplicate("0", &1))
     |> then(&"#{prefix_with_hyphen}#{&1}#{index}")
+  end
+
+  @spec transaction_type() :: binary()
+  defp transaction_type do
+    @transaction_types_count
+    |> :rand.uniform()
+    |> then(&Enum.at(@transaction_types, &1 - 1))
   end
 end

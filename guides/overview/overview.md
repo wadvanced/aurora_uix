@@ -58,7 +58,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
     show_layout :product do
       stacked do
-        inline([:reference, :name, :description])
+        inline([:reference, :name])
         inline([:description])
         inline([:product_location, :product_transactions])
       end
@@ -78,34 +78,48 @@ defmodule Aurora.UixWeb.Guides.Overview do
           end
         end
 
-        inline([:product_transactions])
+        stacked do
+          inline([:product_location_id])
+          inline([:product_transactions])
+        end
       end
     end
   end
 end
 ```
 
-Will produce the whole UI interface for **C**reating, **R**eading (showing), **U**pdating (editing) and **D**eleting along with validation, association handling. The following images shows part of the automatically generated UI:
+Will produce the whole UI interface for **C**reating, **R**eading (showing), **U**pdating (editing) 
+and **D**eleting along with validation, association handling, among other features and functionalities.
+Each schema gets its own set of interfaces.
+The following images depicts some of the automatically generated UI:
 
 #### Index listing
-<img src="images/index.png" width="600"/>
+<img src="images/index-desktop.png" width="600"/>
 
 #### Record showing
-<img src="images/show.png" width="600"/>
+<img src="images/show-desktop.png" width="600"/>
 
 #### Record editing
-<img src="images/edit.png" width="600"/>
+<img src="images/edit-desktop.png" width="600"/>
+
+- **Section Switching**
+
+<img src="images/edit-desktop-section_switching.png" width="600"/>
 
 Views are responsive, in a mobile you'll have this:
 
 #### Index listing
-<img src="images/index-mobile.png" width="600"/>
+<img src="images/index-mobile.png" width="300"/>
 
 #### Record showing
-<img src="images/show-mobile.png" width="600"/>
+<img src="images/show-mobile.png" width="300"/>
 
 #### Record editing
-<img src="images/edit-mobile.png" width="600"/>
+<img src="images/edit-mobile.png" width="300"/>
+
+- **Section Switching**
+
+<img src="images/edit-mobile-section_switching.png" width="300"/>
 
 
 ## When to Use Aurora UIX
@@ -117,7 +131,8 @@ Views are responsive, in a mobile you'll have this:
 ## Extending Aurora UIX
 
 - Implement custom templates or override rendering logic
-- Add custom field renderers or extend the layout DSL
+- Author custom field renderers or extend the layout DSL
 - Integrate with your own Phoenix components and styles
 
-See the guides and documentation for more details on configuration, customization, and advanced usage.
+See the guides and documentation for more details on configuration, 
+customization, and advanced usage.
