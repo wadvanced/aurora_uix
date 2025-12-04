@@ -1,73 +1,136 @@
 # Layout System
 
-Aurora UIX provides a flexible layout DSL for forms, lists, and detail views.
+Aurora UIX provides a flexible layout DSL for organizing fields in index, form, and show views.
 
-The layout system is designed to give you full control over how your UI is structured. By default, Aurora UIX generates layouts automatically, so you get a functional interface with no extra code. When you need more control, you can define layouts explicitly using the provided DSL. This allows you to create anything from simple arrangements to complex, visually organized forms and views, all with concise and readable code.
+The layout system gives you full control over UI structure. By default, Aurora UIX generates layouts automatically from your resource metadata, so you get a functional interface with no extra code. When you need custom arrangements, use the provided DSL to create anything from simple field groupings to complex, tabbed forms with nested sections—all with concise, readable code.
 
-## Layout Types and Their Purpose
+## Core Concepts
 
-Each layout type in Aurora UIX determines how your resource metadata (the fields and associations you describe) is presented in the UI:
+### Layout Types
 
-- **Index Layout**: Defines which fields from your resource metadata are shown in the list (table) view. You use `index_columns` to select and order fields for the index page.
-- **Form Layout**: Controls the arrangement of fields when creating or editing a resource. The form layout uses your resource metadata to generate input fields, respecting options like `placeholder`, `required`, and custom renderers.
-- **Show Layout**: Specifies how fields are displayed in the read-only detail view. It uses the same resource metadata, but renders fields as static values.
+Each layout type determines how your resource's fields are presented:
 
-## Sub-Layouts: Containers for Structure
+- **`index_columns`** — Selects which fields appear in the list (table) view and their order. Takes a list of field names.
+- **`edit_layout`** — Controls how fields are arranged when creating or editing a resource. Renders input fields with metadata options like `placeholder` and `required`.
+- **`show_layout`** — Specifies read-only detail view layout using the same resource metadata but rendered as static values.
 
-Sub-layouts are general-purpose containers that let you organize fields and other sub-layouts. This means you can nest fields and other sub-layouts as needed to achieve your desired UI structure.
+### Sub-Layout Containers
 
-The main sub-layouts are:
+Sub-layouts are organizational containers that structure how fields are displayed. You can nest them freely to achieve complex layouts:
 
-- **inline**: Arranges its contents horizontally in a row.
-- **stacked**: Arranges its contents vertically in a column. This is the default sub-layout when no layout is defined.
-- **group**: Visually groups related contents under a title and a frame.
-- **sections**: Creates a tabbed container. Each `sections` block contains one or more `section` sub-layouts.
-- **section**: Represents a single tab inside a `sections` container. Each `section` is itself a container that holds sub-layouts.
+- **`inline(fields)`** — Arranges fields/sub-layouts horizontally in a single row
+- **`stacked(fields)`** — Arranges fields/sub-layouts vertically in a column (default when no layout defined)
+- **`group(title, fields)`** or **`group(title, do_block)`** — Visually groups related fields under a title with a border/frame
+- **`sections(do_block)`** — Creates a tabbed container; use with `section` blocks
+- **`section(title, fields)`** or **`section(title, do_block)`** — Represents a single tab; holds fields or nested layouts
 
-Each layout and sub-layout references your resource metadata, so any field-level options (like `readonly`, `renderer`, or `option_label`) are respected wherever the field appears.
+### Field Options
+
+Field-level customizations (like `readonly`, `hidden`, `renderer`) defined in your resource metadata are automatically applied wherever the field appears, across all layouts.
 
 ## Layout Examples
 
-### 1. No-Code: Default Layout
+All examples below use this resource metadata:
 
-If you do not define any layout, Aurora UIX generates a default layout for index, show, and edit views based on your resource metadata:
+```elixir
+auix_resource_metadata :product, context: MyApp.Inventory, schema: Product do
+  field :reference, required: true
+  field :name, required: true
+  field :description
+  field :price, precision: 12, scale: 2
+  field :quantity_initial
+  field :quantity_entries
+  field :quantity_exits
+  field :quantity_at_hand
+end
+```
+
+### 1. Default Layout (No Configuration)
+
+When you don't define a layout, Aurora UIX automatically generates one from all available fields:
 
 ```elixir
 auix_create_ui do
-  # No layout specified
+  # No layout specified - Aurora generates defaults for index, show, and edit
 end
 ```
-<img src="./images/layouts/default-1.png" width="600"/>
-<img src="./images/layouts/default-2.png" width="400"/>
 
-### 2. Inline Layout
+Generated layouts:
+- **Index**: Shows all fields in table columns
+- **Edit/Show**: Displays fields in vertical (stacked) order
+
+<!-- Screenshot captured in test server URL: create-ui-default-layout-products -->
+<!-- ../../test/cases_live/create_ui_default_layout_test.exs -->
+<!-- -->
+<img src="./images/layouts/default-index.png" width="600"/>
+<img src="./images/layouts/default-show.png" width="600"/>
+<img src="./images/layouts/default-edit.png" width="600"/>
+
+### 2. Inline Layout — Horizontal Field Arrangement
+<!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-product_locations -->
+<!-- ../../test/cases_live/association_many2one_selector_ui_layout_test.exs -->
+Use `inline` to display fields side-by-side in a row:
 
 ```elixir
-edit_layout :product do
-  inline [:reference, :name, :description]
+edit_layout :product_location do
+  inline [:reference, :name, :type]
 end
 ```
+
+**Result**: Three fields displayed horizontally in a single row.
+
 <img src="./images/layouts/inline-1.png" width="400"/>
 
-### 3. Stacked Layout
+### 3. Stacked Layout — Vertical Field Arrangement
+
+Use `stacked` to display fields one below another:
 
 ```elixir
 edit_layout :product do
-  stacked [:reference, :name, :description]
+  stacked([
+    :reference,
+    :name,
+    :description,
+    :quantity_initial,
+    :product_location_id,
+    :product_location
+  ])
 end
 ```
+
+**Result**: Fields are displayed vertically in a column.
+
+<!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-products -->
+<!-- ../../test/cases_live/association_many2one_selector_ui_layout_test.exs -->
 <img src="./images/layouts/stacked-1.png" width="400"/>
 
-### 4. Group Layout
+### 4. Group Layout — Bordered Field Grouping
+
+Use `group(title)` to visually frame related fields under a title:
 
 ```elixir
 edit_layout :product do
-  group "Product Info", do: stacked [:reference, :name, :description]
+  group "Product Info" do
+    stacked [:reference, :name, :description]
+  end
 end
 ```
+
+Alternatively, pass fields directly without a `do` block:
+
+```elixir
+edit_layout :product do
+  group "Product Info", [:reference, :name, :description]
+end
+```
+
+**Result**: Fields grouped in a bordered section with a title.
+
 <img src="./images/layouts/group-1.png" width="600"/>
 
-### 5. Sections Layout
+### 5. Sections Layout — Tabbed Interface
+
+Use `sections` with `section` blocks to create a tabbed interface:
 
 ```elixir
 edit_layout :product do
@@ -81,10 +144,15 @@ edit_layout :product do
   end
 end
 ```
+
+**Result**: Multiple tabs; clicking a tab shows only that section's fields.
+
 <img src="./images/layouts/sections-1.png" width="600"/>
 <img src="./images/layouts/sections-2.png" width="600"/>
 
-### 6. Nested Layout (Combining All Sub-Layouts)
+### 6. Complex Nested Layout
+
+Combine all layout types for sophisticated UIs:
 
 ```elixir
 edit_layout :product do
@@ -100,125 +168,285 @@ edit_layout :product do
         stacked [:quantity_initial, :quantity_entries, :quantity_exits]
       end
     end
-    inline [:product_transactions]
+    inline [:price]
   end
 end
 ```
+
+**Result**:
+- Top section: Reference and name in a bordered group, arranged horizontally
+- Middle: Tabbed sections for description and quantities
+- Bottom: Price field
+
 <img src="./images/layouts/nested-1.png" width="600"/>
 
-## Default Layouts
+## Layout Customization
 
-If you omit a layout, Aurora UIX generates a default layout for index, show and edit.
+### Layout Options by Type
 
-## Layouts Customization
+Each layout type (`:index`, `:form`, `:show`) supports specific customization options that control titles, subtitles, pagination, and more.
 
-Aurora UIX layouts support customizing each view (index, form, show) via layout options. 
-Refer to the `Aurora.Uix.Layout.Blueprint` module for detailed options' descriptions in its documentation.
-For titles and subtitle options see `Aurora.Uix.Layout.Options` modules documentation. 
+#### Index Layout Options
 
-- **Index Layout**:
-  - `:order_by` - Allows customization of the initial order to use when rendering the index rows.
-    - This setting takes precedence over `auix_resource_metadata` disposition.
-    - See module `Aurora.Ctx.QueryBuilder` for its syntax.
-    - Defaults: Schema primary key.
-  - `:where` - Option for setting custom filtering for the index rows.
-    - See module `Aurora.Ctx.QueryBuilder` for its syntax.
-    - Defaults: *(none by default)*
-
-- **Index and Show Layouts**:
-  - `:page_title` – The main title for the page (e.g., "Product Details" or "Listing Products").
-    - Accepts a string or a function reference of arity 1 (receives assigns).
-    - Defaults:
-      - Show: `"{name}"` (resource name)
-      - Index: `"Listing {title}"` (resource title)
-  - `:page_subtitle` – The subtitle for the page (e.g., "Details").
-    - Accepts a string or a function reference of arity 1.
-    - Defaults:
-      - Show: `"Details"`
-      - Index: *(none by default)*  
-
-- **Form Layouts**:
-  - `:edit_title` – Title for the edit form.
-    - Accepts a string or a function reference of arity 1.
-    - Default: `"Edit {name}"`
-  - `:edit_subtitle` – Subtitle for the edit form.
-    - Accepts a string or a function reference of arity 1.
-    - Default: `"Use this form to manage <strong>{title}</strong> records in your database"`
-  - `:new_title` – Title for the new resource form (when in index context).
-    - Accepts a string or a function reference of arity 1.
-    - Default: `"New {name}"`
-  - `:new_subtitle` – Subtitle for the new resource form (when in index context).
-    - Accepts a string or a function reference of arity 1.
-    - Default: `"Creates a new <strong>{name}</strong> record in your database"`
-
-### How to Use
-
-You can set these options directly in your layout macros. For dynamic content, pass a function reference (only named functions are supported, not anonymous functions):
+Controls list view pagination, titles, and row/header actions:
 
 ```elixir
-defmodule MyView do
-  def custom_subtitle(assigns), do: ~H"Custom subtitle for #{assigns.auix.name}"
-  def custom_page_title(assigns), do: ~H"Custom page title for #{assigns.auix.name}"
-  def custom_action(assigns), do: ~H"<span>Custom</span>"
-end
-
-edit_layout :product, edit_title: "Edit Product", edit_subtitle: &MyView.custom_subtitle/1 do
-  stacked [:reference, :name, :description]
-end
-
-show_layout :product, page_title: "Product Details", page_subtitle: "All about this product" do
-  stacked [:reference, :name, :description]
-end
-
-index_columns :product, [:reference, :name, :description],
-  page_title: &MyView.custom_page_title/1,
-  add_row_action: {:custom, &MyView.custom_action/1},
-  remove_row_action: :default_row_edit
+index_columns :product, [:reference, :name, :price],
+  page_title: "Products",
+  page_subtitle: "Manage your inventory",
+  pagination_items_per_page: 20,
+  pagination_disabled?: false,
+  order_by: [{:name, :asc}],
+  where: dynamic([p], p.active == true)
 ```
 
-If you do not specify a title or subtitle, Aurora UIX will use the defaults described above. You can also use function references for dynamic content, receiving the assigns map as an argument.
+**Common Options:**
+- `:page_title` — Main title (default: `"Listing {title}"`)
+- `:page_subtitle` — Subtitle (default: empty)
+- `:pagination_items_per_page` — Rows per page (default: 40)
+- `:pagination_disabled?` — Disable pagination (default: `false`)
+- `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax
+- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax
 
+#### Form Layout Options
 
-### Actions
-
-Aurora UIX layouts support a set of actions that can be customized for each view (index, form, show). Actions allow you to add, remove, or replace buttons and links in the UI, such as row actions (edit, delete, custom actions) and header actions (new, export, etc.).
-
-You can configure actions using the following options in your layout macros:
-
-- `add_row_action: {name, &fun/1}` – Adds a row action at the end.
-- `insert_row_action: {name, &fun/1}` – Inserts a row action at a specific position.
-- `replace_row_action: {name, &fun/1}` – Replaces a row action by name.
-- `remove_row_action: name` – Removes a row action by name (e.g., `:default_row_edit`).
-- `add_header_action: {name, &fun/1}` – Adds a header action at the end.
-- `insert_header_action: {name, &fun/1}` – Inserts a header action at a specific position.
-- `replace_header_action: {name, &fun/1}` – Replaces a header action by name.
-- `remove_header_action: name` – Removes a header action by name (e.g., `:default_new`).
-
-> **Note:** Row-related actions (such as `add_row_action`, `insert_row_action`, `replace_row_action`, `remove_row_action`) will receive an `@auix.row_info` assign containing a tuple `{id, row_entity}` for the current row.
-
-#### Where to Use Actions
-
-- **Index Layouts**: Actions are typically used for row-level operations (edit, delete, custom) and header-level actions (new, export, etc.).
-- **Form and Show Layouts**: Actions can be used to customize the available buttons or links at the top of the page or for each record.
-
-#### Example Usage
+Controls edit/new form titles and subtitles:
 
 ```elixir
-defmodule MyView do
-  def custom_action(assigns), do: ~H"<span>Custom</span>"
-end
-
-index_columns :product, [:reference, :name, :description],
-  add_row_action: {:custom, &MyView.custom_action/1},
-  remove_row_action: :default_row_edit
-
-edit_layout :product, add_header_action: {:custom, &MyView.custom_action/1} do
-  stacked [:reference, :name, :description]
-end
-
-show_layout :product, remove_header_action: :default_new do
+edit_layout :product,
+  edit_title: "Edit Product",
+  edit_subtitle: "Update product details",
+  new_title: "Create New Product",
+  new_subtitle: "Add a product to your inventory"
+do
   stacked [:reference, :name, :description]
 end
 ```
 
-For more details and advanced usage, see the documentation for `Aurora.Uix.Templates.Basic.Actions.Index` and related modules.
+**Common Options:**
+- `:edit_title` — Title for edit form (default: `"Edit {name}"`)
+- `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage <strong>{title}</strong> records in your database"`)
+- `:new_title` — Title for create form (default: `"New {name}"`)
+- `:new_subtitle` — Subtitle for create form (default: `"Creates a new <strong>{name}</strong> record in your database"`)
+
+#### Show Layout Options
+
+Controls detail view titles and subtitles:
+
+```elixir
+show_layout :product,
+  page_title: "Product Details",
+  page_subtitle: "Full product information"
+do
+  stacked [:reference, :name, :description, :price]
+end
+```
+
+**Common Options:**
+- `:page_title` — Main title (default: `"{name}"` - the resource name)
+- `:page_subtitle` — Subtitle (default: `"Details"`)
+
+### Dynamic Titles & Subtitles
+
+For dynamic content, pass function references (named functions only, not anonymous):
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  def custom_edit_title(assigns) do
+    ~H"Edit #{assigns.auix.name} (ID: #{assigns.entity.id})"
+  end
+
+  def custom_page_title(assigns) do
+    ~H"Product: #{assigns.entity.name}"
+  end
+
+  # Layout definitions
+  edit_layout :product, edit_title: &custom_edit_title/1 do
+    stacked [:reference, :name, :description]
+  end
+
+  show_layout :product, page_title: &custom_page_title/1 do
+    stacked [:reference, :name, :price]
+  end
+end
+```
+
+The function receives `assigns` and should return rendered HTML (using sigil `~H`).
+
+### Field-Level Options
+
+Customize individual fields within any layout using keyword options:
+
+```elixir
+edit_layout :product do
+  inline [
+    reference: [readonly: true, length: 20],
+    name: [placeholder: "Product name", length: 100],
+    id: [hidden: true]
+  ]
+end
+```
+
+**Common Field Options:**
+- `:readonly` — Make field read-only
+- `:hidden` — Hide field from UI
+- `:renderer` — Custom rendering function
+- `:length` — Input field character width
+- `:placeholder` — Placeholder text
+- `:option_label` — For select/radio fields
+
+For complete field option reference, see the `Aurora.Uix.Layout.Blueprint` module documentation.
+
+## Actions: Customizing Buttons & Links
+
+Aurora UIX layouts support action customization for index, form, and show views. Actions control buttons and links in the UI (row actions for table rows, header actions for page-level buttons).
+
+### Action Types
+
+**Row Actions** (index layouts only):
+- Default row actions: `:default_row_edit`, `:default_row_delete`
+- Can be added, replaced, or removed
+
+**Header Actions**:
+- Default header actions: `:default_new`, `:default_export`
+- Can be added, replaced, or removed
+
+### Action Options
+
+All action options accept `{action_name, &function/1}` pairs where the function receives assigns:
+
+```elixir
+# Add a custom action at the end
+add_row_action: {:custom_archive, &MyViews.archive_action/1}
+
+# Insert a custom action at a specific position
+insert_row_action: {:custom_approve, &MyViews.approve_action/1}
+
+# Replace an existing action
+replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1}
+
+# Remove an action by name
+remove_row_action: :default_row_delete
+```
+
+### Example: Custom Row & Header Actions
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  # Custom action for archive row
+  def archive_action(assigns) do
+    {id, product} = assigns.auix.row_info
+    ~H"""
+    <button phx-click="archive" phx-value-id={id} class="btn btn-sm btn-warning">
+      Archive
+    </button>
+    """
+  end
+
+  # Custom action for export header
+  def export_action(assigns) do
+    ~H"""
+    <button phx-click="export-all" class="btn btn-sm btn-info">
+      Export CSV
+    </button>
+    """
+  end
+
+  # Layout with custom actions
+  index_columns :product, [:reference, :name, :price],
+    add_row_action: {:custom_archive, &archive_action/1},
+    remove_row_action: :default_row_delete,
+    add_header_action: {:export, &export_action/1}
+
+  edit_layout :product do
+    stacked [:reference, :name, :description]
+  end
+
+  show_layout :product do
+    stacked [:reference, :name, :price]
+  end
+end
+```
+
+### Important Notes
+
+- **Row action receives** `@auix.row_info` — a tuple `{id, entity}` for the current row
+- **Header action receives** standard assigns; access resource via `assigns.entity`
+- **Named functions only** — anonymous functions are not supported
+- **Use in all layout types** — index, form, and show layouts support actions
+
+For advanced action customization, see `Aurora.Uix.Templates.Basic.Actions` module documentation.
+## Advanced Patterns
+
+### Nesting Fields and Blocks
+
+Layouts can accept either a list of fields or a `do` block containing nested layouts:
+
+```elixir
+# Direct field list
+inline [:reference, :name]
+
+# Nested block with sub-layouts
+inline do
+  group "Section 1", [:reference, :name]
+  group "Section 2", [:description]
+end
+
+# Mixed: both fields and nested blocks are allowed
+stacked do
+  inline [:reference, :name]
+  group "Details" do
+    stacked [:description, :price]
+  end
+end
+```
+
+### QueryBuilder for Advanced Filtering
+
+For complex filtering and sorting in index layouts, use `Aurora.Ctx.QueryBuilder` syntax:
+
+```elixir
+import Aurora.Ctx.QueryBuilder
+
+index_columns :product, [:reference, :name, :price],
+  where: dynamic([p], p.active == true and p.stock > 0),
+  order_by: [
+    {:name, :asc},
+    {:created_at, :desc}
+  ]
+```
+
+This enables:
+- Dynamic query predicates with Ecto's dynamic
+- Multi-field sorting
+- Complex business logic filters
+
+### Conditional Field Visibility
+
+Use field options to hide fields conditionally:
+
+```elixir
+edit_layout :product do
+  stacked [
+    id: [hidden: true],          # Always hidden
+    reference: [readonly: true], # Visible but read-only
+    name: []                      # Normal editable field
+  ]
+end
+```
+
+## Best Practices
+
+1. **Keep layouts readable** — Avoid deeply nested structures; prefer multiple groups over excessive nesting
+2. **Use meaningful group titles** — Titles help users understand field organization
+3. **Group related fields** — Use `group` or `sections` to organize logically related fields
+4. **Test responsiveness** — Layouts adjust for mobile/tablet; test on multiple screen sizes
+5. **Leverage sections for long forms** — Use tabs to avoid overwhelming users with too many fields at once
+6. **Keep field order consistent** — Match order between index, edit, and show layouts when possible
+7. **Use field options judiciously** — Overriding too many field options makes maintenance harder; prefer metadata-level configuration
+
+## Next Steps
+
+- Review [Resource Metadata](./resource_metadata.md) for field configuration options
+- Explore [LiveView Integration](./liveview.md) to handle custom events in your layouts
+- Check the [Troubleshooting Guide](../advanced/troubleshooting.md) for common layout issues
