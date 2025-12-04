@@ -78,19 +78,21 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
               class="auix-modal-focus-wrap"
             >
-              <div class="auix-modal-close-button-container">
-                <button
-                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                  type="button"
-                  class="auix-modal-close-button"
-                  aria-label={gettext("close")}
-                >
-                  <.icon
-                  name="hero-x-mark-solid" class="auix-icon-size-5" />
-                </button>
-              </div>
-              <div id={"#{@id}-content"}>
-                {render_slot(@inner_block)}
+              <div class="auix-modal-box-content">
+                <div class="auix-modal-close-button-container">
+                  <button
+                    phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                    type="button"
+                    class="auix-modal-close-button"
+                    aria-label={gettext("close")}
+                  >
+                    <.icon
+                    name="hero-x-mark-solid" class="auix-icon-size-5" />
+                  </button>
+                </div>
+                <div id={"#{@id}-content"}>
+                  {render_slot(@inner_block)}
+                </div>
               </div>
             </.focus_wrap>
           </div>
@@ -122,22 +124,23 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
     ~H"""
     <div
-      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
-      id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
-      role="alert"
-      class={"auix-flash--#{@kind}"}
-      {@rest}
-    >
-      <p :if={@title} class="auix-flash-title">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
-        {@title}
-      </p>
-      <p class="auix-flash-message">{msg}</p>
-      <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="auix-icon-size-5" />
-      </button>
+        :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
+        id={@id}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
+        role="alert"
+        class={"auix-flash--#{@kind}"}
+        {@rest}>
+      <div :if={@title} class="auix-flash-title">
+        <div>
+          <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
+          <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
+          <span>{@title}</span>
+        </div>
+        <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
+          <.icon name="hero-x-circle" />
+        </button>
+      </div>
+      <div class="auix-flash-message">{msg}</div>
     </div>
     """
   end

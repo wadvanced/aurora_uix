@@ -20,17 +20,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* ---------- SIZES and DIMENSIONS ----------- */
 
       --auix-border-radius-default: 0.5rem;
+      --auix-border-radius-small: 0.250rem;
+      --auix-border-radius-large: 1rem;
+      --auix-border-radius-round: 9999px;
       --auix-border-width-default: 0.0625rem;
+      --auix-border-style-default: solid;
+
       --auix-gap-minimal: 0.125rem;
       --auix-gap-default: 0.250rem;
 
-      --auix-padding-minimal: 0.3125rem;
       --auix-padding-default: 0.625rem;
+      --auix-padding-minimal: 0.3125rem;
+      --auix-padding-small: 0.250rem;
       --auix-padding-large: 1.5rem;
       --auix-padding-xl: 2rem;
 
       --auix-margin-minimal: 0;
       --auix-margin-default: 0.250rem;
+      --auix-button-height-default: 2em;
 
       /* -------- COLORS, BORDERS, TRANSITIONS ------*/
       /* Backgrounds */
@@ -53,6 +60,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-font-family-default: var(--auix-font-sans);
       --auix-font-size-title: 1.125rem;
       --auix-font-size-subtitle: 1rem;
+      --auix-font-size-caption: 0.875rem;
+      --auix-font-size-small: 0.750rem;
       --auix-font-weight-bold: 600;
 
       /* Text */
@@ -90,6 +99,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* Focus States (Focus Ring / Border) */
       --auix-color-focus-ring: #6366F1; /* indigo-500 */
 
+      /* OPACITIES
+      --auix-opacity-20: 0.20 /* Opacity 20% */
+      --auix-opacity-40: 0.40 /* Opacity 40% */
+      --auix-opacity-75: 0.75 /* Opacity 75% */
+
       /* SHADOWS & RINGS */
 
       /* Generic Shadow/Ring Variables */
@@ -106,7 +120,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       /* Zinc 700 is #47474a. Opacity 10% is 0.1 */
       --auix-color-shadow-alpha: rgba(71, 71, 74, 0.1);
       --auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.1);
-      --auix-color-shadow-black-alpha-sm: rgba(0, 0, 0, 0.05);
+      --auix-color-shadow-black-alpha-small: rgba(0, 0, 0, 0.05);
 
       /* Equivalent to Tailwind's 'shadow' (Default/Smallest) */
       --auix-shadow-default:
@@ -114,7 +128,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
         0 1px 2px -1px var(--auix-color-shadow-black-alpha);
 
       /* Equivalent to Tailwind's 'shadow-sm' (Single-layer small shadow) */
-      --auix-shadow-sm: 0 1px 2px 0 var(--auix-color-shadow-black-alpha-sm);
+      --auix-shadow-small: 0 1px 2px 0 var(--auix-color-shadow-black-alpha-small);
 
       /* Equivalent to Tailwind's 'shadow-md' (Medium size) */
       --auix-shadow-md:
