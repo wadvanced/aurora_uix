@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           line-height: 1.5;
           -webkit-text-size-adjust: 100%;
           tab-size: 4;
-          font-family: var(--auix-default-font-family, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
+          font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
           font-feature-settings: var(--auix-default-font-feature-settings, normal);
           font-variation-settings: var(--auix-default-font-variation-settings, normal);
           -webkit-tap-highlight-color: transparent;
@@ -192,6 +192,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_flash__info) do
     """
+      /* auix-flash--info */
+
       #{import_rule(:auix_flash, :auix_flash__info)}
 
       .auix-flash--info {
@@ -682,7 +684,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-header--top-actions {
         #{common_actions_css()}
-        width: 100%;
+        padding: var(--auix-padding-minimal);
       }
     """
   end
@@ -691,7 +693,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-header-title-container {
         display: flex;         
-        flex-direction: column; 
+        flex-direction: column;
       }
     """
   end
@@ -699,11 +701,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_header_title) do
     """
       .auix-header-title {
-        font-size: 1.125rem;                      
-        font-weight: 600;                         
-        line-height: 2rem;
+        font-size: var(--auix-font-size-title);                      
+        font-weight: var(--auix-font-weight-bold);                         
+        color: var(--auix-color-text-label);
         margin: 0;
-        color: var(--auix-color-text-label);      
       }
     """
   end
@@ -713,8 +714,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-header-subtitle {
         margin-top: 0rem;
         margin-bottom: 0rem;
-        font-size: 1rem;
-        line-height: 1.5rem;                
+        font-size: var(--auix-font-size-subtitle);
         color: var(--auix-color-text-secondary);   
       }
     """
@@ -777,43 +777,42 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_list_item_title) do
     """
-      .auix-list-item-title {
-        width: 25%;
-        flex-shrink: 0;
-        flex-grow: 0;
-        color: var(--auix-color-text-tertiary);
-      }
+    .auix-list-item-title {
+      width: 25%;
+      flex-shrink: 0;
+      flex-grow: 0;
+      color: var(--auix-color-text-tertiary);
+    }
     """
   end
 
   def rule(:auix_list_item_content) do
     """
-      .auix-list-item-content {
-        color: var(--auix-color-text-hover);
-      }
+    .auix-list-item-content {
+      color: var(--auix-color-text-hover);
+    }
     """
   end
 
   def rule(:auix_back_link_container) do
     """
-      .auix-back-link-container {
-        margin-top: 4rem;
-      }
+    .auix-back-link-container {
+    }
     """
   end
 
   def rule(:auix_back_link) do
     """
-      .auix-back-link {
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.5rem;
-        color: var(--auix-color-text-primary);
-      }
+    .auix-back-link {
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.5rem;
+      color: var(--auix-color-text-primary);
+    }
 
-      .auix-back-link:hover {
-        color: var(--auix-color-text-hover);
-      }
+    .auix-back-link:hover {
+      color: var(--auix-color-text-hover);
+    }
     """
   end
 
@@ -1074,6 +1073,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_table_header_cell__first) do
     """
+    /* auix-items-table-header-cell--first */
+
     #{import_rule(:auix_items_table_header_cell, :auix_items_table_header_cell__first)}
     .auix-items-table-header-cell--first {
     }
@@ -1152,6 +1153,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_card_empty) do
     """
+    /* auix-items-card-empty */
+
     #{import_rule(:auix_items_table_empty, :auix_items_card_empty)}
     """
   end
@@ -1175,6 +1178,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_card_item_content__even) do
     """
+    /* auix-items-card-item-content--even */
+
     #{import_rule(:auix_items_card_item_content, :auix_items_card_item_content__even)}
     .auix-items-card-item-content--even {
       background-color: var(--auix-color-bg-secondary);
@@ -1184,6 +1189,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_items_card_item_content__odd) do
     """
+    /* auix-items-card-item-content--odd */
+
     #{import_rule(:auix_items_card_item_content, :auix_items_card_item_content__odd)}
     .auix-items-card-item-content--odd {
       background-color: var(--auix-color-bg-default);
@@ -1381,6 +1388,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_filter_input_field__disabled) do
     """
+    /* auix-filter-input-field--disabled */
+
     #{import_rule(:auix_filter_input_field, :auix_filter_input_field__disabled)}
 
     .auix-filter-input-field--disabled {
@@ -1416,14 +1425,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_index_container) do
     """
     .auix-index-container {
-      max-width: 100%;
-      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--auix-gap-default) * 2);
       caret-color: transparent;
     }
 
     @media (min-width: 640px) {
       .auix-index-container {
-        padding: 1.5rem;
+        padding: var(--auix-padding-default);
       }
     }
 
@@ -1433,15 +1443,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-right: auto;
         width: max-content;
         max-width: max-content;
+        padding: var(--auix-padding-large);
       }
     }
 
     @media (min-width: 1024px) {
       .auix-index-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
+        padding-top: var(--auix-padding-xl);
+        padding-bottom: var(--auix-padding-xl);
+        padding-left: var(--auix-padding-large);
+        padding-right: var(--auix-padding-xl);
       } 
     }
 
@@ -1527,6 +1538,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_index_delete_all_action_button) do
     """
+    /* auix-index-delete-all-action-button */
+
     #{import_rule(:auix_button__alt, :auix_index_delete_all_action_button)}
 
     .auix-index-delete-all-action-button {
@@ -1539,19 +1552,28 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_show_container) do
     """
+    /* auix-show-container */
+
     #{import_rule(:auix_index_container, :auix_show_container)}
+
+    @media (min-width: 768px) {
+      .auix-show-container {
+        border-width: var(--auix-border-width-default);
+        border-radius: var(--auix-border-radius-default);
+        box-shadow: var(--auix-shadow-lg);
+      }
+    }
     """
   end
 
   def rule(:auix_show_content) do
     """
     .auix-show-content {
-      padding: 1rem;
-      border-width: 1px;
-      border-radius: 0.5rem;
+      padding: var(--auix-padding-minimal);
+      border-width: var(--auix-border-width-default);
+      border-radius: var(--auix-border-radius-default);
       box-shadow: var(--auix-shadow-md);
       background-color: var(--auix-color-bg-default);
-      width: 100%;
     }
     """
   end
@@ -2277,12 +2299,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   @spec common_actions_css() :: binary()
   defp common_actions_css do
     """
-      margin-top: 0.5rem;  
-      margin-bottom: 0.5rem; 
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1.5rem;
+      gap: var(--auix-gap-default);
     """
   end
 end

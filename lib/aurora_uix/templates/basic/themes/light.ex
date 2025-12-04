@@ -19,8 +19,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       /* ---------- SIZES and DIMENSIONS ----------- */
 
-      --auix-radius-border-default: 0.5rem;
-      --auix-width-border-default: 0.0625rem;
+      --auix-border-radius-default: 0.5rem;
+      --auix-border-width-default: 0.0625rem;
+      --auix-gap-minimal: 0.125rem;
+      --auix-gap-default: 0.250rem;
+
+      --auix-padding-minimal: 0.3125rem;
+      --auix-padding-default: 0.625rem;
+      --auix-padding-large: 1.5rem;
+      --auix-padding-xl: 2rem;
+
+      --auix-margin-minimal: 0;
+      --auix-margin-default: 0.250rem;
 
       /* -------- COLORS, BORDERS, TRANSITIONS ------*/
       /* Backgrounds */
@@ -37,10 +47,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-bg-danger: #FB7185;     /* rose-400 */
       --auix-color-bg-danger-hover: #E11D48; /* rose-600 */
 
-    /* Font */
+      /* Font */
       --auix-font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
       --auix-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-      --auix-default-font-family: var(--auix-font-sans);
+      --auix-font-family-default: var(--auix-font-sans);
+      --auix-font-size-title: 1.125rem;
+      --auix-font-size-subtitle: 1rem;
+      --auix-font-weight-bold: 600;
 
       /* Text */
       --auix-color-text-primary: #18181B; /* zinc-900 */
