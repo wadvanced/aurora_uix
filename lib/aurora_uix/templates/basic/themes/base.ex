@@ -927,6 +927,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-show-modal {
         overflow-x: hidden;
+        overflow-y: hidden;
       }
     """
   end

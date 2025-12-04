@@ -623,7 +623,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
          "auix-hide-modal-transition--end"}
     )
     |> uix_hide("##{id}-container")
-    |> JS.remove_class("auix-hide-modal", to: "body")
+    |> JS.remove_class("auix-show-modal", to: "body")
     |> JS.pop_focus()
   end
 
