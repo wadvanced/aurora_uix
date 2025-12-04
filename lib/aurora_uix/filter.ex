@@ -61,6 +61,12 @@ defmodule Aurora.Uix.Filter do
     {"in list ([o])", :in}
   ]
 
+  @boolean_conditions [
+    {"-", nil},
+    {"false", false},
+    {"true", true}
+  ]
+
   @enforce_keys [:key, :condition]
   defstruct [:key, :condition, enabled?: false, from: nil, to: nil]
 
@@ -162,6 +168,8 @@ defmodule Aurora.Uix.Filter do
   ]
   ```
   """
-  @spec conditions() :: list({binary(), atom()})
-  def conditions, do: @conditions
+  @spec conditions(map()) :: list({binary(), atom()})
+  def conditions(field \\ %{})
+  def conditions(%{type: :boolean}), do: @boolean_conditions
+  def conditions(_field), do: @conditions
 end

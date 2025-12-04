@@ -913,6 +913,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       {_key, %{condition: :between} = filter} ->
         is_nil(filter.from) or is_nil(filter.to)
 
+      {_key, %{condition: condition}} when condition in [false, true] ->
+        false
+
       {_key, filter} ->
         is_nil(filter.from)
     end)
@@ -922,6 +925,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       {_key, %{condition: :between} = filter} ->
         {filter.key, filter.condition, filter.from, filter.to}
+
+      {_key, %{condition: condition} = filter} when condition in [false, true] ->
+        {filter.key, condition}
 
       {_key, filter} ->
         {filter.key, filter.condition, filter.from}
