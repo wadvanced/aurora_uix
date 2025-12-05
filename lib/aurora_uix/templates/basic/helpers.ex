@@ -653,7 +653,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       assert %{password: ["password is too short"]} = errors_on(changeset)
 
   """
-  @spec format_changeset_errors(Ecto.Changeset.t()) :: binary
+  @spec format_changeset_errors(Ecto.Changeset.t()) :: list()
   def format_changeset_errors(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
