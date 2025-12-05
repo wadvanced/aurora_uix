@@ -78,19 +78,21 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
               class="auix-modal-focus-wrap"
             >
-              <div class="auix-modal-close-button-container">
-                <button
-                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                  type="button"
-                  class="auix-modal-close-button"
-                  aria-label={gettext("close")}
-                >
-                  <.icon
-                  name="hero-x-mark-solid" class="auix-icon-size-5" />
-                </button>
-              </div>
-              <div id={"#{@id}-content"}>
-                {render_slot(@inner_block)}
+              <div class="auix-modal-box-content">
+                <div class="auix-modal-close-button-container">
+                  <button
+                    phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                    type="button"
+                    class="auix-modal-close-button"
+                    aria-label={gettext("close")}
+                  >
+                    <.icon
+                    name="hero-x-mark-solid" class="auix-icon-size-button" />
+                  </button>
+                </div>
+                <div id={"#{@id}-content"}>
+                  {render_slot(@inner_block)}
+                </div>
               </div>
             </.focus_wrap>
           </div>
@@ -122,22 +124,23 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
     ~H"""
     <div
-      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
-      id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
-      role="alert"
-      class={"auix-flash--#{@kind}"}
-      {@rest}
-    >
-      <p :if={@title} class="auix-flash-title">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
-        {@title}
-      </p>
-      <p class="auix-flash-message">{msg}</p>
-      <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="auix-icon-size-5" />
-      </button>
+        :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
+        id={@id}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
+        role="alert"
+        class={"auix-flash--#{@kind}"}
+        {@rest}>
+      <div :if={@title} class="auix-flash-title">
+        <div>
+          <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
+          <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
+          <span>{@title}</span>
+        </div>
+        <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
+          <.icon name="hero-x-circle" />
+        </button>
+      </div>
+      <div class="auix-flash-message"><.format_message msg={msg} /></div>
     </div>
     """
   end
@@ -623,7 +626,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
          "auix-hide-modal-transition--end"}
     )
     |> uix_hide("##{id}-container")
-    |> JS.remove_class("auix-hide-modal", to: "body")
+    |> JS.remove_class("auix-show-modal", to: "body")
     |> JS.pop_focus()
   end
 
@@ -655,5 +658,27 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec translate_errors(list, keyword) :: list
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  ## PRIVATE
+  @spec format_message(map) :: Rendered.t()
+  defp format_message(%{msg: [_msg]} = assigns) do
+    ~H"""
+    {@msg}
+    """
+  end
+
+  defp format_message(%{msg: msgs} = assigns) when is_list(msgs) do
+    ~H"""
+    <ul>
+      <li :for={msg <- @msg}>{msg}</li>
+    </ul>
+    """
+  end
+
+  defp format_message(assigns) do
+    ~H"""
+    {inspect(@msg)}
+    """
   end
 end

@@ -1,71 +1,250 @@
 # Contributing to Aurora UIX
 
-Thank you for considering contributing to Aurora UIX!
+Thank you for considering contributing to Aurora UIX! We appreciate your help in making this project better.
 
-## How Can I Contribute?
+## Table of Contents
+
+1. [How to Contribute](#how-to-contribute)
+2. [Development Setup](#development-setup)
+3. [Code Style & Quality](#code-style--quality)
+4. [Testing](#testing)
+5. [Documentation](#documentation)
+6. [Commit Conventions](#commit-conventions)
+7. [Pull Request Process](#pull-request-process)
+8. [Code of Conduct](#code-of-conduct)
+
+---
+## How to Contribute
 
 ### Reporting Bugs
 
-- **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/wadvanced/aurora_uix/issues).
-- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/wadvanced/aurora_uix/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
+Found a bug? Help us fix it!
+
+1. **Check existing issues** — Search [GitHub Issues](https://github.com/wadvanced/aurora_uix/issues) to see if it's already reported
+2. **Provide details** — Open a new issue with:
+   - Clear title describing the problem
+   - Step-by-step reproduction steps
+   - Expected vs. actual behavior
+   - Code sample or minimal test case
+   - Your environment (Elixir version, OS, etc.)
 
 ### Suggesting Enhancements
 
-- Open a new issue to discuss your enhancement. Please provide a clear description of the enhancement and its potential benefits.
+Have an idea? Share it!
+
+1. **Open a discussion** — Start a [GitHub Discussion](https://github.com/wadvanced/aurora_uix/discussions) to explore the idea
+2. **Or create an issue** — With the `enhancement` label if you prefer
+3. **Provide context** — Explain the use case and benefits
 
 ### Pull Requests
 
-1. **Fork the repository** and create your branch from `main`.
-2. **Set up the development environment** as described below.
-3. **Make your changes** and ensure that the test suite passes.
-4. **Add tests** for any new functionality.
-5. **Update the documentation** if you've changed the API.
-6. **Ensure your code lints** by running `mix consistency`.
-7. **Issue that pull request!**
+Ready to code? Here's the process:
 
-### Development Setup
+1. **Fork the repository** and create a branch from `main`
+2. **Set up development environment** (see [Development Setup](#development-setup))
+3. **Make your changes** with focused commits
+4. **Add tests** for new functionality
+5. **Update documentation** if you changed the API
+6. **Ensure code quality** — Run `mix consistency`
+7. **Submit your PR** with a clear description
 
-- **Elixir** (check with `elixir --version`)
-- **PostgreSQL** (default: localhost:5432, user: postgres, db: aurora_uix_test)
-- **UUID Extension** in PostgreSQL:
-  ```sql
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  ```
+---
+## Development Setup
 
-1. Clone the repo:
-   ```shell
-   git clone https://github.com/wadvanced/aurora_uix.git
-   cd aurora-uix
-   ```
-2. Install dependencies:
-   ```shell
-   mix deps.get
-   ```
-3. Install and build assets:
-   ```shell
-   mix uix.test.assets.install
-   mix uix.test.assets.build
-   ```
-4. Create and migrate the test database:
-   ```shell
-   mix uix.test.task ecto.create
-   mix uix.test.task ecto.migrate
-   ```
-5. **(Optional) Custom Test Config**  
-   - Copy `test/config/test.exs` to `config/test.exs` in your project root:
-     ```shell
-     cp test/config/test.exs config/test.exs
-     ```
-   - Edit `config/test.exs` as needed for your local environment.  
-   - This file is not under version control.
+### Prerequisites
 
-## Style Guides
+Before contributing, ensure you have:
 
-### Git Commit Messages
+- **Elixir 1.19+** — Check with `elixir --version`
+- **Erlang OTP 26+** — Check with `erl -noshell -eval 'erlang:halt(0)'`
+- **PostgreSQL 12+** — Default: `localhost:5432`, user: `postgres`, db: `aurora_uix_test`
 
-We adhere to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This leads to a more readable commit history and allows for automated changelog generation.
+### PostgreSQL Setup
 
-The commit message should be structured as follows:
+If you don't have UUID extension, create it:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
+
+### Clone & Setup
+
+```bash
+# Clone repository
+git clone https://github.com/wadvanced/aurora_uix.git
+cd aurora_uix
+
+# Install dependencies
+mix deps.get
+
+# Create test database (first time only)
+mix ecto.create
+mix ecto.migrate
+
+# Build assets (optional for development)
+mix uix.test.assets.install
+mix uix.test.assets.build
+```
+
+### Custom Test Configuration
+
+To use a custom test database configuration:
+
+```bash
+# Copy the test config
+cp test/config/test.exs config/test.exs
+
+# Edit as needed for your environment
+# This file is gitignored, so your changes won't be committed
+```
+
+---
+## Code Style & Quality
+
+### Format Code
+
+Ensure consistent formatting before committing:
+
+```bash
+mix format
+```
+
+### Run Quality Checks
+
+Aurora UIX enforces code quality using:
+
+```bash
+# Run all checks at once
+mix consistency
+
+# Or run individual checks:
+mix format                      # Check formatting
+mix compile --warnings-as-errors  # Compile with strict warnings
+mix credo --strict              # Lint with Credo
+mix dialyzer                    # Static analysis
+mix doctor                      # Documentation coverage
+```
+
+**All checks must pass** before merging a pull request.
+
+### Elixir Style Guide
+
+We follow the [Elixir Style Guide](https://github.com/christopheradams/elixir_style_guide). Key points:
+
+- Use 2 spaces for indentation
+- Keep lines under 98 characters
+- Use descriptive variable names
+- Write clear, concise comments only when needed
+- Follow module naming conventions
+
+---
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests (including Wallaby)
+mix test
+
+# Run only unit/integration tests (skip Wallaby)
+mix test test/cases*
+```
+
+> **Important**: CI runs all tests including Wallaby on every PR. We recommend setting up Wallaby locally.
+
+### Wallaby Setup
+
+Wallaby runs browser-based integration tests. Follow the [Wallaby setup guide](https://hexdocs.pm/wallaby/readme.html#setup).
+
+### Interactive Testing
+
+Start test servers to manually validate your changes:
+
+```bash
+# Development server
+mix phx.server
+
+# Development server with iex
+iex -S mix phx.server
+
+# Test server with all test UIs
+MIX_ENV=test iex --dot-iex "test/start_test_server.exs" -S mix
+
+```
+
+Test routes are configured in [`test/support/app_web/routes.ex`](test/support/app_web/routes.ex).
+
+### Creating Sample Data
+
+When testing locally, use helpers to create sample data:
+
+```bash
+# In iex with test server running:
+iex> Aurora.Uix.Test.Helper.create_sample_products_with_transactions(100, 3, :use_any_prefix)
+iex> Aurora.Uix.Test.Helper.create_sample_product_locations(5, :eraseme)
+iex> Aurora.Uix.Test.Helper.create_sample_users(1, %{emails: [%{email: "one@test.com"}]})
+iex> Aurora.Uix.Test.Helper.delete_all_sample_data()
+```
+
+> **Keep in mind**: Sample data created in the iex are persisted (not sandboxed).
+
+See [`test/support/helper.ex`](test/support/helper.ex) for more helper functions.
+
+### Testing Guidelines
+
+- **Focus on new code** — Only test the functionality you added
+- **Avoid redundant tests** — Don't test framework behavior
+- **Use sandboxing** — Database transactions are automatically rolled back when using within test blocks
+- **Clear test names** — Test names should describe what's being tested
+
+---
+## Documentation
+
+### Guides & Examples
+
+Help improve our guides! They're in the [`guides/`](guides/) directory:
+
+- `guides/introduction/` — Getting started
+- `guides/core/` — Core concepts
+- `guides/advanced/` — Advanced usage
+
+### Authoring Guidelines
+
+- Use clear, concise language
+- Include code examples
+- Show expected output
+- Highlight common pitfalls
+- Link to related guides
+
+### Screenshots
+
+Some guides include screenshots. Recommended dimensions:
+
+- **Desktop**: 1024px × 768px at 100% zoom
+- **Mobile**: 412px × 915px (Google Pixel 7)
+
+To capture screenshots on macOS:
+
+```bash
+# Start a Phoenix server on your preferred environment
+mix phx.server
+
+# Open Firefox at specific size
+/Applications/Firefox.app/Contents/MacOS/firefox \
+  -width 1024 -height 768 -new-instance "http://localhost:4000/your-page"
+
+# Capture with Screenshot app or use browser extensions
+```
+
+We use [FireShot](http://getfireshot.com/) for page captures.
+
+---
+## Commit Conventions
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/) for clear, readable history.
+
+### Format
+
 ```
 type(scope): subject
 
@@ -74,226 +253,90 @@ body
 footer
 ```
 
-**Types**
+### Types
 
-The `type` must be one of the following:
+- `feat`: New feature for users
+- `fix`: Bug fix for users
+- `docs`: Documentation changes only
+- `style`: Code style (formatting, whitespace)
+- `refactor`: Code refactoring (no feature/fix)
+- `test`: Adding or updating tests
+- `chore`: Maintenance, dependencies, build tasks
+- `build`: Build system changes
+- `ci`: CI configuration changes
+- `perf`: Performance improvements
 
-- `feat`: A new feature for the user.
-- `fix`: A bug fix for the user.
-- `docs`: Changes to documentation only.
-- `style`: Code style changes (e.g., formatting, white-space).
-- `refactor`: A code change that neither fixes a bug nor adds a feature.
-- `test`: Adding missing tests or correcting existing tests.
-- `chore`: Routine tasks, maintenance, or changes to the build process.
-- `build`: Changes that affect the build system or external dependencies (e.g., `mix.exs`).
-- `ci`: Changes to our CI configuration files and scripts.
+### Scope (Optional)
 
-**Scope**
+Specify the affected area:
+- `core`, `layouts`, `fields` — Major components
+- `docs` — Documentation
+- `test` — Testing infrastructure
 
-The `scope` provides context for the commit. It's an optional part of the message that can be used to specify the area of the codebase affected by the change. In Elixir projects, common scopes include:
+### Subject
 
-- **Contexts**: `accounts`, `billing`, `posts`
-- **Features**: `auth`, `search`, `notifications`
-- **Umbrella Apps**: `my_app_web`, `my_app_data`
+- Use imperative mood: "add" not "added" or "adds"
+- Don't capitalize first letter
+- No period at end
 
-**Note on Scopes**: In single-context projects, the scope is often omitted. It is most useful in larger applications with clearly separated domains or in umbrella projects where changes might be specific to one of the child apps.
+### Examples
 
-**Subject**
-
-The subject contains a succinct description of the change:
-
-- Use the imperative, present tense: "add" not "added" nor "adds".
-- Don't capitalize the first letter.
-- No dot (.) at the end.
-
-**Examples**
-
-Here are some examples of good and bad commit messages:
-
-**Good Commit Messages**
+**Good commits:**
 ```
-feat: add user profile page
-fix(auth): correct password reset token validation
-docs: update installation guide
-refactor(billing): simplify subscription model
-chore: update dependencies
-ci: add credo to the build pipeline
+feat: add support for custom field renderers
+fix(layouts): correct section spacing on mobile
+docs: update installation guide for Elixir 1.19
+refactor(core): simplify resource metadata processing
+test: add edge case coverage for associations
+ci: add Dialyzer to consistency checks
 ```
 
-**Bad Commit Messages**
+**Bad commits:**
 ```
-# BAD: No type
-Added a new feature
-
-# BAD: Imperative mood not used
-fixed a bug
-
-# BAD: Subject is too vague
-fix: stuff
-
-# BAD: Capitalization and period
-feat(auth): Add login endpoint.
-
-# BAD: Wrong type
-feat: fix typo in the documentation
+Added new feature                    # Missing type
+fixed a bug                          # Wrong mood/capitalization
+feat: stuff                          # Too vague
+feat(auth): Add login endpoint.      # Capitalization and period
 ```
 
-### Elixir Style Guide
+---
+## Pull Request Process
 
-We follow the [Elixir Style Guide](https://github.com/christopheradams/elixir_style_guide) and enforce code quality using the following tools:
+### Before Submitting
 
-- **`mix format`**: Ensures a consistent code format. Please run this before committing your changes.
-  ```bash
-  mix format
-  ```
-- **`mix credo`**: A static code analysis tool to ensure code consistency and quality. It checks for code smells, best practices, and potential issues.
-  ```bash
-  mix credo --strict
-  ```
-- **`mix dialyzer`**: A static analysis tool that identifies type specification discrepancies. It helps in finding subtle bugs that the compiler might not catch.
-  ```bash
-  mix dialyzer
-  ```
-- **`mix doctor`**: A tool that checks for documentation coverage and other common issues.
-  ```bash
-  mix doctor
-  ```
+- [ ] Code passes `mix consistency`
+- [ ] Tests added for new functionality
+- [ ] Documentation updated if needed
+- [ ] Commits follow [Conventional Commits](#commit-conventions)
+- [ ] Branch is up-to-date with `main`
 
-Please ensure that your changes pass all these checks before submitting a pull request.
+### PR Description
 
-**Note:** The Elixir projects include a `mix consistency` alias that runs all of these styling tools at once.
+Include:
+- **What** — What does this PR do?
+- **Why** — Why is this change needed?
+- **How** — How does it work?
+- **Related issues** — Links to issues (e.g., "Fixes #123")
 
-## Testing
+### Review Process
 
-Aurora UIX includes several views for interacting with. There are the ones provided by the phoenix server,
-and there are the ones created when starting the server under the test environment.
+- Maintainers will review your code
+- We may request changes or ask questions
+- Once approved, your PR will be merged
+- Monitor [CHANGELOG.md](CHANGELOG.md) for release notes
 
-Testing involve making sure that every intended behaviour is met, but also that elements are rendered according
-to design. Visual validation can be done either using any of the environments.
-
-### Starting the Phoenix Server
-```bash
-# Normal start
-mix phx.server
-
-# With iex
-iex -S mix phx.server
-
-```
-
-See [router](https://github.com/wadvanced/aurora_uix/blob/main/lib/aurora_uix_web/routes.ex) for available routes under `dev` environment.
-
-
-### Starting the Phoenix Server in the TEST environment
-
-There are a lot of user interface tested, all of them can be visually validate using a browser. 
-
-```bash
-MIX_ENV=test iex --dot-iex "test/start_test_server.exs" -S mix
-```
-
-Test routes includes the routes in the `dev` environment.
-
-All the available routes for the test environment can be found (and updated) in the [test/support/app_web/routes.ex](https://github.com/wadvanced/aurora_uix/blob/main/test/support/app_web/routes.ex)
-
-> [!NOTE]
-> Be careful when updating existing test routes, some tests might fail.
-
-### Testing environment
-Testing coverage is extensive, and any new functionality should appropriately covered. 
-Focus on testing **ONLY** the new parts, and don't bloat the tests with unnecessary or redundant cases.
-
-By default, test configuration is defined in file [/test/config/test.exs](https://github.com/wadvanced/aurora_uix/blob/main/test/config/test.exs).
-You can partially or completely override these settings by creating a `/config/test.exs` file. 
-This file, and `/config/dev.exs` are not under version control, feel free to do as you need with them.
-
-* Most tests write and/or read from database, sandboxing all of the transactions (meaning that no changes are retained in the db).
-* Some tests use [wallaby](https://hexdocs.pm/wallaby/Wallaby.html) follow its [setup](https://hexdocs.pm/wallaby/readme.html#setup) instructions to allow all tests to be locally run.
-
-### Running the tests
-
-* You need the database and tables to be created. Run the following commands the first time or after a git pull:
-    
-```bash
-mix ecto.create 
-mix ecto.migrate
-```
-* To run all the tests:
-
-```bash
-mix test
-```
-
-* To run all the tests, excluding those requiring wallaby:
-
-```bash
-mix test test/cases*
-
-```
-> [!IMPORTANT]
-> Even though you can skip running the wallaby dependant tests, 
-> the CI action will run them anyway on every pull request lifecycle (creation, update, merge).
-> Therefore, it is recommended that you enable wallaby / browser.
-
-
-### Creating sample data
-
-You might need data, either to test or validate your code. 
-There is a helper module with some bits that can assist in the manipulation of the data.
-
-If you enter the iex as explained in the section [`Starting the Phoenix Server in the TEST environment`](#starting-the-phoenix-server-in-the-test-environment)
-
-```bash
-## Create 100 sample products with 3 transactions each
-iex> Aurora.Uix.Test.Helper.create_sample_products_with_transactions(100, 3, :use_any_prefix)
-
-## Create 5 product locations
-iex> Aurora.Uix.Test.Helper.create_sample_product_locations(5, :eraseme)
-
-## Create 1 sample user with a couple of email
-iex> Aurora.Uix.Test.Helper.create_sample_users(1, %{emails: [%{email: "one@test.com", name: "work"}, %{email: "home@yahoo.com", name: "home"}]})
-
-## Delete all sample data (inventory and accounts) 
-iex> Aurora.Uix.Test.Helper.delete_all_sample_data()
-
-```
-
-Browse the module [`Aurora.Uix.Test.Helper`](https://github.com/wadvanced/aurora_uix/blob/main/test/support/helper.ex) 
-for learning about the functions that can be used to handle the sample data.
-
-
-## Documentating and Authoring GUIDES
-
-This kind of library requires extensive documentation and examples. Several of the current documentation were authored with the assistance of AI.
-Since the documentation is bound to be constantly improved, feel free to modify and enhance its contents.
-
-For authoring the examples, you can start the Phoenix Server under any of the environments according to your documentation needs.
-
-
-### Screenshots
-
-Some examples require screenshots to demonstrate its output. 
-Screenshots can be any size, but for full page desktop media size, we recommend 1024px x 768px browser setting at 100%.
-For mobile visible screenshots, 412px x 915px (Google Pixel 7 mobile).
-
-Any browser will do, however we found that firefox was the easiest to open with a predefined size.
-After launching Phoenix Server, you can try in a Mac:
-
-```bash
-# For desktop
-/Applications/Firefox.app/Contents/MacOS/firefox -width 1024 -height 768 -new-instance "http://localhost:4001/guide-overview-products"
-
-# For mobile
-/Applications/Firefox.app/Contents/MacOS/firefox -width 412 -height 915 -new-instance "http://localhost:4001/guide-overview-products"
-
-```
-
-You can capture the image with the tool of your preference, in the MacOS there is the included `Screenshot` application.
-
-The included screenshots were captured using the Firefox add-ons [`Full Page Screen Capture — FireShot`](http://getfireshot.com/)
-
-
+---
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Code of Conduct](https://github.com/wadvanced/.github/blob/main/CODE_OF_CONDUCT.md). 
-By participating, you are expected to uphold this code. Please report unacceptable behavior to contact@wadvanced.com.
+This project and everyone participating in it is governed by our [Code of Conduct](https://github.com/wadvanced/.github/blob/main/CODE_OF_CONDUCT.md).
+
+By participating, you agree to uphold this code. Please report unacceptable behavior to [contact@wadvanced.com](mailto:contact@wadvanced.com).
+
+---
+## Questions?
+
+- **GitHub Discussions** — [Ask questions](https://github.com/wadvanced/aurora_uix/discussions)
+- **GitHub Issues** — [Report problems](https://github.com/wadvanced/aurora_uix/issues)
+- **Email** — [contact@wadvanced.com](mailto:contact@wadvanced.com)
+
+Thank you for contributing! 🚀

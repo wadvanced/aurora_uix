@@ -653,7 +653,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       assert %{password: ["password is too short"]} = errors_on(changeset)
 
   """
-  @spec format_changeset_errors(Ecto.Changeset.t()) :: binary
+  @spec format_changeset_errors(Ecto.Changeset.t()) :: list()
   def format_changeset_errors(changeset) do
     changeset
     |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
@@ -661,7 +661,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
-    |> Enum.map_join("<br>", &"#{elem(&1, 0)}: #{elem(&1, 1)}")
+    |> Enum.map(&"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
   end
 
   @doc """
@@ -878,5 +878,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     else
       [{nil, nil} | options]
     end
+  end
+
+  @spec process_error_detail(list()) :: binary()
+  defp process_error_detail([value]) when is_binary(value), do: value
+
+  defp process_error_detail([child, %{}]) when is_map(child) do
+    Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
   end
 end

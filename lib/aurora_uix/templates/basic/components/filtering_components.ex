@@ -96,7 +96,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
           name={"filter_condition__#{@infix}#{@field.key}"}
           value={(@filter.condition)}
           type="select"
-          options={Filter.conditions()}
+          options={Filter.conditions(@field)}
           fieldset_class="auix-filter-fieldset"
           input_class="auix-filter-condition-input"
           omit_label?={true}

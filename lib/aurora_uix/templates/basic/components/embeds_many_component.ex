@@ -54,6 +54,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveComponent
+  def mount(socket) do
+    {:ok, assign(socket, :details_opened, false)}
+  end
+
+  @impl Phoenix.LiveComponent
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
   def update(
         %{
@@ -90,7 +95,6 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      |> assign_auix(:primary_key, primary_key)
      |> assign_auix(:primary_key_type, primary_key_type)
      |> assign_auix(:field_key, field_key)
-     |> assign_auix_new(:details_opened, false)
      |> EmbedsManyActions.set_actions()}
   end
 
@@ -119,119 +123,66 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   def render(assigns) do
     ~H"""
       <div class="auix-embeds-many-container">
-        <details name={"auix-details-#{@field.html_id}"} open={@auix.details_opened} 
-            phx-click="toggle-details-state" phx-target={@myself}>
-          <summary class="auix-header-title">
-            {@field.label}
+        <details name={"auix-details-#{@field.html_id}"} class="auix-embeds-many-details" open={@details_opened}>
+          <summary class="auix-embeds-many-summary" phx-click="toggle-details-state" phx-target={@myself}>
+              <div class="auix-embeds-many-summary-content">
+                <span>{@field.label}</span>
+                <span :if={!@details_opened} class="auix-button-badge">
+                  <.embedded_entries_count auix={@auix} field={@field} />
+                </span>
+              </div>
           </summary>
-          <.header>
-            <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-header-container">
-              <div class="auix-embeds-many-header-actions" name="auix-embeds_many-header_actions">
-                <%= for %{function_component: action} <- @auix.embeds_many_header_actions do %>
+          <div class="auix-embeds-many-content">
+            <.header>
+              <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-header-container">
+                <div class="auix-embeds-many-header-actions" name="auix-embeds_many-header_actions">
+                  <%= for %{function_component: action} <- @auix.embeds_many_header_actions do %>
+                    {action.(%{auix: @auix, field: @field, target: @myself})}
+                  <% end %>
+                </div>
+              </div>
+            </.header>
+            <.embedded_entries auix={@auix} field={@field} target={@myself}/>
+            <div :if={@auix.enable_add_embeds} >
+              <.portal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-wrapper"} target="#portal-target">
+                <.modal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-modal"} 
+                          show={@auix.enable_add_embeds}
+                          on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
+                  <.header>
+                    <span>{gettext("Add new entry")}</span>
+                  </.header>
+                  <.simple_form
+                    for={@auix.new_entry_form}
+                    id={"auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"}
+                    phx-target={@myself}
+                    phx-change={JS.push("validate", target: @myself)}
+                    phx-submit="add-embeds-many"
+                    phx-click={JS.exec("phx-remove-class", to: "#modal")}
+                  >
+                    <Renderer.render_inner_elements auix={Map.merge(@auix, %{form: @auix.new_entry_form, fields_to_reject: @auix.primary_key})} />
+                    <.flash flash={@flash} kind={:error}/>
+                    <.flash flash={@flash} kind={:info}/>
+                    <div class="auix-embeds-many-new-entry-container">
+                      <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
+                        <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
+                          {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"})}
+                        <% end %>
+                      </div>
+                    </div>
+                  </.simple_form>
+                </.modal>
+              </.portal>      
+            </div>        
+            <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-footer-container">
+              <div class="auix-embeds-many-footer-actions" name="auix-embeds_many-footer_actions">
+                <%= for %{function_component: action} <- @auix.embeds_many_footer_actions do %>
                   {action.(%{auix: @auix, field: @field, target: @myself})}
                 <% end %>
               </div>
             </div>
-          </.header>
-          <.embedded_entries auix={@auix} field={@field} target={@myself}/>
-          <div :if={@auix.enable_add_embeds} >
-            <.portal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-wrapper"} target="#portal-target">
-              <.modal id={"auix-embeds-many-add-#{@field.html_id}-#{@auix.layout_type}-modal"} 
-                        show={@auix.enable_add_embeds}
-                        on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
-                <.header>
-                  <span>{gettext("Add new entry")}</span>
-                </.header>
-                <.simple_form
-                  for={@auix.new_entry_form}
-                  id={"auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"}
-                  phx-target={@myself}
-                  phx-change={JS.push("validate", target: @myself)}
-                  phx-submit="add-embeds-many"
-                  phx-click={JS.exec("phx-remove-class", to: "#modal")}
-                >
-                  <Renderer.render_inner_elements auix={Map.merge(@auix, %{form: @auix.new_entry_form, fields_to_reject: @auix.primary_key})} />
-                  <.flash_group flash={@flash}/>
-                  <div class="auix-embeds-many-new-entry-container">
-                    <div class="auix-embeds-many-new-entry-actions" name="auix-embeds_many-new_entry_actions">
-                      <%= for %{function_component: action} <- @auix.embeds_many_new_entry_actions do %>
-                        {action.(%{auix: @auix, field: @field, target: @myself, form_id: "auix-embeds-many-#{@field.html_id}-#{@auix.layout_type}-add-form"})}
-                      <% end %>
-                    </div>
-                  </div>
-                </.simple_form>
-              </.modal>
-            </.portal>      
-          </div>        
-          <div :if={!@auix.enable_add_embeds} class="auix-embeds-many-footer-container">
-            <div class="auix-embeds-many-footer-actions" name="auix-embeds_many-footer_actions">
-              <%= for %{function_component: action} <- @auix.embeds_many_footer_actions do %>
-                {action.(%{auix: @auix, field: @field, target: @myself})}
-              <% end %>
-            </div>
           </div>
         </details>
       </div>
-    """
-  end
-
-  @doc """
-  Renders the embedded many entries.
-
-  ## Parameters
-
-  * `assigns` (map()) - Component assigns.
-  """
-  attr(:auix, :map)
-  attr(:field, :map)
-  attr(:target, :string)
-  @spec embedded_entries(map()) :: Rendered.t()
-  def embedded_entries(%{auix: %{layout_type: :form}} = assigns) do
-    ~H"""
-    <%= if Map.get(@auix.form.params, @auix.field_key) == [] do %>
-        <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"} name={@auix.form[@field.key].name} value={[]} />
-    <% else %>
-      <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
-        <div class="auix-embeds-many-entry-contents">
-          <div class="auix-embeds-many-entry--badge">
-            <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
-          </div>
-          <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
-          <div class="auix-embeds-many-existing-container">
-            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
-              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
-                {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @target})}
-              <% end %>
-            </div>
-          </div>
-        </div>
-      </.inputs_for>
-    <% end %>    
-    """
-  end
-
-  def embedded_entries(%{auix: %{entity: entity, layout_type: :show}, field: field} = assigns) do
-    assigns =
-      entity
-      |> Map.get(field.key, [])
-      |> then(&assign_auix(assigns, :embedded_entries, &1))
-
-    ~H"""
-    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries) do %>
-        <div class="auix-embeds-many-entry-contents">
-          <div class="auix-embeds-many-entry--badge">
-            <span class="auix-embeds-many-entry--badge-text">{entry_index + 1}</span>
-          </div>
-          <Renderer.render_inner_elements auix={Map.put(@auix, :entity, embed_entry)} />
-          <div class="auix-embeds-many-existing-container">
-            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
-              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
-                {action.(%{auix: @auix, field: @field, entry_index: entry_index, target: @target})}
-              <% end %>
-            </div>
-          </div>
-        </div>
-    <% end %>
     """
   end
 
@@ -270,9 +221,9 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   def handle_event(
         "toggle-details-state",
         _params,
-        %{assigns: %{auix: %{details_opened: details_opened}}} = socket
+        %{assigns: %{details_opened: details_opened}} = socket
       ) do
-    {:noreply, assign_auix(socket, :details_opened, not details_opened)}
+    {:noreply, assign(socket, :details_opened, not details_opened)}
   end
 
   def handle_event("validate", params, %{assigns: %{auix: auix, field: field}} = socket) do
@@ -351,6 +302,93 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   end
 
   ## PRIVATE
+
+  attr(:auix, :map)
+  attr(:field, :map)
+  attr(:target, :string)
+  @spec embedded_entries(map()) :: Rendered.t()
+  defp embedded_entries(%{auix: %{layout_type: :form}} = assigns) do
+    ~H"""
+    <%= if Map.get(@auix.form.params, @auix.field_key) == [] do %>
+        <input type="hidden" id={"#{@field.html_id}-#{@auix.layout_type}"} name={@auix.form[@field.key].name} value={[]} />
+    <% else %>
+      <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
+        <div class="auix-embeds-many-entry-contents">
+          <div class="auix-embeds-many-entry--badge">
+            <span class="auix-embeds-many-entry--badge-text">{embed_form.index + 1}</span>
+          </div>
+          <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />
+          <div class="auix-embeds-many-existing-container">
+            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
+              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
+                {action.(%{auix: @auix, field: @field, entry_index: embed_form.index, target: @target})}
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </.inputs_for>
+    <% end %>    
+    """
+  end
+
+  defp embedded_entries(%{auix: %{entity: entity, layout_type: :show}, field: field} = assigns) do
+    assigns =
+      entity
+      |> Map.get(field.key, [])
+      |> then(&assign_auix(assigns, :embedded_entries, &1))
+
+    ~H"""
+    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries) do %>
+        <div class="auix-embeds-many-entry-contents">
+          <div class="auix-embeds-many-entry--badge">
+            <span class="auix-embeds-many-entry--badge-text">{entry_index + 1}</span>
+          </div>
+          <Renderer.render_inner_elements auix={Map.put(@auix, :entity, embed_entry)} />
+          <div class="auix-embeds-many-existing-container">
+            <div class="auix-embeds-many-existing-actions" name="auix-embeds_many-existing_actions">
+              <%= for %{function_component: action} <- @auix.embeds_many_existing_actions do %>
+                {action.(%{auix: @auix, field: @field, entry_index: entry_index, target: @target})}
+              <% end %>
+            </div>
+          </div>
+        </div>
+    <% end %>
+    """
+  end
+
+  @spec embedded_entries_count(map) :: Rendered.t()
+  defp embedded_entries_count(%{auix: %{layout_type: :form, form: %{params: []}}} = _assigns),
+    do: ""
+
+  defp embedded_entries_count(%{auix: %{layout_type: :form, form: form}, field: field} = assigns) do
+    assigns =
+      form[field.key]
+      |> Map.get(:value, [])
+      |> Enum.count()
+      |> then(&Map.put(assigns, :embedded_entries_count, &1))
+
+    ~H"""
+    <%= if @embedded_entries_count > 0 do%>
+      {@embedded_entries_count}
+    <% end %>
+    """
+  end
+
+  defp embedded_entries_count(
+         %{auix: %{entity: entity, layout_type: :show}, field: field} = assigns
+       ) do
+    assigns =
+      entity
+      |> Map.get(field.key, [])
+      |> Enum.count()
+      |> then(&Map.put(assigns, :embedded_entries_count, &1))
+
+    ~H"""
+    <%= if @embedded_entries_count > 0 do%>
+      {@embedded_entries_count}
+    <% end %>
+    """
+  end
 
   # Initializes the form for adding new embedded entries.
   #

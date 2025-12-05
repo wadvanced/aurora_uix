@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   @actions Action.available_actions(:index)
   @filters_button_class "auix-button--alt"
-  @selected_button_class "auix-index-delete-all-action-button"
+  @selected_button_class "auix-index-all-action-button"
 
   @doc """
   Sets up actions for the index layout by adding defaults and applying modifications.
