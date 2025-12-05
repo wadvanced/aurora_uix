@@ -41,10 +41,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:_auix_button_default) do
     """
     .-auix-button-default {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-small);
       padding: var(--auix-padding-minimal);
+
       font-size: var(--auix-font-size-caption);
       font-weight: var(--auix-font-weight-bold);
     }
@@ -354,8 +359,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-button-badge {
       font-size: var(--auix-font-size-small);
       border-radius: var(--auix-border-radius-round);
-      padding-left: var(--auix-padding-small);
-      padding-right: var(--auix-padding-small);
+      padding: 0;
     }
     """
   end
@@ -377,41 +381,28 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_button_toggle_filters_container) do
     """
-      .auix-button-toggle-filters-container {
-        position: relative;         
-        width: max-content;
-
-        padding-right: 0.25rem;
-
-        border: 0;
-      }
+    .auix-button-toggle-filters-container {
+      border: none;
+    }
     """
   end
 
   def rule(:auix_button_toggle_filters_content) do
     """
-      .auix-button-toggle-filters-content {
-        position: relative;         
-        white-space: nowrap;
-        width: max-content;
-
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-        text-align: right;
-
-        font-size: 0.875rem;
-        font-weight: 500;
-      }
+    .auix-button-toggle-filters-content {
+      font-size: var(--auix-font-size-caption);
+      font-weight: var(--auix-font-weight-bold);
+    }
     """
   end
 
   def rule(:auix_button_toggle_filters_close_link) do
     """
-      .auix-button-toggle-filters-close-link {
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: center;
-      }
+    .auix-button-toggle-filters-close-link {
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+    }
     """
   end
 
@@ -1544,6 +1535,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     #{import_rule(:auix_button__alt, :auix_index_all_action_button)}
 
+    .auix-index-all-action-button {
+      gap: var(--auix-gap-default);
+    }
+
     """
   end
 
@@ -1954,37 +1949,46 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_icon_size_3) do
     """
-      .auix-icon-size-3 {
-        width: 0.75rem;          
-        height: 0.75rem;         
-      }
+    .auix-icon-size-3 {
+      width: var(--auix-icon-size-3);          
+      height: var(--auix-icon-size-3);         
+    }
     """
   end
 
   def rule(:auix_icon_size_4) do
     """
-      .auix-icon-size-4 {
-        width: 1rem;          
-        height: 1rem;         
-      }
+    .auix-icon-size-4 {
+      width: var(--auix-icon-size-4);          
+      height: var(--auix-icon-size-4);         
+    }
     """
   end
 
   def rule(:auix_icon_size_5) do
     """
-      .auix-icon-size-5 {
-        width: 1.25rem;          
-        height: 1.25rem;         
-      }
+    .auix-icon-size-5 {
+      width: var(--auix-icon-size-5);          
+      height: var(--auix-icon-size-5);         
+    }
     """
   end
 
   def rule(:auix_icon_size_6) do
     """
-      .auix-icon-size-6 {
-        width: 1.5rem;          
-        height: 1.5rem;         
-      }
+    .auix-icon-size-6 {
+      width: var(--auix-icon-size-6);          
+      height: var(--auix-icon-size-6);         
+    }
+    """
+  end
+
+  def rule(:auix_icon_size_button) do
+    """
+    .auix-icon-size-button {
+      width: var(--auix-icon-size-button);          
+      height: var(--auix-icon-size-button);         
+    }
     """
   end
 
@@ -2101,6 +2105,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_embeds_many_summary_content) do
+    """
+    .auix-embeds-many-summary-content {
+      display: inline-flex;
+      flex-direction: row;
+      gap: var(--auix-gap-default);
+    }
+    """
+  end
+
   def rule(:auix_embeds_many_content) do
     """
     .auix-embeds-many-content {
@@ -2193,6 +2207,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_embeds_many_entry_contents) do
     """
     .auix-embeds-many-entry-contents {
+      display: flex;
+      flex-direction: column;
+      gap: var(--auix-gap-default);
+
       padding: var(--auix-padding-default);
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);

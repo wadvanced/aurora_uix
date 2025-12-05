@@ -37,7 +37,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       --auix-margin-minimal: 0;
       --auix-margin-default: 0.250rem;
+
       --auix-button-height-default: 2em;
+
+      --auix-icon-size-base: 0.25rem;
+      --auix-icon-size-3: calc(var(--auix-icon-size-base) * 3);
+      --auix-icon-size-4: calc(var(--auix-icon-size-base) * 4);
+      --auix-icon-size-5: calc(var(--auix-icon-size-base) * 5);
+      --auix-icon-size-6: calc(var(--auix-icon-size-base) * 6);
+
+      --auix-icon-size-button: var(--auix-icon-size-4);
 
       /* -------- COLORS, BORDERS, TRANSITIONS ------*/
       /* Backgrounds */
