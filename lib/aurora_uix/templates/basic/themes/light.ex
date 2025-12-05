@@ -32,6 +32,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-padding-default: 0.625rem;
       --auix-padding-minimal: 0.3125rem;
       --auix-padding-small: 0.250rem;
+      --auix-padding-medium: 0.500rem;
       --auix-padding-large: 1.5rem;
       --auix-padding-xl: 2rem;
 
