@@ -87,7 +87,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
                     aria-label={gettext("close")}
                   >
                     <.icon
-                    name="hero-x-mark-solid" class="auix-icon-size-5" />
+                    name="hero-x-mark-solid" class="auix-icon-size-button" />
                   </button>
                 </div>
                 <div id={"#{@id}-content"}>
@@ -140,7 +140,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           <.icon name="hero-x-circle" />
         </button>
       </div>
-      <div class="auix-flash-message">{msg}</div>
+      <div class="auix-flash-message"><.format_message msg={msg} /></div>
     </div>
     """
   end
@@ -658,5 +658,27 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec translate_errors(list, keyword) :: list
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  ## PRIVATE
+  @spec format_message(map) :: Rendered.t()
+  defp format_message(%{msg: [_msg]} = assigns) do
+    ~H"""
+    {@msg}
+    """
+  end
+
+  defp format_message(%{msg: msgs} = assigns) when is_list(msgs) do
+    ~H"""
+    <ul>
+      <li :for={msg <- @msg}>{msg}</li>
+    </ul>
+    """
+  end
+
+  defp format_message(assigns) do
+    ~H"""
+    {inspect(@msg)}
+    """
   end
 end
