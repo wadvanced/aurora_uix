@@ -1617,7 +1617,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_sections_tab_container) do
     """
     .auix-sections-tab-container {
-      margin-top: 0.5rem;
+      margin-top: var(--auix-margin-medium);
       display: flex;
       flex-direction: column;
     }
@@ -1632,38 +1632,44 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_sections_tab_button__active) do
     """
-      #{common_sections_tab_button_css("--active")}
-        font-weight: 600;
-        color: var(--auix-color-text-label);
-        background-color: var(--auix-color-bg-light);
-      }
+    #{common_sections_tab_button_css("--active")}
+    .auix-sections-tab-button--active {
+      font-weight: var(--auix-font-weight-bold);
+      color: var(--auix-color-text-label);
+      background-color: var(--auix-color-bg-light);
+      border-left-width: var(--auix-border-width-default);
+      border-color: var(--auix-color-bg-light);
+      border-style: var(--auix-border-style-default);
+    }
     """
   end
 
   def rule(:auix_sections_tab_button__inactive) do
     """
-      #{common_sections_tab_button_css("--inactive")}
-      .auix-sections-tab-button--inactive {
-        font-weight: 500;
-        color: var(--auix-color-text-inactive);
-        background-color: var(--auix-color-bg-hover);
-      }
+    #{common_sections_tab_button_css("--inactive")}
+    .auix-sections-tab-button--inactive {
+      font-weight: var(--auix-font-weight-bold);
+      color: var(--auix-color-text-inactive);
+      background-color: var(--auix-color-bg-hover);
+    }
     """
   end
 
   def rule(:auix_sections_content) do
     """
-      .auix-sections-content {
+    .auix-sections-content {
 
-        padding: 1rem;            
+      padding: var(--auix-padding-default);            
 
-        border-width: 1px;        
-        border-color: var(--auix-color-border-primary); 
+      border-width: var(--auix-border-width-default);        
+      border-color: var(--auix-color-bg-light); 
+      border-style: var(--auix-border-style-default);
+      border-top-left-radius: 0;
+      border-top-right-radius: var(--auix-border-radius-default);
+      border-bottom-left-radius: var(--auix-border-radius-default);
+      border-bottom-right-radius: var(--auix-border-radius-default);
 
-        border-top-right-radius: 0.5rem;  
-        border-bottom-right-radius: 0.5rem; 
-        border-bottom-left-radius: 0.5rem;  
-      }
+    }
     """
   end
 
@@ -2319,18 +2325,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   defp common_sections_tab_button_css(suffix) do
     """
     .auix-sections-tab-button#{suffix} {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-        font-size: 0.875rem;
-        border-bottom-width: 2px;
+        padding: var(--auix-padding-minimal) var(--auix-padding-default);
+        font-size: var(--auix-font-size-caption);
+        border-bottom-width: var(--auix-border-width-thick);
         border-color: transparent;
-        border-top-left-radius: 0.375rem;
-        border-top-right-radius: 0.375rem;
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 200ms;
+        border-top-left-radius: var(--auix-border-radius-default);
+        border-top-right-radius: var(--auix-border-radius-default);
       }
     """
   end

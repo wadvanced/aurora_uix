@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-border-radius-large: 1rem;
       --auix-border-radius-round: 9999px;
       --auix-border-width-default: 0.0625rem;
+      --auix-border-width-thick: 0.125rem;
       --auix-border-style-default: solid;
 
       --auix-gap-minimal: 0.125rem;
@@ -38,6 +39,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       --auix-margin-minimal: 0;
       --auix-margin-default: 0.250rem;
+      --auix-margin-medium: 0.500rem;
 
       --auix-button-height-default: 2em;
 
