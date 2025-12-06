@@ -51,6 +51,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
                         "border(|-[a-z-]+)",
                         "box-shadow",
                         "outline(|-[a-z-]+)",
+                        "box-sizing",
                         # --- Typography/Text ---
                         "color(|-[a-z-]+)",
                         "font(|-[a-z-]+)",

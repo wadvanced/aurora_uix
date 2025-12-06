@@ -329,13 +329,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         <div class="auix-button-toggle-filters-content">
           <%= if Map.get(@auix, :filters_enabled?) do %>
             <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
-              <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive", else: "auix-icon-info"}/>
+              <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive auix-icon-size-5", else: "auix-icon-info auix-icon-size-5"}/>
               <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
-            <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
             </a>
+            <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
           <% else %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel auix-icon-info" />
-            <div :if={@auix.filters_selected_count > 0} class="auix-filter-selected-count">{@auix.filters_selected_count}</div>
+            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel auix-icon-info auix-icon-size-5" />
+            <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
+
           <% end %>
         </div>
       </div>
