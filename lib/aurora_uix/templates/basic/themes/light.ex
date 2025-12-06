@@ -19,6 +19,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       /* ---------- SIZES and DIMENSIONS ----------- */
 
+      --auix-box-size-unit: 1rem;
+
       --auix-border-radius-default: 0.5rem;
       --auix-border-radius-small: 0.250rem;
       --auix-border-radius-large: 1rem;
@@ -37,12 +39,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-padding-large: 1.5rem;
       --auix-padding-xl: 2rem;
 
-      --auix-margin-minimal: 0;
       --auix-margin-default: 0.250rem;
       --auix-margin-medium: 0.500rem;
 
+      --auix-input-height-default: 1rem;
       --auix-button-height-default: 2em;
-
+      
       --auix-icon-size-base: 0.25rem;
       --auix-icon-size-3: calc(var(--auix-icon-size-base) * 3);
       --auix-icon-size-4: calc(var(--auix-icon-size-base) * 4);
@@ -75,6 +77,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-font-size-caption: 0.875rem;
       --auix-font-size-small: 0.750rem;
       --auix-font-weight-bold: 600;
+      --auix-font-weight-bold-semi: 400;
 
       /* Text */
       --auix-color-text-primary: #18181B; /* zinc-900 */
@@ -85,7 +88,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-color-text-hover: #47474a;   /* zinc-700 */
       --auix-color-text-on-accent: #FFFFFF; /* white text on dark/accent background */
       --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
-
 
       /* Status Colors */
       --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
@@ -115,6 +117,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-opacity-20: 0.20 /* Opacity 20% */
       --auix-opacity-40: 0.40 /* Opacity 40% */
       --auix-opacity-75: 0.75 /* Opacity 75% */
+      --auix-opacity-100: 1 /* Opacity 100% */
 
       /* SHADOWS & RINGS */
 
