@@ -34,12 +34,8 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     ~H"""
     <div class="auix-filter-field">
       <div class="auix-filter-field-content">
-        <div>
-          <.render_filter_condition field={@field} filter={@filter} infix={@infix}/>
-        </div>
-        <div>
-          <.render_filter_input field={@field} filter={@filter} auix={@auix} infix={@infix}/>
-        </div>
+        <.render_filter_condition field={@field} filter={@filter} infix={@infix}/>
+        <.render_filter_input field={@field} filter={@filter} auix={@auix} infix={@infix}/>
       </div>
     </div>
 
@@ -55,52 +51,64 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   ## PRIVATE
   @spec render_filter_input(map()) :: Rendered.t()
   defp render_filter_input(%{filter: %Filter{}} = assigns) do
-    assigns = Map.put(assigns, :select_opts, BasicHelpers.get_select_options(assigns))
+    assigns =
+      assigns
+      |> BasicHelpers.get_select_options()
+      |> maybe_insert_blank_option()
+      |> then(&Map.put(assigns, :select_opts, &1))
 
     ~H"""
-      <div>
-        <.input
-            id={"#{@field.html_id}#{@infix}-filter_from"}
-            name={"filter_from__#{@infix}#{@field.key}"}
-            value={(@filter.from)}
-            type={"#{@field.html_type}"}
-            options={@select_opts[:options]}
-            class="auix-filter-input"
-            fieldset_class="auix-filter-fieldset"
-            input_class="auix-filter-input-field"
-            omit_label?={true}
-          />
-        <.input
-            id={"#{@field.html_id}#{@infix}-filter_to"}
-            name={"filter_to__#{@infix}#{@field.key}"}
-            value={(@filter.to)}
-            type={"#{@field.html_type}"}
-            options={@select_opts[:options]}
-            class="auix-filter-input"
-            fieldset_class="auix-filter-fieldset"
-            input_class={if @filter.condition != :between, do: "auix-filter-input-field--disabled", else: "auix-filter-input-field"}
-            readonly={@filter.condition != :between}
-            disabled={@filter.condition != :between}
-            omit_label?={true}
-          />
-        </div>
+    <.input
+        id={"#{@field.html_id}#{@infix}-filter_from"}
+        name={"filter_from__#{@infix}#{@field.key}"}
+        value={(@filter.from)}
+        type={"#{if @field.html_type == :checkbox, do: :text, else: @field.html_type}"}
+        options={@select_opts[:options]}
+        class="auix-filter-input"
+        fieldset_class="auix-filter-fieldset"
+        input_class="auix-filter-input-field"
+        readonly={@field.html_type == :checkbox}
+        disabled={@field.html_type == :checkbox}
+        omit_label?={true}
+      />
+    <.input
+        id={"#{@field.html_id}#{@infix}-filter_to"}
+        name={"filter_to__#{@infix}#{@field.key}"}
+        value={(@filter.to)}
+        type={"#{if @field.html_type == :checkbox, do: :text, else: @field.html_type}"}
+        options={@select_opts[:options]}
+        class="auix-filter-input"
+        fieldset_class="auix-filter-fieldset"
+        input_class="auix-filter-input-field"
+        readonly={@filter.condition != :between}
+        disabled={@filter.condition != :between}
+        omit_label?={true}
+      />
     """
   end
 
   @spec render_filter_condition(map()) :: Rendered.t()
   defp render_filter_condition(assigns) do
     ~H"""
-      <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="auix-filter-condition-label">{@field.label}</.label>
-      <.input
-          id={"#{@field.html_id}#{@infix}-filter_condition"}
-          name={"filter_condition__#{@infix}#{@field.key}"}
-          value={(@filter.condition)}
-          type="select"
-          options={Filter.conditions(@field)}
-          fieldset_class="auix-filter-fieldset"
-          input_class="auix-filter-condition-input"
-          omit_label?={true}
-        />
+    <.label for={"#{@field.html_id}#{@infix}-filter_condition"} class="auix-filter-condition-label">{@field.label}</.label>
+    <.input
+        id={"#{@field.html_id}#{@infix}-filter_condition"}
+        name={"filter_condition__#{@infix}#{@field.key}"}
+        value={(@filter.condition)}
+        type="select"
+        options={Filter.conditions(@field)}
+        fieldset_class="auix-filter-fieldset"
+        input_class="auix-filter-condition-input"
+        omit_label?={true}
+      />
     """
+  end
+
+  @spec maybe_insert_blank_option(map()) :: map()
+  defp maybe_insert_blank_option(%{options: []} = select_opts), do: select_opts
+  defp maybe_insert_blank_option(%{options: ["" | _rest]} = select_opts), do: select_opts
+
+  defp maybe_insert_blank_option(%{options: options} = select_opts) do
+    Map.put(select_opts, :options, ["" | options])
   end
 end
