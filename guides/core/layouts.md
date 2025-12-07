@@ -61,13 +61,13 @@ Generated layouts:
 
 <!-- Screenshot captured in test server URL: create-ui-default-layout-products -->
 <!-- ../../test/cases_live/create_ui_default_layout_test.exs -->
-<!-- -->
 <img src="./images/layouts/default-index.png" width="600"/>
 <img src="./images/layouts/default-show.png" width="600"/>
 <img src="./images/layouts/default-edit.png" width="600"/>
 
 ### 2. Inline Layout — Horizontal Field Arrangement
 <!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-product_locations -->
+<!-- In edit mode -->
 <!-- ../../test/cases_live/association_many2one_selector_ui_layout_test.exs -->
 Use `inline` to display fields side-by-side in a row:
 
@@ -82,6 +82,9 @@ end
 <img src="./images/layouts/inline-1.png" width="400"/>
 
 ### 3. Stacked Layout — Vertical Field Arrangement
+<!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-products -->
+<!-- In edit mode -->
+<!-- ../../test/cases_live/association_many2one_selector_ui_layout_test.exs -->
 
 Use `stacked` to display fields one below another:
 
@@ -100,11 +103,12 @@ end
 
 **Result**: Fields are displayed vertically in a column.
 
-<!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-products -->
-<!-- ../../test/cases_live/association_many2one_selector_ui_layout_test.exs -->
 <img src="./images/layouts/stacked-1.png" width="400"/>
 
 ### 4. Group Layout — Bordered Field Grouping
+<!-- Screenshot captured in test server URL: group-ui-layout-products -->
+<!-- In edit mode -->
+<!-- ../../test/cases_live/group_ui_layout_test.exs -->
 
 Use `group(title)` to visually frame related fields under a title:
 
@@ -129,20 +133,31 @@ end
 <img src="./images/layouts/group-1.png" width="600"/>
 
 ### 5. Sections Layout — Tabbed Interface
+<!-- Screenshot captured in test server URL: section-ui-layout-products -->
+<!-- In edit mode -->
+<!-- ../../test/cases_live/section_ui_layout_test.exs -->
 
 Use `sections` with `section` blocks to create a tabbed interface:
 
 ```elixir
-edit_layout :product do
-  sections do
-    section "Main" do
-      inline [:reference, :name]
-    end
-    section "Details" do
-      stacked [:description]
+  auix_create_ui do
+    edit_layout :product, [] do
+      inline([:reference, :name, :description])
+
+      # section_index_1
+      sections do
+        # section_index_1, tab_index_1
+        section "Quantities" do
+          inline([:quantity_at_hand, :quantity_initial])
+        end
+
+        # section_index_1, tab_index_2
+        section "Sale Prices" do
+          stacked([:list_price, :rrp])
+        end
+      end
     end
   end
-end
 ```
 
 **Result**: Multiple tabs; clicking a tab shows only that section's fields.
@@ -151,26 +166,57 @@ end
 <img src="./images/layouts/sections-2.png" width="600"/>
 
 ### 6. Complex Nested Layout
+<!-- Screenshot captured in test server URL: nested-sections-ui-layout-products -->
+<!-- In edit mode -->
+<!-- ../../test/cases_live/nested_sections_ui_layout_test.exs -->
 
 Combine all layout types for sophisticated UIs:
 
 ```elixir
-edit_layout :product do
-  stacked do
-    group "Identification" do
-      inline [:reference, :name]
-    end
-    sections do
-      section "Description" do
-        stacked [:description]
+  auix_create_ui do
+    edit_layout :product, [] do
+      # sections_index_1
+      sections do
+        # sections_index_1 tab_index_1
+        section "References" do
+          inline([:reference, :name])
+
+          # sections_index_2
+          sections do
+            # sections_index_2 tab_index_1
+            section "Descriptions" do
+              inline([:description, :status])
+            end
+
+            # sections_index_2 tab_index_2
+            section "Specifications" do
+              stacked do
+                inline([:width, :height, :length])
+                inline([:weight])
+              end
+            end
+          end
+        end
+
+        # sections_index_1 tab_index_2
+        section "Information" do
+          # sections_index_3
+          sections do
+            # sections_index_3 tab_index_1
+            section "Quantities" do
+              inline([:quantity_at_hand, :quantity_initial])
+            end
+
+            # sections_index_3 tab_index_2
+            section "Sale Prices", default: true do
+              stacked([:list_price, :rrp])
+            end
+          end
+        end
       end
-      section "Quantities" do
-        stacked [:quantity_initial, :quantity_entries, :quantity_exits]
-      end
     end
-    inline [:price]
   end
-end
+
 ```
 
 **Result**:
@@ -179,6 +225,8 @@ end
 - Bottom: Price field
 
 <img src="./images/layouts/nested-1.png" width="600"/>
+<img src="./images/layouts/nested-2.png" width="600"/>
+<img src="./images/layouts/nested-3.png" width="600"/>
 
 ## Layout Customization
 

@@ -14,8 +14,6 @@
 
 **Declarative, compile-time CRUD UI generation for Elixir's Phoenix LiveView.** Build feature-rich, responsive interfaces with minimal code using metadata-driven configuration and a powerful layout DSL.
 
-> ⚠️ **Alpha Status**: Aurora UIX is actively developed. Monitor [CHANGELOG.md](./CHANGELOG.md) for breaking changes between releases.
-
 ---
 ## 📖 Overview
 
@@ -118,7 +116,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.0-alpha.1"}
+    {:aurora_uix, "~> 0.1.0"}
   ]
 end
 ```

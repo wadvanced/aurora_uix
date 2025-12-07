@@ -121,14 +121,15 @@ Aurora UIX generates complete, responsive CRUD interfaces. Here are examples of 
 
 ### Desktop Views
 
-#### List View (Index)
+<!-- Screenshot captured in test server, or phx.server URL: guide-overview-products -->
+#### List View (Paginated Index)
 <img src="images/index-desktop.png" width="600" alt="Product list with pagination and filtering"/>
 
 #### Detail View (Show)
 <img src="images/show-desktop.png" width="600" alt="Product detail view"/>
 
 #### Edit View with Sections
-<img src="images/edit-desktop.png" width="600" alt="Product form with organized sections"/>
+<img src="images/edit-desktop.png" width="600" alt="Product form with sections"/>
 
 #### Section Navigation
 <img src="images/edit-desktop-section_switching.png" width="600" alt="Switching between form sections"/>
@@ -137,16 +138,16 @@ Aurora UIX generates complete, responsive CRUD interfaces. Here are examples of 
 
 Aurora UIX layouts are fully responsive and adapt to mobile devices:
 
-#### Mobile List
-<img src="images/index-mobile.png" width="300" alt="Mobile product list"/>
+#### Mobile List View (Infinite Scroll)
+<img src="images/index-mobile.png" width="300" alt="Mobile product list with infinite scroll"/>
 
-#### Mobile Detail
-<img src="images/show-mobile.png" width="300" alt="Mobile product detail"/>
+#### Mobile Detail View (Show)
+<img src="images/show-mobile.png" width="300" alt="Mobile product detail view"/>
 
-#### Mobile Edit Form
-<img src="images/edit-mobile.png" width="300" alt="Mobile product form"/>
+#### Mobile Edit View with Sections
+<img src="images/edit-mobile.png" width="300" alt="Mobile product form with sections"/>
 
-#### Mobile Section Switching
+#### Mobile Section Navigation
 <img src="images/edit-mobile-section_switching.png" width="300" alt="Mobile section navigation"/>
 
 
@@ -166,16 +167,6 @@ Aurora UIX works best when:
 - Consistency across the application is important
 - You want compile-time safety and performance
 
-## Getting Started
-
-Ready to build your first Aurora UIX interface? Follow these steps:
-
-1. **[Quick Start Guide](../introduction/getting_started.md)** - 10-minute setup and first CRUD interface
-2. **[Resource Metadata Guide](../core/resource_metadata.md)** - Learn how to configure resources
-3. **[Layout System Guide](../core/layouts.md)** - Master the layout DSL
-
-## Customization & Extension
-
 Aurora UIX is built to be extensible:
 
 - **Custom Field Renderers** - Implement custom rendering logic for specialized fields
@@ -184,17 +175,26 @@ Aurora UIX is built to be extensible:
 - **Theme Customization** - Modify existing themes or create new ones from scratch
 - **LiveView Integration** - Hook into LiveView events for business logic
 
-For details on advanced customization, see:
-- [Advanced Usage Guide](../advanced/advanced_usage.md)
-- [LiveView Integration](../core/liveview.md)
-
 ## Documentation & Next Steps
 
-Ready to get started? Here's your learning path:
+### Getting Started
 
-- **[Getting Started](../introduction/getting_started.md)** - Installation and first CRUD interface
-- **[Resource Metadata](../core/resource_metadata.md)** - Complete field configuration reference
-- **[Layouts](../core/layouts.md)** - Layout DSL deep dive
-- **[LiveView Integration](../core/liveview.md)** - Event handling and business logic
-- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom components and themes
-- **[Troubleshooting](../advanced/troubleshooting.md)** - Common issues and solutions
+Ready to build your first Aurora UIX interface? Follow these steps:
+
+1. **[Getting Started Guide](../introduction/getting_started.md)** - 10-minute setup and first CRUD interface
+2. **[Resource Metadata Guide](../core/resource_metadata.md)** - Learn how to configure resources
+3. **[Layout System Guide](../core/layouts.md)** - Get to know the layout DSL
+
+### Customization & Extension
+
+For details on advanced customization, see:
+
+- **[Advanced Usage Guide](../advanced/advanced_usage.md)**
+- **[LiveView Integration](../core/liveview.md)**
+
+### Troubleshooting
+
+Guide for tackling known issues and corner cases:
+
+- **[Troubleshooting](../advanced/troubleshooting.md)**
+
