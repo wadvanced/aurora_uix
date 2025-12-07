@@ -1,32 +1,32 @@
 defmodule Aurora.Uix.CoreComponentsImporter do
   @moduledoc """
-  Core UI component provider for Aurora UIX.
-
-  ## Purpose
-  Imports the appropriate core component and helper functions based on the configured template.
-  This module enables dynamic selection of UI component modules, allowing for flexible and
-  customizable UI composition in Aurora UIX-based applications.
-
-  ## Key Constraints
-  - Only imports components from the configured template or the default core components module.
-  - Intended for use in modules that require dynamic UI component imports.
+  Provides dynamic selection and import of UI component modules based on template configuration.
   """
   alias Aurora.Uix.Template
 
   @doc """
   Imports component and helper functions from the configured template.
 
+  Dynamically selects the core components module from either the provided options or the
+  template configuration, and imports it along with Phoenix.Component.
+
   ## Parameters
   - `opts` (keyword()) - Configuration options. Options:
-    * `:core_components_module` (module()) - Optional. The module to import as core components.
-      If not provided, the default core components module from the template is used.
+    * `:core_components_module` (module()) - Optional. Override the default core components
+      module. If not provided, uses the module returned by the template's
+      `default_core_components_module/0` callback.
 
   ## Returns
-  - `Macro.t()` - A quoted expression that imports the selected core components and Phoenix.Component.
+  Macro.t() - A quoted expression that imports Phoenix.Component and the selected core
+  components module.
 
   ## Examples
   ```elixir
   defmodule MyAppWeb.MyComponent do
+    use Aurora.Uix.CoreComponentsImporter
+  end
+
+  defmodule MyAppWeb.CustomComponent do
     use Aurora.Uix.CoreComponentsImporter, core_components_module: MyAppWeb.CustomComponents
   end
   ```

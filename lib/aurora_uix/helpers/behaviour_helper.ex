@@ -1,23 +1,23 @@
 defmodule Aurora.Uix.BehaviourHelper do
   @moduledoc """
-  Provides helper functions for validating behaviour implementations.
+  Validates that modules implement specified behaviours and all their callbacks.
   """
 
   @doc """
   Validates that a module implements a given behaviour.
 
-  It checks if the module implements the behaviour and all its callbacks.
+  Checks if the module implements the behaviour and all its callbacks.
   If the validation fails, it raises an `ArgumentError`.
 
   ## Parameters
-  - `module` (`module()`) - The module to validate.
-  - `behaviour` (`module()`) - The behaviour module to check against.
+  - `module` (module()) - The module to validate.
+  - `behaviour` (module()) - The behaviour module to check against.
 
   ## Returns
-  `module()` - The validated module if it implements the behaviour.
+  module() - The validated module if it implements the behaviour.
 
   ## Raises
-  `ArgumentError` - If the module does not implement the behaviour or is missing callbacks.
+  ArgumentError - If the module does not implement the behaviour or is missing callbacks.
   """
   @spec validate(module(), module()) :: module()
   def validate(module, behaviour) do
