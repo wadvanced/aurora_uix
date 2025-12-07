@@ -1604,7 +1604,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_show_content) do
     """
+    /* auix-show-content */
+
+    #{import_rule(:auix_index_container, :auix_show_content)}
+
     .auix-show-content {
+      gap: var(--auix-gap-minimal);
       padding: var(--auix-padding-minimal);
       border-width: var(--auix-border-width-default);
       border-radius: var(--auix-border-radius-default);

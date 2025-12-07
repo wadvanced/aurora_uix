@@ -2,13 +2,13 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.0-alpha.1"
+  @version "0.1.0"
 
   def project do
     [
       app: :aurora_uix,
       version: @version,
-      elixir: "~> 1.19",
+      elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       deps: deps(),

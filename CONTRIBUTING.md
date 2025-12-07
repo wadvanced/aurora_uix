@@ -229,9 +229,13 @@ To capture screenshots on macOS:
 # Start a Phoenix server on your preferred environment
 mix phx.server
 
-# Open Firefox at specific size
+# Open Firefox Desktop Size
 /Applications/Firefox.app/Contents/MacOS/firefox \
-  -width 1024 -height 768 -new-instance "http://localhost:4000/your-page"
+  -width 1024 -height 768 -new-instance "http://localhost:4001/guide-overview-products"
+
+# Open Firefox Mobile Size
+/Applications/Firefox.app/Contents/MacOS/firefox \
+  -width 412 -height 915 -new-instance "http://localhost:4001/guide-overview-products"
 
 # Capture with Screenshot app or use browser extensions
 ```
