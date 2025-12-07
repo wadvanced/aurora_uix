@@ -52,6 +52,16 @@ defmodule Aurora.Uix.MixProject do
           Core: ~r{guides/core/.*},
           Advanced: ~r{guides/advanced/.*}
         ],
+        groups_for_modules: [
+          "General Helpers": [
+            Aurora.Uix.BehaviourHelper,
+            Aurora.Uix.Helpers.Common,
+            Aurora.Uix.CoreComponentsImporter,
+            Aurora.Uix.Gettext,
+            Aurora.Uix.GettextBackend,
+            Aurora.Uix.RouteHelper
+          ]
+        ],
         exclude: ["lib/aurora_uix_web/**/*", "lib/aurora_uix/guides/**/*"],
         before_closing_body_tag: &before_closing_body_tag/1,
         filter_modules: &filter_modules/2
