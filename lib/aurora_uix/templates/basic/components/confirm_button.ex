@@ -129,22 +129,20 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
     """
   end
 
-  @doc """
-  Shows the confirmation modal dialog.
-
-  Handles the "show-modal" event by setting the `:show_modal` assign to `true`,
-  which triggers the modal rendering in the template.
-
-  ## Parameters
-
-  * `event` (String.t()) - The event name (always `"show-modal"`)
-  * `params` (map()) - Event parameters (unused)
-  * `socket` (Phoenix.LiveView.Socket.t()) - The current socket
-
-  ## Returns
-
-  `{:noreply, Phoenix.LiveView.Socket.t()}` with `:show_modal` set to `true`
-  """
+  # Shows the confirmation modal dialog.
+  #
+  # Handles the "show-modal" event by setting the `:show_modal` assign to `true`,
+  # which triggers the modal rendering in the template.
+  #
+  # ## Parameters
+  #
+  # * `event` (String.t()) - The event name (always `"show-modal"`)
+  # * `params` (map()) - Event parameters (unused)
+  # * `socket` (Phoenix.LiveView.Socket.t()) - The current socket
+  #
+  # ## Returns
+  #
+  # `{:noreply, Phoenix.LiveView.Socket.t()}` with `:show_modal` set to `true`
   @impl Phoenix.LiveComponent
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}

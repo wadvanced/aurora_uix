@@ -2,17 +2,12 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   @moduledoc """
   Dynamic LiveView module generator for creating CRUD-oriented user interfaces.
 
-  ## Key Features
-  - Transforms configuration maps into fully-functional, dynamically generated LiveView modules for CRUD operations.
-  - Generates LiveView modules for index view, show view, and form UI components.
-  - Integrates event handling, form validation, and flexible rendering.
-  - Supports advanced listing and custom component types.
-  - Delegates code generation to specialized sub-generators.
-  - All code generation is performed at compile time.
+  Transforms configuration maps into fully-functional, dynamically generated LiveView modules
+  for index, show, and form UI components. Generates modules with event handling, form
+  validation, and flexible rendering. All code generation is performed at compile time.
 
-  ## Key Constraints
-  - Requires context modules to implement standard CRUD functions.
-  - Only modules with the required context functions are supported.
+  Delegates actual code generation to specialized sub-generators: FormGenerator, IndexGenerator,
+  and ShowGenerator.
   """
 
   alias Aurora.Uix.Templates.Basic.Generators.FormGenerator
@@ -27,7 +22,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   - `parsed_opts` (map()) - Generation options with `layout_tree.tag` and component configuration.
 
   ## Returns
-  - `Macro.t()` - The generated LiveView module code.
+  Macro.t() - The generated LiveView module code.
 
   ## Examples
   ```elixir
@@ -38,6 +33,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
     }
   )
   ```
+
   If the tag is not implemented, returns a quoted block with no generation logic.
   """
   @spec generate_module(map()) :: Macro.t()

@@ -2,34 +2,19 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @moduledoc """
   Provides utility functions for LiveView components in Aurora UIX.
 
-  ## Key Features
-  - Manages navigation stacks for LiveView routing.
-  - Assigns values and parsed options to LiveView sockets.
-  - Handles entity relationships and section/tab assignment.
+  Includes functions for managing navigation stacks, assigning values to sockets, handling
+  entity relationships, and managing section/tab assignment.
 
-  ## Navigation Helpers
-  These functions help with routing and navigation stack management.
+  ## Helper Categories
 
-  ## Assign Helpers
-  These functions help with assigning values to the socket or assigns map.
-
-  ## Entity Helpers
-  These functions assist with entity creation and relationship handling.
-
-  ## Error Helpers
-  These functions are used for error formatting and processing.
-
-  ## Field Helpers
-  These functions are for retrieving and processing field configurations.
-
-  ## Layout Helpers
-  These functions handle layout options assignment and retrieval.
-
-  ## Action Helpers
-  These functions manage actions within the assigns map, such as adding or removing actions.
-
-  ## Path Helpers
-  These functions deal with path and URL manipulations.
+  - **Navigation** - Routing and navigation stack management
+  - **Assign** - Assigning values to sockets or assigns maps
+  - **Entity** - Entity creation and relationship handling
+  - **Error** - Error formatting and processing
+  - **Field** - Field configuration retrieval and processing
+  - **Layout** - Layout options assignment and retrieval
+  - **Action** - Action management within assigns maps
+  - **Path** - Path and URL manipulations
   """
 
   use Phoenix.Component

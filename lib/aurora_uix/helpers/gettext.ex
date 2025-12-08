@@ -65,9 +65,7 @@ defmodule Aurora.Uix.Gettext do
     quote do
       unquote(implementation)
 
-      @doc """
-      Provides the configured backend.
-      """
+      @doc false
       def backend do
         unquote(backend_module)
       end
