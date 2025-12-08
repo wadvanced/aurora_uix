@@ -7,8 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   ## Key Features
   - Provides modal, table, form, flash, and input components for LiveView UIs.
-  - All components are built with Tailwind CSS utility classes for easy customization.
-    See the [Tailwind CSS documentation](https://tailwindcss.com).
+  - All components are built with CSS classes for customization via the theme system.
   - Includes icon support via [Heroicons](https://heroicons.com). See `icon/1` for usage.
   - Designed for extensibility and override in your own application.
   - Well-documented with doc strings and declarative assigns for each component.

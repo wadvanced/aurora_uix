@@ -2,17 +2,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   @moduledoc """
   Provides helper functions for embedding theme-based styles within `HEEx` templates.
 
-  Offers a convenient way to include compiled or dynamic themeable stylesheets.
-
-  ## Key Features
-
-  - **Themed Styles**: Leverages the configured theme module to apply consistent styling.
-  - **Theme Module Management**: Access and generate complete stylesheets from themes.
-
-  ## Usage
-
-  Alias or import `Aurora.Uix.Templates.ThemeHelper` to access the CSS helper functions.
-
+  Offers a convenient way to include compiled or dynamic themeable stylesheets. Leverages
+  the configured theme module to apply consistent styling and manage CSS rule generation.
   """
 
   use Phoenix.Component
@@ -27,17 +18,16 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   Generates a complete stylesheet from all rules in the theme module.
 
   ## Parameters
-
-  - `theme_module` (`module()`) - The theme module containing rule definitions
+  - `theme_module` (module()) - The theme module containing rule definitions.
 
   ## Returns
-
-  `binary()` - String containing all CSS rules from the theme module.
+  list() - List containing all CSS rules from the theme module.
 
   ## Examples
-
-      iex> generate_stylesheet(MyApp.Theme)
-      "<style>.button { color: blue; }</style>\\n<style>.card { ... }</style>\\n"
+  ```elixir
+  iex> generate_stylesheet(MyApp.Theme)
+  ["<style>.button { color: blue; }</style>", "<style>.card { ... }</style>"]
+  ```
   """
   @spec generate_stylesheet(module()) :: list()
   def generate_stylesheet(theme_module) do

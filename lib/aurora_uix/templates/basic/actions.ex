@@ -2,18 +2,9 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
   @moduledoc """
   Provides helper functions to manage and modify action groups within Aurora UIX templates.
 
-  ## Key Features
-
-    - Adds actions to a given action group in the assigns map.
-    - Modifies existing actions in the assigns map based on provided options.
-    - Supports both removal and modification of individual actions.
-    - Integrates with `Aurora.Uix.Action` and `Aurora.Uix.Templates.Basic.Helpers` for action creation and manipulation.
-
-  ## Key Constraints
-
-    - Expects assigns to contain a nested structure with `:auix` and `:layout_tree` keys for modification.
-    - Designed for internal use within Aurora UIX template rendering.
-    - Action modifications are applied sequentially in the order of the layout tree options.
+  Adds, modifies, and removes actions from action groups in the assigns map. Supports both
+  removal and modification of individual actions. Integrates with `Aurora.Uix.Action` and
+  `Aurora.Uix.Templates.Basic.Helpers` for action creation and manipulation.
   """
 
   alias Aurora.Uix.Action
@@ -24,13 +15,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
   Removes all actions from the specified action groups in the container.
 
   ## Parameters
-
-    - `assigns_or_socket` (Socket.t() | map()) - The container to modify (either Socket or assigns map).
-    - `actions` (map()) - Map of actions where each value is a tuple {action_group, _}.
+  - `assigns_or_socket` (Socket.t() | map()) - The container to modify (either Socket or assigns map).
+  - `actions` (map()) - Map of actions where each value is a tuple {action_group, _}.
 
   ## Returns
-
-    (Socket.t() | map()) - The modified container with all specified actions removed.
+  Socket.t() | map() - The modified container with all specified actions removed.
   """
   @spec remove_all_actions(Socket.t() | map(), map()) :: map()
   def remove_all_actions(assigns_or_socket, actions) do

@@ -1,13 +1,10 @@
 defmodule Aurora.Uix.Templates.Basic.Renderer do
   @moduledoc """
   Main entry point for Aurora UIX template rendering.
-  Dispatches rendering to specialized renderer modules based on the template tag and
-  provides helpers for rendering inner elements in LiveView components.
 
-  ## Key Features
-  - Delegates rendering to specialized renderer modules based on tag type (index, show, form, group, inline, stacked, sections, section, field).
-  - Provides a default empty renderer for unhandled cases.
-  - Includes a helper for rendering inner elements while maintaining context.
+  Dispatches rendering to specialized renderer modules based on the template tag and
+  provides helpers for rendering inner elements in LiveView components. Handles rendering
+  for index, show, form, and layout container tags (group, inline, stacked, sections).
   """
 
   use Aurora.Uix.CoreComponentsImporter
@@ -18,21 +15,21 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   Renders a template based on its tag type.
 
   ## Parameters
-    - assigns (map()) - Aurora UIX context map with layout_tree and tag information
+  - `assigns` (map()) - Aurora UIX context map with layout_tree and tag information.
 
   ## Tag Types
-    - :index - List view of entities
-    - :show - Detailed entity view
-    - :form - Data entry form
-    - :group - Content grouping with title
-    - :inline - Horizontal layout container
-    - :stacked - Vertical layout container
-    - :sections - Tab-based section container
-    - :section - Individual section content
-    - :field - Form field rendering
+  - `:index` - List view of entities
+  - `:show` - Detailed entity view
+  - `:form` - Data entry form
+  - `:group` - Content grouping with title
+  - `:inline` - Horizontal layout container
+  - `:stacked` - Vertical layout container
+  - `:sections` - Tab-based section container
+  - `:section` - Individual section content
+  - `:field` - Form field rendering
 
-  Returns:
-    - Phoenix.LiveView.Rendered.t()
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - The rendered template.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
 
