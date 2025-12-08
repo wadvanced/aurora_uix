@@ -14,12 +14,28 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:_auix_html) do
     """
     html, :host {
+      line-height: revert;
       -webkit-text-size-adjust: 100%;
       tab-size: 4;
       font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
       font-feature-settings: var(--auix-default-font-feature-settings, normal);
       font-variation-settings: var(--auix-default-font-variation-settings, normal);
       -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Reverts tailwind overall setting */
+    *, ::after, ::before, ::backdrop, ::file-selector-button {
+    margin: revert;
+    padding: revert;
+    border: revert;
+    }
+    """
+  end
+
+  def rule(:_auix_tag_body) do
+    """
+    body {
+      margin: var(--auix-margin-medium); 
     }
     """
   end
@@ -360,7 +376,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: flex;
         flex-direction: column;
         gap: var(--auix-gap-default);
-        background-color: var(--auix-color-bg-default);
+        background-color: transparent;
       }
     """
   end
