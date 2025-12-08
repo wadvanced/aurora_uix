@@ -67,7 +67,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
       |> Inventory.list_product_transactions()
       |> Enum.map(&(&1 |> Map.get(:quantity) |> to_string()))
 
-    {:ok, _view, html} = live(conn, "/association-one_to_many-layout-products/#{product_id}")
+    {:ok, _view, html} = live(conn, "/association/one_to_many/layout/products/#{product_id}")
 
     assert html
            |> LazyHTML.from_document()
@@ -77,11 +77,11 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
 
   @spec visit_products_index(Plug.Conn.t()) :: {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp visit_products_index(conn) do
-    {:ok, view, html} = live(conn, "/association-one_to_many-layout-products")
+    {:ok, view, html} = live(conn, "/association/one_to_many/layout/products")
     assert html =~ "Listing Products"
 
     # Verify index shows the products
-    assert has_element?(view, "#auix-table-association-one_to_many-layout-products-index")
+    assert has_element?(view, "#auix-table-association--one_to_many--layout--products-index")
 
     {conn, view}
   end

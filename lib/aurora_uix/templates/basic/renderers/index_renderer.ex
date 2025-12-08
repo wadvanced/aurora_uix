@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     ~H"""
     <div class="auix-index-container">
       <.header>
-        <div id={"auix-table-#{@auix.uri_path}-index-title"}>
+        <div id={"auix-table-#{@auix.uri_path_id}-index-title"}>
           {@auix.layout_options.page_title}
         </div>
         <:subtitle>
@@ -64,7 +64,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
       <.auix_simple_form :let={index_layout_form} id={@auix.index_form_id} for={@auix.index_layout_form} name="auix-index_layout_form" phx-change="index-layout-change">
         <.auix_items
-          id={"auix-table-#{@auix.uri_path}-index"}
+          id={"auix-table-#{@auix.uri_path_id}-index"}
           auix={%{configurations: @auix.configurations,
               filters: Map.get(@auix, :filters, %{}),
               index_layout_form: index_layout_form,
