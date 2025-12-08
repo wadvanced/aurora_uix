@@ -1,9 +1,5 @@
 defmodule Aurora.Uix.Gettext do
   @moduledoc """
-  Provides dynamic Gettext backend selection and injection based on application configuration.
-  """
-
-  @doc """
   Injects Gettext functionality with configurable backend support.
 
   Sets up the module to use Gettext with a configurable backend. The backend is resolved by:
@@ -14,14 +10,9 @@ defmodule Aurora.Uix.Gettext do
   If a deprecated `:gettext` application configuration exists, it imports that module
   instead of using the standard Gettext setup.
 
-  ## Parameters
-  - `opts` (keyword()) - Configuration options. Options:
-    * `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
-      `Aurora.Uix.GettextBackend`.
-
-  ## Returns
-  Macro.t() - A quoted expression that sets up Gettext with the selected backend or imports
-  the configured backend module.
+  ## Options
+  - `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
+    `Aurora.Uix.GettextBackend`.
 
   ## Examples
   ```elixir
@@ -48,6 +39,8 @@ defmodule Aurora.Uix.Gettext do
   config :aurora_uix, :gettext_backend, MyCustomBackend
   ```
   """
+
+  @doc false
   @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
     default_backend = opts[:backend] || Aurora.Uix.GettextBackend

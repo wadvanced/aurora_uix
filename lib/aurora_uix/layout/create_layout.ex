@@ -7,8 +7,8 @@ defmodule Aurora.Uix.Layout.CreateLayout do
   alias Aurora.Uix.Layout.CreateLayout
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
 
-  @spec auix_create_missing_layouts() :: Macro.t()
-  defmacro auix_create_missing_layouts do
+  @spec __auix_create_missing_layouts() :: Macro.t()
+  defmacro __auix_create_missing_layouts do
     # __MODULE__
     # |> Module.get_attribute(:auix_layout_opts, [])
     # |> Keyword.get(:omit_missing_layouts_creation?, false)
@@ -18,20 +18,25 @@ defmodule Aurora.Uix.Layout.CreateLayout do
     end
   end
 
-  @doc """
-  A compile-time hook that generates the `auix_layout_trees/0` function.
-
-  This macro is automatically invoked by the Elixir compiler before the module is
-  fully compiled. It reads the layout definitions stored in the `@auix_layout_trees`
-  module attribute and injects a function `auix_layout_trees/0` into the calling
-  module. This function returns the stored layout trees, making them available
-  at runtime.
-  """
+  @doc false
+  # Generates the `auix_layout_trees/0` function at compile time.
+  #
+  # This macro is automatically invoked by the Elixir compiler before the module is
+  # fully compiled. It reads the layout definitions stored in the `@auix_layout_trees`
+  # module attribute and injects a function `auix_layout_trees/0` into the calling
+  # module. This function returns the stored layout trees, making them available
+  # at runtime.
+  #
+  # ## Parameters
+  # - `env` (Macro.Env.t()) - The macro environment.
+  #
+  # ## Returns
+  # Macro.t() - A quoted expression containing the generated function.
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
     module = env.module
 
-    auix_create_missing_layouts()
+    __auix_create_missing_layouts()
 
     layout_trees =
       module

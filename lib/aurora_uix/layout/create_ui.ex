@@ -2,34 +2,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @moduledoc """
   Provides a framework for dynamically generating UI layouts for Phoenix applications.
 
-  This module offers a compile-time mechanism to create UI components for resources,
-  including index, form, and show views, based on a flexible configuration.
-
-  ## Key Features
-
-  - **Compile-Time UI Generation**: Generates UI modules for resources at compile time, minimizing runtime overhead.
-  - **Flexible Layout Configuration**: Allows for detailed customization of layouts using a DSL.
-  - **Automatic View Generation**: Automatically creates modules for index, form, and show views.
-  - **Schema Integration**: Integrates with Ecto schemas to infer field types and associations.
-
-  ## Usage
-
-  To use this module, you `use Aurora.Uix.Layout.CreateUI` in your view module and then define the UI using `auix_create_ui/2`.
-
-  ## Example
-
-  ```elixir
-  defmodule MyApp.ProductViews do
-    use Aurora.Uix
-
-    auix_create_ui for: :product do
-      index_columns [:name, :price]
-      edit_layout do
-        inline [:name, :price]
-      end
-    end
-  end
-  ```
+  Offers a compile-time mechanism to create UI components for resources, including index,
+  form, and show views, based on flexible configuration using a DSL.
   """
 
   alias Aurora.Uix.BehaviourHelper
@@ -38,20 +12,19 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Template
 
-  @doc """
-  Generates UI modules before the module is compiled.
-
-  This macro is triggered before compilation, gathering all `auix_layout_trees`
-  and `auix_layout_opts` attributes to build the final UI modules.
-  It merges layout trees, processes resource metadata, and injects the
-  generated modules into the calling module.
-
-  ## Parameters
-  - `env` (`Macro.Env.t()`) - The macro environment.
-
-  ## Returns
-  `Macro.t()` - A quoted expression containing the generated UI modules.
-  """
+  @doc false
+  # Generates UI modules before the module is compiled.
+  #
+  # This macro is triggered before compilation, gathering all `auix_layout_trees`
+  # and `auix_layout_opts` attributes to build the final UI modules.
+  # It merges layout trees, processes resource metadata, and injects the
+  # generated modules into the calling module.
+  #
+  # ## Parameters
+  # - `env` (Macro.Env.t()) - The macro environment.
+  #
+  # ## Returns
+  # Macro.t() - A quoted expression containing the generated UI modules.
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
     module = env.module
@@ -85,16 +58,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
   Configures and initiates UI generation for a specific module.
 
   ## Parameters
-  - `opts` (`Keyword.t()`) - Configuration options for UI generation.
-  - `do_block` (`Macro.t()` | `nil`) - An optional configuration block for advanced layouts.
+  - `opts` (keyword()) - Configuration options for UI generation.
+  - `do_block` (Macro.t() | nil) - An optional configuration block for advanced layouts.
 
   ## Options
-  - `:for` (`atom()`) - The target resource name to generate the UI for.
+  - `:for` (atom()) - The target resource name to generate the UI for.
 
   ## Returns
-  `Macro.t()` - A quoted expression that sets up the UI configuration.
+  Macro.t() - A quoted expression that sets up the UI configuration.
 
-  ## Example
+  ## Examples
   ```elixir
   auix_create_ui for: :product do
     index_columns [:name, :price]
@@ -121,29 +94,26 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
-  @doc """
-  Builds UI layouts based on resource configurations.
-
-  ## Parameters
-  - `resource_configs` (`map()`) - A map of resource configurations.
-  - `caller` (`module()`) - The calling module.
-  - `layout_trees` (`list()`) - A list of layout tree definitions.
-  - `opts` (`Keyword.t()`) - Configuration options.
-
-  ## Options
-  - `:for` (`atom()` | `list()`) - Generates UI for one or more specific resources.
-
-  ## Returns
-  `list()` - A list of quoted expressions representing the generated UI layout modules.
-  """
+  ## PRIVATE
+  # Builds UI layouts based on resource configurations.
+  #
+  # ## Parameters
+  # - `resource_configs` (map()) - A map of resource configurations.
+  # - `caller` (module()) - The calling module.
+  # - `layout_trees` (list()) - A list of layout tree definitions.
+  # - `opts` (keyword()) - Configuration options.
+  #
+  # ## Options
+  # - `:for` (atom() | list()) - Generates UI for one or more specific resources.
+  #
+  # ## Returns
+  # list() - A list of quoted expressions representing the generated UI layout modules.
   @spec build_ui(map(), module(), list(), keyword()) :: list()
-  def build_ui(resource_configs, caller, layout_trees, opts) do
+  defp build_ui(resource_configs, caller, layout_trees, opts) do
     resource_configs
     |> filter_resources(opts[:for])
     |> build_layouts(caller, layout_trees, opts)
   end
-
-  ## PRIVATE
 
   # Merges layout paths by their name and tag, combining inner elements and options.
   @spec merge_layout_trees(tuple()) :: list()
