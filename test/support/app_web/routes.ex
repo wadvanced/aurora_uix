@@ -70,7 +70,7 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_product_crud(
           AssociationOne2ManyUILayoutTest,
-          "association-one_to_many-layout-"
+          "association/one_to_many/layout/"
         )
 
         RoutesHelper.register_product_crud(
