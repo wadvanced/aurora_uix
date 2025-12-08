@@ -15,6 +15,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     html, :host {
       line-height: revert;
+      background-color: var(--auix-color-bg-default);
+      color: var(--auix-color-text-primary);
       -webkit-text-size-adjust: 100%;
       tab-size: 4;
       font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
@@ -1243,6 +1245,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       padding-bottom: var(--auix-padding-small);
       margin-bottom: var(--auix-padding-small);
       border-radius: var(--auix-border-radius-default);
+      color: var(--auix-color-text-primary);
     }
     """
   end
