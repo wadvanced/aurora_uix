@@ -31,6 +31,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       --auix-gap-minimal: 0.125rem;
       --auix-gap-default: 0.250rem;
+      --auix-gap-medium: 0.500rem;
+      --auix-gap-large: 0.750rem;
 
       --auix-padding-default: 0.625rem;
       --auix-padding-minimal: 0.3125rem;
@@ -78,6 +80,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-font-size-small: 0.750rem;
       --auix-font-weight-bold: 600;
       --auix-font-weight-bold-semi: 400;
+      --auix-font-style-mobile-viewmode: italic;
+
 
       /* Text */
       --auix-color-text-primary: #18181B; /* zinc-900 */

@@ -96,7 +96,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
             && BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key) != nil}
           navigate={"#{@auix.association.related_parsed_opts.index_new_link}?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
           name={"auix-new-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
-        <.icon name="hero-plus" />
+        <.icon name="hero-plus" class="auix-icon-size-button"/>
       </.auix_link>
     """
   end
