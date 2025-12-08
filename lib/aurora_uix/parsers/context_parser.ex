@@ -1,107 +1,27 @@
 defmodule Aurora.Uix.Parsers.ContextParser do
   @moduledoc """
-  Provides parsing functionality for context-based resource configurations in Elixir applications.
+  Provides parsing functionality for context-based resource configurations.
 
-  Automatically detects and configures context-related functions for resources, such as listing, getting, creating, updating, and deleting elements.
+  Automatically detects and configures context-related functions for resources, such as
+  listing, getting, creating, updating, and deleting elements. Infers function names
+  based on context and schema module conventions.
 
-  ## Key Features
-  - Infers function names based on context and schema module conventions.
-  - Supports custom function name overrides through options.
-  - Handles different function arities for various resource operations.
+  ## Supported Options
 
-  ## Key Constraints
-  - Expects resource configuration to include `:context` and `:schema` keys.
-  - Relies on naming conventions for default function detection unless overridden.
+  * `:list_function` - Function reference for reading all elements (default: list_<source>/1).
+  * `:list_function_paginated` - Function reference for reading elements using pagination.
+  * `:get_function` - Function reference for getting one element (default: get_<module>/2).
+  * `:delete_function` - Function reference for deleting an element (default: delete_<module>/1).
+  * `:create_function` - Function reference for creating elements (default: create_<module>/1).
+  * `:update_function` - Function reference for updating elements (default: update_<module>/2).
+  * `:change_function` - Function reference for creating changesets (default: change_<module>/2).
+  * `:new_function` - Function reference for creating new changesets (default: new_<module>/2).
 
-  ## Context Options
-  - `:list_function` - Function reference for reading all the elements of the resource.
-    By default, is list_<source>/1.
-    The source is the name of the table.
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `opts` - Query options
-    ### Expected return
-    Function should be able to produce the following:
-    - A list of entities or empty list.
-
-  - `:list_paginated_function` - Function reference for reading elements using pagination.
-
-  - `:get_function` - Function reference for getting one element of the resource.
-    By default, is get_<schema_module>/2 or get_<schema_module>!/2.
-    The schema_module is the name of the ecto schema module (the last part).
-    ### Required parameters
-    - `id` - Id of the entity
-    - `opts` - Query options
-    ### Expected return
-    Function should be able to produce the following:
-    - A single element or nil.
-
-  - `:delete_function` - Name of the function for deleting a element of the resource.
-    By default, is delete_<schema_module>/1 or delete_<schema_module>!/1.
-    The schema_module is the name of the ecto schema module (the last part).
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `entity` - The entity to be deleted.
-    ### Expected return
-    Function should be able to produce the following:
-    - `{:ok, entity}` - If the deletion was ok.
-    - `{:error, changeset}` - If something went wrong.
-
-  - `:create_function` - Insert a new element to the resource.
-    By default, is create_<schema_module>/1.
-    The schema_module is the name of the ecto schema module (the last part).
-
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `changeset` or `attribute map` - The mapped values for the entities keys.
-
-    ### Expected return
-    Function should be able to produce the following:
-    - `{:ok, <created_element>}` - If it was properly stored.
-    - `{:error, <changeset or relevant info>}` - If something went wrong.
-
-  - `:update_function` - Updates an existing element in the resource.
-    By default, is update_<schema_module>/2.
-    The schema_module is the name of the ecto schema module (the last part).
-
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `entity or changeset` - The entity or changeset to be updated.
-    - `attrs` - Attributes map with the changes.
-
-    ### Expected return
-    Function should be able to produce the following:
-    - `{:ok, <updated_element>}` - If the update was completed.
-    - `{:error, <changeset or relevant info>}` - If any error happened.
-
-  - `:change_function` - Creates a changeset of changes.
-    Similar to update_function, but does not perform any repo updates, only affects or produce changeset.
-    By default, is change_<schema_module>/2.
-    The schema_module is the name of the ecto schema module (the last part).
-
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `entity or changeset` - The entity or Changeset to be updated.
-    - `attrs` - Attributes map with the changes to be applied.
-
-    ### Expected return
-    Function should be able to produce the following:
-    - A Changeset.
-
-  - `:new_function` (atom()) - Creates a changeset of changes.
-    Its arity is always 2 and accepts a changeset or an element instance as the first argument,
-    and a map with the changes to be applied. By default, is change_<schema_module>/2.
-    The function should return a Changeset.
-    ### Required parameters
-    Function should be able to handle the following parameters:
-    - `attrs` - Attribute map with the initial values for the changeset.
-    - `opts` - Repo options for the new changeset. Normally used to pass the required preloads.
-
-    ### Expected return
-    Function should be able to produce the following:
-    - A Changeset.
-
+  All functions use the context module and schema module naming conventions to automatically
+  discover implementations. Functions are resolved with the appropriate arity from the
+  configured context module.
   """
+
   @behaviour Aurora.Uix.Parser
 
   @doc """
@@ -127,14 +47,16 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   @doc """
   Resolves default values for context-derived properties.
 
+  Discovers context functions by name convention and arity. Uses source (table name) and
+  module (schema module name) to construct expected function names.
+
   ## Parameters
-  - `parsed_opts` (map()) - Map (accumulator) for parsed options.
-  - `resource_config` (map()) - Contains all the modules' configuration. Must include :context and :schema keys.
+  - `parsed_opts` (map()) - Map containing resolved options with `:source` and `:module`.
+  - `resource_config` (map()) - Contains `:context` (module()) with available functions.
   - `key` (atom()) - Key for which to produce the default value.
 
   ## Returns
-  term() - The default value for the given key, or nil if not found.
-
+  function() - Function reference if found, otherwise undefined_function/2.
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
@@ -179,15 +101,8 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
-  @doc """
-  Placeholder function used when no valid function reference is found.
-  ## Parameters
-  - `_arg1` (any()) - First argument (ignored).
-  - `_arg2` (any()) - Second argument (ignored, defaults to nil).
-
-  ## Returns
-  - `nil` - Always returns nil.
-  """
+  @doc false
+  # Placeholder function used when no valid function reference is found.
   @spec undefined_function(any(), any()) :: nil
   def undefined_function(_arg1, _arg2 \\ nil), do: nil
 

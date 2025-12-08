@@ -64,6 +64,10 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Layout.Options.Show,
             Aurora.Uix.Layout.ResourceMetadata
           ],
+          Parsers: [
+            Aurora.Uix.Parsers.Common,
+            Aurora.Uix.Parsers.ContextParser
+          ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
             Aurora.Uix.Helpers.Common,
