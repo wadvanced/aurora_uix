@@ -53,6 +53,17 @@ defmodule Aurora.Uix.MixProject do
           Advanced: ~r{guides/advanced/.*}
         ],
         groups_for_modules: [
+          Layouts: [
+            Aurora.Uix.Layout.Blueprint,
+            Aurora.Uix.Layout.CreateLayout,
+            Aurora.Uix.Layout.CreateUI,
+            Aurora.Uix.Layout.Helpers,
+            Aurora.Uix.Layout.Options,
+            Aurora.Uix.Layout.Options.Form,
+            Aurora.Uix.Layout.Options.Index,
+            Aurora.Uix.Layout.Options.Show,
+            Aurora.Uix.Layout.ResourceMetadata
+          ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
             Aurora.Uix.Helpers.Common,

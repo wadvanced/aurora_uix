@@ -1,36 +1,35 @@
 defmodule Aurora.Uix.Layout.Options.Index do
   @moduledoc """
-  Handles retrieval and processing of options specific to `:index` layout tags.
+  Handles retrieval and processing of options specific to `:index` layout type.
 
-  This module provides functionality for managing index layout options, including pagination
-  controls, page bar configurations, and row data handling. It integrates with the Aurora.Uix
-  layout system to provide consistent option retrieval and processing for index-based layouts.
-
-  ## Key features
-
-  * Retrieves and validates options for `:index` layouts
-  * Supports dynamic pagination configuration with boolean and function-based controls
-  * Provides responsive page bar range calculation based on media query breakpoints
-  * Handles row data extraction from various sources (streams, assigns)
-  * Delegates fallback option retrieval and error reporting to `Aurora.Uix.Layout.Options`
-
-  ## Key constraints
-
-  * Expects assigns to contain `auix` and `layout_tree` keys with appropriate structure
-  * Only processes options relevant to the `:index` tag
-  * Requires `layout_tree.tag` to be `:index` for option processing
-  * Function-based options must have arity 1 and receive assigns as parameter
+  Provides functionality for managing index layout options, including pagination controls,
+  page bar configurations, and row data handling. Integrates with the Aurora.Uix layout
+  system to provide consistent option retrieval and processing for index-based layouts.
 
   ## Options
 
+  * `:alternate_streams_suffixes` - A list of suffixes use for producing multiple streams.
+    Current implementation produces an alternate stream for displaying in card format.
+    - Default: `["mobile"]`.
+  * `:infinite_scroll_items_load` - The count of items to read into the streams when the
+    infinity scroll pagination triggers.
+    - Default: `200`.
   * `:pagination_disabled?` - Controls whether pagination is enabled for the index list
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
     - Default: `false` (pagination active)
+  * `:pagination_items_per_page` - Number of items to display per page.
+    - Default: `40`.
   * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
+  * `:page_title` - Title for showing in the page.
+    - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
+    - Default: `"List {name}"`, where `{name}` is the resource name.
+  * `:page_subtitle` - The subtitle for the index list.
+    - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
+    - Default: `""`.
   * `:get_streams` - Function for extracting row data from assigns
   * `:row_id` - Function for extracting row identifiers
-
   """
+
   use Aurora.Uix.Layout.Options, :index
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
@@ -46,22 +45,18 @@ defmodule Aurora.Uix.Layout.Options.Index do
   accommodate more pagination links on wider screens.
 
   ## Parameters
-
-  - `assigns` (`map()`) - The assigns map (currently unused but maintained for consistency)
-  - `media_query` (`atom()`) - The media query breakpoint identifier
+  - `assigns` (map()) - The assigns map (currently unused but maintained for consistency).
+  - `media_query` (atom()) - The media query breakpoint identifier.
 
   ## Returns
-
-  - `integer()` - The calculated range offset value
+  integer() - The calculated range offset value.
 
   ## Media Query Multipliers
-
   - `:xl2` - 5x the default offset (10)
   - `:xl` - 4x the default offset (8)
   - `:lg` - 3x the default offset (6)
   - `:md` - 2x the default offset (4)
   - Other values - Default offset (2)
-
   """
   @spec page_bar_range_offset(map(), atom()) :: integer()
   def page_bar_range_offset(_assigns, :xl2), do: @default_pages_bar_range_offset * 5
@@ -78,13 +73,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
   matches.
 
   ## Parameters
-
-  - `assigns` (`map()`) - Assigns map containing `auix` and optionally `streams`
+  - `assigns` (map()) - Assigns map containing `auix` and optionally `streams`.
 
   ## Returns
-
-  - `list()` - List of row data, or empty list if no rows found
-
+  list() - List of row data, or empty list if no rows found.
   """
   @spec get_streams(map()) :: list()
   def get_streams(%{streams: streams}), do: streams

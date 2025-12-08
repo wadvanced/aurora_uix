@@ -2,25 +2,15 @@ defmodule Aurora.Uix.Layout.Options do
   @moduledoc """
   Provides a framework for defining and retrieving layout-specific options.
 
-  This module is intended to be `use`d by other layout modules (e.g., `Index`, `Form`, `Page`)
-  to establish a common interface for handling options. It works by introspecting the calling
-  module to automatically discover available options.
-
-  ## Key Features
-
-  - **Option Discovery**: Automatically discovers available options from the calling module's
-    `get_default/2` function implementation via a `__before_compile__` callback.
-  - **Centralized Retrieval**: Offers a unified `get/2` function that delegates option
-    retrieval to the appropriate layout-specific module (`ShowOptions`, `FormOptions`,
-    `IndexOptions`).
-  - **Dynamic Rendering**: Includes a `render_binary/2` helper to render values within
-    HEEx templates.
+  Intended to be `used` by layout modules (e.g., `Index`, `Form`, `Show`) to establish
+  a common interface for handling options. Works by introspecting the calling module to
+  automatically discover available options
 
   ## Usage
 
   To use this module, you should `use Aurora.Uix.Layout.Options, :layout_type` in your
   layout-specific option module, where `:layout_type` is an atom representing the layout
-  (e.g., `:index`, `:form`).
+  (e.g., `:index`, `:form`, `:show`).
 
   ```elixir
   defmodule MyLayout.Options do
@@ -64,8 +54,7 @@ defmodule Aurora.Uix.Layout.Options do
   Retrieves the list of available options for the layout.
 
   ## Returns
-
-  - `list(tuple())` - A list of tuples, where each tuple contains the layout type and the option name.
+  list(tuple()) - A list of tuples, where each tuple contains the layout type and the option name.
   """
   @callback available_options() :: list()
 
@@ -73,27 +62,25 @@ defmodule Aurora.Uix.Layout.Options do
   Fetches the value of a specific layout option.
 
   ## Parameters
-
   - `assigns` (map()) - The assigns map.
   - `option` (atom()) - The option to retrieve.
 
   ## Returns
-
-  - `any()` - The value of the option.
+  any() - The value of the option.
   """
   @callback get(assigns :: map(), option :: atom()) :: any()
 
-  @doc """
-  Injects option-handling capabilities into the calling module.
-
-  When `use Aurora.Uix.Layout.Options` is invoked, this macro sets up the necessary
-  attributes and callbacks to enable automatic option discovery. It defines an
-  `available_options/0` function in the calling module that returns all discovered options.
-
-  ## Parameters
-
-  - `layout_type` (atom()) - The atom representing the layout type (e.g., `:page`, `:form`).
-  """
+  # Injects option-handling capabilities into the calling module.
+  #
+  # When `use Aurora.Uix.Layout.Options` is invoked, this macro sets up the necessary
+  # attributes and callbacks to enable automatic option discovery. It defines an
+  # `available_options/0` function in the calling module that returns all discovered options.
+  #
+  # ## Parameters
+  # - `layout_type` (atom()) - The atom representing the layout type (e.g., `:index`, `:form`, `:show`).
+  #
+  # ## Returns
+  # Macro.t() - A quoted expression setting up the module attributes and callbacks.
   @spec __using__(atom()) :: Macro.t()
   defmacro __using__(layout_type) do
     quote do
@@ -154,7 +141,7 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Parameters
 
-  - `layout_type` (atom()) - The type of layout to filter options for (e.g., `:page`, `:form`).
+  - `layout_type` (atom()) - The type of layout to filter options for (e.g., `:index`, `:form`).
 
   ## Returns
 

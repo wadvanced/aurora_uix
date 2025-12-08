@@ -2,13 +2,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @moduledoc ~S"""
   Comprehensive layout configuration system for dynamic UI generation.
 
-  ## Key Features
-  - Enables declarative, nested, and flexible UI structure definition for Phoenix LiveView.
-  - Supports compile-time layout generation and field arrangement for index, form, and show views.
+  Provides DSL macros for defining declarative, nested, and flexible UI structure for
+  Phoenix LiveView. Supports compile-time layout generation and field arrangement for
+  index, form, and show views.
 
   ## Layout Hierarchy
   - Container Layouts: Index, Form, Show
-  - Sub-Layouts: Inline, Stacked, Group, Sections
+  - Sub-Layouts: Inline, Stacked, Group, Sections, Section
 
   ## Layout Containers
   1. **Index**: Horizontal field arrangement
@@ -20,25 +20,29 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `stacked`: Vertical field arrangement
   - `group`: Visually segmented fields
   - `sections`: Tab-like field organization
+  - `section`: Tab contents
 
   ## Layout Tree Element Structure
 
-  Internally, each layout is represented by a list of maps (called "paths"), where each entry contains the following keys:
+  Internally, each layout is represented by a list of maps (called "paths"), where each
+  entry contains the following keys:
 
   - **`:tag` (atom):**
     The layout command. Possible values include:
       - Container commands: `:index`, `:form`, `:show`
-      - Sub-layout commands: `:stacked`, `:group`, `:inline`, and `:sections`
+      - Sub-layout commands: `:stacked`, `:group`, `:inline`, `:sections` and `section`
 
   - **`:name` (atom):**
-    For container layouts (`:index`, `:form`, and `:show`), this key is **required** and holds the resource configuration name to which the layout applies.
-    For sub-layout commands, this key is not required.
+    For container layouts (`:index`, `:form`, and `:show`), this key is **required** and
+    holds the resource configuration name to which the layout applies. For sub-layout
+    commands, this key is not required.
 
   - **`:state` (atom):**
     Indicates the beginning (`:start`) or ending (`:end`) of a layout block.
 
   - **`:opts` (keyword list):**
-    Contains additional options for customizing the layout (for example, UI overrides such as field length or custom renderers).
+    Contains additional options for customizing the layout (for example, UI overrides
+    such as field length or custom renderers).
 
   - **`:config` (tuple or map):**
     Holds specific configuration data:
@@ -50,7 +54,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   ## Usage Examples
 
   ### Basic Usage
-  The simplest usage creates an index layout for listing resources and a default form layout containing all enabled fields:
+  The simplest usage creates an index layout for listing resources and a default form
+  layout containing all enabled fields:
 
     ```elixir
     defmodule ProductViews do
@@ -64,7 +69,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
     ```
 
   ### Custom Layout for Index and Form
-  Customize the index view to display only selected columns, and define a form layout with an inline group of fields:
+  Customize the index view to display only selected columns, and define a form layout
+  with an inline group of fields:
     ```elixir
     defmodule ProductViews do
       alias MyApp.Inventory
@@ -82,7 +88,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
     ```
 
   ### Using Sub-Layouts in Form and Show
-  Within form and show containers, structure the UI using sub-layout commands such as stacked, group, and inline:
+  Within form and show containers, structure the UI using sub-layout commands such as
+  stacked, group, and inline:
 
     ```elixir
     defmodule ProductViews do
@@ -108,7 +115,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
     ```
 
   ### Using Section Layouts
-  Divide the form or show layout into distinct tabs using sections. Each section represents a tab where only its fields are visible when selected:
+  Divide the form or show layout into distinct tabs using sections. 
+  Each section represents a tab where only its fields are visible when selected:
 
     ```elixir
     defmodule ProductViews do

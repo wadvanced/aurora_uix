@@ -1,21 +1,10 @@
 defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
-  Provides a comprehensive, declarative UI configuration system for structured data in Phoenix LiveView.
+  Provides a comprehensive, declarative UI configuration system for structured data in
+  Phoenix LiveView.
 
-  ## Key Features
-  - Enables rich, metadata-driven UI configuration for data structures.
-  - Focuses on flexible field-level UI metadata management and seamless integration with Phoenix LiveView.
-
-  ## Key Constraints
-  - Supports Ecto schemas and custom data structures.
-  - Designed for compile-time configuration generation with minimal runtime overhead.
-  - Not intended for direct use outside Aurora.Uix internals.
-
-  ## Key Capabilities
-  - Declarative field configuration (labels, placeholders, validation)
-  - Automatic type inference for HTML input types
-  - Support for Ecto schemas and custom data structures
-  - Customizable rendering and interaction rules
+  Enables rich, metadata-driven UI configuration for data structures with flexible
+  field-level UI metadata management and seamless integration with Phoenix LiveView.
 
   ## Configuration Strategies
   - Field-level customization
@@ -75,11 +64,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       end
     end
   ```
-
-  ## Performance and Flexibility
-  - Minimal runtime overhead
-  - Compile-time configuration generation
-  - Extensible through custom parsing and rendering strategies
   """
 
   alias Aurora.Uix.CounterAgent

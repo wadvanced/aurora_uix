@@ -2,23 +2,9 @@ defmodule Aurora.Uix.Layout.Helpers do
   @moduledoc """
   Provides helper utilities for the Aurora.Uix UI DSL.
 
-  This module serves as the core processing engine for DSL block transformations,
-  component registration, and field metadata extraction. It handles the conversion
-  of macro-based UI definitions into standardized component structures suitable
-  for template generation.
-
-  ## Key Features
-
-  - **DSL Block Processing**: Normalizes and transforms quoted blocks into lists of expressions.
-  - **Component Registration**: Converts DSL macro calls into standardized component entries.
-  - **Field Metadata Generation**: Automatically generates field configurations from types and associations.
-  - **Type Mapping**: Maps Elixir types to HTML5 input types and field attributes.
-
-  ## Constraints
-
-  - Block processing assumes well-formed quoted expressions.
-  - Field generation is optimized for Ecto schema integration.
-  - Association handling supports only `:one` and `:many` cardinalities.
+  Serves as the core processing engine for DSL block transformations, component registration,
+  and field metadata extraction. Handles the conversion of macro-based UI definitions into
+  standardized component structures suitable for template generation.
   """
 
   alias Aurora.Uix.Action
@@ -39,18 +25,17 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Extracts the `:do` block from options while preserving the rest.
 
-  This function handles multiple input patterns for block extraction, supporting both
+  Handles multiple input patterns for block extraction, supporting both
   keyword lists with a `:do` key and explicit block parameters.
 
   ## Parameters
-  - `opts` (`Keyword.t()` | `list()`) - An options list that may contain a `:do` key.
-  - `block` (`term()`) - An optional explicit block value, which defaults to `nil`.
+  - `opts` (keyword() | list()) - An options list that may contain a `:do` key.
+  - `block` (term()) - An optional explicit block value, which defaults to `nil`.
 
   ## Returns
-  `{term(), Keyword.t()}` - A tuple containing the extracted block and the remaining options.
-    LayoutHelpers.parse_embedded_field(embeds_one, resource_name)
+  {term(), keyword()} - A tuple containing the extracted block and the remaining options.
   """
-  @spec extract_block_options(Keyword.t() | list(), term()) :: {term(), Keyword.t()}
+  @spec extract_block_options(keyword() | list(), term()) :: {term(), keyword()}
   def extract_block_options(opts, block \\ nil)
 
   def extract_block_options(opts, nil) do
@@ -82,10 +67,10 @@ defmodule Aurora.Uix.Layout.Helpers do
   ensuring a consistent output format for template generation.
 
   ## Parameters
-  - `block` (`Macro.t()`) - The input block to be normalized.
+  - `block` (Macro.t()) - The input block to be normalized.
 
   ## Returns
-  `list(Macro.t())` - A list of normalized quoted expressions.
+  list(Macro.t()) - A list of normalized quoted expressions.
   """
   @spec prepare_block(Macro.t()) :: list(Macro.t())
   def prepare_block(block) do
@@ -107,21 +92,21 @@ defmodule Aurora.Uix.Layout.Helpers do
   tag type, configuration, options, and nested elements.
 
   ## Parameters
-  - `tag` (`atom()`) - The component type identifier (e.g., `:form`, `:field`).
-  - `name` (`atom()`) - The component name for identification.
-  - `config` (`Keyword.t()` | `tuple()` | `nil`) - Static configuration or field definitions.
-  - `opts` (`Keyword.t()`) - Component options and attributes.
-  - `do_block` (`Macro.t()`) - Nested component definitions and content.
-  - `env` (`Macro.Env.t()`) - The macro environment for code generation.
+  - `tag` (atom()) - The component type identifier (e.g., `:form`, `:field`).
+  - `name` (atom()) - The component name for identification.
+  - `config` (keyword() | tuple() | nil) - Static configuration or field definitions.
+  - `opts` (keyword()) - Component options and attributes.
+  - `do_block` (Macro.t()) - Nested component definitions and content.
+  - `env` (Macro.Env.t()) - The macro environment for code generation.
 
   ## Returns
-  `Macro.t()` - A quoted expression that evaluates to a component map.
+  Macro.t() - A quoted expression that evaluates to a component map.
   """
   @spec register_dsl_entry(
           atom(),
           atom(),
-          Keyword.t() | tuple() | nil,
-          Keyword.t(),
+          keyword() | tuple() | nil,
+          keyword(),
           Macro.t(),
           Macro.Env.t()
         ) :: Macro.t()
