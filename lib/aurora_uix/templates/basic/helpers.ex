@@ -171,16 +171,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     all_paths =
       auix._current_path
       |> String.replace_leading("/", "")
-      |> String.replace_trailing("/show/edit", "")
+      |> String.replace_trailing("/edit", "")
+      |> String.replace_trailing("/show", "")
       |> String.split("/")
       |> Enum.reverse()
 
     reverse_paths =
       case {assigns[:live_action], all_paths} do
-        {_, [path]} -> [path]
-        {:edit, [_ | [path]]} -> [path]
-        {:edit, [_ | [_ | paths]]} -> paths
-        {_, [_ | paths]} -> paths
+        {:edit, [_ | paths]} -> paths
+        {:show, [_ | paths]} -> paths
+        {_, paths} -> paths
       end
 
     uri_path =
@@ -188,7 +188,11 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       |> Enum.reverse()
       |> Enum.join("/")
 
-    assign_auix(socket, :uri_path, uri_path)
+    uri_path_id = String.replace(uri_path, "/", "--")
+
+    socket
+    |> assign_auix(:uri_path, uri_path)
+    |> assign_auix(:uri_path_id, uri_path_id)
   end
 
   @doc """
