@@ -1,4 +1,4 @@
-defmodule Aurora.ErrorView do
+defmodule Aurora.UixWeb.ErrorView do
   @moduledoc """
   Renders error views for the Aurora.UixWeb application.
 
