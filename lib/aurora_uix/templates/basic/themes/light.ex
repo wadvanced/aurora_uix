@@ -10,10 +10,73 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
   @impl true
   @spec rule(atom()) :: binary()
-  def rule(:root) do
+  def rule(:root_colors) do
     """
+    :root, :host {
     /* Colors are based on tailwind palette */
     /* https://tailscan.com/colors */
+
+      /* -------- COLORS, BORDERS, TRANSITIONS ------*/
+      /* Backgrounds */
+      --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
+      --auix-color-bg-default--reverted: #18181B; /* zinc-900 */
+      --auix-color-bg-secondary: #D4D4D8; /* zinc-300, use in odd/even elements */ 
+      --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
+      --auix-color-bg-info: #F0FDF4;  /* emerald-50 (Info Background) */
+      --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
+      --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
+      --auix-color-bg-hover--reverted: #47474a;   /* zinc-700 */
+      --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
+      --auix-color-bg-inner-container: rgba(250, 250, 250, 0.8); /* zinc-50 with 80% opacity */
+      --auix-color-bg-danger: #FB7185;     /* rose-400 */
+      --auix-color-bg-danger-hover: #E11D48; /* rose-600 */
+      
+      /* Text */
+      --auix-color-text-primary: #18181B; /* zinc-900 */
+      --auix-color-text-secondary: #52525B;  /* zinc-600 for secondary text */
+      --auix-color-text-tertiary: #71717A;   /* zinc-500 for tertiary/muted text */
+      --auix-color-text-inactive: #A1A1AA;   /* zinc-400 for inactive text */
+      --auix-color-text-label: #27272A;      /* zinc-800 for label text */
+      --auix-color-text-hover: #47474a;   /* zinc-700 */
+      --auix-color-text-on-accent: #FFFFFF; /* white text on dark/accent background */
+      --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
+
+      /* Status Colors */
+      --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
+      --auix-color-error: #FB7185;          /* rose-400 for input error borders */
+      --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
+      --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
+      --auix-color-error-bg: #FFF1F2;       /* rose-50 (Error Background) */
+      --auix-color-error-text: #831843;     /* rose-900 (Error Text/Fill) */
+      --auix-color-error-ring: #F43F5E;     /* rose-500 (Error Ring) */
+      --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
+      --auix-color-icon-default: #18181B;   /* zinc-900 */
+      --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions (like save) */
+      --auix-color-icon-info: #1D4ED8;      /* blue-700 for informative actions (like show) */
+      --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions (like delete) */
+      --auix-color-icon-inactive: #D4D4D8;  /* zinc-300 for inactive or low relevance actions */
+
+      /* Borders */
+      --auix-color-border-primary: #D4D4D8; /* zinc-300 */
+      --auix-color-border-secondary: #E4E4E7; /* zinc-200 */
+      --auix-color-border-tertiary: #F4F4F5; /* zinc-100 */
+      --auix-color-border-focus: #A1A1AA;   /* zinc-400 for input focus border */
+
+      /* Focus States (Focus Ring / Border) */
+      --auix-color-focus-ring: #6366F1; /* indigo-500 */
+
+      --auix-ring-color: rgba(63, 63, 70, 0.1);
+      
+      /* Zinc 700 is #47474a. Opacity 10% is 0.1 */
+      --auix-color-shadow-alpha: rgba(71, 71, 74, 0.1);
+      --auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.1);
+      --auix-color-shadow-black-alpha-small: rgba(0, 0, 0, 0.05);
+    }
+    """
+  end
+
+  def rule(:root) do
+    """
 
     :root, :host {
 
@@ -55,21 +118,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       --auix-icon-size-button: var(--auix-icon-size-4);
 
-      /* -------- COLORS, BORDERS, TRANSITIONS ------*/
-      /* Backgrounds */
-      --auix-color-bg-default: #FFFFFF; /* For pure white backgrounds (e.g., unchecked inputs) */
-      --auix-color-bg-default--reverted: #18181B; /* zinc-900 */
-      --auix-color-bg-secondary: #D4D4D8; /* zinc-300, use in odd/even elements */ 
-      --auix-color-bg-disabled: #A1A1AA; /* zinc-400 for disabled backgrounds */
-      --auix-color-bg-info: #F0FDF4;  /* emerald-50 (Info Background) */
-      --auix-color-bg-light: #F4F4F5; /* zinc-100 for light backgrounds/borders */
-      --auix-color-bg-hover: #FAFAFA; /* zinc-50 */
-      --auix-color-bg-hover--reverted: #47474a;   /* zinc-700 */
-      --auix-color-bg-backdrop: rgba(250, 250, 250, 0.9); /* zinc-50 with 90% opacity */
-      --auix-color-bg-inner-container: rgba(250, 250, 250, 0.8); /* zinc-50 with 80% opacity */
-      --auix-color-bg-danger: #FB7185;     /* rose-400 */
-      --auix-color-bg-danger-hover: #E11D48; /* rose-600 */
-
       /* Font */
       --auix-font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
       --auix-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -83,40 +131,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-font-style-mobile-viewmode: italic;
 
 
-      /* Text */
-      --auix-color-text-primary: #18181B; /* zinc-900 */
-      --auix-color-text-secondary: #52525B;  /* zinc-600 for secondary text */
-      --auix-color-text-tertiary: #71717A;   /* zinc-500 for tertiary/muted text */
-      --auix-color-text-inactive: #A1A1AA;   /* zinc-400 for inactive text */
-      --auix-color-text-label: #27272A;      /* zinc-800 for label text */
-      --auix-color-text-hover: #47474a;   /* zinc-700 */
-      --auix-color-text-on-accent: #FFFFFF; /* white text on dark/accent background */
-      --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
-
-      /* Status Colors */
-      --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
-      --auix-color-error: #FB7185;          /* rose-400 for input error borders */
-      --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
-      --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
-      --auix-color-error-bg: #FFF1F2;       /* rose-50 (Error Background) */
-      --auix-color-error-text: #831843;     /* rose-900 (Error Text/Fill) */
-      --auix-color-error-ring: #F43F5E;     /* rose-500 (Error Ring) */
-      --auix-color-icon-fill: #164E63;      /* cyan-900 (Icon Fill) */
-      --auix-color-icon-default: #18181B;   /* zinc-900 */
-      --auix-color-icon-safe: #047857;      /* emerald-700 for safe actions (like save) */
-      --auix-color-icon-info: #1D4ED8;      /* blue-700 for informative actions (like show) */
-      --auix-color-icon-danger: #BE123C;    /* rose-700 for dangerous actions (like delete) */
-      --auix-color-icon-inactive: #D4D4D8;  /* zinc-300 for inactive or low relevance actions */
-
-      /* Borders */
-      --auix-color-border-primary: #D4D4D8; /* zinc-300 */
-      --auix-color-border-secondary: #E4E4E7; /* zinc-200 */
-      --auix-color-border-tertiary: #F4F4F5; /* zinc-100 */
-      --auix-color-border-focus: #A1A1AA;   /* zinc-400 for input focus border */
-
-      /* Focus States (Focus Ring / Border) */
-      --auix-color-focus-ring: #6366F1; /* indigo-500 */
-
       /* OPACITIES
       --auix-opacity-20: 0.20 /* Opacity 20% */
       --auix-opacity-40: 0.40 /* Opacity 40% */
@@ -129,17 +143,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
       --auix-ring-inset: ;
       --auix-ring-offset-shadow: 0 0 #0000;
       --auix-ring-offset-width: 0px;
-      --auix-ring-color: rgba(63, 63, 70, 0.1);
       --auix-ring-info:
         var(--auix-ring-inset)
         0 0 0
         calc(1px + var(--auix-ring-offset-width))
         var(--auix-color-info-ring);
 
-      /* Zinc 700 is #47474a. Opacity 10% is 0.1 */
-      --auix-color-shadow-alpha: rgba(71, 71, 74, 0.1);
-      --auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.1);
-      --auix-color-shadow-black-alpha-small: rgba(0, 0, 0, 0.05);
 
       /* Equivalent to Tailwind's 'shadow' (Default/Smallest) */
       --auix-shadow-default:
