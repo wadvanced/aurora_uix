@@ -29,6 +29,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ["<style>.button { color: blue; }</style>", "<style>.card { ... }</style>"]
   ```
   """
+  @spec generate_stylesheet(module()) :: list()
   def generate_stylesheet(theme_module) do
     rule_names = theme_module.rule_names()
 
