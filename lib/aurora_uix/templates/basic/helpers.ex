@@ -167,12 +167,26 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   """
   @spec assign_auix_uri_path(Socket.t()) ::
           Socket.t()
-  def assign_auix_uri_path(%{assigns: %{auix: auix}} = socket) do
-    uri_path =
+  def assign_auix_uri_path(%{assigns: %{auix: auix} = assigns} = socket) do
+    all_paths =
       auix._current_path
       |> String.replace_leading("/", "")
+      |> String.replace_trailing("/show/edit", "")
       |> String.split("/")
-      |> List.first()
+      |> Enum.reverse()
+
+    reverse_paths =
+      case {assigns[:live_action], all_paths} do
+        {_, [path]} -> [path]
+        {:edit, [_ | [path]]} -> [path]
+        {:edit, [_ | [_ | paths]]} -> paths
+        {_, [_ | paths]} -> paths
+      end
+
+    uri_path =
+      reverse_paths
+      |> Enum.reverse()
+      |> Enum.join("/")
 
     assign_auix(socket, :uri_path, uri_path)
   end
