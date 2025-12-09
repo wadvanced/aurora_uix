@@ -27,9 +27,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     /* Reverts tailwind overall setting */
     *, ::after, ::before, ::backdrop, ::file-selector-button {
-    margin: revert;
-    padding: revert;
-    border: revert;
+      border: revert;
+    }
+    button, input, select, optgroup, textarea, ::file-selector-button {
+      color: var(--auix-color-text-primary);
+      border-radius: var(--auix-border-radius-small);
+      background-color: transparent;
+      opacity: var(--auix-opacity-100);
     }
     """
   end
@@ -108,12 +112,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     .-auix-textarea {
       margin: 0;               
-      color: var(--auix-color-text-primary); 
       padding: var(--auix-padding-minimal);
 
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-small);            
+
+      color: var(--auix-color-text-primary); 
+      background-color: transparent;
     }
 
     @media (max-width: 640px) {
@@ -128,11 +134,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     .-auix-input {
       padding: var(--auix-padding-minimal);
-      color: var(--color-text-primary);
 
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-small);
+
+      color: var(--auix-color-text-primary);
+      background-color: transparent;
       caret-color: var(--auix-color-text-primary);
     }
 
@@ -230,6 +238,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_box) do
     """
       .auix-modal-box {
+        position: absolute;
+        top: 0;
         margin-left: auto;              
         margin-right: auto;             
       }
@@ -286,6 +296,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_modal_close_button) do
     """
       .auix-modal-close-button {
+        display: flex;
         padding: 0;
         border-width: var(--auix-border-width-default);
         border-radius: var(--auix-border-radius-small);
@@ -503,11 +514,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_fieldset) do
     """
     .auix-fieldset {
-      padding: 0;
       display: flex;
       flex-direction: column;
       gap: var(--auix-gap-default);
+
+      margin: 0;
+      padding: 0;
+      padding-block: calc(0.25rem * 1);
       border-width: 0;
+      font-size: var(--auix-font-size-caption);
     }
     """
   end
@@ -519,8 +534,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: inline-block;
         vertical-align: middle;
         flex-shrink: 0;
-        height: 1rem;
-        width: 1rem;
+
+        height: var(--auix-box-size-unit);
+        width: var(--auix-box-size-unit);
+        margin: var(--auix-margin-default);
+
         border-width: var(--auix-border-width-default);
         border-style: var(--auix-border-style-default);
 

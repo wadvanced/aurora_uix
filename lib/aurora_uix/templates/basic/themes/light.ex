@@ -238,6 +238,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Light do
 
       --auix-box-size-unit: 1rem;
 
+      --auix-line-height-default: 1.250rem;
+
       --auix-border-radius-default: 0.5rem;
       --auix-border-radius-small: 0.250rem;
       --auix-border-radius-large: 1rem;
