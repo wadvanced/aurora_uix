@@ -173,6 +173,14 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
                |> render() =~
                  "#{product_id}"
 
+        ## assert the product_id can not be changed
+
+        assert new_view
+               |> render()
+               |> LazyHTML.from_document()
+               |> LazyHTML.query("select[name='product_transaction[product_id]']")
+               |> LazyHTML.attribute("readonly") != []
+
         # Fill and submit new transaction form
         {:ok, new_view, _html} =
           new_view

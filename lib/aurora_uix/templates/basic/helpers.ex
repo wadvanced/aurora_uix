@@ -89,7 +89,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
   - Phoenix.LiveView.Socket.t()
   """
-  @spec assign_auix(Socket.t() | map(), atom(), term()) :: Socket.t()
+  @spec assign_auix(Socket.t() | map(), atom(), term()) :: Socket.t() | map()
   def assign_auix(%Socket{} = socket, key, value) do
     socket.assigns
     |> Map.get(:auix, %{})
@@ -767,6 +767,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     default
     |> struct(%{related_key => parent_id})
     |> then(&assign_auix(socket, :entity, &1))
+    |> assign_auix(:one_to_many_related_key, related_key)
   end
 
   # Adds a path to the forward navigation stack and updates last route path in assigns
