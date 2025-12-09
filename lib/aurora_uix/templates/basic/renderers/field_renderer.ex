@@ -122,7 +122,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @spec default_render_input(map()) :: Phoenix.LiveView.Rendered.t()
   defp default_render_input(%{auix: %{layout_type: :form, primary_key: primary_key}} = assigns) do
     primary_key = if is_list(primary_key), do: List.first(primary_key), else: primary_key
-    assigns = BasicHelpers.assign_auix(assigns, :primary_key, primary_key)
+
+    assigns =
+      assigns
+      |> BasicHelpers.assign_auix(:primary_key, primary_key)
+      |> maybe_set_one_to_many_relation_to_readonly(assigns.auix[:one_to_many_related_key])
 
     ~H"""
       <div class="auix-form-field-container">
@@ -138,7 +142,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
           class={@input_classes}
         />
       </div>
-
+      <.maybe_create_hidden_field_for_one_to_many_field auix={@auix} field={@field} 
+        one_to_many_related_key={@auix[:one_to_many_related_key]} />
     """
   end
 
@@ -164,4 +169,33 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
     """
   end
+
+  @spec maybe_set_one_to_many_relation_to_readonly(map(), nil | atom()) :: map()
+  defp maybe_set_one_to_many_relation_to_readonly(
+         %{field: %{key: one_to_many_related_key} = field} = assigns,
+         one_to_many_related_key
+       ) do
+    field
+    |> struct(%{disabled: true, readonly: true})
+    |> then(&Map.put(assigns, :field, &1))
+  end
+
+  defp maybe_set_one_to_many_relation_to_readonly(assigns, _one_to_many_related_key), do: assigns
+
+  @spec maybe_create_hidden_field_for_one_to_many_field(map()) :: Phoenix.LiveView.Rendered.t()
+  defp maybe_create_hidden_field_for_one_to_many_field(
+         %{
+           field: %{key: one_to_many_related_key},
+           one_to_many_related_key: one_to_many_related_key
+         } = assigns
+       ) do
+    ~H"""
+      <.input
+        field={@auix.form[@field.key]}
+        type="hidden"
+      />
+    """
+  end
+
+  defp maybe_create_hidden_field_for_one_to_many_field(assigns), do: ~H""
 end

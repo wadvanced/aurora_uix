@@ -554,13 +554,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec apply_action(Socket.t(), map()) :: Socket.t()
   def apply_action(
         %{assigns: %{auix: auix, live_action: :edit}} = socket,
-        %{"id" => id} = _params
+        %{"id" => id} = params
       ) do
-    assign_auix(
-      socket,
-      :entity,
-      auix.get_function.(id, preload: auix.preload)
-    )
+    assign_new_entity(socket, params, auix.get_function.(id, preload: auix.preload))
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
