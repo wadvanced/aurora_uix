@@ -55,8 +55,8 @@ Ready to code? Here's the process:
 
 Before contributing, ensure you have:
 
-- **Elixir 1.19+** — Check with `elixir --version`
-- **Erlang OTP 26+** — Check with `erl -noshell -eval 'erlang:halt(0)'`
+- **Elixir 1.17+** — Check with `elixir --version`
+- **Erlang OTP 28+** — Check with `erl -noshell -eval 'erlang:halt(0)'`
 - **PostgreSQL 12+** — Default: `localhost:5432`, user: `postgres`, db: `aurora_uix_test`
 
 ### PostgreSQL Setup

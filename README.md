@@ -35,10 +35,10 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Customizable Themes** — Light and dark themes included; create your own or override components.
 
 **Technology Stack:**
-- Elixir `1.19.x+`
-- Phoenix `1.8.x+`
-- Phoenix LiveView `1.1.x+`
-- Ecto `3.10.x+`
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
 
 ---
 ## ⚡ Quick Example
@@ -103,8 +103,8 @@ end
 ### Prerequisites
 
 Ensure you have the following installed:
-- [Elixir](https://elixir-lang.org/install.html) 1.19+
-- [Erlang](https://www.erlang.org/downloads) OTP 26+
+- [Elixir](https://elixir-lang.org/install.html) 1.17+
+- [Erlang](https://www.erlang.org/downloads) OTP 28+
 - [Phoenix](https://phoenixframework.org/blog/phoenix-1-8-released) 1.8+
 
 ### Installation
