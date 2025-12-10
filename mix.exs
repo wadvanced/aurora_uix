@@ -106,7 +106,9 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer,
             Aurora.Uix.Templates.Basic.Renderers.ShowRenderer,
             Aurora.Uix.Templates.Basic.Themes.Base,
-            Aurora.Uix.Templates.Basic.Themes.Light
+            Aurora.Uix.Templates.Basic.Themes.BaseVariables,
+            Aurora.Uix.Templates.Basic.Themes.VitreousMarble,
+            Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
           ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
