@@ -29,13 +29,29 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ["<style>.button { color: blue; }</style>", "<style>.card { ... }</style>"]
   ```
   """
-  @spec generate_stylesheet(module()) :: list()
-  def generate_stylesheet(theme_module) do
+  @spec generate_stylesheet(module() | atom()) :: list()
+  def generate_stylesheet(theme) when is_atom(theme) do
+    registered_themes =
+      registered_themes()
+
+    palettes =
+      registered_themes
+      |> Enum.map(fn {_name, module} ->
+        style([:root_colors], module)
+      end)
+      |> Enum.reverse()
+
+    theme_module = theme_module()
+
     rule_names = theme_module.rule_names()
 
+    # Merge all root_colors, setting the default one as the first one.
     rule_names
     |> List.flatten()
+    |> Enum.reject(&(&1 == :root_colors))
     |> style(theme_module)
+    |> Enum.reduce(palettes, &[&1 | &2])
+    |> Enum.reverse()
   end
 
   @doc """
@@ -48,11 +64,32 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ## Examples
 
       iex> theme_module()
-      Aurora.Uix.Themes.Default
+      Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
   """
   @spec theme_module() :: module()
   def theme_module do
     @theme_module
+  end
+
+  @doc """
+  Returns the name of the configured theme.
+  ## Returns
+  `atom()` - The name of the configured theme.
+  ## Examples
+      iex> theme_name()
+      :white_charcoal
+  """
+  @spec theme_name() :: atom()
+  def theme_name do
+    @theme_module.theme_name()
+  end
+
+  @doc """
+  Registers and retrieves all available themes.
+  """
+  @spec registered_themes() :: list()
+  def registered_themes do
+    :persistent_term.get(:auix_registered_themes, %{})
   end
 
   @doc """

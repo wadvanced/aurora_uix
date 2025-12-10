@@ -62,8 +62,10 @@ defmodule Aurora.Uix.Templates.Theme do
   Injects the `Theme` behaviour and callbacks into the calling module.
   """
   @spec __using__(any()) :: Macro.t()
-  defmacro __using__(_opts) do
+  defmacro __using__(opts \\ []) do
     quote do
+      Module.register_attribute(__MODULE__, :theme_name, accumulate: false)
+      Theme.__process_options(__MODULE__, unquote(opts))
       @behaviour Theme
 
       @before_compile Theme
@@ -92,7 +94,17 @@ defmodule Aurora.Uix.Templates.Theme do
       @doc false
       @spec rule_names() :: list()
       def rule_names, do: List.flatten(unquote(rule_names))
+
+      @doc false
+      @spec theme_name() :: atom()
+      def theme_name, do: @theme_name
     end
+  end
+
+  @doc false
+  @spec __process_options(module(), keyword()) :: :ok
+  def __process_options(module, options) do
+    Enum.each(options, &process_option(module, &1))
   end
 
   ## PRIVATE
@@ -134,4 +146,16 @@ defmodule Aurora.Uix.Templates.Theme do
       _ -> nil
     end
   end
+
+  @spec process_option(module(), tuple()) :: any()
+  defp process_option(module, {:theme_name, theme_name}) do
+    Module.put_attribute(module, :theme_name, theme_name)
+
+    :auix_registered_themes
+    |> :persistent_term.get(%{})
+    |> Map.put(theme_name, module)
+    |> then(&:persistent_term.put(:auix_registered_themes, &1))
+  end
+
+  defp process_option(_module, _option), do: :ok
 end
