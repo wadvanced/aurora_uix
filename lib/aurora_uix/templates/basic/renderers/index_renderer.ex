@@ -41,17 +41,17 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-      <div id={"auix-table-#{@auix.uri_path_id}-index-hook"} class="auix-index-container" phx-hook=".AuixThemeHook">
-      </div>
-      <script :type={Phoenix.LiveView.ColocatedHook} name=".AuixThemeHook">
-        export default {
-          mounted() {
-            this.handleEvent("set_html_theme_name", ({ theme_name} ) => {
-              document.documentElement.setAttribute("data-html-theme", theme_name)
-            })
-          } 
-        }
-      </script>
+    <div id={"auix-table-#{@auix.uri_path_id}-index-hook"} class="auix-index-container" phx-hook=".AuixThemeHook">
+    </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".AuixThemeHook">
+      export default {
+        mounted() {
+          this.handleEvent("set_html_theme_name", ({ theme_name} ) => {
+            document.documentElement.setAttribute("data-theme-name", theme_name)
+          })
+        } 
+      }
+    </script>
 
     <div class="auix-index-container">
       <.header>

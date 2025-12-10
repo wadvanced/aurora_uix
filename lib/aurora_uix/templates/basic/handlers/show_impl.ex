@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
+  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -65,7 +66,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowImpl do
     - `{:ok, Socket.t()}` - The initialized socket.
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, socket), do: {:ok, socket}
+  def mount(_params, _session, socket),
+    do: {:ok, push_event(socket, :set_html_theme_name, %{theme_name: ThemeHelper.theme_name()})}
 
   @doc """
   Handles URL parameter changes and loads the entity for display.
