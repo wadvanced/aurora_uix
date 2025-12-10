@@ -156,6 +156,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:reset_stream?, true)
       |> assign_auix(:index_form_id, index_form_id)
       |> assign_auix(:empty_list?, true)
+      |> push_event(:set_html_theme_name, %{theme_name: :vitreous_marble})
     }
   end
 
