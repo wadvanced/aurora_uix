@@ -212,7 +212,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
 
-  alias Aurora.Uix.CounterAgent
+  alias Aurora.Uix.Counter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
@@ -657,7 +657,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec parse_sections(TreePath.t(), atom()) :: TreePath.t()
   def parse_sections(layout_tree, layout_type) when layout_type in [:form, :show] do
-    pid = CounterAgent.start_counter()
+    pid = Counter.start_counter()
 
     layout_tree
     |> Map.get(:inner_elements, [])
@@ -718,7 +718,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   # - Final section index
   @spec normalize_sections_and_tabs(
           list(),
-          pid(),
+          :atomics.atomics_ref(),
           binary() | nil,
           integer(),
           binary() | nil,
@@ -762,7 +762,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
          _tab_active?,
          result
        ) do
-    next_sections_index = CounterAgent.next_count(counter_pid)
+    next_sections_index = Counter.next_count(counter_pid)
 
     new_inner_elements =
       normalize_sections_and_tabs(

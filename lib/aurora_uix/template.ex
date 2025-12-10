@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Template do
   """
 
   alias Aurora.Uix.BehaviourHelper
-  alias Aurora.Uix.CounterAgent
+  alias Aurora.Uix.Counter
 
   @uix_template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Templates.Basic)
 
@@ -85,7 +85,7 @@ defmodule Aurora.Uix.Template do
   """
   @spec uix_template() :: module()
   def uix_template do
-    CounterAgent.start_counter(:auix_fields)
+    Counter.start_counter(:auix_fields)
     BehaviourHelper.validate(@uix_template, __MODULE__)
   end
 end

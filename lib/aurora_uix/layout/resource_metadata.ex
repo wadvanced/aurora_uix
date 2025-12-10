@@ -66,7 +66,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   ```
   """
 
-  alias Aurora.Uix.CounterAgent
+  alias Aurora.Uix.Counter
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.ResourceMetadata
@@ -89,7 +89,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   @doc false
   defmacro __before_compile__(env) do
-    CounterAgent.start_counter(:auix_fields)
+    Counter.start_counter(:auix_fields)
 
     resources_metadata = resource_metadata(env.module)
 
