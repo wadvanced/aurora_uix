@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Field do
 
   use Accessible
 
-  alias Aurora.Uix.CounterAgent
+  alias Aurora.Uix.Counter
 
   defstruct [
     :key,
@@ -142,12 +142,12 @@ defmodule Aurora.Uix.Field do
 
   defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
        when is_nil(resource) do
-    struct(field, %{html_id: "auix-field-#{key}-#{CounterAgent.next_count(:auix_fields)}"})
+    struct(field, %{html_id: "auix-field-#{key}-#{Counter.next_count(:auix_fields)}"})
   end
 
   defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
     struct(field, %{
-      html_id: "auix-field-#{resource}-#{key}-#{CounterAgent.next_count(:auix_fields)}"
+      html_id: "auix-field-#{resource}-#{key}-#{Counter.next_count(:auix_fields)}"
     })
   end
 
