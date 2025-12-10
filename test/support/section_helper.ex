@@ -154,7 +154,7 @@ defmodule Aurora.UixWeb.Test.SectionHelper do
   def section_active?(_lazy_html, ""), do: true
 
   def section_active?(lazy_html, section_id) do
-    section = LazyHTML.query(lazy_html, "##{section_id}")
+    section = LazyHTML.query(lazy_html, "[id^='#{section_id}']")
 
     with true <- section |> LazyHTML.attribute("data-tab-active") |> List.first("") =~ "active",
          false <- section |> LazyHTML.attribute("class") |> List.first("") =~ "hidden",
