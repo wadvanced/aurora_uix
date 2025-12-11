@@ -8,7 +8,10 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   use Phoenix.Component
 
+  alias Aurora.Uix.BehaviourHelper
+  alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Templates.CssSanitizer
+  alias Aurora.Uix.Templates.Theme
 
   @template Aurora.Uix.Template.uix_template()
   @default_theme @template.default_theme_module()
@@ -87,9 +90,24 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   @doc """
   Registers and retrieves all available themes.
   """
-  @spec registered_themes() :: list()
+  @spec registered_themes() :: map()
   def registered_themes do
-    :persistent_term.get(:auix_registered_themes, %{})
+    available = :code.all_available()
+
+    available
+    |> Enum.map(&(&1 |> elem(0) |> to_string()))
+    |> Enum.filter(&String.starts_with?(&1, "Elixir."))
+    |> Enum.map(fn module_name ->
+      module = CommonHelper.safe_atom(module_name)
+
+      if Code.ensure_loaded?(module) and BehaviourHelper.behaviour_implemented?(module, Theme) do
+        {module.theme_name(), module}
+      else
+        {nil, module}
+      end
+    end)
+    |> Enum.reject(&(elem(&1, 0) == nil))
+    |> Map.new()
   end
 
   @doc """

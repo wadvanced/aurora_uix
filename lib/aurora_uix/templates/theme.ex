@@ -148,14 +148,8 @@ defmodule Aurora.Uix.Templates.Theme do
   end
 
   @spec process_option(module(), tuple()) :: any()
-  defp process_option(module, {:theme_name, theme_name}) do
-    Module.put_attribute(module, :theme_name, theme_name)
-
-    :auix_registered_themes
-    |> :persistent_term.get(%{})
-    |> Map.put(theme_name, module)
-    |> then(&:persistent_term.put(:auix_registered_themes, &1))
-  end
+  defp process_option(module, {:theme_name, theme_name}),
+    do: Module.put_attribute(module, :theme_name, theme_name)
 
   defp process_option(_module, _option), do: :ok
 end
