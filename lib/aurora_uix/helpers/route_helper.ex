@@ -20,7 +20,7 @@ defmodule Aurora.Uix.RouteHelper do
   - `path` (binary()) - Base URL path segment (e.g., `"/users"`, `"/products"`).
   - `module` (module()) - Base LiveView module name. Must have `.Index` and `.Show` submodules.
   - `opts` (Keyword.t()) - Options:
-    * `:only` (list(atom())) - Generate only the specified actions. Valid actions: `:index`, `:new`, `:edit`, `:show`.
+    * `:only` (list(atom())) - Generate only the specified actions. Valid actions: `:index`, `:new`, `:edit`, `:show`, `:show_edit`.
     * `:except` (list(atom())) - Exclude the specified actions from generation.
 
   ## Returns
@@ -57,6 +57,7 @@ defmodule Aurora.Uix.RouteHelper do
   # Expands to:
   live "/users", MyApp.UserLive.Index, :index
   live "/users/:id", MyApp.UserLive.Show, :show
+  live "/users/:id/show/edit", MyApp.UserLive.Show, :edit
   ```
   """
   @spec auix_live_resources(binary(), module(), keyword()) :: Macro.t()
@@ -79,7 +80,7 @@ defmodule Aurora.Uix.RouteHelper do
          quote do
            live("#{unquote(path)}/:id", unquote(module).Show, :show)
          end},
-        {:edit,
+        {:show_edit,
          quote do
            live("#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit)
          end}
