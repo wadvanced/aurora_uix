@@ -9,7 +9,7 @@ defmodule Aurora.Uix.RouteHelper do
   Creates a set of LiveView routes following a consistent pattern for managing resources.
   Routes are bound to action names (:index, :new, :edit, :show) for LiveView event handling.
 
-  The macro expands to five live routes with the following pattern:
+  The macro expands to up to five live routes with the following pattern:
   - `GET /path` → `.Index` module with `:index` action
   - `GET /path/new` → `.Index` module with `:new` action
   - `GET /path/:id/edit` → `.Index` module with `:edit` action
@@ -19,11 +19,15 @@ defmodule Aurora.Uix.RouteHelper do
   ## Parameters
   - `path` (binary()) - Base URL path segment (e.g., `"/users"`, `"/products"`).
   - `module` (module()) - Base LiveView module name. Must have `.Index` and `.Show` submodules.
+  - `opts` (Keyword.t()) - Options:
+    * `:only` (list(atom())) - Generate only the specified actions. Valid actions: `:index`, `:new`, `:edit`, `:show`, `:show_edit`.
+    * `:except` (list(atom())) - Exclude the specified actions from generation.
 
   ## Returns
-  Macro.t() - Quoted expression expanding to five `live/3` route definitions.
+  Macro.t() - Quoted expression expanding to `live/3` route definitions.
 
   ## Examples
+  Generate all routes (default):
   ```elixir
   import Aurora.Uix.RouteHelper
 
@@ -36,15 +40,73 @@ defmodule Aurora.Uix.RouteHelper do
   live "/users/:id", MyApp.UserLive.Show, :show
   live "/users/:id/show/edit", MyApp.UserLive.Show, :edit
   ```
+
+  Generate only index and show routes:
+  ```elixir
+  auix_live_resources("/users", MyApp.UserLive, only: [:index, :show])
+
+  # Expands to:
+  live "/users", MyApp.UserLive.Index, :index
+  live "/users/:id", MyApp.UserLive.Show, :show
+  ```
+
+  Generate all routes except new and edit (read-only mode):
+  ```elixir
+  auix_live_resources("/users", MyApp.UserLive, except: [:new, :edit])
+
+  # Expands to:
+  live "/users", MyApp.UserLive.Index, :index
+  live "/users/:id", MyApp.UserLive.Show, :show
+  live "/users/:id/show/edit", MyApp.UserLive.Show, :edit
+  ```
   """
-  @spec auix_live_resources(binary(), module()) :: Macro.t()
-  defmacro auix_live_resources(path, module) do
+  @spec auix_live_resources(binary(), module(), keyword()) :: Macro.t()
+  defmacro auix_live_resources(path, module, opts \\ []) do
+    quotes =
+      [
+        {:index,
+         quote do
+           live("#{unquote(path)}", unquote(module).Index, :index)
+         end},
+        {:new,
+         quote do
+           live("#{unquote(path)}/new", unquote(module).Index, :new)
+         end},
+        {:edit,
+         quote do
+           live("#{unquote(path)}/:id/edit", unquote(module).Index, :edit)
+         end},
+        {:show,
+         quote do
+           live("#{unquote(path)}/:id", unquote(module).Show, :show)
+         end},
+        {:show_edit,
+         quote do
+           live("#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit)
+         end}
+      ]
+      |> filter_only(opts[:only])
+      |> reject_except(opts[:except])
+      |> extract_quotes()
+
     quote do
-      live("#{unquote(path)}", unquote(module).Index, :index)
-      live("#{unquote(path)}/new", unquote(module).Index, :new)
-      live("#{unquote(path)}/:id/edit", unquote(module).Index, :edit)
-      live("#{unquote(path)}/:id", unquote(module).Show, :show)
-      live("#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit)
+      (unquote_splicing(quotes))
     end
   end
+
+  ## PRIVATE
+  @spec filter_only(list(), list() | nil) :: list()
+  defp filter_only(quotes, only) when is_list(only),
+    do: Enum.filter(quotes, &(elem(&1, 0) in only))
+
+  defp filter_only(quotes, _only), do: quotes
+
+  @spec reject_except(list(), list() | nil) :: list()
+  defp reject_except(quotes, except) when is_list(except),
+    do: Enum.reject(quotes, &(elem(&1, 0) in except))
+
+  defp reject_except(quotes, _except), do: quotes
+
+  @spec extract_quotes(list()) :: list()
+  defp extract_quotes(quotes), do: Enum.map(quotes, &elem(&1, 1))
 end
