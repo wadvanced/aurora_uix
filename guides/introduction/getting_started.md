@@ -26,50 +26,63 @@ mix deps.get
 
 Aurora UIX renders UI with pre-built CSS themes. A `basic` template with `light` and `dark` themes are included by default.
 
-For styling to work, you need to configure the CSS stylesheet service in your router and add the stylesheet link to your layout.
+To enable Aurora UIX styling, generate the stylesheet and import it in your application's CSS:
 
-### Step 1: Add Stylesheet Route
+### Step 1: Generate the Stylesheet
 
-In your `router.ex`, add a route to serve the dynamically generated CSS:
+Run the stylesheet generator task:
 
-```elixir
-  pipeline :api do
-    plug(:accepts, ["json"])
-  end
-
-  scope "/auix/assets/", Aurora.Uix do
-    pipe_through(:api)
-    get("/css/stylesheet.css", Templates.CssServer, :generate)
-  end
+```shell
+mix auix.gen.stylesheet
 ```
 
-The path can be customized, but you'll need to update the stylesheet link in your layout accordingly.
+This generates `assets/css/auix-stylesheet.css` with your configured theme and styling.
 
-### Step 2: Include Stylesheet Link in Layout
+### Step 2: Import Stylesheet in app.css
 
-In your main layout file (typically `root.html.heex` or `app.html.heex`), add a link to the generated stylesheet in the `<head>` section:
+In your `assets/css/app.css`, add an import statement at the top:
+
+```css
+@import "auix-stylesheet.css";
+```
+
+That's it! The stylesheet will be bundled with your application CSS and automatically served alongside your other assets. Your main layout file (`root.html.heex` or `app.html.heex`) already includes the standard asset link:
 
 ```html
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="csrf-token" content={get_csrf_token()} />
-  <.live_title default="Aurora.Uix" suffix=" · Phoenix Framework">
-    {assigns[:page_title]}
-  </.live_title>
-  <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
-  <!-- Aurora UIX Stylesheet -->
-  <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css"} />
-  <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
-  </script>
-</head>
+<link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
 ```
 
-> #### Stylesheet Caching {: .info}
-> Browsers may cache stylesheets aggressively. If style changes aren't appearing after reloading, update the link to bust the cache:
-> ```html
-> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?v=#{System.os_time()}"} />
-> ```
+> #### Regenerating After Theme Changes {: .info}
+> If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheet.
+
+## Icons Configuration
+
+Aurora UIX uses **Heroicons** for all UI icons. Heroicons provides multiple icon sets and sizes (outline, solid, mini, and micro variants).
+
+### If You're Already Using Heroicons
+
+If your host application is already using Heroicons, **no additional setup is needed**. Aurora UIX will use your existing Heroicons installation.
+
+### If You're Not Using Heroicons
+
+Generate the icon CSS classes used by Aurora UIX:
+
+```shell
+mix auix.gen.icons
+```
+
+This generates `assets/css/auix-icons.css` containing all Heroicons as CSS classes (`.hero-{icon-name}`, `.hero-{icon-name}-solid`, `.hero-{icon-name}-mini`, `.hero-{icon-name}-micro`).
+
+### Import Icons in app.css
+
+In your `assets/css/app.css`, add an import statement at the top:
+
+```css
+@import "auix-icons.css";
+```
+
+> #### Using Custom Icons {: .info}
+> If you need to add your own icon classes or modify the generated ones, edit `assets/css/auix-icons.css` directly. Re-running `mix auix.gen.icons` will overwrite this file, so keep a backup of any custom changes.
 
 ## Basic Usage
 
