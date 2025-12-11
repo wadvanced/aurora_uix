@@ -14,14 +14,11 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   alias Aurora.Uix.Templates.Theme
 
   @template Aurora.Uix.Template.uix_template()
-  @default_theme @template.default_theme_module()
-  @theme_module Application.compile_env(:aurora_uix, :theme_module, @default_theme)
+  @default_theme_name @template.default_theme_name()
+  @theme_name Application.compile_env(:aurora_uix, :theme_name, @default_theme_name)
 
   @doc """
   Generates a complete stylesheet from all rules in the theme module.
-
-  ## Parameters
-  - `theme_module` (module()) - The theme module containing rule definitions.
 
   ## Returns
   list() - List containing all CSS rules from the theme module.
@@ -32,8 +29,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ["<style>.button { color: blue; }</style>", "<style>.card { ... }</style>"]
   ```
   """
-  @spec generate_stylesheet(module() | atom()) :: list()
-  def generate_stylesheet(theme) when is_atom(theme) do
+  @spec generate_stylesheet() :: binary()
+  def generate_stylesheet do
     registered_themes =
       registered_themes()
 
@@ -55,6 +52,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     |> style(theme_module)
     |> Enum.reduce(palettes, &[&1 | &2])
     |> Enum.reverse()
+    |> Enum.join(" ")
   end
 
   @doc """
@@ -71,7 +69,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec theme_module() :: module()
   def theme_module do
-    @theme_module
+    Map.get(registered_themes(), @theme_name)
   end
 
   @doc """
@@ -84,7 +82,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec theme_name() :: atom()
   def theme_name do
-    @theme_module.theme_name()
+    @theme_name
   end
 
   @doc """
@@ -92,22 +90,16 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec registered_themes() :: map()
   def registered_themes do
-    available = :code.all_available()
+    case :persistent_term.get(:auix_registered_themes, :undefined) do
+      :undefined ->
+        registered_themes = find_registered_themes()
+        :persistent_term.put(:auix_registered_themes, registered_themes)
 
-    available
-    |> Enum.map(&(&1 |> elem(0) |> to_string()))
-    |> Enum.filter(&String.starts_with?(&1, "Elixir."))
-    |> Enum.map(fn module_name ->
-      module = CommonHelper.safe_atom(module_name)
+        registered_themes
 
-      if Code.ensure_loaded?(module) and BehaviourHelper.behaviour_implemented?(module, Theme) do
-        {module.theme_name(), module}
-      else
-        {nil, module}
-      end
-    end)
-    |> Enum.reject(&(elem(&1, 0) == nil))
-    |> Map.new()
+      registered_themes ->
+        registered_themes
+    end
   end
 
   @doc """
@@ -197,5 +189,25 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     |> to_string()
     |> String.replace("-", "_")
     |> String.to_atom()
+  end
+
+  @spec find_registered_themes() :: map()
+  defp find_registered_themes do
+    available = :code.all_available()
+
+    available
+    |> Enum.map(&(&1 |> elem(0) |> to_string()))
+    |> Enum.filter(&String.starts_with?(&1, "Elixir."))
+    |> Enum.map(fn module_name ->
+      module = CommonHelper.safe_atom(module_name)
+
+      if Code.ensure_loaded?(module) and BehaviourHelper.behaviour_implemented?(module, Theme) do
+        {module.theme_name(), module}
+      else
+        {nil, module}
+      end
+    end)
+    |> Enum.reject(&(elem(&1, 0) == nil))
+    |> Map.new()
   end
 end
