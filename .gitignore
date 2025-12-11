@@ -11,8 +11,8 @@
 /config/test.exs
 /config/dev.exs
 
-# Icons css, they are generated
-/assets/css/icons.css
+# Icons and stylesheet.css, they are generated
+/assets/css/auix-*.css
 
 # Where third-party dependencies like ExDoc output generated docs.
 /doc/
