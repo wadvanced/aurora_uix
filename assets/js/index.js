@@ -1,5 +1,7 @@
+import { Hooks } from "./hooks.js"
 
-import AuroraUixHooks from "phoenix-colocated/aurora_uix"
+const AuroraUix = {
+  Hooks
+}
 
-export { AuroraUixHooks }
-
+export { AuroraUix }
