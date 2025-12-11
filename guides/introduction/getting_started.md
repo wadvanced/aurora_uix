@@ -54,6 +54,8 @@ That's it! The stylesheet will be bundled with your application CSS and automati
 
 > #### Regenerating After Theme Changes {: .info}
 > If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheet.
+>
+> **Note**: This command is also used when creating custom themes. See [Creating Custom Registered Themes](../advanced/advanced_usage.html#creating-custom-registered-themes) in the Advanced Guide for details on building your own themes.
 
 ## Icons Configuration
 
