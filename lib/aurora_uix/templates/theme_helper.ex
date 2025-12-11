@@ -21,7 +21,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   Generates a complete stylesheet from all rules in the theme module.
 
   ## Returns
-  list() - List containing all CSS rules from the theme module.
+  binary() - All the :root_colors from all the registered themes plus 
+    the CSS rules from the configured theme module.
 
   ## Examples
   ```elixir
@@ -60,7 +61,8 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   ## Returns
 
-  `module()` - The theme module configured at compile time.
+  `module() | nil` - The theme module configured at compile time, nil if the configured module name
+    is not registered. This might provoke an error in calling modules.
 
   ## Examples
 
