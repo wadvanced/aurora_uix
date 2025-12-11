@@ -32,7 +32,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   @spec auix_link(map()) :: Rendered.t()
   attr(:navigate, :string)
   attr(:patch, :string)
-  attr(:rest, :global, include: ~w(class download hreflang referrerpolicy rel target type))
+  attr(:rest, :global, include: ~w(class name download href lang referrer policy rel target type))
   slot(:inner_block, required: true)
 
   def auix_link(%{navigate: to} = assigns) when is_binary(to) do

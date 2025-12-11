@@ -32,7 +32,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Association Support** — First-class support for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`.
 - **Responsive Design** — Mobile-first layouts that work seamlessly on all devices.
 - **i18n Support** — Built-in internationalization via configurable Gettext backend.
-- **Customizable Themes** — Light and dark themes included; create your own or override components.
+- **Customizable Themes** — Besides the included themes, you can create your own or override partially the existing ones.
 
 **Technology Stack:**
 - Elixir `1.17+`
@@ -95,7 +95,7 @@ end
 - ✅ Automatic validation and error handling
 - ✅ Real-time updates via Phoenix LiveView
 - ✅ Mobile-responsive design
-- ✅ Light/dark theme support
+- ✅ Theme support
 
 ---
 ## 🚀 Getting Started

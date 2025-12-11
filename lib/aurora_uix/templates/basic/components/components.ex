@@ -100,6 +100,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot :col, required: true do
     attr(:label, :string)
+    attr(:field, :map)
   end
 
   slot(:filter_action,

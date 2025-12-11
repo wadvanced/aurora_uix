@@ -27,7 +27,7 @@ defmodule Aurora.Uix.MixProject do
         maintainers: ["Federico Alcántara"],
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
-        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib),
+        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib),
         exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", "/aurora_uix/lib/guides/**/*"]
       ],
 
@@ -106,7 +106,9 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer,
             Aurora.Uix.Templates.Basic.Renderers.ShowRenderer,
             Aurora.Uix.Templates.Basic.Themes.Base,
-            Aurora.Uix.Templates.Basic.Themes.Light
+            Aurora.Uix.Templates.Basic.Themes.BaseVariables,
+            Aurora.Uix.Templates.Basic.Themes.VitreousMarble,
+            Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
           ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,

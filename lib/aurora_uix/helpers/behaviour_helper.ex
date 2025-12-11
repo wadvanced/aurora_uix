@@ -49,16 +49,24 @@ defmodule Aurora.Uix.BehaviourHelper do
     module
   end
 
-  ## PRIVATE
+  @doc """
+  Checks if a module implements a given behaviour.
+  ## Parameters
+  - `module` (module()) - The module to check.
+  - `behaviour` (module()) - The behaviour module to check against.
+  ## Returns
+  boolean() - `true` if the module implements the behaviour, `false` otherwise.
 
-  # Checks if the module implements the behavior
+  """
   @spec behaviour_implemented?(module(), module()) :: boolean()
-  defp behaviour_implemented?(module, behaviour) do
+  def behaviour_implemented?(module, behaviour) do
     :attributes
     |> module.__info__()
     |> Keyword.get(:behaviour, [])
     |> Enum.member?(behaviour)
   end
+
+  ## PRIVATE
 
   # Returns a list of expected functions that are not exported by the module
   @spec functions_not_exported(module(), keyword()) :: list()

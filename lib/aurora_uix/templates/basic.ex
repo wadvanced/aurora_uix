@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Templates.Basic do
   @behaviour Aurora.Uix.Template
 
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
-  alias Aurora.Uix.Templates.Basic.Themes.Light, as: BasicLightTheme
+  alias Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal, as: BasicTheme
 
   @doc """
   Generates logic modules by delegating to `ModulesGenerator` based on the provided configuration.
@@ -45,5 +45,5 @@ defmodule Aurora.Uix.Templates.Basic do
 
   @impl true
   @spec default_theme_module() :: module()
-  def default_theme_module, do: BasicLightTheme
+  def default_theme_module, do: BasicTheme
 end
