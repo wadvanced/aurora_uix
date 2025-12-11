@@ -163,6 +163,16 @@ This automatically generates all the routes above with the standard CRUD pattern
 - Edit: `GET /products/:id/edit`
 - Update: `PATCH /products/:id` (handled by LiveView)
 
+You can also selectively generate routes using `:only` or `:except` options:
+
+```elixir
+# Generate only index and show routes
+auix_live_resources("/products", Overview.Product, only: [:index, :show])
+
+# Generate all routes except new and edit (read-only mode)
+auix_live_resources("/products", Overview.Product, except: [:new, :edit])
+```
+
 For more details on routing, see the [LiveView Integration Guide](../core/liveview.md).
 
 ### Run Your App
