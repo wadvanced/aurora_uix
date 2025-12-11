@@ -227,14 +227,16 @@ defmodule Aurora.Uix.MixProject do
       "assets.build": [
         "compile",
         "phx.digest.clean --all",
-        "auix.icons",
+        "auix.gen.icons",
+        "auix.gen.stylesheet",
         "esbuild aurora_uix",
         "phx.digest"
       ],
       "assets.deploy": [
         "compile",
         "phx.digest.clean --all",
-        "auix.icons",
+        "auix.gen.icons",
+        "auix.gen.stylesheet",
         "esbuild aurora_uix",
         "phx.digest"
       ],

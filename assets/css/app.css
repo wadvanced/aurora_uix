@@ -1,4 +1,5 @@
-@import "icons.css";
+@import "auix-icons.css";
+@import "auix-stylesheet.css";
 
 /* Add variants based on LiveView classes */
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
