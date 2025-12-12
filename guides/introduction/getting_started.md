@@ -40,11 +40,17 @@ This generates `assets/css/auix-stylesheet.css` with your configured theme and s
 
 ### Step 2: Import Stylesheet in app.css
 
-In your `assets/css/app.css`, add an import statement at the top:
+In your `assets/css/app.css`, add an import statement **at the end** (as the last line):
 
 ```css
+/* Your custom styles and other imports go here */
+
+/* Aurora UIX stylesheet must be imported last to avoid conflicts */
 @import "auix-stylesheet.css";
 ```
+
+> #### Why Last? {: .warning}
+> The Aurora UIX stylesheet must be imported as the **last line** in `app.css` to ensure its styles have the highest specificity and properly override any conflicting styles from other CSS files or frameworks.
 
 That's it! The stylesheet will be bundled with your application CSS and automatically served alongside your other assets. Your main layout file (`root.html.heex` or `app.html.heex`) already includes the standard asset link:
 
