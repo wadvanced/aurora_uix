@@ -11,31 +11,78 @@ jobs:
     name: Publish to hex
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        elixir: ['1.18.4']
-        otp: ['28.0.1']
+      matrix: 
+        elixir: ['1.19.4-otp-28']
+        otp: ['28.2']
+
+    services:
+      postgres:
+        image: postgres:15.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurora_uix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Elixir
-        id: setup-beam
-        uses: erlef/setup-beam@5304e04ea2b355f03681464e683d92e3b2f18451 # v1.18.2
-        with:
-          elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
-          otp-version: ${{ matrix.otp }} # [Required] Define the Erlang/OTP version
-      - name: Restore dependencies cache
-        id: cache-deps
-        uses: actions/cache@v3
-        with:
-          path: |
-            deps
-            _build
-          key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-      - if: ${{steps.cache-deps.outputs.cache-hit != 'true' }}
-        name: Ensure dependencies are installed
-        run: |
-          mix deps.get
-      - name: Run tests
-        run: mix test
-      - name: Publish to Hex.pm
-        run: HEX_API_KEY=${{ secrets.HEX_API_KEY }} mix hex.publish --yes
+    - uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      id: setup-beam
+      uses: erlef/setup-beam@5304e04ea2b355f03681464e683d92e3b2f18451 # v1.18.2
+      with:
+        elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
+        otp-version: ${{ matrix.otp }}     # [Required] Define the Erlang/OTP version
+
+    - name: 🚀 Setup Chrome and ChromeDriver
+      uses: browser-actions/setup-chrome@v1 # Use a community action to ensure compatibility
+      with:
+        chrome-version: 'stable' # or a specific version like '126.0.6478.126'
+        # This action automatically downloads the correct chromedriver and sets the PATH.
+
+    - name: Restore dependencies cache
+      id: cache-deps
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+        restore-keys: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+
+    - if: ${{steps.cache-deps.outputs.cache-hit != 'true' }}
+      name: Install dependencies
+      run: |
+        mix deps.get
+        mix deps.compile
+    
+    - name: Setup assets
+      run: |
+        mix assets.setup
+        mix assets.build    
+
+    - name: Compile app
+      run: mix compile --force
+      
+    - name: Check consistency
+      run: mix consistency
+
+    - name: create db and migration
+      run: |
+        mix ecto.create
+        mix ecto.migrate
+
+    - name: Run tests
+      run: mix test
+      env:
+        WALLABY_DRIVER: chrome
+        WALLABY_CHROME_HEADLESS: true
+   
+    - name: Publish to Hex.pm
+      run: HEX_API_KEY=${{ secrets.HEX_API_KEY }} mix hex.publish --yes
