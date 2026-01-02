@@ -143,6 +143,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
+    show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
@@ -150,6 +151,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       :ok,
       socket
       |> assign_auix(:form_component, form_component)
+      |> assign_auix(:show_component, show_component)
       |> assign_auix(:filters_enabled?, false)
       |> assign_auix(:selection, Selection.new())
       |> assign_auix(:enable_viewport?, true)
@@ -555,9 +557,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec apply_action(Socket.t(), map()) :: Socket.t()
   def apply_action(
-        %{assigns: %{auix: auix, live_action: :edit}} = socket,
+        %{assigns: %{auix: auix, live_action: live_action}} = socket,
         %{"id" => id} = params
-      ) do
+      )
+      when live_action in [:edit, :show] do
+    IO.inspect(live_action, abel: "*********** live action")
     assign_new_entity(socket, params, auix.get_function.(id, preload: auix.preload))
   end
 

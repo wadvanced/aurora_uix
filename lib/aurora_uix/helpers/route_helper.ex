@@ -37,7 +37,7 @@ defmodule Aurora.Uix.RouteHelper do
   live "/users", MyApp.UserLive.Index, :index
   live "/users/new", MyApp.UserLive.Index, :new
   live "/users/:id/edit", MyApp.UserLive.Index, :edit
-  live "/users/:id", MyApp.UserLive.Show, :show
+  live "/users/:id", MyApp.UserLive.Index, :show
   live "/users/:id/show/edit", MyApp.UserLive.Show, :edit
   ```
 
@@ -78,11 +78,11 @@ defmodule Aurora.Uix.RouteHelper do
          end},
         {:show,
          quote do
-           live("#{unquote(path)}/:id", unquote(module).Show, :show)
+           live("#{unquote(path)}/:id", unquote(module).Index, :show)
          end},
         {:show_edit,
          quote do
-           live("#{unquote(path)}/:id/show/edit", unquote(module).Show, :edit)
+           live("#{unquote(path)}/:id/show/edit", unquote(module).Index, :edit)
          end}
       ]
       |> filter_only(opts[:only])

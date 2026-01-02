@@ -94,7 +94,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             <%= if field.key == :selected_check__ do %>
               <.field_value entity={entity} field={field} auix={@auix}/>
             <% else %>
-              <.auix_link href="#" name={"auix-show-#{@auix.module}"} navigate={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
+              <.auix_link href="#" name={"auix-show-#{@auix.module}"} patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}"}>
                 <.field_value entity={entity} field={field} auix={@auix}/>
               </.auix_link>
             <% end %>
@@ -114,7 +114,18 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <% end %>
       </div>
 
-
+      <.modal :if={@live_action == :show} id={"auix-#{@auix.module}-show-modal"} show on_cancel={JS.push("auix_route_back")}>
+        <div>
+          <.live_component
+            module={@auix.show_component}
+            id={"#{entity_id(@auix)}-show" || :show}
+            action={@live_action}
+            auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack, uri_path: @auix.uri_path, 
+                one_to_many_related_key: @auix[:one_to_many_related_key]}}
+          />
+        </div>
+      </.modal>
+      
       <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@auix.module}-form-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
