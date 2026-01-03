@@ -18,11 +18,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowGenerator do
   Generates a show view LiveView module with detail display and section handling.
 
   ## Parameters
-  - `parsed_opts` (map()) – Show view configuration with `tag: :show`
+  - `parsed_opts` (map()) - Show view configuration with `tag: :show`.
 
   ## Returns
-  - `Macro.t()` – The generated show view module as quoted code.
-
+  Macro.t() - The generated show view module as quoted code.
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do

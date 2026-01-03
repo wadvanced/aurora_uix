@@ -22,11 +22,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   Generates an index view LiveView module with standard CRUD operations in Aurora UIX.
 
   ## Parameters
-  - `parsed_opts` (map()) – Index view configuration with `tag: :index`
+  - `parsed_opts` (map()) - Index view configuration with `tag: :index`.
 
   ## Returns
-  - `Macro.t()` – The generated index view module as quoted code
-
+  Macro.t() - The generated index view module as quoted code.
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_tree: %{tag: :index}} = parsed_opts) do

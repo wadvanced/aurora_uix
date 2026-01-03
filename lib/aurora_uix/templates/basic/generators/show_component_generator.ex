@@ -2,8 +2,16 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   @moduledoc """
   Generates show component modules for the Basic template implementation.
 
-  This module provides a macro to generate LiveComponent modules for handling forms in Aurora UIX Basic templates.
+  This module provides a macro to generate LiveComponent modules for handling show views
+  in Aurora UIX Basic templates.
 
+  ## Key Features
+
+  - Generates LiveComponent modules for showing entity data
+  - Supports dynamic section switching
+  - Handles entity display with preload support
+  - Enables section interactions via events
+  - Integrates with Aurora UIX context and helpers
   """
 
   alias Aurora.Uix.Templates.Basic.Handlers.ShowComponent, as: ShowComponentHandler
@@ -14,11 +22,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   Generates a LiveComponent module for showing data.
 
   ## Parameters
-  - `parsed_opts` (map()) – Form configuration with `tag: :show` and function references
+  - `parsed_opts` (map()) - Show configuration with `tag: :show` and function references.
 
   ## Returns
-  - `Macro.t()` – The generated component module as quoted code
-
+  Macro.t() - The generated component module as quoted code.
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
