@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   alias Phoenix.LiveView.Socket
 
   @doc """
-  Internally handles all LiveView events for the index page.
+  Internally handles all LiveView events for the show component.
 
   ## Parameters
   - `event` (binary()) - Event name.
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket after event handling.
+  {:noreply, Socket.t()} - Updated socket after event handling.
 
   """
   @callback auix_handle_event(
@@ -74,21 +74,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   end
 
   @doc """
-  Updates the form state and assigns for the LiveComponent.
+  Updates the show view state and assigns for the LiveComponent.
 
   ## Parameters
-
-    - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
-    - `socket` (Socket.t()) - The current LiveView socket.
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
+  {:ok, Socket.t()} - The updated socket with show view state and routing stack assigned.
 
-    - `{:ok, Socket.t()}` - The updated socket with form and routing stack assigned.
-
-  ## Examples
-
-      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}}})
-      {:ok, %Phoenix.LiveView.Socket{...}}
   """
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
   def update(
@@ -106,22 +100,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   end
 
   @doc """
-  Handles events such as section switching.
+  Handles events such as section switching and navigation in the show view.
 
   ## Parameters
-
-    - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
-    - `params` (map()) - Parameters from the event.
-    - `socket` (Socket.t()) - The current LiveView socket.
+  - `event` (binary()) - The event name (e.g., "switch_section", "auix_route_back").
+  - `params` (map()) - Parameters from the event.
+  - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
+  {:noreply, Socket.t()} - The updated socket after handling the event.
 
-    - `{:noreply, Socket.t()}` - The updated socket after handling the event.
-
-  ## Examples
-
-      iex> handle_event("validate", %{"user" => %{"name" => "Alice"}}, %{assigns: %{auix: %{module: "user"}}})
-      {:noreply, %Phoenix.LiveView.Socket{...}}
   """
   @spec auix_handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
