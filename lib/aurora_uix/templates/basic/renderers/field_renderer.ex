@@ -23,12 +23,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   Renders a form field based on its type and configuration.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns; must include:
-    - auix (map()) - Aurora UIX context
-    - field (map()) - Field configuration and metadata
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with configuration.
+    * `:field` (map()) - Field configuration and metadata.
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t() - The rendered field component
+  Phoenix.LiveView.Rendered.t() - The rendered field component.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: auix} = assigns) do
@@ -49,7 +49,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     end
   end
 
-  ## PRIVATE
+  # PRIVATE
+
   # Returns field info for rendering, handling tuple and atom names
   @spec get_field_info(map()) :: map()
   defp get_field_info(%{

@@ -22,17 +22,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   Renders a one-to-many association field.
 
   ## Parameters
-  - assigns (map()) - The LiveView assigns including:
-    - field - Field configuration map
-    - auix - Configuration and options map
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:field` (map()) - Field configuration with association details.
+    * `:auix` (map()) - Aurora UIX context and configuration.
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t()
-
-  ## Examples
-  ```elixir
-  render(%{field: field, auix: auix})
-  ```
+  Phoenix.LiveView.Rendered.t() - Rendered one-to-many association component.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{field: %{type: :one_to_many_association, data: %{resource: nil}}} = assigns) do

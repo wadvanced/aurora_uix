@@ -1,6 +1,17 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   @moduledoc """
-  Renders an embedded one-to-one association within a form.
+  Renders embedded one-to-one associations within forms and show layouts.
+
+  ## Key Features
+
+  - Supports embedded form fields with nested layouts.
+  - Handles both form and show view rendering modes.
+  - Integrates with Aurora UIX context and layout configuration.
+
+  ## Key Constraints
+
+  - Requires field configuration with embedded resource information.
+  - Layout must be available for the embedded resource.
   """
   use Aurora.Uix.CoreComponentsImporter
 
@@ -9,13 +20,15 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
-  Renders a embedded field based on its configuration.
+  Renders an embedded one-to-one field based on its configuration.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns.
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with form and layout configuration.
+    * `:field` (map()) - Field definition with embedded resource information.
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t() - The rendered embeds_one component
+  Phoenix.LiveView.Rendered.t() - Rendered embeds_one component or nested form fields.
   """
 
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()

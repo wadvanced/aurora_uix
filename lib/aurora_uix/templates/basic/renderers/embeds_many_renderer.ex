@@ -1,27 +1,16 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer do
   @moduledoc """
-  A renderer component for embeds_many field types in Aurora.Uix forms.
+  Renders embeds_many field types in Aurora UIX forms.
 
-  This renderer delegates the display and interaction logic for embeds_many
-  associations to the `EmbedsManyComponent` LiveComponent. It serves as a thin
-  wrapper that transforms field configuration into the appropriate component
-  invocation.
+  ## Key Features
 
-  ## Required Assigns
+  - Delegates embeds_many association rendering to the EmbedsManyComponent.
+  - Transforms field configuration into appropriate component invocation.
+  - Supports dynamic embedded collection management.
 
-  * `:auix` - The Aurora.Uix context containing form configuration
-  * `:field` - Field definition map with `:html_id` key for unique identification
+  ## Key Constraints
 
-  ## Example
-
-      <EmbedsManyRenderer.render
-        auix={@auix}
-        field={%{
-          html_id: "user_addresses",
-          type: :embeds_many,
-          schema: Address
-        }}
-      />
+  - Requires `:auix` with form configuration and `:field` with schema information.
   """
 
   import Phoenix.Component, only: [sigil_H: 2, live_component: 1]
@@ -30,19 +19,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer do
   @doc """
   Renders an embeds_many field using the EmbedsManyComponent.
 
-  Creates a live component instance with a generated ID based on the field's
-  HTML identifier, passing through the Aurora.Uix context and field
-  configuration.
-
   ## Parameters
-
-  * `assigns` (map()) - Component assigns containing:
-    * `:auix` (map()) - Aurora.Uix context with form state and configuration
-    * `:field` (map()) - Field definition including `:html_id` and schema info
+  - `assigns` (map()) - Component assigns containing:
+    * `:auix` (map()) - Aurora UIX context with form state and configuration.
+    * `:field` (map()) - Field definition including `:html_id` and schema info.
 
   ## Returns
-
-  A rendered Phoenix.LiveView.Rendered struct containing the live component.
+  Phoenix.LiveView.Rendered.t() - Rendered live component for embeds_many field.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do

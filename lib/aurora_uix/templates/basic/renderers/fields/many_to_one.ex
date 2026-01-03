@@ -19,15 +19,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   Renders a many-to-one association field.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns, must include:
-    - field (map()) - Field configuration
-    - auix (map()) - Aurora UIX configuration
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:field` (map()) - Field configuration with association details.
+    * `:auix` (map()) - Aurora UIX context and configuration.
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t()
-
-  ## Example
-      render(%{field: field, auix: auix})
+  Phoenix.LiveView.Rendered.t() - Rendered many-to-one association component.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(

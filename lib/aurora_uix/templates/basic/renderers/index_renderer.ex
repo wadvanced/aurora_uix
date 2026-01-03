@@ -29,13 +29,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   Renders an index page with a table listing of entities.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns containing:
-    - auix: Aurora UIX context with configurations and layout_tree info
-    - live_action: Current live action (:new, :edit
-    - page_title: Page title for modals
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with configurations and layout_tree info.
+    * `:live_action` (atom()) - Current live action (`:new`, `:edit`, `:show`).
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t() - Rendered index page with table and actions
+  Phoenix.LiveView.Rendered.t() - Rendered index page with table and actions.
   """
 
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
@@ -114,23 +113,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <% end %>
       </div>
 
-      <.modal :if={@live_action == :show} id={"auix-#{@auix.module}-show-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action in [:new, :edit, :show]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
-            module={@auix.show_component}
-            id={"#{entity_id(@auix)}-show" || :show}
-            action={@live_action}
-            auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack, uri_path: @auix.uri_path, 
-                one_to_many_related_key: @auix[:one_to_many_related_key]}}
-          />
-        </div>
-      </.modal>
-      
-      <.modal :if={@live_action in [:new, :edit]} id={"auix-#{@auix.module}-form-modal"} show on_cancel={JS.push("auix_route_back")}>
-        <div>
-          <.live_component
-            module={@auix.form_component}
-            id={entity_id(@auix) || :new}
+            module={@auix.live_component}
+            id={entity_id(@auix) || @live_action}
             action={@live_action}
             auix={%{entity: @auix.entity, routing_stack: @auix.routing_stack, uri_path: @auix.uri_path, 
                 one_to_many_related_key: @auix[:one_to_many_related_key]}}

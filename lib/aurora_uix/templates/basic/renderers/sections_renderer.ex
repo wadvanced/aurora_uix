@@ -17,10 +17,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   Renders a tabbed section container with dynamic tabs and content.
 
   ## Parameters
-    - assigns (map()) - Contains auix context with tab configuration
+  - `assigns` (map()) - LiveView assigns containing `:auix` context with tab configuration.
 
-  Returns:
-    - Phoenix.LiveView.Rendered.t()
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered tabbed section container.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
@@ -65,10 +65,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   Renders a single section within a tabbed container.
 
   ## Parameters
-    - assigns (map()) - Contains auix context with section configuration
+  - `assigns` (map()) - LiveView assigns containing `:auix` context with section configuration.
 
-  Returns:
-    - Phoenix.LiveView.Rendered.t()
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered section content.
   """
   @spec section(map()) :: Phoenix.LiveView.Rendered.t()
   def section(assigns) do
