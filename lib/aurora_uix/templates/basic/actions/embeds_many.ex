@@ -32,7 +32,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @actions Action.available_actions(:embeds_many)
 
   @doc """
-  Sets up actions for the one to many field rendering layout by adding defaults and applying modifications.
+  Sets up actions for the embeds-many field rendering layout by adding defaults and
+  applying modifications.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and context.
@@ -40,12 +41,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
   ## Returns
   map() - The updated assigns with actions set.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.OneToMany.set_actions(assigns)
-      %{auix: %{row_info: {:user, %{id: 1}}, module: "User", one_to_many_row_actions: %{}, one_to_many_header_actions: %{}, one_to_many_footer_actions: %{}}, ...}
   """
   @spec set_actions(map()) :: map()
   def set_actions(assigns) do
@@ -59,14 +54,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   end
 
   @doc """
-  Renders a button for enabling the addition of a new entry for a embeds-many association form.
+  Renders a button for enabling the addition of a new entry in the header of an embeds-many
+  association form.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered button component.
-
   """
   @spec header_enable_add_entry(map()) :: Rendered.t()
   def header_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
@@ -81,14 +76,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def header_enable_add_entry(assigns), do: ~H""
 
   @doc """
-  Renders a button for enabling the addition of a new entry for a embeds-many association form.
+  Renders a button for enabling the addition of a new entry in the footer of an embeds-many
+  association form.
+
+  Only shown if there is at least one existing entry.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered button component.
-
   """
   @spec footer_enable_add_entry(map()) :: Rendered.t()
   def footer_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
@@ -105,14 +102,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def footer_enable_add_entry(assigns), do: ~H""
 
   @doc """
-  Renders a button fo{r adding / save a new entry in a embeds-many association form.
+  Renders a button for adding/saving a new entry in an embeds-many association form.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered button component.
-
   """
   @spec add_entry(map()) :: Rendered.t()
   def add_entry(%{auix: %{layout_type: :form, new_entry_form: new_entry_form}} = assigns) do
@@ -132,14 +128,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def add_entry(assigns), do: ~H""
 
   @doc """
-  Renders a button for removing a existing entry in a embeds-many association form.
+  Renders a button for removing an existing entry in an embeds-many association form.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
 
   ## Returns
-  Phoenix.LiveView.Rendered.t() - Rendered button component.
-
+  Phoenix.LiveView.Rendered.t() - Rendered button component with confirmation dialog.
   """
   @spec remove_entry(map()) :: Rendered.t()
 

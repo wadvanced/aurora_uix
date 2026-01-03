@@ -33,7 +33,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @actions Action.available_actions(:one_to_many)
 
   @doc """
-  Sets up actions for the one to many field rendering layout by adding defaults and applying modifications.
+  Sets up actions for the one-to-many field rendering layout by adding defaults and
+  applying modifications.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing the layout tree and context.
@@ -41,12 +42,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
 
   ## Returns
   map() - The updated assigns with actions set.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{row_info: {:user, %{id: 1}}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.OneToMany.set_actions(assigns)
-      %{auix: %{row_info: {:user, %{id: 1}}, module: "User", one_to_many_row_actions: %{}, one_to_many_header_actions: %{}, one_to_many_footer_actions: %{}}, ...}
   """
   @spec set_actions(map()) :: map()
   def set_actions(assigns) do
@@ -70,24 +65,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered link component.
-
-  ## Examples
-
-      iex> assigns = %{
-      ...>   auix: %{
-      ...>     association: %{
-      ...>       related_parsed_opts: %{index_new_link: "/users/new"},
-      ...>       related_key: "user_id",
-      ...>       owner_key: :id,
-      ...>       parsed_opts: %{module: "User"}
-      ...>     },
-      ...>     entity: %{id: 123},
-      ...>     layout_type: :form
-      ...>   },
-      ...>   field: %{key: "users"}
-      ...> }
-      iex> Aurora.Uix.Templates.Basic.Actions.OneToMany.add_new_child(assigns)
-      #=> %Phoenix.LiveView.Rendered{...}
   """
   @spec add_new_child(map()) :: Rendered.t()
   def add_new_child(%{auix: %{layout_type: :form}} = assigns) do

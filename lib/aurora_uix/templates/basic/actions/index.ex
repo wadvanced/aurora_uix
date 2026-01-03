@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       - `:module` (atom()) - Context module name
 
   ## Returns
-  Rendered.t() - The rendered "edit" action link
+  Rendered.t() - The rendered "show" action link.
   """
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
