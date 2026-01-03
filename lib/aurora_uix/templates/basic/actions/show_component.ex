@@ -30,17 +30,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   Sets up actions for the show layout by adding defaults and applying modifications.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` key with required subkeys.
+  - `socket` (Socket.t()) - LiveView socket containing the layout tree and context.
+    - Must include `:auix` with `:layout_tree` and action group maps.
 
   ## Returns
-  map() - The updated assigns with actions set.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{entity: %{id: 1}, module: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Show.set_actions(assigns)
-      %{auix: %{entity: %{id: 1}, module: "User"}, ...}
+  Socket.t() - The updated socket with default actions configured and modifications applied.
   """
   @spec set_actions(Socket.t()) :: Socket.t()
   def set_actions(socket) do
@@ -75,17 +69,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   Renders the "back" action link for the footer in the show layout.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing the layout tree and other context.
-    - Must include `:auix` with `:title`.
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with `:title` for display text.
 
   ## Returns
   Rendered.t() - The rendered "back" action link.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{title: "Users"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Show.back_footer_action(assigns)
-      %Phoenix.LiveView.Rendered{}
   """
   @spec back_footer_action(map()) :: Rendered.t()
   def back_footer_action(assigns) do

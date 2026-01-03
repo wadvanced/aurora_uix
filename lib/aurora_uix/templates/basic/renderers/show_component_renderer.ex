@@ -21,14 +21,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   Renders a detail view page for an individual entity.
 
   ## Parameters
-  - assigns (map()) - LiveView assigns containing:
-    - auix: Aurora UIX context with configurations and layout_tree info
-    - live_action: Current live action (:edit)
-    - page_title: Title for edit modal
-    - subtitle: Optional subtitle for the header
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with configurations and layout_tree info.
+    * `:live_action` (atom()) - Current live action (`:edit`).
 
   ## Returns
-  - Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions
+  Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do

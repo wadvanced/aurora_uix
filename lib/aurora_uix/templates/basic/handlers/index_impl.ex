@@ -561,8 +561,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{"id" => id} = params
       )
       when live_action in [:edit, :show] do
-    IO.inspect(live_action, abel: "*********** live action")
-    assign_new_entity(socket, params, auix.get_function.(id, preload: auix.preload))
+    live_component =
+      if live_action == :edit,
+        do: ModulesGenerator.module_name(auix, ".FormComponent"),
+        else: ModulesGenerator.module_name(auix, ".ShowComponent")
+
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_auix(:live_component, live_component)
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
