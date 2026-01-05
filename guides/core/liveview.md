@@ -134,7 +134,7 @@ end
 
 ```elixir
 defmodule MyApp.ProductShowHandler do
-  use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
+  use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
 
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]
   alias Phoenix.LiveView.Socket
