@@ -584,7 +584,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
-    assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
+    socket
+    |> assign_new_entity(params, auix.new_function.(%{}, preload: auix.preload))
+    |> assign_live_component()
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
