@@ -147,8 +147,8 @@ scope "/inventory" do
   live "/products", Overview.Product.Index
   live "/products/new", Overview.Product.Index, :new
   live "/products/:id/edit", Overview.Product.Index, :edit
-  live "/products/:id", Overview.Product.Show, :show
-  live "/products/:id/show/edit", Overview.Product.Show, :edit
+  live "/products/:id", Overview.Product.Index, :show
+  live "/products/:id/show/edit", Overview.Product.Index, :show_edit
 end
 ```
 

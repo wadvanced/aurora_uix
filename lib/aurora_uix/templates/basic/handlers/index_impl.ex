@@ -143,6 +143,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
+    show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
@@ -150,6 +151,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       :ok,
       socket
       |> assign_auix(:form_component, form_component)
+      |> assign_auix(:show_component, show_component)
       |> assign_auix(:filters_enabled?, false)
       |> assign_auix(:selection, Selection.new())
       |> assign_auix(:enable_viewport?, true)
@@ -558,11 +560,33 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :edit}} = socket,
         %{"id" => id} = params
       ) do
-    assign_new_entity(socket, params, auix.get_function.(id, preload: auix.preload))
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_live_component()
+  end
+
+  def apply_action(
+        %{assigns: %{auix: auix, live_action: :show}} = socket,
+        %{"id" => id} = params
+      ) do
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_live_component()
+  end
+
+  def apply_action(
+        %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
+        %{"id" => id} = params
+      ) do
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_live_component()
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
-    assign_new_entity(socket, params, auix.new_function.(%{}, preload: auix.preload))
+    socket
+    |> assign_new_entity(params, auix.new_function.(%{}, preload: auix.preload))
+    |> assign_live_component()
   end
 
   def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
@@ -887,6 +911,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp assign_filters_selected_count(%{assigns: %{auix: %{filters: filters}}} = socket) do
     filters = get_selected_filters(filters)
     assign_auix(socket, :filters_selected_count, Enum.count(filters))
+  end
+
+  @spec assign_live_component(Socket.t()) :: Socket.t()
+  defp assign_live_component(%{assigns: %{auix: auix, live_action: :show}} = socket) do
+    auix
+    |> ModulesGenerator.module_name(".ShowComponent")
+    |> then(&assign_auix(socket, :live_component, &1))
+  end
+
+  defp assign_live_component(%{assigns: %{auix: auix}} = socket) do
+    auix
+    |> ModulesGenerator.module_name(".FormComponent")
+    |> then(&assign_auix(socket, :live_component, &1))
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()

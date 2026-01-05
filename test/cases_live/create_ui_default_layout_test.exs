@@ -41,11 +41,11 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
     {:ok, view, _html} = live(conn, "/create-ui-default-layout-products/new")
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-new-modal header")
            |> render() =~ "New Product"
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-new-modal header")
            |> render() =~ "Creates a new <strong>Product</strong> record in your database"
 
     assert view
@@ -90,11 +90,11 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
     |> tap(&assert &1 =~ "auix-save-product")
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-edit-modal header")
            |> render() =~ "Edit Product"
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-edit-modal header")
            |> render() =~
              "Use this form to manage <strong>Products</strong> records in your database"
   end

@@ -21,10 +21,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   Renders a form view for creating or editing entities.
 
   ## Parameters
-    - assigns (map()) - The assigns map (Aurora UIX context)
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with form and layout configuration.
+    * `:action` (atom()) - Current action (`:edit` or `:new`).
 
-  Returns:
-    - Phoenix.LiveView.Rendered.t()
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered form with fields and submission actions.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do

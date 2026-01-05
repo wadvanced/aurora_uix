@@ -72,12 +72,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       - `:module` (atom()) - Context module name
 
   ## Returns
-  Rendered.t() - The rendered "edit" action link
+  Rendered.t() - The rendered "show" action link.
   """
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" navigate={"/#{@auix.uri_path}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>
         <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
       </.auix_link>
     """

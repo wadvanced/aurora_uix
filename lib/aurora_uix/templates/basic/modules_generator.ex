@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
 
   alias Aurora.Uix.Templates.Basic.Generators.FormGenerator
   alias Aurora.Uix.Templates.Basic.Generators.IndexGenerator
-  alias Aurora.Uix.Templates.Basic.Generators.ShowGenerator
+  alias Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator
   require Logger
 
   @doc """
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   end
 
   def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
-    ShowGenerator.generate_module(parsed_opts)
+    ShowComponentGenerator.generate_module(parsed_opts)
   end
 
   def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do

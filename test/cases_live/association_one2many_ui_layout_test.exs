@@ -47,8 +47,8 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
       |> start_product_creation()
 
     {conn, view}
-    |> create_multiple_transactions(product_id, :form)
-    |> edit_single_transaction(product_id, :form)
+    |> create_multiple_transactions(product_id, :form, :new)
+    |> edit_single_transaction(product_id, :form, :edit)
     |> delete_single_transaction(product_id, :form)
   end
 
@@ -118,11 +118,9 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
   @spec select_product({Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}, integer()) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp select_product({conn, view}, product_id) do
-    {:ok, view, _html} =
-      view
-      |> element("tr[id^='products-#{product_id}'] td:nth-child(2) a[name='auix-show-product']")
-      |> render_click()
-      |> follow_redirect(conn)
+    view
+    |> element("tr[id^='products-#{product_id}'] td:nth-child(2) a[name='auix-show-product']")
+    |> render_click()
 
     # Verify product details page includes transactions section
     assert has_element?(view, "#auix-one_to_many-product__product_transactions-show")
@@ -137,7 +135,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp edit_product({conn, view}) do
     view
-    |> element("a[name='auix-edit-product']")
+    |> element("#auix-product-show-modal a[name='auix-edit-product']")
     |> render_click()
 
     {conn, view}
@@ -146,10 +144,11 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
   @spec create_multiple_transactions(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          binary()
+          binary(),
+          atom()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp create_multiple_transactions({conn, view}, product_id, suffix) do
+  defp create_multiple_transactions({conn, view}, product_id, suffix, modal_suffix) do
     transactions = [
       %{quantity: 10, type: "in", cost: 13.4},
       %{quantity: 15, type: "out", cost: 14.5},
@@ -166,7 +165,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
           |> follow_redirect(conn)
 
         # Verify modal appears for new transaction and the parent id field is correctly set
-        assert has_element?(new_view, "#auix-product_transaction-#{suffix}-modal")
+        assert has_element?(new_view, "#auix-product_transaction-#{modal_suffix}-modal")
 
         assert new_view
                |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")
@@ -210,10 +209,11 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
   @spec edit_single_transaction(
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()},
           integer(),
-          binary()
+          binary(),
+          atom()
         ) ::
           {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
-  defp edit_single_transaction({conn, view}, product_id, suffix) do
+  defp edit_single_transaction({conn, view}, product_id, suffix, modal_suffix) do
     transaction_id =
       product_id
       |> get_single_transaction()
@@ -229,7 +229,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
       |> follow_redirect(conn)
 
     # Verify edit modal appears
-    assert has_element?(edit_view, "#auix-product_transaction-#{suffix}-modal")
+    assert has_element?(edit_view, "#auix-product_transaction-#{modal_suffix}-modal")
 
     assert edit_view
            |> element("[id^='auix-field-product_transaction-product_id-'][id$='-form']")

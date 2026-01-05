@@ -1,38 +1,38 @@
-defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
+defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   @moduledoc """
-  Generates form component modules for the Basic template implementation.
+  Generates show component modules for the Basic template implementation.
 
-  This module provides a macro to generate LiveComponent modules for handling forms in Aurora UIX Basic templates.
+  This module provides a macro to generate LiveComponent modules for handling show views
+  in Aurora UIX Basic templates.
 
   ## Key Features
 
-  - Generates LiveComponent modules for form handling
-  - Supports form validation and submission
-  - Handles entity creation and updates
-  - Enables dynamic section switching
-  - Notifies parent components of changes
+  - Generates LiveComponent modules for showing entity data
+  - Supports dynamic section switching
+  - Handles entity display with preload support
+  - Enables section interactions via events
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Templates.Basic.Handlers.Form, as: FormHandler
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowComponent, as: ShowComponentHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   @doc """
-  Generates a LiveComponent module for form handling.
+  Generates a LiveComponent module for showing data.
 
   ## Parameters
-  - `parsed_opts` (map()) - Form configuration with `tag: :form` and function references.
+  - `parsed_opts` (map()) - Show configuration with `tag: :show` and function references.
 
   ## Returns
-  Macro.t() - The generated form component module as quoted code.
+  Macro.t() - The generated component module as quoted code.
   """
   @spec generate_module(map()) :: Macro.t()
-  def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
+  def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
-    form_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".FormComponent")
-    handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, FormHandler)
+    show_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".ShowComponent")
+    handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, ShowComponentHandler)
 
     one2many_preload =
       cleaned_parsed_opts
@@ -50,7 +50,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
     parsed_opts = Map.put(cleaned_parsed_opts, :one2many_rendered?, one2many_rendered?)
 
     quote do
-      defmodule unquote(form_component) do
+      defmodule unquote(show_component) do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component

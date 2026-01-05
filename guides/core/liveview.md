@@ -51,8 +51,8 @@ end
 live "/", Overview.Product.Index, :index
 live "/new", Overview.Product.Index, :new
 live "/:id/edit", Overview.Product.Index, :edit
-live "/:id", Overview.Product.Show, :show
-live "/:id/show/edit", Overview.Product.Show, :edit
+live "/:id", Overview.Product.Index, :show
+live "/:id/show/edit", Overview.Product.Index, :show_edit
 ```
 
 You can also selectively generate routes:
@@ -134,7 +134,7 @@ end
 
 ```elixir
 defmodule MyApp.ProductShowHandler do
-  use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
+  use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
 
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]
   alias Phoenix.LiveView.Socket

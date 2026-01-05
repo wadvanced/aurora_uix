@@ -70,7 +70,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     assert html =~ "Product&#39;s</strong> values properly"
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-new-modal header")
            |> render() =~ "Add a Product"
 
     assert view
@@ -153,7 +153,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     |> tap(
       &assert has_element?(
                 &1,
-                "div#auix-product-form-modal-container div button[phx-click*='exec']"
+                "div#auix-product-new-modal-container div button[phx-click*='exec']"
               )
     )
   end
@@ -173,8 +173,8 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     )
     |> element("tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']")
     |> render_click()
-    |> follow_redirect(conn)
-    |> elem(1)
+
+    view
     |> tap(&assert render(&1) =~ "Details for Product")
     ## Shouldn't show since the show layout has a nil value for page_subtitle
     |> tap(&refute render(&1) =~ " Detail\n")
@@ -191,10 +191,10 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     view
     |> element("tr[id^='products']:nth-of-type(1) td:nth-child(2) a[name='auix-show-product']")
     |> render_click()
-    |> follow_redirect(conn)
-    |> elem(1)
-    |> tap(&assert has_element?(&1, "a[name='auix-edit-product']"))
-    |> element("a[name='auix-edit-product']")
+
+    view
+    |> tap(&assert has_element?(&1, "#auix-product-show-modal a[name='auix-edit-product']"))
+    |> element("#auix-product-show-modal a[name='auix-edit-product']")
     |> render_click()
     |> tap(&assert &1 =~ "auix-save-product")
   end
@@ -217,11 +217,11 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     |> tap(&assert &1 =~ "auix-save-product")
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-edit-modal header")
            |> render() =~ "Modify Product: #item_"
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-edit-modal header")
            |> render() =~
              "Entries are validated before saving"
   end

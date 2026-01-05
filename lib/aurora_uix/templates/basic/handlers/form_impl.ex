@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   alias Phoenix.LiveView.Socket
 
   @doc """
-  Internally handles all LiveView events for the index page.
+  Internally handles all LiveView events for the form component.
 
   ## Parameters
   - `event` (binary()) - Event name.
@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket after event handling.
+  {:noreply, Socket.t()} - Updated socket after event handling.
 
   """
   @callback auix_handle_event(
@@ -54,16 +54,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
               {:noreply, Socket.t()}
 
   @doc """
-  Should perform the creation or update of an entity.
+  Performs the creation or update of an entity.
+
+  Should perform the creation or update of an entity based on the current action in the socket
+  assigns (`:edit` for updates, `:new` for creation).
 
   ## Parameters
-  - `socket` - The current socket. The assigns.action key should contain a value of :edit for updating an entity,
-    or :new for creating a new entity.
-  - `entity_params` - The parameters conforming the entity to be persisted.
+  - `socket` (Socket.t()) - Current socket with assigns containing action type.
+  - `entity_params` (map()) - Parameters conforming to the entity schema for persistence.
 
   ## Returns
-  `{:ok, struct()}` - If the entity was correctly saved.
-  `{:error, Ecto.Changeset.t()}` -  If any error ocurred. The error details are described in the changeset.
+  {:ok, struct()} - If the entity was correctly saved.
+  {:error, Ecto.Changeset.t()} - If any error occurred with changeset details.
+
   """
   @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
               {:ok, struct()} | {:error, Ecto.Changeset.t()}
@@ -132,18 +135,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Updates the form state and assigns for the LiveComponent.
 
   ## Parameters
-
-    - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
-    - `socket` (Socket.t()) - The current LiveView socket.
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
+  {:ok, Socket.t()} - The updated socket with form and routing stack assigned.
 
-    - `{:ok, Socket.t()}` - The updated socket with form and routing stack assigned.
-
-  ## Examples
-
-      iex> update(%{auix: %{entity: %User{}, routing_stack: nil}}, %{assigns: %{auix: %{modules: %{context: MyApp.Users}}})
-      {:ok, %Phoenix.LiveView.Socket{...}}
   """
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
   def update(
@@ -170,19 +167,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Handles form-related events such as validation, saving, and section switching.
 
   ## Parameters
-
-    - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
-    - `params` (map()) - Parameters from the event.
-    - `socket` (Socket.t()) - The current LiveView socket.
+  - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
+  - `params` (map()) - Parameters from the event.
+  - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
+  {:noreply, Socket.t()} - The updated socket after handling the event.
 
-    - `{:noreply, Socket.t()}` - The updated socket after handling the event.
-
-  ## Examples
-
-      iex> handle_event("validate", %{"user" => %{"name" => "Alice"}}, %{assigns: %{auix: %{module: "user"}}})
-      {:noreply, %Phoenix.LiveView.Socket{...}}
   """
   @spec auix_handle_event(binary(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
@@ -224,13 +215,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @doc """
   Saves or updates the entity using the given params.
 
+  Based on the action type (`:new` or `:edit`), either creates a new entity or updates an
+  existing one.
+
   ## Parameters
-  - `socket` (Socket.t()) - The current LiveView socket.
-  - `entity_params` (map()) - UI entity changes.
+  - `socket` (Socket.t()) - The current LiveView socket with action and auix assigns.
+  - `entity_params` (map()) - UI entity changes to persist.
 
   ## Returns
-  `{:ok, struct()}` - If the entity was correctly saved.
-  `{:error, Ecto.Changeset.t()}` -  If any error ocurred. The error details are described in the changeset.
+  {:ok, struct()} - If the entity was correctly saved.
+  {:error, Ecto.Changeset.t()} - If any error occurred with changeset details.
 
   """
   @spec save_entity(Socket.t(), map()) ::
@@ -250,14 +244,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Otherwise, navigates back in the routing stack.
 
   ## Parameters
-
-    - `socket` - Current socket with auix assigns
-    - `action` - Form action (`:new` or `:edit`)
-    - `one2many_rendered?` - Whether this is a one-to-many form context
+  - `socket` (Socket.t()) - Current socket with auix assigns.
+  - `action` (atom()) - Form action (`:new` or `:edit`).
+  - `one2many_rendered?` (boolean()) - Whether this is a one-to-many form context.
 
   ## Returns
+  Socket.t() - Updated socket after navigation.
 
-    - `Socket.t()` - Updated socket after navigation
   """
   @spec conditional_route_back(
           Socket.t(),

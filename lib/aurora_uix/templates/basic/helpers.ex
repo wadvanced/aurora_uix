@@ -180,6 +180,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       case {assigns[:live_action], all_paths} do
         {:edit, [_ | paths]} -> paths
         {:show, [_ | paths]} -> paths
+        {:show_edit, [_ | paths]} -> paths
         {_, paths} -> paths
       end
 

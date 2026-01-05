@@ -38,7 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
     do: Renderers.IndexRenderer.render(assigns)
 
   def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns),
-    do: Renderers.ShowRenderer.render(assigns)
+    do: Renderers.ShowComponentRenderer.render(assigns)
 
   def render(%{auix: %{layout_tree: %{tag: :form}}} = assigns),
     do: Renderers.FormRenderer.render(assigns)

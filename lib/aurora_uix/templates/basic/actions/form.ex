@@ -31,21 +31,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   Adds default header and footer actions to the assigns and modifies actions as needed.
 
   ## Parameters
-
-    - `assigns` (map()) - The assigns map, expected to include an `:auix` key.
+  - `socket` (Socket.t()) - LiveView socket containing the assigns with auix context.
 
   ## Returns
-
-    map() - The updated assigns with default actions set.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{form_header_actions: %{}, form_footer_actions: %{}}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Form.set_actions(assigns)
-      %{auix: %{form_header_actions: %{}, form_footer_actions: %{}}}
-
+  Socket.t() - The updated socket with default actions configured.
   """
-  @spec set_actions(Socket.t()) :: map()
+  @spec set_actions(Socket.t()) :: Socket.t()
   def set_actions(socket) do
     socket
     |> Actions.remove_all_actions(@actions)
@@ -58,19 +49,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   Renders a save button for the form.
 
   ## Parameters
-
-    - `assigns` (map()) - The assigns map, expected to include `:auix` with `:module` and `:name`.
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:auix` (map()) - Aurora UIX context with `:module` and `:name`.
 
   ## Returns
-
-    Rendered.t() - A Phoenix LiveView rendered button component.
-
-  ## Examples
-
-      iex> assigns = %{auix: %{module: "user", name: "User"}}
-      iex> Aurora.Uix.Templates.Basic.Actions.Form.save_action(assigns)
-      #=> #Phoenix.LiveView.Rendered<...>
-
+  Rendered.t() - A Phoenix LiveView rendered button component.
   """
   @spec save_action(map()) :: Rendered.t()
   def save_action(assigns) do

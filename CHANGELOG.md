@@ -1,5 +1,38 @@
 # Changelog for Aurora UIX
 
+## [unreleased]
+- Process by primitives
+
+```elixir
+# Option 1: Groups and sections are shown with very similar syntax
+# Sections are enclose within a parent curly brackets, and contains only tuples
+# Groups are just a tuple
+[
+  [:reference, :description], # <- Inline
+  [:quantity, :price],
+  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
+  {"Text" => [:one, :two]} # <- Groups
+]
+
+# Option 2: Easier to parse
+[
+  [:reference, :description], # <- Inline
+  [:quantity, :price],
+  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
+  %{"Text" => [:one, :two]} # <- Groups?
+]
+```
+
+- Compatibility with Ash framework?
+
+## [0.1.1] unreleased
+
+### Added
+
+- Show component instead of view 
+- Edit / Show navigation buttons (previous, next)
+
+
 ## [0.1.0] - 2024-12-11
 
 **Initial Release** - Aurora UIX 0.1.0 is the first stable release, providing a complete low-code CRUD UI generation framework for Elixir's Phoenix LiveView.
