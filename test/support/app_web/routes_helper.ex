@@ -20,12 +20,11 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
       quote do
         link = "/#{unquote(link_prefix)}"
         index_module = Module.concat(unquote(module), Index)
-        show_module = Module.concat(unquote(module), Show)
         live("/#{link}", index_module, :index)
         live("/#{link}/new", index_module, :new)
         live("/#{link}/:id/edit", index_module, :edit)
-        live("/#{link}/:id", show_module, :show)
-        live("/#{link}/:id/show/edit", show_module, :edit)
+        live("/#{link}/:id", index_module, :show)
+        live("/#{link}/:id/show/edit", index_module, :edit)
       end
 
     quote do

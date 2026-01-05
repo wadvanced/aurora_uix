@@ -38,7 +38,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksFormTest do
       |> then(&"test-#{&1}")
 
     assert view
-           |> element("div#auix-product-form-modal header")
+           |> element("div#auix-product-new-modal header")
            |> render() =~ "New Product"
 
     view
