@@ -113,7 +113,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <% end %>
       </div>
 
-      <.modal :if={@live_action in [:new, :edit, :show]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action in [:new, :edit, :show, :show_edit]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
           <.live_component
             module={@auix.live_component}

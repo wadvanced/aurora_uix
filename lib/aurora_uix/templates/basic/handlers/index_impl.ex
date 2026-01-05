@@ -557,18 +557,30 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec apply_action(Socket.t(), map()) :: Socket.t()
   def apply_action(
-        %{assigns: %{auix: auix, live_action: live_action}} = socket,
+        %{assigns: %{auix: auix, live_action: :edit}} = socket,
         %{"id" => id} = params
-      )
-      when live_action in [:edit, :show] do
-    live_component =
-      if live_action == :edit,
-        do: ModulesGenerator.module_name(auix, ".FormComponent"),
-        else: ModulesGenerator.module_name(auix, ".ShowComponent")
-
+      ) do
     socket
     |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
-    |> assign_auix(:live_component, live_component)
+    |> assign_live_component()
+  end
+
+  def apply_action(
+        %{assigns: %{auix: auix, live_action: :show}} = socket,
+        %{"id" => id} = params
+      ) do
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_live_component()
+  end
+
+  def apply_action(
+        %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
+        %{"id" => id} = params
+      ) do
+    socket
+    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_live_component()
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
@@ -897,6 +909,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp assign_filters_selected_count(%{assigns: %{auix: %{filters: filters}}} = socket) do
     filters = get_selected_filters(filters)
     assign_auix(socket, :filters_selected_count, Enum.count(filters))
+  end
+
+  @spec assign_live_component(Socket.t()) :: Socket.t()
+  defp assign_live_component(%{assigns: %{auix: auix, live_action: :show}} = socket) do
+    auix
+    |> ModulesGenerator.module_name(".ShowComponent")
+    |> then(&assign_auix(socket, :live_component, &1))
+  end
+
+  defp assign_live_component(%{assigns: %{auix: auix}} = socket) do
+    auix
+    |> ModulesGenerator.module_name(".FormComponent")
+    |> then(&assign_auix(socket, :live_component, &1))
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()
