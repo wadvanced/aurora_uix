@@ -51,8 +51,8 @@ end
 live "/", Overview.Product.Index, :index
 live "/new", Overview.Product.Index, :new
 live "/:id/edit", Overview.Product.Index, :edit
-live "/:id", Overview.Product.Show, :show
-live "/:id/show/edit", Overview.Product.Show, :edit
+live "/:id", Overview.Product.Index, :show
+live "/:id/show/edit", Overview.Product.Index, :show_edit
 ```
 
 You can also selectively generate routes:
