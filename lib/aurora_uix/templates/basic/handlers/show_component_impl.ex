@@ -63,6 +63,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
 
       @doc false
       @impl LiveComponent
+      @spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
       def handle_event(event, params, socket), do: auix_handle_event(event, params, socket)
 
       @doc false
