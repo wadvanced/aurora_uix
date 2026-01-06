@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   @spec edit_header_action(map()) :: Rendered.t()
   def edit_header_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show/edit"} name={"auix-edit-#{@auix.module}"}>
         <.button>Edit {@auix.name}</.button>
       </.auix_link>
     """

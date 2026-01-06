@@ -211,6 +211,32 @@ defmodule Aurora.Uix.Stack do
   def pop(%__MODULE__{values: [head | tail]}), do: {:ok, %__MODULE__{values: tail}, head}
 
   @doc """
+  Removes and returns the top value from the stack, or returns a default value if empty.
+
+  ## Parameters
+  - `stack` (`Aurora.Uix.Stack.t()`) - The stack to pop from.
+  - `default_value` (`term()`) - The value to return if the stack is empty.
+
+  ## Returns
+  `{Aurora.Uix.Stack.t(), term()}` - Tuple with the stack and either the popped value or the default value.
+
+  ## Examples
+  ```elixir
+  stack = Aurora.Uix.Stack.new([:a, :b])
+  Aurora.Uix.Stack.pop(stack, :default)
+  # => {%Aurora.Uix.Stack{values: [:b]}, :a}
+
+  Aurora.Uix.Stack.pop(Aurora.Uix.Stack.new(), :default)
+  # => {%Aurora.Uix.Stack{values: []}, :default}
+  ```
+  """
+  @spec pop(t(), term()) :: {t(), term()}
+  def pop(%__MODULE__{values: []} = stack, default_value), do: {stack, default_value}
+
+  def pop(%__MODULE__{values: [head | tail]}, _default_value),
+    do: {%__MODULE__{values: tail}, head}
+
+  @doc """
   Checks if the stack is empty.
 
   ## Parameters
