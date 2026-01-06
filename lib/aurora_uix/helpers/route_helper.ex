@@ -14,7 +14,7 @@ defmodule Aurora.Uix.RouteHelper do
   - `GET /path/new` → `.Index` module with `:new` action
   - `GET /path/:id/edit` → `.Index` module with `:edit` action
   - `GET /path/:id/show` → `.Index` module with `:show` action
-  - `GET /path/:id/show/edit` → `.Index` module with `:show_edit` action
+  - `GET /path/:id/show-edit` → `.Index` module with `:show_edit` action
 
   ## Parameters
   - `path` (binary()) - Base URL path segment (e.g., `"/users"`, `"/products"`).
@@ -38,7 +38,7 @@ defmodule Aurora.Uix.RouteHelper do
   live "/users/new", MyApp.UserLive.Index, :new
   live "/users/:id/edit", MyApp.UserLive.Index, :edit
   live "/users/:id/show", MyApp.UserLive.Index, :show
-  live "/users/:id/show/edit", MyApp.UserLive.Index, :show_edit
+  live "/users/:id/show-edit", MyApp.UserLive.Index, :show_edit
   ```
 
   Generate only index and show routes:
@@ -57,7 +57,7 @@ defmodule Aurora.Uix.RouteHelper do
   # Expands to:
   live "/users", MyApp.UserLive.Index, :index
   live "/users/:id/show", MyApp.UserLive.Index, :show
-  live "/users/:id/show/edit", MyApp.UserLive.Index, :show_edit
+  live "/users/:id/show-edit", MyApp.UserLive.Index, :show_edit
   ```
   """
   @spec auix_live_resources(binary(), module(), keyword()) :: Macro.t()
@@ -82,7 +82,7 @@ defmodule Aurora.Uix.RouteHelper do
          end},
         {:show_edit,
          quote do
-           live("#{unquote(path)}/:id/show/edit", unquote(module).Index, :show_edit)
+           live("#{unquote(path)}/:id/show-edit", unquote(module).Index, :show_edit)
          end}
       ]
       |> filter_only(opts[:only])

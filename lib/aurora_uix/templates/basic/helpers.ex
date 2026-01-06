@@ -173,6 +173,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       |> String.replace_leading("/", "")
       |> String.replace_trailing("/edit", "")
       |> String.replace_trailing("/show", "")
+      |> String.replace_trailing("/show-edit", "")
       |> String.split("/")
       |> Enum.reverse()
 
@@ -509,16 +510,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   """
   @spec auix_route_back(Socket.t()) :: Socket.t()
   def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack} = auix}} = socket) do
-    current_path = "/#{auix[:uri_path]}"
+    current_path = Map.get(auix, :_current_path, "")
 
     fallback_path = determine_fallback_path(current_path)
 
-    {new_navigation_stack, back_path} =
-      Stack.pop(routing_stack, %{type: :navigate, path: fallback_path})
+    {new_navigation_stack, back_path} = Stack.pop(routing_stack, fallback_path)
 
     calculated_back_path =
       if current_path == back_path.path,
-        do: Map.put(back_path, :path, fallback_path),
+        do: fallback_path,
         else: back_path
 
     socket
@@ -902,15 +902,27 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
   end
 
-  @spec determine_fallback_path(binary()) :: binary()
+  @spec determine_fallback_path(binary()) :: map()
   defp determine_fallback_path(current_path) do
-    cond do
-      String.ends_with?(current_path, "/show/edit") -> remove_trailing_paths(current_path, 1)
-      String.ends_with?(current_path, "/show") -> remove_trailing_paths(current_path, 2)
-      String.ends_with?(current_path, "/edit") -> remove_trailing_paths(current_path, 2)
-      String.ends_with?(current_path, "/new") -> remove_trailing_paths(current_path, 1)
-      true -> current_path
-    end
+    path =
+      cond do
+        String.ends_with?(current_path, "/show-edit") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/show") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/edit") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/new") ->
+          remove_trailing_paths(current_path, 1)
+
+        true ->
+          current_path
+      end
+
+    %{type: :navigate, path: path}
   end
 
   @spec remove_trailing_paths(binary(), integer()) :: binary()
