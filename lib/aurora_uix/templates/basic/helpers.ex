@@ -516,14 +516,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     {new_navigation_stack, back_path} =
       Stack.pop(routing_stack, %{type: :navigate, path: fallback_path})
 
-    back_path =
+    calculated_back_path =
       if current_path == back_path.path,
         do: Map.put(back_path, :path, fallback_path),
         else: back_path
 
     socket
     |> assign_auix(:routing_stack, new_navigation_stack)
-    |> route_to(Map.new(back_path))
+    |> route_to(Map.new(calculated_back_path))
   end
 
   @doc """
@@ -902,9 +902,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
   end
 
-  @spec determine_fallback_path(binary() | nil) :: binary() | nil
-  defp determine_fallback_path(nil), do: nil
-
+  @spec determine_fallback_path(binary()) :: binary()
   defp determine_fallback_path(current_path) do
     cond do
       String.ends_with?(current_path, "/show/edit") -> remove_trailing_paths(current_path, 1)
