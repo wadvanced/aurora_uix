@@ -59,7 +59,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsShowTest do
       |> create_sample_products(:test)
       |> get_in(["id_test-1", Access.key!(:id)])
 
-    {:ok, view, html} = live(conn, "/create-ui-actions-show-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/create-ui-actions-show-products/#{product_id}/show")
 
     assert view
            |> element("div[name='auix-show-header-actions'] a[name='auix-edit-product']")

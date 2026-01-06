@@ -277,7 +277,7 @@ defmodule Aurora.UixWeb.Test.ManualResourceTest do
       |> Map.get("id_test-1")
       |> Map.get(:id)
 
-    {:ok, view, html} = live(conn, "/manual-resource-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/manual-resource-products/#{product_id}/show")
 
     assert html =~ "Product"
 
