@@ -47,7 +47,7 @@ defmodule Aurora.Uix.RouteHelper do
 
   # Expands to:
   live "/users", MyApp.UserLive.Index, :index
-  live "/users/:id", MyApp.UserLive.Index, :show
+  live "/users/:id/show", MyApp.UserLive.Index, :show
   ```
 
   Generate all routes except new and edit (read-only mode):

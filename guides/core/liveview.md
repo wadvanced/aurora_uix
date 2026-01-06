@@ -51,7 +51,7 @@ end
 live "/", Overview.Product.Index, :index
 live "/new", Overview.Product.Index, :new
 live "/:id/edit", Overview.Product.Index, :edit
-live "/:id", Overview.Product.Index, :show
+live "/:id/show", Overview.Product.Index, :show
 live "/:id/show/edit", Overview.Product.Index, :show_edit
 ```
 
