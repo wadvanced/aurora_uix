@@ -22,19 +22,19 @@ defmodule Aurora.UixWeb.Test.LocalDemoTest do
   # live("/local-demo-products/new", LocalDemoTest.TestModule.Product.Index, :new)
   # live("/local-demo-products/:id/edit", LocalDemoTest.TestModule.Product.Index, :edit)
   # live("/local-demo-products/:id", LocalDemoTest.TestModule.Product.Show, :show)
-  # live("/local-demo-products/:id/show/edit", LocalDemoTest.TestModule.Product.Show, :edit)
+  # live("/local-demo-products/:id/show-edit", LocalDemoTest.TestModule.Product.Show, :edit)
   #
   # live("/local-demo-product_transactions", LocalDemoTest.TestModule.ProductTransaction.Index, :index)
   # live("/local-demo-product_transactions/new", LocalDemoTest.TestModule.ProductTransaction.Index, :new)
   # live("/local-demo-product_transactions/:id/edit", LocalDemoTest.TestModule.ProductTransaction.Index, :edit)
   # live("/local-demo-product_transactions/:id", LocalDemoTest.TestModule.ProductTransaction.Show, :show)
-  # live("/local-demo-product_transactions/:id/show/edit", LocalDemoTest.TestModule.ProductTransaction.Show, :edit)
+  # live("/local-demo-product_transactions/:id/show-edit", LocalDemoTest.TestModule.ProductTransaction.Show, :edit)
   #
   # live("/local-demo-product_locations", LocalDemoTest.TestModule.ProductLocation.Index, :index)
   # live("/local-demo-product_locations/new", LocalDemoTest.TestModule.ProductLocation.Index, :new)
   # live("/local-demo-product_locations/:id/edit", LocalDemoTest.TestModule.ProductLocation.Index, :edit)
   # live("/local-demo-product_locations/:id", LocalDemoTest.TestModule.ProductLocation.Show, :show)
-  # live("/local-demo-product_locations/:id/show/edit", LocalDemoTest.TestModule.ProductLocation.Show, :edit)
+  # live("/local-demo-product_locations/:id/show-edit", LocalDemoTest.TestModule.ProductLocation.Show, :edit)
   auix_create_ui()
 
   test "Local empty_test", %{conn: conn} do

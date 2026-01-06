@@ -24,7 +24,7 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
         live("/#{link}/new", index_module, :new)
         live("/#{link}/:id/edit", index_module, :edit)
         live("/#{link}/:id/show", index_module, :show)
-        live("/#{link}/:id/show/edit", index_module, :edit)
+        live("/#{link}/:id/show-edit", index_module, :edit)
       end
 
     quote do
