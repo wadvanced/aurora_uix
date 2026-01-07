@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket after event handling.
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
 
   """
   @callback auix_handle_event(
@@ -64,8 +64,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `entity_params` (map()) - Parameters conforming to the entity schema for persistence.
 
   ## Returns
-  {:ok, struct()} - If the entity was correctly saved.
-  {:error, Ecto.Changeset.t()} - If any error occurred with changeset details.
+  `{:ok, struct()}` - If the entity was correctly saved.
+  `{:error, Ecto.Changeset.t()}` - If any error occurred with changeset details.
 
   """
   @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
-  {:ok, Socket.t()} - The updated socket with form and routing stack assigned.
+  `{:ok, Socket.t()}` - The updated socket with form and routing stack assigned.
 
   """
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
@@ -172,7 +172,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - The updated socket after handling the event.
+  `{:noreply, Socket.t()}` - The updated socket after handling the event.
 
   """
   @spec auix_handle_event(binary(), map(), Socket.t()) ::
@@ -223,8 +223,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   - `entity_params` (map()) - UI entity changes to persist.
 
   ## Returns
-  {:ok, struct()} - If the entity was correctly saved.
-  {:error, Ecto.Changeset.t()} - If any error occurred with changeset details.
+  `{:ok, struct()}` - If the entity was correctly saved.
+  `{:error, Ecto.Changeset.t()}` - If any error occurred with changeset details.
 
   """
   @spec save_entity(Socket.t(), map()) ::
