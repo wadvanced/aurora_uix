@@ -141,9 +141,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, %{assigns: %{auix: auix}} = socket) do
+  def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
-    show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
+    show_component = ModulesGenerator.module_name(auix, ".ShiiowComponent")
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
@@ -159,7 +159,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:reset_stream?, true)
       |> assign_auix(:index_form_id, index_form_id)
       |> assign_auix(:empty_list?, true)
-      |> push_event(:set_html_theme_name, %{theme_name: ThemeHelper.theme_name()})
+      |> assign_layout_options()
+      |> IndexActions.set_actions()
+      |> assign_index_fields()
+      |> assign_filters()
+      |> prepare_initial_pagination(params)
+      |> load_items()
     }
   end
 
@@ -186,12 +191,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix_current_path(url)
      |> assign_auix_uri_path()
      |> assign_auix_index_new_link()
-     |> assign_layout_options()
-     |> IndexActions.set_actions()
-     |> assign_index_fields()
-     |> assign_filters()
-     |> prepare_initial_pagination(params)
-     |> load_items()
+     |> push_event(:set_html_theme_name, %{theme_name: ThemeHelper.theme_name()})
      |> then(
        &assign_auix_routing_stack(&1, params, %{
          type: :patch,
