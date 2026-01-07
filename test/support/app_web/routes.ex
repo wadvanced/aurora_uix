@@ -198,6 +198,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "selected-"
         )
 
+        RoutesHelper.register_product_crud(
+          BrowserCreateUIDefaultLayoutTest,
+          "browser-create-ui-default-layout-"
+        )
+
         RoutesHelper.register_user_crud(
           EmbedsOneTest,
           "embeds-one-"

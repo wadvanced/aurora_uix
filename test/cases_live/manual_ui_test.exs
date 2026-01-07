@@ -180,7 +180,7 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
       |> Map.get("id_test-1")
       |> Map.get(:id)
 
-    {:ok, view, html} = live(conn, "/manual-ui-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/manual-ui-products/#{product_id}/show")
 
     assert html =~ "Product"
 

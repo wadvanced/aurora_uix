@@ -67,7 +67,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
       |> Inventory.list_product_transactions()
       |> Enum.map(&(&1 |> Map.get(:quantity) |> to_string()))
 
-    {:ok, _view, html} = live(conn, "/association/one_to_many/layout/products/#{product_id}")
+    {:ok, _view, html} = live(conn, "/association/one_to_many/layout/products/#{product_id}/show")
 
     assert html
            |> LazyHTML.from_document()

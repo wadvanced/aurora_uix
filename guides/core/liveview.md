@@ -51,8 +51,8 @@ end
 live "/", Overview.Product.Index, :index
 live "/new", Overview.Product.Index, :new
 live "/:id/edit", Overview.Product.Index, :edit
-live "/:id", Overview.Product.Index, :show
-live "/:id/show/edit", Overview.Product.Index, :show_edit
+live "/:id/show", Overview.Product.Index, :show
+live "/:id/show-edit", Overview.Product.Index, :show_edit
 ```
 
 You can also selectively generate routes:
@@ -452,8 +452,8 @@ The `:auix` assign contains all configuration and runtime state:
 
 ```elixir
 def mount(_params, _session, socket) do
-  IO.inspect(socket.assigns.auix, label: "Aurora UIX Config")
-  {:ok, socket}
+  # Set assigns and do my own logic
+  {:ok, assign(socket, :something, :anything}
 end
 ```
 

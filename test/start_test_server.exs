@@ -6,4 +6,5 @@ Code.require_file("test/start_test_app.exs")
 
 ExUnit.start()
 Aurora.Uix.Test.AppLoader.load_modules(["test", "cases_live"])
+Aurora.Uix.Test.AppLoader.load_modules(["test", "browser_cases"])
 Aurora.Uix.Test.AppLoader.load_modules(["test", "guides_cases"])

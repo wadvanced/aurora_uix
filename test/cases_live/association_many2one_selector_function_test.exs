@@ -65,7 +65,7 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorFunctionTest do
     {:ok, view, html} =
       live(
         conn,
-        "/association-many_to_one_selector-function-products/#{product_id}"
+        "/association-many_to_one_selector-function-products/#{product_id}/show"
       )
 
     assert html =~ "Product\n"

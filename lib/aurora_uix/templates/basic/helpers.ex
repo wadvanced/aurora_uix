@@ -173,6 +173,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       |> String.replace_leading("/", "")
       |> String.replace_trailing("/edit", "")
       |> String.replace_trailing("/show", "")
+      |> String.replace_trailing("/show-edit", "")
       |> String.split("/")
       |> Enum.reverse()
 
@@ -508,12 +509,21 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - Phoenix.LiveView.Socket.t()
   """
   @spec auix_route_back(Socket.t()) :: Socket.t()
-  def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack}}} = socket) do
-    {new_navigation_stack, back_path} = Stack.pop!(routing_stack)
+  def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack} = auix}} = socket) do
+    current_path = Map.get(auix, :_current_path, "")
+
+    fallback_path = determine_fallback_path(current_path)
+
+    {new_navigation_stack, back_path} = Stack.pop(routing_stack, fallback_path)
+
+    calculated_back_path =
+      if current_path == back_path.path,
+        do: fallback_path,
+        else: back_path
 
     socket
     |> assign_auix(:routing_stack, new_navigation_stack)
-    |> route_to(Map.new(back_path))
+    |> route_to(Map.new(calculated_back_path))
   end
 
   @doc """
@@ -890,5 +900,45 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   defp process_error_detail([child, %{}]) when is_map(child) do
     Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
+  end
+
+  @spec determine_fallback_path(binary()) :: map()
+  defp determine_fallback_path(current_path) do
+    path =
+      cond do
+        String.ends_with?(current_path, "/show-edit") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/show") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/edit") ->
+          remove_trailing_paths(current_path, 2)
+
+        String.ends_with?(current_path, "/new") ->
+          remove_trailing_paths(current_path, 1)
+
+        true ->
+          current_path
+      end
+
+    %{type: :navigate, path: path}
+  end
+
+  @spec remove_trailing_paths(binary(), integer()) :: binary()
+  defp remove_trailing_paths(current_path, count) do
+    paths =
+      current_path
+      |> String.split("/")
+      |> Enum.reverse()
+
+    if Enum.count(paths) > count,
+      do:
+        paths
+        |> Enum.with_index(&if &2 < count, do: nil, else: &1)
+        |> Enum.reject(&is_nil/1)
+        |> Enum.reverse()
+        |> Enum.join("/"),
+      else: List.last(paths)
   end
 end

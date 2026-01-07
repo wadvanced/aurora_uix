@@ -92,7 +92,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @spec show_child_action(map()) :: Rendered.t()
   def show_child_action(assigns) do
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}"}
+      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
         name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
           <.icon name="hero-eye" class="auix-icon-info"/>
       </.auix_link>

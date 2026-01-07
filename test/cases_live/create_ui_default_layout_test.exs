@@ -29,7 +29,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
       |> create_sample_products(:test)
       |> get_in([Access.key!("id_test-1"), Access.key!(:id)])
 
-    {:ok, _view, html} = live(conn, "/create-ui-default-layout-products/#{product_id}")
+    {:ok, _view, html} = live(conn, "/create-ui-default-layout-products/#{product_id}/show")
 
     html
     |> tap(&assert &1 =~ "Product\n")

@@ -43,7 +43,7 @@ defmodule Aurora.UixWeb.Test.WhereOne2ManyTest do
       |> Inventory.list_product_transactions()
       |> Enum.map(&(&1 |> Map.get(:quantity) |> to_string()))
 
-    {:ok, _view, html} = live(conn, "/where-one_to_many-products/#{product_id}")
+    {:ok, _view, html} = live(conn, "/where-one_to_many-products/#{product_id}/show")
 
     assert html
            |> LazyHTML.from_document()

@@ -33,8 +33,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
     ~H"""
     <div>
       <.header>
-        {if @action == :edit, do: @auix.layout_options.edit_title, else: @auix.layout_options.new_title}
-        <:subtitle>{if @action == :edit, do: @auix.layout_options.edit_subtitle, else: @auix.layout_options.new_subtitle}</:subtitle>
+        {if @action in [:edit, :show_edit], do: @auix.layout_options.edit_title, else: @auix.layout_options.new_title}
+        <:subtitle>{if @action in [:edit, :show_edit], do: @auix.layout_options.edit_subtitle, else: @auix.layout_options.new_subtitle}</:subtitle>
         <:actions>
           <div name="auix-form-header-actions">
             <%= for %{function_component: action} <- @auix.form_header_actions do %>

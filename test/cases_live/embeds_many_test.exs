@@ -53,7 +53,7 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
       })
       |> List.first()
 
-    {:ok, view, _html} = live(conn, "/embeds-many-users/#{user.id}")
+    {:ok, view, _html} = live(conn, "/embeds-many-users/#{user.id}/show")
 
     view
     |> Kernel.tap(

@@ -14,7 +14,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsShowTest do
   @spec custom_header_action(map()) :: Rendered.t()
   def custom_header_action(assigns) do
     ~H"""
-      <.auix_link patch={"/#{@auix.uri_path}/#{@auix.entity.id}/show/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link patch={"/#{@auix.uri_path}/#{@auix.entity.id}/show-edit"} name={"auix-edit-#{@auix.module}"}>
         <.button>Edit Custom {@auix.name}</.button>
       </.auix_link>
     """
@@ -59,7 +59,7 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsShowTest do
       |> create_sample_products(:test)
       |> get_in(["id_test-1", Access.key!(:id)])
 
-    {:ok, view, html} = live(conn, "/create-ui-actions-show-products/#{product_id}")
+    {:ok, view, html} = live(conn, "/create-ui-actions-show-products/#{product_id}/show")
 
     assert view
            |> element("div[name='auix-show-header-actions'] a[name='auix-edit-product']")

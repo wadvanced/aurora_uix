@@ -77,7 +77,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}"} name={"auix-show-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"}>
         <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
       </.auix_link>
     """
