@@ -1,36 +1,95 @@
 # Changelog for Aurora UIX
 
 ## [unreleased]
-- Process by primitives
 
-```elixir
-# Option 1: Groups and sections are shown with very similar syntax
-# Sections are enclose within a parent curly brackets, and contains only tuples
-# Groups are just a tuple
-[
-  [:reference, :description], # <- Inline
-  [:quantity, :price],
-  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
-  {"Text" => [:one, :two]} # <- Groups
-]
 
-# Option 2: Easier to parse
-[
-  [:reference, :description], # <- Inline
-  [:quantity, :price],
-  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
-  %{"Text" => [:one, :two]} # <- Groups?
-]
-```
+## [0.1.1] - 2025-01-07
 
-- Compatibility with Ash framework?
+**Show Component Refactor** - In this release, the show live view is no longer generated. Instead, a show component 
+(LiveComponent) is now used within the Index LiveView. This is a preparatory step towards implementing record 
+navigation in show and edit modals.
 
-## [0.1.1] unreleased
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.7+`
+- Phoenix LiveView `1.0+`
+- Ecto `3.2+`
+
+
+### Changed
+
+- **Routing architecture**: Show and show_edit actions now route to `.Index` module instead of `.Show` module
+  - `GET /path/:id/show` → `.Index` module with `:show` action (was `GET /path/:id` to `.Show` module)
+  - `GET /path/:id/show-edit` → `.Index` module with `:show_edit` action (was `GET /path/:id/show/edit` to `.Show` module with `:edit` action)
+- **Show implementation**: Replaced show LiveView module with ShowComponent (LiveComponent)
+- **Handler behavior**: Show handler now uses `ShowComponentImpl` instead of `ShowImpl`
+
 
 ### Added
 
-- Show component instead of view 
-- Edit / Show navigation buttons (previous, next)
+- `Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl` - New handler behavior for show LiveComponent
+- `ShowComponent` generator for creating show LiveComponents
+- Documentation updates reflecting new routing architecture
+
+
+### Removed
+
+- `ShowGenerator` - No longer generates standalone show LiveView modules
+- `Aurora.Uix.Templates.Basic.Handlers.ShowImpl` - Replaced by `ShowComponentImpl`
+
+
+### Breaking Changes
+
+**If you are using Aurora UIX 0.1.0, review these potential breaking changes:**
+
+1. **Manual Route Definitions**
+   
+   If you manually defined routes instead of using `auix_live_resources`, update them:
+   
+   ```elixir
+   # OLD (0.1.0) - will break
+   live "/:id", MyApp.Product.Show, :show
+   live "/:id/show/edit", MyApp.Product.Show, :edit
+   
+   # NEW (0.1.1) - correct
+   live "/:id/show", MyApp.Product.Index, :show
+   live "/:id/show-edit", MyApp.Product.Index, :show_edit
+   ```
+   
+   **Note**: If you used `auix_live_resources`, no changes needed - it generates correct routes automatically.
+
+2. **Custom Show Handler Hooks**
+   
+   If you implemented a custom show handler using the old behavior:
+   
+   ```elixir
+   # OLD (0.1.0) - will break
+   defmodule MyApp.ProductShowHandler do
+     use Aurora.Uix.Templates.Basic.Handlers.ShowImpl
+     # ...custom implementation
+   end
+   ```
+   
+   Update to the new behavior:
+   
+   ```elixir
+   # NEW (0.1.1) - correct
+   defmodule MyApp.ProductShowHandler do
+     use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+     # ...custom implementation
+   end
+   ```
+   
+   **Migration steps**:
+   - Change `ShowImpl` to `ShowComponentImpl`
+   - Update `@impl Phoenix.LiveView` to `@impl Phoenix.LiveComponent` where applicable
+   - Replace `mount/3` with `update/2` if you override lifecycle callbacks
+   - Handler hooks specified in layout DSL via `show_handler_module` option will continue to work
+
+**Most users will not be affected** as these scenarios only apply if you:
+- Manually defined routes (instead of using `auix_live_resources`)
+- Created custom show handler implementations
+
 
 
 ## [0.1.0] - 2024-12-11
@@ -163,10 +222,10 @@ Requires:
 ## Future Roadmap
 
 **Future releases may include:**
+- Page navigation from within show/edit views
 - Additional rendering components and theme options
 - Simplified template creation with better hooks for customization
 - Enhanced theme adoption and customization
-- Page navigation from within show/edit views
 - Query builder integration for advanced filtering
 - Performance optimizations for large datasets
 - GraphQL integration support

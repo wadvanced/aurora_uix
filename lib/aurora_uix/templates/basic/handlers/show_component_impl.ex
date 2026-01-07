@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket after event handling.
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
 
   """
   @callback auix_handle_event(
@@ -82,7 +82,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
-  {:ok, Socket.t()} - The updated socket with show view state and routing stack assigned.
+  `{:ok, Socket.t()}` - The updated socket with show view state and routing stack assigned.
 
   """
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
@@ -109,7 +109,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - The updated socket after handling the event.
+  `{:noreply, Socket.t()}` - The updated socket after handling the event.
 
   """
   @spec auix_handle_event(binary(), map(), Socket.t()) ::

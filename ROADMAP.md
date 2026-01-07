@@ -4,13 +4,72 @@ This document outlines potential features and enhancements for Aurora UIX. Rathe
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.0
+## Current Status: v0.1.1
 
-Aurora UIX v0.1.0 provides the core low-code CRUD UI generation framework with metadata-driven configuration, compile-time code generation, and extensible template system.
+Aurora UIX v0.1.1 refactors the show view architecture, replacing the standalone LiveView module with a LiveComponent integrated within the Index view. This change enables future record navigation features within show and edit modals.
+
+**Recent Changes (v0.1.1)**:
+- Show view now uses LiveComponent instead of standalone LiveView module
+- Updated routing to handle show/edit actions through Index module
+- Foundation for implementing record navigation in modals
+
+**Previous Release (v0.1.0)**:
+- Core low-code CRUD UI generation framework
+- Metadata-driven configuration
+- Compile-time code generation
+- Extensible template system
 
 ---
 
 ## Feature Wishlist
+
+### Page Navigation from Show/Edit Views
+
+**Status**: 🚧 **In Progress** - Foundation laid in v0.1.1
+
+**Objective**: Add navigation capabilities within show and edit pages for better UX.
+
+**Completed (v0.1.1)**:
+- Refactored show view to use LiveComponent architecture
+- Integrated show component within Index LiveView
+- Established routing foundation for modal-based navigation
+
+**Ideas**:
+- "Next/Previous" record navigation buttons
+- Breadcrumb navigation for nested resources
+- Quick navigation sidebar (list of related records)
+- Smart routing with state preservation
+- Back button with context awareness
+- Keyboard shortcuts for navigation
+
+**Why**: Better user experience for navigating between records and related data.
+
+---
+
+### Layout representation with primitives
+```elixir
+# Option 1: Groups and sections are shown with very similar syntax
+# Sections are enclose within a parent curly brackets, and contains only tuples
+# Groups are just a tuple
+[
+  [:reference, :description], # <- Inline
+  [:quantity, :price],
+  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
+  {"Text" => [:one, :two]} # <- Groups
+]
+
+# Option 2: Easier to parse
+[
+  [:reference, :description], # <- Inline
+  [:quantity, :price],
+  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
+  %{"Text" => [:one, :two]} # <- Groups?
+]
+```
+
+### Compatibility with other frameworks
+
+- Ash framework?
 
 ### Enhanced Rendering Components
 
@@ -59,21 +118,6 @@ Aurora UIX v0.1.0 provides the core low-code CRUD UI generation framework with m
 
 ---
 
-### Page Navigation from Show/Edit Views
-
-**Objective**: Add navigation capabilities within show and edit pages for better UX.
-
-**Ideas**:
-- "Next/Previous" record navigation buttons
-- Breadcrumb navigation for nested resources
-- Quick navigation sidebar (list of related records)
-- Smart routing with state preservation
-- Back button with context awareness
-- Keyboard shortcuts for navigation
-
-**Why**: Better user experience for navigating between records and related data.
-
----
 
 ### Advanced Filtering & Query Builder
 
