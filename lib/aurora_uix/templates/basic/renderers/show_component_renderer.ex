@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   use Aurora.Uix.CoreComponentsImporter
   use Phoenix.LiveView
 
+  import Aurora.Uix.Templates.Basic.Components, only: [record_navigator_bar: 1]
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -54,6 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
             {action.(%{auix: @auix})}
           <% end %>
         </div>
+        <.record_navigator_bar pagination={@auix.pagination} item_index={@auix.item_index} />
       </div>
     </div>
     """

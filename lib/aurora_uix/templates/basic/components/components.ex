@@ -373,6 +373,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  @spec record_navigator_bar(map()) :: Rendered.t()
+  def record_navigator_bar(assigns) do
+    ~H"""
+    <div class="auix-record-navigator-bar">
+      <.render_previous_icon pagination={@pagination} item_index={@item_index} />
+      <.render_record_index pagination={@pagination} item_index={@item_index} />
+      <.render_next_icon pagination={@pagination} item_index={@item_index} />
+    </div>
+    """
+  end
+
   ## PRIVATE
   attr(:label, :any, required: true)
   attr(:auix, :map)
@@ -534,4 +545,80 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   defp get_cols(cols, true = _first_column_not_checkbox?), do: cols
 
   defp get_cols(cols, _first_column_not_checkbox), do: List.delete_at(cols, 0)
+
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_previous_icon(map()) :: Rendered.t()
+  defp render_previous_icon(%{pagination: %{page: 1}, item_index: 0} = assigns) do
+    ~H"""
+    <.icon name="hero-chevron-left" class="auix-icon-inactive" />
+    """
+  end
+
+  defp render_previous_icon(%{item_index: 0} = assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page - 1} phx-value-index={@pagination.per_page - 1}>
+      <.icon name="hero-chevron-left" />
+    </.link>
+    """
+  end
+
+  defp render_previous_icon(assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index - 1}>
+      <.icon name="hero-chevron-left"  />
+    </.link>  
+    """
+  end
+
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_record_index(map()) :: Rendered.t()
+  defp render_record_index(assigns) do
+    ~H"""
+    <span>{@pagination.per_page * (@pagination.page - 1) + @item_index + 1} / {@pagination.entries_count}</span>
+    """
+  end
+
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_next_icon(map()) :: Rendered.t()
+  defp render_next_icon(
+         %{
+           pagination: %{
+             page: last_page,
+             pages_count: last_page,
+             per_page: per_page,
+             entries_count: entries_count
+           },
+           item_index: item_index
+         } = assigns
+       )
+       when item_index >= entries_count - per_page * (last_page - 1) - 1 do
+    ~H"""
+    <.icon name="hero-chevron-right" class="auix-icon-inactive" />
+    """
+  end
+
+  defp render_next_icon(
+         %{pagination: %{per_page: items_per_page}, item_index: item_index} = assigns
+       )
+       when item_index == items_per_page - 1 do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page + 1} phx-value-index={0}>
+      <.icon name="hero-chevron-right" />
+    </.link>
+    """
+  end
+
+  defp render_next_icon(assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index + 1}>
+      <.icon name="hero-chevron-right"  />
+    </.link>  
+    """
+  end
 end

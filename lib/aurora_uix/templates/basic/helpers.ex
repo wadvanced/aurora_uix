@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Parameters
   - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
   - params (map()) - Map containing optional related_key and parent_id for relationships
-  - default (struct()) - Default entity struct for new records
+  - default (struct()) - Default entity struct for new record
 
   ## Returns
   - Phoenix.LiveView.Socket.t() - Socket with entity assigned to `:auix.entity`
@@ -58,6 +58,63 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   def assign_new_entity(socket, _params, default) do
     assign_auix(socket, :entity, default)
+  end
+
+  @doc """
+  Assigns the index of the current entity in the primary keys list.
+
+  Determines the index position of the current entity by matching its primary key values
+  against the list of primary keys stored in the socket assigns. Returns -1 if no entity
+  is assigned or if no matching primary key is found.
+
+  ## Parameters
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket containing entity and
+    primary key data.
+
+  ## Returns 
+  Phoenix.LiveView.Socket.t() - Socket with `:item_index` assigned in auix map.
+
+  ## Examples
+
+      iex> socket = %Socket{assigns: %{auix: %{entity: nil}}}
+      iex> assign_item_index(socket)
+      #=> %Socket{assigns: %{auix: %{item_index: -1}}}
+
+      iex> entity = %User{id: 1}
+      iex> socket = %Socket{assigns: %{auix: %{
+      ...>   entity: entity,
+      ...>   primary_key: [:id],
+      ...>   primary_keys: [{0, [id: 1]}, {1, [id: 2]}]
+      ...> }}}
+      iex> assign_item_index(socket)
+      #=> %Socket{assigns: %{auix: %{item_index: 0}}}
+
+  """
+  @spec assign_item_index(Socket.t()) :: Socket.t()
+  def assign_item_index(%{assigns: %{auix: %{entity: nil}}} = socket),
+    do: assign_auix(socket, :item_index, -1)
+
+  def assign_item_index(
+        %{
+          assigns: %{
+            auix: %{entity: entity, primary_key: primary_key, primary_keys: primary_keys}
+          }
+        } = socket
+      ) do
+    entity_key =
+      entity
+      |> Map.from_struct()
+      |> Enum.filter(&(elem(&1, 0) in primary_key))
+
+    item_index =
+      primary_keys
+      |> Enum.filter(fn {_index, primary_key} ->
+        Enum.all?(entity_key, &(&1 in primary_key))
+      end)
+      |> Enum.map(&elem(&1, 0))
+      |> List.first(-1)
+
+    assign_auix(socket, :item_index, item_index)
   end
 
   @doc """

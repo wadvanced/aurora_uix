@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
+  import Aurora.Uix.Templates.Basic.Components, only: [record_navigator_bar: 1]
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -60,9 +61,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
         <:actions>
           <div name="auix-form-footer-actions">
             <%= for %{function_component: action} <- @auix.form_footer_actions do %>
-              {action.(%{auix: @auix})}
+                {action.(%{auix: @auix})}
             <% end %>
           </div>
+        </:actions>
+        <:actions>
+          <.record_navigator_bar pagination={@auix.pagination} item_index={@auix.item_index} />
         </:actions>
       </.simple_form>
 
