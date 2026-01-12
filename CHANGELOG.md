@@ -1,6 +1,14 @@
 # Changelog for Aurora UIX
 
-## [unreleased]
+## [0.1.2] - unreleased
+
+**Record Navigation** - Now users can navigate back and forth while editing or viewing records.
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.7+`
+- Phoenix LiveView `1.0+`
+- Ecto `3.2+`
 
 
 ## [0.1.1] - 2025-01-07
