@@ -58,6 +58,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "separated-single-resource-products"
         )
 
+        RoutesHelper.register_crud(
+          RecordNavigationTest.Product,
+          "record-navigation-products"
+        )
+
         RoutesHelper.register_product_crud(
           SeparatedMultipleResourcesUITest,
           "separated-multiple-resources-"
