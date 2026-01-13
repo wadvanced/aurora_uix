@@ -1402,6 +1402,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_record_navigator_bar) do
+    """
+    .auix-record-navigator-bar {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+    """
+  end
+
   def rule(:auix_filter_card) do
     """
     .auix-filter-card:not(:nth-child(1)) {

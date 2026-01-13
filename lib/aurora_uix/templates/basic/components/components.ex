@@ -319,10 +319,31 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  @doc """
+  Renders a pagination navigation bar with page numbers and selection counts.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns containing:
+    * `:pagination` (map()) - Pagination state with page and pages_count.
+    * `:pages_bar_range_offset` (integer()) - Number of pages to show before and after
+      current page.
+    * `:selected_in_page` (map()) - Map of selected items per page. Defaults to `%{}`.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered pagination bar component.
+
+  ## Examples
+
+      <.pages_selection
+        pagination={%{page: 3, pages_count: 10}}
+        pages_bar_range_offset={2}
+        selected_in_page={%{1 => MapSet.new([1, 2]), 3 => MapSet.new([5])}}
+      />
+  """
   attr(:pagination, :map, required: true)
   attr(:pages_bar_range_offset, :integer, required: true)
   attr(:selected_in_page, :map, default: %{})
-  @spec pages_selection(map()) :: map()
+  @spec pages_selection(map()) :: Rendered.t()
   def pages_selection(assigns) do
     assigns =
       assigns
@@ -373,7 +394,39 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  @doc """
+  Renders a record navigation bar with previous/next controls and record counter.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns containing:
+    * `:pagination` (map()) - Pagination state with page, per_page, pages_count, and
+      entries_count.
+    * `:item_index` (integer()) - Current item index within the page.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered record navigator bar component.
+
+  ## Examples
+
+      <.record_navigator_bar
+        pagination={%{page: 2, per_page: 10, pages_count: 5, entries_count: 43}}
+        item_index={3}
+      />
+  """
+  @spec record_navigator_bar(map()) :: Rendered.t()
+  def record_navigator_bar(assigns) do
+    ~H"""
+    <div class="auix-record-navigator-bar">
+      <.render_previous_icon pagination={@pagination} item_index={@item_index} />
+      <.render_record_index pagination={@pagination} item_index={@item_index} />
+      <.render_next_icon pagination={@pagination} item_index={@item_index} />
+    </div>
+    """
+  end
+
   ## PRIVATE
+
+  # Renders table column label, handling both function and static label values
   attr(:label, :any, required: true)
   attr(:auix, :map)
   @spec table_column_label(map()) :: Rendered.t()
@@ -389,6 +442,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  # Renders the count of selected items for a page range or specific page
   attr(:selected_in_page, :map, default: %{})
   attr(:page, :integer)
   attr(:from, :integer)
@@ -424,7 +478,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
-  @spec evaluate_phx_click(map(), function() | nil) :: any()
+  # Evaluates which phx-click handler to use for row clicks based on assigns configuration
+  @spec evaluate_phx_click(map(), term()) :: binary() | term() | nil
   defp evaluate_phx_click(%{row_click: row_click}, row) when is_function(row_click) do
     row_click.(row)
   end
@@ -441,6 +496,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp evaluate_phx_click(_assigns, _row), do: nil
 
+  # Calculates start and end page indexes for pagination bar based on current page and offset
   @spec page_calculate_indexes(map()) :: map()
   defp page_calculate_indexes(
          %{pagination: %{page: page}, pages_bar_range_offset: offset} = assigns
@@ -451,6 +507,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> page_fix_indexes_bounds()
   end
 
+  # Augments page range to maintain consistent pagination bar width when near boundaries
   @spec maybe_augment_range(map()) :: map()
   defp maybe_augment_range(
          %{
@@ -469,6 +526,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> page_fix_indexes_bounds()
   end
 
+  # Ensures page indexes stay within valid bounds and calculates left/right jump indexes
   @spec page_fix_indexes_bounds(map()) :: map()
   defp page_fix_indexes_bounds(
          %{
@@ -490,7 +548,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> Map.put(:pages_right_index, right_index)
   end
 
-  @spec assign_rows(map(), map(), atom() | nil, atom() | binary() | nil) :: map()
+  # Assigns rows from streams or list to component assigns, handling optional suffix for mobile
+  @spec assign_rows(map(), map() | list(), atom() | nil, atom() | binary() | nil) :: map()
   defp assign_rows(assigns, streams, source_key, suffix \\ nil)
 
   defp assign_rows(assigns, %{} = streams, source_key, nil) do
@@ -519,7 +578,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> put_in([:auix, :empty_list?], Enum.empty?(rows))
   end
 
-  @spec even?(tuple) :: boolean()
+  # Determines if a row should use even styling based on _even? flag in entity
+  @spec even?(tuple() | term()) :: boolean()
   defp even?({_id, entity}) do
     entity
     |> Kernel.||(%{})
@@ -528,10 +588,90 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp even?(_), do: false
 
-  @spec get_cols(list(), boolean) :: list()
+  # Returns column list, optionally removing first column if it's a checkbox
+  @spec get_cols(list(), boolean()) :: list()
   defp get_cols([], _first_column_not_checkbox?), do: []
 
   defp get_cols(cols, true = _first_column_not_checkbox?), do: cols
 
   defp get_cols(cols, _first_column_not_checkbox), do: List.delete_at(cols, 0)
+
+  # Renders previous navigation icon, handling first page/item boundary conditions
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_previous_icon(map()) :: Rendered.t()
+  defp render_previous_icon(%{pagination: %{page: 1}, item_index: 0} = assigns) do
+    ~H"""
+    <.icon name="hero-chevron-left" class="auix-icon-inactive" />
+    """
+  end
+
+  defp render_previous_icon(%{item_index: 0} = assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page - 1} phx-value-index={@pagination.per_page - 1}>
+      <.icon name="hero-chevron-left" />
+    </.link>
+    """
+  end
+
+  defp render_previous_icon(assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index - 1}>
+      <.icon name="hero-chevron-left"  />
+    </.link>  
+    """
+  end
+
+  # Renders current record position out of total entries count
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_record_index(map()) :: Rendered.t()
+  defp render_record_index(assigns) do
+    ~H"""
+    <span>{@pagination.per_page * (@pagination.page - 1) + @item_index + 1} / {@pagination.entries_count}</span>
+    """
+  end
+
+  # Renders next navigation icon, handling last page/item boundary conditions
+  attr(:pagination, :map, default: %{})
+  attr(:item_index, :integer, default: -1)
+
+  @spec render_next_icon(map()) :: Rendered.t()
+  defp render_next_icon(
+         %{
+           pagination: %{
+             page: last_page,
+             pages_count: last_page,
+             per_page: per_page,
+             entries_count: entries_count
+           },
+           item_index: item_index
+         } = assigns
+       )
+       when item_index >= entries_count - per_page * (last_page - 1) - 1 do
+    ~H"""
+    <.icon name="hero-chevron-right" class="auix-icon-inactive" />
+    """
+  end
+
+  defp render_next_icon(
+         %{pagination: %{per_page: items_per_page}, item_index: item_index} = assigns
+       )
+       when item_index == items_per_page - 1 do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page + 1} phx-value-index={0}>
+      <.icon name="hero-chevron-right" />
+    </.link>
+    """
+  end
+
+  defp render_next_icon(assigns) do
+    ~H"""
+    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index + 1}>
+      <.icon name="hero-chevron-right"  />
+    </.link>  
+    """
+  end
 end
