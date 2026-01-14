@@ -23,6 +23,10 @@ defmodule Aurora.Uix.Layout.Options.Form do
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
     - Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the resource name.
 
+  * `:record_navigator` - Controls the display position of the record navigation bar.
+    - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
+    - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
+
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
 
