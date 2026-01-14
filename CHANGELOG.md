@@ -1,6 +1,6 @@
 # Changelog for Aurora UIX
 
-## [0.1.2] - unreleased
+## [0.1.2] - 2026-01-14
 
 **Record Navigation** - Now users can navigate back and forth while editing or viewing records.
 
@@ -9,6 +9,24 @@ Requires:
 - Phoenix `1.7+`
 - Phoenix LiveView `1.0+`
 - Ecto `3.2+`
+
+
+### Added
+
+- Record navigation feature for show and edit views that added
+  navigation controls to move among records without returning to index
+- Option to disable record navigation when needed
+
+
+### Changed
+
+- Updated dependencies to latest versions
+
+
+### Fixed
+
+- Navigation issues by implementing fallback URI handling
+- Section switching when in show record mode
 
 
 ## [0.1.1] - 2025-01-07
@@ -230,7 +248,6 @@ Requires:
 ## Future Roadmap
 
 **Future releases may include:**
-- Page navigation from within show/edit views
 - Additional rendering components and theme options
 - Simplified template creation with better hooks for customization
 - Enhanced theme adoption and customization

@@ -4,16 +4,20 @@ This document outlines potential features and enhancements for Aurora UIX. Rathe
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.1
+## Current Status: v0.1.2
 
-Aurora UIX v0.1.1 refactors the show view architecture, replacing the standalone LiveView module with a LiveComponent integrated within the Index view. This change enables future record navigation features within show and edit modals.
+Aurora UIX v0.1.2 introduces record navigation, allowing users to navigate between records directly from show and edit views without returning to the index page.
 
-**Recent Changes (v0.1.1)**:
+**Recent Changes (v0.1.2)**:
+- Record navigation feature with next/previous controls
+- Option to disable record navigation when needed
+
+**Previous Release (v0.1.1)**:
 - Show view now uses LiveComponent instead of standalone LiveView module
 - Updated routing to handle show/edit actions through Index module
 - Foundation for implementing record navigation in modals
 
-**Previous Release (v0.1.0)**:
+**Initial Release (v0.1.0)**:
 - Core low-code CRUD UI generation framework
 - Metadata-driven configuration
 - Compile-time code generation
@@ -22,29 +26,6 @@ Aurora UIX v0.1.1 refactors the show view architecture, replacing the standalone
 ---
 
 ## Feature Wishlist
-
-### Page Navigation from Show/Edit Views
-
-**Status**: 🚧 **In Progress** - Foundation laid in v0.1.1
-
-**Objective**: Add navigation capabilities within show and edit pages for better UX.
-
-**Completed (v0.1.1)**:
-- Refactored show view to use LiveComponent architecture
-- Integrated show component within Index LiveView
-- Established routing foundation for modal-based navigation
-
-**Ideas**:
-- "Next/Previous" record navigation buttons
-- Breadcrumb navigation for nested resources
-- Quick navigation sidebar (list of related records)
-- Smart routing with state preservation
-- Back button with context awareness
-- Keyboard shortcuts for navigation
-
-**Why**: Better user experience for navigating between records and related data.
-
----
 
 ### Layout representation with primitives
 ```elixir
