@@ -29,5 +29,8 @@ defmodule Aurora.Uix.Layout.Options.Show do
   defp get_default(%{auix: %{layout_tree: %{tag: :show}}} = assigns, :page_subtitle),
     do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
 
+  defp get_default(_assigns, :record_navigator),
+    do: {:ok, [:top, :bottom]}
+
   defp get_default(_assigns, option), do: {:not_found, option}
 end

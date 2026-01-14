@@ -55,5 +55,8 @@ defmodule Aurora.Uix.Layout.Options.Form do
          "Creates a new <strong>#{name}</strong> record in your database"
        )}
 
+  defp get_default(_assigns, :record_navigator),
+    do: {:ok, [:top, :bottom]}
+
   defp get_default(_assigns, option), do: {:not_found, option}
 end

@@ -424,6 +424,38 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  @doc """
+  Determines if record navigator should be displayed at the specified position.
+
+  ## Parameters
+  - `layout_options` (map()) - Layout configuration map containing record_navigator setting.
+  - `position` (atom()) - The position to check. Common values include `:top`, `:bottom`,
+    or `:both`.
+
+  ## Returns
+  boolean() - True if record navigator should be displayed at the given position, false
+  otherwise.
+
+  ## Examples
+
+      iex> record_navigator?(%{layout_options: %{record_navigator: [:top, :bottom]}}, :top)
+      true
+
+      iex> record_navigator?(%{layout_options: %{record_navigator: :top}}, :top)
+      true
+
+      iex> record_navigator?(%{layout_options: %{record_navigator: :top}}, :bottom)
+      false
+  """
+  @spec record_navigator?(map(), atom()) :: boolean()
+  def record_navigator?(%{layout_options: %{record_navigator: positions}}, position)
+      when is_list(positions), do: position in positions
+
+  def record_navigator?(%{layout_options: %{record_navigator: same_position}}, same_position)
+      when is_atom(same_position), do: true
+
+  def record_navigator?(_, _), do: false
+
   ## PRIVATE
 
   # Renders table column label, handling both function and static label values

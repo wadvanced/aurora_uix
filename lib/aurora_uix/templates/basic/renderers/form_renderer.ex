@@ -15,7 +15,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
-  import Aurora.Uix.Templates.Basic.Components, only: [record_navigator_bar: 1]
+  import Aurora.Uix.Templates.Basic.Components,
+    only: [record_navigator_bar: 1, record_navigator?: 2]
+
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -33,6 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   def render(assigns) do
     ~H"""
     <div>
+      <.record_navigator_bar :if={record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
       <.header>
         {if @action in [:edit, :show_edit], do: @auix.layout_options.edit_title, else: @auix.layout_options.new_title}
         <:subtitle>{if @action in [:edit, :show_edit], do: @auix.layout_options.edit_subtitle, else: @auix.layout_options.new_subtitle}</:subtitle>
@@ -66,7 +69,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
           </div>
         </:actions>
         <:actions>
-          <.record_navigator_bar pagination={@auix.pagination} item_index={@auix.item_index} />
+          <.record_navigator_bar :if={record_navigator?(@auix, :bottom)} pagination={@auix.pagination} item_index={@auix.item_index} />
         </:actions>
       </.simple_form>
 
