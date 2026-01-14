@@ -15,7 +15,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   use Aurora.Uix.CoreComponentsImporter
   use Phoenix.LiveView
 
-  import Aurora.Uix.Templates.Basic.Components, only: [record_navigator_bar: 1]
+  import Aurora.Uix.Templates.Basic.Components,
+    only: [record_navigator_bar: 1, record_navigator?: 2]
+
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -34,6 +36,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
     ~H"""
     <div>
       <div class="auix-show-container">
+        <.record_navigator_bar :if={record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
         <.header>
           {@auix.layout_options.page_title}
           <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
@@ -55,7 +58,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
             {action.(%{auix: @auix})}
           <% end %>
         </div>
-        <.record_navigator_bar pagination={@auix.pagination} item_index={@auix.item_index} />
+        <.record_navigator_bar :if={record_navigator?(@auix, :bottom)} pagination={@auix.pagination} item_index={@auix.item_index} />
       </div>
     </div>
     """

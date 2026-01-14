@@ -115,7 +115,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
       <.modal :if={@live_action in [:new, :edit, :show, :show_edit]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show on_cancel={JS.push("auix_route_back")}>
         <div>
-          <.record_navigator_bar pagination={@auix.pagination} item_index={@auix.item_index} />
           <.live_component
             module={@auix.live_component}
             id={entity_id(@auix) || @live_action}

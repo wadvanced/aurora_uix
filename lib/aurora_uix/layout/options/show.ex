@@ -14,6 +14,10 @@ defmodule Aurora.Uix.Layout.Options.Show do
   * `:page_subtitle` - The page subtitle for the show layout.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
     - Default: `"Detail"`
+
+  * `:record_navigator` - Controls the display position of the record navigation bar.
+    - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
+    - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
   """
 
   use Aurora.Uix.Layout.Options, :show
@@ -28,6 +32,9 @@ defmodule Aurora.Uix.Layout.Options.Show do
 
   defp get_default(%{auix: %{layout_tree: %{tag: :show}}} = assigns, :page_subtitle),
     do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
+
+  defp get_default(_assigns, :record_navigator),
+    do: {:ok, [:top, :bottom]}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

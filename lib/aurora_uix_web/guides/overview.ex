@@ -22,7 +22,8 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
   auix_create_ui do
     index_columns(:product, [:reference, :name, :description, :quantity_at_hand],
-      pagination_items_per_page: 15
+      pagination_items_per_page: 15,
+      order_by: :reference
     )
 
     index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :reference)

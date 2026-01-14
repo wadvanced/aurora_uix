@@ -64,6 +64,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          RecordNavigationDisableTest,
+          "record-navigation-disable-"
+        )
+
+        RoutesHelper.register_product_crud(
           SeparatedMultipleResourcesUITest,
           "separated-multiple-resources-"
         )
