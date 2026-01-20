@@ -19,6 +19,8 @@ defmodule Aurora.Uix.Layout.AshHelper do
   - Requires Ash Framework type structure
   """
 
+  alias Aurora.Uix.Helpers.Common, as: CommonHelper
+
   @doc """
   Converts an Ash type to its corresponding Ecto type.
 
@@ -181,16 +183,22 @@ defmodule Aurora.Uix.Layout.AshHelper do
       :"datetime-local"
   """
   @spec field_html_type(atom() | tuple(), map() | nil) :: atom()
+  def field_html_type({:parameterized, {type, opts}}, _ass_emb)
+      when type in [
+             Ash.Type.Atom,
+             Ash.Type.Atom.EctoType,
+             Ash.Type.String,
+             Ash.Type.String.EctoType
+           ] do
+    if Keyword.has_key?(opts, :one_of), do: :select, else: :text
+  end
+
   def field_html_type({:parameterized, {type, _opts}}, _ass_emb)
       when type in [
-             Ash.Type.String,
-             Ash.Type.String.EctoType,
              Ash.Type.CiString,
              Ash.Type.CiString.EctoType,
              Ash.Type.UUID,
              Ash.Type.UUID.EctoType,
-             Ash.Type.Atom,
-             Ash.Type.Atom.EctoType,
              Ash.Type.Binary,
              Ash.Type.Binary.EctoType,
              Ash.Type.UrlEncodedBinary,
@@ -465,4 +473,53 @@ defmodule Aurora.Uix.Layout.AshHelper do
   def field_filterable({:parameterized, {_type, _opts}}), do: true
 
   def field_filterable(_type), do: true
+
+  @doc """
+  Extracts metadata for Ash field types.
+
+  Builds a metadata map containing field information needed for proper
+  handling in forms and queries. Particularly useful for Ash types with
+  constraints like enums.
+
+  ## Parameters
+
+  - `_association_or_embed` (map() | nil) - Association or embed metadata (unused for Ash types).
+  - `_resource_name` (atom() | nil) - The resource name (unused for Ash types).
+  - `type` (tuple() | atom()) - The Ash field type. Can be a parameterized type tuple
+    `{:parameterized, {Ash.Type.*, opts}}` or a direct atom type.
+
+  ## Returns
+
+  map() - A metadata map. For Atom/String types with `:one_of` constraint, returns
+  `%{select: %{opts: options, multiple: false}}`. Empty map otherwise.
+
+  ## Examples
+
+      iex> field_data(nil, nil, {:parameterized, {Ash.Type.Atom, [one_of: [:active, :inactive]]}})
+      %{select: %{opts: [active: "Active", inactive: "Inactive"], multiple: false}}
+
+      iex> field_data(nil, nil, {:parameterized, {Ash.Type.String, [one_of: ["red", "blue"]]}})
+      %{select: %{opts: [{"red", "Red"}, {"blue", "Blue"}], multiple: false}}
+
+      iex> field_data(nil, nil, {:parameterized, {Ash.Type.Integer, []}})
+      %{}
+  """
+  @spec field_data(map() | nil, atom() | nil, tuple() | atom()) :: map()
+  def field_data(_association_or_embed, _resource_name, {:parameterized, {type, opts}})
+      when type in [
+             Ash.Type.Atom,
+             Ash.Type.Atom.EctoType,
+             Ash.Type.String,
+             Ash.Type.String.EctoType
+           ] do
+    if Keyword.has_key?(opts, :one_of) do
+      opts[:one_of]
+      |> Enum.map(&{&1, CommonHelper.capitalize(&1)})
+      |> then(&%{select: %{opts: &1, multiple: false}})
+    else
+      %{}
+    end
+  end
+
+  def field_data(_association_or_embed, _resource_name, _type), do: %{}
 end

@@ -455,6 +455,9 @@ defmodule Aurora.Uix.Layout.Helpers do
     %{select: %{opts: opts, multiple: false}}
   end
 
+  def field_data(nil, resource_name, {:parameterized, _} = type),
+    do: AshHelper.field_data(nil, resource_name, type)
+
   def field_data(nil, _resource_name, _type), do: %{}
 
   def field_data(%Embedded{} = embedded, resource_name, _type) do
