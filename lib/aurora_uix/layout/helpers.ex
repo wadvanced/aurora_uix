@@ -10,6 +10,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
+  alias Aurora.Uix.Layout.AshHelper
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
@@ -245,6 +246,9 @@ defmodule Aurora.Uix.Layout.Helpers do
   @spec field_type(atom(), map() | nil) :: atom()
   def field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
 
+  def field_type(type = {:parameterized, _}, relationship),
+    do: AshHelper.field_type(type, relationship)
+
   def field_type(type, nil), do: type
 
   def field_type(nil, %AssociationHas{cardinality: :many} = _association),
@@ -288,6 +292,9 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   def field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
 
+  def field_html_type(type = {:parameterized, _}, association_or_embed),
+    do: AshHelper.field_html_type(type, association_or_embed)
+
   def field_html_type(type, nil), do: type
 
   def field_html_type(nil, %AssociationHas{cardinality: :many} = _association),
@@ -315,6 +322,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   `integer()` - The suggested display length in characters.
   """
   @spec field_length(atom()) :: integer()
+  def field_length({:parameterized, _} = type), do: AshHelper.field_length(type)
   def field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
   def field_length(type) when type in [:id, :integer], do: 10
   def field_length(type) when type in [:float, :decimal], do: 12
@@ -340,6 +348,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   `integer()` - The numeric precision, or `0` for non-numeric types.
   """
   @spec field_precision(atom()) :: integer()
+  def field_precision({:parameterized, _} = type), do: AshHelper.field_precision(type)
   def field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
   def field_precision(_type), do: 0
 
@@ -355,6 +364,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   `integer()` - The numeric scale, or `0` for non-decimal types.
   """
   @spec field_scale(atom()) :: integer()
+  def field_scale({:parameterized, _} = type), do: AshHelper.field_scale(type)
   def field_scale(type) when type in [:float, :decimal], do: 2
   def field_scale(_type), do: 0
 
@@ -418,6 +428,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   `boolean()` - `true` if the field supports filtering, otherwise `false`.
   """
   @spec field_filterable(atom()) :: boolean()
+  def field_filterable({:parameterized, _} = type), do: AshHelper.field_filterable(type)
   def field_filterable(_type), do: true
 
   @doc """

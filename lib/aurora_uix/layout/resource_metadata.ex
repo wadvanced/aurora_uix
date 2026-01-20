@@ -332,7 +332,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - Returns {name, resource} tuple
   @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
   defp configure_resource_fields(resource) do
-    schema = resource.opts[:schema]
+    schema =
+      resource.opts[:schema]
 
     opts =
       resource.opts
@@ -344,6 +345,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{
+        type: resource_type(schema),
         opts: opts,
         fields: parse_fields(schema, resource.name),
         inner_elements: resource.inner_elements
@@ -598,4 +600,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   defp replace_related_field_data(field, _related_changes), do: field
+
+  defp resource_type(nil), do: :none
+
+  defp resource_type(schema) do
+    functions = schema.__info__(:functions)
+
+    cond do
+      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash_resource
+      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ecto_schema
+      true -> :none
+    end
+  end
 end
