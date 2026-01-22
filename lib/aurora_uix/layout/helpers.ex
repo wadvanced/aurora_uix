@@ -246,7 +246,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   @spec field_type(atom(), map() | nil) :: atom()
   def field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
 
-  def field_type(type = {:parameterized, _}, relationship),
+  def field_type({:parameterized, _} = type, relationship),
     do: AshLayoutHelpers.field_type(type, relationship)
 
   def field_type(type, nil), do: type
@@ -292,7 +292,7 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   def field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
 
-  def field_html_type(type = {:parameterized, _}, association_or_embed),
+  def field_html_type({:parameterized, _} = type, association_or_embed),
     do: AshLayoutHelpers.field_html_type(type, association_or_embed)
 
   def field_html_type(type, nil), do: type

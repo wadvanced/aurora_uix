@@ -171,6 +171,10 @@ defmodule Aurora.Uix.Test.Helper do
     Repo.delete_all(User)
   end
 
+  @doc """
+  Deletes all blog data.
+  """
+  @spec delete_all_blog_data() :: :ok
   def delete_all_blog_data do
     Repo.delete_all(Post)
     Repo.delete_all(Author)

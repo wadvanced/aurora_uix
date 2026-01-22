@@ -601,6 +601,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   defp replace_related_field_data(field, _related_changes), do: field
 
+  @spec resource_type(nil | module()) :: atom()
   defp resource_type(nil), do: :none
 
   defp resource_type(schema) do

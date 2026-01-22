@@ -771,7 +771,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     assign_auix(socket, :read_items, read_items)
   end
 
-  defp apply_list_function(opts, {Ash, action_name, action_module}) do
+  @spec apply_list_function(keyword(), tuple()) :: map()
+  defp apply_list_function(opts, {:ash, action_name, action_module}) do
     AshCrud.list(action_module, action_name, opts)
   end
 

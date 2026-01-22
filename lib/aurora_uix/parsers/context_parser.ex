@@ -22,9 +22,9 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   configured context module.
   """
 
-  alias Aurora.Uix.Integration.Ash.ParserDefaults, as: AshParserDefaults
-
   @behaviour Aurora.Uix.Parser
+
+  alias Aurora.Uix.Integration.Ash.ParserDefaults, as: AshParserDefaults
 
   @doc """
   Returns the list of supported context option keys.

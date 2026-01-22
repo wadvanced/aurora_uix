@@ -21,6 +21,8 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   discover implementations. Functions are resolved with the appropriate arity from the
   configured ash resource or ash domain.
   """
+  alias Ash.Resource.Actions
+  alias Ash.Resource.Info
 
   @doc """
   Resolves default values for context-derived properties.
@@ -60,29 +62,29 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> create_function_reference(ash_domain, ash_resource)
   end
 
-  def default_value(%{module: module}, %{context: context}, :get_function) do
-    create_function_reference(context, ["get_#{module}", "get_#{module}!"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :delete_function) do
-    create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :create_function) do
-    create_function_reference(context, ["create_#{module}"], 1)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :update_function) do
-    create_function_reference(context, ["update_#{module}"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :change_function) do
-    create_function_reference(context, ["change_#{module}"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :new_function) do
-    create_function_reference(context, ["new_#{module}"], 2)
-  end
+  # def default_value(%{module: module}, %{context: context}, :get_function) do
+  #   create_function_reference(context, ["get_#{module}", "get_#{module}!"], 2)
+  # end
+  #
+  # def default_value(%{module: module}, %{context: context}, :delete_function) do
+  #   create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
+  # end
+  #
+  # def default_value(%{module: module}, %{context: context}, :create_function) do
+  #   create_function_reference(context, ["create_#{module}"], 1)
+  # end
+  #
+  # def default_value(%{module: module}, %{context: context}, :update_function) do
+  #   create_function_reference(context, ["update_#{module}"], 2)
+  # end
+  #
+  # def default_value(%{module: module}, %{context: context}, :change_function) do
+  #   create_function_reference(context, ["change_#{module}"], 2)
+  # end
+  #
+  # def default_value(%{module: module}, %{context: context}, :new_function) do
+  #   create_function_reference(context, ["new_#{module}"], 2)
+  # end
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
@@ -93,20 +95,22 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   ## PRIVATE
 
+  @spec get_proper_actions(nil | module(), nil | module(), atom()) :: list()
   defp get_proper_actions(nil, nil, _action_type), do: []
 
   defp get_proper_actions(nil, ash_resource, action_type) do
     action_module = action_module(action_type)
 
     ash_resource
-    |> Ash.Resource.Info.actions()
+    |> Info.actions()
     |> Enum.filter(&(&1.__struct__ == action_module))
   end
 
-  defp action_module(:read), do: Ash.Resource.Actions.Read
-  defp action_module(:read), do: Ash.Resource.Actions.Create
-  defp action_module(:read), do: Ash.Resource.Actions.Update
-  defp action_module(:read), do: Ash.Resource.Actions.Destroy
+  @spec action_module(atom()) :: module()
+  defp action_module(:read), do: Actions.Read
+  defp action_module(:create), do: Actions.Create
+  defp action_module(:update), do: Actions.Update
+  defp action_module(:destroy), do: Actions.Destroy
 
   @spec create_function_reference(atom(), module() | nil, module() | nil) :: function()
   defp create_function_reference(nil, _ash_domain, _ash_resource),
@@ -114,7 +118,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   defp create_function_reference(%{name: action_name}, nil, ash_resource) do
     if action_name do
-      {Ash, action_name, ash_resource}
+      {:ash, action_name, ash_resource}
     else
       &__MODULE__.undefined_function/2
     end
