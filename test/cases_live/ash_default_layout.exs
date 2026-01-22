@@ -7,5 +7,16 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
   # alias Aurora.Uix.Guides.Blog.Category
   # alias Aurora.Uix.Guides.Blog.Post
 
-  auix_resource_metadata(:author, schema: Author)
+  auix_resource_metadata(:author, schema: Author, order_by: [:bio])
+
+  auix_create_ui()
+
+  test "Default layout index", %{conn: conn} do
+    delete_all_blog_data()
+    create_sample_authors(5)
+
+    {:ok, _view, html} = live(conn, "/ash-default-layout-authors")
+    assert html =~ "Listing Authors"
+    assert html =~ "New Author"
+  end
 end
