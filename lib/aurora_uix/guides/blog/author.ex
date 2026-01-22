@@ -3,10 +3,10 @@ defmodule Aurora.Uix.Guides.Blog.Author do
     data_layer: AshPostgres.DataLayer,
     domain: Aurora.Uix.Guides.Blog
 
-  # postgres do
-  #   table "authors"
-  #   repo(Aurora.Uix.Repo)
-  # end
+  postgres do
+    table "authors"
+    repo(Aurora.Uix.Repo)
+  end
 
   attributes do
     uuid_primary_key :id
@@ -19,5 +19,13 @@ defmodule Aurora.Uix.Guides.Blog.Author do
 
   relationships do
     has_many :posts, Aurora.Uix.Guides.Blog.Post
+  end
+
+  actions do
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      accept [:name, :email, :bio]
+    end
   end
 end
