@@ -1,12 +1,12 @@
-defmodule Aurora.Uix.Parsers.ContextParser do
+defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   @moduledoc """
-  Provides parsing functionality for context-based resource configurations.
+  Provides parsing functionality for ash-based resource configurations.
 
   Automatically detects and configures context-related functions for resources, such as
   listing, getting, creating, updating, and deleting elements. Infers function names
   based on context and schema module conventions.
 
-  ## Supported Options
+  ## Implemented Options
 
   * `:list_function` - Function reference for reading all elements (default: list_<source>/1).
   * `:list_function_paginated` - Function reference for reading elements using pagination.
@@ -17,34 +17,10 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   * `:change_function` - Function reference for creating changesets (default: change_<module>/2).
   * `:new_function` - Function reference for creating new changesets (default: new_<module>/2).
 
-  All functions use the context module and schema module naming conventions to automatically
+  All functions use the ash resource naming conventions to automatically
   discover implementations. Functions are resolved with the appropriate arity from the
-  configured context module.
+  configured ash resource or ash domain.
   """
-
-  alias Aurora.Uix.Integration.Ash.ParserDefaults, as: AshParserDefaults
-
-  @behaviour Aurora.Uix.Parser
-
-  @doc """
-  Returns the list of supported context option keys.
-
-  ## Returns
-  list(atom()) - List of supported option keys for context parsing.
-  """
-  @spec get_options() :: list(atom())
-  def get_options do
-    [
-      :list_function,
-      :list_function_paginated,
-      :get_function,
-      :delete_function,
-      :update_function,
-      :create_function,
-      :change_function,
-      :new_function
-    ]
-  end
 
   @doc """
   Resolves default values for context-derived properties.
@@ -61,23 +37,27 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   function() - Function reference if found, otherwise undefined_function/2.
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
-  def default_value(parsed_opts, %{type: :ash_resource} = resource_config, option),
-    do: AshParserDefaults.default_value(parsed_opts, resource_config, option)
 
-  def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
-    create_function_reference(context, ["list_#{source}", "list_#{module}"], 1)
+  def default_value(
+        %{source: _source, module: _module},
+        %{context: ash_domain, schema: ash_resource},
+        :list_function
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :read)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource)
   end
 
   def default_value(
-        %{source: source, module: module},
-        %{context: context},
+        %{source: _source, module: _module},
+        %{context: ash_domain, schema: ash_resource},
         :list_function_paginated
       ) do
-    create_function_reference(
-      context,
-      ["list_#{source}_paginated", "list_#{module}_paginated"],
-      1
-    )
+    ash_domain
+    |> get_proper_actions(ash_resource, :read)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource)
   end
 
   def default_value(%{module: module}, %{context: context}, :get_function) do
@@ -113,27 +93,44 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   ## PRIVATE
 
-  @spec create_function_reference(module(), list(binary()), integer()) :: function()
+  defp get_proper_actions(nil, nil, _action_type), do: []
 
-  defp create_function_reference(nil, _functions, _expected_arity),
+  defp get_proper_actions(nil, ash_resource, action_type) do
+    action_module = action_module(action_type)
+
+    ash_resource
+    |> Ash.Resource.Info.actions()
+    |> Enum.filter(&(&1.__struct__ == action_module))
+  end
+
+  defp action_module(:read), do: Ash.Resource.Actions.Read
+  defp action_module(:read), do: Ash.Resource.Actions.Create
+  defp action_module(:read), do: Ash.Resource.Actions.Update
+  defp action_module(:read), do: Ash.Resource.Actions.Destroy
+
+  @spec create_function_reference(atom(), module() | nil, module() | nil) :: function()
+  defp create_function_reference(nil, _ash_domain, _ash_resource),
     do: &__MODULE__.undefined_function/2
 
-  defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
-    implemented_functions =
-      :functions
-      |> context.__info__()
-      |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
-      |> Enum.map(&(&1 |> elem(0) |> to_string()))
-
-    function_name =
-      functions
-      |> Enum.filter(&(&1 in implemented_functions))
-      |> List.first(first_selected)
-
-    context
-    |> Module.concat(nil)
-    |> then(&"&#{&1}.#{function_name}/#{expected_arity}")
-    |> Code.eval_string()
-    |> elem(0)
+  defp create_function_reference(%{name: action_name}, nil, ash_resource) do
+    if action_name do
+      {Ash, action_name, ash_resource}
+    else
+      &__MODULE__.undefined_function/2
+    end
   end
+
+  @spec maybe_get_primary_action(list()) :: nil | struct()
+  defp maybe_get_primary_action(actions) do
+    actions
+    |> Enum.filter(& &1.primary?)
+    |> get_first_valid(actions)
+  end
+
+  @spec get_first_valid(list(), list()) :: nil | struct()
+  defp get_first_valid([], []), do: nil
+  defp get_first_valid([], [first_action | _rest]), do: first_action
+
+  defp get_first_valid([filtered_first_action | _rest_filtered], _actions),
+    do: filtered_first_action
 end

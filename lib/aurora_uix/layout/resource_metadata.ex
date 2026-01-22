@@ -333,7 +333,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
   defp configure_resource_fields(resource) do
     schema =
-      resource.opts[:schema]
+      resource.opts[:schema] || resource.opts[:ash_resource]
 
     opts =
       resource.opts

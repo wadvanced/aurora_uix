@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
+  alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Selection
@@ -765,9 +766,17 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     read_items =
       query_options
       |> Keyword.merge(options)
-      |> list_function.()
+      |> apply_list_function(list_function)
 
     assign_auix(socket, :read_items, read_items)
+  end
+
+  defp apply_list_function(opts, {Ash, action_name, action_module}) do
+    AshCrud.list(action_module, action_name, opts)
+  end
+
+  defp apply_list_function(opts, list_function) do
+    list_function.(opts)
   end
 
   @spec update_streams(Socket.t()) :: Socket.t()

@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.AshHelper do
+defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @moduledoc """
   Provides helper functions for converting Ash Framework types to Ecto types.
 
