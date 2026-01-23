@@ -685,6 +685,24 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
   end
 
+  defp load_page(
+         %{
+           assigns: %{
+             auix: %{
+               pagination: pagination,
+               list_function_selected: {:ash, _action, _action_module} = list_function
+             }
+           }
+         } = socket,
+         page
+       ) do
+    pagination
+    |> AshCrud.load_page(page, list_function)
+    |> then(&assign_auix(socket, :read_items, &1))
+    |> update_streams()
+    |> assign_item_index()
+  end
+
   defp load_page(%{assigns: %{auix: %{pagination: pagination}}} = socket, page) do
     pagination
     |> CtxCore.to_page(page)
@@ -710,7 +728,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     load_items_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
-    read_items_options = [paginate: %{page: auix.initial_page, per_page: auix.per_page}]
+    read_items_options = [
+      paginate: %{page: auix.initial_page, per_page: auix.per_page}
+    ]
 
     socket
     |> assign_auix(:load_items_options, load_items_options)
@@ -772,8 +792,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   @spec apply_list_function(keyword(), tuple()) :: map()
-  defp apply_list_function(opts, {:ash, action_name, action_module}) do
-    AshCrud.list(action_module, action_name, opts)
+  defp apply_list_function(opts, {:ash, action, action_module}) do
+    AshCrud.list(action_module, action, opts)
   end
 
   defp apply_list_function(opts, list_function) do

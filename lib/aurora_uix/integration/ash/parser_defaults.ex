@@ -58,6 +58,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
       ) do
     ash_domain
     |> get_proper_actions(ash_resource, :read)
+    |> Enum.filter(& &1.pagination)
     |> maybe_get_primary_action()
     |> create_function_reference(ash_domain, ash_resource)
   end
@@ -116,13 +117,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   defp create_function_reference(nil, _ash_domain, _ash_resource),
     do: &__MODULE__.undefined_function/2
 
-  defp create_function_reference(%{name: action_name}, nil, ash_resource) do
-    if action_name do
-      {:ash, action_name, ash_resource}
-    else
-      &__MODULE__.undefined_function/2
-    end
-  end
+  defp create_function_reference(action, nil, ash_resource), do: {:ash, action, ash_resource}
 
   @spec maybe_get_primary_action(list()) :: nil | struct()
   defp maybe_get_primary_action(actions) do
