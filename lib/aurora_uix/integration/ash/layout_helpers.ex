@@ -25,17 +25,13 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   Converts an Ash type to its corresponding Ecto type.
 
   ## Parameters
-
-  - `type` (tuple() | atom()) - The Ash type to convert. Can be a parameterized type tuple
-    `{:parameterized, {Ash.Type.*, opts}}` or a direct atom type.
+  - `type` (tuple() | atom()) - The Ash type to convert.
   - `_ass_emb` (map() | nil) - Association or embedding metadata (currently unused).
 
   ## Returns
-
-  atom() - The corresponding Ecto type atom (e.g., `:string`, `:integer`, `:map`).
+  atom() - The corresponding Ecto type atom.
 
   ## Examples
-
       iex> field_type({:parameterized, {Ash.Type.String, []}}, nil)
       :string
 
@@ -48,7 +44,7 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
       iex> field_type(:string, nil)
       :string
   """
-  @spec field_type(atom() | tuple(), map() | nil) :: atom()
+  @spec field_type(tuple() | atom(), map() | nil) :: atom()
   def field_type({:parameterized, {type, _opts}}, _ass_emb)
       when type in [
              Ash.Type.String,
@@ -155,21 +151,14 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @doc """
   Maps an Ash type to an HTML input type.
 
-  Provides appropriate HTML5 input types based on the Ash data type, enabling proper
-  browser validation and input handling for forms generated from Ash resources.
-
   ## Parameters
-
-  - `type` (tuple() | atom()) - The Ash type to map. Can be a parameterized type tuple
-    `{:parameterized, {Ash.Type.*, opts}}` or a direct atom type.
+  - `type` (tuple() | atom()) - The Ash type to map.
   - `_ass_emb` (map() | nil) - Association or embedding metadata (currently unused).
 
   ## Returns
-
-  atom() - The HTML5 input type (e.g., `:text`, `:number`, `:checkbox`).
+  atom() - The HTML5 input type.
 
   ## Examples
-
       iex> field_html_type({:parameterized, {Ash.Type.String, []}}, nil)
       :text
 
@@ -182,7 +171,7 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
       iex> field_html_type({:parameterized, {Ash.Type.DateTime, []}}, nil)
       :"datetime-local"
   """
-  @spec field_html_type(atom() | tuple(), map() | nil) :: atom()
+  @spec field_html_type(tuple() | atom(), map() | nil) :: atom()
   def field_html_type({:parameterized, {type, opts}}, _ass_emb)
       when type in [
              Ash.Type.Atom,
@@ -274,20 +263,13 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @doc """
   Determines the display length for an Ash field based on its type.
 
-  Sets sensible default length constraints that work well for most UI scenarios,
-  considering typical data ranges for each Ash type.
-
   ## Parameters
-
-  - `type` (tuple() | atom()) - The Ash type to determine the length for. Can be a
-    parameterized type tuple `{:parameterized, {Ash.Type.*, opts}}` or a direct atom type.
+  - `type` (tuple() | atom()) - The Ash type to determine the length for.
 
   ## Returns
-
   integer() - The suggested display length in characters.
 
   ## Examples
-
       iex> field_length({:parameterized, {Ash.Type.String, []}})
       255
 
@@ -297,7 +279,7 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
       iex> field_length({:parameterized, {Ash.Type.Boolean, []}})
       5
   """
-  @spec field_length(atom() | tuple()) :: integer()
+  @spec field_length(tuple() | atom()) :: integer()
   def field_length({:parameterized, {type, _opts}})
       when type in [
              Ash.Type.String,
@@ -360,18 +342,13 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @doc """
   Gets the numeric precision for Ash number fields.
 
-  Returns the total number of significant digits for numeric types.
-
   ## Parameters
-
   - `type` (tuple() | atom()) - The Ash field type to check.
 
   ## Returns
-
   integer() - The numeric precision, or `0` for non-numeric types.
 
   ## Examples
-
       iex> field_precision({:parameterized, {Ash.Type.Integer, []}})
       10
 
@@ -381,7 +358,7 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
       iex> field_precision({:parameterized, {Ash.Type.String, []}})
       0
   """
-  @spec field_precision(atom() | tuple()) :: integer()
+  @spec field_precision(tuple() | atom()) :: integer()
   def field_precision({:parameterized, {type, _opts}})
       when type in [
              Ash.Type.Integer,
@@ -400,18 +377,13 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @doc """
   Gets the numeric scale for Ash decimal/float fields.
 
-  Returns the number of digits after the decimal point.
-
   ## Parameters
-
   - `type` (tuple() | atom()) - The Ash field type to check.
 
   ## Returns
-
   integer() - The numeric scale, or `0` for non-decimal types.
 
   ## Examples
-
       iex> field_scale({:parameterized, {Ash.Type.Float, []}})
       2
 
@@ -421,7 +393,7 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
       iex> field_scale({:parameterized, {Ash.Type.Integer, []}})
       0
   """
-  @spec field_scale(atom() | tuple()) :: integer()
+  @spec field_scale(tuple() | atom()) :: integer()
   def field_scale({:parameterized, {type, _opts}})
       when type in [
              Ash.Type.Float,
@@ -439,22 +411,19 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   Determines if an Ash field should be filterable in queries.
 
   ## Parameters
-
   - `type` (tuple() | atom()) - The Ash field type to check.
 
   ## Returns
-
-  boolean() - `true` if the field supports filtering, otherwise `false`.
+  boolean() - Returns `true` if the field supports filtering, otherwise `false`.
 
   ## Examples
-
       iex> field_filterable({:parameterized, {Ash.Type.String, []}})
       true
 
       iex> field_filterable({:parameterized, {Ash.Type.Map, []}})
       false
   """
-  @spec field_filterable(atom() | tuple()) :: boolean()
+  @spec field_filterable(tuple() | atom()) :: boolean()
   def field_filterable({:parameterized, {type, _opts}})
       when type in [
              Ash.Type.Map,
@@ -477,24 +446,15 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @doc """
   Extracts metadata for Ash field types.
 
-  Builds a metadata map containing field information needed for proper
-  handling in forms and queries. Particularly useful for Ash types with
-  constraints like enums.
-
   ## Parameters
-
-  - `_association_or_embed` (map() | nil) - Association or embed metadata (unused for Ash types).
-  - `_resource_name` (atom() | nil) - The resource name (unused for Ash types).
-  - `type` (tuple() | atom()) - The Ash field type. Can be a parameterized type tuple
-    `{:parameterized, {Ash.Type.*, opts}}` or a direct atom type.
+  - `_association_or_embed` (map() | nil) - Association or embed metadata (unused).
+  - `_resource_name` (atom() | nil) - The resource name (unused).
+  - `type` (tuple() | atom()) - The Ash field type.
 
   ## Returns
-
-  map() - A metadata map. For Atom/String types with `:one_of` constraint, returns
-  `%{select: %{opts: options, multiple: false}}`. Empty map otherwise.
+  map() - A metadata map with select options for constrained types, empty map otherwise.
 
   ## Examples
-
       iex> field_data(nil, nil, {:parameterized, {Ash.Type.Atom, [one_of: [:active, :inactive]]}})
       %{select: %{opts: [active: "Active", inactive: "Inactive"], multiple: false}}
 

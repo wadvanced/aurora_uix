@@ -25,16 +25,16 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
   - `action_module` (module()) - The Ash resource module.
-  - `action` (atom()) - The read action to invoke.
-  - `opts` (Keyword.t()) - Query opts passed to `QueryParser.parse/2`:
+  - `action` (Actions.Read.t()) - The read action struct.
+  - `opts` (keyword()) - Query options:
     * `:where` (list()) - Filter clauses.
     * `:order_by` (term()) - Sort specification.
+    * `:paginate` (Pagination.t()) - Pagination configuration.
 
   ## Returns
-  Aurora.Ctx.Pagination.t() - Pagination structure containing query results.
-
+  Pagination.t() - Pagination structure containing query results.
   """
-  @spec list(module(), Actions.Read.t(), keyword()) :: Aurora.Ctx.Pagination.t()
+  @spec list(module(), Actions.Read.t(), keyword()) :: Pagination.t()
   def list(action_module, action, opts \\ [])
 
   def list(action_module, %{name: action_name, pagination: false}, opts) do
@@ -73,6 +73,18 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     }
   end
 
+  @doc """
+  Loads a specific page of results for paginated data.
+
+  ## Parameters
+  - `pagination` (Pagination.t()) - The current pagination structure.
+  - `page` (integer()) - The page number to load.
+  - `list_function` (tuple()) - Tuple with format `{:ash, action, action_module}`.
+
+  ## Returns
+  Pagination.t() - Updated pagination structure with the requested page data.
+  """
+  @spec load_page(Pagination.t(), integer(), tuple()) :: Pagination.t()
   def load_page(pagination, page, _list_function) when page < 1, do: pagination
 
   def load_page(%{pages_count: pages_count} = pagination, page, _list_function)
@@ -92,6 +104,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     }
   end
 
+  ## PRIVATE
+
+  # Reads paginated results from an Ash action
+  @spec read_paginated(module(), Actions.Read.t(), keyword(), integer(), integer(), boolean()) ::
+          {:ok, Offset.t()} | {:error, term()}
   defp read_paginated(action_module, %{name: action_name}, opts, page, per_page, count?) do
     action_module
     |> Ash.Query.for_read(action_name)

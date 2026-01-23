@@ -25,13 +25,13 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
   Parses and applies query options to an Ash query.
 
   ## Parameters
-  - `query` (Ash.Query.t()) - The base Ash query to modify.
-  - `opts` (Keyword.t()) - Options:
+  - `query` (struct()) - The base Ash query to modify.
+  - `opts` (keyword()) - Options:
     * `:order_by` (term()) - Sorting specification passed to `Ash.Query.sort/2`.
     * `:where` (list()) - List of filter clauses.
 
   ## Returns
-  Ash.Query.t() - The modified query with applied options.
+  struct() - The modified query with applied options.
 
   ## Examples
       iex> query = Ash.Query.new(MyApp.Post)
@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
       iex> parse(query, where: [{:category, :in, "electronics,books"}])
       #Ash.Query<...>
   """
-  @spec parse(Ash.Query.t(), Keyword.t()) :: Ash.Query.t()
+  @spec parse(struct(), keyword()) :: struct()
   def parse(query, opts \\ []) do
     Enum.reduce(opts, query, &process_option/2)
   end
@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
   ## PRIVATE
 
   # Applies :order_by option to sort the query
-  @spec process_option({atom(), term()}, Ash.Query.t()) :: Ash.Query.t()
+  @spec process_option(tuple(), struct()) :: struct()
   defp process_option({:order_by, values}, query) do
     Ash.Query.sort(query, values)
   end
@@ -68,7 +68,7 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
   defp process_option(_option, query), do: query
 
   # Handles empty where clause
-  @spec process_where_clause(term(), Ash.Query.t()) :: Ash.Query.t()
+  @spec process_where_clause(term(), struct()) :: struct()
   defp process_where_clause([], query), do: query
 
   # Converts 2-tuple format to 3-tuple with default :eq operator

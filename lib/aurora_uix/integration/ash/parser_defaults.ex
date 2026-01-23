@@ -109,9 +109,9 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   @spec action_module(atom()) :: module()
   defp action_module(:read), do: Actions.Read
-  defp action_module(:create), do: Actions.Create
-  defp action_module(:update), do: Actions.Update
-  defp action_module(:destroy), do: Actions.Destroy
+  # defp action_module(:create), do: Actions.Create
+  # defp action_module(:update), do: Actions.Update
+  # defp action_module(:destroy), do: Actions.Destroy
 
   @spec create_function_reference(atom(), module() | nil, module() | nil) :: function()
   defp create_function_reference(nil, _ash_domain, _ash_resource),
