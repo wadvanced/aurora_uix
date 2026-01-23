@@ -690,7 +690,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            assigns: %{
              auix: %{
                pagination: pagination,
-               list_function_selected: {:ash, _action, _action_module} = list_function
+               list_function_selected:
+                 {:ash, _ash_action, _action_module, _auix_action} = list_function
              }
            }
          } = socket,
@@ -792,8 +793,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   @spec apply_list_function(keyword(), tuple()) :: map()
-  defp apply_list_function(opts, {:ash, action, action_module}) do
-    AshCrud.list(action_module, action, opts)
+  defp apply_list_function(opts, {:ash, action, action_module, auix_action}) do
+    AshCrud.list(auix_action, action_module, action, opts)
   end
 
   defp apply_list_function(opts, list_function) do

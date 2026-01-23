@@ -41,31 +41,41 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   @spec default_value(map(), map(), atom()) :: term() | nil
 
   def default_value(
-        %{source: _source, module: _module},
+        _parsed_opts,
         %{context: ash_domain, schema: ash_resource},
-        :list_function
+        :list_function = auix_action
       ) do
     ash_domain
     |> get_proper_actions(ash_resource, :read)
     |> maybe_get_primary_action()
-    |> create_function_reference(ash_domain, ash_resource)
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
   def default_value(
-        %{source: _source, module: _module},
+        _parsed_opts,
         %{context: ash_domain, schema: ash_resource},
-        :list_function_paginated
+        :list_function_paginated = auix_action
       ) do
     ash_domain
     |> get_proper_actions(ash_resource, :read)
     |> Enum.filter(& &1.pagination)
     |> maybe_get_primary_action()
-    |> create_function_reference(ash_domain, ash_resource)
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
-  # def default_value(%{module: module}, %{context: context}, :get_function) do
-  #   create_function_reference(context, ["get_#{module}", "get_#{module}!"], 2)
-  # end
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :get_function = auix_action
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :read)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
+
+    &__MODULE__.undefined_function/2
+  end
+
   #
   # def default_value(%{module: module}, %{context: context}, :delete_function) do
   #   create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
@@ -113,11 +123,13 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   # defp action_module(:update), do: Actions.Update
   # defp action_module(:destroy), do: Actions.Destroy
 
-  @spec create_function_reference(atom(), module() | nil, module() | nil) :: function()
-  defp create_function_reference(nil, _ash_domain, _ash_resource),
+  @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
+          function()
+  defp create_function_reference(nil, _ash_domain, _ash_resource, _auix_action),
     do: &__MODULE__.undefined_function/2
 
-  defp create_function_reference(action, nil, ash_resource), do: {:ash, action, ash_resource}
+  defp create_function_reference(ash_action, nil, ash_resource, auix_action),
+    do: {:ash, ash_action, ash_resource, auix_action}
 
   @spec maybe_get_primary_action(list()) :: nil | struct()
   defp maybe_get_primary_action(actions) do

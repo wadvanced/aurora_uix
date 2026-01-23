@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   Lists resources from an Ash action with optional query parameters.
 
   ## Parameters
+  - `auix_action` (atom()) - The equivalent aurora uix action.
   - `action_module` (module()) - The Ash resource module.
   - `action` (Actions.Read.t()) - The read action struct.
   - `opts` (keyword()) - Query options:
@@ -34,10 +35,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   ## Returns
   Pagination.t() - Pagination structure containing query results.
   """
-  @spec list(module(), Actions.Read.t(), keyword()) :: Pagination.t()
-  def list(action_module, action, opts \\ [])
+  @spec list(atom(), module(), Actions.Read.t(), keyword()) :: Pagination.t()
+  def list(auix_action, action_module, action, opts \\ [])
 
-  def list(action_module, %{name: action_name, pagination: false}, opts) do
+  def list(:list_function, action_module, %{name: action_name, pagination: false}, opts) do
     {:ok, result} =
       action_module
       |> Ash.Query.for_read(action_name)
@@ -52,7 +53,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     }
   end
 
-  def list(action_module, action, opts) do
+  def list(:list_function_paginated, action_module, action, opts) do
     paginate = Keyword.get(opts, :paginate, %Pagination{})
 
     {:ok, %Offset{} = offset} =
@@ -91,7 +92,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       when page > pages_count,
       do: pagination
 
-  def load_page(pagination, page, {:ash, action, action_module}) do
+  def load_page(pagination, page, {:ash, action, action_module, _auix_action}) do
     {:ok, %Offset{} = offset} =
       read_paginated(action_module, action, pagination.opts, page, pagination.per_page, true)
 
