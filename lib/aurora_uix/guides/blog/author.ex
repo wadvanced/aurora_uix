@@ -39,5 +39,7 @@ defmodule Aurora.Uix.Guides.Blog.Author do
     create :create do
       accept [:name, :email, :bio]
     end
+
+    read :not_paginated
   end
 end
