@@ -1,9 +1,9 @@
 defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   @moduledoc """
-  Provides helper functions for converting Ash Framework types to Ecto types.
+  Helper functions for converting Ash Framework types to Ecto types.
 
-  This module facilitates type mapping between Ash resources and Ecto schemas,
-  enabling proper field type resolution for layout and form generation.
+  Facilitates type mapping between Ash resources and Ecto schemas, enabling proper field
+  type resolution for layout and form generation.
 
   ## Key Features
 
@@ -11,6 +11,8 @@ defmodule Aurora.Uix.Integration.Ash.LayoutHelpers do
   - Support for both parameterized Ash types and their EctoType variants
   - Fallback handling for unknown or custom types
   - Direct passthrough for native Ecto types
+  - HTML5 input type mapping for form generation
+  - Field metadata extraction for select/enum types
 
   ## Key Constraints
 

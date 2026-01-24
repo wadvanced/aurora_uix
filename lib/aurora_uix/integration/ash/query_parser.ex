@@ -2,20 +2,23 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
   @moduledoc """
   Parses and applies query options to Ash queries.
 
-  This module provides functionality to transform keyword list options into Ash query
-  operations, supporting filtering, sorting, and other query modifications. It handles
-  various comparison operators and automatically translates them to Ash-compatible
-  formats.
+  Transforms keyword list options into Ash query operations, supporting filtering,
+  sorting, preloading, and other query modifications. Handles various comparison
+  operators and automatically translates them to Ash-compatible formats.
 
   ## Key Features
+
   - Supports `:order_by` for sorting
   - Handles `:where` clauses with multiple operators (`:eq`, `:in`, `:between`, `:like`,
     `:ilike`, `:gte`, `:lte`)
+  - Supports `:preload` for loading associations
   - Automatically translates operation aliases (`:ge`, `:le`, `:equal_to`)
   - Comma-separated string parsing for `:in` operations
 
   ## Key Constraints
-  - Only processes `:order_by` and `:where` options; other options are ignored
+
+  - Only processes `:order_by`, `:where`, and `:preload` options; other options are
+    ignored
   - The `:in` operator expects either a list or comma-separated string
   - The `:between` operator requires start and end values
   """
@@ -64,8 +67,13 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
     Enum.reduce(values, query, &process_where_clause/2)
   end
 
+  defp process_option({:preload, values}, query) do
+    Ash.Query.load(query, values)
+  end
+
   # Ignores unrecognized options
-  defp process_option(_option, query), do: query
+  defp process_option(_option, query),
+    do: query
 
   # Handles empty where clause
   @spec process_where_clause(term(), struct()) :: struct()

@@ -1,25 +1,31 @@
 defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   @moduledoc """
-  Provides parsing functionality for ash-based resource configurations.
+  Parsing functionality for Ash-based resource configurations.
 
   Automatically detects and configures context-related functions for resources, such as
   listing, getting, creating, updating, and deleting elements. Infers function names
-  based on context and schema module conventions.
+  based on context and schema module conventions using Ash resource naming conventions.
+
+  ## Key Features
+
+  - Automatic function discovery from Ash domains and resources
+  - Primary action detection with fallback to first available action
+  - Support for paginated and non-paginated read operations
+  - Function reference creation with action metadata
+
+  ## Key Constraints
+
+  - Currently only implements read-related actions (`:list_function`,
+    `:list_function_paginated`, `:get_function`)
+  - Requires Ash domain and resource configuration
+  - Returns placeholder function when no valid action is found
+  - Functions are resolved from configured Ash resource or Ash domain
 
   ## Implemented Options
 
-  * `:list_function` - Function reference for reading all elements (default: list_<source>/1).
-  * `:list_function_paginated` - Function reference for reading elements using pagination.
-  * `:get_function` - Function reference for getting one element (default: get_<module>/2).
-  * `:delete_function` - Function reference for deleting an element (default: delete_<module>/1).
-  * `:create_function` - Function reference for creating elements (default: create_<module>/1).
-  * `:update_function` - Function reference for updating elements (default: update_<module>/2).
-  * `:change_function` - Function reference for creating changesets (default: change_<module>/2).
-  * `:new_function` - Function reference for creating new changesets (default: new_<module>/2).
-
-  All functions use the ash resource naming conventions to automatically
-  discover implementations. Functions are resolved with the appropriate arity from the
-  configured ash resource or ash domain.
+  - `:list_function` - Function reference for reading all elements
+  - `:list_function_paginated` - Function reference for reading elements using pagination
+  - `:get_function` - Function reference for getting one element
   """
   alias Ash.Resource.Actions
   alias Ash.Resource.Info
@@ -27,16 +33,30 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   @doc """
   Resolves default values for context-derived properties.
 
-  Discovers context functions by name convention and arity. Uses source (table name) and
-  module (schema module name) to construct expected function names.
+  Discovers Ash actions from the domain and resource, selecting primary actions when
+  available or falling back to the first available action.
 
   ## Parameters
+
   - `parsed_opts` (map()) - Map containing resolved options with `:source` and `:module`.
-  - `resource_config` (map()) - Contains `:context` (module()) with available functions.
-  - `key` (atom()) - Key for which to produce the default value.
+  - `resource_config` (map()) - Map with keys:
+    * `:context` (module() | nil) - The Ash domain module.
+    * `:schema` (module() | nil) - The Ash resource module.
+  - `key` (atom()) - The Aurora UIX action key (`:list_function`,
+    `:list_function_paginated`, `:get_function`).
 
   ## Returns
-  function() - Function reference if found, otherwise undefined_function/2.
+
+  tuple() | function() - Returns `{:ash, action, resource, auix_action}` tuple if action
+  found, otherwise returns `&undefined_function/2`.
+
+  ## Examples
+
+      iex> default_value(%{}, %{context: MyApp.Accounts, schema: MyApp.User}, :list_function)
+      {:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function}
+
+      iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
+      {:ash, %Ash.Resource.Actions.Read{}, MyApp.Post, :get_function}
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
 
@@ -72,8 +92,6 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> get_proper_actions(ash_resource, :read)
     |> maybe_get_primary_action()
     |> create_function_reference(ash_domain, ash_resource, auix_action)
-
-    &__MODULE__.undefined_function/2
   end
 
   #
