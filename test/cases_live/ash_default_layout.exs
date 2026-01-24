@@ -121,4 +121,39 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
            |> LazyHTML.query("#auix-table-ash-default-layout-authors-index tr")
            |> Enum.count() == 40
   end
+
+  test "Test show default behaviour", %{conn: conn} do
+    delete_all_blog_data()
+
+    author =
+      3
+      |> create_sample_authors()
+      |> List.last()
+
+    {:ok, _view, html} = live(conn, "/ash-default-layout-authors/#{author.id}/show")
+
+    html
+    |> tap(&assert &1 =~ "Author\n")
+    |> tap(&assert &1 =~ " Details\n")
+
+    html
+    |> LazyHTML.from_document()
+    |> tap(
+      &assert &1
+              |> LazyHTML.query("input[id^='auix-field-author-name-'][id$='-#{author.id}--show']")
+              |> LazyHTML.attribute("value") == [author.name]
+    )
+    |> tap(
+      &assert &1
+              |> LazyHTML.query(
+                "input[id^='auix-field-author-email-'][id$='-#{author.id}--show']"
+              )
+              |> LazyHTML.attribute("value") == [author.email]
+    )
+    |> tap(
+      &assert &1
+              |> LazyHTML.query("input[id^='auix-field-author-bio-'][id$='-#{author.id}--show']")
+              |> LazyHTML.attribute("value") == [author.bio]
+    )
+  end
 end
