@@ -167,6 +167,7 @@ defmodule Aurora.Uix.MixProject do
 
       ## Dev dependencies
       {:ash, "~> 3.0", only: [:dev, :test]},
+      {:ash_phoenix, "~> 2.3", only: [:dev, :test]},
       {:ash_postgres, "~> 2.0", only: [:dev, :test]},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
 

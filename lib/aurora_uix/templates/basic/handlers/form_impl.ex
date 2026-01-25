@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
   """
-
+  import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.Component, only: [assign: 3, to_form: 1, to_form: 2]
   import Phoenix.LiveView
@@ -97,7 +97,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
             new_entity =
               entity
               |> BasicHelpers.primary_key_value(auix.primary_key)
-              |> auix.get_function.(preload: auix.preload)
+              |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
 
             {:noreply,
              socket
@@ -149,7 +149,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       ) do
     form =
       entity
-      |> auix.change_function.(%{})
+      |> apply_change_function(auix.change_function, %{})
       |> to_form()
 
     {:ok,
@@ -191,9 +191,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
     socket = Phoenix.LiveView.clear_flash(socket)
 
-    changeset = auix.change_function.(socket.assigns[:auix][:entity], entity_params)
+    form =
+      socket.assigns[:auix][:entity]
+      |> apply_change_function(auix.change_function, entity_params)
+      |> to_form(action: :validate)
 
-    {:noreply, assign_auix(socket, :form, to_form(changeset, action: :validate))}
+    {:noreply, assign_auix(socket, :form, form)}
   end
 
   def auix_handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do

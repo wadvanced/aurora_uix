@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     * `:context` (module() | nil) - The Ash domain module.
     * `:schema` (module() | nil) - The Ash resource module.
   - `key` (atom()) - The Aurora UIX action key (`:list_function`,
-    `:list_function_paginated`, `:get_function`).
+    `:list_function_paginated`, `:get_function`, `:change_function`).
 
   ## Returns
 
@@ -58,7 +58,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
       iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
       {:ash, %Ash.Resource.Actions.Read{}, MyApp.Post, :get_function}
   """
-  @spec default_value(map(), map(), atom()) :: term() | nil
+  @spec default_value(map(), map(), atom()) :: tuple() | function()
 
   def default_value(
         _parsed_opts,
@@ -107,6 +107,17 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   #   create_function_reference(context, ["update_#{module}"], 2)
   # end
   #
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :change_function = auix_action
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :update)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
+  end
+
   # def default_value(%{module: module}, %{context: context}, :change_function) do
   #   create_function_reference(context, ["change_#{module}"], 2)
   # end
@@ -124,6 +135,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   ## PRIVATE
 
+  # Retrieves actions for a specific action type from Ash resource.
   @spec get_proper_actions(nil | module(), nil | module(), atom()) :: list()
   defp get_proper_actions(nil, nil, _action_type), do: []
 
@@ -135,12 +147,14 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> Enum.filter(&(&1.__struct__ == action_module))
   end
 
+  # Maps action type atom to Ash action module.
   @spec action_module(atom()) :: module()
   defp action_module(:read), do: Actions.Read
   # defp action_module(:create), do: Actions.Create
-  # defp action_module(:update), do: Actions.Update
+  defp action_module(:update), do: Actions.Update
   # defp action_module(:destroy), do: Actions.Destroy
 
+  # Creates function reference tuple for Ash actions.
   @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
           function()
   defp create_function_reference(nil, _ash_domain, _ash_resource, _auix_action),
@@ -149,6 +163,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   defp create_function_reference(ash_action, nil, ash_resource, auix_action),
     do: {:ash, ash_action, ash_resource, auix_action}
 
+  # Selects primary action or falls back to first available action.
   @spec maybe_get_primary_action(list()) :: nil | struct()
   defp maybe_get_primary_action(actions) do
     actions
@@ -156,6 +171,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> get_first_valid(actions)
   end
 
+  # Returns first valid action from filtered or fallback list.
   @spec get_first_valid(list(), list()) :: nil | struct()
   defp get_first_valid([], []), do: nil
   defp get_first_valid([], [first_action | _rest]), do: first_action

@@ -21,7 +21,6 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - Page numbers must be within valid range (1 to pages_count)
   """
   alias Ash.Page.Offset
-  alias Ash.Resource.Actions
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.QueryParser
 
@@ -33,7 +32,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - `auix_action` (atom()) - The Aurora UIX action (`:list_function` or
     `:list_function_paginated`).
   - `action_module` (module()) - The Ash resource module.
-  - `action` (Actions.Read.t()) - The read action struct.
+  - `action` (Ash.Resource.Actions.Read.t()) - The read action struct.
   - `opts` (keyword()) - Query options:
     * `:where` (list()) - Filter clauses.
     * `:order_by` (term()) - Sort specification.
@@ -46,15 +45,15 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> list(:list_function, MyApp.User, %Actions.Read{name: :read, pagination: false},
-      ...>      where: [{:status, :eq, "active"}])
+      iex> list(:list_function, MyApp.User, %Ash.Resource.Actions.Read{name: :read,
+      ...>   pagination: false}, where: [{:status, :eq, "active"}])
       %Pagination{entries: [...], pages_count: 1, per_page: :infinity}
 
-      iex> list(:list_function_paginated, MyApp.Post, %Actions.Read{name: :read,
-      ...>      pagination: true}, paginate: %Pagination{page: 1, per_page: 20})
+      iex> list(:list_function_paginated, MyApp.Post, %Ash.Resource.Actions.Read{name: :read,
+      ...>   pagination: true}, paginate: %Pagination{page: 1, per_page: 20})
       %Pagination{entries: [...], page: 1, pages_count: 5, per_page: 20}
   """
-  @spec list(atom(), module(), Actions.Read.t(), keyword()) :: Pagination.t()
+  @spec list(atom(), module(), Ash.Resource.Actions.Read.t(), keyword()) :: Pagination.t()
   def list(auix_action, action_module, action, opts \\ [])
 
   def list(:list_function, action_module, %{name: action_name, pagination: false}, opts) do
@@ -110,12 +109,12 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> to_page({:ash, %Actions.Read{}, MyApp.User, :list_function_paginated},
-      ...>         %Pagination{page: 1, pages_count: 5, per_page: 20}, 3)
+      iex> to_page({:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function_paginated},
+      ...>   %Pagination{page: 1, pages_count: 5, per_page: 20}, 3)
       %Pagination{entries: [...], page: 3, pages_count: 5, per_page: 20}
 
-      iex> to_page({:ash, %Actions.Read{}, MyApp.User, :list_function_paginated},
-      ...>         %Pagination{page: 1, pages_count: 5}, 10)
+      iex> to_page({:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function_paginated},
+      ...>   %Pagination{page: 1, pages_count: 5}, 10)
       %Pagination{page: 1, pages_count: 5}
   """
   @spec to_page(tuple(), Pagination.t(), integer()) :: Pagination.t()
@@ -139,29 +138,28 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   end
 
   @doc """
-  Retrieves a single resource by applying filters.
+  Retrieves a single resource by ID.
 
   ## Parameters
 
-  - `list_function` (tuple()) - Tuple with format
+  - `get_function` (tuple()) - Tuple with format
     `{:ash, action, action_module, :get_function}`.
-  - `id` (term()) - The identifier or filter value (currently unused, filters via opts).
+  - `id` (term()) - The resource identifier.
   - `opts` (keyword()) - Query options:
-    * `:where` (list()) - Filter clauses to locate the resource.
     * `:preload` (term()) - Associations to load.
 
   ## Returns
 
-  struct() | nil - The first matching resource or `nil` if not found or error occurs.
+  struct() | nil - The matching resource or `nil` if not found or error occurs.
 
   ## Examples
 
-      iex> get({:ash, %Actions.Read{name: :read}, MyApp.User, :get_function}, nil,
-      ...>     where: [{:id, :eq, "123"}])
+      iex> get({:ash, %Ash.Resource.Actions.Read{name: :read}, MyApp.User, :get_function},
+      ...>   "123", preload: [:posts])
       %MyApp.User{id: "123", ...}
 
-      iex> get({:ash, %Actions.Read{name: :read}, MyApp.Post, :get_function}, nil,
-      ...>     where: [{:slug, :eq, "missing"}])
+      iex> get({:ash, %Ash.Resource.Actions.Read{name: :read}, MyApp.Post, :get_function},
+      ...>   "missing-id", [])
       nil
   """
   @spec get(tuple(), term(), keyword()) :: struct() | nil
@@ -174,11 +172,41 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     end
   end
 
+  @doc """
+  Creates an AshPhoenix form for updating an entity.
+
+  ## Parameters
+
+  - `change_function` (tuple()) - Tuple with format
+    `{:ash, action, action_module, :change_function}`.
+  - `entity` (struct()) - The Ash resource struct to update.
+  - `attrs` (map()) - Attributes to apply to the form.
+
+  ## Returns
+
+  AshPhoenix.Form.t() - The form structure for the update operation.
+
+  ## Examples
+
+      iex> change({:ash, %Ash.Resource.Actions.Update{name: :update}, MyApp.User,
+      ...>   :change_function}, %MyApp.User{}, %{name: "John"})
+      %AshPhoenix.Form{...}
+  """
+  @spec change(tuple(), struct(), map()) :: AshPhoenix.Form.t()
+  def change({:ash, %{name: action_name}, _action_module, :change_function}, entity, attrs),
+    do: AshPhoenix.Form.for_update(entity, action_name, params: attrs)
+
   ## PRIVATE
 
-  # Reads paginated results from an Ash action
-  @spec read_paginated(module(), Actions.Read.t(), keyword(), integer(), integer(), boolean()) ::
-          {:ok, Offset.t()} | {:error, term()}
+  # Reads paginated results from an Ash action.
+  @spec read_paginated(
+          module(),
+          Ash.Resource.Actions.Read.t(),
+          keyword(),
+          integer(),
+          integer(),
+          boolean()
+        ) :: {:ok, Offset.t()} | {:error, term()}
   defp read_paginated(action_module, %{name: action_name}, opts, page, per_page, count?) do
     action_module
     |> Ash.Query.for_read(action_name)

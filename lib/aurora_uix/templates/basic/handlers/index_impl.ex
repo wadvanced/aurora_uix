@@ -21,14 +21,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   use Aurora.Uix.Gettext
 
+  import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
   import Phoenix.Component
 
-  alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
-  alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Selection
@@ -616,7 +615,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
         %{"id" => id} = params
       ) do
-    new_entity = apply_get_function(auix.get_function, id, preload: auix.preload)
+    new_entity =
+      apply_get_function(auix.get_function, id, preload: auix.preload)
 
     socket
     |> assign_new_entity(params, new_entity)
@@ -781,15 +781,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> apply_list_function(list_function)
 
     assign_auix(socket, :read_items, read_items)
-  end
-
-  @spec apply_list_function(keyword(), tuple()) :: map()
-  defp apply_list_function(opts, {:ash, action, action_module, auix_action}) do
-    AshCrud.list(auix_action, action_module, action, opts)
-  end
-
-  defp apply_list_function(opts, list_function) do
-    list_function.(opts)
   end
 
   @spec update_streams(Socket.t()) :: Socket.t()
@@ -1078,20 +1069,4 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp get_live_action_suffix(%{assigns: %{live_action: :show_edit}}), do: "show-edit"
   defp get_live_action_suffix(%{assigns: %{live_action: :edit}}), do: "edit"
   defp get_live_action_suffix(_socket), do: "show"
-
-  @spec apply_get_function(function() | tuple(), term(), keyword()) :: map()
-  defp apply_get_function(
-         {:ash, _action, _action_module, _auix_action} = get_function,
-         id,
-         opts
-       ),
-       do: AshCrud.get(get_function, id, opts)
-
-  defp apply_get_function(get_function, id, opts), do: get_function.(id, opts)
-
-  @spec to_page(Pagination.t(), integer(), function() | tuple()) :: Pagination.t()
-  defp to_page(pagination, page, {:ash, _action, _action_module, _auix_action} = list_function),
-    do: AshCrud.to_page(list_function, pagination, page)
-
-  defp to_page(pagination, page, _list_function), do: CtxCore.to_page(pagination, page)
 end
