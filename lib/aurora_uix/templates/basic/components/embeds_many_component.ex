@@ -38,6 +38,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   use Aurora.Uix.Gettext
   use Phoenix.LiveComponent
 
+  import Aurora.Uix.Integration.Crud
+
   import Aurora.Uix.Templates.Basic.Helpers,
     only: [
       assign_auix: 3,
@@ -231,7 +233,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     errors =
       auix.entity
-      |> auix.change_function.(%{field.key => [params]})
+      |> apply_change_function(auix.change_function, %{field.key => [params]})
       |> get_in([Access.key(:changes), field.key])
       |> Enum.filter(&(&1.action == :insert))
       |> List.first(%{})
@@ -265,7 +267,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     form =
       auix.entity
-      |> auix.change_function.(%{field.key => changes})
+      |> apply_change_function(auix.change_function, %{field.key => changes})
       |> to_form()
 
     {:noreply,
@@ -291,7 +293,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     form =
       auix.entity
-      |> auix.change_function.(%{field.key => changes})
+      |> apply_change_function(auix.change_function, %{field.key => changes})
       |> to_form()
 
     {:noreply,
