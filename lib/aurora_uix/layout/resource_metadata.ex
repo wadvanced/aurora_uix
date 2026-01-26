@@ -608,8 +608,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     functions = schema.__info__(:functions)
 
     cond do
-      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash_resource
-      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ecto_schema
+      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash
+      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ctx
       true -> :none
     end
   end

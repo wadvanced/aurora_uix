@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   function() - Function reference if found, otherwise undefined_function/2.
   """
   @spec default_value(map(), map(), atom()) :: term() | nil
-  def default_value(parsed_opts, %{type: :ash_resource} = resource_config, option),
+  def default_value(parsed_opts, %{type: :ash} = resource_config, option),
     do: AshParserDefaults.default_value(parsed_opts, resource_config, option)
 
   def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
