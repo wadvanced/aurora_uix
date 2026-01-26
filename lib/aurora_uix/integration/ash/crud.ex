@@ -21,6 +21,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - Page numbers must be within valid range (1 to pages_count)
   """
   alias Ash.Page.Offset
+  alias AshPostgres.DataLayer.Info, as: PostgresDataLayerInfo
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.QueryParser
 
@@ -196,17 +197,45 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   def change({:ash, %{name: action_name}, _action_module, :change_function}, entity, attrs),
     do: AshPhoenix.Form.for_update(entity, action_name, params: attrs)
 
+  @doc """
+  Creates a new Ash resource struct with optional preloading.
+
+  ## Parameters
+
+  - `new_function` (tuple()) - Tuple with format
+    `{:ash, action, action_module, :new_function}`.
+  - `attrs` (map()) - Initial attributes for the new resource.
+  - `opts` (keyword()) - Options:
+    * `:preload` (list()) - Associations to preload via Ecto repository.
+
+  ## Returns
+
+  struct() - A new resource struct with the provided attributes and preloaded associations.
+
+  ## Examples
+
+      iex> new({:ash, %Ash.Resource.Actions.Create{}, MyApp.User, :new_function},
+      ...>   %{name: "Jane"}, preload: [:profile])
+      %MyApp.User{name: "Jane", profile: %MyApp.Profile{}}
+
+      iex> new({:ash, %Ash.Resource.Actions.Create{}, MyApp.Post, :new_function},
+      ...>   %{title: "Hello"}, [])
+      %MyApp.Post{title: "Hello"}
+  """
+  @spec new(tuple(), map(), keyword()) :: struct()
+  def new({:ash, _action, action_module, :new_function}, attrs, opts) do
+    repo = PostgresDataLayerInfo.repo(action_module)
+
+    action_module
+    |> struct(attrs)
+    |> maybe_apply_preload(repo, opts)
+  end
+
   ## PRIVATE
 
   # Reads paginated results from an Ash action.
-  @spec read_paginated(
-          module(),
-          Ash.Resource.Actions.Read.t(),
-          keyword(),
-          integer(),
-          integer(),
-          boolean()
-        ) :: {:ok, Offset.t()} | {:error, term()}
+  @spec read_paginated(module(), map(), keyword(), integer(), integer(), boolean()) ::
+          {:ok, Offset.t()} | {:error, term()}
   defp read_paginated(action_module, %{name: action_name}, opts, page, per_page, count?) do
     action_module
     |> Ash.Query.for_read(action_name)
@@ -217,5 +246,16 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     )
     |> QueryParser.parse(opts)
     |> Ash.read()
+  end
+
+  # Applies Ecto preload to a struct if repository and preload option are present.
+  @spec maybe_apply_preload(struct(), nil | module(), keyword()) :: struct()
+  defp maybe_apply_preload(schema, nil, _opts), do: schema
+
+  defp maybe_apply_preload(schema, repo, opts) do
+    case opts[:preload] do
+      nil -> schema
+      preload -> repo.preload(schema, preload)
+    end
   end
 end

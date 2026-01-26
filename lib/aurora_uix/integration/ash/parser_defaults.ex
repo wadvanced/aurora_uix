@@ -94,15 +94,28 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
-  #
-  # def default_value(%{module: module}, %{context: context}, :delete_function) do
-  #   create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
-  # end
-  #
-  # def default_value(%{module: module}, %{context: context}, :create_function) do
-  #   create_function_reference(context, ["create_#{module}"], 1)
-  # end
-  #
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :delete_function = auix_action
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :destroy)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
+  end
+
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :create_function = auix_action
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :create)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
+  end
+
   # def default_value(%{module: module}, %{context: context}, :update_function) do
   #   create_function_reference(context, ["update_#{module}"], 2)
   # end
@@ -118,19 +131,19 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
     |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
-  # def default_value(%{module: module}, %{context: context}, :change_function) do
-  #   create_function_reference(context, ["change_#{module}"], 2)
-  # end
-  #
-  # def default_value(%{module: module}, %{context: context}, :new_function) do
-  #   create_function_reference(context, ["new_#{module}"], 2)
-  # end
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :new_function = auix_action
+      ) do
+    create_function_reference(nil, ash_domain, ash_resource, auix_action)
+  end
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
 
   @doc false
   # Placeholder function used when no valid function reference is found.
-  @spec undefined_function(any(), any()) :: nil
+  @spec undefined_function(term(), term()) :: nil
   def undefined_function(_arg1, _arg2 \\ nil), do: nil
 
   ## PRIVATE
@@ -150,18 +163,23 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   # Maps action type atom to Ash action module.
   @spec action_module(atom()) :: module()
   defp action_module(:read), do: Actions.Read
-  # defp action_module(:create), do: Actions.Create
+  defp action_module(:create), do: Actions.Create
   defp action_module(:update), do: Actions.Update
-  # defp action_module(:destroy), do: Actions.Destroy
+  defp action_module(:destroy), do: Actions.Destroy
 
   # Creates function reference tuple for Ash actions.
   @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
           function()
-  defp create_function_reference(nil, _ash_domain, _ash_resource, _auix_action),
+
+  defp create_function_reference(_action, nil, nil, _auix_action),
     do: &__MODULE__.undefined_function/2
 
-  defp create_function_reference(ash_action, nil, ash_resource, auix_action),
-    do: {:ash, ash_action, ash_resource, auix_action}
+  defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action) do
+    case ash_resource do
+      nil -> {:ash, ash_action, ash_domain, auix_action}
+      _ -> {:ash, ash_action, ash_resource, auix_action}
+    end
+  end
 
   # Selects primary action or falls back to first available action.
   @spec maybe_get_primary_action(list()) :: nil | struct()

@@ -26,6 +26,14 @@ defmodule Aurora.Uix.Guides.Blog.Category do
     update_timestamp(:updated_at)
   end
 
+  actions do
+    defaults [:read, :destroy, update: :*]
+
+    create :create do
+      accept [:name, :description]
+    end
+  end
+
   relationships do
     has_many(:posts, Aurora.Uix.Guides.Blog.Post)
   end

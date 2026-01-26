@@ -155,4 +155,40 @@ defmodule Aurora.Uix.Integration.Crud do
   def apply_change_function(entity, change_function, attrs) do
     change_function.(entity, attrs)
   end
+
+  @doc """
+  Creates a new entity struct using the provided function reference.
+
+  ## Parameters
+
+  - `new_function` (tuple() | function()) - Either an Ash tuple
+    `{:ash, action, action_module, :new_function}` or a custom function reference.
+  - `attrs` (map()) - Initial attributes for the new entity.
+  - `opts` (keyword()) - Options:
+    * `:preload` (list()) - Associations to load (Ash only).
+
+  ## Returns
+
+  struct() - A new entity struct with the provided attributes.
+
+  ## Examples
+
+      iex> apply_new_function({:ash, %Ash.Resource.Actions.Create{}, MyApp.User,
+      ...>   :new_function}, %{name: "Jane"}, preload: [:profile])
+      %MyApp.User{name: "Jane", profile: %MyApp.Profile{}}
+
+      iex> apply_new_function(&MyContext.new_item/2, %{title: "New"}, [])
+      %MyContext.Item{title: "New"}
+  """
+  @spec apply_new_function(tuple() | function(), map(), keyword()) :: struct()
+  def apply_new_function(
+        {:ash, _action, _action_module, :new_function} = new_function,
+        attrs,
+        opts
+      ),
+      do: AshCrud.new(new_function, attrs, opts)
+
+  def apply_new_function(new_function, attrs, opts) do
+    new_function.(attrs, opts)
+  end
 end

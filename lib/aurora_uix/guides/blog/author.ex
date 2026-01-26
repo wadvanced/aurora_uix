@@ -38,6 +38,7 @@ defmodule Aurora.Uix.Guides.Blog.Author do
 
     create :create do
       accept [:name, :email, :bio]
+      primary? true
     end
 
     read :not_paginated
