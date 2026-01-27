@@ -1,29 +1,51 @@
 defmodule Aurora.Uix.Integration.Crud do
   @moduledoc """
-  Unified CRUD operation interface supporting multiple backend implementations.
+  Behaviour defining unified CRUD operations with polymorphic dispatch.
 
-  Provides polymorphic dispatch for common CRUD operations, automatically routing to
-  appropriate backend implementation (Ash Framework or custom functions) based on the
-  function reference type.
+  Provides a consistent interface for CRUD operations across multiple backend implementations
+  (Ash Framework and Context-based Ecto). Acts as both a behaviour specification and a
+  dispatcher that routes operations to the appropriate implementation based on connector type.
 
   ## Key Features
 
-  - Backend-agnostic CRUD operations (list, get, change)
-  - Automatic routing between Ash and custom function implementations
-  - Consistent pagination interface across backends
-  - Support for both paginated and non-paginated listing operations
+  - Behaviour contract with 8 callbacks for CRUD operations
+  - Polymorphic dispatch to backend-specific implementations
+  - Runtime module resolution via application configuration
+  - Consistent interface across Ash and Context backends
+  - Type-safe connector-based routing
+
+  ## Implementation Resolution
+
+  The module uses compile-time configuration to build a map of connector types to
+  implementation modules. Configuration is read from `:aurora_uix` application:
+
+      config :aurora_uix, :crud_integration_modules,
+        ash: Aurora.Uix.Integration.Ash.Crud,
+        ctx: Aurora.Uix.Integration.Ctx.Crud
+
+  At runtime, `get_crud_module/1` resolves the appropriate implementation:
+
+  1. Extracts `type` from `%Connector{type: :ash}` or `%Connector{type: :ctx}`
+  2. Looks up implementation in `@crud_integration_modules` map
+  3. Delegates operation to resolved module (e.g., `AshCrud.list/2`)
+  4. Raises error if type is `nil` or not found in configuration
 
   ## Key Constraints
 
-  - Function references must follow specific tuple format for Ash operations:
-    `{:ash, action, action_module, auix_action}`
-  - Non-Ash operations require function references with matching arities
-  - Pagination structure depends on backend implementation
+  - Implementation modules must implement all 8 callbacks
+  - Connector type must be configured in application environment
+  - Invalid or missing types raise runtime errors
+  - Backend implementations are resolved at compile time for performance
   """
   alias Aurora.Ctx.Pagination
-  alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
   alias Aurora.Uix.Integration.Connector
-  alias Aurora.Uix.Integration.Ctx.Crud, as: CtxCrud
+
+  @crud_integration_modules :aurora_uix
+                            |> Application.compile_env(:crud_integration_modules,
+                              ash: Aurora.Uix.Integration.Ash.Crud,
+                              ctx: Aurora.Uix.Integration.Ctx.Crud
+                            )
+                            |> Map.new()
 
   @doc """
   Lists resources with optional query parameters.
@@ -166,7 +188,7 @@ defmodule Aurora.Uix.Integration.Crud do
   """
   @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t()
   def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts),
-    do: get_connector(type).list(crud_spec, opts)
+    do: get_crud_module(type).list(crud_spec, opts)
 
   @doc """
   Navigates to a specific page in paginated results.
@@ -189,7 +211,7 @@ defmodule Aurora.Uix.Integration.Crud do
   """
   @spec apply_to_page(Connector.t(), Pagination.t(), integer()) :: Pagination.t()
   def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page),
-    do: get_connector(type).to_page(crud_spec, pagination, page)
+    do: get_crud_module(type).to_page(crud_spec, pagination, page)
 
   @doc """
   Retrieves a single entity by ID using the provided Connector.
@@ -221,7 +243,7 @@ defmodule Aurora.Uix.Integration.Crud do
         id,
         opts
       ),
-      do: get_connector(type).get(crud_spec, id, opts)
+      do: get_crud_module(type).get(crud_spec, id, opts)
 
   @doc """
   Creates a changeset for updating an entity.
@@ -252,7 +274,7 @@ defmodule Aurora.Uix.Integration.Crud do
         entity,
         attrs \\ %{}
       ),
-      do: get_connector(type).change(crud_spec, entity, attrs)
+      do: get_crud_module(type).change(crud_spec, entity, attrs)
 
   @doc """
   Creates a new entity struct using the provided Connector.
@@ -284,7 +306,7 @@ defmodule Aurora.Uix.Integration.Crud do
         attrs,
         opts
       ),
-      do: get_connector(type).new(crud_spec, attrs, opts)
+      do: get_crud_module(type).new(crud_spec, attrs, opts)
 
   @doc """
   Updates an existing resource in the database.
@@ -311,7 +333,7 @@ defmodule Aurora.Uix.Integration.Crud do
         entity,
         params
       ),
-      do: get_connector(type).update(crud_spec, entity, params)
+      do: get_crud_module(type).update(crud_spec, entity, params)
 
   @doc """
   Creates a new resource in the database.
@@ -336,7 +358,7 @@ defmodule Aurora.Uix.Integration.Crud do
         %Connector{type: type, crud_spec: crud_spec},
         params
       ),
-      do: get_connector(type).create(crud_spec, params)
+      do: get_crud_module(type).create(crud_spec, params)
 
   @doc """
   Deletes a resource from the database.
@@ -361,14 +383,21 @@ defmodule Aurora.Uix.Integration.Crud do
         %Connector{type: type, crud_spec: crud_spec},
         entity
       ),
-      do: get_connector(type).delete(crud_spec, entity)
+      do: get_crud_module(type).delete(crud_spec, entity)
 
   ## PRIVATE
 
-  # Returns the appropriate CRUD module based on connector type.
-  @spec get_connector(atom()) :: module()
-  defp get_connector(:ash), do: AshCrud
-  defp get_connector(:ctx), do: CtxCrud
-  defp get_connector(nil), do: raise("The type of connector is nil")
-  defp get_connector(type), do: raise("Invalid connector module for type: #{inspect(type)}")
+  # Resolves CRUD implementation module based on connector type.
+  #
+  # Uses compile-time configuration map to look up the appropriate module.
+  # The type must match a key in @crud_integration_modules or an error is raised.
+  @spec get_crud_module(atom()) :: module()
+  defp get_crud_module(nil), do: raise("The type of connector is nil")
+
+  defp get_crud_module(type) do
+    case Map.get(@crud_integration_modules, type) do
+      nil -> raise("Invalid connector module for type: #{inspect(type)}")
+      crud_module -> crud_module
+    end
+  end
 end
