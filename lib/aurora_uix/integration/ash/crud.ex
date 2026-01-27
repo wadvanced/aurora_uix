@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   alias Ash.Page.Offset
   alias AshPostgres.DataLayer.Info, as: PostgresDataLayerInfo
   alias Aurora.Ctx.Pagination
+  alias Aurora.Uix.Integration.Ash.CrudSpec
   alias Aurora.Uix.Integration.Ash.QueryParser
 
   @doc """
@@ -54,12 +55,12 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       ...>   pagination: true}, paginate: %Pagination{page: 1, per_page: 20})
       %Pagination{entries: [...], page: 1, pages_count: 5, per_page: 20}
   """
-  @spec list(atom(), module(), Ash.Resource.Actions.Read.t(), keyword()) :: Pagination.t()
-  def list(auix_action, action_module, action, opts \\ [])
+  @spec list(CrudSpec.t(), keyword()) :: Pagination.t()
+  def list(definition, opts \\ [])
 
-  def list(:list_function, action_module, %{name: action_name, pagination: false}, opts) do
+  def list(%CrudSpec{action: %{name: action_name, pagination: false}} = crud_spec, opts) do
     {:ok, result} =
-      action_module
+      crud_spec.resource
       |> Ash.Query.for_read(action_name)
       |> QueryParser.parse(opts)
       |> Ash.read()
@@ -72,11 +73,18 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     }
   end
 
-  def list(:list_function_paginated, action_module, action, opts) do
+  def list(%CrudSpec{auix_action_name: :list_function_paginated} = crud_spec, opts) do
     paginate = Keyword.get(opts, :paginate, %Pagination{})
 
     {:ok, %Offset{} = offset} =
-      read_paginated(action_module, action, opts, paginate.page, paginate.per_page, true)
+      read_paginated(
+        crud_spec.resource,
+        crud_spec.action,
+        opts,
+        paginate.page,
+        paginate.per_page,
+        true
+      )
 
     pages_count =
       case Integer.mod(offset.count, paginate.per_page) do
@@ -119,15 +127,22 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       %Pagination{page: 1, pages_count: 5}
   """
   @spec to_page(tuple(), Pagination.t(), integer()) :: Pagination.t()
-  def to_page(pagination, page, _list_function) when page < 1, do: pagination
+  def to_page(_crud_spec, pagination, page) when page < 1, do: pagination
 
-  def to_page(_list_function, %{pages_count: pages_count} = pagination, page)
+  def to_page(_crud_spec, %{pages_count: pages_count} = pagination, page)
       when page > pages_count,
       do: pagination
 
-  def to_page({:ash, action, action_module, _auix_action}, pagination, page) do
+  def to_page(%CrudSpec{} = crud_spec, pagination, page) do
     {:ok, %Offset{} = offset} =
-      read_paginated(action_module, action, pagination.opts, page, pagination.per_page, true)
+      read_paginated(
+        crud_spec.resource,
+        crud_spec.action,
+        pagination.opts,
+        page,
+        pagination.per_page,
+        true
+      )
 
     %Pagination{
       entries: offset.results,
@@ -163,11 +178,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       ...>   "missing-id", [])
       nil
   """
-  @spec get(tuple(), term(), keyword()) :: struct() | nil
-  def get({:ash, %{name: action_name}, action_module, :get_function}, id, opts) do
+  @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
+  def get(%CrudSpec{action: %{name: action_name}} = crud_spec, id, opts) do
     parsed_opts = [action: action_name, load: Keyword.get(opts, :preload, [])]
 
-    case Ash.get(action_module, id, parsed_opts) do
+    case Ash.get(crud_spec.resource, id, parsed_opts) do
       {:ok, item} -> item
       {:error, _} -> nil
     end
@@ -193,8 +208,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       ...>   :change_function}, %MyApp.User{}, %{name: "John"})
       %AshPhoenix.Form{...}
   """
-  @spec change(tuple(), struct(), map()) :: AshPhoenix.Form.t()
-  def change({:ash, %{name: action_name}, _action_module, :change_function}, entity, attrs),
+  @spec change(CrudSpec.t(), struct(), map()) :: AshPhoenix.Form.t()
+  def change(%CrudSpec{action: %{name: action_name}}, entity, attrs),
     do: AshPhoenix.Form.for_update(entity, action_name, params: attrs)
 
   @doc """
@@ -222,11 +237,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       ...>   %{title: "Hello"}, [])
       %MyApp.Post{title: "Hello"}
   """
-  @spec new(tuple(), map(), keyword()) :: struct()
-  def new({:ash, _action, action_module, :new_function}, attrs, opts) do
-    repo = PostgresDataLayerInfo.repo(action_module)
+  @spec new(CrudSpec.t(), map(), keyword()) :: struct()
+  def new(%CrudSpec{resource: resource}, attrs, opts) do
+    repo = PostgresDataLayerInfo.repo(resource)
 
-    action_module
+    resource
     |> struct(attrs)
     |> maybe_apply_preload(repo, opts)
   end

@@ -25,6 +25,7 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   @behaviour Aurora.Uix.Parser
 
   alias Aurora.Uix.Integration.Ash.ParserDefaults, as: AshParserDefaults
+  alias Aurora.Uix.Integration.Ctx.ParserDefaults, as: CtxParserDefaults
 
   @doc """
   Returns the list of supported context option keys.
@@ -64,76 +65,8 @@ defmodule Aurora.Uix.Parsers.ContextParser do
   def default_value(parsed_opts, %{type: :ash} = resource_config, option),
     do: AshParserDefaults.default_value(parsed_opts, resource_config, option)
 
-  def default_value(%{source: source, module: module}, %{context: context}, :list_function) do
-    create_function_reference(context, ["list_#{source}", "list_#{module}"], 1)
-  end
-
-  def default_value(
-        %{source: source, module: module},
-        %{context: context},
-        :list_function_paginated
-      ) do
-    create_function_reference(
-      context,
-      ["list_#{source}_paginated", "list_#{module}_paginated"],
-      1
-    )
-  end
-
-  def default_value(%{module: module}, %{context: context}, :get_function) do
-    create_function_reference(context, ["get_#{module}", "get_#{module}!"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :delete_function) do
-    create_function_reference(context, ["delete_#{module}", "delete_#{module}!"], 1)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :create_function) do
-    create_function_reference(context, ["create_#{module}"], 1)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :update_function) do
-    create_function_reference(context, ["update_#{module}"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :change_function) do
-    create_function_reference(context, ["change_#{module}"], 2)
-  end
-
-  def default_value(%{module: module}, %{context: context}, :new_function) do
-    create_function_reference(context, ["new_#{module}"], 2)
-  end
+  def default_value(parsed_opts, %{type: :ctx} = resource_config, option),
+    do: CtxParserDefaults.default_value(parsed_opts, resource_config, option)
 
   def default_value(_parsed_opts, _resource_config, _key), do: nil
-
-  @doc false
-  # Placeholder function used when no valid function reference is found.
-  @spec undefined_function(any(), any()) :: nil
-  def undefined_function(_arg1, _arg2 \\ nil), do: nil
-
-  ## PRIVATE
-
-  @spec create_function_reference(module(), list(binary()), integer()) :: function()
-
-  defp create_function_reference(nil, _functions, _expected_arity),
-    do: &__MODULE__.undefined_function/2
-
-  defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
-    implemented_functions =
-      :functions
-      |> context.__info__()
-      |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
-      |> Enum.map(&(&1 |> elem(0) |> to_string()))
-
-    function_name =
-      functions
-      |> Enum.filter(&(&1 in implemented_functions))
-      |> List.first(first_selected)
-
-    context
-    |> Module.concat(nil)
-    |> then(&"&#{&1}.#{function_name}/#{expected_arity}")
-    |> Code.eval_string()
-    |> elem(0)
-  end
 end

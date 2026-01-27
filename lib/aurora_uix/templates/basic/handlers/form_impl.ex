@@ -148,8 +148,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         %{assigns: %{auix: auix}} = socket
       ) do
     form =
-      entity
-      |> apply_change_function(auix.change_function, %{})
+      auix.change_function
+      |> apply_change_function(entity, %{})
       |> to_form()
 
     {:ok,
@@ -192,8 +192,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     socket = Phoenix.LiveView.clear_flash(socket)
 
     form =
-      socket.assigns[:auix][:entity]
-      |> apply_change_function(auix.change_function, entity_params)
+      auix.change_function
+      |> apply_change_function(socket.assigns[:auix][:entity], entity_params)
       |> to_form(action: :validate)
 
     {:noreply, assign_auix(socket, :form, form)}
@@ -233,11 +233,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @spec save_entity(Socket.t(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def save_entity(%{assigns: %{action: :edit, auix: auix}} = socket, entity_params) do
-    auix.update_function.(socket.assigns[:auix][:entity], entity_params)
+    apply_update_function(auix.update_function, socket.assigns[:auix][:entity], entity_params)
   end
 
   def save_entity(%{assigns: %{action: :new, auix: auix}}, entity_params) do
-    auix.create_function.(entity_params)
+    apply_create_function(auix.create_function, entity_params)
   end
 
   @doc """
@@ -305,6 +305,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  ## PRIVATE
 
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do

@@ -20,18 +20,19 @@ defmodule Aurora.Uix.Integration.Crud do
   - Non-Ash operations require function references with matching arities
   - Pagination structure depends on backend implementation
   """
-  alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
+  alias Aurora.Uix.Integration.Ctx.Crud, as: CtxCrud
+  alias Aurora.Uix.Integration.Connector
 
   @doc """
   Applies a list operation using the provided function reference.
 
   ## Parameters
 
-  - `opts` (keyword()) - Query options passed to the backend implementation.
   - `list_function` (tuple() | function()) - Either an Ash tuple
     `{:ash, action, action_module, auix_action}` or a custom function reference.
+  - `opts` (keyword()) - Query options passed to the backend implementation.
 
   ## Returns
 
@@ -46,13 +47,11 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_list_function([limit: 10], &MyContext.list_items/1)
       %Pagination{entries: [...]}
   """
-  @spec apply_list_function(keyword(), tuple() | function()) :: Pagination.t()
-  def apply_list_function(opts, {:ash, action, action_module, auix_action}) do
-    AshCrud.list(auix_action, action_module, action, opts)
-  end
-
-  def apply_list_function(opts, list_function) do
-    list_function.(opts)
+  @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t()
+  def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts) do
+    type
+    |> get_connector()
+    |> apply(:list, [crud_spec, opts])
   end
 
   @doc """
@@ -77,11 +76,12 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> to_page(%Pagination{page: 1}, 3, &MyContext.list_items/1)
       %Pagination{page: 3, entries: [...]}
   """
-  @spec to_page(Pagination.t(), integer(), function() | tuple()) :: Pagination.t()
-  def to_page(pagination, page, {:ash, _action, _action_module, _auix_action} = list_function),
-    do: AshCrud.to_page(list_function, pagination, page)
-
-  def to_page(pagination, page, _list_function), do: CtxCore.to_page(pagination, page)
+  @spec apply_to_page(Connector.t(), Pagination.t(), integer()) :: Pagination.t()
+  def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page) do
+    type
+    |> get_connector()
+    |> apply(:to_page, [crud_spec, pagination, page])
+  end
 
   @doc """
   Retrieves a single entity by ID using the provided function reference.
@@ -108,13 +108,16 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_get_function(&MyContext.get_item/2, 42, [])
       %MyContext.Item{id: 42}
   """
-  @spec apply_get_function(function() | tuple(), term(), keyword()) :: struct() | nil
+  @spec apply_get_function(Connector.t(), term(), keyword()) :: struct() | nil
   def apply_get_function(
-        {:ash, _action, _action_module, :get_function} = get_function,
+        %Connector{type: type, crud_spec: crud_spec},
         id,
         opts
-      ),
-      do: AshCrud.get(get_function, id, opts)
+      ) do
+    type
+    |> get_connector()
+    |> apply(:get_function, [crud_spec, id, opts])
+  end
 
   def apply_get_function(get_function, id, opts), do: get_function.(id, opts)
 
@@ -142,18 +145,15 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_change_function(%MyContext.Item{}, &MyContext.change_item/2, %{status: "active"})
       %Ecto.Changeset{...}
   """
-  @spec apply_change_function(struct(), tuple() | function(), map()) :: struct()
-  def apply_change_function(entity, change_function, attrs \\ %{})
-
+  @spec apply_change_function(Connector.t(), struct(), map()) :: struct()
   def apply_change_function(
+        %Connector{type: type, crud_spec: crud_spec},
         entity,
-        {:ash, _action, _action_module, :change_function} = change_function,
-        attrs
-      ),
-      do: AshCrud.change(change_function, entity, attrs)
-
-  def apply_change_function(entity, change_function, attrs) do
-    change_function.(entity, attrs)
+        attrs \\ %{}
+      ) do
+    type
+    |> get_connector()
+    |> apply(:change, [crud_spec, entity, attrs])
   end
 
   @doc """
@@ -180,15 +180,51 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_new_function(&MyContext.new_item/2, %{title: "New"}, [])
       %MyContext.Item{title: "New"}
   """
-  @spec apply_new_function(tuple() | function(), map(), keyword()) :: struct()
+  @spec apply_new_function(Connector.t(), map(), keyword()) :: struct()
   def apply_new_function(
-        {:ash, _action, _action_module, :new_function} = new_function,
+        %Connector{type: type, crud_spec: crud_spec},
         attrs,
         opts
-      ),
-      do: AshCrud.new(new_function, attrs, opts)
-
-  def apply_new_function(new_function, attrs, opts) do
-    new_function.(attrs, opts)
+      ) do
+    type
+    |> get_connector()
+    |> apply(:new, [crud_spec, attrs, opts])
   end
+
+  @spec apply_update_function(Connector.t(), struct(), map()) :: struct()
+  def apply_update_function(
+        %Connector{type: type, crud_spec: crud_spec},
+        entity,
+        params
+      ) do
+    type
+    |> get_connector()
+    |> apply(:update, [crud_spec, entity, params])
+  end
+
+  @spec apply_create_function(Connector.t(), map()) :: struct()
+  def apply_create_function(
+        %Connector{type: type, crud_spec: crud_spec},
+        params
+      ) do
+    type
+    |> get_connector()
+    |> apply(:create, [crud_spec, params])
+  end
+
+  @spec apply_delete_function(Connector.t(), struct()) :: struct()
+  def apply_delete_function(
+        %Connector{type: type, crud_spec: crud_spec},
+        entity
+      ) do
+    type
+    |> get_connector()
+    |> apply(:delete, [crud_spec, entity])
+  end
+
+  ## PRIVATE
+  defp get_connector(:ash), do: AshCrud
+  defp get_connector(:ctx), do: CtxCrud
+  defp get_connector(nil), do: raise("The type of connector is nil")
+  defp get_connector(type), do: raise("Invalid connector module for type: #{inspect(type)}")
 end

@@ -29,6 +29,8 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   """
   alias Ash.Resource.Actions
   alias Ash.Resource.Info
+  alias Aurora.Uix.Integration.Ash.CrudSpec
+  alias Aurora.Uix.Integration.Connector
 
   @doc """
   Resolves default values for context-derived properties.
@@ -171,14 +173,40 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
   @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
           function()
 
-  defp create_function_reference(_action, nil, nil, _auix_action),
-    do: &__MODULE__.undefined_function/2
+  defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action_name) do
+    definition =
+      case {ash_domain, ash_resource} do
+        {nil, nil} ->
+          CrudSpec.new()
 
-  defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action) do
-    case ash_resource do
-      nil -> {:ash, ash_action, ash_domain, auix_action}
-      _ -> {:ash, ash_action, ash_resource, auix_action}
-    end
+        {ash_domain, nil} ->
+          resource = get_resource(ash_action, ash_domain)
+
+          CrudSpec.new(
+            ash_domain,
+            resource,
+            ash_action,
+            auix_action_name
+          )
+
+        {ash_domain, ash_resource} ->
+          CrudSpec.new(ash_domain, ash_resource, ash_action, auix_action_name)
+      end
+
+    Connector.new(definition, :ash)
+  end
+
+  @spec get_resource(atom(), module()) :: module() | nil
+  defp get_resource(action, domain) do
+    resource =
+      domain
+      |> Ash.Domain.Info.resource_references()
+      |> Enum.filter(fn resource_reference ->
+        Enum.any?(resource_reference.definitions, &(&1.name == action))
+      end)
+      |> List.first()
+
+    if resource, do: resource.resource, else: nil
   end
 
   # Selects primary action or falls back to first available action.

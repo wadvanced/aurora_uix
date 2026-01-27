@@ -20,6 +20,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   use Phoenix.Component
   use Phoenix.LiveComponent
 
+  import Aurora.Uix.Integration.Crud
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
@@ -799,7 +800,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
     data
     |> Map.get(:query_opts, [])
-    |> list_function.()
+    |> then(&apply_list_function(list_function, &1))
     |> Enum.map(&get_many_to_one_select_option(assigns, &1))
     |> maybe_add_nil_option()
     |> then(&%{options: &1, multiple: false})

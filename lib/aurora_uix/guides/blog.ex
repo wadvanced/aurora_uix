@@ -20,6 +20,9 @@ defmodule Aurora.Uix.Guides.Blog do
   resources do
     resource Aurora.Uix.Guides.Blog.Post
     resource Aurora.Uix.Guides.Blog.Author
-    resource Aurora.Uix.Guides.Blog.Category
+
+    resource Aurora.Uix.Guides.Blog.Category do
+      define :list_categories, action: :read
+    end
   end
 end

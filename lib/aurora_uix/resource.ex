@@ -17,9 +17,9 @@ defmodule Aurora.Uix.Resource do
 
   defstruct [
     :name,
-    :type,
     :schema,
     :context,
+    type: :ctx,
     opts: [],
     fields: [],
     fields_order: [],
@@ -28,9 +28,9 @@ defmodule Aurora.Uix.Resource do
 
   @type t() :: %__MODULE__{
           name: atom(),
-          type: atom(),
           schema: module(),
           context: module() | nil,
+          type: atom(),
           opts: keyword(),
           fields: map() | list(),
           fields_order: list(),

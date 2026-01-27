@@ -232,8 +232,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
     params = cast_params(params)
 
     errors =
-      auix.entity
-      |> apply_change_function(auix.change_function, %{field.key => [params]})
+      auix.change_function
+      |> apply_change_function(auix.entity, %{field.key => [params]})
       |> get_in([Access.key(:changes), field.key])
       |> Enum.filter(&(&1.action == :insert))
       |> List.first(%{})
@@ -266,8 +266,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       add_embed_entry_changes(auix, field.key, params)
 
     form =
-      auix.entity
-      |> apply_change_function(auix.change_function, %{field.key => changes})
+      auix.change_function
+      |> apply_change_function(auix.entity, %{field.key => changes})
       |> to_form()
 
     {:noreply,
@@ -292,8 +292,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       |> List.delete_at(entry_index)
 
     form =
-      auix.entity
-      |> apply_change_function(auix.change_function, %{field.key => changes})
+      auix.change_function
+      |> apply_change_function(auix.entity, %{field.key => changes})
       |> to_form()
 
     {:noreply,
