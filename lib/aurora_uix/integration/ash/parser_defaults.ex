@@ -49,18 +49,18 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   ## Returns
 
-  tuple() | function() - Returns `{:ash, action, resource, auix_action}` tuple if action
-  found, otherwise returns `&undefined_function/2`.
+  Connector.t() | function() - Returns Connector struct with CrudSpec if action found,
+  otherwise returns `&undefined_function/2`.
 
   ## Examples
 
       iex> default_value(%{}, %{context: MyApp.Accounts, schema: MyApp.User}, :list_function)
-      {:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function}
+      %Connector{type: :ash, crud_spec: %CrudSpec{...}}
 
       iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
-      {:ash, %Ash.Resource.Actions.Read{}, MyApp.Post, :get_function}
+      %Connector{type: :ash, crud_spec: %CrudSpec{...}}
   """
-  @spec default_value(map(), map(), atom()) :: tuple() | function()
+  @spec default_value(map(), map(), atom()) :: Connector.t() | function()
 
   def default_value(
         _parsed_opts,
@@ -171,7 +171,7 @@ defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
 
   # Creates function reference tuple for Ash actions.
   @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
-          function()
+          Connector.t()
 
   defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action_name) do
     definition =

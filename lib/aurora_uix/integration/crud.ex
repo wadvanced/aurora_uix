@@ -22,16 +22,15 @@ defmodule Aurora.Uix.Integration.Crud do
   """
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
-  alias Aurora.Uix.Integration.Ctx.Crud, as: CtxCrud
   alias Aurora.Uix.Integration.Connector
+  alias Aurora.Uix.Integration.Ctx.Crud, as: CtxCrud
 
   @doc """
-  Applies a list operation using the provided function reference.
+  Applies a list operation using the provided Connector.
 
   ## Parameters
 
-  - `list_function` (tuple() | function()) - Either an Ash tuple
-    `{:ash, action, action_module, auix_action}` or a custom function reference.
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
   - `opts` (keyword()) - Query options passed to the backend implementation.
 
   ## Returns
@@ -40,28 +39,26 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Examples
 
-      iex> apply_list_function([where: [{:status, :eq, "active"}]],
-      ...>   {:ash, %Actions.Read{}, MyApp.User, :list_function})
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_list_function(connector, where: [{:status, :eq, "active"}])
       %Pagination{entries: [...], pages_count: 1}
 
-      iex> apply_list_function([limit: 10], &MyContext.list_items/1)
+      iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
+      iex> apply_list_function(connector, limit: 10)
       %Pagination{entries: [...]}
   """
   @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t()
-  def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts) do
-    type
-    |> get_connector()
-    |> apply(:list, [crud_spec, opts])
-  end
+  def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts),
+    do: get_connector(type).list(crud_spec, opts)
 
   @doc """
   Navigates to a specific page in paginated results.
 
   ## Parameters
 
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
   - `pagination` (Pagination.t()) - The current pagination structure.
   - `page` (integer()) - The target page number.
-  - `list_function` (tuple() | function()) - The function reference used for fetching data.
 
   ## Returns
 
@@ -69,31 +66,24 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Examples
 
-      iex> to_page(%Pagination{page: 1, pages_count: 5},
-      ...>   2, {:ash, %Actions.Read{}, MyApp.User, :list_function_paginated})
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_to_page(connector, %Pagination{page: 1, pages_count: 5}, 2)
       %Pagination{page: 2, entries: [...]}
-
-      iex> to_page(%Pagination{page: 1}, 3, &MyContext.list_items/1)
-      %Pagination{page: 3, entries: [...]}
   """
   @spec apply_to_page(Connector.t(), Pagination.t(), integer()) :: Pagination.t()
-  def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page) do
-    type
-    |> get_connector()
-    |> apply(:to_page, [crud_spec, pagination, page])
-  end
+  def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page),
+    do: get_connector(type).to_page(crud_spec, pagination, page)
 
   @doc """
-  Retrieves a single entity by ID using the provided function reference.
+  Retrieves a single entity by ID using the provided Connector.
 
   ## Parameters
 
-  - `get_function` (tuple() | function()) - Either an Ash tuple
-    `{:ash, action, action_module, :get_function}` or a custom function reference.
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
   - `id` (term()) - The entity identifier.
   - `opts` (keyword()) - Options:
     * `:where` (list()) - Additional filter clauses (Ash only).
-    * `:preload` (term()) - Associations to load (Ash only).
+    * `:preload` (term()) - Associations to load.
 
   ## Returns
 
@@ -101,48 +91,42 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Examples
 
-      iex> apply_get_function({:ash, %Actions.Read{}, MyApp.User, :get_function},
-      ...>   "123", where: [{:status, :eq, "active"}])
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_get_function(connector, "123", preload: [:posts])
       %MyApp.User{id: "123"}
 
-      iex> apply_get_function(&MyContext.get_item/2, 42, [])
-      %MyContext.Item{id: 42}
+      iex> apply_get_function(connector, "missing-id", [])
+      nil
   """
   @spec apply_get_function(Connector.t(), term(), keyword()) :: struct() | nil
   def apply_get_function(
         %Connector{type: type, crud_spec: crud_spec},
         id,
         opts
-      ) do
-    type
-    |> get_connector()
-    |> apply(:get_function, [crud_spec, id, opts])
-  end
-
-  def apply_get_function(get_function, id, opts), do: get_function.(id, opts)
+      ),
+      do: get_connector(type).get(crud_spec, id, opts)
 
   @doc """
   Creates a changeset for updating an entity.
 
   ## Parameters
 
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
   - `entity` (struct()) - The entity to create a changeset for.
-  - `change_function` (tuple() | function()) - Either an Ash tuple
-    `{:ash, action, action_module, :change_function}` or a custom function reference.
   - `attrs` (map()) - Attributes to apply to the changeset. Defaults to `%{}`.
 
   ## Returns
 
-  struct() - A changeset structure (e.g., `AshPhoenix.Form.t()` or `Ecto.Changeset.t()`).
+  struct() - A changeset structure (e.g., form or changeset).
 
   ## Examples
 
-      iex> apply_change_function(%MyApp.User{}, 
-      ...>   {:ash, %Actions.Update{}, MyApp.User, :change_function},
-      ...>   %{name: "John"})
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_change_function(connector, %MyApp.User{}, %{name: "John"})
       %AshPhoenix.Form{...}
 
-      iex> apply_change_function(%MyContext.Item{}, &MyContext.change_item/2, %{status: "active"})
+      iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
+      iex> apply_change_function(connector, %MyContext.Item{}, %{status: "active"})
       %Ecto.Changeset{...}
   """
   @spec apply_change_function(Connector.t(), struct(), map()) :: struct()
@@ -150,22 +134,18 @@ defmodule Aurora.Uix.Integration.Crud do
         %Connector{type: type, crud_spec: crud_spec},
         entity,
         attrs \\ %{}
-      ) do
-    type
-    |> get_connector()
-    |> apply(:change, [crud_spec, entity, attrs])
-  end
+      ),
+      do: get_connector(type).change(crud_spec, entity, attrs)
 
   @doc """
-  Creates a new entity struct using the provided function reference.
+  Creates a new entity struct using the provided Connector.
 
   ## Parameters
 
-  - `new_function` (tuple() | function()) - Either an Ash tuple
-    `{:ash, action, action_module, :new_function}` or a custom function reference.
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
   - `attrs` (map()) - Initial attributes for the new entity.
   - `opts` (keyword()) - Options:
-    * `:preload` (list()) - Associations to load (Ash only).
+    * `:preload` (list()) - Associations to load.
 
   ## Returns
 
@@ -173,11 +153,12 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Examples
 
-      iex> apply_new_function({:ash, %Ash.Resource.Actions.Create{}, MyApp.User,
-      ...>   :new_function}, %{name: "Jane"}, preload: [:profile])
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_new_function(connector, %{name: "Jane"}, preload: [:profile])
       %MyApp.User{name: "Jane", profile: %MyApp.Profile{}}
 
-      iex> apply_new_function(&MyContext.new_item/2, %{title: "New"}, [])
+      iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
+      iex> apply_new_function(connector, %{title: "New"}, [])
       %MyContext.Item{title: "New"}
   """
   @spec apply_new_function(Connector.t(), map(), keyword()) :: struct()
@@ -185,44 +166,90 @@ defmodule Aurora.Uix.Integration.Crud do
         %Connector{type: type, crud_spec: crud_spec},
         attrs,
         opts
-      ) do
-    type
-    |> get_connector()
-    |> apply(:new, [crud_spec, attrs, opts])
-  end
+      ),
+      do: get_connector(type).new(crud_spec, attrs, opts)
 
-  @spec apply_update_function(Connector.t(), struct(), map()) :: struct()
+  @doc """
+  Updates an existing resource in the database.
+
+  ## Parameters
+
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `entity` (struct()) - The resource to update.
+  - `params` (map()) - Parameters to update.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_update_function(connector, %MyApp.User{id: 1}, %{name: "Bob"})
+      {:ok, %MyApp.User{id: 1, name: "Bob"}}
+  """
+  @spec apply_update_function(Connector.t(), struct(), map()) :: tuple()
   def apply_update_function(
         %Connector{type: type, crud_spec: crud_spec},
         entity,
         params
-      ) do
-    type
-    |> get_connector()
-    |> apply(:update, [crud_spec, entity, params])
-  end
+      ),
+      do: get_connector(type).update(crud_spec, entity, params)
 
-  @spec apply_create_function(Connector.t(), map()) :: struct()
+  @doc """
+  Creates a new resource in the database.
+
+  ## Parameters
+
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `params` (map()) - Parameters for the new resource.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
+      iex> apply_create_function(connector, %{name: "Alice", email: "alice@example.com"})
+      {:ok, %MyApp.User{name: "Alice"}}
+  """
+  @spec apply_create_function(Connector.t(), map()) :: tuple()
   def apply_create_function(
         %Connector{type: type, crud_spec: crud_spec},
         params
-      ) do
-    type
-    |> get_connector()
-    |> apply(:create, [crud_spec, params])
-  end
+      ),
+      do: get_connector(type).create(crud_spec, params)
 
-  @spec apply_delete_function(Connector.t(), struct()) :: struct()
+  @doc """
+  Deletes a resource from the database.
+
+  ## Parameters
+
+  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `entity` (struct()) - The resource to delete.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+      iex> apply_delete_function(connector, %MyApp.User{id: 1})
+      {:ok, %MyApp.User{id: 1}}
+  """
+  @spec apply_delete_function(Connector.t(), struct()) :: tuple()
   def apply_delete_function(
         %Connector{type: type, crud_spec: crud_spec},
         entity
-      ) do
-    type
-    |> get_connector()
-    |> apply(:delete, [crud_spec, entity])
-  end
+      ),
+      do: get_connector(type).delete(crud_spec, entity)
 
   ## PRIVATE
+
+  # Returns the appropriate CRUD module based on connector type.
+  @spec get_connector(atom()) :: module()
   defp get_connector(:ash), do: AshCrud
   defp get_connector(:ctx), do: CtxCrud
   defp get_connector(nil), do: raise("The type of connector is nil")

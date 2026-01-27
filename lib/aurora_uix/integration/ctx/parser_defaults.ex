@@ -59,10 +59,10 @@ defmodule Aurora.Uix.Integration.Ctx.ParserDefaults do
 
       iex> default_value(%{source: "users", module: "user"}, %{context: MyApp.Accounts},
       ...>   :list_function)
-      %Connector{type: :ctx, definition: %CrudSpec{function_spec: &MyApp.Accounts.list_users/1}}
+      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Accounts.list_users/1}}
 
       iex> default_value(%{module: "post"}, %{context: MyApp.Blog}, :get_function)
-      %Connector{type: :ctx, definition: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
+      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
   """
   @spec default_value(map(), map(), atom()) :: Connector.t()
   def default_value(

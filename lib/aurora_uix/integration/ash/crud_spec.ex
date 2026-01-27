@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
       %CrudSpec{domain: nil, resource: nil, action: nil, auix_action_name: nil}
   """
   @spec new() :: t()
-  def new(), do: %__MODULE__{}
+  def new, do: %__MODULE__{}
 
   @doc """
   Creates a new CrudSpec struct with the specified values.
@@ -63,8 +63,8 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   ## Examples
 
       iex> new(MyApp.Accounts, MyApp.User, %Ash.Resource.Actions.Read{}, :list_function)
-      %CrudSpec{domain: MyApp.Accounts, resource: MyApp.User, action: %Ash.Resource.Actions.Read{},
-        auix_action_name: :list_function}
+      %CrudSpec{domain: MyApp.Accounts, resource: MyApp.User,
+        action: %Ash.Resource.Actions.Read{}, auix_action_name: :list_function}
   """
   @spec new(module() | nil, module() | nil, struct() | nil, atom() | nil) :: t()
   def new(domain, resource, action, auix_action_name) do

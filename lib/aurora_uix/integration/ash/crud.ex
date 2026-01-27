@@ -31,10 +31,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `auix_action` (atom()) - The Aurora UIX action (`:list_function` or
-    `:list_function_paginated`).
-  - `action_module` (module()) - The Ash resource module.
-  - `action` (Ash.Resource.Actions.Read.t()) - The read action struct.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
   - `opts` (keyword()) - Query options:
     * `:where` (list()) - Filter clauses.
     * `:order_by` (term()) - Sort specification.
@@ -47,12 +44,13 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> list(:list_function, MyApp.User, %Ash.Resource.Actions.Read{name: :read,
-      ...>   pagination: false}, where: [{:status, :eq, "active"}])
+      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :read, pagination: false}}
+      iex> list(crud_spec, where: [{:status, :eq, "active"}])
       %Pagination{entries: [...], pages_count: 1, per_page: :infinity}
 
-      iex> list(:list_function_paginated, MyApp.Post, %Ash.Resource.Actions.Read{name: :read,
-      ...>   pagination: true}, paginate: %Pagination{page: 1, per_page: 20})
+      iex> crud_spec = %CrudSpec{resource: MyApp.Post, action: %{name: :read, pagination: true},
+      ...>   auix_action_name: :list_function_paginated}
+      iex> list(crud_spec, paginate: %Pagination{page: 1, per_page: 20})
       %Pagination{entries: [...], page: 1, pages_count: 5, per_page: 20}
   """
   @spec list(CrudSpec.t(), keyword()) :: Pagination.t()
@@ -106,27 +104,25 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `list_function` (tuple()) - Tuple with format
-    `{:ash, action, action_module, auix_action}`.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec (currently unused for page bounds checking).
   - `pagination` (Pagination.t()) - The current pagination structure.
   - `page` (integer()) - The page number to load (must be >= 1 and <= pages_count).
 
   ## Returns
 
-  Pagination.t() - Updated pagination structure with the requested page data, or
-  unchanged pagination if page is out of bounds.
+  Pagination.t() - Updated pagination structure with the requested page data, or unchanged
+  pagination if page is out of bounds.
 
   ## Examples
 
-      iex> to_page({:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function_paginated},
-      ...>   %Pagination{page: 1, pages_count: 5, per_page: 20}, 3)
+      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :read}}
+      iex> to_page(crud_spec, %Pagination{page: 1, pages_count: 5, per_page: 20}, 3)
       %Pagination{entries: [...], page: 3, pages_count: 5, per_page: 20}
 
-      iex> to_page({:ash, %Ash.Resource.Actions.Read{}, MyApp.User, :list_function_paginated},
-      ...>   %Pagination{page: 1, pages_count: 5}, 10)
+      iex> to_page(crud_spec, %Pagination{page: 1, pages_count: 5}, 10)
       %Pagination{page: 1, pages_count: 5}
   """
-  @spec to_page(tuple(), Pagination.t(), integer()) :: Pagination.t()
+  @spec to_page(CrudSpec.t(), Pagination.t(), integer()) :: Pagination.t()
   def to_page(_crud_spec, pagination, page) when page < 1, do: pagination
 
   def to_page(_crud_spec, %{pages_count: pages_count} = pagination, page)
@@ -158,8 +154,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `get_function` (tuple()) - Tuple with format
-    `{:ash, action, action_module, :get_function}`.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
   - `id` (term()) - The resource identifier.
   - `opts` (keyword()) - Query options:
     * `:preload` (term()) - Associations to load.
@@ -170,12 +165,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> get({:ash, %Ash.Resource.Actions.Read{name: :read}, MyApp.User, :get_function},
-      ...>   "123", preload: [:posts])
+      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :read}}
+      iex> get(crud_spec, "123", preload: [:posts])
       %MyApp.User{id: "123", ...}
 
-      iex> get({:ash, %Ash.Resource.Actions.Read{name: :read}, MyApp.Post, :get_function},
-      ...>   "missing-id", [])
+      iex> get(crud_spec, "missing-id", [])
       nil
   """
   @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
@@ -193,8 +187,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `change_function` (tuple()) - Tuple with format
-    `{:ash, action, action_module, :change_function}`.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
   - `entity` (struct()) - The Ash resource struct to update.
   - `attrs` (map()) - Attributes to apply to the form.
 
@@ -204,8 +197,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> change({:ash, %Ash.Resource.Actions.Update{name: :update}, MyApp.User,
-      ...>   :change_function}, %MyApp.User{}, %{name: "John"})
+      iex> crud_spec = %CrudSpec{action: %{name: :update}}
+      iex> change(crud_spec, %MyApp.User{}, %{name: "John"})
       %AshPhoenix.Form{...}
   """
   @spec change(CrudSpec.t(), struct(), map()) :: AshPhoenix.Form.t()
@@ -217,8 +210,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `new_function` (tuple()) - Tuple with format
-    `{:ash, action, action_module, :new_function}`.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource configuration.
   - `attrs` (map()) - Initial attributes for the new resource.
   - `opts` (keyword()) - Options:
     * `:preload` (list()) - Associations to preload via Ecto repository.
@@ -229,12 +221,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> new({:ash, %Ash.Resource.Actions.Create{}, MyApp.User, :new_function},
-      ...>   %{name: "Jane"}, preload: [:profile])
+      iex> crud_spec = %CrudSpec{resource: MyApp.User}
+      iex> new(crud_spec, %{name: "Jane"}, preload: [:profile])
       %MyApp.User{name: "Jane", profile: %MyApp.Profile{}}
 
-      iex> new({:ash, %Ash.Resource.Actions.Create{}, MyApp.Post, :new_function},
-      ...>   %{title: "Hello"}, [])
+      iex> new(crud_spec, %{title: "Hello"}, [])
       %MyApp.Post{title: "Hello"}
   """
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
@@ -246,11 +237,81 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     |> maybe_apply_preload(repo, opts)
   end
 
+  @doc """
+  Creates a new resource in the database.
+
+  ## Parameters
+
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
+  - `params` (map()) - Parameters for the new resource.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :create}}
+      iex> create(crud_spec, %{name: "Alice", email: "alice@example.com"})
+      {:ok, %MyApp.User{name: "Alice", email: "alice@example.com"}}
+  """
+  @spec create(CrudSpec.t(), map()) :: tuple()
+  def create(%CrudSpec{resource: resource, action: %{name: action_name}}, params) do
+    Ash.create(resource, params, action: action_name)
+  end
+
+  @doc """
+  Updates an existing resource in the database.
+
+  ## Parameters
+
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
+  - `entity` (struct()) - The resource to update.
+  - `params` (map()) - Parameters to update.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> crud_spec = %CrudSpec{action: %{name: :update}}
+      iex> update(crud_spec, %MyApp.User{id: 1}, %{name: "Bob"})
+      {:ok, %MyApp.User{id: 1, name: "Bob"}}
+  """
+  @spec update(CrudSpec.t(), struct(), map()) :: tuple()
+  def update(%CrudSpec{action: %{name: action_name}}, entity, params) do
+    Ash.update(entity, params, action: action_name)
+  end
+
+  @doc """
+  Deletes a resource from the database.
+
+  ## Parameters
+
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
+  - `entity` (struct()) - The resource to delete.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+
+  ## Examples
+
+      iex> crud_spec = %CrudSpec{action: %{name: :destroy}}
+      iex> delete(crud_spec, %MyApp.User{id: 1})
+      {:ok, %MyApp.User{id: 1}}
+  """
+  @spec delete(CrudSpec.t(), struct()) :: tuple()
+  def delete(%CrudSpec{action: %{name: action_name}}, entity) do
+    Ash.destroy(entity, action: action_name)
+  end
+
   ## PRIVATE
 
   # Reads paginated results from an Ash action.
   @spec read_paginated(module(), map(), keyword(), integer(), integer(), boolean()) ::
-          {:ok, Offset.t()} | {:error, term()}
+          {:ok, Ash.Page.Offset.t()} | {:error, term()}
   defp read_paginated(action_module, %{name: action_name}, opts, page, per_page, count?) do
     action_module
     |> Ash.Query.for_read(action_name)

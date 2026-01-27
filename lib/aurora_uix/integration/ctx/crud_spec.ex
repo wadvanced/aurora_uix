@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Integration.Ctx.CrudSpec do
       %CrudSpec{function_spec: nil, auix_action_name: nil}
   """
   @spec new() :: t()
-  def new(), do: %__MODULE__{}
+  def new, do: %__MODULE__{}
 
   @doc """
   Creates a new CrudSpec struct with the specified function and action name.

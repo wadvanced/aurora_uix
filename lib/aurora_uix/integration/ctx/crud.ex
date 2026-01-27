@@ -20,6 +20,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   - Pagination relies on `Aurora.Ctx.Core.to_page/2`
   """
   alias Aurora.Ctx.Core, as: CtxCore
+  alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ctx.CrudSpec
 
   @doc """
@@ -32,7 +33,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  term() - The result from the function invocation (typically Pagination.t()).
+  term() - The result from the function invocation (typically a pagination structure).
 
   ## Examples
 
@@ -80,11 +81,11 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   ## Examples
 
       iex> crud_spec = %CrudSpec{function_spec: &MyContext.get_user/2}
-      iex> get_function(crud_spec, 123, [])
+      iex> get(crud_spec, 123, [])
       %User{id: 123}
   """
-  @spec get_function(CrudSpec.t(), term(), keyword()) :: struct() | nil
-  def get_function(%CrudSpec{function_spec: function_spec}, id, opts),
+  @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
+  def get(%CrudSpec{function_spec: function_spec}, id, opts),
     do: function_spec.(id, opts)
 
   @doc """
@@ -98,7 +99,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  struct() - A changeset structure (typically Ecto.Changeset.t()).
+  Ecto.Changeset.t() - A changeset structure.
 
   ## Examples
 
@@ -106,7 +107,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> change(crud_spec, %User{}, %{name: "John"})
       %Ecto.Changeset{...}
   """
-  @spec change(CrudSpec.t(), struct(), map()) :: struct()
+  @spec change(CrudSpec.t(), struct(), map()) :: Ecto.Changeset.t()
   def change(%CrudSpec{function_spec: function_spec}, entity, attrs),
     do: function_spec.(entity, attrs)
 
@@ -142,7 +143,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, changeset()}`.
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
 
   ## Examples
 
@@ -165,7 +166,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, changeset()}`.
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
 
   ## Examples
 
@@ -187,7 +188,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, changeset()}`.
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
 
   ## Examples
 

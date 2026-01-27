@@ -40,11 +40,11 @@ defmodule Aurora.Uix.Integration.Connector do
 
   ## Examples
 
-      iex> new(%{action: :read, domain: MyApp.Domain}, :ash)
-      %Connector{type: :ash, crud_spec: %{action: :read, domain: MyApp.Domain}}
+      iex> new(%CrudSpec{action: :read, domain: MyApp.Domain}, :ash)
+      %Connector{type: :ash, crud_spec: %CrudSpec{action: :read, domain: MyApp.Domain}}
 
-      iex> new(%{context: MyApp.Context}, :ctx)
-      %Connector{type: :ctx, crud_spec: %{context: MyApp.Context}}
+      iex> new(%CrudSpec{function_spec: &MyContext.list_users/1}, :ctx)
+      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyContext.list_users/1}}
   """
   @spec new(term(), atom()) :: t()
   def new(crud_spec, type) when is_atom(type) do
