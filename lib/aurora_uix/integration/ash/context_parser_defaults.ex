@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Integration.Ash.ParserDefaults do
+defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @moduledoc """
   Parsing functionality for Ash-based resource configurations.
 

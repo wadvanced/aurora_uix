@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Integration.Ctx.ParserDefaults do
+defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   @moduledoc """
   Default value resolution for Context-based resource configurations.
 

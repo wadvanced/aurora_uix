@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Parsers.ContextParser do
+defmodule Aurora.Uix.Integration.ContextParserDefaults do
   @moduledoc """
   Provides parsing functionality for context-based resource configurations.
 
@@ -24,8 +24,8 @@ defmodule Aurora.Uix.Parsers.ContextParser do
 
   @behaviour Aurora.Uix.Parser
 
-  alias Aurora.Uix.Integration.Ash.ParserDefaults, as: AshParserDefaults
-  alias Aurora.Uix.Integration.Ctx.ParserDefaults, as: CtxParserDefaults
+  alias Aurora.Uix.Integration.Ash.ContextParserDefaults, as: AshParserDefaults
+  alias Aurora.Uix.Integration.Ctx.ContextParserDefaults, as: CtxParserDefaults
 
   @doc """
   Returns the list of supported context option keys.
