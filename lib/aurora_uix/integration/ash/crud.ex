@@ -1,25 +1,27 @@
 defmodule Aurora.Uix.Integration.Ash.Crud do
   @moduledoc """
-  CRUD operations for Ash resources with pagination support.
+  Ash Framework implementation of CRUD operations.
 
-  Wraps Ash query operations and returns results in Aurora pagination structures,
-  enabling consistent data handling across the application.
+  Provides CRUD operations for Ash resources using the Ash Framework API. Supports both
+  paginated and non-paginated listing, along with standard create, read, update, delete
+  operations.
 
   ## Key Features
 
+  - Automatic action discovery and execution for Ash resources
+  - Support for paginated and non-paginated queries
   - Query parsing with filters, sorting, and preloading
-  - Automatic pagination structure creation
-  - Integration with Ash read actions
-  - Support for paginated and non-paginated list operations
-  - Page navigation for paginated results
+  - Primary action detection with fallback to first available action
+  - AshPhoenix form integration for changesets
 
   ## Key Constraints
 
-  - Currently only supports read/list/get operations
-  - Non-paginated results return single-page with `:infinity` per_page value
-  - Expects successful Ash.read/1 responses (raises on errors)
-  - Page numbers must be within valid range (1 to pages_count)
+  - Requires valid Ash resource module with defined actions
+  - Pagination requires Ash action configured with `pagination` option
+  - Preloading handled differently: via Ash.Query.load for queries, Ecto repo for new structs
   """
+  @behaviour Aurora.Uix.Integration.Crud
+
   alias Ash.Page.Offset
   alias AshPostgres.DataLayer.Info, as: PostgresDataLayerInfo
   alias Aurora.Ctx.Pagination
@@ -53,6 +55,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> list(crud_spec, paginate: %Pagination{page: 1, per_page: 20})
       %Pagination{entries: [...], page: 1, pages_count: 5, per_page: 20}
   """
+  @impl true
   @spec list(CrudSpec.t(), keyword()) :: Pagination.t()
   def list(definition, opts \\ [])
 
@@ -122,6 +125,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> to_page(crud_spec, %Pagination{page: 1, pages_count: 5}, 10)
       %Pagination{page: 1, pages_count: 5}
   """
+  @impl true
   @spec to_page(CrudSpec.t(), Pagination.t(), integer()) :: Pagination.t()
   def to_page(_crud_spec, pagination, page) when page < 1, do: pagination
 
@@ -172,6 +176,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> get(crud_spec, "missing-id", [])
       nil
   """
+  @impl true
   @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
   def get(%CrudSpec{action: %{name: action_name}} = crud_spec, id, opts) do
     parsed_opts = [action: action_name, load: Keyword.get(opts, :preload, [])]
@@ -201,6 +206,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> change(crud_spec, %MyApp.User{}, %{name: "John"})
       %AshPhoenix.Form{...}
   """
+  @impl true
   @spec change(CrudSpec.t(), struct(), map()) :: AshPhoenix.Form.t()
   def change(%CrudSpec{action: %{name: action_name}}, entity, attrs),
     do: AshPhoenix.Form.for_update(entity, action_name, params: attrs)
@@ -228,6 +234,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> new(crud_spec, %{title: "Hello"}, [])
       %MyApp.Post{title: "Hello"}
   """
+  @impl true
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
   def new(%CrudSpec{resource: resource}, attrs, opts) do
     repo = PostgresDataLayerInfo.repo(resource)
@@ -255,6 +262,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> create(crud_spec, %{name: "Alice", email: "alice@example.com"})
       {:ok, %MyApp.User{name: "Alice", email: "alice@example.com"}}
   """
+  @impl true
   @spec create(CrudSpec.t(), map()) :: tuple()
   def create(%CrudSpec{resource: resource, action: %{name: action_name}}, params) do
     Ash.create(resource, params, action: action_name)
@@ -279,6 +287,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> update(crud_spec, %MyApp.User{id: 1}, %{name: "Bob"})
       {:ok, %MyApp.User{id: 1, name: "Bob"}}
   """
+  @impl true
   @spec update(CrudSpec.t(), struct(), map()) :: tuple()
   def update(%CrudSpec{action: %{name: action_name}}, entity, params) do
     Ash.update(entity, params, action: action_name)
@@ -302,6 +311,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       iex> delete(crud_spec, %MyApp.User{id: 1})
       {:ok, %MyApp.User{id: 1}}
   """
+  @impl true
   @spec delete(CrudSpec.t(), struct()) :: tuple()
   def delete(%CrudSpec{action: %{name: action_name}}, entity) do
     Ash.destroy(entity, action: action_name)

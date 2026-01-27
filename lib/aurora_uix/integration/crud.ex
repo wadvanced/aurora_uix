@@ -26,6 +26,123 @@ defmodule Aurora.Uix.Integration.Crud do
   alias Aurora.Uix.Integration.Ctx.Crud, as: CtxCrud
 
   @doc """
+  Lists resources with optional query parameters.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `opts` (keyword()) - Query options passed to the backend implementation.
+
+  ## Returns
+
+  Pagination.t() - Pagination structure containing query results and metadata.
+  """
+  @callback list(term(), keyword()) :: Pagination.t()
+
+  @doc """
+  Navigates to a specific page in paginated results.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `pagination` (Pagination.t()) - The current pagination structure.
+  - `page` (integer()) - The target page number.
+
+  ## Returns
+
+  Pagination.t() - Updated pagination structure with the requested page data.
+  """
+  @callback to_page(term(), Pagination.t(), integer()) :: Pagination.t()
+
+  @doc """
+  Retrieves a single resource by ID.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `id` (term()) - The resource identifier.
+  - `opts` (keyword()) - Additional query options.
+
+  ## Returns
+
+  struct() | nil - The retrieved resource or `nil` if not found.
+  """
+  @callback get(term(), term(), keyword()) :: struct() | nil
+
+  @doc """
+  Creates a changeset or form for updating a resource.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `entity` (struct()) - The resource to create a changeset for.
+  - `attrs` (map()) - Attributes to apply.
+
+  ## Returns
+
+  struct() - A changeset or form structure.
+  """
+  @callback change(term(), struct(), map()) :: struct()
+
+  @doc """
+  Creates a new resource struct with optional preloading.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `attrs` (map()) - Initial attributes for the new resource.
+  - `opts` (keyword()) - Additional options.
+
+  ## Returns
+
+  struct() - A new resource struct.
+  """
+  @callback new(term(), map(), keyword()) :: struct()
+
+  @doc """
+  Creates a new resource in the database.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `params` (map()) - Parameters for the new resource.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+  """
+  @callback create(term(), map()) :: tuple()
+
+  @doc """
+  Updates an existing resource in the database.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `entity` (struct()) - The resource to update.
+  - `params` (map()) - Parameters to update.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+  """
+  @callback update(term(), struct(), map()) :: tuple()
+
+  @doc """
+  Deletes a resource from the database.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `entity` (struct()) - The resource to delete.
+
+  ## Returns
+
+  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+  """
+  @callback delete(term(), struct()) :: tuple()
+
+  @doc """
   Applies a list operation using the provided Connector.
 
   ## Parameters

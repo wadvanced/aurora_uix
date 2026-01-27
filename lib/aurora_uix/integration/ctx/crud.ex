@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.Integration.Ctx.Crud do
   @moduledoc """
-  CRUD operations for Context-based (Ecto) resources.
+  Context-based implementation of CRUD operations.
 
   Provides wrapper functions that delegate to Context-based function references stored
   in CrudSpec structures. Enables consistent CRUD interface across different backend
@@ -9,9 +9,10 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   ## Key Features
 
   - Delegates CRUD operations to Context function references
-  - Supports standard operations: list, get, create, update, delete
+  - Supports all operations: list, get, create, update, delete, change, new
   - Pagination integration via `Aurora.Ctx.Core`
   - Consistent interface matching Ash CRUD operations
+  - Compatible with Ecto-based contexts
 
   ## Key Constraints
 
@@ -19,6 +20,8 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   - Function arities must match the operation requirements
   - Pagination relies on `Aurora.Ctx.Core.to_page/2`
   """
+  @behaviour Aurora.Uix.Integration.Crud
+
   alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ctx.CrudSpec
@@ -41,6 +44,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> list(crud_spec, where: [{:active, true}])
       %Pagination{entries: [...]}
   """
+  @impl true
   @spec list(CrudSpec.t(), keyword()) :: term()
   def list(%CrudSpec{function_spec: function_spec}, opts), do: function_spec.(opts)
 
@@ -62,6 +66,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> to_page(crud_spec, %Pagination{page: 1, pages_count: 5}, 3)
       %Pagination{page: 3, entries: [...]}
   """
+  @impl true
   @spec to_page(CrudSpec.t(), Pagination.t(), integer()) :: Pagination.t()
   def to_page(_crud_spec, pagination, page), do: CtxCore.to_page(pagination, page)
 
@@ -84,6 +89,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> get(crud_spec, 123, [])
       %User{id: 123}
   """
+  @impl true
   @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
   def get(%CrudSpec{function_spec: function_spec}, id, opts),
     do: function_spec.(id, opts)
@@ -107,6 +113,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> change(crud_spec, %User{}, %{name: "John"})
       %Ecto.Changeset{...}
   """
+  @impl true
   @spec change(CrudSpec.t(), struct(), map()) :: Ecto.Changeset.t()
   def change(%CrudSpec{function_spec: function_spec}, entity, attrs),
     do: function_spec.(entity, attrs)
@@ -130,6 +137,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> new(crud_spec, %{name: "Jane"}, [])
       %User{name: "Jane"}
   """
+  @impl true
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
   def new(%CrudSpec{function_spec: function_spec}, attrs, opts), do: function_spec.(attrs, opts)
 
@@ -151,6 +159,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> create(crud_spec, %{name: "Alice", email: "alice@example.com"})
       {:ok, %User{name: "Alice"}}
   """
+  @impl true
   @spec create(CrudSpec.t(), map()) :: tuple()
   def create(%CrudSpec{function_spec: function_spec}, params),
     do: function_spec.(params)
@@ -174,6 +183,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> update(crud_spec, %User{id: 1}, %{name: "Bob"})
       {:ok, %User{id: 1, name: "Bob"}}
   """
+  @impl true
   @spec update(CrudSpec.t(), struct(), map()) :: tuple()
   def update(%CrudSpec{function_spec: function_spec}, entity, params),
     do: function_spec.(entity, params)
@@ -196,6 +206,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       iex> delete(crud_spec, %User{id: 1})
       {:ok, %User{id: 1}}
   """
+  @impl true
   @spec delete(CrudSpec.t(), struct()) :: tuple()
   def delete(%CrudSpec{function_spec: function_spec}, entity),
     do: function_spec.(entity)
