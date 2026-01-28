@@ -118,10 +118,17 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
-  # def default_value(%{module: module}, %{context: context}, :update_function) do
-  #   create_function_reference(context, ["update_#{module}"], 2)
-  # end
-  #
+  def default_value(
+        _parsed_opts,
+        %{context: ash_domain, schema: ash_resource},
+        :update_function = auix_action
+      ) do
+    ash_domain
+    |> get_proper_actions(ash_resource, :update)
+    |> maybe_get_primary_action()
+    |> create_function_reference(ash_domain, ash_resource, auix_action)
+  end
+
   def default_value(
         _parsed_opts,
         %{context: ash_domain, schema: ash_resource},

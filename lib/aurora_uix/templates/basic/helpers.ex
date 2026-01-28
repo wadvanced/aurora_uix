@@ -2,19 +2,26 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @moduledoc """
   Provides utility functions for LiveView components in Aurora UIX.
 
-  Includes functions for managing navigation stacks, assigning values to sockets, handling
-  entity relationships, and managing section/tab assignment.
+  This module includes functions for managing navigation stacks, assigning values to sockets,
+  handling entity relationships, and managing section/tab assignments within the Aurora UIX
+  framework.
 
-  ## Helper Categories
+  ## Key Features
 
-  - **Navigation** - Routing and navigation stack management
-  - **Assign** - Assigning values to sockets or assigns maps
-  - **Entity** - Entity creation and relationship handling
-  - **Error** - Error formatting and processing
-  - **Field** - Field configuration retrieval and processing
-  - **Layout** - Layout options assignment and retrieval
-  - **Action** - Action management within assigns maps
-  - **Path** - Path and URL manipulations
+  - Navigation stack management with forward/backward routing
+  - Socket assigns manipulation through the `:auix` map
+  - Entity creation and relationship handling
+  - Field configuration retrieval and processing
+  - Layout options assignment and retrieval
+  - Action management within assigns maps (add, insert, replace, remove)
+  - Path and URL manipulations with routing stack encoding
+
+  ## Key Constraints
+
+  - All socket assignments must go through the `:auix` key
+  - Routing stack must be properly encoded/decoded for navigation
+  - Action groups are limited to predefined groups from `Action.action_groups()`
+  - Field configurations must exist in resource configurations
   """
 
   use Phoenix.Component
@@ -35,15 +42,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns a new entity to the socket based on related parameters.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - params (map()) - Map containing optional related_key and parent_id for relationships
-  - default (struct()) - Default entity struct for new record
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `params` (map()) - Map containing optional `related_key` and `parent_id` for relationships.
+  - `default` (struct()) - Default entity struct for new record.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with entity assigned to `:auix.entity`
+
+  Phoenix.LiveView.Socket.t() - Socket with entity assigned to `:auix.entity`.
   """
-  @spec assign_new_entity(Socket.t(), map(), struct()) ::
-          Socket.t()
+  @spec assign_new_entity(Socket.t(), map(), struct()) :: Socket.t()
   def assign_new_entity(
         socket,
         %{
@@ -69,17 +77,19 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   is assigned or if no matching primary key is found.
 
   ## Parameters
+
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket containing entity and
     primary key data.
 
-  ## Returns 
+  ## Returns
+
   Phoenix.LiveView.Socket.t() - Socket with `:item_index` assigned in auix map.
 
   ## Examples
 
       iex> socket = %Socket{assigns: %{auix: %{entity: nil}}}
       iex> assign_item_index(socket)
-      #=> %Socket{assigns: %{auix: %{item_index: -1}}}
+      %Socket{assigns: %{auix: %{item_index: -1}}}
 
       iex> entity = %User{id: 1}
       iex> socket = %Socket{assigns: %{auix: %{
@@ -88,7 +98,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       ...>   primary_keys: [{0, [id: 1]}, {1, [id: 2]}]
       ...> }}}
       iex> assign_item_index(socket)
-      #=> %Socket{assigns: %{auix: %{item_index: 0}}}
+      %Socket{assigns: %{auix: %{item_index: 0}}}
 
   """
   @spec assign_item_index(Socket.t()) :: Socket.t()
@@ -122,11 +132,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns parsed options to the auix assigns map in the socket.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - parsed_opts (map()) - Options to merge with existing auix assigns
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `parsed_opts` (map()) - Options to merge with existing auix assigns.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()- Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
   @spec assign_parsed_opts(Socket.t(), map()) :: Socket.t()
   def assign_parsed_opts(socket, parsed_opts) do
@@ -140,12 +152,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns a value to the auix assigns map in the socket.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - key (atom()) - Key for storing in auix map
-  - value (term()) - Value to store
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `key` (atom()) - Key for storing in auix map.
+  - `value` (term()) - Value to store.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
   @spec assign_auix(Socket.t() | map(), atom(), term()) :: Socket.t() | map()
   def assign_auix(%Socket{} = socket, key, value) do
@@ -163,12 +177,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns a value to the auix assigns map in the socket only if it does not exist.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - key (atom()) - Key for storing in auix map
-  - value (term()) - Value to store
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `key` (atom()) - Key for storing in auix map.
+  - `value` (term()) - Value to store.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
   @spec assign_auix_new(Socket.t(), atom, any) :: Socket.t()
   def assign_auix_new(socket, key, value) do
@@ -182,15 +198,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns section configuration to auix assigns map.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - sections_id (binary()) - Identifier for the sections group
-  - tab_id (binary()) - Identifier for the active tab
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `sections_id` (binary()) - Identifier for the sections group.
+  - `tab_id` (binary()) - Identifier for the active tab.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
-  @spec assign_auix_sections(Socket.t(), binary(), binary()) ::
-          Socket.t()
+  @spec assign_auix_sections(Socket.t(), binary(), binary()) :: Socket.t()
   def assign_auix_sections(%{assigns: assigns} = socket, sections_id, tab_id) do
     assigns.auix
     |> Map.get(:_sections)
@@ -202,14 +219,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Extracts and assigns the current path out of the current url, to the auix map.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - url (binary() | nil) - Actual url.
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `url` (binary() | URI.t() | nil) - Actual url.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
-  @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) ::
-          Socket.t()
+  @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) :: Socket.t()
   def assign_auix_current_path(socket, url) do
     assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
   end
@@ -218,13 +236,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Sets the global uri path, relies on auix_current_path.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
-  @spec assign_auix_uri_path(Socket.t()) ::
-          Socket.t()
+  @spec assign_auix_uri_path(Socket.t()) :: Socket.t()
   def assign_auix_uri_path(%{assigns: %{auix: auix} = assigns} = socket) do
     all_paths =
       auix._current_path
@@ -259,13 +278,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Sets the index new link value. Relies on the existence of auix.uri_path key.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
   """
-  @spec assign_auix_index_new_link(Socket.t()) ::
-          Socket.t()
+  @spec assign_auix_index_new_link(Socket.t()) :: Socket.t()
   def assign_auix_index_new_link(%{assigns: %{auix: auix}} = socket) do
     index_new_link =
       if auix[:index_new_link], do: auix.index_new_link, else: "/#{auix[:uri_path]}/new"
@@ -277,28 +297,29 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Assigns routing stack to the socket. Decodes stack from params or uses default route.
 
   ## Parameters
+
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
   - `params` (map()) - Parameters, may contain `"routing_stack"` as a key.
   - `default_route` (map() | nil) - Optional default route to use if no stack is present.
 
   ## Returns
+
   Phoenix.LiveView.Socket.t() - The socket with updated routing stack.
 
   ## Examples
 
       iex> params = %{"routing_stack" => encoded_stack}
       iex> assign_auix_routing_stack(socket, params, nil)
-      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
+      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
       iex> assign_auix_routing_stack(socket, %{}, nil)
-      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{}}}
+      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{}}}
 
       iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
-      #=> %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
+      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
   """
-  @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) ::
-          Socket.t()
+  @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) :: Socket.t()
   def assign_auix_routing_stack(socket, params, default_route \\ nil)
 
   def assign_auix_routing_stack(
@@ -328,15 +349,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   socket unchanged. Otherwise, stores the value in the `:layout_options` key within the `auix` map.
 
   ## Parameters
+
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
   - `option` (atom()) - The option key to retrieve and assign.
 
   ## Returns
+
   Phoenix.LiveView.Socket.t() - The socket with the option assigned in `auix.layout_options`.
 
   """
-  @spec assign_auix_option(Socket.t() | map(), atom()) ::
-          Socket.t() | map()
+  @spec assign_auix_option(Socket.t() | map(), atom()) :: Socket.t() | map()
   def assign_auix_option(%Socket{assigns: assigns} = socket, option)
       when is_atom(option) do
     option_value =
@@ -373,16 +395,17 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Sets a layout option to the auix entry in the socket's assigns.
 
   ## Parameters
+
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
   - `option` (atom()) - The option key to retrieve and assign.
-  - `option_value` term() - The value to put on the option.
+  - `option_value` (term() | nil) - The value to put on the option.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
 
   """
-  @spec assign_auix_option(Socket.t(), atom(), term() | nil) ::
-          Socket.t()
+  @spec assign_auix_option(Socket.t(), atom(), term() | nil) :: Socket.t()
   def assign_auix_option(socket, option, option_value)
       when is_atom(option) do
     socket
@@ -392,15 +415,18 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   @doc """
   Sets a temporary to the auix entry in the socket's assigns.
+
   There is no guarantee that the elements here will remain in the socket.
 
   ## Parameters
+
   - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
   - `key` (atom()) - The key to assign.
-  - `value` term() - The value to put on the temp space.
+  - `value` (term()) - The value to put on the temp space.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
 
   """
   @spec assign_auix_temp(Phoenix.LiveView.Socket.t(), atom(), any()) :: any()
@@ -414,11 +440,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Adds an action to the specified actions group in the map.
 
   ## Parameters
+
   - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The map containing the `:auix` key.
   - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to add.
 
   ## Returns
+
   Phoenix.LiveView.Socket.t() | map() - The updated map with the action added to the group.
 
   """
@@ -447,12 +475,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Inserts an action at the beginning of the specified actions group in the assigns map.
 
   ## Parameters
-  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the `:auix` key.
+
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the
+    `:auix` key.
   - `actions_group` (atom()) - The group to which the action will be added.
   - `action` (Action.t()) - The action to insert.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() | map() - The updated map with the action inserted at the beginning of the group.
+
+  Phoenix.LiveView.Socket.t() | map() - The updated map with the action inserted at the
+  beginning of the group.
   """
   @spec insert_auix_action(Socket.t() | map(), atom(), Action.t()) :: Socket.t() | map()
   def insert_auix_action(%Socket{assigns: %{auix: auix}} = socket, actions_group, action)
@@ -475,11 +507,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Replaces an action by name in the specified actions group in the map.
 
   ## Parameters
+
   - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The map containing the `:auix` key.
   - `actions_group` (atom()) - The group in which the action will be replaced.
   - `action` (Action.t()) - The action to replace, must include a `:name` key.
 
   ## Returns
+
   Phoenix.LiveView.Socket.t() | map() - The updated map with the action replaced.
   """
   @spec replace_auix_action(Socket.t() | map(), atom(), Action.t()) :: map()
@@ -513,12 +547,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Removes an action by name from the specified actions group in the assigns map.
 
   ## Parameters
-  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the `:auix` key.
+
+  - `assigns_or_socket` (Phoenix.LiveView.Socket.t() | map()) - The assigns map containing the
+    `:auix` key.
   - `actions_group` (atom()) - The group from which the action will be removed.
   - `action_name` (atom()) - The name of the action to remove.
 
   ## Returns
-  Phoenix.LiveView.Socket.t() | map() - The updated assigns map with the action removed from the group.
+
+  Phoenix.LiveView.Socket.t() | map() - The updated assigns map with the action removed from
+  the group.
   """
   @spec remove_auix_action(map(), atom(), atom()) :: map()
   def remove_auix_action(%Socket{assigns: %{auix: auix}} = socket, actions_group, action_name)
@@ -541,11 +579,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Handles forward navigation by updating the routing stack and navigating to the new path.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
-  - navigation (keyword()) - Navigation options with :navigate or :patch key
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `navigation` (keyword()) - Navigation options with `:navigate` or `:patch` key.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+
+  Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
   """
   @spec auix_route_forward(Socket.t(), keyword()) :: Socket.t()
   def auix_route_forward(
@@ -561,10 +601,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Handles backward navigation by popping the last route from the stack.
 
   ## Parameters
-  - socket (Phoenix.LiveView.Socket.t()) - The LiveView socket
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
 
   ## Returns
-  - Phoenix.LiveView.Socket.t()
+
+  Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
   """
   @spec auix_route_back(Socket.t()) :: Socket.t()
   def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack} = auix}} = socket) do
@@ -587,13 +629,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @doc """
   Retrieves and processes field configuration from the resource configurations.
 
-  Parameters:
-  - field: %{name: atom()} - Map containing the field name and options
-  - configurations: map - Global configurations for all resources
-  - resource_name: atom - The name of the resource the field belongs to
+  ## Parameters
 
-  Returns:
-  - Field.t() - A Field struct containing the processed field configuration
+  - `field` (%{name: atom()}) - Map containing the field name and options.
+  - `configurations` (map()) - Global configurations for all resources.
+  - `resource_name` (atom()) - The name of the resource the field belongs to.
+
+  ## Returns
+
+  Field.t() - A Field struct containing the processed field configuration.
   """
   @spec get_field(map, map, atom) :: Field.t()
   def get_field(%{name: field_key} = field, configurations, resource_name) do
@@ -609,11 +653,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Retrieves the configuration for a specific resource from the assigns or auix map.
 
   ## Parameters
-  - assigns_or_auix (map()) - The assigns map or auix map containing configurations
-  - resource_name (atom()) - The name of the resource to retrieve configuration for
+
+  - `assigns_or_auix` (map()) - The assigns map or auix map containing configurations.
+  - `resource_name` (atom()) - The name of the resource to retrieve configuration for.
 
   ## Returns
-    - map() - The configuration map for the specified resource, or an empty map if not_found
+
+  map() - The configuration map for the specified resource, or an empty map if not found.
   """
   @spec get_configuration(map(), atom()) :: map()
   def get_configuration(%{auix: %{configurations: configurations}} = _assigns, resource_name),
@@ -626,13 +672,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Retrieves a specific resource configuration key from the assigns or auix map.
 
   ## Parameters
-  - assigns_or_auix (map()) - The assigns map or auix map containing configurations
-  - resource_name (atom()) - The name of the resource to retrieve configuration for
-  - key (atom()) - The specific key to retrieve from the resource configuration
+
+  - `assigns_or_auix` (map()) - The assigns map or auix map containing configurations.
+  - `resource_name` (atom()) - The name of the resource to retrieve configuration for.
+  - `key` (atom() | list()) - The specific key to retrieve from the resource configuration.
 
   ## Returns
-    - map() - The value for the specified key in the resource configuration, 
-    or an empty map if not found    
+
+  term() - The value for the specified key in the resource configuration, or an empty map if
+  not found.
   """
   @spec get_resource(map(), atom(), atom() | list()) :: term()
   def get_resource(assigns_or_auix, resource_name, key) when is_atom(key) do
@@ -650,14 +698,16 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Retrieves the layout tree for a specific resource and layout type.
 
   ## Parameters
-  - assigns_or_auix (map()) - The assigns ma wp or auix map containing configurations
-  - resource_name (atom()) - The name of the resource to retrieve layout for
-  - layout_type (atom()) - The type of layout to retrieve (e.g., :form, :index)
+
+  - `assigns_or_auix` (map()) - The assigns map or auix map containing configurations.
+  - `resource_name` (atom()) - The name of the resource to retrieve layout for.
+  - `layout_type` (atom()) - The type of layout to retrieve (e.g., `:form`, `:index`).
 
   ## Returns
-    - map() - The layout tree map for the specified resource and layout type, 
-    or an empty map if not found
-    
+
+  map() - The layout tree map for the specified resource and layout type, or an empty map if
+  not found.
+
   """
   @spec get_layout(map(), atom(), atom()) :: map()
   def get_layout(assigns_or_auix, resource_name, layout_type) do
@@ -670,10 +720,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Extracts association fields from preload configuration grouped by association type.
 
   ## Parameters
-  - parsed_opts (map()) - Configuration map containing preload and resource settings
+
+  - `parsed_opts` (map()) - Configuration map containing preload and resource settings.
 
   ## Returns
-  - map() - Map with association field types (:one_to_many, :many_to_one) as keys and lists of field names as values
+
+  map() - Map with association field types (`:one_to_many`, `:many_to_one`) as keys and lists of
+  field names as values.
   """
   @spec extract_association_preload(map()) :: map()
   def extract_association_preload(parsed_opts) do
@@ -692,11 +745,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Flattens a nested structure of elements into a list of paths.
 
   ## Parameters
-  - elements (map() | list()) - Nested structure containing inner_elements and tags
-  - result (list()) - Accumulated result, defaults to empty list
+
+  - `elements` (map() | list()) - Nested structure containing inner_elements and tags.
+  - `result` (list()) - Accumulated result, defaults to empty list.
 
   ## Returns
-  - list() - Flattened list of maps containing tag and name information
+
+  list() - Flattened list of maps containing tag and name information.
   """
   @spec flatten_layout_tree(map() | list(), list()) :: list()
   def flatten_layout_tree(elements, result \\ [])
@@ -720,9 +775,19 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @doc """
   A helper that transforms changeset errors into a map of messages.
 
-      assert {:error, changeset} = Accounts.create_user(%{password: "short"})
-      assert "password is too short" in errors_on(changeset).password
-      assert %{password: ["password is too short"]} = errors_on(changeset)
+  ## Parameters
+
+  - `changeset` (Ecto.Changeset.t()) - The changeset containing errors.
+
+  ## Returns
+
+  list() - List of formatted error messages.
+
+  ## Examples
+
+      iex> assert {:error, changeset} = Accounts.create_user(%{password: "short"})
+      iex> assert "password is too short" in errors_on(changeset).password
+      iex> assert %{password: ["password is too short"]} = errors_on(changeset)
 
   """
   @spec format_changeset_errors(Ecto.Changeset.t()) :: list()
@@ -740,12 +805,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Gets the value of an entity's primary key.
 
   ## Parameters
-  - `entity` (term()) - The entity that will be primary key value.
+
+  - `entity` (term() | nil) - The entity that will be primary key value.
   - `primary_key` (atom() | list()) - The field (or fields) to be gather from the entity.
 
   ## Returns
-  `term()` | list() | nil - Return a single value if the primary key is an `atom()` or a single element list.
-    Otherwise returns a list of values, each corresponding to each of the primary key list of fields.
+
+  term() | list() | nil - Return a single value if the primary key is an `atom()` or a single
+  element list. Otherwise returns a list of values, each corresponding to each of the primary key
+  list of fields.
   """
   @spec primary_key_value(term() | nil, atom() | list()) :: term() | list() | nil
   def primary_key_value(entity, _primary_key) when is_nil(entity), do: nil
@@ -770,11 +838,11 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   ## Parameters
 
-  - `assigns` (`map()`) - Assigns map containing field and configuration data
+  - `assigns` (map()) - Assigns map containing field and configuration data.
 
   ## Returns
 
-  `map()` - Map with `:options` (list of `{label, value}` tuples) and `:multiple` (boolean)
+  map() - Map with `:options` (list of `{label, value}` tuples) and `:multiple` (boolean()).
   """
   @spec get_select_options(map()) :: map()
   def get_select_options(%{
@@ -820,6 +888,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   # Not defined
   def get_select_options(_assigns), do: %{options: [], multiple: false}
+
+  def to_named_form(data, form_name, opts \\ []) do
+    data
+    |> to_form(opts)
+    |> maybe_update_source(form_name)
+    |> struct(%{name: form_name, id: form_name})
+  end
 
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(
@@ -998,5 +1073,29 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         |> Enum.reverse()
         |> Enum.join("/"),
       else: List.last(paths)
+  end
+
+  defp maybe_update_source(%{source: %{name: _name, id: _id} = source} = data, form_name)
+       when is_struct(source) do
+    source
+    |> struct(%{name: form_name, id: form_name})
+    |> update_source_in_data(data)
+  end
+
+  defp maybe_update_source(%{source: %{name: _name, id: _id} = source} = data, form_name)
+       when is_non_struct_map(source) do
+    source
+    |> Map.merge(%{name: form_name, id: form_name})
+    |> update_source_in_data(data)
+  end
+
+  defp maybe_update_source(data, _form_name), do: data
+
+  defp update_source_in_data(source, data) when is_struct(data) do
+    struct(data, %{source: source})
+  end
+
+  defp update_source_in_data(source, data) when is_non_struct_map(data) do
+    Map.put(data, :source, source)
   end
 end

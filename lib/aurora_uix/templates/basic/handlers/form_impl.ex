@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
-  import Phoenix.Component, only: [assign: 3, to_form: 1, to_form: 2]
+  import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
@@ -112,7 +112,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
              socket
              |> clear_flash()
              |> put_flash(:error, format_changeset_errors(changeset))
-             |> assign_auix(:form, to_form(changeset))}
+             |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
         end
       end
 
@@ -150,7 +150,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     form =
       auix.change_function
       |> apply_change_function(entity, %{})
-      |> to_form()
+      |> to_named_form(auix.module)
 
     {:ok,
      socket
@@ -194,7 +194,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     form =
       auix.change_function
       |> apply_change_function(socket.assigns[:auix][:entity], entity_params)
-      |> to_form(action: :validate)
+      |> to_named_form(auix.module, action: :validate)
 
     {:noreply, assign_auix(socket, :form, form)}
   end

@@ -34,11 +34,12 @@ defmodule Aurora.Uix.Guides.Blog.Author do
   end
 
   actions do
-    defaults [:read, :destroy, update: :*]
+    default_accept [:name, :email, :bio]
+
+    defaults [:read, :destroy, :update]
 
     create :create do
       accept [:name, :email, :bio]
-      primary? true
     end
 
     read :not_paginated

@@ -208,8 +208,9 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   """
   @impl true
   @spec change(CrudSpec.t(), struct(), map()) :: AshPhoenix.Form.t()
-  def change(%CrudSpec{action: %{name: action_name}}, entity, attrs),
-    do: AshPhoenix.Form.for_update(entity, action_name, params: attrs)
+  def change(%CrudSpec{action: %{name: action_name}}, entity, attrs) do
+    AshPhoenix.Form.for_update(entity, action_name, params: attrs)
+  end
 
   @doc """
   Creates a new Ash resource struct with optional preloading.
