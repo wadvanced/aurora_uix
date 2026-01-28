@@ -21,11 +21,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   use Aurora.Uix.Gettext
 
+  import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.LiveView
   import Phoenix.Component
 
-  alias Aurora.Ctx.Core, as: CtxCore
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
@@ -143,7 +143,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
-    show_component = ModulesGenerator.module_name(auix, ".ShiiowComponent")
+    show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
@@ -231,8 +231,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {delete_function, _} = Code.eval_string(delete_function_string)
 
     socket =
-      with %{} = entity <- get_function.(id, []),
-           {:ok, _changeset} <- delete_function.(entity) do
+      with %{} = entity <- apply_get_function(get_function, id, []),
+           {:ok, _changeset} <- apply_delete_function(delete_function, entity) do
         socket
         |> put_flash(:info, gettext("Item deleted successfully"))
         |> push_patch(to: socket.assigns.auix[:_current_path])
@@ -244,8 +244,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix, streams: _streams}} = socket) do
-    entity = auix.get_function.(id, [])
-    {:ok, _} = auix.delete_function.(entity)
+    entity = apply_get_function(auix.get_function, id, [])
+    {:ok, _} = apply_delete_function(auix.delete_function, entity)
 
     {:noreply,
      socket
@@ -591,8 +591,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :edit}} = socket,
         %{"id" => id} = params
       ) do
+    new_entity = apply_get_function(auix.get_function, id, preload: auix.preload)
+
     socket
-    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_new_entity(params, new_entity)
     |> assign_item_index()
     |> assign_live_component()
   end
@@ -601,8 +603,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :show}} = socket,
         %{"id" => id} = params
       ) do
+    new_entity = apply_get_function(auix.get_function, id, preload: auix.preload)
+
     socket
-    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_new_entity(params, new_entity)
     |> assign_item_index()
     |> assign_live_component()
   end
@@ -611,15 +615,20 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
         %{"id" => id} = params
       ) do
+    new_entity =
+      apply_get_function(auix.get_function, id, preload: auix.preload)
+
     socket
-    |> assign_new_entity(params, auix.get_function.(id, preload: auix.preload))
+    |> assign_new_entity(params, new_entity)
     |> assign_item_index()
     |> assign_live_component()
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
+    new_entity = apply_new_function(auix.new_function, %{}, preload: auix.preload)
+
     socket
-    |> assign_new_entity(params, auix.new_function.(%{}, preload: auix.preload))
+    |> assign_new_entity(params, new_entity)
     |> assign_item_index()
     |> assign_live_component()
   end
@@ -684,9 +693,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket
   end
 
-  defp load_page(%{assigns: %{auix: %{pagination: pagination}}} = socket, page) do
-    pagination
-    |> CtxCore.to_page(page)
+  defp load_page(
+         %{assigns: %{auix: %{pagination: pagination, list_function_selected: list_function}}} =
+           socket,
+         page
+       ) do
+    list_function
+    |> apply_to_page(pagination, page)
     |> then(&assign_auix(socket, :read_items, &1))
     |> update_streams()
     |> assign_item_index()
@@ -709,7 +722,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     load_items_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
-    read_items_options = [paginate: %{page: auix.initial_page, per_page: auix.per_page}]
+    read_items_options = [
+      paginate: %{page: auix.initial_page, per_page: auix.per_page}
+    ]
 
     socket
     |> assign_auix(:load_items_options, load_items_options)
@@ -765,7 +780,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     read_items =
       query_options
       |> Keyword.merge(options)
-      |> list_function.()
+      |> then(&apply_list_function(list_function, &1))
 
     assign_auix(socket, :read_items, read_items)
   end
@@ -908,6 +923,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
          %{
            assigns: %{
              auix: %{
+               list_function_selected: list_function,
                selection: selection,
                pagination: %{pages_count: pages_count} = pagination,
                primary_key: primary_key
@@ -925,8 +941,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           1..pages_count,
           selection,
           fn page, acc_selection ->
-            pagination
-            |> CtxCore.to_page(page)
+            list_function
+            |> apply_to_page(pagination, page)
             |> Map.get(:entries, [])
             |> Enum.map(&BasicHelpers.primary_key_value(&1, primary_key))
             |> Enum.reduce(acc_selection, &Selection.set_selected(&1, &2, state?, page))
@@ -945,8 +961,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     function =
       fn ->
         selection.selected
-        |> Enum.map(&auix.get_function.(&1, []))
-        |> Enum.each(&auix.delete_function.(&1))
+        |> Enum.map(&apply_get_function(auix.get_function, &1, []))
+        |> Enum.each(&apply_delete_function(auix.delete_function, &1))
       end
 
     start_async(socket, :auix_selection_delete_all, function)
@@ -1046,7 +1062,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> Keyword.put(:select, auix.primary_key)
     |> Keyword.put(:paginate, %{per_page: auix.pagination.per_page})
     |> then(&Map.put(auix.pagination, :opts, &1))
-    |> CtxCore.to_page(auix.pagination.page)
+    |> then(&apply_to_page(auix.list_function_selected, &1, auix.pagination.page))
     |> Map.get(:entries, [])
     |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
   end

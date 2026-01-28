@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
   use Aurora.Uix.CoreComponentsImporter
   import Aurora.Uix.Templates.Basic.Components
+  import Aurora.Uix.Integration.Crud
 
   alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -163,7 +164,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       owner_keys
       |> merge_keys(association.related_key)
       |> merge_custom_where(custom_where)
-      |> then(&association.related_parsed_opts.list_function.([{:where, &1} | query_opts]))
+      |> then(
+        &apply_list_function(association.related_parsed_opts.list_function, [
+          {:where, &1} | query_opts
+        ])
+      )
       |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end
   end

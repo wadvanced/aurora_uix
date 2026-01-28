@@ -15,12 +15,22 @@ defmodule Aurora.Uix.Resource do
 
   use Accessible
 
-  defstruct [:name, :schema, :context, opts: [], fields: [], fields_order: [], inner_elements: []]
+  defstruct [
+    :name,
+    :schema,
+    :context,
+    type: :ctx,
+    opts: [],
+    fields: [],
+    fields_order: [],
+    inner_elements: []
+  ]
 
   @type t() :: %__MODULE__{
           name: atom(),
           schema: module(),
           context: module() | nil,
+          type: atom(),
           opts: keyword(),
           fields: map() | list(),
           fields_order: list(),
