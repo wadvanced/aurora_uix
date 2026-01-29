@@ -12,6 +12,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   - Status must be one of: `:draft`, `:published`, `:archived`
   - Default status is `:draft`
   """
+  alias Aurora.Uix.Guides.Blog.Tag
+
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,
     domain: Aurora.Uix.Guides.Blog
@@ -33,6 +35,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
+    attribute :tags, {:array, Tag}
+
     create_timestamp(:inserted_at)
     update_timestamp(:updated_at)
   end
@@ -40,5 +44,11 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   relationships do
     belongs_to(:author, Aurora.Uix.Guides.Blog.Author)
     belongs_to(:category, Aurora.Uix.Guides.Blog.Category)
+  end
+
+  actions do
+    default_accept [:title, :content]
+
+    defaults [:create, :read, :destroy, :update]
   end
 end

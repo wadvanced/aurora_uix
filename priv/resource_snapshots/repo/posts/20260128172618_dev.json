@@ -61,6 +61,21 @@
       "type": "text"
     },
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "tags",
+      "type": [
+        "array",
+        "map"
+      ]
+    },
+    {
       "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
@@ -151,8 +166,8 @@
   "check_constraints": [],
   "custom_indexes": [],
   "custom_statements": [],
-  "has_create_action": false,
-  "hash": "0BCF58FA3C7EE9105521B7BDF39687C1BB677AC9FE07186A389E6235680D187B",
+  "has_create_action": true,
+  "hash": "30382EC2E72804559FBE87590415925C77787ED4D4EB8BE2F21D3A4572D93CFD",
   "identities": [],
   "multitenancy": {
     "attribute": null,

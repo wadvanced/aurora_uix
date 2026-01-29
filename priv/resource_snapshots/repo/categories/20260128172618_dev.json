@@ -33,19 +33,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "email",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "bio",
+      "source": "description",
       "type": "text"
     },
     {
@@ -77,8 +65,8 @@
   "check_constraints": [],
   "custom_indexes": [],
   "custom_statements": [],
-  "has_create_action": false,
-  "hash": "9805ADED318EEDE9D1C86A5FF43B8904E89E72CDB60DC1A50B1B13F01FA01E4B",
+  "has_create_action": true,
+  "hash": "E594AF68BD69162965867BEE9A42FC8C0B3C01DBDA48B2F45A30B7C57030C028",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -87,5 +75,5 @@
   },
   "repo": "Elixir.Aurora.Uix.Repo",
   "schema": null,
-  "table": "authors"
+  "table": "categories"
 }

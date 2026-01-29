@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Repo.Migrations.MigrateResources1 do
       add(:content, :text)
       add(:published_at, :utc_datetime)
       add(:status, :text, default: "draft")
+      add(:tags, {:array, :map})
 
       add(:inserted_at, :utc_datetime_usec,
         null: false,
