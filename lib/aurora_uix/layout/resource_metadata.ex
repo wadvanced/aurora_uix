@@ -340,14 +340,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
 
+    resource_type = resource_type(schema)
+
     resource =
       %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{
-        type: resource_type(schema),
+        type: resource_type,
         opts: opts,
-        fields: parse_fields(schema, resource.name),
+        fields: parse_fields(resource_type, schema, resource.name),
         inner_elements: resource.inner_elements
       })
 
@@ -469,16 +471,18 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module() | nil, atom()) :: list()
-  defp parse_fields(nil, _resource_name), do: []
+  @spec parse_fields(module(), module() | nil, atom()) :: list()
+  defp parse_fields(_resource_type, nil, _resource_name), do: []
 
-  defp parse_fields(schema, resource_name) do
+  defp parse_fields(resource_type, schema, resource_name) do
     Code.ensure_compiled(schema)
+
+    fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
 
     if function_exported?(schema, :__schema__, 1) do
       :fields
       |> schema.__schema__()
-      |> Enum.map(&parse_field(schema, resource_name, &1))
+      |> Enum.map(&parse_field(fields_parser, schema, resource_name, &1))
       |> List.flatten()
     else
       []
@@ -489,14 +493,22 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - HTML input type
   # - Validation constraints
   # - Association data (if applicable)
-  @spec parse_field(module(), atom(), atom()) :: Field.t()
-  defp parse_field(module, resource_name, field_key) do
-    type = module.__schema__(:type, field_key)
+  @spec parse_field(module(), module(), atom(), atom()) :: Field.t()
+  defp parse_field(fields_parser, resource_schema, resource_name, field_key) do
+    type = resource_schema.__schema__(:type, field_key)
 
     association_or_embed =
-      module.__schema__(:association, field_key) || module.__schema__(:embed, field_key)
+      resource_schema.__schema__(:association, field_key) ||
+        resource_schema.__schema__(:embed, field_key)
 
-    LayoutHelpers.parse_field(field_key, type, resource_name, association_or_embed)
+    LayoutHelpers.parse_field(
+      fields_parser,
+      resource_schema,
+      field_key,
+      type,
+      resource_name,
+      association_or_embed
+    )
   end
 
   # Finds matching resource for an association
@@ -539,9 +551,14 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     do: {name, resource}
 
   defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
+    fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
+
     :associations
     |> schema.__schema__()
-    |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, name, resources, &1, &2))
+    |> Enum.reduce(
+      Enum.reverse(fields),
+      &parse_association(fields_parser, schema, name, resources, &1, &2)
+    )
     |> Enum.reverse()
     |> then(&struct(resource, %{fields: &1}))
     |> configure_many_to_one_selectors()
@@ -552,17 +569,29 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   # Converts a schema association into a Field struct
   # Includes association metadata and proper field type
-  @spec parse_association(module(), atom(), list(Resource.t()), atom(), map()) ::
+  @spec parse_association(module(), module(), atom(), list(Resource.t()), atom(), map()) ::
           list(Resource.t())
-  defp parse_association(schema, resource_name, resources, association_field_key, fields) do
+  defp parse_association(
+         fields_parser,
+         schema,
+         resource_name,
+         resources,
+         association_field_key,
+         fields
+       ) do
     :association
     |> schema.__schema__(association_field_key)
     |> then(
       &Field.new(
         key: association_field_key,
-        html_type: LayoutHelpers.field_html_type(nil, &1),
-        type: LayoutHelpers.field_type(nil, &1),
-        data: Map.put(LayoutHelpers.field_data(&1), :resource, field_resource(&1, resources)),
+        html_type: fields_parser.field_html_type(nil, &1),
+        type: fields_parser.field_type(nil, &1),
+        data:
+          Map.put(
+            fields_parser.field_data(schema, association_field_key, &1),
+            :resource,
+            field_resource(&1, resources)
+          ),
         resource: resource_name
       )
     )

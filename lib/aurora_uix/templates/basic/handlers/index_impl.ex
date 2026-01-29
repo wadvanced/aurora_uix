@@ -2,22 +2,24 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @moduledoc """
   Behaviour and macro for implementing index page handlers in Aurora UIX LiveView templates.
 
-  Provides a set of callbacks and a `__using__/1` macro to standardize the handling of mount, parameter changes,
-  events, info messages, and action application for index pages. Designed for use with Phoenix LiveView and
-  Aurora UIX conventions.
+  Provides a set of callbacks and a `__using__/1` macro to standardize the handling of mount,
+  parameter changes, events, info messages, and action application for index pages.
 
   ## Key Features
 
-    - Defines required callbacks for index page lifecycle and event handling.
-    - Supplies a macro to inject default implementations and imports for LiveView modules.
-    - Integrates with Aurora UIX context and module generators for dynamic entity management.
-    - Supports streaming, patching, and navigation for index resources.
+  - Defines required callbacks for index page lifecycle and event handling
+  - Supplies a macro to inject default implementations and imports for LiveView modules
+  - Integrates with Aurora UIX context and module generators for dynamic entity management
+  - Supports streaming, patching, and navigation for index resources
+  - Handles pagination, filtering, and item selection for large datasets
+  - Provides async operations for bulk actions (select all, delete all)
 
   ## Key Constraints
-    - Expects the `:auix` assign to be present in the LiveView socket.
-    - Designed for use with Phoenix LiveView and Aurora UIX context modules.
-    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
+  - Expects the `:auix` assign to be present in the LiveView socket
+  - Designed for use with Phoenix LiveView and Aurora UIX context modules
+  - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.)
+  - Requires resource modules to implement CRUD operations via Aurora.Uix.Integration.Crud
   """
   use Aurora.Uix.Gettext
 
@@ -45,14 +47,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   Handles URL parameter changes, updates routing stack, and assigns form component.
 
   ## Parameters
-  - `caller` (module()) - The calling module.
   - `params` (map()) - URL/query parameters.
   - `url` (binary()) - Current URL.
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with routing stack and form component.
-
+  {:noreply, Socket.t()} - Updated socket with routing stack and form component.
   """
   @callback auix_handle_params(params :: map(), url :: binary(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -65,8 +65,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `params` (map()) - Action parameters.
 
   ## Returns
-  `Socket.t()` - Updated socket with action-specific assigns.
-
+  Socket.t() - Updated socket with action-specific assigns.
   """
   @callback apply_action(
               socket :: Socket.t(),
@@ -137,8 +136,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  `{:ok, Socket.t()}` - The initialized socket with streamed entities from context.
-
+  {:ok, Socket.t()} - The initialized socket with streamed entities from context.
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
@@ -181,8 +179,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with routing stack, form component, and action applied.
-
+  {:noreply, Socket.t()} - Updated socket with routing stack, form component, and action applied.
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_params(params, url, socket) do
@@ -206,16 +203,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   Handles LiveView events for the index page.
 
   Supports delete events with custom context/functions or default auix context,
-  forward/back navigation events, and routing events.
+  forward/back navigation events, routing events, filtering, pagination, and selection.
 
   ## Parameters
-  - `event` (binary()) - Event name (`"delete"`, `"auix_route_forward"`, `"auix_route_back"`).
+  - `event` (binary()) - Event name.
   - `params` (map()) - Event parameters.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket after event handling.
-
+  {:noreply, Socket.t()} - Updated socket after event handling.
   """
   @spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_event(
@@ -503,8 +499,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with entity inserted into stream or unchanged.
-
+  {:noreply, Socket.t()} - Updated socket with entity inserted into stream or unchanged.
   """
   @spec handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_info(
@@ -519,18 +514,17 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   @doc """
-  Handles async results for selection.
+  Handles async results for selection operations.
 
-  Selecting all items, in large datasets, are time consuming, therefore it is handle asynchronously.
+  Selecting all items in large datasets is time consuming, therefore it is handled asynchronously.
 
   ## Parameters
-  - `task` (atom()) - Task name.
-  - `result` (tuple()) - Result of the async task.
+  - `task` (atom()) - Task name (`:auix_selection_toggle_all` or `:auix_selection_delete_all`).
+  - `result` (term()) - Result of the async task.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with the new selection.
-
+  {:noreply, Socket.t()} - Updated socket with the new selection.
   """
   @spec handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_async(
@@ -575,16 +569,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @doc """
   Applies the given action to the socket state.
 
-  Handles `:edit` action by fetching and assigning entity, `:new` action by creating new entity,
-  and `:index` action by clearing entity assignment.
+  Handles `:edit`, `:show`, `:show_edit` actions by fetching and assigning entity, `:new` action
+  by creating new entity, and `:index` action by clearing entity assignment or paginating.
 
   ## Parameters
   - `socket` (Socket.t()) - LiveView socket.
-  - `params` (map()) - Action parameters containing entity ID for `:edit`.
+  - `params` (map()) - Action parameters containing entity ID for actions that require it.
 
   ## Returns
-  `Socket.t()` - Updated socket with action-specific entity assignment.
-
+  Socket.t() - Updated socket with action-specific entity assignment.
   """
   @spec apply_action(Socket.t(), map()) :: Socket.t()
   def apply_action(
@@ -890,6 +883,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            }
          } = socket
        ) do
+    fields_parser =
+      configurations
+      |> get_in([Access.key!(resource_name), Access.key!(:resource_config), Access.key!(:type)])
+      |> LayoutHelpers.get_fields_parser_module()
+
+    resource_schema =
+      get_in(configurations, [
+        Access.key!(resource_name),
+        Access.key!(:resource_config),
+        Access.key!(:schema)
+      ])
+
     select_toggle_function =
       auix
       |> Map.get(:index_selected_all_actions, [])
@@ -897,8 +902,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Map.get(:function_component, "")
 
     select_field =
-      :selected_check__
-      |> LayoutHelpers.parse_field(:boolean, resource_name)
+      fields_parser
+      |> LayoutHelpers.parse_field(resource_schema, :selected_check__, :boolean, resource_name)
       |> struct(%{label: select_toggle_function, filterable?: false})
 
     layout_tree.inner_elements
