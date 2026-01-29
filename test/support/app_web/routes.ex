@@ -68,6 +68,16 @@ defmodule Aurora.UixWeb.Test.Routes do
           "ash-default-layout-authors"
         )
 
+        RoutesHelper.register_crud(
+          AshOne2ManyTest.Author,
+          "ash-one2many-authors"
+        )
+
+        RoutesHelper.register_crud(
+          AshOne2ManyTest.Post,
+          "ash-one2many-posts"
+        )
+
         RoutesHelper.register_product_crud(
           RecordNavigationDisableTest,
           "record-navigation-disable-"
