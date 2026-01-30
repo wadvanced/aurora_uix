@@ -332,6 +332,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     :unimplemented
   end
 
+  def field_html_type(:boolean, _association), do: :checkbox
+
   # Direct type passthrough
   def field_html_type(type, nil), do: type
 
@@ -671,6 +673,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   ## PRIVATE
+  @spec maybe_remove_ecto_type(list()) :: list()
   defp maybe_remove_ecto_type(["EctoType" | rest]), do: rest
   defp maybe_remove_ecto_type(list), do: list
 end
