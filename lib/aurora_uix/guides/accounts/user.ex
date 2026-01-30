@@ -1,8 +1,23 @@
 defmodule Aurora.Uix.Guides.Accounts.User do
   @moduledoc """
-  Ecto schema for test users in the Aurora.Uix application.
+  Ecto schema for test users in guides and examples.
 
-  Includes fields for user information and an embedded profile.
+  Represents a user with personal information, embedded profile settings, and email addresses.
+
+  ## Key Features
+
+  - Personal information fields (given_name, family_name, avatar_url)
+  - Embedded profile with online status, dark mode, and visibility settings
+  - Embedded emails collection for multiple email addresses
+  - Confirmation timestamp tracking
+
+  ## Key Constraints
+
+  - Only for guides and test scenarios
+  - Requires given_name and profile
+  - Profile requires online status and visibility
+  - Email addresses must be valid format
+  - Visibility must be one of: `:public`, `:private`, `:friends_only`
   """
 
   use Ecto.Schema
@@ -22,16 +37,6 @@ defmodule Aurora.Uix.Guides.Accounts.User do
           inserted_at: NaiveDateTime.t() | nil,
           updated_at: NaiveDateTime.t() | nil
         }
-  @doc """
-  Defines the `users` table schema.
-
-  Fields:
-    - given_name: User's given_name.
-    - family_name: User's last name.
-    - avatar_url: URL to user's avatar image.
-    - confirmed_at: Timestamp when the user was confirmed.
-    - profile: Embedded profile with online status, dark mode, and visibility.
-  """
   schema "users" do
     field(:given_name, :string)
     field(:family_name, :string)
@@ -55,7 +60,12 @@ defmodule Aurora.Uix.Guides.Accounts.User do
   @doc """
   Builds a changeset for a user.
 
-  Casts fields and requires an embedded profile.
+  ## Parameters
+  - `user` (User.t()) - The user struct.
+  - `attrs` (map()) - Attributes to update. Defaults to `%{}`.
+
+  ## Returns
+  Ecto.Changeset.t() - The changeset for the user.
   """
   @spec changeset(User.t(), map()) :: Ecto.Changeset.t()
   def changeset(%User{} = user, attrs \\ %{}) do
@@ -69,11 +79,14 @@ defmodule Aurora.Uix.Guides.Accounts.User do
   @doc """
   Builds a changeset for the embedded profile.
 
-  Casts `:online`, `:dark_mode`, and `:visibility` fields.
-  Requires `:online` and `:visibility`.
-  """
+  ## Parameters
+  - `profile` (Ecto.Schema.t()) - The profile struct.
+  - `attrs` (map()) - Attributes to update. Defaults to `%{}`.
 
-  @spec profile_changeset(Ecto.Schema.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  ## Returns
+  Ecto.Changeset.t() - The changeset for the profile.
+  """
+  @spec profile_changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def profile_changeset(profile, attrs \\ %{}) do
     profile
     |> cast(attrs, [:online, :dark_mode, :visibility])
@@ -82,10 +95,15 @@ defmodule Aurora.Uix.Guides.Accounts.User do
 
   @doc """
   Builds a changeset for each embedded email.
-  Casts `:email` and `:name` fields.
-  Requires and validates the email format.
+
+  ## Parameters
+  - `email` (Ecto.Schema.t()) - The email struct.
+  - `attrs` (map()) - Attributes to update. Defaults to `%{}`.
+
+  ## Returns
+  Ecto.Changeset.t() - The changeset for the email.
   """
-  @spec email_changeset(Ecto.Schema.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  @spec email_changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def email_changeset(email, attrs \\ %{}) do
     email
     |> cast(attrs, [:email, :name])

@@ -2,15 +2,17 @@ defmodule Aurora.Uix.Guides.Blog do
   @moduledoc """
   Ash Domain for blog-related resources in guides and examples.
 
-  This module defines the blog domain containing posts, authors, and categories.
-  It is excluded from package builds and intended for use in test and development
-  environments only.
+  Defines the blog domain containing posts, authors, and categories for demonstration
+  and testing purposes.
 
   ## Key Features
+
   - Manages blog posts, authors, and categories
   - Provides Ash Framework domain for guide examples
+  - Includes custom domain action for listing categories
 
   ## Key Constraints
+
   - Only for guides and test scenarios
   - Not included in production builds
   """

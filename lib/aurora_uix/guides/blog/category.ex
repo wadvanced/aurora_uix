@@ -3,11 +3,15 @@ defmodule Aurora.Uix.Guides.Blog.Category do
   Ash resource representing blog categories for guides and examples.
 
   ## Key Features
+
   - Has many posts relationship
   - Name and description fields
+  - Standard CRUD actions with custom create acceptance
 
   ## Key Constraints
+
   - Only for guides and test scenarios
+  - Stored in PostgreSQL categories table
   """
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,

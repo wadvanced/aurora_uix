@@ -889,6 +889,21 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   # Not defined
   def get_select_options(_assigns), do: %{options: [], multiple: false}
 
+  @doc """
+  Converts data to a named Phoenix.HTML.Form.
+
+  Creates a form struct from the given data and assigns it a specific name and id.
+  Useful for nested forms or when you need explicit form naming.
+
+  ## Parameters
+  - `data` (map()) - The form data source.
+  - `form_name` (atom() | binary()) - The name to assign to the form.
+  - `opts` (keyword()) - Options passed to `Phoenix.Component.to_form/2`. Defaults to `[]`.
+
+  ## Returns
+  Phoenix.HTML.Form.t() - A form struct with the specified name and id.
+  """
+  @spec to_named_form(map(), atom() | binary(), keyword()) :: struct()
   def to_named_form(data, form_name, opts \\ []) do
     data
     |> to_form(opts)
@@ -1075,6 +1090,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       else: List.last(paths)
   end
 
+  @spec maybe_update_source(map(), atom() | binary()) :: map()
   defp maybe_update_source(%{source: %{name: _name, id: _id} = source} = data, form_name)
        when is_struct(source) do
     source
@@ -1091,6 +1107,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   defp maybe_update_source(data, _form_name), do: data
 
+  @spec update_source_in_data(map(), map()) :: map()
   defp update_source_in_data(source, data) when is_struct(data) do
     struct(data, %{source: source})
   end

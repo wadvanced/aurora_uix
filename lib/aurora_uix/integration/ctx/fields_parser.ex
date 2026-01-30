@@ -1,4 +1,28 @@
 defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
+  @moduledoc """
+  Field metadata parser for Context-based (Ecto) schemas.
+
+  Provides utilities for extracting and formatting field metadata from Ecto schemas,
+  including type mapping, HTML input type generation, and field attribute determination.
+  Handles associations, embeds, and standard Ecto field types.
+
+  ## Key Features
+
+  - Human-readable label generation from field names
+  - Ecto type to HTML input type mapping
+  - Field metadata extraction (length, precision, scale)
+  - Association and embed handling
+  - Default placeholder text generation
+  - Field visibility and editability rules
+
+  ## Key Constraints
+
+  - Designed for Ecto schemas only
+  - Assumes standard Ecto field types
+  - Association metadata requires Ecto.Association structs
+  - Embed metadata requires Ecto.Embedded structs
+  """
+
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
 
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo

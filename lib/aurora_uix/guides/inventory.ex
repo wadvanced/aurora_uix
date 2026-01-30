@@ -1,12 +1,20 @@
 defmodule Aurora.Uix.Guides.Inventory do
   @moduledoc """
-  Inventory context for guides and test support. 
-  This module and its children are excluded from package builds and documentation, 
-  since they are intended for use in test and dev environments only.
+  Inventory context for guides and test support.
+
+  Provides CRUD operations for products, product transactions, and product locations.
+  This module and its children are excluded from package builds and documentation.
 
   ## Key Features
-  - Provides CRUD operations for products, product transactions, and product locations.
-  - Registers schemas for use in guides and tests.
+
+  - CRUD operations for products, product transactions, and product locations
+  - Schema registration for use in guides and tests
+  - Association preloading support for product relationships
+
+  ## Key Constraints
+
+  - Only for test and development environments
+  - Not included in production builds
   """
 
   use Aurora.Ctx
@@ -29,11 +37,10 @@ defmodule Aurora.Uix.Guides.Inventory do
   Creates a product with the given attributes.
 
   ## Parameters
-  - `attrs` (map()) - Attributes for the new product.
+  - `attrs` (map()) - Attributes for the new product. Defaults to `%{}`.
 
   ## Returns
-  - `{:ok, Product.t()}` on success.
-  - `{:error, Ecto.Changeset.t()}` on failure.
+  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with created product or error.
   """
   @spec create_product(map()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def create_product(attrs \\ %{}) do
@@ -46,13 +53,13 @@ defmodule Aurora.Uix.Guides.Inventory do
   Returns a changeset for a product.
 
   ## Parameters
-  - `product` (Product.t() | Ecto.Changeset.t()) - The product struct or changeset.
-  - `attrs` (map()) - Attributes to update.
+  - `product` (Product.t()) - The product struct.
+  - `attrs` (map()) - Attributes to update. Defaults to `%{}`.
 
   ## Returns
   Ecto.Changeset.t() - The changeset for the product.
   """
-  @spec change_product(Product.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  @spec change_product(Product.t(), map()) :: Ecto.Changeset.t()
   def change_product(%Product{} = product, attrs \\ %{}) do
     Product.changeset(product, attrs)
   end
@@ -61,15 +68,13 @@ defmodule Aurora.Uix.Guides.Inventory do
   Updates a product with the given attributes.
 
   ## Parameters
-  - `product` (Product.t() | Ecto.Changeset.t()) - The product struct or changeset.
+  - `product` (Product.t()) - The product struct.
   - `attrs` (map()) - Attributes to update.
 
   ## Returns
-  - `{:ok, Product.t()}` on success.
-  - `{:error, Ecto.Changeset.t()}` on failure.
+  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with updated product or error.
   """
-  @spec update_product(Product.t() | Ecto.Changeset.t(), map()) ::
-          {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_product(Product.t(), map()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def update_product(%Product{} = product, attrs) do
     product
     |> Product.changeset(attrs)
@@ -97,8 +102,7 @@ defmodule Aurora.Uix.Guides.Inventory do
   - `product` (Product.t()) - The product to delete.
 
   ## Returns
-  - `{:ok, Product.t()}` on success.
-  - `{:error, Ecto.Changeset.t()}` on failure.
+  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with deleted product or error.
   """
   @spec delete_product(Product.t()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def delete_product(%Product{} = product), do: Repo.delete(product)

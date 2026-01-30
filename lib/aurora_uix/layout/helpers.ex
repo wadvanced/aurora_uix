@@ -217,10 +217,21 @@ defmodule Aurora.Uix.Layout.Helpers do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
-  # Resolves fields parser implementation module based on connector type.
-  #
-  # Uses compile-time configuration map to look up the appropriate module.
-  # The type must match a key in @crud_integration_modules or an error is raised.
+  @doc """
+  Resolves fields parser implementation module based on connector type.
+
+  Uses compile-time configuration map to look up the appropriate module.
+  The type must match a key in @crud_integration_modules or an error is raised.
+
+  ## Parameters
+  - `type` (atom()) - The connector type (`:ash` or `:ctx`).
+
+  ## Returns
+  module() - The fields parser implementation module.
+
+  ## Raises
+  RuntimeError - If type is nil or not found in configuration.
+  """
   @spec get_fields_parser_module(atom()) :: module()
   def get_fields_parser_module(nil), do: raise("The type of resource_type is nil")
 

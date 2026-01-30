@@ -3,13 +3,17 @@ defmodule Aurora.Uix.Guides.Blog.Author do
   Ash resource representing blog authors for guides and examples.
 
   ## Key Features
+
   - Has many posts relationship
   - Email and bio fields
-  - Default CRUD actions
+  - Standard CRUD actions
+  - Custom non-paginated read action
 
   ## Key Constraints
+
   - Only for guides and test scenarios
   - Create action requires name, email, and bio
+  - Stored in PostgreSQL authors table
   """
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,

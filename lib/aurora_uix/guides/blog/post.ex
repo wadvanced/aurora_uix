@@ -3,16 +3,19 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   Ash resource representing blog posts for guides and examples.
 
   ## Key Features
+
   - Belongs to author and category
   - Status tracking (draft, published, archived)
   - Publication timestamp support
+  - Embedded tags array for categorization
 
   ## Key Constraints
+
   - Only for guides and test scenarios
   - Status must be one of: `:draft`, `:published`, `:archived`
   - Default status is `:draft`
+  - Stored in PostgreSQL posts table
   """
-  alias Aurora.Uix.Guides.Blog.Tag
 
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,
@@ -22,6 +25,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
     table("posts")
     repo(Aurora.Uix.Repo)
   end
+
+  alias Aurora.Uix.Guides.Blog.Tag
 
   attributes do
     uuid_primary_key(:id)
