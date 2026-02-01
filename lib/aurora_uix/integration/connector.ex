@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Integration.Connector do
 
   ## Returns
 
-  t() - A new Connector struct.
+  t() - A new `%Connector{}` struct.
 
   ## Examples
 

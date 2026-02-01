@@ -338,6 +338,28 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
+  @doc """
+  Processes embedded resources from an Ecto schema.
+
+  Recursively discovers and configures embedded resources from the parent schema,
+  creating new resource configurations for each embedded field found.
+
+  ## Parameters
+
+  - `parent_resource` (tuple()) - Tuple containing parent resource name, schema module,
+  and type.
+  - `result` (list()) - Accumulator list of resource configurations.
+
+  ## Returns
+
+  list() - Updated list with embedded resource configurations added.
+
+  ## Examples
+
+      iex> embedded_resource({:users, MyApp.User, :ctx}, [])
+      [%Resource{name: :users__profile, ...}]
+  """
+  @spec embedded_resource(tuple(), list()) :: list()
   def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
     :embeds
     |> schema_module.__schema__()
@@ -345,11 +367,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
   end
 
-  @spec embedded_resource_config(
-          {atom(), module()},
-          map(),
-          [map()]
-        ) :: [map()]
+  @spec embedded_resource_config(tuple(), map(), list()) :: list()
   defp embedded_resource_config(
          {parent_resource_name, schema_module, type},
          %Embedded{field: field, related: embed_schema},

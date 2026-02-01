@@ -169,12 +169,12 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `opts` (keyword()) - Query options passed to the backend implementation.
 
   ## Returns
 
-  Pagination.t() - Pagination structure containing query results.
+  Pagination.t() - `%Pagination{}` structure containing query results.
 
   ## Examples
 
@@ -195,13 +195,13 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
-  - `pagination` (Pagination.t()) - The current pagination structure.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
+  - `pagination` (Pagination.t()) - The current `%Pagination{}` structure.
   - `page` (integer()) - The target page number.
 
   ## Returns
 
-  Pagination.t() - Updated pagination structure with the requested page data.
+  Pagination.t() - Updated `%Pagination{}` structure with the requested page data.
 
   ## Examples
 
@@ -218,7 +218,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `id` (term()) - The entity identifier.
   - `opts` (keyword()) - Options:
     * `:where` (list()) - Additional filter clauses (Ash only).
@@ -250,13 +250,13 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The entity to create a changeset for.
   - `attrs` (map()) - Attributes to apply to the changeset. Defaults to `%{}`.
 
   ## Returns
 
-  struct() - A changeset structure (e.g., form or changeset).
+  struct() - A changeset structure (e.g., `%AshPhoenix.Form{}` or `%Ecto.Changeset{}`).
 
   ## Examples
 
@@ -281,7 +281,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `attrs` (map()) - Initial attributes for the new entity.
   - `opts` (keyword()) - Options:
     * `:preload` (list()) - Associations to load.
@@ -313,7 +313,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The resource to update.
   - `params` (map()) - Parameters to update.
 
@@ -340,7 +340,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `params` (map()) - Parameters for the new resource.
 
   ## Returns
@@ -365,7 +365,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Parameters
 
-  - `connector` (Connector.t()) - The Connector containing type and crud_spec.
+  - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The resource to delete.
 
   ## Returns

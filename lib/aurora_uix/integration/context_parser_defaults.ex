@@ -88,14 +88,14 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   ## Returns
 
-  list(atom()) - List of common option keys for parser reference.
+  list() - List of common option keys for parser reference.
 
   ## Examples
 
       iex> get_options()
       [:list_function, :list_function_paginated, :get_function, ...]
   """
-  @spec get_options() :: list(atom())
+  @spec get_options() :: list()
   def get_options do
     [
       :list_function,
@@ -128,8 +128,8 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   ## Returns
 
-  Connector.t() | function() - Returns a Connector struct wrapping the resolved function
-  reference, or `&undefined_function/2` if resolution fails.
+  Connector.t() | function() - Returns a `%Connector{}` struct wrapping the resolved
+  function reference, or `&undefined_function/2` if resolution fails.
 
   ## Examples
 
@@ -141,7 +141,7 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
       ...>   schema: MyApp.User}, :get_function)
       %Connector{type: :ash, crud_spec: %CrudSpec{action: %{name: :read}, ...}}
   """
-  @spec default_value(map(), map(), atom()) :: term() | nil
+  @spec default_value(map(), map(), atom()) :: term()
   def default_value(parsed_opts, %{type: type} = resource_config, option),
     do: get_parser_defaults_module(type).default_value(parsed_opts, resource_config, option)
 

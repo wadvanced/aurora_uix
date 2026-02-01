@@ -673,6 +673,28 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
+  @doc """
+  Processes embedded resources from an Ash resource schema.
+
+  Recursively discovers and configures embedded resources from the parent resource,
+  creating new resource configurations for each embedded field found.
+
+  ## Parameters
+
+  - `parent_resource` (tuple()) - Tuple containing parent resource name, schema module,
+  and type.
+  - `result` (list()) - Accumulator list of resource configurations.
+
+  ## Returns
+
+  list() - Updated list with embedded resource configurations added.
+
+  ## Examples
+
+      iex> embedded_resource({:users, MyApp.User, :ash}, [])
+      [%Resource{name: :users__profile, ...}]
+  """
+  @spec embedded_resource(tuple(), list()) :: list()
   def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
     schema_module
     |> AshResourceInfo.attributes()
@@ -682,11 +704,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   ## PRIVATE
 
-  @spec embedded_resource_config(
-          {atom(), module()},
-          map(),
-          [map()]
-        ) :: [map()]
+  @spec embedded_resource_config(tuple(), map(), list()) :: list()
   defp embedded_resource_config(
          {parent_resource_name, schema_module, type},
          %{type: ash_type, name: field},
@@ -711,6 +729,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     ]
   end
 
+  @spec embedded_resource?(term()) :: boolean()
   defp embedded_resource?(%{type: {:array, child_resource}}),
     do: embedded_resource?(child_resource)
 

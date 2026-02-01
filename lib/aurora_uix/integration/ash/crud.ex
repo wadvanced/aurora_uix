@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Returns
 
-  Pagination.t() - Pagination structure containing query results and metadata.
+  Pagination.t() - `%Pagination{}` structure containing query results and metadata.
 
   ## Examples
 
@@ -111,8 +111,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Returns
 
-  Pagination.t() - Updated pagination structure with the requested page data, or unchanged
-  pagination if page is out of bounds.
+  Pagination.t() - Updated `%Pagination{}` structure with the requested page data, or
+  unchanged pagination if page is out of bounds.
 
   ## Examples
 

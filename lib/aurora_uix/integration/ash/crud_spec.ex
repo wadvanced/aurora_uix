@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
 
   ## Returns
 
-  t() - A new empty CrudSpec struct with all fields set to `nil`.
+  t() - A new empty `%CrudSpec{}` struct with all fields set to `nil`.
 
   ## Examples
 
@@ -58,7 +58,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
 
   ## Returns
 
-  t() - A new CrudSpec struct with the provided values.
+  t() - A new `%CrudSpec{}` struct with the provided values.
 
   ## Examples
 

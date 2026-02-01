@@ -49,8 +49,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
 
   ## Returns
 
-  Connector.t() | function() - Returns Connector struct with CrudSpec if action found,
-  otherwise returns `&undefined_function/2`.
+  Connector.t() | function() - Returns `%Connector{}` struct with `%CrudSpec{}` if action
+  found, otherwise returns `&undefined_function/2`.
 
   ## Examples
 

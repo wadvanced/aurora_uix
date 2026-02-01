@@ -53,7 +53,7 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
 
   ## Returns
 
-  Connector.t() - A Connector struct wrapping the CrudSpec and function reference.
+  Connector.t() - A `%Connector{}` struct wrapping the `%CrudSpec{}` and function reference.
 
   ## Examples
 

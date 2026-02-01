@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  Pagination.t() - Updated pagination structure with the requested page data.
+  Pagination.t() - Updated `%Pagination{}` structure with the requested page data.
 
   ## Examples
 
@@ -105,7 +105,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  Ecto.Changeset.t() - A changeset structure.
+  Ecto.Changeset.t() - An `%Ecto.Changeset{}` structure.
 
   ## Examples
 
