@@ -26,6 +26,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
     repo(Aurora.Uix.Repo)
   end
 
+  alias Aurora.Uix.Guides.Blog.Comment
   alias Aurora.Uix.Guides.Blog.Tag
 
   attributes do
@@ -40,7 +41,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
-    attribute :tags, {:array, Tag}
+    attribute :tags, {:array, Tag}, public?: true
+    attribute :comment, Comment, public?: true
 
     create_timestamp(:inserted_at)
     update_timestamp(:updated_at)
@@ -52,7 +54,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   end
 
   actions do
-    default_accept [:title, :content]
+    default_accept [:title, :content, :status, :tags, :comment]
 
     defaults [:create, :read, :destroy, :update]
   end

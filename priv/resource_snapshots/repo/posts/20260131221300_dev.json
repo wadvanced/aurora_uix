@@ -76,6 +76,18 @@
       ]
     },
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "comment",
+      "type": "map"
+    },
+    {
       "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
@@ -167,7 +179,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "30382EC2E72804559FBE87590415925C77787ED4D4EB8BE2F21D3A4572D93CFD",
+  "hash": "8EB9F3859DECC16416E4EE941E79495375D707CE267E2E3A92AE343A3F9D4CD1",
   "identities": [],
   "multitenancy": {
     "attribute": null,
