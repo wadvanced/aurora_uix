@@ -124,4 +124,10 @@ defmodule Aurora.UixWeb.Test.EmbedsManyTest do
       )
     )
   end
+
+  test "Create new user with emails", %{conn: conn} do
+    delete_all_accounts_data()
+
+    {:ok, _view, _html} = live(conn, "/embeds-many-users/new")
+  end
 end

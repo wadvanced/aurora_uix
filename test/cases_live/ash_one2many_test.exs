@@ -14,12 +14,9 @@ defmodule Aurora.UixWeb.Test.AshOne2ManyTest do
     end
   end
 
-  test "Test add posts", %{conn: _conn} do
+  test "Test add posts", %{conn: conn} do
     delete_all_blog_data()
 
-    _author =
-      1
-      |> create_sample_authors()
-      |> List.first()
+    {:ok, view, html} = live(conn, "/ash-one2many-posts/new")
   end
 end
