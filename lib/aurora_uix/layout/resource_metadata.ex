@@ -72,8 +72,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
-  alias Ecto.Embedded
-
   @doc false
   @spec __using__(any()) ::
           {:__block__, [], [{:@ | :import | {any(), any(), any()}, [...], [...]}, ...]}
@@ -266,40 +264,18 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   @spec embedded_resource_config_data(map()) :: {atom(), module()} | nil
-  defp embedded_resource_config_data(%{name: name, tag: :resource, opts: opts}) do
-    if schema_module = Keyword.get(opts, :schema), do: {name, schema_module}, else: nil
+  defp embedded_resource_config_data(%{name: name, tag: :resource} = resource) do
+    case define_schema_and_type(resource) do
+      {nil, _} -> nil
+      {schema, resource_type} -> {name, schema, resource_type}
+    end
   end
 
   @spec embedded_resource({atom(), module()} | nil, [map()]) :: [map()]
   defp embedded_resource(nil, result), do: result
 
-  defp embedded_resource({_parent_resource_name, schema_module} = parent_resource, result) do
-    :embeds
-    |> schema_module.__schema__()
-    |> Enum.map(&schema_module.__schema__(:embed, &1))
-    |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
-  end
-
-  @spec embedded_resource_config(
-          {atom(), module()},
-          map(),
-          [map()]
-        ) :: [map()]
-  defp embedded_resource_config(
-         {parent_resource_name, schema_module},
-         %Embedded{field: field, related: embed_schema},
-         result
-       ) do
-    resource_name = LayoutHelpers.field_embedded_resource(parent_resource_name, field)
-
-    [
-      Resource.new(
-        name: resource_name,
-        tag: :resource,
-        opts: [related_schema: schema_module, schema: embed_schema]
-      )
-      | result
-    ]
+  defp embedded_resource({_parent_resource_name, _schema_module, type} = parent_resource, result) do
+    LayoutHelpers.get_fields_parser_module(type).embedded_resource(parent_resource, result)
   end
 
   # creates the function for each resource.
@@ -332,15 +308,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - Returns {name, resource} tuple
   @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
   defp configure_resource_fields(resource) do
-    schema =
-      resource.opts[:schema] || resource.opts[:ash_resource]
+    {schema, resource_type} = define_schema_and_type(resource)
 
     opts =
       resource.opts
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
-
-    resource_type = resource_type(schema)
 
     resource =
       %Resource{name: resource.name}
@@ -354,6 +327,15 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       })
 
     {resource.name, resource}
+  end
+
+  @spec define_schema_and_type(map()) :: tuple()
+  defp define_schema_and_type(resource) do
+    schema =
+      resource.opts[:schema] || resource.opts[:ash_resource]
+
+    resource_type = resource_type(schema)
+    {schema, resource_type}
   end
 
   # Apply field changes from resource config block:

@@ -20,7 +20,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   - Unknown parameterized types default to `:string`
   - Requires Ash Framework type structure
   """
+
+  alias Ash.Resource.Info, as: AshResourceInfo
+
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
+  alias Aurora.Uix.Resource
 
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
   alias Ecto.Association.Has, as: AssociationHas
@@ -665,14 +669,58 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   `binary()` - A unique identifier for the embedded resource.
   """
   @spec field_embedded_resource(atom(), map() | atom()) :: atom()
-  def field_embedded_resource(parent_resource_name, %Embedded{field: field}),
-    do: field_embedded_resource(parent_resource_name, field)
-
   def field_embedded_resource(parent_resource_name, field) do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
+  def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
+    schema_module
+    |> AshResourceInfo.attributes()
+    |> Enum.filter(&embedded_resource?/1)
+    |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
+  end
+
   ## PRIVATE
+
+  @spec embedded_resource_config(
+          {atom(), module()},
+          map(),
+          [map()]
+        ) :: [map()]
+  defp embedded_resource_config(
+         {parent_resource_name, schema_module, type},
+         %{type: ash_type, name: field},
+         result
+       ) do
+    resource_name = field_embedded_resource(parent_resource_name, field)
+
+    embed_schema =
+      case ash_type do
+        {:array, child_schema} -> child_schema
+        child_schema when is_atom(child_schema) -> child_schema
+      end
+
+    [
+      Resource.new(
+        name: resource_name,
+        type: type,
+        tag: :resource,
+        opts: [related_schema: schema_module, schema: embed_schema]
+      )
+      | result
+    ]
+  end
+
+  defp embedded_resource?(%{type: {:array, child_resource}}),
+    do: embedded_resource?(child_resource)
+
+  defp embedded_resource?(%{type: child_resource}),
+    do: embedded_resource?(child_resource)
+
+  defp embedded_resource?(child_resource) do
+    AshResourceInfo.resource?(child_resource) and AshResourceInfo.embedded?(child_resource)
+  end
+
   @spec maybe_remove_ecto_type(list()) :: list()
   defp maybe_remove_ecto_type(["EctoType" | rest]), do: rest
   defp maybe_remove_ecto_type(list), do: list

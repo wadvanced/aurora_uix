@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   """
 
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
+  alias Aurora.Uix.Resource
 
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
   alias Ecto.Association.Has, as: AssociationHas
@@ -335,5 +336,35 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   def field_embedded_resource(parent_resource_name, field) do
     String.to_atom("#{parent_resource_name}__#{field}")
+  end
+
+  def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
+    :embeds
+    |> schema_module.__schema__()
+    |> Enum.map(&schema_module.__schema__(:embed, &1))
+    |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
+  end
+
+  @spec embedded_resource_config(
+          {atom(), module()},
+          map(),
+          [map()]
+        ) :: [map()]
+  defp embedded_resource_config(
+         {parent_resource_name, schema_module, type},
+         %Embedded{field: field, related: embed_schema},
+         result
+       ) do
+    resource_name = field_embedded_resource(parent_resource_name, field)
+
+    [
+      Resource.new(
+        name: resource_name,
+        type: type,
+        tag: :resource,
+        opts: [related_schema: schema_module, schema: embed_schema]
+      )
+      | result
+    ]
   end
 end

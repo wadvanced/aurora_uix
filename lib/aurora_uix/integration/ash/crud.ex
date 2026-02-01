@@ -59,19 +59,17 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @spec list(CrudSpec.t(), keyword()) :: Pagination.t()
   def list(definition, opts \\ [])
 
-  def list(%CrudSpec{action: %{name: action_name, pagination: false}} = crud_spec, opts) do
-    {:ok, result} =
+  def list(
+        %CrudSpec{action: %{name: action_name}, auix_action_name: :list_function} = crud_spec,
+        opts
+      ) do
+    {:ok, results} =
       crud_spec.resource
       |> Ash.Query.for_read(action_name)
       |> QueryParser.parse(opts)
       |> Ash.read()
 
-    %Pagination{
-      entries: result,
-      entries_count: Enum.count(result),
-      pages_count: 1,
-      per_page: :infinity
-    }
+    results
   end
 
   def list(%CrudSpec{auix_action_name: :list_function_paginated} = crud_spec, opts) do

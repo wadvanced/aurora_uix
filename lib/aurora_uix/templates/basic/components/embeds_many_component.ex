@@ -74,7 +74,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     field_key = to_string(key)
 
-    primary_key = get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
+    primary_key =
+      get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
 
     primary_key_field = List.first(primary_key)
 
@@ -365,7 +366,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   defp embedded_entries_count(%{auix: %{layout_type: :form, form: form}, field: field} = assigns) do
     assigns =
       form[field.key]
-      |> Map.get(:value, [])
+      |> Map.get(:value)
+      |> Kernel.||([])
       |> Enum.count()
       |> then(&Map.put(assigns, :embedded_entries_count, &1))
 
