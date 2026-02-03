@@ -23,654 +23,221 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   alias Ash.Resource.Info, as: AshResourceInfo
 
+  alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
+  alias Aurora.Uix.Integration.FieldsParser, as: CommonFieldsParser
   alias Aurora.Uix.Resource
 
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
   alias Ecto.Association.Has, as: AssociationHas
-  alias Ecto.Embedded
 
-  @doc """
-  Formats a display label from a field name.
+  @on_test [:field_status]
 
-  Converts an atom field name to a human-readable label by capitalizing it and
-  replacing underscores with spaces.
+  # Parses schema fields into Field structs with metadata.
+  # Returns empty list if schema isn't available or compiled.
+  @spec parse_fields(module() | nil, atom()) :: list()
+  def parse_fields(nil, _resource_name), do: []
 
-  ## Parameters
-  - `resource_type` - Type of resource (:ash, :ctx)
-  - `name` (`atom()` | `nil`) - The field name to format.
-  - `association_or_embed` (`map()` | `nil`) - The optional association.
+  def parse_fields(resource_schema, resource_name) do
+    Code.ensure_compiled(resource_schema)
 
-  ## Returns
-  `binary()` - The formatted display label.
-  """
-  @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
+    attributes =
+      resource_schema
+      |> Ash.Resource.Info.attributes()
+      |> Map.new(&{&1.name, &1})
 
-  def field_label(name, resource_name \\ nil, association_or_embed \\ nil)
-
-  def field_label(nil, _resource_name, _association_or_embed), do: ""
-
-  def field_label(name, resource_name, %Embedded{cardinality: :many}) do
-    CommonHelpers.capitalize("#{resource_name} #{name}")
+    attributes
+    |> Map.keys()
+    |> Enum.map(&parse_field(resource_schema, resource_name, &1, attributes))
+    |> List.flatten()
   end
 
-  def field_label(name, _resource_name, _association_or_embed),
-    do: CommonHelpers.capitalize(name)
-
   @doc """
-  Determines the default placeholder text for a field based on its type.
+  Parses field metadata from an Elixir type and association information.
 
-  Provides contextually appropriate placeholder text to help users understand
-  the expected input format.
+  Generates a field configuration including display attributes, HTML input types,
+  validation constraints, and association metadata.
 
   ## Parameters
-  - `name` (`atom()`) - The field name, used as a fallback for text fields.
-  - `type` (`atom()`) - The Elixir type that determines the placeholder format.
+  - `resource_schema` (module()) - The schema module for the resource.
+  - `resource_name` (atom()) - The name of the resource this field belongs to.
+  - `field_key` (atom()) - The field identifier.
+  - `attributes` (map()) - List of attributes and theirs specification.
+  - `associations` (map()) - List of relationships with their configuration.
 
   ## Returns
-  `binary()` - The default placeholder text.
+  Field.t() - A fully configured field struct.
   """
-  @spec field_placeholder(atom(), atom()) :: binary()
-  def field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
-
-  def field_placeholder(_, type)
-      when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-      do: "yyyy/MM/dd HH:mm:ss"
-
-  def field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
-  def field_placeholder(name, _type), do: CommonHelpers.capitalize(name)
-
-  @doc """
-  Converts an Ash type to its corresponding Ecto type.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash type to convert.
-  - `_association_or_embed` (map() | nil) - Association or embedding metadata (currently unused).
-
-  ## Returns
-  atom() - The corresponding Ecto type atom.
-
-  ## Examples
-      iex> field_type({:parameterized, {Ash.Type.String, []}}, nil)
-      :string
-
-      iex> field_type({:parameterized, {Ash.Type.Integer, []}}, nil)
-      :integer
-
-      iex> field_type({:parameterized, {Ash.Type.UUID, []}}, nil)
-      :binary_id
-
-      iex> field_type(:string, nil)
-      :string
-  """
-  @spec field_type(tuple() | atom(), map() | nil) :: atom()
-  def field_type(nil, %AssociationHas{cardinality: :many} = _association),
-    do: :one_to_many_association
-
-  def field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.String,
-             Ash.Type.String.EctoType,
-             Ash.Type.CiString,
-             Ash.Type.CiString.EctoType,
-             Ash.Type.Atom,
-             Ash.Type.Atom.EctoType,
-             Ash.Type.DurationName,
-             Ash.Type.DurationName.EctoType,
-             Ash.Type.Enum,
-             Ash.Type.Enum.EctoType
-           ],
-      do: :string
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType],
-      do: :binary_id
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.Integer,
-             Ash.Type.Integer.EctoType
-           ],
-      do: :integer
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Float, Ash.Type.Float.EctoType],
-      do: :float
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Decimal, Ash.Type.Decimal.EctoType],
-      do: :decimal
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType],
-      do: :boolean
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Date, Ash.Type.Date.EctoType],
-      do: :date
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Time, Ash.Type.Time.EctoType],
-      do: :time
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.DateTime,
-             Ash.Type.DateTime.EctoType,
-             Ash.Type.UtcDatetime,
-             Ash.Type.UtcDatetime.EctoType
-           ],
-      do: :utc_datetime
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.UtcDatetimeUsec,
-             Ash.Type.UtcDatetimeUsec.EctoType
-           ],
-      do: :utc_datetime_usec
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.NaiveDatetime,
-             Ash.Type.NaiveDatetime.EctoType
-           ],
-      do: :naive_datetime
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Binary, Ash.Type.Binary.EctoType],
-      do: :binary
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.UrlEncodedBinary,
-             Ash.Type.UrlEncodedBinary.EctoType
-           ],
-      do: :binary
-
-  def field_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.Map,
-             Ash.Type.Map.EctoType,
-             Ash.Type.Keyword,
-             Ash.Type.Keyword.EctoType,
-             Ash.Type.Term,
-             Ash.Type.Term.EctoType,
-             Ash.Type.Tuple,
-             Ash.Type.Tuple.EctoType,
-             Ash.Type.Struct,
-             Ash.Type.Struct.EctoType,
-             Ash.Type.Union,
-             Ash.Type.Union.EctoType
-           ],
-      do: :map
-
-  # Fallback for other parameterized types
-  def field_type({:parameterized, {_other_types, _opts}}, _association_or_embed), do: :string
-
-  def field_type({:array, {:parameterized, {_ecto_type, _opts}}}, _association_or_embed) do
-    :embeds_many
-  end
-
-  # Direct type passthrough
-  def field_type(type, nil), do: type
-
-  @doc """
-  Maps an Ash type to an HTML input type.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash type to map.
-  - `_association_or_embed` (map() | nil) - Association or embedding metadata (currently unused).
-
-  ## Returns
-  atom() - The HTML5 input type.
-
-  ## Examples
-      iex> field_html_type({:parameterized, {Ash.Type.String, []}}, nil)
-      :text
-
-      iex> field_html_type({:parameterized, {Ash.Type.Integer, []}}, nil)
-      :number
-
-      iex> field_html_type({:parameterized, {Ash.Type.Boolean, []}}, nil)
-      :checkbox
-
-      iex> field_html_type({:parameterized, {Ash.Type.DateTime, []}}, nil)
-      :"datetime-local"
-  """
-  @spec field_html_type(tuple() | atom(), map() | nil) :: atom()
-  def field_html_type(nil, %AssociationHas{cardinality: :many} = _association),
-    do: :one_to_many_association
-
-  def field_html_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  def field_html_type({:parameterized, {type, opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.Atom,
-             Ash.Type.Atom.EctoType,
-             Ash.Type.String,
-             Ash.Type.String.EctoType
-           ] do
-    if Keyword.has_key?(opts, :one_of), do: :select, else: :text
-  end
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.CiString,
-             Ash.Type.CiString.EctoType,
-             Ash.Type.UUID,
-             Ash.Type.UUID.EctoType,
-             Ash.Type.Binary,
-             Ash.Type.Binary.EctoType,
-             Ash.Type.UrlEncodedBinary,
-             Ash.Type.UrlEncodedBinary.EctoType,
-             Ash.Type.DurationName,
-             Ash.Type.DurationName.EctoType
-           ],
-      do: :text
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.Integer,
-             Ash.Type.Integer.EctoType,
-             Ash.Type.Float,
-             Ash.Type.Float.EctoType,
-             Ash.Type.Decimal,
-             Ash.Type.Decimal.EctoType
-           ],
-      do: :number
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType],
-      do: :checkbox
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Date, Ash.Type.Date.EctoType],
-      do: :date
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Time, Ash.Type.Time.EctoType],
-      do: :time
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.DateTime,
-             Ash.Type.DateTime.EctoType,
-             Ash.Type.UtcDatetime,
-             Ash.Type.UtcDatetime.EctoType,
-             Ash.Type.UtcDatetimeUsec,
-             Ash.Type.UtcDatetimeUsec.EctoType,
-             Ash.Type.NaiveDatetime,
-             Ash.Type.NaiveDatetime.EctoType
-           ],
-      do: :"datetime-local"
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [Ash.Type.Enum, Ash.Type.Enum.EctoType],
-      do: :select
-
-  def field_html_type({:parameterized, {type, _opts}}, _association_or_embed)
-      when type in [
-             Ash.Type.Map,
-             Ash.Type.Map.EctoType,
-             Ash.Type.Keyword,
-             Ash.Type.Keyword.EctoType,
-             Ash.Type.Term,
-             Ash.Type.Term.EctoType,
-             Ash.Type.Tuple,
-             Ash.Type.Tuple.EctoType,
-             Ash.Type.Struct,
-             Ash.Type.Struct.EctoType,
-             Ash.Type.Union,
-             Ash.Type.Union.EctoType
-           ],
-      do: :textarea
-
-  # Fallback for other parameterized types
-  def field_html_type({:parameterized, {_other_types, _opts}}, _association_or_embed), do: :text
-
-  def field_html_type({:array, {:parameterized, {_ecto_type, _opts}}}, _association_or_embed) do
-    :unimplemented
-  end
-
-  def field_html_type(:boolean, _association), do: :checkbox
-
-  # Direct type passthrough
-  def field_html_type(type, nil), do: type
-
-  @doc """
-  Determines the display length for an Ash field based on its type.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash type to determine the length for.
-
-  ## Returns
-  integer() - The suggested display length in characters.
-
-  ## Examples
-      iex> field_length({:parameterized, {Ash.Type.String, []}})
-      255
-
-      iex> field_length({:parameterized, {Ash.Type.Integer, []}})
-      10
-
-      iex> field_length({:parameterized, {Ash.Type.Boolean, []}})
-      5
-  """
-  @spec field_length(tuple() | atom()) :: integer()
-  def field_length({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.String,
-             Ash.Type.String.EctoType,
-             Ash.Type.CiString,
-             Ash.Type.CiString.EctoType,
-             Ash.Type.Atom,
-             Ash.Type.Atom.EctoType,
-             Ash.Type.Binary,
-             Ash.Type.Binary.EctoType
-           ],
-      do: 255
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType],
-      do: 36
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [Ash.Type.Integer, Ash.Type.Integer.EctoType],
-      do: 10
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.Float,
-             Ash.Type.Float.EctoType,
-             Ash.Type.Decimal,
-             Ash.Type.Decimal.EctoType
-           ],
-      do: 12
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.DateTime,
-             Ash.Type.DateTime.EctoType,
-             Ash.Type.UtcDatetime,
-             Ash.Type.UtcDatetime.EctoType,
-             Ash.Type.UtcDatetimeUsec,
-             Ash.Type.UtcDatetimeUsec.EctoType,
-             Ash.Type.NaiveDatetime,
-             Ash.Type.NaiveDatetime.EctoType
-           ],
-      do: 20
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [Ash.Type.Time, Ash.Type.Time.EctoType],
-      do: 10
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [Ash.Type.Date, Ash.Type.Date.EctoType],
-      do: 10
-
-  def field_length({:parameterized, {type, _opts}})
-      when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType],
-      do: 5
-
-  def field_length({:parameterized, {_type, _opts}}), do: 50
-
-  def field_length(_type), do: 50
-
-  @doc """
-  Gets the numeric precision for Ash number fields.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash field type to check.
-
-  ## Returns
-  integer() - The numeric precision, or `0` for non-numeric types.
-
-  ## Examples
-      iex> field_precision({:parameterized, {Ash.Type.Integer, []}})
-      10
-
-      iex> field_precision({:parameterized, {Ash.Type.Decimal, []}})
-      10
-
-      iex> field_precision({:parameterized, {Ash.Type.String, []}})
-      0
-  """
-  @spec field_precision(tuple() | atom()) :: integer()
-  def field_precision({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.Integer,
-             Ash.Type.Integer.EctoType,
-             Ash.Type.Float,
-             Ash.Type.Float.EctoType,
-             Ash.Type.Decimal,
-             Ash.Type.Decimal.EctoType
-           ],
-      do: 10
-
-  def field_precision({:parameterized, {_type, _opts}}), do: 0
-
-  def field_precision(_type), do: 0
-
-  @doc """
-  Gets the numeric scale for Ash decimal/float fields.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash field type to check.
-
-  ## Returns
-  integer() - The numeric scale, or `0` for non-decimal types.
-
-  ## Examples
-      iex> field_scale({:parameterized, {Ash.Type.Float, []}})
-      2
-
-      iex> field_scale({:parameterized, {Ash.Type.Decimal, []}})
-      2
-
-      iex> field_scale({:parameterized, {Ash.Type.Integer, []}})
-      0
-  """
-  @spec field_scale(tuple() | atom()) :: integer()
-  def field_scale({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.Float,
-             Ash.Type.Float.EctoType,
-             Ash.Type.Decimal,
-             Ash.Type.Decimal.EctoType
-           ],
-      do: 2
-
-  def field_scale({:parameterized, {_type, _opts}}), do: 0
-
-  def field_scale(_type), do: 0
-
-  @doc """
-  Checks if a field should be disabled by default.
-
-  Certain fields like primary keys and system fields are typically not editable
-  by users and should be disabled in forms.
-
-  ## Parameters
-  - `key` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be disabled, otherwise `false`.
-  """
-  @spec field_disabled(atom()) :: boolean()
-  def field_disabled(key) when key in [:id, :deleted, :inactive],
-    do: true
-
-  def field_disabled(_field), do: false
-
-  @doc """
-  Checks if a field should be omitted from forms.
-
-  System-managed fields like timestamps are usually not included in user-facing
-  forms as they are automatically managed.
-
-  ## Parameters
-  - `key` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be omitted, otherwise `false`.
-  """
-  @spec field_omitted(atom()) :: boolean()
-  def field_omitted(key) when key in [:inserted_at, :updated_at],
-    do: true
-
-  def field_omitted(_field), do: false
-
-  @doc """
-  Determines if a field should be hidden from display.
-
-  This function can be used to implement conditional field visibility logic.
-
-  ## Parameters
-  - `field` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be hidden, otherwise `false`.
-  """
-  @spec field_hidden(atom()) :: boolean()
-  def field_hidden(_field), do: false
-
-  @doc """
-  Determines if an Ash field should be filterable in queries.
-
-  ## Parameters
-  - `type` (tuple() | atom()) - The Ash field type to check.
-
-  ## Returns
-  boolean() - Returns `true` if the field supports filtering, otherwise `false`.
-
-  ## Examples
-      iex> field_filterable({:parameterized, {Ash.Type.String, []}})
-      true
-
-      iex> field_filterable({:parameterized, {Ash.Type.Map, []}})
-      false
-  """
-  @spec field_filterable(tuple() | atom()) :: boolean()
-  def field_filterable({:parameterized, {type, _opts}})
-      when type in [
-             Ash.Type.Map,
-             Ash.Type.Map.EctoType,
-             Ash.Type.Term,
-             Ash.Type.Term.EctoType,
-             Ash.Type.Tuple,
-             Ash.Type.Tuple.EctoType,
-             Ash.Type.Struct,
-             Ash.Type.Struct.EctoType,
-             Ash.Type.Union,
-             Ash.Type.Union.EctoType
-           ],
-      do: false
-
-  def field_filterable({:parameterized, {_type, _opts}}), do: true
-
-  def field_filterable(_type), do: true
-
-  @doc """
-  Extracts metadata for Ash field types.
-
-  ## Parameters
-  - `_association_or_embed` (map() | nil) - Association or embed metadata (unused).
-  - `_resource_name` (atom() | nil) - The resource name (unused).
-  - `type` (tuple() | atom()) - The Ash field type.
-
-  ## Returns
-  map() - A metadata map with select options for constrained types, empty map otherwise.
-
-  ## Examples
-      iex> field_data(nil, nil, {:parameterized, {Ash.Type.Atom, [one_of: [:active, :inactive]]}})
-      %{select: %{opts: [active: "Active", inactive: "Inactive"], multiple: false}}
-
-      iex> field_data(nil, nil, {:parameterized, {Ash.Type.String, [one_of: ["red", "blue"]]}})
-      %{select: %{opts: [{"red", "Red"}, {"blue", "Blue"}], multiple: false}}
-
-      iex> field_data(nil, nil, {:parameterized, {Ash.Type.Integer, []}})
-      %{}
-  """
-  @spec field_data(module(), atom(), map() | nil, atom() | nil, tuple() | atom()) :: map()
-  def field_data(
-        _resource_schema,
-        _field_key,
-        association_or_embed,
-        resource_name \\ nil,
-        type \\ nil
-      )
-
-  def field_data(
-        _resource_schema,
-        __field_key,
-        _association_or_embed,
-        _resource_name,
-        {:parameterized, {type, opts}}
-      )
-      when type in [
-             Ash.Type.Atom,
-             Ash.Type.Atom.EctoType,
-             Ash.Type.String,
-             Ash.Type.String.EctoType
-           ] do
-    if Keyword.has_key?(opts, :one_of) do
-      opts[:one_of]
-      |> Enum.map(&{&1, CommonHelpers.capitalize(&1)})
-      |> then(&%{select: %{opts: &1, multiple: false}})
-    else
-      %{}
-    end
-  end
-
-  def field_data(
+  @spec parse_field(module(), atom(), atom(), map(), map()) :: Field.t()
+  def parse_field(
         resource_schema,
-        field_key,
-        _association_or_embed,
         resource_name,
-        {:array, {:parameterized, {related_resource, _opts}}}
+        schema_field_key,
+        attributes \\ %{},
+        associations \\ %{}
       ) do
-    related =
-      related_resource
-      |> Module.split()
-      |> Enum.reverse()
-      |> maybe_remove_ecto_type()
-      |> Enum.reverse()
-      |> Module.concat()
+    {field_key, type} =
+      case schema_field_key do
+        {field_key, type} ->
+          {field_key, type}
 
-    %{
-      owner: resource_schema,
-      resource: String.to_atom("#{resource_name}__#{field_key}"),
-      related: related
-    }
+        field_key ->
+          {field_key, get_in(attributes, [field_key, Access.key!(:type)]) || :undefined}
+      end
+
+    association_or_embed = Ash.Resource.Info.relationship(resource_schema, field_key)
+
+    embedded? = embedded_resource?(type)
+
+    attribute =
+      attributes
+      |> Map.get(field_key, %{})
+      |> Map.from_struct()
+      |> Map.merge(%{
+        resource_schema: resource_schema,
+        embedded?: embedded?,
+        association_or_embed: association_or_embed
+      })
+
+    # field_type =
+    #   attributes
+    #   |> Map.get(field_key, %{})
+    #   |> field_type(embedded?)
+    #
+    # field_html_type =
+    #   attributes
+    #   |> Map.get(field_key, %{})
+    #   |> then(&html_field_type(ecto_field_type, association_or_embed, &1))
+    #
+    # attribute =
+    #   attributes
+    #   |> Map.get(field_key, %{})
+    #   |> Map.from_struct()
+    #   |> Map.merge(%{
+    #     field_type: field_type,
+    #     field_html_type: field_html_type,
+    #     embedded?: embedded?
+    #   })
+
+    if field_key in @on_test do
+      IO.inspect(attribute,
+        label: "********** attribute for #{field_key}",
+        limit: :infinity
+      )
+    end
+
+    attrs =
+      %{resource: resource_name, key: field_key}
+      |> set(&field_type/2, :type, attribute)
+      |> set(&field_html_type/2, :html_type, attribute)
+      |> set(&field_label/2, :label, attribute)
+      |> set(&field_placeholder/2, :placeholder, attribute)
+      |> set(&field_length/2, :length, attribute)
+      |> set(&field_precision/2, :precision, attribute)
+      |> set(&field_scale/2, :scale, attribute)
+      |> set(&field_disabled/2, :disabled, attribute)
+      |> set(&field_omitted/2, :omitted, attribute)
+      |> set(&field_hidden/2, :hidden, attribute)
+      |> set(&field_filterable/2, :filterable?, attribute)
+      |> set(&field_data/2, :data, attribute)
+
+    attrs =
+      Map.merge(
+        attrs,
+        %{
+          # key: field_key,
+          # type: field_type,
+          # html_type: field_html_type,
+          # label: field_label(attribute),
+
+          # placeholder: field_placeholder(field_key, field_type),
+          # length: field_length(field_type, attribute),
+          # precision: field_precision(field_type),
+          # scale: field_scale(field_type),
+          # disabled: field_disabled(field_key),
+          # omitted: field_omitted(field_key),
+          # hidden: field_hidden(field_key),
+          # filterable?: field_filterable(field_type),
+
+          # resource: resource_name,
+
+          # data:
+          #   field_data(
+          #     resource_schema,
+          #     field_key,
+          #     association_or_embed,
+          #     resource_name,
+          #     field_type,
+          #     attribute
+          #   )
+        }
+      )
+
+    if field_key in @on_test do
+      IO.inspect(attrs, label: "************ attrs for: #{field_key}", limit: :infinity)
+    end
+
+    Field.new(attrs)
   end
 
-  def field_data(_resource_schema, _field_key, %{} = association, _resource_name, _type),
-    do: %{
-      related: association.related,
-      related_key: association.related_key,
-      owner_key: association.owner_key
-    }
+  def parse_associations(resource_schema, resource_name, resources, fields) do
+    associations =
+      resource_schema
+      |> Ash.Resource.Info.relationships()
+      |> Map.new(&{&1.name, &1})
+      |> IO.inspect(label: "********** associations")
 
-  def field_data(_resource_schema, _field_key, _association_or_embed, _resource_name, _type),
-    do: %{}
+    associations
+    |> Enum.reduce(
+      Enum.reverse(fields),
+      &parse_association(resource_schema, resource_name, resources, &1, &2)
+    )
+    |> Enum.reverse()
+  end
 
   @doc """
-  Generates a unique resource identifier for embedded fields.
+  Converts a schema association into a Field struct.
+
+  Extracts association metadata from the schema and creates a field configuration
+  with proper association type and relationship information.
 
   ## Parameters
-  - `parent_resource_name` (`atom()`) - The name of the parent resource.
-  - `field` (`map()` | `atom()`) - The embedded field (%Ecto.Embedded) or the field name.
+
+  - `schema` (module()) - The schema module containing the association.
+  - `resource_name` (atom()) - The name of the resource.
+  - `resources` (list()) - List of available resources for reference lookup.
+  - `association` (atom()) - The association to be processed.
+  - `fields` (map()) - Existing fields map to append to.
 
   ## Returns
-  `binary()` - A unique identifier for the embedded resource.
+
+  list() - Updated list with the association field added.
   """
-  @spec field_embedded_resource(atom(), map() | atom()) :: atom()
-  def field_embedded_resource(parent_resource_name, field) do
-    String.to_atom("#{parent_resource_name}__#{field}")
+  @spec parse_association(module(), atom(), list(), map(), map()) ::
+          list(Resource.t())
+  def parse_association(
+        schema,
+        resource_name,
+        resources,
+        association,
+        fields
+      ) do
+    association
+    |> then(
+      &Field.new(
+        key: association.name,
+        type: field_type(nil, &1),
+        html_type: field_html_type(nil, &1),
+        data:
+          Map.put(
+            field_data(%{resource_schema: schema, key: association.name}, &1),
+            :resource,
+            field_resource(&1, resources)
+          ),
+        resource: resource_name
+      )
+    )
+    |> then(&[&1 | fields])
   end
 
   @doc """
@@ -704,16 +271,292 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   ## PRIVATE
 
+  # Converts an Ash type to its corresponding Ecto type
+  @spec field_type(map(), map()) :: map()
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.Atom,
+              Ash.Type.Atom.EctoType,
+              Ash.Type.String,
+              Ash.Type.String.EctoType,
+              Ash.Type.CiString,
+              Ash.Type.CiString.EctoType,
+              Ash.Type.DurationName,
+              Ash.Type.DurationName.EctoType,
+              Ash.Type.Enum,
+              Ash.Type.Enum.EctoType
+            ],
+       do: :string
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType],
+       do: :binary_id
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.Integer,
+              Ash.Type.Integer.EctoType
+            ],
+       do: :integer
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Float, Ash.Type.Float.EctoType],
+       do: :float
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Decimal, Ash.Type.Decimal.EctoType],
+       do: :decimal
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType],
+       do: :boolean
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Date, Ash.Type.Date.EctoType],
+       do: :date
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.TimeUsec, Ash.Type.TimeUsec.EctoType],
+       do: :time_usec
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Time, Ash.Type.Time.EctoType],
+       do: :time
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.DateTime,
+              Ash.Type.DateTime.EctoType,
+              Ash.Type.UtcDatetime,
+              Ash.Type.UtcDatetime.EctoType
+            ],
+       do: :utc_datetime
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.UtcDatetimeUsec,
+              Ash.Type.UtcDatetimeUsec.EctoType
+            ],
+       do: :utc_datetime_usec
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.NaiveDatetime,
+              Ash.Type.NaiveDatetime.EctoType
+            ],
+       do: :naive_datetime
+
+  defp field_type(_attrs, %{type: type})
+       when type in [Ash.Type.Binary, Ash.Type.Binary.EctoType],
+       do: :binary
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.UrlEncodedBinary,
+              Ash.Type.UrlEncodedBinary.EctoType
+            ],
+       do: :binary
+
+  defp field_type(_attrs, %{type: type})
+       when type in [
+              Ash.Type.Map,
+              Ash.Type.Map.EctoType,
+              Ash.Type.Keyword,
+              Ash.Type.Keyword.EctoType,
+              Ash.Type.Term,
+              Ash.Type.Term.EctoType,
+              Ash.Type.Tuple,
+              Ash.Type.Tuple.EctoType,
+              Ash.Type.Struct,
+              Ash.Type.Struct.EctoType,
+              Ash.Type.Union,
+              Ash.Type.Union.EctoType
+            ],
+       do: :map
+
+  defp field_type(_attrs, %{type: Ash.Type.Duration}), do: :duration
+
+  defp field_type(_attrs, %{type: type}), do: type
+
+  # Fallback for other parameterized types
+  defp field_type(_attrs, {:parameterized, {_other_types, _opts}} = type) do
+    if embedded_resource?(type), do: :embeds_one, else: :undefined
+  end
+
+  defp field_type(_attrs, {:array, {:parameterized, {_ecto_type, _opts}}} = type) do
+    if embedded_resource?(type), do: :embeds_many, else: :undefined
+  end
+
+  # Direct type passthrough
+  defp field_type(_attrs, %{type: type}, nil), do: type
+
+  # Maps an Ash type to an HTML input type
+  @spec field_html_type(map(), map()) :: atom()
+  defp field_html_type(attrs, attribute \\ %{})
+
+  defp field_html_type(_attrs, %{
+         type: resource_type,
+         constraints: constraints
+       })
+       when resource_type in [Ash.Type.Atom, Ash.Type.Atom.EctoType] do
+    if Keyword.has_key?(constraints, :one_of), do: :select, else: :string
+  end
+
+  defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
+    do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
+
+  # Formats a display label from a field name - capitalizes and replaces underscores
+  @spec field_label(map(), map()) :: binary()
+  defp field_label(%{key: name, resource: resource_name}, %{
+         association_or_embed: association_or_embed
+       }),
+       do: CommonFieldsParser.field_label(name, resource_name, association_or_embed)
+
+  # Determines default placeholder text for a field based on its type
+  @spec field_placeholder(map(), map()) :: binary()
+  defp field_placeholder(%{html_type: :select}, _attribute), do: ""
+
+  defp field_placeholder(%{key: name, type: ecto_type}, _attribute),
+    do: CommonFieldsParser.field_placeholder(name, ecto_type)
+
+  # Determines the display length for an Ash field based on its type
+  @spec field_length(map(), map()) :: integer()
+  defp field_length(%{type: ecto_type}, %{type: resource_type, constraints: constraints})
+       when resource_type in [
+              Ash.Type.Atom,
+              Ash.Type.Atom.EctoType,
+              Ash.Type.String,
+              Ash.Type.String.EctoType,
+              Ash.Type.Enum,
+              Ash.Type.Enum.EctoType
+            ] do
+    if Keyword.has_key?(constraints, :one_of) do
+      constraints[:one_of]
+      |> Enum.map(&(&1 |> to_string() |> String.length()))
+      |> Enum.max()
+    else
+      CommonFieldsParser.field_length(ecto_type)
+    end
+  end
+
+  defp field_length(%{type: ecto_type}, _attribute),
+    do: CommonFieldsParser.field_length(ecto_type)
+
+  # Gets the numeric precision for Ash number fields
+
+  @spec field_precision(map(), map()) :: integer()
+  defp field_precision(%{type: ecto_type}, _attribute),
+    do: CommonFieldsParser.field_precision(ecto_type)
+
+  @spec field_scale(map(), map()) :: integer()
+  defp field_scale(%{type: ecto_type}, _attribute), do: CommonFieldsParser.field_scale(ecto_type)
+
+  # Checks if a field should be disabled by default
+  @spec field_disabled(map(), map()) :: boolean()
+  defp field_disabled(%{key: key}, _attribute), do: CommonFieldsParser.field_disabled(key)
+
+  # Checks if a field should be omitted from forms
+  @spec field_omitted(map(), map()) :: boolean()
+  defp field_omitted(%{key: key}, _attribute), do: CommonFieldsParser.field_omitted(key)
+
+  # Determines if a field should be hidden from display
+  @spec field_hidden(map(), map()) :: boolean()
+  defp field_hidden(%{key: key}, _attribute), do: CommonFieldsParser.field_hidden(key)
+
+  # Determines if a field should be filterable in queries
+  @spec field_filterable(map(), map()) :: boolean()
+  defp field_filterable(%{type: ecto_type}, _attribute),
+    do: CommonFieldsParser.field_filterable(ecto_type)
+
+  # Extracts metadata for Ash field types
+  @spec field_data(map(), map()) :: map()
+  defp field_data(attrs, attribute \\ %{})
+
+  defp field_data(
+         _attrs,
+         %{type: resource_type, constraints: constraints}
+       )
+       when resource_type in [
+              Ash.Type.Atom,
+              Ash.Type.Atom.EctoType,
+              Ash.Type.String,
+              Ash.Type.String.EctoType,
+              Ash.Type.Enum,
+              Ash.Type.Enum.EctoType
+            ] do
+    if Keyword.has_key?(constraints, :one_of) do
+      constraints[:one_of]
+      |> Enum.map(&{CommonHelpers.capitalize(&1), &1})
+      |> then(&%{select: %{opts: &1, multiple: false}})
+    else
+      %{}
+    end
+  end
+
+  defp field_data(
+         %{resource_schema: resource_schema, key: field_key, resource: resource_name},
+         %{type: {:array, {:parameterized, {related_resource, _opts}}}}
+       ) do
+    related = remove_ecto_type(related_resource)
+
+    %{
+      owner: resource_schema,
+      resource: String.to_atom("#{resource_name}__#{field_key}"),
+      related: related
+    }
+  end
+
+  defp field_data(
+         %{
+           key: field_key,
+           resource: resource_name,
+           type: ecto_type
+         },
+         %{
+           resource_schema: resource_schema,
+           association_or_embed: association_or_embed
+         }
+       ),
+       do:
+         CommonFieldsParser.field_data(
+           resource_schema,
+           field_key,
+           association_or_embed,
+           resource_name,
+           ecto_type
+         )
+
+  # Generates a unique resource identifier for embedded fields
+  @spec field_embedded_resource(atom(), map() | atom()) :: atom()
+  defp field_embedded_resource(parent_resource_name, field) do
+    String.to_atom("#{parent_resource_name}__#{field}")
+  end
+
+  # Finds matching resource for an association
+  # Returns resource name if found, nil if not
+  @spec field_resource(map() | nil, list()) :: atom() | nil
+  defp field_resource(nil, _resources), do: nil
+
+  defp field_resource(association, resources) do
+    resources
+    |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
+      resource.schema == association.related
+    end)
+    |> elem(0)
+  end
+
+  ## PRIVATE
+
   @spec embedded_resource_config(tuple(), map(), list()) :: list()
   defp embedded_resource_config(
          {parent_resource_name, schema_module, type},
-         %{type: ash_type, name: field},
+         %{type: resource_type, name: field},
          result
        ) do
     resource_name = field_embedded_resource(parent_resource_name, field)
 
     embed_schema =
-      case ash_type do
+      case resource_type do
         {:array, child_schema} -> child_schema
         child_schema when is_atom(child_schema) -> child_schema
       end
@@ -730,6 +573,12 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   @spec embedded_resource?(term()) :: boolean()
+  defp embedded_resource?({:array, {:parameterized, {child_resource, _opts}}}),
+    do: embedded_resource?(child_resource)
+
+  defp embedded_resource?({:parameterized, {child_resource, _opts}}),
+    do: embedded_resource?(child_resource)
+
   defp embedded_resource?(%{type: {:array, child_resource}}),
     do: embedded_resource?(child_resource)
 
@@ -737,10 +586,34 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     do: embedded_resource?(child_resource)
 
   defp embedded_resource?(child_resource) do
-    AshResourceInfo.resource?(child_resource) and AshResourceInfo.embedded?(child_resource)
+    child_resource_no_ecto = remove_ecto_type(child_resource)
+
+    AshResourceInfo.resource?(child_resource_no_ecto) and
+      AshResourceInfo.embedded?(child_resource_no_ecto)
+  end
+
+  @spec remove_ecto_type(module()) :: module()
+  defp remove_ecto_type(resource_schema) do
+    resource_schema
+    |> Module.split()
+    |> Enum.reverse()
+    |> maybe_remove_ecto_type()
+    |> Enum.reverse()
+    |> Module.concat()
   end
 
   @spec maybe_remove_ecto_type(list()) :: list()
   defp maybe_remove_ecto_type(["EctoType" | rest]), do: rest
   defp maybe_remove_ecto_type(list), do: list
+
+  @spec set(map(), function(), atom(), map()) :: map()
+  defp set(attrs, function, attr_key, attribute) do
+    if attribute.name in @on_test do
+      IO.inspect({attrs, attribute}, label: "******** params before call: field_#{attr_key}")
+    end
+
+    attrs
+    |> function.(attribute)
+    |> then(&Map.put(attrs, attr_key, &1))
+  end
 end

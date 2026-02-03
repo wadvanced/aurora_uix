@@ -8,7 +8,6 @@ defmodule Aurora.Uix.Layout.Helpers do
   """
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
 
@@ -145,58 +144,21 @@ defmodule Aurora.Uix.Layout.Helpers do
     end
   end
 
-  @doc """
-  Parses field metadata from an Elixir type and association information.
-
-  Generates a field configuration including display attributes, HTML input types,
-  validation constraints, and association metadata.
-
-  ## Parameters
-  - `fields_parser` (module()) - The fields parser implementor module.
-  - `resource_schema` (module()) - The schema module for the resource.
-  - `field_key` (atom()) - The field identifier.
-  - `type` (atom()) - The Elixir type (e.g., `:string`, `:integer`).
-  - `resource_name` (atom()) - The name of the resource this field belongs to.
-  - `association_or_embed` (map() | nil) - Association metadata with cardinality information.
-
-  ## Returns
-  Field.t() - A fully configured field struct.
-  """
-  @spec parse_field(module(), module(), atom(), atom(), atom(), map() | nil) :: Field.t()
-  def parse_field(
+  def parse_association(
         fields_parser,
         resource_schema,
-        field_key,
-        type,
         resource_name,
-        association_or_embed \\ nil
+        resources,
+        association_field_key,
+        fields
       ) do
-    attrs =
-      %{
-        key: field_key,
-        label: fields_parser.field_label(field_key, resource_name, association_or_embed),
-        placeholder: fields_parser.field_placeholder(field_key, type),
-        type: fields_parser.field_type(type, association_or_embed),
-        html_type: fields_parser.field_html_type(type, association_or_embed),
-        length: fields_parser.field_length(type),
-        precision: fields_parser.field_precision(type),
-        scale: fields_parser.field_scale(type),
-        disabled: fields_parser.field_disabled(field_key),
-        omitted: fields_parser.field_omitted(field_key),
-        hidden: fields_parser.field_hidden(field_key),
-        filterable?: fields_parser.field_filterable(type),
-        resource: resource_name,
-        data:
-          fields_parser.field_data(
-            resource_schema,
-            field_key,
-            association_or_embed,
-            resource_name,
-            type
-          )
-      }
-
-    Field.new(attrs)
+    fields_parser.parse_association(
+      resource_schema,
+      resource_name,
+      resources,
+      association_field_key,
+      fields
+    )
   end
 
   @doc """

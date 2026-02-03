@@ -902,8 +902,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Map.get(:function_component, "")
 
     select_field =
-      fields_parser
-      |> LayoutHelpers.parse_field(resource_schema, :selected_check__, :boolean, resource_name)
+      resource_schema
+      |> fields_parser.parse_field({:selected_check__, :boolean}, resource_name)
       |> struct(%{label: select_toggle_function, filterable?: false})
 
     layout_tree.inner_elements
