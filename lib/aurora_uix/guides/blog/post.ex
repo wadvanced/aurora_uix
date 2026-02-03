@@ -54,7 +54,14 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   end
 
   actions do
-    default_accept [:title, :content, :status, :tags, :comment]
+    default_accept [
+      :title,
+      :content,
+      :status,
+      :tags,
+      :comment,
+      :author_id
+    ]
 
     defaults [:create, :read, :destroy, :update]
   end
