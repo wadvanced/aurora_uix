@@ -31,7 +31,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
   alias Ecto.Association.Has, as: AssociationHas
 
-  @on_test [:field_status]
+  @on_test [:embeds_one, :embeds_many]
 
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
@@ -50,6 +50,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     |> Map.keys()
     |> Enum.map(&parse_field(resource_schema, resource_name, &1, attributes))
     |> List.flatten()
+
+    # |> IO.inspect(label: "********* attrs", limit: :infinity)
   end
 
   @doc """
@@ -99,26 +101,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
         association_or_embed: association_or_embed
       })
 
-    # field_type =
-    #   attributes
-    #   |> Map.get(field_key, %{})
-    #   |> field_type(embedded?)
-    #
-    # field_html_type =
-    #   attributes
-    #   |> Map.get(field_key, %{})
-    #   |> then(&html_field_type(ecto_field_type, association_or_embed, &1))
-    #
-    # attribute =
-    #   attributes
-    #   |> Map.get(field_key, %{})
-    #   |> Map.from_struct()
-    #   |> Map.merge(%{
-    #     field_type: field_type,
-    #     field_html_type: field_html_type,
-    #     embedded?: embedded?
-    #   })
-
     if field_key in @on_test do
       IO.inspect(attribute,
         label: "********** attribute for #{field_key}",
@@ -140,38 +122,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> set(&field_hidden/2, :hidden, attribute)
       |> set(&field_filterable/2, :filterable?, attribute)
       |> set(&field_data/2, :data, attribute)
-
-    attrs =
-      Map.merge(
-        attrs,
-        %{
-          # key: field_key,
-          # type: field_type,
-          # html_type: field_html_type,
-          # label: field_label(attribute),
-
-          # placeholder: field_placeholder(field_key, field_type),
-          # length: field_length(field_type, attribute),
-          # precision: field_precision(field_type),
-          # scale: field_scale(field_type),
-          # disabled: field_disabled(field_key),
-          # omitted: field_omitted(field_key),
-          # hidden: field_hidden(field_key),
-          # filterable?: field_filterable(field_type),
-
-          # resource: resource_name,
-
-          # data:
-          #   field_data(
-          #     resource_schema,
-          #     field_key,
-          #     association_or_embed,
-          #     resource_name,
-          #     field_type,
-          #     attribute
-          #   )
-        }
-      )
 
     if field_key in @on_test do
       IO.inspect(attrs, label: "************ attrs for: #{field_key}", limit: :infinity)
@@ -376,19 +326,13 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_type(_attrs, %{type: Ash.Type.Duration}), do: :duration
 
-  defp field_type(_attrs, %{type: type}), do: type
-
   # Fallback for other parameterized types
-  defp field_type(_attrs, {:parameterized, {_other_types, _opts}} = type) do
-    if embedded_resource?(type), do: :embeds_one, else: :undefined
-  end
+  defp field_type(_attrs, %{type: {:array, _type}, embedded?: true}), do: :embeds_many
 
-  defp field_type(_attrs, {:array, {:parameterized, {_ecto_type, _opts}}} = type) do
-    if embedded_resource?(type), do: :embeds_many, else: :undefined
-  end
+  defp field_type(_attrs, %{embedded?: true}), do: :embeds_one
 
   # Direct type passthrough
-  defp field_type(_attrs, %{type: type}, nil), do: type
+  defp field_type(_attrs, %{type: type}), do: type
 
   # Maps an Ash type to an HTML input type
   @spec field_html_type(map(), map()) :: atom()
@@ -402,11 +346,19 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     if Keyword.has_key?(constraints, :one_of), do: :select, else: :string
   end
 
+  defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
+
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
     do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
 
   # Formats a display label from a field name - capitalizes and replaces underscores
   @spec field_label(map(), map()) :: binary()
+  defp field_label(%{key: name, resource: resource_name}, %{embedded?: true}) do
+    resource_name
+    |> field_embedded_resource(name)
+    |> CommonHelpers.capitalize()
+  end
+
   defp field_label(%{key: name, resource: resource_name}, %{
          association_or_embed: association_or_embed
        }),
@@ -493,16 +445,32 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     end
   end
 
-  defp field_data(
-         %{resource_schema: resource_schema, key: field_key, resource: resource_name},
-         %{type: {:array, {:parameterized, {related_resource, _opts}}}}
-       ) do
-    related = remove_ecto_type(related_resource)
+  defp field_data(attrs, %{type: {:array, related_schema}, embedded?: true} = attribute),
+    do: field_data(attrs, Map.put(attribute, :type, related_schema))
 
+  defp field_data(%{resource: parent_resource_name}, %{
+         type: related_schema,
+         name: related_field,
+         resource_schema: parent_schema,
+         embedded?: true
+       }) do
     %{
-      owner: resource_schema,
-      resource: String.to_atom("#{resource_name}__#{field_key}"),
-      related: related
+      owner: parent_schema,
+      resource: field_embedded_resource(parent_resource_name, related_field),
+      related: related_schema
+    }
+  end
+
+  defp field_data(%{resource: parent_resource_name}, %{
+         type: {:array, related_schema},
+         name: related_field,
+         resource_schema: parent_schema,
+         embedded?: true
+       }) do
+    %{
+      owner: parent_schema,
+      resource: field_embedded_resource(parent_resource_name, related_field),
+      related: related_schema
     }
   end
 
@@ -593,6 +561,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   @spec remove_ecto_type(module()) :: module()
+  defp remove_ecto_type({:array, resource_schema}), do: remove_ecto_type(resource_schema)
+
   defp remove_ecto_type(resource_schema) do
     resource_schema
     |> Module.split()

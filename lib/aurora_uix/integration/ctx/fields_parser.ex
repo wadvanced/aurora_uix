@@ -48,6 +48,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     else
       []
     end
+    |> IO.inspect(label: "********* attrs", limit: :infinity)
   end
 
   @doc """
@@ -229,8 +230,10 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
   defp field_label(name, resource_name \\ nil, association_or_embed \\ nil)
 
-  defp field_label(name, resource_name, %Embedded{cardinality: :many}) do
-    CommonHelpers.capitalize("#{resource_name} #{name}")
+  defp field_label(name, resource_name, %Embedded{}) do
+    resource_name
+    |> field_embedded_resource(name)
+    |> CommonHelpers.capitalize()
   end
 
   defp field_label(name, resource_name, association_or_embed),
