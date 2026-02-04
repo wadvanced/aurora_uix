@@ -1,5 +1,5 @@
 defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
-  def get(:all_types) do
+  def get(:all_types, opts \\ []) do
     %{
       id: %{
         data: %{},
@@ -369,8 +369,57 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
             multiple: false
           }
         }
+      },
+      embeds_many: %{
+        key: :embeds_many,
+        type: :embeds_many,
+        html_type: :unimplemented,
+        renderer: nil,
+        resource: :all_types,
+        name: "embeds_many",
+        label: "All Types Embeds Many",
+        placeholder: "",
+        length: 50,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: true,
+        data: %{
+          owner: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes,
+          resource: :all_types__embeds_many,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes.EmbedsMany
+        }
+      },
+      embeds_one: %{
+        key: :embeds_one,
+        type: :embeds_one,
+        html_type: :unimplemented,
+        renderer: nil,
+        resource: :all_types,
+        name: "embeds_one",
+        label: "All Types Embeds One",
+        placeholder: "",
+        length: 50,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: true,
+        data: %{
+          owner: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes,
+          resource: :all_types__embeds_one,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes.EmbedsOne
+        }
       }
     }
+    |> apply_opts(opts)
   end
 
   def compare_maps(validations, generated) do
@@ -390,4 +439,47 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
     |> Enum.reject(&(&1 == []))
     |> List.flatten()
   end
+
+  ## PRIVATE
+  defp apply_opts(validations, opts) do
+    Enum.reduce(opts, validations, &apply_opt/2)
+  end
+
+  defp apply_opt({:owner_prefix, prefix}, validations),
+    do: replace_data_key(validations, :owner, prefix)
+
+  defp apply_opt({:related_prefix, prefix}, validations),
+    do: replace_data_key(validations, :related, prefix)
+
+  defp replace_data_key(validations, data_key, prefix) do
+    validations
+    |> Enum.map(fn {key, validation} ->
+      new_validation =
+        if validation[:data][data_key] do
+          replace_module(validation, data_key, prefix)
+        else
+          validation
+        end
+
+      {key, new_validation}
+    end)
+    |> Map.new()
+  end
+
+  defp replace_module(validation, data_key, prefix) do
+    validation
+    |> get_in([Access.key!(:data), data_key])
+    |> Module.split()
+    |> Enum.reverse()
+    |> List.first()
+    |> append_prefix(prefix)
+    |> then(&put_in(validation, [Access.key!(:data), data_key], &1))
+  end
+
+  defp append_prefix(module, "") do
+    {result, _} = Code.eval_string(module)
+    result
+  end
+
+  defp append_prefix(module, prefix), do: Module.concat(prefix, module)
 end

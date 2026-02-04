@@ -27,6 +27,15 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
       field :field_utc_datetime_usec, :utc_datetime_usec
       field :field_duration, :duration
       field :field_status, Ecto.Enum, values: [:draft, :published, :archived]
+
+      embeds_many :embeds_many, EmbedsMany, on_replace: :delete do
+        field(:name, :string)
+      end
+
+      embeds_one :embeds_one, EmbedsOne do
+        field(:event_date, :date)
+        field(:note, :string)
+      end
     end
   end
 

@@ -1,5 +1,26 @@
 Code.require_file("test/cases/integration/fields_parser_validations_test.exs")
 
+defmodule EmbedsMany do
+  use Ash.Resource,
+    data_layer: :embedded,
+    domain: nil
+
+  attributes do
+    attribute :name, :binary
+  end
+end
+
+defmodule EmbedsOne do
+  use Ash.Resource,
+    data_layer: :embedded,
+    domain: nil
+
+  attributes do
+    attribute :event_date, :date
+    attribute :note, :string
+  end
+end
+
 defmodule AllTypes do
   use Ash.Resource,
     domain: nil
@@ -33,6 +54,9 @@ defmodule AllTypes do
       constraints one_of: [:draft, :published, :archived]
       default :draft
     end
+
+    attribute :embeds_many, {:array, EmbedsMany}
+    attribute :embeds_one, EmbedsOne
   end
 
   actions do
@@ -49,7 +73,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
   test "Validate fields_parser" do
     validations =
       :all_types
-      |> Validations.get()
+      |> Validations.get(owner_prefix: "", related_prefix: "")
       |> put_in([:field_naive_datetime_usec, :type], :naive_datetime)
       |> put_in([:field_naive_datetime_usec, :length], 17)
       |> put_in([:field_naive_datetime_usec, :data], %{})
