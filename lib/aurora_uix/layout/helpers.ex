@@ -1,10 +1,23 @@
 defmodule Aurora.Uix.Layout.Helpers do
   @moduledoc """
-  Provides helper utilities for the Aurora.Uix UI DSL.
+  Helper utilities for Aurora.Uix UI DSL transformations.
 
   Serves as the core processing engine for DSL block transformations, component registration,
   and field metadata extraction. Handles the conversion of macro-based UI definitions into
   standardized component structures suitable for template generation.
+
+  ## Key Features
+
+  - DSL block extraction and normalization
+  - Component registration and tree path creation
+  - Field parser resolution for different connectors
+  - Module attribute management for layouts
+
+  ## Key Constraints
+
+  - Requires valid fields parser module configuration
+  - Module attributes must exist before storage operations
+  - Field specifications must be atoms or keyword tuples
   """
 
   alias Aurora.Uix.Action
@@ -144,6 +157,33 @@ defmodule Aurora.Uix.Layout.Helpers do
     end
   end
 
+  @doc """
+  Delegates association parsing to the appropriate fields parser implementation.
+
+  Routes association field parsing requests to the configured parser module based on
+  the resource type, handling relationship extraction and metadata resolution.
+
+  ## Parameters
+
+  - `fields_parser` (module()) - The fields parser implementation module.
+  - `resource_schema` (module()) - The schema module defining the resource structure.
+  - `resource_name` (atom()) - The identifier for the resource.
+  - `resources` (keyword()) - Map of available resources for relationship lookup.
+  - `association_field_key` (atom()) - The field key representing the association.
+  - `fields` (list()) - List of field specifications to parse.
+
+  ## Returns
+
+  map() - Parsed association metadata with field information.
+  """
+  @spec parse_association(
+          module(),
+          module(),
+          atom(),
+          keyword(),
+          atom(),
+          list()
+        ) :: map()
   def parse_association(
         fields_parser,
         resource_schema,

@@ -45,12 +45,13 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     * `:context` (module() | nil) - The Ash domain module.
     * `:schema` (module() | nil) - The Ash resource module.
   - `key` (atom()) - The Aurora UIX action key (`:list_function`,
-    `:list_function_paginated`, `:get_function`, `:change_function`).
+    `:list_function_paginated`, `:get_function`, `:change_function`, `:create_function`,
+    `:update_function`, `:delete_function`, `:new_function`).
 
   ## Returns
 
-  Connector.t() | function() - Returns `%Connector{}` struct with `%CrudSpec{}` if action
-  found, otherwise returns `&undefined_function/2`.
+  Connector.t() | nil - Returns `%Connector{}` struct with `%CrudSpec{}` if action
+  found, otherwise returns `nil` for unhandled keys.
 
   ## Examples
 
@@ -60,7 +61,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
       %Connector{type: :ash, crud_spec: %CrudSpec{...}}
   """
-  @spec default_value(map(), map(), atom()) :: Connector.t() | function()
+  @spec default_value(map(), map(), atom()) :: Connector.t() | nil
 
   def default_value(
         _parsed_opts,
@@ -158,7 +159,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   ## PRIVATE
 
   # Retrieves actions for a specific action type from Ash resource.
-  @spec get_proper_actions(nil | module(), nil | module(), atom()) :: list()
+  @spec get_proper_actions(module() | nil, module() | nil, atom()) :: list(struct())
   defp get_proper_actions(nil, nil, _action_type), do: []
 
   defp get_proper_actions(nil, ash_resource, action_type) do
@@ -177,7 +178,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   defp action_module(:destroy), do: Actions.Destroy
 
   # Creates function reference tuple for Ash actions.
-  @spec create_function_reference(nil | struct(), module() | nil, module() | nil, atom()) ::
+  @spec create_function_reference(struct() | nil, module() | nil, module() | nil, atom()) ::
           Connector.t()
 
   defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action_name) do
@@ -203,7 +204,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     Connector.new(definition, :ash)
   end
 
-  @spec get_resource(atom(), module()) :: module() | nil
+  # Retrieves Ash resource module from domain by action name.
+  @spec get_resource(atom() | nil, module()) :: module() | nil
   defp get_resource(action, domain) do
     resource =
       domain
@@ -217,7 +219,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   end
 
   # Selects primary action or falls back to first available action.
-  @spec maybe_get_primary_action(list()) :: nil | struct()
+  @spec maybe_get_primary_action(list(struct())) :: struct() | nil
   defp maybe_get_primary_action(actions) do
     actions
     |> Enum.filter(& &1.primary?)
@@ -225,7 +227,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   end
 
   # Returns first valid action from filtered or fallback list.
-  @spec get_first_valid(list(), list()) :: nil | struct()
+  @spec get_first_valid(list(struct()), list(struct())) :: struct() | nil
   defp get_first_valid([], []), do: nil
   defp get_first_valid([], [first_action | _rest]), do: first_action
 

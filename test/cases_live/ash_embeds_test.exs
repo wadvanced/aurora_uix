@@ -20,7 +20,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
     author =
       1
-      |> create_sample_authors
+      |> create_sample_authors()
       |> List.first()
 
     post =

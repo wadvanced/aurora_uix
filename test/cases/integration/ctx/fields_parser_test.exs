@@ -7,8 +7,8 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
   alias Aurora.Uix.Test.Cases.Integration.FieldsParserValidations, as: Validations
 
   defmodule BelongsToRelationship do
-    @primary_key {:id, :binary_id, []}
     use Ecto.Schema
+    @primary_key {:id, :binary_id, []}
 
     schema "test_belongs_to" do
       field :first_field, :integer
@@ -17,8 +17,8 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
   end
 
   defmodule HasManyRelationship do
-    @primary_key {:id, :binary_id, []}
     use Ecto.Schema
+    @primary_key {:id, :binary_id, []}
 
     schema "test_has_many" do
       field :first_field, :integer

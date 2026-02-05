@@ -32,9 +32,22 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   alias Ecto.Association.Has, as: AssociationHas
   alias Ecto.Embedded
 
-  # Parses schema fields into Field structs with metadata.
-  # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module() | nil, atom()) :: list()
+  @doc """
+  Parses all fields from an Ecto schema into Field structs.
+
+  Extracts field metadata from the schema and converts each field into a structured
+  Field configuration with type information and display attributes.
+
+  ## Parameters
+
+  - `schema` (module() | nil) - The Ecto schema module to parse fields from.
+  - `resource_name` (atom()) - The identifier for the resource.
+
+  ## Returns
+
+  list(Field.t()) - List of configured field structs, or empty list if schema is nil.
+  """
+  @spec parse_fields(module() | nil, atom()) :: list(Field.t())
   def parse_fields(nil, _resource_name), do: []
 
   def parse_fields(schema, resource_name) do
@@ -51,22 +64,22 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   end
 
   @doc """
-  Parses field metadata from an Elixir type and association information.
+  Parses a single field from an Ecto schema into a Field struct.
 
   Generates a field configuration including display attributes, HTML input types,
   validation constraints, and association metadata.
 
   ## Parameters
+
   - `resource_schema` (module()) - The schema module for the resource.
-  - `field_key` (atom()) - The field identifier.
-  - `type` (atom()) - The Elixir type (e.g., `:string`, `:integer`).
   - `resource_name` (atom()) - The name of the resource this field belongs to.
-  - `association_or_embed` (map() | nil) - Association metadata with cardinality information.
+  - `schema_field_key` (atom() | {atom(), atom()}) - The field identifier or tuple with type.
 
   ## Returns
+
   Field.t() - A fully configured field struct.
   """
-  @spec parse_field(module(), atom(), atom()) :: Field.t()
+  @spec parse_field(module(), atom(), atom() | {atom(), atom()}) :: Field.t()
   def parse_field(
         resource_schema,
         resource_name,
@@ -110,6 +123,25 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     Field.new(attrs)
   end
 
+  @doc """
+  Parses all associations from an Ecto schema.
+
+  Iterates through schema associations and converts each into a Field struct with
+  proper relationship metadata and type information.
+
+  ## Parameters
+
+  - `resource_schema` (module()) - The schema module containing associations.
+  - `resource_name` (atom()) - The name of the resource.
+  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
+  - `fields` (list(Field.t())) - Existing fields list to prepend associations to.
+
+  ## Returns
+
+  list(Field.t()) - Updated list with association fields added.
+  """
+  @spec parse_associations(module(), atom(), list(Resource.t()), list(Field.t())) ::
+          list(Field.t())
   def parse_associations(resource_schema, resource_name, resources, fields) do
     :associations
     |> resource_schema.__schema__()
@@ -129,16 +161,16 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   - `schema` (module()) - The schema module containing the association.
   - `resource_name` (atom()) - The name of the resource.
-  - `resources` (list()) - List of available resources for reference lookup.
+  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
   - `association_field_key` (atom()) - The association field identifier.
-  - `fields` (map()) - Existing fields map to append to.
+  - `fields` (list(Field.t())) - Existing fields list to prepend to.
 
   ## Returns
 
-  list() - Updated list with the association field added.
+  list(Field.t()) - Updated list with the association field added.
   """
-  @spec parse_association(module(), atom(), list(Resource.t()), atom(), map()) ::
-          list(Resource.t())
+  @spec parse_association(module(), atom(), list(Resource.t()), atom(), list(Field.t())) ::
+          list(Field.t())
   def parse_association(
         schema,
         resource_name,
@@ -179,20 +211,20 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   ## Parameters
 
-  - `parent_resource` (tuple()) - Tuple containing parent resource name, schema module,
-  and type.
-  - `result` (list()) - Accumulator list of resource configurations.
+  - `parent_resource` ({atom(), module(), atom()}) - Tuple containing parent resource name,
+  schema module, and type.
+  - `result` (list(Resource.t())) - Accumulator list of resource configurations.
 
   ## Returns
 
-  list() - Updated list with embedded resource configurations added.
+  list(Resource.t()) - Updated list with embedded resource configurations added.
 
   ## Examples
 
       iex> embedded_resource({:users, MyApp.User, :ctx}, [])
       [%Resource{name: :users__profile, ...}]
   """
-  @spec embedded_resource(tuple(), list()) :: list()
+  @spec embedded_resource({atom(), module(), atom()}, list(Resource.t())) :: list(Resource.t())
   def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
     :embeds
     |> schema_module.__schema__()
@@ -202,8 +234,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   ## PRIVATE
 
-  # Maps an Elixir type to a field type, handling associations
-  @spec field_type(atom(), map() | nil) :: atom()
+  # Maps an Elixir type to a field type, handling associations and embeds.
+  @spec field_type(atom() | tuple() | nil, map() | nil) :: atom()
   defp field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
 
   defp field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
@@ -220,8 +252,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
     do: :many_to_one_association
 
-  # Maps an Elixir type to an HTML input type
-  @spec field_html_type(atom(), map() | nil) :: atom()
+  # Maps an Elixir type to an HTML input type for form rendering.
+  @spec field_html_type(atom() | tuple() | nil, map() | nil) :: atom()
   defp field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
 
   defp field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
@@ -231,7 +263,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_html_type(type, association),
     do: CommonFieldsParser.field_html_type(type, association)
 
-  # Formats a display label from a field name - capitalizes and replaces underscores
+  # Formats a display label from a field name, capitalizes and replaces underscores.
   @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
   defp field_label(name, resource_name \\ nil, association_or_embed \\ nil)
 
@@ -244,15 +276,15 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_label(name, resource_name, association_or_embed),
     do: CommonFieldsParser.field_label(name, resource_name, association_or_embed)
 
-  # Determines the default placeholder text for a field based on its type
-  @spec field_placeholder(atom(), atom()) :: binary()
+  # Determines the default placeholder text for a field based on its type.
+  @spec field_placeholder(atom(), atom() | tuple()) :: binary()
   defp field_placeholder(_name, type) when type in [Ecto.UUID, :binary_id],
     do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
 
   defp field_placeholder(name, type), do: CommonFieldsParser.field_placeholder(name, type)
 
-  # Determines the display length for a field based on its type
-  @spec field_length(atom()) :: integer()
+  # Determines the display length for a field based on its type.
+  @spec field_length(atom() | tuple()) :: integer()
   defp field_length(type) when type in [Ecto.UUID, :binary_id], do: 36
 
   defp field_length({:parameterized, {Ecto.Enum, %{mappings: opts}}}) do
@@ -263,8 +295,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp field_length(type), do: CommonFieldsParser.field_length(type)
 
-  # Gets the numeric precision for number fields
-  @spec field_precision(atom()) :: integer()
+  # Gets the numeric precision for number fields.
+  @spec field_precision(atom() | tuple()) :: integer()
   defp field_precision(type) when type in [Ecto.UUID, :binary_id],
     do: 0
 
@@ -290,8 +322,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   @spec field_filterable(atom()) :: boolean()
   defp field_filterable(type), do: CommonFieldsParser.field_filterable(type)
 
-  # Extracts metadata for association fields
-  @spec field_data(module(), atom(), map() | nil, atom(), atom()) :: map()
+  # Extracts metadata for association fields including type-specific configuration.
   defp field_data(
          _resource_schema,
          _field_key,
@@ -345,11 +376,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
-  # Finds matching resource for an association
-  # Returns resource name if found, nil if not
-  @spec field_resource(map() | nil, list()) :: atom() | nil
-  defp field_resource(nil, _resources), do: nil
-
+  # Finds matching resource for an association by comparing schema modules.
+  @spec field_resource(map(), list()) :: map() | nil
   defp field_resource(association, resources) do
     resources
     |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
@@ -358,7 +386,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     |> elem(0)
   end
 
-  @spec embedded_resource_config(tuple(), map(), list()) :: list()
+  # Creates a resource configuration for an embedded field.
+  @spec embedded_resource_config({atom(), module(), atom()}, map(), list(Resource.t())) ::
+          list(Resource.t())
   defp embedded_resource_config(
          {parent_resource_name, schema_module, type},
          %Embedded{field: field, related: embed_schema},
@@ -377,6 +407,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     ]
   end
 
+  # Updates field type based on association metadata for foreign keys.
+  @spec maybe_update_field_from_association(list(Field.t()), Field.t()) :: list(Field.t())
   defp maybe_update_field_from_association(
          fields,
          %{
@@ -399,6 +431,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp maybe_update_field_from_association(fields, _data), do: fields
 
+  # Merges type changes into a field if it matches the owner key.
+  @spec update_field_type(Field.t(), map(), map()) :: Field.t()
   defp update_field_type(%{key: field_key} = field, %{owner_key: key_to_update}, changes)
        when field_key == key_to_update, do: Map.merge(field, changes)
 

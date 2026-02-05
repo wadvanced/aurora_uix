@@ -48,6 +48,8 @@ defmodule AllTypes do
   use Ash.Resource,
     domain: nil
 
+  ## :bitstring is not handled by ash
+  ## :field_naive_datetime_usec is not handled by ash
   attributes do
     integer_primary_key :id
     attribute :field_binary_id, :uuid
@@ -56,14 +58,12 @@ defmodule AllTypes do
     attribute :field_boolean, :boolean
     attribute :field_string, :string
     attribute :field_binary, :binary
-    ## :bitstring is not handled by ash
     attribute :field_bitstring, :binary
     attribute :field_decimal, :decimal
     attribute :field_date, :date
     attribute :field_time, :time
     attribute :field_time_usec, :time_usec
     attribute :field_naive_datetime, :naive_datetime
-    ## :field_naive_datetime_usec is not handled by ash  
     attribute :field_naive_datetime_usec, :naive_datetime
     attribute :field_utc_datetime, :utc_datetime
     attribute :field_utc_datetime_usec, :utc_datetime_usec

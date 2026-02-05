@@ -28,9 +28,22 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   alias Aurora.Uix.Integration.FieldsParser, as: CommonFieldsParser
   alias Aurora.Uix.Resource
 
-  # Parses schema fields into Field structs with metadata.
-  # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module() | nil, atom()) :: list()
+  @doc """
+  Parses all attributes from an Ash resource into Field structs.
+
+  Extracts field metadata from the resource and converts each attribute into a structured
+  Field configuration with type information and display attributes.
+
+  ## Parameters
+
+  - `resource_schema` (module() | nil) - The Ash resource module to parse fields from.
+  - `resource_name` (atom()) - The identifier for the resource.
+
+  ## Returns
+
+  list(Field.t()) - List of configured field structs, or empty list if schema is nil.
+  """
+  @spec parse_fields(module() | nil, atom()) :: list(Field.t())
   def parse_fields(nil, _resource_name), do: []
 
   def parse_fields(resource_schema, resource_name) do
@@ -38,7 +51,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
     attributes =
       resource_schema
-      |> Ash.Resource.Info.attributes()
+      |> AshResourceInfo.attributes()
       |> Map.new(&{&1.name, &1})
 
     attributes
@@ -48,21 +61,23 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   @doc """
-  Parses field metadata from an Elixir type and association information.
+  Parses a single field from an Ash resource into a Field struct.
 
   Generates a field configuration including display attributes, HTML input types,
   validation constraints, and association metadata.
 
   ## Parameters
+
   - `resource_schema` (module()) - The schema module for the resource.
   - `resource_name` (atom()) - The name of the resource this field belongs to.
-  - `field_key` (atom()) - The field identifier.
-  - `attributes` (map()) - List of attributes and theirs specification.
+  - `schema_field_key` (atom() | {atom(), term()}) - The field identifier or tuple with type.
+  - `attributes` (map()) - Map of attributes with their specifications.
 
   ## Returns
+
   Field.t() - A fully configured field struct.
   """
-  @spec parse_field(module(), atom(), atom(), map()) :: Field.t()
+  @spec parse_field(module(), atom(), atom() | {atom(), term()}, map()) :: Field.t()
   def parse_field(
         resource_schema,
         resource_name,
@@ -78,7 +93,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
           {field_key, get_in(attributes, [field_key, Access.key!(:type)]) || :undefined}
       end
 
-    association_or_embed = Ash.Resource.Info.relationship(resource_schema, field_key)
+    association_or_embed = AshResourceInfo.relationship(resource_schema, field_key)
 
     embedded? = embedded_resource?(type)
 
@@ -110,8 +125,27 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     Field.new(attrs)
   end
 
+  @doc """
+  Parses all relationships from an Ash resource.
+
+  Iterates through resource relationships and converts each into a Field struct with
+  proper relationship metadata and type information.
+
+  ## Parameters
+
+  - `resource_schema` (module()) - The schema module containing relationships.
+  - `resource_name` (atom()) - The name of the resource.
+  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
+  - `fields` (list(Field.t())) - Existing fields list to prepend associations to.
+
+  ## Returns
+
+  list(Field.t()) - Updated list with relationship fields added.
+  """
+  @spec parse_associations(module(), atom(), list(Resource.t()), list(Field.t())) ::
+          list(Field.t())
   def parse_associations(resource_schema, resource_name, resources, fields) do
-    associations = Ash.Resource.Info.relationships(resource_schema)
+    associations = AshResourceInfo.relationships(resource_schema)
 
     associations
     |> Enum.reduce(
@@ -122,25 +156,25 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   @doc """
-  Converts a schema association into a Field struct.
+  Converts a resource relationship into a Field struct.
 
-  Extracts association metadata from the schema and creates a field configuration
+  Extracts relationship metadata from the schema and creates a field configuration
   with proper association type and relationship information.
 
   ## Parameters
 
-  - `schema` (module()) - The schema module containing the association.
+  - `schema` (module()) - The schema module containing the relationship.
   - `resource_name` (atom()) - The name of the resource.
-  - `resources` (list()) - List of available resources for reference lookup.
-  - `association` (atom()) - The association to be processed.
-  - `fields` (map()) - Existing fields map to append to.
+  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
+  - `association` (struct()) - The relationship struct to be processed.
+  - `fields` (list(Field.t())) - Existing fields list to prepend to.
 
   ## Returns
 
-  list() - Updated list with the association field added.
+  list(Field.t()) - Updated list with the relationship field added.
   """
-  @spec parse_association(module(), atom(), list(), map(), map()) ::
-          list(Resource.t())
+  @spec parse_association(module(), atom(), list(Resource.t()), struct(), list(Field.t())) ::
+          list(Field.t())
   def parse_association(
         schema,
         resource_name,
@@ -175,20 +209,20 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   ## Parameters
 
-  - `parent_resource` (tuple()) - Tuple containing parent resource name, schema module,
-  and type.
-  - `result` (list()) - Accumulator list of resource configurations.
+  - `parent_resource` ({atom(), module(), atom()}) - Tuple containing parent resource name,
+  schema module, and type.
+  - `result` (list(Resource.t())) - Accumulator list of resource configurations.
 
   ## Returns
 
-  list() - Updated list with embedded resource configurations added.
+  list(Resource.t()) - Updated list with embedded resource configurations added.
 
   ## Examples
 
       iex> embedded_resource({:users, MyApp.User, :ash}, [])
       [%Resource{name: :users__profile, ...}]
   """
-  @spec embedded_resource(tuple(), list()) :: list()
+  @spec embedded_resource({atom(), module(), atom()}, list(Resource.t())) :: list(Resource.t())
   def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
     schema_module
     |> AshResourceInfo.attributes()
@@ -198,8 +232,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   ## PRIVATE
 
-  # Converts an Ash type to its corresponding Ecto type
-  @spec field_type(map(), map()) :: map()
+  # Converts an Ash type to its corresponding Ecto type.
+  @spec field_type(map() | nil, map()) :: atom()
   defp field_type(_attrs, %{type: type})
        when type in [
               Ash.Type.Atom,
@@ -314,8 +348,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   # Direct type passthrough
   defp field_type(_attrs, %{type: type}), do: type
 
-  # Maps an Ash type to an HTML input type
-  @spec field_html_type(map(), map()) :: atom()
+  # Maps an Ash type to an HTML input type for form rendering.
+  @spec field_html_type(map() | nil, map()) :: atom()
   defp field_html_type(_attrs, %{
          type: resource_type,
          constraints: constraints
@@ -331,7 +365,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
     do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
 
-  # Formats a display label from a field name - capitalizes and replaces underscores
+  # Formats a display label from a field name, capitalizes and replaces underscores.
   @spec field_label(map(), map()) :: binary()
   defp field_label(%{key: name, resource: resource_name}, %{embedded?: true}) do
     resource_name
@@ -344,15 +378,15 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
        }),
        do: CommonFieldsParser.field_label(name, resource_name, association_or_embed)
 
-  # Determines default placeholder text for a field based on its type
+  # Determines default placeholder text for a field based on its type.
   @spec field_placeholder(map(), map()) :: binary()
   defp field_placeholder(%{html_type: :select}, _attribute), do: ""
 
   defp field_placeholder(%{key: name, type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_placeholder(name, ecto_type)
 
-  # Determines the display length for an Ash field based on its type
-  @spec field_length(map(), map()) :: integer()
+  # Determines the display length for an Ash field based on its type.
+  @spec field_length(map() | nil, map()) :: integer()
   defp field_length(%{type: ecto_type}, %{type: resource_type, constraints: constraints})
        when resource_type in [
               Ash.Type.Atom,
@@ -379,12 +413,12 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_length(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_length(ecto_type)
 
-  # Gets the numeric precision for Ash number fields
-
+  # Gets the numeric precision for Ash number fields.
   @spec field_precision(map(), map()) :: integer()
   defp field_precision(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_precision(ecto_type)
 
+  # Gets the numeric scale for Ash decimal/float fields.
   @spec field_scale(map(), map()) :: integer()
   defp field_scale(%{type: ecto_type}, _attribute), do: CommonFieldsParser.field_scale(ecto_type)
 
@@ -496,22 +530,23 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     String.to_atom("#{parent_resource_name}__#{field}")
   end
 
-  # Finds matching resource for an association
-  # Returns resource name if found, nil if not
-  @spec field_resource(map() | nil, list()) :: atom() | nil
+  # Finds matching resource for a relationship by comparing schema modules.
+  @spec field_resource(map(), list(Resource.t())) :: atom() | nil
   defp field_resource(nil, _resources), do: nil
 
   defp field_resource(association, resources) do
     resources
     |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
-      resource.schema == association.related
+      resource.schema == association.destination
     end)
     |> elem(0)
   end
 
   ## PRIVATE
 
-  @spec embedded_resource_config(tuple(), map(), list()) :: list()
+  # Creates a resource configuration for an embedded field.
+  @spec embedded_resource_config({atom(), module(), atom()}, map(), list(Resource.t())) ::
+          list(Resource.t())
   defp embedded_resource_config(
          {parent_resource_name, schema_module, type},
          %{type: resource_type, name: field},
@@ -536,6 +571,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     ]
   end
 
+  # Checks if a type represents an embedded Ash resource.
   @spec embedded_resource?(term()) :: boolean()
   defp embedded_resource?({:array, {:parameterized, {child_resource, _opts}}}),
     do: embedded_resource?(child_resource)
@@ -556,7 +592,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       AshResourceInfo.embedded?(child_resource_no_ecto)
   end
 
-  @spec remove_ecto_type(module()) :: module()
+  # Removes ".EctoType" suffix from Ash module names.
+  @spec remove_ecto_type(module() | {atom(), module()}) :: module()
   defp remove_ecto_type({:array, resource_schema}), do: remove_ecto_type(resource_schema)
 
   defp remove_ecto_type(resource_schema) do
@@ -568,10 +605,12 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     |> Module.concat()
   end
 
-  @spec maybe_remove_ecto_type(list()) :: list()
+  # Helper to conditionally remove "EctoType" from module path list.
+  @spec maybe_remove_ecto_type(list(binary())) :: list(binary())
   defp maybe_remove_ecto_type(["EctoType" | rest]), do: rest
   defp maybe_remove_ecto_type(list), do: list
 
+  # Applies a function to attrs and attribute, storing result in attrs at attr_key.
   @spec set(map(), function(), atom(), map()) :: map()
   defp set(attrs, function, attr_key, attribute) do
     attrs
