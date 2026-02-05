@@ -1,5 +1,7 @@
 defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
-  def get(:all_types, opts \\ []) do
+  def get(type, opts \\ [])
+
+  def get(:all_types, opts) do
     %{
       id: %{
         data: %{},
@@ -28,7 +30,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         label: "Field Binary Id",
         name: "field_binary_id",
         type: :binary_id,
-        length: 255,
+        length: 36,
         key: :field_binary_id,
         precision: 0,
         resource: :all_types,
@@ -422,6 +424,84 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
     |> apply_opts(opts)
   end
 
+  def get(:with_associations, opts) do
+    :all_types
+    |> get()
+    |> Map.merge(%{
+      belongs_to_field_id: %{
+        key: :belongs_to_field_id,
+        type: :binary_id,
+        html_type: :text,
+        renderer: nil,
+        resource: :all_types,
+        name: "belongs_to_field_id",
+        label: "Belongs To Field Id",
+        placeholder: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+        length: 36,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: true,
+        data: %{}
+      },
+      has_many_field: %{
+        key: :has_many_field,
+        type: :one_to_many_association,
+        html_type: :unimplemented,
+        renderer: nil,
+        resource: :all_types,
+        name: "has_many_field",
+        label: "",
+        placeholder: "",
+        length: 0,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: false,
+        data: %{
+          resource: nil,
+          owner_key: :id,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.HasManyRelationship,
+          related_key: :all_types_id
+        }
+      },
+      belongs_to_field: %{
+        key: :belongs_to_field,
+        type: :many_to_one_association,
+        html_type: :unimplemented,
+        renderer: nil,
+        resource: :all_types,
+        name: "belongs_to_field",
+        label: "",
+        placeholder: "",
+        length: 0,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: false,
+        data: %{
+          resource: nil,
+          owner_key: :belongs_to_field_id,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.BelongsToRelationship,
+          related_key: :id
+        }
+      }
+    })
+    |> apply_opts(opts)
+  end
+
   def compare_maps(validations, generated) do
     validations
     |> Map.keys()
@@ -429,12 +509,16 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
       validation = Map.get(validations, key)
       current = Map.get(generated, key)
 
-      validation
-      |> Map.keys()
-      |> Enum.filter(&(Map.get(validation, &1) != Map.get(current, &1)))
-      |> Enum.map(
-        &"#{key} on field: #{&1} got: #{inspect(Map.get(current, &1))}, expected: #{inspect(Map.get(validation, &1))}"
-      )
+      if is_nil(current) do
+        ["#{key} does not exist in the generated artifact"]
+      else
+        validation
+        |> Map.keys()
+        |> Enum.filter(&(Map.get(validation, &1) != Map.get(current, &1)))
+        |> Enum.map(
+          &"#{key} on field: #{&1} got: #{inspect(Map.get(current, &1))}, expected: #{inspect(Map.get(validation, &1))}"
+        )
+      end
     end)
     |> Enum.reject(&(&1 == []))
     |> List.flatten()
@@ -450,6 +534,8 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
 
   defp apply_opt({:related_prefix, prefix}, validations),
     do: replace_data_key(validations, :related, prefix)
+
+  defp apply_opt(_opts, validations), do: validations
 
   defp replace_data_key(validations, data_key, prefix) do
     validations

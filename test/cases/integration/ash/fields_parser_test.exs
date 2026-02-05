@@ -21,16 +21,35 @@ defmodule EmbedsOne do
   end
 end
 
+defmodule BelongsToRelationship do
+  use Ash.Resource,
+    domain: nil
+
+  attributes do
+    uuid_primary_key :id
+    attribute :first_field, :integer
+    attribute :second_field, :string
+  end
+end
+
+defmodule HasManyRelationship do
+  use Ash.Resource,
+    domain: nil
+
+  attributes do
+    uuid_primary_key :id
+    attribute :first_field, :integer
+    attribute :second_field, :string
+    attribute :all_types_id, :integer
+  end
+end
+
 defmodule AllTypes do
   use Ash.Resource,
     domain: nil
 
-  resource do
-    require_primary_key? false
-  end
-
   attributes do
-    attribute :id, :integer
+    integer_primary_key :id
     attribute :field_binary_id, :uuid
     attribute :field_integer, :integer
     attribute :field_float, :float
@@ -59,6 +78,11 @@ defmodule AllTypes do
     attribute :embeds_one, EmbedsOne
   end
 
+  relationships do
+    belongs_to :belongs_to_field, BelongsToRelationship
+    has_many :has_many_field, HasManyRelationship
+  end
+
   actions do
     defaults [:read, :create, :update, :destroy]
   end
@@ -85,5 +109,23 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
       |> Map.new(&{&1.key, &1})
 
     assert Validations.compare_maps(validations, parsed_fields) == []
+  end
+
+  test "Validate association_parser" do
+    validations =
+      :with_associations
+      |> Validations.get(owner_prefix: "", related_prefix: "")
+      |> put_in([:field_naive_datetime_usec, :type], :naive_datetime)
+      |> put_in([:field_naive_datetime_usec, :length], 17)
+      |> put_in([:field_naive_datetime_usec, :data], %{})
+      |> put_in([:field_bitstring, :type], :binary)
+
+    parsed_schema =
+      AllTypes
+      |> Ash.FieldsParser.parse_fields(:all_types)
+      |> then(&Ash.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
+      |> Map.new(&{&1.key, &1})
+
+    assert Validations.compare_maps(validations, parsed_schema) == []
   end
 end

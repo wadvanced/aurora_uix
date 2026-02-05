@@ -6,6 +6,26 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
 
   alias Aurora.Uix.Test.Cases.Integration.FieldsParserValidations, as: Validations
 
+  defmodule BelongsToRelationship do
+    @primary_key {:id, :binary_id, []}
+    use Ecto.Schema
+
+    schema "test_belongs_to" do
+      field :first_field, :integer
+      field :second_field, :string
+    end
+  end
+
+  defmodule HasManyRelationship do
+    @primary_key {:id, :binary_id, []}
+    use Ecto.Schema
+
+    schema "test_has_many" do
+      field :first_field, :integer
+      field :second_field, :string
+    end
+  end
+
   defmodule AllTypes do
     use Ecto.Schema
 
@@ -36,6 +56,9 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
         field(:event_date, :date)
         field(:note, :string)
       end
+
+      belongs_to :belongs_to_field, BelongsToRelationship
+      has_many :has_many_field, HasManyRelationship
     end
   end
 
@@ -49,5 +72,18 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
       |> Map.new(&{&1.key, &1})
 
     assert Validations.compare_maps(validations, parsed_fields) == []
+  end
+
+  test "Validate association_parser" do
+    validations =
+      Validations.get(:with_associations)
+
+    parsed_schema =
+      AllTypes
+      |> Ctx.FieldsParser.parse_fields(:all_types)
+      |> then(&Ctx.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
+      |> Map.new(&{&1.key, &1})
+
+    assert Validations.compare_maps(validations, parsed_schema) == []
   end
 end
