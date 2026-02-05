@@ -28,11 +28,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   alias Aurora.Uix.Integration.FieldsParser, as: CommonFieldsParser
   alias Aurora.Uix.Resource
 
-  alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
-  alias Ecto.Association.Has, as: AssociationHas
-
-  @on_test [:embeds_one, :embeds_many]
-
   # Parses schema fields into Field structs with metadata.
   # Returns empty list if schema isn't available or compiled.
   @spec parse_fields(module() | nil, atom()) :: list()
@@ -50,8 +45,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     |> Map.keys()
     |> Enum.map(&parse_field(resource_schema, resource_name, &1, attributes))
     |> List.flatten()
-
-    # |> IO.inspect(label: "********* attrs", limit: :infinity)
   end
 
   @doc """
@@ -65,18 +58,16 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   - `resource_name` (atom()) - The name of the resource this field belongs to.
   - `field_key` (atom()) - The field identifier.
   - `attributes` (map()) - List of attributes and theirs specification.
-  - `associations` (map()) - List of relationships with their configuration.
 
   ## Returns
   Field.t() - A fully configured field struct.
   """
-  @spec parse_field(module(), atom(), atom(), map(), map()) :: Field.t()
+  @spec parse_field(module(), atom(), atom(), map()) :: Field.t()
   def parse_field(
         resource_schema,
         resource_name,
         schema_field_key,
-        attributes \\ %{},
-        associations \\ %{}
+        attributes \\ %{}
       ) do
     {field_key, type} =
       case schema_field_key do
@@ -101,13 +92,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
         association_or_embed: association_or_embed
       })
 
-    if field_key in @on_test do
-      IO.inspect(attribute,
-        label: "********** attribute for #{field_key}",
-        limit: :infinity
-      )
-    end
-
     attrs =
       %{resource: resource_name, key: field_key}
       |> set(&field_type/2, :type, attribute)
@@ -123,19 +107,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> set(&field_filterable/2, :filterable?, attribute)
       |> set(&field_data/2, :data, attribute)
 
-    if field_key in @on_test do
-      IO.inspect(attrs, label: "************ attrs for: #{field_key}", limit: :infinity)
-    end
-
     Field.new(attrs)
   end
 
   def parse_associations(resource_schema, resource_name, resources, fields) do
-    associations =
-      resource_schema
-      |> Ash.Resource.Info.relationships()
-      |> Map.new(&{&1.name, &1})
-      |> IO.inspect(label: "********** associations")
+    associations = Ash.Resource.Info.relationships(resource_schema)
 
     associations
     |> Enum.reduce(
@@ -172,22 +148,23 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
         association,
         fields
       ) do
-    association
-    |> then(
-      &Field.new(
+    association_field =
+      Field.new(
         key: association.name,
-        type: field_type(nil, &1),
-        html_type: field_html_type(nil, &1),
+        type: field_type(nil, association),
+        html_type: field_html_type(nil, association),
+        length: 0,
+        filterable?: false,
         data:
           Map.put(
-            field_data(%{resource_schema: schema, key: association.name}, &1),
+            field_data(%{resource_schema: schema}, association),
             :resource,
-            field_resource(&1, resources)
+            field_resource(association, resources)
           ),
         resource: resource_name
       )
-    )
-    |> then(&[&1 | fields])
+
+    [association_field | fields]
   end
 
   @doc """
@@ -331,13 +308,14 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_type(_attrs, %{embedded?: true}), do: :embeds_one
 
+  defp field_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :many_to_one_association
+  defp field_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :one_to_many_association
+
   # Direct type passthrough
   defp field_type(_attrs, %{type: type}), do: type
 
   # Maps an Ash type to an HTML input type
   @spec field_html_type(map(), map()) :: atom()
-  defp field_html_type(attrs, attribute \\ %{})
-
   defp field_html_type(_attrs, %{
          type: resource_type,
          constraints: constraints
@@ -347,6 +325,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
+  defp field_html_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :unimplemented
+  defp field_html_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :unimplemented
 
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
     do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
@@ -391,6 +371,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     end
   end
 
+  defp field_length(%{type: :binary_id}, _attribute), do: 36
+
+  defp field_length(nil, %Ash.Resource.Relationships.BelongsTo{}), do: 0
+  defp field_length(nil, %Ash.Resource.Relationships.HasMany{}), do: 0
+
   defp field_length(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_length(ecto_type)
 
@@ -422,8 +407,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Extracts metadata for Ash field types
   @spec field_data(map(), map()) :: map()
-  defp field_data(attrs, attribute \\ %{})
-
   defp field_data(
          _attrs,
          %{type: resource_type, constraints: constraints}
@@ -448,6 +431,30 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_data(attrs, %{type: {:array, related_schema}, embedded?: true} = attribute),
     do: field_data(attrs, Map.put(attribute, :type, related_schema))
 
+  defp field_data(_attrs, %Ash.Resource.Relationships.BelongsTo{
+         destination_attribute: related_key,
+         destination: related_schema,
+         source_attribute: owner_key
+       }) do
+    %{
+      owner_key: owner_key,
+      related: related_schema,
+      related_key: related_key
+    }
+  end
+
+  defp field_data(_attrs, %Ash.Resource.Relationships.HasMany{
+         destination_attribute: related_key,
+         destination: related_schema,
+         source_attribute: owner_key
+       }) do
+    %{
+      owner_key: owner_key,
+      related: related_schema,
+      related_key: related_key
+    }
+  end
+
   defp field_data(%{resource: parent_resource_name}, %{
          type: related_schema,
          name: related_field,
@@ -461,18 +468,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     }
   end
 
-  defp field_data(%{resource: parent_resource_name}, %{
-         type: {:array, related_schema},
-         name: related_field,
-         resource_schema: parent_schema,
-         embedded?: true
-       }) do
-    %{
-      owner: parent_schema,
-      resource: field_embedded_resource(parent_resource_name, related_field),
-      related: related_schema
-    }
-  end
+  # resource_schema: schema, key: association.name
 
   defp field_data(
          %{
@@ -578,10 +574,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   @spec set(map(), function(), atom(), map()) :: map()
   defp set(attrs, function, attr_key, attribute) do
-    if attribute.name in @on_test do
-      IO.inspect({attrs, attribute}, label: "******** params before call: field_#{attr_key}")
-    end
-
     attrs
     |> function.(attribute)
     |> then(&Map.put(attrs, attr_key, &1))

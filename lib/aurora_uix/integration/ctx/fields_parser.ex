@@ -48,7 +48,6 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     else
       []
     end
-    |> IO.inspect(label: "********* attrs", limit: :infinity)
   end
 
   @doc """
@@ -147,23 +146,29 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
         association_field_key,
         fields
       ) do
-    :association
-    |> schema.__schema__(association_field_key)
-    |> then(
-      &Field.new(
-        key: association_field_key,
-        html_type: field_html_type(nil, &1),
-        type: field_type(nil, &1),
-        data:
-          Map.put(
-            field_data(schema, association_field_key, &1),
-            :resource,
-            field_resource(&1, resources)
-          ),
-        resource: resource_name
+    association_field =
+      :association
+      |> schema.__schema__(association_field_key)
+      |> then(
+        &Field.new(
+          key: association_field_key,
+          html_type: field_html_type(nil, &1),
+          type: field_type(nil, &1),
+          length: 0,
+          filterable?: false,
+          data:
+            Map.put(
+              field_data(schema, association_field_key, &1),
+              :resource,
+              field_resource(&1, resources)
+            ),
+          resource: resource_name
+        )
       )
-    )
-    |> then(&[&1 | fields])
+
+    updated_fields = maybe_update_field_from_association(fields, association_field)
+
+    [association_field | updated_fields]
   end
 
   @doc """
@@ -241,11 +246,14 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the default placeholder text for a field based on its type
   @spec field_placeholder(atom(), atom()) :: binary()
+  defp field_placeholder(_name, type) when type in [Ecto.UUID, :binary_id],
+    do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+
   defp field_placeholder(name, type), do: CommonFieldsParser.field_placeholder(name, type)
 
   # Determines the display length for a field based on its type
   @spec field_length(atom()) :: integer()
-  defp field_length(Ecto.UUID), do: 34
+  defp field_length(type) when type in [Ecto.UUID, :binary_id], do: 36
 
   defp field_length({:parameterized, {Ecto.Enum, %{mappings: opts}}}) do
     opts
@@ -257,6 +265,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Gets the numeric precision for number fields
   @spec field_precision(atom()) :: integer()
+  defp field_precision(type) when type in [Ecto.UUID, :binary_id],
+    do: 0
+
   defp field_precision(type), do: CommonFieldsParser.field_precision(type)
 
   # Gets the numeric scale for decimal/float fields
@@ -365,4 +376,31 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
       | result
     ]
   end
+
+  defp maybe_update_field_from_association(
+         fields,
+         %{
+           type: :many_to_one_association,
+           data: %{related_key: related_key, related: related_schema} = data
+         }
+       ) do
+    type = related_schema.__schema__(:type, related_key)
+
+    changes = %{
+      type: field_type(type, nil),
+      html_type: field_html_type(type, nil),
+      placeholder: field_placeholder(nil, type),
+      length: field_length(type),
+      precision: field_precision(type)
+    }
+
+    Enum.map(fields, &update_field_type(&1, data, changes))
+  end
+
+  defp maybe_update_field_from_association(fields, _data), do: fields
+
+  defp update_field_type(%{key: field_key} = field, %{owner_key: key_to_update}, changes)
+       when field_key == key_to_update, do: Map.merge(field, changes)
+
+  defp update_field_type(field, _data, _changes), do: field
 end
