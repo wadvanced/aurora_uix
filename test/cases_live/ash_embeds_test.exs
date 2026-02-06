@@ -5,6 +5,8 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   alias Aurora.Uix.Guides.Blog.Author
   alias Aurora.Uix.Guides.Blog.Post
 
+  alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
+
   auix_resource_metadata(:author, schema: Author, order_by: [:bio])
   auix_resource_metadata(:post, schema: Post, order_by: [published_at: :desc])
 
@@ -61,7 +63,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
       &assert(
         has_element?(
           &1,
-          "div.auix-show-container input[name='status'][value='#{post.status}']"
+          "div.auix-show-container select[name='status'] option[selected=''][value='#{post.status}']"
         )
       )
     )
@@ -90,6 +92,6 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   test "Test add posts", %{conn: conn} do
     delete_all_blog_data()
 
-    {:ok, view, html} = live(conn, "/ash-embeds-posts/new")
+    data = Ash.create(Post, %{title: "Test post"})
   end
 end
