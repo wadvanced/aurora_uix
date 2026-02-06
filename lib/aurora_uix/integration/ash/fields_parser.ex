@@ -156,52 +156,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   @doc """
-  Converts a resource relationship into a Field struct.
-
-  Extracts relationship metadata from the schema and creates a field configuration
-  with proper association type and relationship information.
-
-  ## Parameters
-
-  - `schema` (module()) - The schema module containing the relationship.
-  - `resource_name` (atom()) - The name of the resource.
-  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
-  - `association` (struct()) - The relationship struct to be processed.
-  - `fields` (list(Field.t())) - Existing fields list to prepend to.
-
-  ## Returns
-
-  list(Field.t()) - Updated list with the relationship field added.
-  """
-  @spec parse_association(module(), atom(), list(Resource.t()), struct(), list(Field.t())) ::
-          list(Field.t())
-  def parse_association(
-        schema,
-        resource_name,
-        resources,
-        association,
-        fields
-      ) do
-    association_field =
-      Field.new(
-        key: association.name,
-        type: field_type(nil, association),
-        html_type: field_html_type(nil, association),
-        length: 0,
-        filterable?: false,
-        data:
-          Map.put(
-            field_data(%{resource_schema: schema}, association),
-            :resource,
-            field_resource(association, resources)
-          ),
-        resource: resource_name
-      )
-
-    [association_field | fields]
-  end
-
-  @doc """
   Processes embedded resources from an Ash resource schema.
 
   Recursively discovers and configures embedded resources from the parent resource,
@@ -231,6 +185,50 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   ## PRIVATE
+
+  # Converts a resource relationship into a Field struct.
+  #
+  # Extracts relationship metadata from the schema and creates a field configuration
+  # with proper association type and relationship information.
+  #
+  # ## Parameters
+  #
+  # - `schema` (module()) - The schema module containing the relationship.
+  # - `resource_name` (atom()) - The name of the resource.
+  # - `resources` (list(Resource.t())) - List of available resources for reference lookup.
+  # - `association` (struct()) - The relationship struct to be processed.
+  # - `fields` (list(Field.t())) - Existing fields list to prepend to.
+  #
+  # ## Returns
+  #
+  # list(Field.t()) - Updated list with the relationship field added.
+  @spec parse_association(module(), atom(), list(Resource.t()), struct(), list(Field.t())) ::
+          list(Field.t())
+  defp parse_association(
+         schema,
+         resource_name,
+         resources,
+         association,
+         fields
+       ) do
+    association_field =
+      Field.new(
+        key: association.name,
+        type: field_type(nil, association),
+        html_type: field_html_type(nil, association),
+        length: 0,
+        filterable?: false,
+        data:
+          Map.put(
+            field_data(%{resource_schema: schema}, association),
+            :resource,
+            field_resource(association, resources)
+          ),
+        resource: resource_name
+      )
+
+    [association_field | fields]
+  end
 
   # Converts an Ash type to its corresponding Ecto type.
   @spec field_type(map() | nil, map()) :: atom()

@@ -336,6 +336,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     schema =
       resource.opts[:schema] ||
         resource.opts[:ash_resource]
+        |> IO.inspect(label: "********* schema")
 
     resource_type = resource_type(schema)
     {schema, resource_type}
@@ -482,13 +483,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
     fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
-
-    # :associations
-    # |> schema.__schema__()
-    # |> Enum.reduce(
-    #   Enum.reverse(fields),
-    #   &LayoutHelpers.parse_association(fields_parser, schema, name, resources, &1, &2)
-    # )
 
     schema
     |> fields_parser.parse_associations(name, resources, fields)

@@ -339,6 +339,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     end
   end
 
+  @spec apply_preload(struct(), term()) :: struct()
   defp apply_preload(entity, preload) do
     case Ash.load(entity, preload) do
       {:ok, entity_loaded} -> entity_loaded

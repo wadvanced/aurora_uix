@@ -147,50 +147,6 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   end
 
   @doc """
-  Converts a schema association into a Field struct.
-
-  Extracts association metadata from the schema and creates a field configuration
-  with proper association type and relationship information.
-
-  ## Parameters
-
-  - `schema` (module()) - The schema module containing the association.
-  - `resource_name` (atom()) - The name of the resource.
-  - `resources` (list(Resource.t())) - List of available resources for reference lookup.
-  - `association_field_key` (atom()) - The association field identifier.
-  - `fields` (list(Field.t())) - Existing fields list to prepend to.
-
-  ## Returns
-
-  list(Field.t()) - Updated list with the association field added.
-  """
-  @spec parse_association(module(), atom(), list(Resource.t()), atom(), list(Field.t())) ::
-          list(Field.t())
-  def parse_association(
-        resource_schema,
-        resource_name,
-        resources,
-        association_field_key,
-        fields
-      ) do
-    association = resource_schema.__schema__(:association, association_field_key)
-    attribute = %{ecto_type: association}
-
-    association_field =
-      Field.new(
-        %{resource: resource_name, key: association_field_key, length: 0, filterable?: false}
-        |> set(&field_type/2, :type, attribute)
-        |> set(&field_html_type/2, :html_type, attribute)
-        |> set(&field_data/2, :data, attribute)
-        |> put_in([:data, :resource], field_resource(association, resources))
-      )
-
-    updated_fields = maybe_update_field_from_association(fields, association_field)
-
-    [association_field | updated_fields]
-  end
-
-  @doc """
   Processes embedded resources from an Ecto schema.
 
   Recursively discovers and configures embedded resources from the parent schema,
@@ -220,6 +176,47 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   end
 
   ## PRIVATE
+
+  # Converts a schema association into a Field struct.
+  #
+  # Extracts association metadata from the schema and creates a field configuration
+  # with proper association type and relationship information.
+  #
+  # ## Parameters
+  #
+  # - `schema` (module()) - The schema module containing the association.
+  # - `resource_name` (atom()) - The name of the resource.
+  # - `resources` (list(Resource.t())) - List of available resources for reference lookup.
+  # - `association_field_key` (atom()) - The association field identifier.
+  # - `fields` (list(Field.t())) - Existing fields list to prepend to.
+  #
+  # ## Returns
+  #
+  # list(Field.t()) - Updated list with the association field added.
+  @spec parse_association(module(), atom(), list(Resource.t()), atom(), list(Field.t())) ::
+          list(Field.t())
+  defp parse_association(
+         resource_schema,
+         resource_name,
+         resources,
+         association_field_key,
+         fields
+       ) do
+    association = resource_schema.__schema__(:association, association_field_key)
+    attribute = %{ecto_type: association}
+
+    association_field =
+      %{resource: resource_name, key: association_field_key, length: 0, filterable?: false}
+      |> set(&field_type/2, :type, attribute)
+      |> set(&field_html_type/2, :html_type, attribute)
+      |> set(&field_data/2, :data, attribute)
+      |> put_in([:data, :resource], field_resource(association, resources))
+      |> Field.new()
+
+    updated_fields = maybe_update_field_from_association(fields, association_field)
+
+    [association_field | updated_fields]
+  end
 
   # Maps an Elixir type to a field type, handling associations and embeds.
   @spec field_type(map(), map()) :: atom()
@@ -365,7 +362,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     }
   end
 
-  defp field_data(attrs, %{ecto_type: %{} = association}),
+  defp field_data(_attrs, %{ecto_type: %{} = association}),
     do: %{
       related: association.related,
       related_key: association.related_key,

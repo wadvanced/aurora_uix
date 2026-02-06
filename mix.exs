@@ -10,6 +10,7 @@ defmodule Aurora.Uix.MixProject do
       version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :test,
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),

@@ -341,7 +341,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       |> then(&assign_auix(assigns, :embedded_entries, &1))
 
     ~H"""
-    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries) do %>
+    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries || []) do %>
         <div class="auix-embeds-many-entry-contents">
           <div class="auix-embeds-many-entry--badge">
             <span class="auix-embeds-many-entry--badge-text">{entry_index + 1}</span>
@@ -383,7 +383,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
        ) do
     assigns =
       entity
-      |> Map.get(field.key, [])
+      |> Map.get(field.key)
+      |> Kernel.||([])
       |> Enum.count()
       |> then(&Map.put(assigns, :embedded_entries_count, &1))
 

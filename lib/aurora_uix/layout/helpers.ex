@@ -33,7 +33,8 @@ defmodule Aurora.Uix.Layout.Helpers do
                                      |> Application.compile_env(
                                        :fields_parser_integration_modules,
                                        ash: Aurora.Uix.Integration.Ash.FieldsParser,
-                                       ctx: Aurora.Uix.Integration.Ctx.FieldsParser
+                                       ctx: Aurora.Uix.Integration.Ctx.FieldsParser,
+                                       none: Aurora.Uix.Integration.None.FieldsParser
                                      )
                                      |> Map.new()
 
@@ -155,50 +156,6 @@ defmodule Aurora.Uix.Layout.Helpers do
     quote do
       unquote(registration)
     end
-  end
-
-  @doc """
-  Delegates association parsing to the appropriate fields parser implementation.
-
-  Routes association field parsing requests to the configured parser module based on
-  the resource type, handling relationship extraction and metadata resolution.
-
-  ## Parameters
-
-  - `fields_parser` (module()) - The fields parser implementation module.
-  - `resource_schema` (module()) - The schema module defining the resource structure.
-  - `resource_name` (atom()) - The identifier for the resource.
-  - `resources` (keyword()) - Map of available resources for relationship lookup.
-  - `association_field_key` (atom()) - The field key representing the association.
-  - `fields` (list()) - List of field specifications to parse.
-
-  ## Returns
-
-  map() - Parsed association metadata with field information.
-  """
-  @spec parse_association(
-          module(),
-          module(),
-          atom(),
-          keyword(),
-          atom(),
-          list()
-        ) :: map()
-  def parse_association(
-        fields_parser,
-        resource_schema,
-        resource_name,
-        resources,
-        association_field_key,
-        fields
-      ) do
-    fields_parser.parse_association(
-      resource_schema,
-      resource_name,
-      resources,
-      association_field_key,
-      fields
-    )
   end
 
   @doc """
