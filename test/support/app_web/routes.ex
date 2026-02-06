@@ -78,6 +78,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "ash-embeds-posts"
         )
 
+        RoutesHelper.register_crud(
+          BrowserAshEmbedsTest.Post,
+          "browser-ash-embeds-posts"
+        )
+
         RoutesHelper.register_product_crud(
           RecordNavigationDisableTest,
           "record-navigation-disable-"
