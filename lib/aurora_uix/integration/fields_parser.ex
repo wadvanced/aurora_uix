@@ -253,13 +253,13 @@ defmodule Aurora.Uix.Integration.FieldsParser do
   - `field_key` (atom()) - The field identifier.
   - `association_or_embed` (map() | nil) - Optional association metadata.
   - `resource_name` (atom()) - The resource name.
-  - `type` (atom()) - The field type.
+  - `type` (term()) - The field type.
 
   ## Returns
 
   map() - Field metadata map, or empty map if no special handling needed.
   """
-  @spec field_data(module(), atom(), nil | map(), nil | atom(), term()) :: map()
+  @spec field_data(module(), atom(), nil | map(), nil | atom(), nil | term()) :: map()
   def field_data(_resource_schema, _field_key, _association_or_embed, _resource_name, type)
       when type in [:time_usec, :naive_datetime_usec, :utc_datetime_usec], do: %{step: 1}
 

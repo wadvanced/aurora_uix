@@ -99,7 +99,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
     attribute =
       attributes
-      |> Map.get(field_key, %{})
+      |> Map.get(field_key, %Field{type: type})
       |> Map.from_struct()
       |> Map.merge(%{
         resource_schema: resource_schema,
@@ -269,7 +269,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
        do: :decimal
 
   defp field_type(_attrs, %{type: type})
-       when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType],
+       when type in [Ash.Type.Boolean, Ash.Type.Boolean.EctoType, :boolean],
        do: :boolean
 
   defp field_type(_attrs, %{type: type})
@@ -532,8 +532,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Finds matching resource for a relationship by comparing schema modules.
   @spec field_resource(map(), list(Resource.t())) :: atom() | nil
-  defp field_resource(nil, _resources), do: nil
-
   defp field_resource(association, resources) do
     resources
     |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
@@ -597,12 +595,18 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp remove_ecto_type({:array, resource_schema}), do: remove_ecto_type(resource_schema)
 
   defp remove_ecto_type(resource_schema) do
-    resource_schema
-    |> Module.split()
-    |> Enum.reverse()
-    |> maybe_remove_ecto_type()
-    |> Enum.reverse()
-    |> Module.concat()
+    case Code.ensure_loaded(resource_schema) do
+      {:error, _} ->
+        resource_schema
+
+      {:module, _} ->
+        resource_schema
+        |> Module.split()
+        |> Enum.reverse()
+        |> maybe_remove_ecto_type()
+        |> Enum.reverse()
+        |> Module.concat()
+    end
   end
 
   # Helper to conditionally remove "EctoType" from module path list.

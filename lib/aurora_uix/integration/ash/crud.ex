@@ -23,7 +23,6 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @behaviour Aurora.Uix.Integration.Crud
 
   alias Ash.Page.Offset
-  alias AshPostgres.DataLayer.Info, as: PostgresDataLayerInfo
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.CrudSpec
   alias Aurora.Uix.Integration.Ash.QueryParser
@@ -236,11 +235,9 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @impl true
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
   def new(%CrudSpec{resource: resource}, attrs, opts) do
-    repo = PostgresDataLayerInfo.repo(resource)
-
     resource
     |> struct(attrs)
-    |> maybe_apply_preload(repo, opts)
+    |> maybe_apply_preload(opts)
   end
 
   @doc """
@@ -334,13 +331,18 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   end
 
   # Applies Ecto preload to a struct if repository and preload option are present.
-  @spec maybe_apply_preload(struct(), nil | module(), keyword()) :: struct()
-  defp maybe_apply_preload(schema, nil, _opts), do: schema
-
-  defp maybe_apply_preload(schema, repo, opts) do
+  @spec maybe_apply_preload(struct(), keyword()) :: struct()
+  defp maybe_apply_preload(entity, opts) do
     case opts[:preload] do
-      nil -> schema
-      preload -> repo.preload(schema, preload)
+      nil -> entity
+      preload -> apply_preload(entity, preload)
+    end
+  end
+
+  defp apply_preload(entity, preload) do
+    case Ash.load(entity, preload) do
+      {:ok, entity_loaded} -> entity_loaded
+      _ -> entity
     end
   end
 end

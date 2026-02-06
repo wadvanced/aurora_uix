@@ -334,7 +334,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec define_schema_and_type(map()) :: tuple()
   defp define_schema_and_type(resource) do
     schema =
-      resource.opts[:schema] || resource.opts[:ash_resource]
+      resource.opts[:schema] ||
+        resource.opts[:ash_resource]
 
     resource_type = resource_type(schema)
     {schema, resource_type}

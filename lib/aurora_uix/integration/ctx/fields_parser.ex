@@ -85,9 +85,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
         resource_name,
         schema_field_key
       ) do
-    {field_key, type} =
+    {field_key, ecto_type} =
       case schema_field_key do
-        {field_key, type} -> {field_key, type}
+        {field_key, ecto_type} -> {field_key, ecto_type}
         field_key -> {field_key, resource_schema.__schema__(:type, field_key)}
       end
 
@@ -95,30 +95,25 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
       resource_schema.__schema__(:association, field_key) ||
         resource_schema.__schema__(:embed, field_key)
 
+    attribute = %{
+      ecto_type: ecto_type,
+      association_or_embed: association_or_embed
+    }
+
     attrs =
-      %{
-        key: field_key,
-        type: field_type(type, association_or_embed),
-        html_type: field_html_type(type, association_or_embed),
-        label: field_label(field_key, resource_name, association_or_embed),
-        placeholder: field_placeholder(field_key, type),
-        length: field_length(type),
-        precision: field_precision(type),
-        scale: field_scale(type),
-        disabled: field_disabled(field_key),
-        omitted: field_omitted(field_key),
-        hidden: field_hidden(field_key),
-        filterable?: field_filterable(type),
-        resource: resource_name,
-        data:
-          field_data(
-            resource_schema,
-            field_key,
-            association_or_embed,
-            resource_name,
-            type
-          )
-      }
+      %{resource: resource_name, key: field_key}
+      |> set(&field_type/2, :type, attribute)
+      |> set(&field_html_type/2, :html_type, attribute)
+      |> set(&field_label/2, :label, attribute)
+      |> set(&field_placeholder/2, :placeholder, attribute)
+      |> set(&field_length/2, :length, attribute)
+      |> set(&field_precision/2, :precision, attribute)
+      |> set(&field_scale/2, :scale, attribute)
+      |> set(&field_disabled/2, :disabled, attribute)
+      |> set(&field_omitted/2, :omitted, attribute)
+      |> set(&field_hidden/2, :hidden, attribute)
+      |> set(&field_filterable/2, :filterable?, attribute)
+      |> set(&field_data/2, :data, attribute)
 
     Field.new(attrs)
   end
@@ -172,30 +167,22 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   @spec parse_association(module(), atom(), list(Resource.t()), atom(), list(Field.t())) ::
           list(Field.t())
   def parse_association(
-        schema,
+        resource_schema,
         resource_name,
         resources,
         association_field_key,
         fields
       ) do
+    association = resource_schema.__schema__(:association, association_field_key)
+    attribute = %{ecto_type: association}
+
     association_field =
-      :association
-      |> schema.__schema__(association_field_key)
-      |> then(
-        &Field.new(
-          key: association_field_key,
-          html_type: field_html_type(nil, &1),
-          type: field_type(nil, &1),
-          length: 0,
-          filterable?: false,
-          data:
-            Map.put(
-              field_data(schema, association_field_key, &1),
-              :resource,
-              field_resource(&1, resources)
-            ),
-          resource: resource_name
-        )
+      Field.new(
+        %{resource: resource_name, key: association_field_key, length: 0, filterable?: false}
+        |> set(&field_type/2, :type, attribute)
+        |> set(&field_html_type/2, :html_type, attribute)
+        |> set(&field_data/2, :data, attribute)
+        |> put_in([:data, :resource], field_resource(association, resources))
       )
 
     updated_fields = maybe_update_field_from_association(fields, association_field)
@@ -235,114 +222,142 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   ## PRIVATE
 
   # Maps an Elixir type to a field type, handling associations and embeds.
-  @spec field_type(atom() | tuple() | nil, map() | nil) :: atom()
-  defp field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
+  @spec field_type(map(), map()) :: atom()
+  defp field_type(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{}}}}), do: :string
 
-  defp field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
+  defp field_type(
+         _attrs,
+         %{ecto_type: {:parameterized, {Ecto.Embedded, %Ecto.Embedded{cardinality: :one}}}} =
+           _embed
+       ),
+       do: :embeds_one
 
-  defp field_type(_type, %Embedded{cardinality: :many} = _embed), do: :embeds_many
+  defp field_type(
+         _attrs,
+         %{ecto_type: {:parameterized, {Ecto.Embedded, %Ecto.Embedded{cardinality: :many}}}} =
+           _embed
+       ),
+       do: :embeds_many
 
-  defp field_type(:id, nil), do: :integer
-
-  defp field_type(type, nil), do: type
-
-  defp field_type(nil, %AssociationHas{cardinality: :many} = _association),
+  defp field_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :many}} = _association),
     do: :one_to_many_association
 
-  defp field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
+  defp field_type(_attrs, %{ecto_type: %AssociationBelongsTo{cardinality: :one}} = _association),
     do: :many_to_one_association
 
+  defp field_type(_attrs, %{ecto_type: :id}), do: :integer
+
+  defp field_type(_attrs, %{ecto_type: ecto_type}), do: ecto_type
+
   # Maps an Elixir type to an HTML input type for form rendering.
-  @spec field_html_type(atom() | tuple() | nil, map() | nil) :: atom()
-  defp field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
+  @spec field_html_type(map(), map()) :: atom()
+  defp field_html_type(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{}}}}), do: :select
 
-  defp field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
+  defp field_html_type(%{type: type}, _attribute) when type in [:embeds_one, :embeds_many],
+    do: :unimplemented
 
-  defp field_html_type(nil, %Embedded{cardinality: :many} = _embed), do: :embeds_many
+  defp field_html_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :many}} = _association),
+    do: :unimplemented
 
-  defp field_html_type(type, association),
-    do: CommonFieldsParser.field_html_type(type, association)
+  defp field_html_type(
+         _attrs,
+         %{ecto_type: %AssociationBelongsTo{cardinality: :one}} = _association
+       ),
+       do: :unimplemented
+
+  defp field_html_type(%{type: type}, _attribute)
+       when type in [:string, :binary_id, :binary, :bitstring, :duration, Ecto.UUID],
+       do: :text
+
+  defp field_html_type(%{type: type}, _attribute) when type in [:id, :integer, :float, :decimal],
+    do: :number
+
+  defp field_html_type(%{type: type}, _attribute)
+       when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
+       do: :"datetime-local"
+
+  defp field_html_type(%{type: type}, _attribute) when type in [:time, :time_usec], do: :time
+  defp field_html_type(%{type: :select}, _attribute), do: :select
+
+  defp field_html_type(%{type: :boolean}, _attribute), do: :checkbox
+  defp field_html_type(%{type: type}, _attribute), do: type
+
+  defp field_html_type(_type, _attribute), do: :unimplemented
 
   # Formats a display label from a field name, capitalizes and replaces underscores.
-  @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
-  defp field_label(name, resource_name \\ nil, association_or_embed \\ nil)
-
-  defp field_label(name, resource_name, %Embedded{}) do
+  @spec field_label(map(), map()) :: binary()
+  defp field_label(%{key: name, resource: resource_name, type: type}, %{})
+       when type in [:embeds_one, :embeds_many] do
     resource_name
     |> field_embedded_resource(name)
     |> CommonHelpers.capitalize()
   end
 
-  defp field_label(name, resource_name, association_or_embed),
-    do: CommonFieldsParser.field_label(name, resource_name, association_or_embed)
+  defp field_label(%{key: name}, _attribute),
+    do: CommonHelpers.capitalize(name)
 
   # Determines the default placeholder text for a field based on its type.
-  @spec field_placeholder(atom(), atom() | tuple()) :: binary()
-  defp field_placeholder(_name, type) when type in [Ecto.UUID, :binary_id],
-    do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+  @spec field_placeholder(map(), map()) :: binary()
+  defp field_placeholder(_name, %{ecto_type: ecto_type})
+       when ecto_type in [Ecto.UUID, :binary_id],
+       do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
 
-  defp field_placeholder(name, type), do: CommonFieldsParser.field_placeholder(name, type)
+  defp field_placeholder(%{key: name}, %{ecto_type: ecto_type}),
+    do: CommonFieldsParser.field_placeholder(name, ecto_type)
 
   # Determines the display length for a field based on its type.
-  @spec field_length(atom() | tuple()) :: integer()
-  defp field_length(type) when type in [Ecto.UUID, :binary_id], do: 36
-
-  defp field_length({:parameterized, {Ecto.Enum, %{mappings: opts}}}) do
+  @spec field_length(map(), map()) :: integer()
+  defp field_length(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
     opts
     |> Enum.map(fn {_key, text} -> String.length(text) end)
     |> Enum.max()
   end
 
-  defp field_length(type), do: CommonFieldsParser.field_length(type)
+  defp field_length(_attrs, %{ecto_type: ecto_type}) when ecto_type in [Ecto.UUID, :binary_id],
+    do: 36
+
+  defp field_length(_attrs, %{ecto_type: ecto_type}),
+    do: CommonFieldsParser.field_length(ecto_type)
 
   # Gets the numeric precision for number fields.
-  @spec field_precision(atom() | tuple()) :: integer()
-  defp field_precision(type) when type in [Ecto.UUID, :binary_id],
+  @spec field_precision(map(), map()) :: integer()
+  defp field_precision(_attrs, %{ecto_type: ecto_type}) when ecto_type in [Ecto.UUID, :binary_id],
     do: 0
 
-  defp field_precision(type), do: CommonFieldsParser.field_precision(type)
+  defp field_precision(_attrs, %{ecto_type: ecto_type}),
+    do: CommonFieldsParser.field_precision(ecto_type)
 
   # Gets the numeric scale for decimal/float fields
-  @spec field_scale(atom()) :: integer()
-  defp field_scale(type), do: CommonFieldsParser.field_scale(type)
+  @spec field_scale(map(), map()) :: integer()
+  defp field_scale(_attrs, %{ecto_type: ecto_type}), do: CommonFieldsParser.field_scale(ecto_type)
 
   # Checks if a field should be disabled by default
-  @spec field_disabled(atom()) :: boolean()
-  defp field_disabled(key), do: CommonFieldsParser.field_disabled(key)
+  @spec field_disabled(map(), map()) :: boolean()
+  defp field_disabled(%{key: key}, _attribute), do: CommonFieldsParser.field_disabled(key)
 
   # Checks if a field should be omitted from forms
-  @spec field_omitted(atom()) :: boolean()
-  defp field_omitted(key), do: CommonFieldsParser.field_omitted(key)
+  @spec field_omitted(map(), map()) :: boolean()
+  defp field_omitted(%{key: key}, _attribute), do: CommonFieldsParser.field_omitted(key)
 
   # Determines if a field should be hidden from display
-  @spec field_hidden(atom()) :: boolean()
-  defp field_hidden(key), do: CommonFieldsParser.field_hidden(key)
+  @spec field_hidden(map(), map()) :: boolean()
+  defp field_hidden(%{key: key}, _attribute), do: CommonFieldsParser.field_hidden(key)
 
   # Determines if a field should be filterable in queries
-  @spec field_filterable(atom()) :: boolean()
-  defp field_filterable(type), do: CommonFieldsParser.field_filterable(type)
+  @spec field_filterable(map(), map()) :: boolean()
+  defp field_filterable(_attrs, %{ecto_type: ecto_type}),
+    do: CommonFieldsParser.field_filterable(ecto_type)
 
   # Extracts metadata for association fields including type-specific configuration.
-  defp field_data(
-         _resource_schema,
-         _field_key,
-         association_or_embed,
-         resource_name \\ nil,
-         type \\ nil
-       )
-
-  defp field_data(
-         _resource_schema,
-         _field_key,
-         _association_or_embed,
-         _resource_name,
-         {:parameterized, {Ecto.Enum, %{mappings: opts}}}
-       ) do
-    opts = Enum.map(opts, fn {key, text} -> {field_label(text), key} end)
+  @spec field_data(map(), map()) :: map()
+  defp field_data(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
+    opts = Enum.map(opts, fn {key, text} -> {field_label(%{key: text}, %{}), key} end)
     %{select: %{opts: opts, multiple: false}}
   end
 
-  defp field_data(_resource_schema, _field_key, %Embedded{} = embedded, resource_name, _type) do
+  defp field_data(%{resource: resource_name}, %{
+         ecto_type: {:parameterized, {Ecto.Embedded, %Ecto.Embedded{} = embedded}}
+       }) do
     %{
       related: embedded.related,
       owner: embedded.owner,
@@ -350,22 +365,17 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     }
   end
 
-  defp field_data(_resource_schema, _field_key, %{} = association, _resource_name, _type),
+  defp field_data(attrs, %{ecto_type: %{} = association}),
     do: %{
       related: association.related,
       related_key: association.related_key,
       owner_key: association.owner_key
     }
 
-  defp field_data(resource_schema, field_key, association_or_embed, resource_name, type),
-    do:
-      CommonFieldsParser.field_data(
-        resource_schema,
-        field_key,
-        association_or_embed,
-        resource_name,
-        type
-      )
+  defp field_data(%{type: type}, _attribute)
+       when type in [:time_usec, :naive_datetime_usec, :utc_datetime_usec], do: %{step: 1}
+
+  defp field_data(_attrs, _attribute), do: %{}
 
   # Generates a unique resource identifier for embedded fields
   @spec field_embedded_resource(atom(), map() | atom()) :: atom()
@@ -416,15 +426,15 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
            data: %{related_key: related_key, related: related_schema} = data
          }
        ) do
-    type = related_schema.__schema__(:type, related_key)
+    attribute = %{ecto_type: related_schema.__schema__(:type, related_key)}
 
-    changes = %{
-      type: field_type(type, nil),
-      html_type: field_html_type(type, nil),
-      placeholder: field_placeholder(nil, type),
-      length: field_length(type),
-      precision: field_precision(type)
-    }
+    changes =
+      %{}
+      |> set(&field_type/2, :type, attribute)
+      |> set(&field_html_type/2, :html_type, attribute)
+      |> set(&field_placeholder/2, :placeholder, attribute)
+      |> set(&field_length/2, :length, attribute)
+      |> set(&field_precision/2, :precision, attribute)
 
     Enum.map(fields, &update_field_type(&1, data, changes))
   end
@@ -437,4 +447,12 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
        when field_key == key_to_update, do: Map.merge(field, changes)
 
   defp update_field_type(field, _data, _changes), do: field
+
+  # Applies a function to attrs and attribute, storing result in attrs at attr_key.
+  @spec set(map(), function(), atom(), map()) :: map()
+  defp set(attrs, function, attr_key, attribute) do
+    attrs
+    |> function.(attribute)
+    |> then(&Map.put(attrs, attr_key, &1))
+  end
 end
