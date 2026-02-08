@@ -98,13 +98,14 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `entity` (struct()) - The resource to create a changeset for.
+  - `form_name` (atom() | binary()) - The name of the underlying form.
   - `attrs` (map()) - Attributes to apply.
 
   ## Returns
 
   struct() - A changeset or form structure.
   """
-  @callback change(term(), struct(), map()) :: struct()
+  @callback change(term(), struct(), atom() | binary(), map()) :: struct()
 
   @doc """
   Creates a new resource struct with optional preloading.
@@ -252,6 +253,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The entity to create a changeset for.
+  - `form_name` (atom() | binary()) - The name of the underlying form.
   - `attrs` (map()) - Attributes to apply to the changeset. Defaults to `%{}`.
 
   ## Returns
@@ -268,13 +270,14 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_change_function(connector, %MyContext.Item{}, %{status: "active"})
       %Ecto.Changeset{...}
   """
-  @spec apply_change_function(Connector.t(), struct(), map()) :: struct()
+  @spec apply_change_function(Connector.t(), struct(), atom() | binary(), map()) :: struct()
   def apply_change_function(
         %Connector{type: type, crud_spec: crud_spec},
         entity,
+        form_name,
         attrs \\ %{}
       ),
-      do: get_crud_module(type).change(crud_spec, entity, attrs)
+      do: get_crud_module(type).change(crud_spec, entity, form_name, attrs)
 
   @doc """
   Creates a new entity struct using the provided Connector.

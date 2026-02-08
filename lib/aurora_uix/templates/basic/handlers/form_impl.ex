@@ -149,7 +149,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       ) do
     form =
       auix.change_function
-      |> apply_change_function(entity, %{})
+      |> apply_change_function(entity, auix.module, %{})
       |> to_named_form(auix.module)
 
     {:ok,
@@ -193,7 +193,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
     form =
       auix.change_function
-      |> apply_change_function(socket.assigns[:auix][:entity], entity_params)
+      |> apply_change_function(socket.assigns[:auix][:entity], auix.module, entity_params)
       |> to_named_form(auix.module, action: :validate)
 
     {:noreply, assign_auix(socket, :form, form)}
@@ -232,7 +232,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec save_entity(Socket.t(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
-  def save_entity(%{assigns: %{action: :edit, auix: auix}} = socket, entity_params) do
+  def save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
+      when action in [:edit, :show_edit] do
     apply_update_function(auix.update_function, socket.assigns[:auix][:entity], entity_params)
   end
 

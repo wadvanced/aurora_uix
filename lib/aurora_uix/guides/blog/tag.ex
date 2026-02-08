@@ -16,6 +16,9 @@ defmodule Aurora.Uix.Guides.Blog.Tag do
     data_layer: :embedded
 
   attributes do
-    attribute :name, :string, public?: true
+    attribute :name, :string do
+      public? true
+      default ""
+    end
   end
 end

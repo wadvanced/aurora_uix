@@ -41,8 +41,15 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
-    attribute :tags, {:array, Tag}, public?: true
-    attribute :comment, Comment, public?: true
+    attribute :tags, {:array, Tag} do
+      public? true
+      default [%Tag{}]
+    end
+
+    attribute :comment, Comment do
+      public? true
+      default %Comment{}
+    end
 
     create_timestamp(:inserted_at)
     update_timestamp(:updated_at)

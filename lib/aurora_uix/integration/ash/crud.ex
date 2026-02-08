@@ -204,9 +204,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       %AshPhoenix.Form{...}
   """
   @impl true
-  @spec change(CrudSpec.t(), struct(), map()) :: AshPhoenix.Form.t()
-  def change(%CrudSpec{action: %{name: action_name}}, entity, attrs) do
-    AshPhoenix.Form.for_update(entity, action_name, params: attrs)
+  @spec change(CrudSpec.t(), struct(), atom() | binary(), map()) :: AshPhoenix.Form.t()
+  def change(%CrudSpec{action: %{name: action_name}}, entity, form_name, attrs) do
+    binary_form_name = to_string(form_name)
+    AshPhoenix.Form.for_update(entity, action_name, params: attrs, as: binary_form_name)
   end
 
   @doc """

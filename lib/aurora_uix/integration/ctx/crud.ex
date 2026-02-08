@@ -114,8 +114,8 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       %Ecto.Changeset{...}
   """
   @impl true
-  @spec change(CrudSpec.t(), struct(), map()) :: Ecto.Changeset.t()
-  def change(%CrudSpec{function_spec: function_spec}, entity, attrs),
+  @spec change(CrudSpec.t(), struct(), atom() | binary(), map()) :: Ecto.Changeset.t()
+  def change(%CrudSpec{function_spec: function_spec}, entity, _form_name, attrs),
     do: function_spec.(entity, attrs)
 
   @doc """
