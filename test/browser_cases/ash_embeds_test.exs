@@ -32,7 +32,8 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     edit_layout :post,
       new_title: "Embeds many" do
       stacked do
-        inline([:title, :content])
+        inline([:status])
+        stacked([:title, :content])
         stacked([:comment, :tags])
       end
     end
