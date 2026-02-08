@@ -311,7 +311,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @impl true
   @spec delete(CrudSpec.t(), struct()) :: tuple()
   def delete(%CrudSpec{action: %{name: action_name}}, entity) do
-    Ash.destroy(entity, action: action_name)
+    Ash.destroy(entity, action: action_name, return_destroyed?: true)
   end
 
   ## PRIVATE

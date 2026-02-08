@@ -230,12 +230,14 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   end
 
   def handle_event("validate", params, %{assigns: %{auix: auix, field: field}} = socket) do
-    params = cast_params(params)
+    params =
+      cast_params(params)
 
     errors =
       auix.change_function
-      |> apply_change_function(auix.entity, %{field.key => [params]})
+      |> apply_change_function(auix.entity, field.key, %{field.key => [params]})
       |> get_in([Access.key(:changes), field.key])
+      |> Kernel.||(%{})
       |> Enum.filter(&(&1.action == :insert))
       |> List.first(%{})
       |> Map.get(:errors, [])
@@ -268,7 +270,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     form =
       auix.change_function
-      |> apply_change_function(auix.entity, %{field.key => changes})
+      |> apply_change_function(auix.entity, auix.module, %{field.key => changes})
       |> to_form()
 
     {:noreply,
@@ -294,7 +296,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     form =
       auix.change_function
-      |> apply_change_function(auix.entity, %{field.key => changes})
+      |> apply_change_function(auix.entity, field.key, %{field.key => changes})
       |> to_form()
 
     {:noreply,

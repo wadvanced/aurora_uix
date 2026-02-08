@@ -336,7 +336,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     schema =
       resource.opts[:schema] ||
         resource.opts[:ash_resource]
-        |> IO.inspect(label: "********* schema")
 
     resource_type = resource_type(schema)
     {schema, resource_type}

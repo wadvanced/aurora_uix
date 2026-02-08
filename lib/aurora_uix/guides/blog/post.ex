@@ -41,10 +41,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
-    attribute :tags, {:array, Tag} do
-      public? true
-      default [%Tag{}]
-    end
+    attribute :tags, {:array, Tag}, public?: true
 
     attribute :comment, Comment do
       public? true

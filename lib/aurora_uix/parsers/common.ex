@@ -87,9 +87,6 @@ defmodule Aurora.Uix.Parsers.Common do
   end
 
   def default_value(_parsed_opts, %{schema: module}, :primary_key) do
-    case module.__schema__(:primary_key) do
-      [] -> :fields |> module.__schema__() |> List.first() |> then(&[&1])
-      key -> key
-    end
+    module.__schema__(:primary_key)
   end
 end
