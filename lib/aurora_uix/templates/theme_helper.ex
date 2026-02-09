@@ -121,6 +121,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
       rule_source
       |> to_string()
       |> String.replace("_", "-")
+      |> String.replace_leading("-", "")
 
     parsed_target_name =
       target_name
