@@ -20,6 +20,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
+  alias Phoenix.HTML.Form
+
   @doc """
   Renders a form field based on its type and configuration.
 
@@ -212,6 +214,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   end
 
   defp field_id(form, field, primary_key, :form = layout_type) do
-    "#{field.html_id}--#{Counter.next_count(:auix_fields_id)}--#{form[primary_key].value}--#{layout_type}"
+    # "#{field.html_id}--#{Counter.next_count(:auix_fields_id)}--#{form[primary_key].value}--#{layout_type}"
+    "#{field.html_id}--#{Form.input_id(form, field.key)}--#{form[primary_key].value}--#{layout_type}"
   end
 end
