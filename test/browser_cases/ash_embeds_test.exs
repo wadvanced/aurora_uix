@@ -102,8 +102,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
 
     # Validate tags
     Enum.with_index(tags, fn tag_entry, index ->
-      session
-      |> validate_field(:name, index, tag_entry.name)
+      validate_field(session, :name, index, tag_entry.name)
     end)
 
     click_and_wait(session, @save_button, Query.text("Listing Posts"))
@@ -174,6 +173,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     end
   end
 
+  @spec wait_for_value(Session.t(), Query.t(), term(), integer()) :: Session.t()
   defp wait_for_value(session, field, value, retries \\ 5)
   defp wait_for_value(session, _field, _value, 0), do: session
 

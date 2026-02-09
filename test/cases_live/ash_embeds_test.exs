@@ -93,7 +93,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
     )
   end
 
-  test "Test add posts", %{conn: _conn} do
+  test "Test forms creation", %{conn: _conn} do
     delete_all_blog_data()
 
     data =
@@ -114,10 +114,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
     assigns = %{field: form[field_name], inner_block: []}
 
-    # assert 
-    Phoenix.LiveViewTest.render_component(&inputs_for/1, assigns)
-    |> IO.inspect(label: "********** output")
-
-    # =~ "post[comment]"
+    assert Phoenix.LiveViewTest.render_component(&inputs_for/1, assigns) =~
+             "post[comment]"
   end
 end
