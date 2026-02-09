@@ -64,18 +64,20 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
       iex> default_value(%{module: "post"}, %{context: MyApp.Blog}, :get_function)
       %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
   """
-  @spec default_value(map(), map(), atom()) :: Connector.t()
-  def default_value(
+  @spec option_value(map(), map(), keyword(), atom()) :: Connector.t()
+  def option_value(
         %{source: source, module: module},
         %{context: context},
+        _opts,
         :list_function = function_name
       ) do
     create_connector(context, ["list_#{source}", "list_#{module}"], 1, function_name)
   end
 
-  def default_value(
+  def option_value(
         %{source: source, module: module},
         %{context: context},
+        _opts,
         :list_function_paginated = function_name
       ) do
     create_connector(
@@ -86,27 +88,47 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
     )
   end
 
-  def default_value(%{module: module}, %{context: context}, :get_function = function_name) do
+  def option_value(%{module: module}, %{context: context}, _opts, :get_function = function_name) do
     create_connector(context, ["get_#{module}", "get_#{module}!"], 2, function_name)
   end
 
-  def default_value(%{module: module}, %{context: context}, :delete_function = function_name) do
+  def option_value(
+        %{module: module},
+        %{context: context},
+        _opts,
+        :delete_function = function_name
+      ) do
     create_connector(context, ["delete_#{module}", "delete_#{module}!"], 1, function_name)
   end
 
-  def default_value(%{module: module}, %{context: context}, :create_function = function_name) do
+  def option_value(
+        %{module: module},
+        %{context: context},
+        _opts,
+        :create_function = function_name
+      ) do
     create_connector(context, ["create_#{module}"], 1, function_name)
   end
 
-  def default_value(%{module: module}, %{context: context}, :update_function = function_name) do
+  def option_value(
+        %{module: module},
+        %{context: context},
+        _opts,
+        :update_function = function_name
+      ) do
     create_connector(context, ["update_#{module}"], 2, function_name)
   end
 
-  def default_value(%{module: module}, %{context: context}, :change_function = function_name) do
+  def option_value(
+        %{module: module},
+        %{context: context},
+        _opts,
+        :change_function = function_name
+      ) do
     create_connector(context, ["change_#{module}"], 2, function_name)
   end
 
-  def default_value(%{module: module}, %{context: context}, :new_function = function_name) do
+  def option_value(%{module: module}, %{context: context}, _opts, :new_function = function_name) do
     create_connector(context, ["new_#{module}"], 2, function_name)
   end
 

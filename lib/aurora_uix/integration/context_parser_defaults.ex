@@ -124,6 +124,7 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
     * `:type` (atom()) - Backend type (`:ash` or `:ctx`)
     * `:context` (module()) - Context or domain module
     * `:schema` (module()) - Schema or resource module (optional)
+  - `opts` (keyword()) - Un-parsed opts  
   - `option` (atom()) - The option key to resolve (e.g., `:list_function`, `:get_function`)
 
   ## Returns
@@ -141,9 +142,9 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
       ...>   schema: MyApp.User}, :get_function)
       %Connector{type: :ash, crud_spec: %CrudSpec{action: %{name: :read}, ...}}
   """
-  @spec default_value(map(), map(), atom()) :: term()
-  def default_value(parsed_opts, %{type: type} = resource_config, option),
-    do: get_parser_defaults_module(type).default_value(parsed_opts, resource_config, option)
+  @spec option_value(map(), map(), keyword(), atom()) :: term()
+  def option_value(parsed_opts, %{type: type} = resource_config, opts, option),
+    do: get_parser_defaults_module(type).option_value(parsed_opts, resource_config, opts, option)
 
   ## PRIVATE
 

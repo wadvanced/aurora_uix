@@ -235,9 +235,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   """
   @impl true
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
-  def new(%CrudSpec{resource: resource}, attrs, opts) do
-    resource
-    |> struct(attrs)
+  def new(%CrudSpec{resource: resource, action: action}, attrs, opts) do
+    attrs
+    |> action.(opts)
+    |> then(&struct(resource, &1))
     |> maybe_apply_preload(opts)
   end
 
@@ -312,6 +313,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @spec delete(CrudSpec.t(), struct()) :: tuple()
   def delete(%CrudSpec{action: %{name: action_name}}, entity) do
     Ash.destroy(entity, action: action_name, return_destroyed?: true)
+  end
+
+  def default_new_function(entity, _opts) do
+    entity
   end
 
   ## PRIVATE

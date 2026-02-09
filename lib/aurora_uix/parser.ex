@@ -30,12 +30,18 @@ defmodule Aurora.Uix.Parser do
   ## Parameters
   - `parsed_opts` (map()) - Parsed configuration options.
   - `resource_config` (map()) - Module configuration info.
+  - `opts` (keyword()) - Un-parsed options.
   - `key` (atom()) - Configuration key to get default value for.
 
   ## Returns
   term() - Default value for the given key.
   """
-  @callback default_value(parsed_opts :: map(), resource_config :: map(), key :: atom()) :: term()
+  @callback option_value(
+              parsed_opts :: map(),
+              resource_config :: map(),
+              opts :: keyword(),
+              key :: atom()
+            ) :: term()
 
   @doc """
   Parses schema and options into a structured configuration map for UI rendering.
@@ -53,7 +59,9 @@ defmodule Aurora.Uix.Parser do
   @spec parse(map(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do
     opts =
-      List.flatten(opts)
+      opts
+      |> List.flatten()
+      |> then(&Keyword.merge(resource_config.opts, &1))
 
     Enum.reduce(
       [Common, ContextParserDefaults],
@@ -73,8 +81,7 @@ defmodule Aurora.Uix.Parser do
   @spec add_opt(atom(), map(), module(), map(), keyword()) :: map()
   defp add_opt(key, parsed_opts, parser, resource_config, opts) do
     parsed_opts
-    |> parser.default_value(resource_config, key)
-    |> then(&Keyword.get(opts, key, &1))
+    |> parser.option_value(resource_config, opts, key)
     |> then(&Map.put_new(parsed_opts, key, &1))
   end
 end

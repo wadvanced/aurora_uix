@@ -17,7 +17,8 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   ## Key Constraints
 
   - At least one of `:domain` or `:resource` should be provided for meaningful usage
-  - `:action` contains Ash action struct (Read, Create, Update, or Destroy)
+  - `:action` contains Ash action struct (Read, Create, Update, or Destroy) or 
+    a function reference (only valid in :ash_new_function option)
   - `:auix_action_name` maps to Aurora UIX action conventions (e.g., `:list_function`,
     `:get_function`)
   """
@@ -25,7 +26,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   @type t() :: %__MODULE__{
           domain: module() | nil,
           resource: module() | nil,
-          action: struct() | nil,
+          action: struct() | function() | nil,
           auix_action_name: atom() | nil
         }
 

@@ -310,25 +310,31 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp configure_resource_fields(resource) do
     {schema, resource_type} = define_schema_and_type(resource)
 
+    context = resource.opts[:context] || resource.opts[:ash_domain]
+
     opts =
       resource.opts
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
+      |> Keyword.delete(:ash_resource)
+      |> Keyword.delete(:ash_domain)
 
     fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
 
-    resource =
+    parsed_resource =
       %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{
+        schema: schema,
+        context: context,
         type: resource_type,
         opts: opts,
         fields: fields_parser.parse_fields(schema, resource.name),
         inner_elements: resource.inner_elements
       })
 
-    {resource.name, resource}
+    {resource.name, parsed_resource}
   end
 
   @spec define_schema_and_type(map()) :: tuple()
