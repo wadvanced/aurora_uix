@@ -268,7 +268,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def handle_event("auix_route_back", _params, socket) do
-    {:noreply, auix_route_back(socket)}
+    {:noreply,
+     socket
+     |> load_items()
+     |> auix_route_back()}
   end
 
   def handle_event(
