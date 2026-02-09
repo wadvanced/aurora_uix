@@ -3,7 +3,6 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
 
-  alias Aurora.Uix.Guides.Blog
   alias Aurora.Uix.Guides.Blog.Post
 
   alias Wallaby.Query
@@ -63,7 +62,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     |> List.first()
     |> Kernel.tap(&assert(&1.title == test_title))
     |> Kernel.tap(&assert(&1.content == test_content))
-    |> Kernel.tap(&assert(&1.comment == nil))
+    |> Kernel.tap(&assert(&1.comment.description == nil))
     |> Kernel.tap(&assert(&1.tags == nil))
   end
 
@@ -104,7 +103,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     # Validate tags
     Enum.with_index(tags, fn tag_entry, index ->
       session
-      |> validate_field(:tag, index, tag_entry.name)
+      |> validate_field(:name, index, tag_entry.name)
     end)
 
     click_and_wait(session, @save_button, Query.text("Listing Posts"))
@@ -152,15 +151,18 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
 
   @spec fill_field(Session.t(), function(), atom(), term()) :: Session.t()
   defp fill_field(session, query, field, value) do
-    field
-    |> query.()
+    field_query =
+      query.(field)
+
+    field_query
     |> Kernel.tap(&click(session, &1))
     |> then(&fill_in(session, &1, with: value))
+    |> wait_for_value(field_query, value)
   end
 
   @spec click_and_wait(Session.t(), Query.t(), Query.t(), boolean(), integer()) :: Session.t()
   defp click_and_wait(session, clickable, expected, state \\ true, retries \\ 5)
-  defp click_and_wait(session, clickable, _state, _expected, 0), do: click(session, clickable)
+  defp click_and_wait(session, clickable, _expected, _state, 0), do: click(session, clickable)
 
   defp click_and_wait(session, clickable, expected, state, retries) do
     page = click(session, clickable)
@@ -169,6 +171,18 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
       page
     else
       click_and_wait(session, clickable, expected, state, retries - 1)
+    end
+  end
+
+  defp wait_for_value(session, field, value, retries \\ 5)
+  defp wait_for_value(session, _field, _value, 0), do: session
+
+  defp wait_for_value(session, field, value, retries) do
+    if has_value?(session, field, value) do
+      session
+    else
+      Process.sleep(100)
+      wait_for_value(session, field, value, retries - 1)
     end
   end
 
