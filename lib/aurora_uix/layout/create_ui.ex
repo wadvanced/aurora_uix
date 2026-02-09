@@ -381,7 +381,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   # Expands nested associations for preloading.
   @spec expand_associations(list()) :: map()
   defp expand_associations(associations) do
-    parsed_associations = parse_association(associations)
+    expanded_associations = do_expand_associations(associations)
 
     associations
     |> Enum.map(fn {resource_name, children} ->
@@ -391,7 +391,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
           {field, []}
 
         {field, related_resource} ->
-          parsed_associations
+          expanded_associations
           |> Map.get(related_resource, [])
           |> then(&{field, &1})
       end)
@@ -401,8 +401,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Parses associations into a map.
-  @spec parse_association(list()) :: map()
-  defp parse_association(associations) do
+  @spec do_expand_associations(list()) :: map()
+  defp do_expand_associations(associations) do
     associations
     |> Enum.map(fn {resource, children} ->
       children

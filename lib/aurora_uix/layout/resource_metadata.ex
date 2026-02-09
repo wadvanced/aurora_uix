@@ -72,8 +72,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
-  alias Ecto.Embedded
-
   @doc false
   @spec __using__(any()) ::
           {:__block__, [], [{:@ | :import | {any(), any(), any()}, [...], [...]}, ...]}
@@ -266,40 +264,18 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   @spec embedded_resource_config_data(map()) :: {atom(), module()} | nil
-  defp embedded_resource_config_data(%{name: name, tag: :resource, opts: opts}) do
-    if schema_module = Keyword.get(opts, :schema), do: {name, schema_module}, else: nil
+  defp embedded_resource_config_data(%{name: name, tag: :resource} = resource) do
+    case define_schema_and_type(resource) do
+      {nil, _} -> nil
+      {schema, resource_type} -> {name, schema, resource_type}
+    end
   end
 
   @spec embedded_resource({atom(), module()} | nil, [map()]) :: [map()]
   defp embedded_resource(nil, result), do: result
 
-  defp embedded_resource({_parent_resource_name, schema_module} = parent_resource, result) do
-    :embeds
-    |> schema_module.__schema__()
-    |> Enum.map(&schema_module.__schema__(:embed, &1))
-    |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
-  end
-
-  @spec embedded_resource_config(
-          {atom(), module()},
-          map(),
-          [map()]
-        ) :: [map()]
-  defp embedded_resource_config(
-         {parent_resource_name, schema_module},
-         %Embedded{field: field, related: embed_schema},
-         result
-       ) do
-    resource_name = LayoutHelpers.field_embedded_resource(parent_resource_name, field)
-
-    [
-      Resource.new(
-        name: resource_name,
-        tag: :resource,
-        opts: [related_schema: schema_module, schema: embed_schema]
-      )
-      | result
-    ]
+  defp embedded_resource({_parent_resource_name, _schema_module, type} = parent_resource, result) do
+    LayoutHelpers.get_fields_parser_module(type).embedded_resource(parent_resource, result)
   end
 
   # creates the function for each resource.
@@ -332,24 +308,37 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   # - Returns {name, resource} tuple
   @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
   defp configure_resource_fields(resource) do
-    schema = resource.opts[:schema]
+    {schema, resource_type} = define_schema_and_type(resource)
 
     opts =
       resource.opts
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
 
+    fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
+
     resource =
       %Resource{name: resource.name}
       |> put_option(resource.opts, :context)
       |> put_option(resource.opts, :schema)
       |> struct(%{
+        type: resource_type,
         opts: opts,
-        fields: parse_fields(schema, resource.name),
+        fields: fields_parser.parse_fields(schema, resource.name),
         inner_elements: resource.inner_elements
       })
 
     {resource.name, resource}
+  end
+
+  @spec define_schema_and_type(map()) :: tuple()
+  defp define_schema_and_type(resource) do
+    schema =
+      resource.opts[:schema] ||
+        resource.opts[:ash_resource]
+
+    resource_type = resource_type(schema)
+    {schema, resource_type}
   end
 
   # Apply field changes from resource config block:
@@ -465,51 +454,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   defp convert_resource_fields_to_map(resource), do: resource
 
-  # Parses schema fields into Field structs with metadata.
-  # Returns empty list if schema isn't available or compiled.
-  @spec parse_fields(module() | nil, atom()) :: list()
-  defp parse_fields(nil, _resource_name), do: []
-
-  defp parse_fields(schema, resource_name) do
-    Code.ensure_compiled(schema)
-
-    if function_exported?(schema, :__schema__, 1) do
-      :fields
-      |> schema.__schema__()
-      |> Enum.map(&parse_field(schema, resource_name, &1))
-      |> List.flatten()
-    else
-      []
-    end
-  end
-
-  # Creates a single Field struct with type-specific attributes:
-  # - HTML input type
-  # - Validation constraints
-  # - Association data (if applicable)
-  @spec parse_field(module(), atom(), atom()) :: Field.t()
-  defp parse_field(module, resource_name, field_key) do
-    type = module.__schema__(:type, field_key)
-
-    association_or_embed =
-      module.__schema__(:association, field_key) || module.__schema__(:embed, field_key)
-
-    LayoutHelpers.parse_field(field_key, type, resource_name, association_or_embed)
-  end
-
-  # Finds matching resource for an association
-  # Returns resource name if found, nil if not
-  @spec field_resource(map() | nil, list()) :: atom() | nil
-  defp field_resource(nil, _resources), do: nil
-
-  defp field_resource(association, resources) do
-    resources
-    |> Enum.find({nil, nil}, fn {_resource_name, resource} ->
-      resource.schema == association.related
-    end)
-    |> elem(0)
-  end
-
   # Updates map with an option if present in opts
   # Returns original map if option not present
   @spec put_option(map(), keyword(), atom()) :: map
@@ -537,34 +481,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     do: {name, resource}
 
   defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
-    :associations
-    |> schema.__schema__()
-    |> Enum.reduce(Enum.reverse(fields), &parse_association(schema, name, resources, &1, &2))
+    fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
+
+    schema
+    |> fields_parser.parse_associations(name, resources, fields)
     |> Enum.reverse()
     |> then(&struct(resource, %{fields: &1}))
     |> configure_many_to_one_selectors()
     |> apply_field_changes(resource)
     |> add_new_fields_from_changes(resource)
     |> then(&{name, &1})
-  end
-
-  # Converts a schema association into a Field struct
-  # Includes association metadata and proper field type
-  @spec parse_association(module(), atom(), list(Resource.t()), atom(), map()) ::
-          list(Resource.t())
-  defp parse_association(schema, resource_name, resources, association_field_key, fields) do
-    :association
-    |> schema.__schema__(association_field_key)
-    |> then(
-      &Field.new(
-        key: association_field_key,
-        html_type: LayoutHelpers.field_html_type(nil, &1),
-        type: LayoutHelpers.field_type(nil, &1),
-        data: Map.put(LayoutHelpers.field_data(&1), :resource, field_resource(&1, resources)),
-        resource: resource_name
-      )
-    )
-    |> then(&[&1 | fields])
   end
 
   @spec configure_many_to_one_selectors(Resource.t()) :: Resource.t()
@@ -598,4 +524,17 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   defp replace_related_field_data(field, _related_changes), do: field
+
+  @spec resource_type(nil | module()) :: atom()
+  defp resource_type(nil), do: :none
+
+  defp resource_type(schema) do
+    functions = schema.__info__(:functions)
+
+    cond do
+      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash
+      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ctx
+      true -> :none
+    end
+  end
 end

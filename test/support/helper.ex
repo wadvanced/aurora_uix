@@ -8,9 +8,13 @@ defmodule Aurora.Uix.Test.Helper do
   """
 
   alias Aurora.Uix.Guides.Accounts.User
+  alias Aurora.Uix.Guides.Blog.Author
+  alias Aurora.Uix.Guides.Blog.Category
+  alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
+
   alias Aurora.Uix.Repo
 
   require Logger
@@ -105,7 +109,7 @@ defmodule Aurora.Uix.Test.Helper do
   end
 
   @doc """
-  Creates sample products.
+  Creates sample users.
   """
   @spec create_sample_users(non_neg_integer(), map()) :: :ok
   def create_sample_users(count, attrs \\ %{}) do
@@ -121,6 +125,58 @@ defmodule Aurora.Uix.Test.Helper do
         |> Repo.insert()
         |> elem(1))
     )
+  end
+
+  @doc """
+  Creates sample authors.
+  """
+  @spec create_sample_authors(non_neg_integer(), map()) :: :ok
+  def create_sample_authors(count, attrs \\ %{}) do
+    length = count |> to_string() |> String.length()
+
+    Enum.map(1..count, fn index ->
+      reference_id = reference_id("test", index, length)
+
+      change =
+        %Author{
+          name: "Author#{reference_id}",
+          email: "author#{reference_id}@test.com",
+          bio: "Born in January #{1990 - index}"
+        }
+        |> struct(attrs)
+        |> Map.from_struct()
+        |> Enum.filter(&(elem(&1, 0) in [:name, :email, :bio]))
+
+      Author
+      |> Ash.Changeset.for_create(:create, change)
+      |> Ash.create!()
+    end)
+  end
+
+  @doc """
+  Creates sample posts.
+  """
+  @spec create_sample_posts(non_neg_integer(), map()) :: :ok
+  def create_sample_posts(count, attrs \\ %{}) do
+    length = count |> to_string() |> String.length()
+
+    Enum.map(1..count, fn index ->
+      reference_id = reference_id("test", index, length)
+
+      change =
+        %Post{
+          title: "Post#{reference_id}",
+          content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
+          status: "published"
+        }
+        |> struct(attrs)
+        |> Map.from_struct()
+        |> Enum.filter(&(elem(&1, 0) in [:title, :content, :status, :author_id, :tags, :comment]))
+
+      Post
+      |> Ash.Changeset.for_create(:create, change)
+      |> Ash.create!()
+    end)
   end
 
   @doc """
@@ -142,12 +198,23 @@ defmodule Aurora.Uix.Test.Helper do
   end
 
   @doc """
+  Deletes all blog data.
+  """
+  @spec delete_all_blog_data() :: :ok
+  def delete_all_blog_data do
+    Repo.delete_all(Post)
+    Repo.delete_all(Author)
+    Repo.delete_all(Category)
+  end
+
+  @doc """
   Deletes all sample data
   """
   @spec delete_all_sample_data() :: :ok
   def delete_all_sample_data do
     delete_all_inventory_data()
     delete_all_accounts_data()
+    delete_all_blog_data()
   end
 
   @doc """

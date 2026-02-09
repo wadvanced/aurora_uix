@@ -38,6 +38,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   use Aurora.Uix.Gettext
   use Phoenix.LiveComponent
 
+  import Aurora.Uix.Integration.Crud
+
   import Aurora.Uix.Templates.Basic.Helpers,
     only: [
       assign_auix: 3,
@@ -72,7 +74,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     field_key = to_string(key)
 
-    primary_key = get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
+    primary_key =
+      get_resource(assigns, embed_resource_name, [:parsed_opts, :primary_key])
 
     primary_key_field = List.first(primary_key)
 
@@ -227,12 +230,14 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   end
 
   def handle_event("validate", params, %{assigns: %{auix: auix, field: field}} = socket) do
-    params = cast_params(params)
+    params =
+      cast_params(params)
 
     errors =
-      auix.entity
-      |> auix.change_function.(%{field.key => [params]})
+      auix.change_function
+      |> apply_change_function(auix.entity, field.key, %{field.key => [params]})
       |> get_in([Access.key(:changes), field.key])
+      |> Kernel.||(%{})
       |> Enum.filter(&(&1.action == :insert))
       |> List.first(%{})
       |> Map.get(:errors, [])
@@ -264,8 +269,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       add_embed_entry_changes(auix, field.key, params)
 
     form =
-      auix.entity
-      |> auix.change_function.(%{field.key => changes})
+      auix.change_function
+      |> apply_change_function(auix.entity, auix.module, %{field.key => changes})
       |> to_form()
 
     {:noreply,
@@ -290,8 +295,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       |> List.delete_at(entry_index)
 
     form =
-      auix.entity
-      |> auix.change_function.(%{field.key => changes})
+      auix.change_function
+      |> apply_change_function(auix.entity, field.key, %{field.key => changes})
       |> to_form()
 
     {:noreply,
@@ -338,7 +343,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       |> then(&assign_auix(assigns, :embedded_entries, &1))
 
     ~H"""
-    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries) do %>
+    <%= for {embed_entry, entry_index} <- Enum.with_index(@auix.embedded_entries || []) do %>
         <div class="auix-embeds-many-entry-contents">
           <div class="auix-embeds-many-entry--badge">
             <span class="auix-embeds-many-entry--badge-text">{entry_index + 1}</span>
@@ -363,7 +368,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   defp embedded_entries_count(%{auix: %{layout_type: :form, form: form}, field: field} = assigns) do
     assigns =
       form[field.key]
-      |> Map.get(:value, [])
+      |> Map.get(:value)
+      |> Kernel.||([])
       |> Enum.count()
       |> then(&Map.put(assigns, :embedded_entries_count, &1))
 
@@ -379,7 +385,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
        ) do
     assigns =
       entity
-      |> Map.get(field.key, [])
+      |> Map.get(field.key)
+      |> Kernel.||([])
       |> Enum.count()
       |> then(&Map.put(assigns, :embedded_entries_count, &1))
 

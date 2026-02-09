@@ -1,26 +1,42 @@
 defmodule Aurora.Uix.Layout.Helpers do
   @moduledoc """
-  Provides helper utilities for the Aurora.Uix UI DSL.
+  Helper utilities for Aurora.Uix UI DSL transformations.
 
   Serves as the core processing engine for DSL block transformations, component registration,
   and field metadata extraction. Handles the conversion of macro-based UI definitions into
   standardized component structures suitable for template generation.
+
+  ## Key Features
+
+  - DSL block extraction and normalization
+  - Component registration and tree path creation
+  - Field parser resolution for different connectors
+  - Module attribute management for layouts
+
+  ## Key Constraints
+
+  - Requires valid fields parser module configuration
+  - Module attributes must exist before storage operations
+  - Field specifications must be atoms or keyword tuples
   """
 
   alias Aurora.Uix.Action
-  alias Aurora.Uix.Field
-  alias Aurora.Uix.Helpers.Common, as: CommonHelpers
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.TreePath
-
-  alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
-  alias Ecto.Association.Has, as: AssociationHas
 
   alias Ecto.Embedded
 
   require Logger
 
   @one_to_many_action_names :one_to_many |> Action.available_actions() |> Map.keys()
+  @fields_parser_integration_modules :aurora_uix
+                                     |> Application.compile_env(
+                                       :fields_parser_integration_modules,
+                                       ash: Aurora.Uix.Integration.Ash.FieldsParser,
+                                       ctx: Aurora.Uix.Integration.Ctx.FieldsParser,
+                                       none: Aurora.Uix.Integration.None.FieldsParser
+                                     )
+                                     |> Map.new()
 
   @doc """
   Extracts the `:do` block from options while preserving the rest.
@@ -143,333 +159,14 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Parses field metadata from an Elixir type and association information.
-
-  Generates a field configuration including display attributes, HTML input types,
-  validation constraints, and association metadata.
-
-  ## Parameters
-  - `field_key` (`atom()`) - The field identifier.
-  - `type` (`atom()`) - The Elixir type (e.g., `:string`, `:integer`).
-  - `resource_name` (`atom()`) - The name of the resource this field belongs to.
-  - `association_embed` (`map()` | `nil`) - Association metadata with cardinality information.
-
-  ## Returns
-  `t:Field.t/0` - A fully configured field struct.
-  """
-  @spec parse_field(atom(), atom(), atom(), map() | nil) :: Field.t()
-  def parse_field(field_key, type, resource_name, association_or_embed \\ nil) do
-    attrs =
-      %{
-        key: field_key,
-        label: field_label(field_key, resource_name, association_or_embed),
-        placeholder: field_placeholder(field_key, type),
-        type: field_type(type, association_or_embed),
-        html_type: field_html_type(type, association_or_embed),
-        length: field_length(type),
-        precision: field_precision(type),
-        scale: field_scale(type),
-        disabled: field_disabled(field_key),
-        omitted: field_omitted(field_key),
-        hidden: field_hidden(field_key),
-        filterable?: field_filterable(type),
-        resource: resource_name,
-        data: field_data(association_or_embed, resource_name, type)
-      }
-
-    Field.new(attrs)
-  end
-
-  @doc """
-  Formats a display label from a field name.
-
-  Converts an atom field name to a human-readable label by capitalizing it and
-  replacing underscores with spaces.
-
-  ## Parameters
-  - `name` (`atom()` | `nil`) - The field name to format.
-  - `association_or_embed` (`map()` | `nil`) - The optional association.
-
-  ## Returns
-  `binary()` - The formatted display label.
-  """
-  @spec field_label(atom() | nil, atom() | nil, map() | nil) :: binary()
-
-  def field_label(name, resource_name \\ nil, association_or_embed \\ nil)
-
-  def field_label(nil, _resource_name, _association_or_embed), do: ""
-
-  def field_label(name, resource_name, %Embedded{cardinality: :many}) do
-    CommonHelpers.capitalize("#{resource_name} #{name}")
-  end
-
-  def field_label(name, _resource_name, _association_or_embed),
-    do: CommonHelpers.capitalize(name)
-
-  @doc """
-  Determines the default placeholder text for a field based on its type.
-
-  Provides contextually appropriate placeholder text to help users understand
-  the expected input format.
-
-  ## Parameters
-  - `name` (`atom()`) - The field name, used as a fallback for text fields.
-  - `type` (`atom()`) - The Elixir type that determines the placeholder format.
-
-  ## Returns
-  `binary()` - The default placeholder text.
-  """
-  @spec field_placeholder(atom(), atom()) :: binary()
-  def field_placeholder(_, type) when type in [:id, :integer, :float, :decimal], do: "0"
-
-  def field_placeholder(_, type)
-      when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-      do: "yyyy/MM/dd HH:mm:ss"
-
-  def field_placeholder(_, type) when type in [:time, :time_usec], do: "HH:mm:ss"
-  def field_placeholder(name, _type), do: CommonHelpers.capitalize(name)
-
-  @doc """
-  Maps an Elixir type to a field type, handling associations.
-
-  Determines the appropriate field type for UI rendering, with special handling
-  for association fields.
-
-  ## Parameters
-  - `type` (`atom()`) - The base Elixir type.
-  - `association` (`map()` | `nil`) - Association metadata with cardinality info.
-
-  ## Returns
-  `atom()` - The mapped field type for UI rendering.
-  """
-  @spec field_type(atom(), map() | nil) :: atom()
-  def field_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :string
-
-  def field_type(type, nil), do: type
-
-  def field_type(nil, %AssociationHas{cardinality: :many} = _association),
-    do: :one_to_many_association
-
-  def field_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  def field_type(_type, %Embedded{cardinality: :one} = _embed), do: :embeds_one
-
-  def field_type(_type, %Embedded{cardinality: :many} = _embed), do: :embeds_many
-
-  @doc """
-  Maps an Elixir type to an HTML input type.
-
-  Provides appropriate HTML5 input types based on the data type, enabling proper
-  browser validation and input handling.
-
-  ## Parameters
-  - `type` (`atom()`) - The Elixir type to map.
-  - `association` (`map()` | `nil`) - Association metadata for relationship fields.
-
-  ## Returns
-  `atom()` - The HTML5 input type.
-  """
-  @spec field_html_type(atom(), map() | nil) :: atom()
-  def field_html_type(type, _association)
-      when type in [:string, :binary_id, :binary, :bitstring, Ecto.UUID],
-      do: :text
-
-  def field_html_type(type, _association) when type in [:id, :integer, :float, :decimal],
-    do: :number
-
-  def field_html_type(type, _association)
-      when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-      do: :"datetime-local"
-
-  def field_html_type(type, _association) when type in [:time, :time_usec], do: :time
-
-  def field_html_type(:boolean, _association), do: :checkbox
-
-  def field_html_type({:parameterized, {Ecto.Enum, %{}}}, _association_or_embed), do: :select
-
-  def field_html_type(type, nil), do: type
-
-  def field_html_type(nil, %AssociationHas{cardinality: :many} = _association),
-    do: :one_to_many_association
-
-  def field_html_type(nil, %AssociationBelongsTo{cardinality: :one} = _association),
-    do: :many_to_one_association
-
-  def field_html_type(nil, %Embedded{cardinality: :one} = _embed), do: :embeds_one
-
-  def field_html_type(nil, %Embedded{cardinality: :many} = _embed), do: :embeds_many
-
-  def field_html_type(_type, _association), do: :unimplemented
-
-  @doc """
-  Determines the display length for a field based on its type.
-
-  Sets sensible default length constraints that work well for most UI scenarios,
-  considering typical data ranges for each type.
-
-  ## Parameters
-  - `type` (`atom()`) - The Elixir type to determine the length for.
-
-  ## Returns
-  `integer()` - The suggested display length in characters.
-  """
-  @spec field_length(atom()) :: integer()
-  def field_length(type) when type in [:string, :binary_id, :binary, :bitstring], do: 255
-  def field_length(type) when type in [:id, :integer], do: 10
-  def field_length(type) when type in [:float, :decimal], do: 12
-
-  def field_length(type)
-      when type in [:naive_datetime, :naive_datetime_usec, :utc_datetime, :utc_datetime_usec],
-      do: 20
-
-  def field_length(type) when type in [:time, :time_usec], do: 10
-  def field_length(Ecto.UUID), do: 34
-  def field_length(:boolean), do: 5
-  def field_length(_type), do: 50
-
-  @doc """
-  Gets the numeric precision for number fields.
-
-  Returns the total number of significant digits for numeric types.
-
-  ## Parameters
-  - `type` (`atom()`) - The field type to check.
-
-  ## Returns
-  `integer()` - The numeric precision, or `0` for non-numeric types.
-  """
-  @spec field_precision(atom()) :: integer()
-  def field_precision(type) when type in [:id, :integer, :float, :decimal], do: 10
-  def field_precision(_type), do: 0
-
-  @doc """
-  Gets the numeric scale for decimal/float fields.
-
-  Returns the number of digits after the decimal point.
-
-  ## Parameters
-  - `type` (`atom()`) - The field type to check.
-
-  ## Returns
-  `integer()` - The numeric scale, or `0` for non-decimal types.
-  """
-  @spec field_scale(atom()) :: integer()
-  def field_scale(type) when type in [:float, :decimal], do: 2
-  def field_scale(_type), do: 0
-
-  @doc """
-  Checks if a field should be disabled by default.
-
-  Certain fields like primary keys and system fields are typically not editable
-  by users and should be disabled in forms.
-
-  ## Parameters
-  - `key` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be disabled, otherwise `false`.
-  """
-  @spec field_disabled(atom()) :: boolean()
-  def field_disabled(key) when key in [:id, :deleted, :inactive],
-    do: true
-
-  def field_disabled(_field), do: false
-
-  @doc """
-  Checks if a field should be omitted from forms.
-
-  System-managed fields like timestamps are usually not included in user-facing
-  forms as they are automatically managed.
-
-  ## Parameters
-  - `key` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be omitted, otherwise `false`.
-  """
-  @spec field_omitted(atom()) :: boolean()
-  def field_omitted(key) when key in [:inserted_at, :updated_at],
-    do: true
-
-  def field_omitted(_field), do: false
-
-  @doc """
-  Determines if a field should be hidden from display.
-
-  This function can be used to implement conditional field visibility logic.
-
-  ## Parameters
-  - `field` (`atom()`) - The field key to check.
-
-  ## Returns
-  `boolean()` - `true` if the field should be hidden, otherwise `false`.
-  """
-  @spec field_hidden(atom()) :: boolean()
-  def field_hidden(_field), do: false
-
-  @doc """
-  Determines if a field should be filterable in queries.
-
-  ## Parameters
-  - `type` (`atom()`) - The field type to check.
-
-  ## Returns
-  `boolean()` - `true` if the field supports filtering, otherwise `false`.
-  """
-  @spec field_filterable(atom()) :: boolean()
-  def field_filterable(_type), do: true
-
-  @doc """
-  Extracts metadata for association fields.
-
-  Builds a metadata map containing relationship information needed for proper
-  association handling in forms and queries.
-
-  ## Parameters
-  - `association` (`map()` | `nil`) - The association struct from an Ecto schema.
-
-  ## Returns
-  `map()` - An association metadata map, or an empty map if there is no association.
-  """
-  @spec field_data(map() | nil, atom(), atom()) :: map()
-  def field_data(association_or_embed, resource_name \\ nil, type \\ nil)
-
-  def field_data(
-        _association_or_embed,
-        _resource_name,
-        {:parameterized, {Ecto.Enum, %{on_load: opts}}}
-      ) do
-    opts = Enum.map(opts, fn {text, key} -> {field_label(text), key} end)
-    %{select: %{opts: opts, multiple: false}}
-  end
-
-  def field_data(nil, _resource_name, _type), do: %{}
-
-  def field_data(%Embedded{} = embedded, resource_name, _type) do
-    %{
-      related: embedded.related,
-      owner: embedded.owner,
-      resource: field_embedded_resource(resource_name, embedded)
-    }
-  end
-
-  def field_data(%{} = association, _resource_name, _type),
-    do: %{
-      related: association.related,
-      related_key: association.related_key,
-      owner_key: association.owner_key
-    }
-
-  @doc """
   Generates a unique resource identifier for embedded fields.
 
   ## Parameters
-  - `parent_resource_name` (`atom()`) - The name of the parent resource.
-  - `field` (`map()` | `atom()`) - The embedded field (%Ecto.Embedded) or the field name.
+  - `parent_resource_name` (atom()) - The name of the parent resource.
+  - `field` (map() | atom()) - The embedded field `%Ecto.Embedded{}` or the field name.
 
   ## Returns
-  `binary()` - A unique identifier for the embedded resource.
+  atom() - A unique identifier for the embedded resource.
   """
   @spec field_embedded_resource(atom(), map() | atom()) :: atom()
   def field_embedded_resource(parent_resource_name, %Embedded{field: field}),
@@ -480,15 +177,40 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
+  Resolves fields parser implementation module based on connector type.
+
+  Uses compile-time configuration map to look up the appropriate module.
+  The type must match a key in @crud_integration_modules or an error is raised.
+
+  ## Parameters
+  - `type` (atom()) - The connector type (`:ash` or `:ctx`).
+
+  ## Returns
+  module() - The fields parser implementation module.
+
+  ## Raises
+  RuntimeError - If type is nil or not found in configuration.
+  """
+  @spec get_fields_parser_module(atom()) :: module()
+  def get_fields_parser_module(nil), do: raise("The type of resource_type is nil")
+
+  def get_fields_parser_module(type) do
+    case Map.get(@fields_parser_integration_modules, type) do
+      nil -> raise("Invalid fields parser module for type: #{inspect(type)}")
+      crud_module -> crud_module
+    end
+  end
+
+  @doc """
   Creates a macro expression to store layout options in the module attributes.
 
   ## Parameters
-  - `opts` (`Keyword.t()`) - The layout options to be stored.
+  - `opts` (keyword()) - The layout options to be stored.
 
   ## Returns
-  `Macro.t()` - A quoted expression that, when executed, stores the options.
+  Macro.t() - A quoted expression that, when executed, stores the options.
   """
-  @spec create_layout_opts(Keyword.t()) :: Macro.t()
+  @spec create_layout_opts(keyword()) :: Macro.t()
   def create_layout_opts(opts) do
     quote do
       LayoutHelpers.put_manual_opts(
@@ -503,13 +225,13 @@ defmodule Aurora.Uix.Layout.Helpers do
   Creates a macro expression to store layout tree paths in the module attributes.
 
   ## Parameters
-  - `block` (`any()`) - The block containing layout definitions.
-  - `env` (`Macro.Env.t()`) - The macro environment.
+  - `block` (term()) - The block containing layout definitions.
+  - `env` (Macro.Env.t()) - The macro environment.
 
   ## Returns
-  `Macro.t()` - A quoted expression that, when executed, stores the tree paths.
+  Macro.t() - A quoted expression that, when executed, stores the tree paths.
   """
-  @spec create_layout(any(), Macro.Env.t()) :: Macro.t()
+  @spec create_layout(term(), Macro.Env.t()) :: Macro.t()
   def create_layout(block, env) do
     ui = register_dsl_entry(:ui, :ui, [], [], block, env)
 
@@ -530,16 +252,16 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Stores manually configured layout options in the module attributes.
 
-  It merges options defined via `auix_create_ui/2` with any existing options
+  Merges options defined via `auix_create_ui/2` with any existing options
   and stores them in the `@auix_layout_opts` attribute.
 
   ## Parameters
-  - `module` (`module()`) - The module where the attributes are stored.
-  - `define_by_module_opts` (`list()`) - The list of options already defined in the module.
-  - `ui_defined` (`list()`) - The list of new options to be added.
+  - `module` (module()) - The module where the attributes are stored.
+  - `define_by_module_opts` (list()) - The list of options already defined in the module.
+  - `ui_defined` (list()) - The list of new options to be added.
 
   ## Returns
-  `:ok` - Indicates that the options have been stored.
+  :ok - Indicates that the options have been stored.
   """
   @spec put_manual_opts(module(), list(), list()) :: :ok
   def put_manual_opts(module, define_by_module_opts, ui_defined) do
@@ -553,16 +275,16 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Stores manually configured layout tree paths in the module attributes.
 
-  It merges new layout tree paths with existing ones and stores them in the
+  Merges new layout tree paths with existing ones and stores them in the
   `@auix_layout_trees` attribute, avoiding duplicates.
 
   ## Parameters
-  - `module` (`module()`) - The module where the attributes are stored.
-  - `defined_by_module_attribute` (`list()`) - The list of tree paths already defined.
-  - `ui_defined` (`list()`) - The list of new tree paths to be added.
+  - `module` (module()) - The module where the attributes are stored.
+  - `defined_by_module_attribute` (list()) - The list of tree paths already defined.
+  - `ui_defined` (list()) - The list of new tree paths to be added.
 
   ## Returns
-  `:ok` - Indicates that the tree paths have been stored.
+  :ok - Indicates that the tree paths have been stored.
   """
   @spec put_manual_tree_paths(module(), list(), list()) :: :ok
   def put_manual_tree_paths(module, defined_by_module_attribute, ui_defined) do

@@ -2,8 +2,24 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   @moduledoc """
   Ecto schema for products in test inventory scenarios.
 
+  Represents a product with comprehensive attributes including pricing, dimensions,
+  quantities, and status tracking.
+
   ## Key Features
-  - Used for testing inventory-related features.
+
+  - Comprehensive product attributes (pricing, dimensions, quantities)
+  - Has many product transactions relationship
+  - Belongs to product location
+  - Status tracking with deleted and inactive flags
+  - Binary image and thumbnail storage
+
+  ## Key Constraints
+
+  - Only for guides and test scenarios
+  - Requires name, status, and initial quantity
+  - All quantity and price fields must be non-negative
+  - Reference limited to 30 characters
+  - Status limited to 20 characters
   """
 
   use Ecto.Schema
@@ -76,13 +92,13 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   Generates a changeset for a product schema.
 
   ## Parameters
-  - `product` (t() | Ecto.Changeset.t()) - The product struct or changeset.
+  - `product` (t()) - The product struct.
   - `attrs` (map()) - Attributes to update.
 
   ## Returns
   Ecto.Changeset.t() - The changeset for the product.
   """
-  @spec changeset(__MODULE__.t() | Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(product, attrs) do
     product
     |> cast(attrs, [

@@ -13,11 +13,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
+  alias Aurora.Uix.Counter
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
+
+  alias Phoenix.HTML.Form
 
   @doc """
   Renders a form field based on its type and configuration.
@@ -129,10 +132,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
       |> BasicHelpers.assign_auix(:primary_key, primary_key)
       |> maybe_set_one_to_many_relation_to_readonly(assigns.auix[:one_to_many_related_key])
 
+    # id={"#{@field.html_id}--#{@auix.form[@auix.primary_key].value}--#{@auix.layout_type}"}
+    # id={field_id(@auix.form, @field, @auix.primary_key, @auix.layout_type)}
+
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}--#{@auix.form[@auix.primary_key].value}--#{@auix.layout_type}"}
+          id={field_id(@auix.form, @field, @auix.primary_key, @auix.layout_type)}
           field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
           label={@field.label}
@@ -152,10 +158,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     primary_key = if is_list(primary_key), do: List.first(primary_key), else: primary_key
     assigns = BasicHelpers.assign_auix(assigns, :primary_key, primary_key)
 
+    # id={"#{@field.html_id}--#{Map.get(@auix.entity || %{}, @auix.primary_key)}--#{@auix.layout_type}"}
+
     ~H"""
       <div class="auix-form-field-container">
         <.input
-          id={"#{@field.html_id}--#{Map.get(@auix.entity || %{}, @auix.primary_key)}--#{@auix.layout_type}"}
+          id={field_id(@auix.entity, @field, @auix.primary_key, @auix.layout_type)}
           name={@field.key}
           value={Map.get(@auix.entity || %{}, @field.key)}
           type={"#{@field.html_type}"}
@@ -199,4 +207,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   end
 
   defp maybe_create_hidden_field_for_one_to_many_field(assigns), do: ~H""
+
+  @spec field_id(struct() | map(), map(), atom(), atom()) :: binary()
+  defp field_id(entity, field, primary_key, :show = layout_type) do
+    "#{field.html_id}--#{Counter.next_count(:auix_fields_id)}--#{Map.get(entity || %{}, primary_key)}--#{layout_type}"
+  end
+
+  defp field_id(form, field, primary_key, :form = layout_type) do
+    # "#{field.html_id}--#{Counter.next_count(:auix_fields_id)}--#{form[primary_key].value}--#{layout_type}"
+    "#{field.html_id}--#{Form.input_id(form, field.key)}--#{form[primary_key].value}--#{layout_type}"
+  end
 end

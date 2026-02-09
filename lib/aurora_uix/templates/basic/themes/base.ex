@@ -62,7 +62,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_button_default) do
     """
-    .-auix-button-default {
+    .auix-button-default {
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_flash) do
     """
-      .-auix-flash {
+      .auix-flash {
         position: fixed;                 
         top: var(--auix-margin-default);                     
         right: var(--auix-margin-default);                   
@@ -99,7 +99,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_actions) do
     """
-    .-auix-actions {
+    .auix-actions {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -110,7 +110,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_textarea) do
     """
-    .-auix-textarea {
+    .auix-textarea {
       margin: 0;               
       padding: var(--auix-padding-minimal);
 
@@ -120,10 +120,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
       color: var(--auix-color-text-primary); 
       background-color: transparent;
+      caret-color: var(--auix-color-text-primary);
     }
 
     @media (max-width: 640px) {
-      .-auix-textarea {
+      .auix-textarea {
         font-size: var(--auix-font-size-caption);            
       }
     }
@@ -132,7 +133,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_input) do
     """
-    .-auix-input {
+    .auix-input {
       padding: var(--auix-padding-minimal);
 
       border-width: var(--auix-border-width-default);
@@ -144,14 +145,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       caret-color: var(--auix-color-text-primary);
     }
 
-    .-auix-input:focus {
+    .auix-input:focus {
       --auix-ring-color: transparent;
       box-shadow: none;
       outline: none;
     }
 
     @media (max-width: 640px) {
-      .-auix-input {
+      .auix-input {
         font-size: var(--auix-font-size-caption);
       }
     }
@@ -160,7 +161,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_sections_tab_button) do
     """
-    .-auix-sections-tab-button {
+    .auix-sections-tab-button {
       padding: var(--auix-padding-minimal) var(--auix-padding-default);
       font-size: var(--auix-font-size-caption);
       border-bottom-width: var(--auix-border-width-thick);

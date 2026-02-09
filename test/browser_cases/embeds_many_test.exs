@@ -59,7 +59,7 @@ defmodule Aurora.UixWeb.Test.BrowserEmbedsManyTest do
     |> Kernel.tap(&assert(&1.family_name == "Test"))
     |> Kernel.tap(&assert(&1.profile.online == false))
     |> Kernel.tap(&assert(&1.profile.dark_mode == false))
-    |> Kernel.tap(&assert(&1.profile.visibility == :friends_only))
+    |> Kernel.tap(&assert(&1.profile.visibility == :public))
     |> Kernel.tap(&assert(&1.emails == []))
   end
 

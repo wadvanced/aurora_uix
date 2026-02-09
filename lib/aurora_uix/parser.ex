@@ -14,8 +14,8 @@ defmodule Aurora.Uix.Parser do
   - Requires compatible field and metadata conventions.
   """
 
+  alias Aurora.Uix.Integration.ContextParserDefaults
   alias Aurora.Uix.Parsers.Common
-  alias Aurora.Uix.Parsers.ContextParser
 
   @doc """
   Returns the list of supported configuration option keys for the parser.
@@ -56,7 +56,7 @@ defmodule Aurora.Uix.Parser do
       List.flatten(opts)
 
     Enum.reduce(
-      [Common, ContextParser],
+      [Common, ContextParserDefaults],
       %{},
       &parser_process_options(&1, &2, resource_config, opts)
     )

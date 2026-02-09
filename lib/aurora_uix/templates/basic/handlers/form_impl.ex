@@ -19,9 +19,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
 
   """
-
+  import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
-  import Phoenix.Component, only: [assign: 3, to_form: 1, to_form: 2]
+  import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
@@ -97,7 +97,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
             new_entity =
               entity
               |> BasicHelpers.primary_key_value(auix.primary_key)
-              |> auix.get_function.(preload: auix.preload)
+              |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
 
             {:noreply,
              socket
@@ -112,7 +112,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
              socket
              |> clear_flash()
              |> put_flash(:error, format_changeset_errors(changeset))
-             |> assign_auix(:form, to_form(changeset))}
+             |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
         end
       end
 
@@ -148,9 +148,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         %{assigns: %{auix: auix}} = socket
       ) do
     form =
-      entity
-      |> auix.change_function.(%{})
-      |> to_form()
+      auix.change_function
+      |> apply_change_function(entity, auix.module, %{})
+      |> to_named_form(auix.module)
 
     {:ok,
      socket
@@ -191,9 +191,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
     socket = Phoenix.LiveView.clear_flash(socket)
 
-    changeset = auix.change_function.(socket.assigns[:auix][:entity], entity_params)
+    form =
+      auix.change_function
+      |> apply_change_function(socket.assigns[:auix][:entity], auix.module, entity_params)
+      |> to_named_form(auix.module, action: :validate)
 
-    {:noreply, assign_auix(socket, :form, to_form(changeset, action: :validate))}
+    {:noreply, assign_auix(socket, :form, form)}
   end
 
   def auix_handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
@@ -229,12 +232,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec save_entity(Socket.t(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
-  def save_entity(%{assigns: %{action: :edit, auix: auix}} = socket, entity_params) do
-    auix.update_function.(socket.assigns[:auix][:entity], entity_params)
+  def save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
+      when action in [:edit, :show_edit] do
+    apply_update_function(auix.update_function, socket.assigns[:auix][:entity], entity_params)
   end
 
   def save_entity(%{assigns: %{action: :new, auix: auix}}, entity_params) do
-    auix.create_function.(entity_params)
+    apply_create_function(auix.create_function, entity_params)
   end
 
   @doc """
@@ -302,6 +306,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  ## PRIVATE
 
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do

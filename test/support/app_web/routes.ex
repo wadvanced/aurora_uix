@@ -63,6 +63,26 @@ defmodule Aurora.UixWeb.Test.Routes do
           "record-navigation-products"
         )
 
+        RoutesHelper.register_crud(
+          AshDefaultLayoutTest.Author,
+          "ash-default-layout-authors"
+        )
+
+        RoutesHelper.register_crud(
+          AshEmbedsTest.Author,
+          "ash-embeds-authors"
+        )
+
+        RoutesHelper.register_crud(
+          AshEmbedsTest.Post,
+          "ash-embeds-posts"
+        )
+
+        RoutesHelper.register_crud(
+          BrowserAshEmbedsTest.Post,
+          "browser-ash-embeds-posts"
+        )
+
         RoutesHelper.register_product_crud(
           RecordNavigationDisableTest,
           "record-navigation-disable-"
