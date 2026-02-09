@@ -3,7 +3,6 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Phoenix.Component
 
-  alias Aurora.Uix.Guides.Accounts.User
   alias Aurora.Uix.Guides.Blog.Author
   alias Aurora.Uix.Guides.Blog.Post
 
