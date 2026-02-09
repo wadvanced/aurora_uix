@@ -11,6 +11,8 @@ defmodule Aurora.UixWeb.Routes do
       auix_live_resources("/guide-overview-products", Overview.Product)
       auix_live_resources("/guide-overview-product-locations", Overview.ProductLocation)
       auix_live_resources("/guide-overview-product_transactions", Overview.ProductTransaction)
+
+      auix_live_resources("/guide-overview-posts", AshOverview.Post)
     end
   end
 end

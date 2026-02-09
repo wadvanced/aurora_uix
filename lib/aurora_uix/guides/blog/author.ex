@@ -46,6 +46,6 @@ defmodule Aurora.Uix.Guides.Blog.Author do
       accept [:name, :email, :bio]
     end
 
-    read :not_paginated
+    read :read_all
   end
 end
