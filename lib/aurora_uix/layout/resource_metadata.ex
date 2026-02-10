@@ -120,39 +120,76 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   Defines UI configuration for a schema.
 
   ## Parameters
+
   - `name` (atom()) - Resource identifier.
   - `opts` (keyword()) - Configuration options.
   - `do_block` (Macro.t() | nil) - Field configurations block.
 
   ## Options
-  - `:schema` (module()) - Required. Ecto schema/data structure module.
-  - `:context` (module()) - Optional. Context module with data functions.
-  - `:order_by` (atom() | list() | keyword()) - Optional. Order used for displaying the index.
-    - atom() - Accepts an atom referencing a field.
-    - list() - Accepts a list of fields (atoms).
-    - keyword() -  Accepts keywords indicating the direction of the sort (:asc, :desc)
-      See [Ecto.Query.order_by/3](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3)
-      for details about the supported directions.
-  ### Examples
-  ```elixir
-    # Single field
-    auix_resource_metadata(:product,
-      context: Inventory,
-      schema: Product,
-      order_by: :reference
-    )
-  ```
 
-  ```elixir
-    # Changed direction field
-    auix_resource_metadata(:product,
-      context: Inventory,
-      schema: Product,
-      order_by: [desc: :reference]
-    )
-  ```
+  ### Common Options
+
+  - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
+    * atom() - Single field name (e.g., `:name`)
+    * list() - List of field names
+    * keyword() - Direction-annotated fields (e.g., `[desc: :created_at]`)
+    See [Ecto.Query.order_by/3](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3)
+    for details about the supported directions.
+
+  ### Context-based Integration (`:ctx` type)
+
+  For Ecto schema resources with Context modules:
+
+  - `:schema` (module()) - Required. Ecto schema module.
+  - `:context` (module()) - Required. Context module with CRUD functions.
+
+  ### Ash Framework Integration (`:ash` type)
+
+  For Ash Framework resources:
+
+  - `:ash_resource` (module()) - Required. Ash resource module.
+  - `:ash_domain` (module()) - Optional. Ash domain module. If omitted, actions are
+    resolved directly from the resource.
+
+  Note: You can also use `:schema` as an alias for `:ash_resource` and `:context` as
+  an alias for `:ash_domain` when working with Ash resources.
+
+  ## Examples
+
+  ### Context-based Resource
+
+      auix_resource_metadata(:product,
+        schema: MyApp.Inventory.Product,
+        context: MyApp.Inventory,
+        order_by: :reference
+      )
+
+  ### Context Resource with Sort Direction
+
+      auix_resource_metadata(:product,
+        schema: MyApp.Inventory.Product,
+        context: MyApp.Inventory,
+        order_by: [desc: :created_at]
+      )
+
+  ### Ash Resource
+
+      auix_resource_metadata(:author,
+        ash_resource: MyApp.Blog.Author,
+        order_by: [:name]
+      )
+
+  ### Ash Resource with Domain
+
+      auix_resource_metadata(:post,
+        ash_resource: MyApp.Blog.Post,
+        ash_domain: MyApp.Blog,
+        order_by: [desc: :published_at]
+      )
+
   ## Returns
-  `Macro.t()` - Configured metadata block for the resource.
+
+  Macro.t() - Configured metadata block for the resource.
   """
   @spec auix_resource_metadata(atom(), keyword(), Macro.t() | nil) :: Macro.t()
   defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do

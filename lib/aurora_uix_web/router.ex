@@ -27,7 +27,7 @@ defmodule Aurora.UixWeb.Router do
     pipe_through(:browser)
   end
 
-  scope "/", Aurora.UixWeb.Guides do
+  scope "/guides-overview", Aurora.UixWeb.Guides do
     pipe_through(:browser)
 
     load_routes()

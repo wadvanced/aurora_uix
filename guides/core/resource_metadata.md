@@ -6,7 +6,12 @@ Resource metadata transforms schema definitions into complete UI configurations,
 
 ## Overview
 
-Resource metadata bridges the gap between Ecto schema definitions and UI requirements. While Ecto schemas define data structure and validation rules, they don't contain presentation logic. Aurora UIX's metadata system adds UI-specific properties to fields and associations, enabling complete CRUD UI generation with minimal boilerplate.
+Resource metadata bridges the gap between data schema definitions and UI requirements. While schemas (Ecto or Ash) define data structure and validation rules, they don't contain presentation logic. Aurora UIX's metadata system adds UI-specific properties to fields and associations, enabling complete CRUD UI generation with minimal boilerplate.
+
+Aurora UIX supports two backend types:
+
+- **Context-based** - Traditional Phoenix Context modules with Ecto schemas
+- **Ash Framework** - Ash resources with declarative actions and domains
 
 ## Key Concepts
 
@@ -46,10 +51,32 @@ This compile-time generation ensures minimal runtime overhead while providing co
 
 Use the `auix_resource_metadata/3` macro in your module. This macro accepts:
 - `name` - A unique identifier for the resource (atom)
-- `opts` - Configuration options including required `:schema` and optional `:context`
+- `opts` - Configuration options for the resource backend
 - `do` block - Field configuration using the `field/2` or `fields/2` macros
 
-Let's see an example:
+Aurora UIX supports two types of resource backends:
+
+1. **Context-based Resources** - Traditional Phoenix Context modules with Ecto schemas
+2. **Ash Framework Resources** - Ash resources and domains
+
+### Context-based Resources
+
+For traditional Ecto schemas with Phoenix Context modules:
+
+- `:schema` (module()) - Required. Your Ecto schema module
+- `:context` (module()) - Required. Context module with CRUD functions
+
+### Ash Framework Resources
+
+For Ash Framework resources:
+
+- `:ash_resource` (module()) - Required. Your Ash resource module
+- `:ash_domain` (module()) - Optional. Ash domain module containing the resource
+
+When using Ash resources, you can also use `:schema` as an alias for `:ash_resource` 
+and `:context` as an alias for `:ash_domain`.
+
+Let's see examples for both approaches:
 
 ### Example Schema
 
@@ -85,7 +112,9 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
 
 ```
 
-To generate the resource metadata using the `auix_resource_metadata` macro:
+### Context-based Resource Configuration
+
+To generate the resource metadata for a Context-based resource:
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
@@ -102,13 +131,43 @@ defmodule MyAppWeb.ProductViews do
 end
 ```
 
+### Ash Resource Configuration
+
+For Ash Framework resources, use `:ash_resource` and optionally `:ash_domain`:
+
+```elixir
+defmodule MyAppWeb.BlogViews do
+  use Aurora.Uix
+
+  alias MyApp.Blog
+  alias MyApp.Blog.Post
+  alias MyApp.Blog.Author
+
+  # With Ash domain
+  auix_resource_metadata :post, 
+    ash_resource: Post, 
+    ash_domain: Blog do
+    field :title, required: true, max_length: 100
+    field :body, html_type: :textarea
+    field :published_at, readonly: true
+  end
+
+  # Without domain (actions resolved from resource)
+  auix_resource_metadata :author, ash_resource: Author do
+    field :name, required: true
+    field :bio, html_type: :textarea
+  end
+end
+```
+
 ### Generated Resource Structure
 
 The macro generates a `Aurora.Uix.Resource` struct containing:
 
 - `name` - The resource identifier (`:product`)
-- `schema` - The Ecto schema module
-- `context` - Optional context module
+- `schema` - The Ecto schema or Ash resource module
+- `context` - Context module or Ash domain (optional)
+- `type` - Backend type (`:ctx` for Context, `:ash` for Ash)
 - `fields` - A map of field configurations by key
 - `fields_order` - List of field keys in display order
 - `opts` - Additional configuration options
@@ -121,6 +180,7 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
     name: :product,
     schema: Product,
     context: Inventory,
+    type: :ctx,  # or :ash for Ash resources
     opts: [],
     fields: %{
       id: %Aurora.Uix.Field{key: :id, type: :binary_id, html_type: :text, ...},
@@ -137,6 +197,20 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
   }
 }
 ```
+
+### Backend Types
+
+Aurora UIX automatically detects the backend type based on the options provided:
+
+- **`:ctx`** - When using `:schema` and `:context` options with Ecto schemas
+- **`:ash`** - When using `:ash_resource` (or Ash resource modules)
+
+The backend type determines how CRUD operations are resolved:
+
+- **Context backend** - Looks for functions like `list_products/1`, `get_product/2`, 
+  `create_product/1` in the context module
+- **Ash backend** - Resolves actions like `:read`, `:create`, `:update`, `:destroy` 
+  from the Ash resource or domain
 
 - `Aurora.Uix.Resource` - Holds information about the resource to be rendered.
 - `Aurora.Uix.Field` - Struct for the available field properties.
