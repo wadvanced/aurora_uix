@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.2"
+  @version "0.1.3"
 
   def project do
     [
@@ -55,6 +55,17 @@ defmodule Aurora.Uix.MixProject do
           Advanced: ~r{guides/advanced/.*}
         ],
         groups_for_modules: [
+          "Core Data Structures": [
+            Aurora.Uix.Action,
+            Aurora.Uix.Counter,
+            Aurora.Uix.Field,
+            Aurora.Uix.Filter,
+            Aurora.Uix.Resource,
+            Aurora.Uix.Selection,
+            Aurora.Uix.Stack,
+            Aurora.Uix.Stack.EmptyStackError,
+            Aurora.Uix.TreePath
+          ],
           Layouts: [
             Aurora.Uix.Layout.Blueprint,
             Aurora.Uix.Layout.CreateLayout,
@@ -66,47 +77,81 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Layout.Options.Show,
             Aurora.Uix.Layout.ResourceMetadata
           ],
-          Parsers: [
+          "Parsers & Integration": [
+            Aurora.Uix.Parser,
             Aurora.Uix.Parsers.Common,
-            Aurora.Uix.Parsers.ContextParser
+            Aurora.Uix.Integration.Connector,
+            Aurora.Uix.Integration.ContextParserDefaults,
+            Aurora.Uix.Integration.Crud,
+            Aurora.Uix.Integration.FieldsParser
           ],
-          "Basic Template": [
+          "Context Integration": [
+            Aurora.Uix.Integration.Ctx.ContextParserDefaults,
+            Aurora.Uix.Integration.Ctx.Crud,
+            Aurora.Uix.Integration.Ctx.CrudSpec,
+            Aurora.Uix.Integration.Ctx.FieldsParser
+          ],
+          "Ash Integration": [
+            Aurora.Uix.Integration.Ash.ContextParserDefaults,
+            Aurora.Uix.Integration.Ash.Crud,
+            Aurora.Uix.Integration.Ash.CrudSpec,
+            Aurora.Uix.Integration.Ash.FieldsParser,
+            Aurora.Uix.Integration.Ash.QueryParser
+          ],
+          "Default Integration": [
+            Aurora.Uix.Integration.Default.FieldsParser
+          ],
+          "Template System": [
+            Aurora.Uix.Template,
             Aurora.Uix.Templates.Basic,
+            Aurora.Uix.Templates.CssSanitizer,
+            Aurora.Uix.Templates.Theme,
+            Aurora.Uix.Templates.ThemeHelper
+          ],
+          "Basic Template - Actions": [
             Aurora.Uix.Templates.Basic.Actions,
             Aurora.Uix.Templates.Basic.Actions.EmbedsMany,
             Aurora.Uix.Templates.Basic.Actions.Form,
             Aurora.Uix.Templates.Basic.Actions.Index,
             Aurora.Uix.Templates.Basic.Actions.OneToMany,
-            Aurora.Uix.Templates.Basic.Actions.ShowComponent,
+            Aurora.Uix.Templates.Basic.Actions.ShowComponent
+          ],
+          "Basic Template - Components": [
             Aurora.Uix.Templates.Basic.Components,
             Aurora.Uix.Templates.Basic.Components.FilteringComponents,
             Aurora.Uix.Templates.Basic.ConfirmButton,
             Aurora.Uix.Templates.Basic.CoreComponents,
             Aurora.Uix.Templates.Basic.EmbedsManyComponent,
-            Aurora.Uix.Templates.Basic.RoutingComponents,
+            Aurora.Uix.Templates.Basic.RoutingComponents
+          ],
+          "Basic Template - Generators": [
             Aurora.Uix.Templates.Basic.Generators.FormGenerator,
             Aurora.Uix.Templates.Basic.Generators.IndexGenerator,
             Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator,
+            Aurora.Uix.Templates.Basic.ModulesGenerator
+          ],
+          "Basic Template - Handlers": [
             Aurora.Uix.Templates.Basic.Handlers.Form,
             Aurora.Uix.Templates.Basic.Handlers.FormImpl,
             Aurora.Uix.Templates.Basic.Handlers.Index,
             Aurora.Uix.Templates.Basic.Handlers.IndexImpl,
             Aurora.Uix.Templates.Basic.Handlers.ShowComponent,
-            Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl,
+            Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+          ],
+          "Basic Template - Renderers": [
             Aurora.Uix.Templates.Basic.Helpers,
-            Aurora.Uix.Templates.Basic.ModulesGenerator,
             Aurora.Uix.Templates.Basic.Renderer,
             Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer,
             Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer,
             Aurora.Uix.Templates.Basic.Renderers.FieldRenderer,
-            Aurora.Uix.Templates.Basic.Renderers.Fields.ManyToOne,
-            Aurora.Uix.Templates.Basic.Renderers.Fields.OneToMany,
             Aurora.Uix.Templates.Basic.Renderers.FormRenderer,
             Aurora.Uix.Templates.Basic.Renderers.IndexRenderer,
             Aurora.Uix.Templates.Basic.Renderers.ManyToOne,
             Aurora.Uix.Templates.Basic.Renderers.OneToMany,
             Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer,
-            Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer,
+            Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer
+          ],
+          "Basic Template - Themes": [
             Aurora.Uix.Templates.Basic.Themes.Base,
             Aurora.Uix.Templates.Basic.Themes.BaseVariables,
             Aurora.Uix.Templates.Basic.Themes.VitreousMarble,
@@ -114,11 +159,15 @@ defmodule Aurora.Uix.MixProject do
           ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
-            Aurora.Uix.Helpers.Common,
             Aurora.Uix.CoreComponentsImporter,
             Aurora.Uix.Gettext,
             Aurora.Uix.GettextBackend,
+            Aurora.Uix.Helpers.Common,
             Aurora.Uix.RouteHelper
+          ],
+          "Mix Tasks": [
+            Mix.Tasks.Uix.Gen.Icons,
+            Mix.Tasks.Uix.Gen.Stylesheet
           ]
         ],
         exclude: ["lib/aurora_uix_web/**/*", "lib/aurora_uix/guides/**/*"],

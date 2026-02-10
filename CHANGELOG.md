@@ -1,5 +1,99 @@
 # Changelog for Aurora UIX
 
+## [0.1.3] - 2026-02-10
+
+**Ash Framework Integration & Improvements** - This release adds full support for Ash Framework as a backend alternative to Phoenix Contexts, along with custom action support and various improvements.
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
+
+
+### Added
+
+- **Ash Framework Integration** (#208)
+  - Full support for Ash Framework as a backend alternative to Phoenix Contexts
+  - Ash resource field parsing with automatic type detection
+  - Support for Ash actions: `:read`, `:create`, `:update`, `:destroy`
+  - Ash pagination support (offset-based)
+  - Ash embeds support (`embeds_one`, `embeds_many`)
+  - Ash constraints processing (e.g., `:one_of` for enum fields)
+  - New integration modules:
+    - `Aurora.Uix.Integration.Ash.ContextParserDefaults`
+    - `Aurora.Uix.Integration.Ash.Crud`
+    - `Aurora.Uix.Integration.Ash.CrudSpec`
+    - `Aurora.Uix.Integration.Ash.FieldsParser`
+    - `Aurora.Uix.Integration.Ash.QueryParser`
+  - Comprehensive Ash integration guide (`guides/core/ash_integration.md`)
+
+- **Custom Action Support** (#214)
+  - Support for specifying custom Ash actions via resource metadata options
+  - Options for custom actions:
+    - `:ash_read_action` - Custom read action
+    - `:ash_read_action_paginated` - Custom paginated read action
+    - `:ash_get_action` - Custom get action
+    - `:ash_new_function` - Custom new function (arity 2)
+    - `:ash_create_action` - Custom create action
+    - `:ash_update_action` - Custom update action
+    - `:ash_destroy_action` - Custom destroy action
+  - Equivalent support for Context-based backends via `:ctx_*` options
+
+- **Integration Architecture**
+  - New `Aurora.Uix.Integration.Connector` behaviour for backend abstraction
+  - `Aurora.Uix.Integration.Crud` behaviour for CRUD operations
+  - Unified field parser interface via `Aurora.Uix.Integration.FieldsParser`
+  - Backend type detection (`:ctx` for Contexts, `:ash` for Ash Framework)
+
+
+### Changed
+
+- **Refactored Integration Layer**
+  - Moved context parser logic to integration modules
+  - Renamed "none" integrator to "default" (`Aurora.Uix.Integration.Default.FieldsParser`)
+  - Enhanced `Aurora.Uix.Integration.Ctx.ContextParserDefaults` with custom function support
+  - Improved separation of concerns between parsers and CRUD operations
+  
+- **Enhanced Parser Module** (`Aurora.Uix.Parser`)
+  - Extended to support both Context and Ash backends
+  - Added backend type resolution
+  - Improved error handling and validation
+  
+- **Updated Dependencies**
+  - `ash`: `3.12.0` → `3.16.0`
+  - `ash_postgres`: `2.6.27` → `2.6.31`
+  - `bandit`: `1.10.1` → `1.10.2`
+  - `credo`: `1.7.15` → `1.7.16`
+  - `ex_doc`: `0.39.3` → `0.40.1`
+  - `lazy_html`: `0.1.8` → `0.1.10`
+  - `phoenix_live_view`: `1.1.19` → `1.1.22`
+
+
+### Fixed
+
+- Record navigator incorrectly rendered in new entry forms (#213)
+- Failure to detect `embeds_one` or `embeds_many` in some cases
+- Error resolving default function in `:ctx` type backends
+- Missing HTML type assignment for certain field types
+
+
+### Documentation
+
+- Added comprehensive Ash Framework integration guide
+- Updated resource metadata guide with Ash examples
+- Enhanced parser module documentation
+- Improved integration module documentation
+- Updated guides to reflect new backend options
+
+
+### Build
+
+- Excluded guide modules from Hex package distribution
+- Updated test environment for Ash resources
+- Added Ash dependencies for development and testing
+
+
 ## [0.1.2] - 2026-01-14
 
 **Record Navigation** - Now users can navigate back and forth while editing or viewing records.

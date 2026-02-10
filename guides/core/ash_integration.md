@@ -37,7 +37,7 @@ Besides Aurora UIX, you'll need to add Ash dependencies for using it as a backen
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.2"},  # Main framework
+    {:aurora_uix, "~> 0.1.3"},  # Main framework
     {:ash, "~> 3.0"},           # If use Ash as backend
     {:ash_postgres, "~> 2.0"}   # Needed if using postgres as your data layer. Add any other data layer required by your backend
   ]
