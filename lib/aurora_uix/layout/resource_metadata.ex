@@ -569,7 +569,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp replace_related_field_data(field, _related_changes), do: field
 
   @spec resource_type(nil | module()) :: atom()
-  defp resource_type(nil), do: :none
+  defp resource_type(nil), do: :default
 
   defp resource_type(schema) do
     functions = schema.__info__(:functions)
@@ -577,7 +577,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     cond do
       Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash
       Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ctx
-      true -> :none
+      true -> :default
     end
   end
 end

@@ -211,6 +211,11 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
     create_connector(context, function_ref, ["new_#{module}"], 2, resource_name, auix_action_name)
   end
 
+  @doc false
+  # Placeholder function used when no valid function reference is found.
+  @spec undefined_function(term(), term()) :: nil
+  def undefined_function(_arg1 \\ nil, _arg2 \\ nil), do: nil
+
   ## PRIVATE
 
   # Creates a Connector wrapping a CrudSpec with the discovered function reference.
@@ -234,22 +239,23 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   # Discovers and creates a function reference from the context module.
   @spec create_function_reference(nil | module(), nil | function(), list(), integer()) ::
           nil | function()
-  defp create_function_reference(nil, nil, _functions, _expected_arity), do: nil
+  defp create_function_reference(nil, nil, _functions, expected_arity) do
+    {function_ref, _} =
+      Code.eval_string("&#{__MODULE__}.undefined_function/#{expected_arity}")
+
+    function_ref
+  end
 
   defp create_function_reference(context, nil, functions, expected_arity) do
     implemented_functions =
-      if is_nil(context) do
-        []
-      else
-        :functions
-        |> context.__info__()
-        |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
-        |> Enum.map(&(&1 |> elem(0) |> to_string()))
-      end
+      :functions
+      |> context.__info__()
+      |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
+      |> Enum.map(&(&1 |> elem(0) |> to_string()))
 
     auix_action_name =
       functions
-      |> Enum.filter(&(&1 in implemented_functions or is_function(&1, expected_arity)))
+      |> Enum.filter(&(&1 in implemented_functions))
       |> List.first()
 
     if auix_action_name do
@@ -265,9 +271,6 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
 
   defp create_function_reference(_context, function_in_opts, _functions, expected_arity)
        when is_function(function_in_opts, expected_arity), do: function_in_opts
-
-  defp create_function_reference(_context, _function_in_opts, _functions, _expected_arity),
-    do: nil
 
   @spec notify_error(nil | function(), atom(), atom(), integer) :: function()
   defp notify_error(nil, resource_name, auix_action_name, arity),
