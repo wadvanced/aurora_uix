@@ -29,7 +29,7 @@ defmodule Aurora.Uix.MixProject do
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
         files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib),
-        exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", "/aurora_uix/lib/guides/**/*"]
+        exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", ~r"/aurora_uix/guides/*"]
       ],
 
       # Docs
