@@ -4,7 +4,7 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
 
   alias Aurora.Uix.Guides.Blog.Author
 
-  auix_resource_metadata(:author, schema: Author, order_by: [:bio])
+  auix_resource_metadata(:author, ash_resource: Author, order_by: [:bio])
 
   auix_create_ui()
 
