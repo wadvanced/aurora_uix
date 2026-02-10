@@ -79,13 +79,6 @@ defmodule Aurora.Uix.Parser do
 
   term() - The resolved value for the given key. Type depends on the key being resolved.
 
-  ## Examples
-
-      iex> option_value(%{}, %{schema: MyApp.User}, [], :module)
-      "user"
-
-      iex> option_value(%{source: "users"}, %{context: MyApp.Accounts}, [], :list_function)
-      %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
   """
   @callback option_value(
               parsed_opts :: map(),
@@ -120,16 +113,73 @@ defmodule Aurora.Uix.Parser do
 
   ## Examples
 
-      iex> parse(%{schema: MyApp.User, type: :ctx, context: MyApp.Accounts, opts: []})
+      iex> Aurora.Uix.Parser.parse(%{schema: Aurora.Uix.Guides.Accounts.User, type: :ctx, context: Aurora.Uix.Guides.Accounts, name: :user, opts: []}, [])
       %{
         module: "user",
         name: "User",
-        source: "users",
         title: "Users",
+        source: "users",
+        module_name: "User",
+        list_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.list_users/1,
+            auix_action_name: :list_function
+          }
+        },
+        list_function_paginated: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.list_users_paginated/1,
+            auix_action_name: :list_function_paginated
+          }
+        },
+        get_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.get_user/2,
+            auix_action_name: :get_function
+          }
+        },
+        delete_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.delete_user/1,
+            auix_action_name: :delete_function
+          }
+        },
+        create_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.create_user/1,
+            auix_action_name: :create_function
+          }
+        },
+        update_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.update_user/2,
+            auix_action_name: :update_function
+          }
+        },
+        change_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.change_user/2,
+            auix_action_name: :change_function
+          }
+        },
+        new_function: %Aurora.Uix.Integration.Connector{
+          type: :ctx,
+          crud_spec: %Aurora.Uix.Integration.Ctx.CrudSpec{
+            function_spec: &Aurora.Uix.Guides.Accounts.new_user/2,
+            auix_action_name: :new_function
+          }
+        },
         primary_key: [:id],
-        list_function: %Connector{...},
-        get_function: %Connector{...}
+        source_key: :users
       }
+
   """
   @spec parse(map(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do

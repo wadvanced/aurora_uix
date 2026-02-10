@@ -315,6 +315,28 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     Ash.destroy(entity, action: action_name, return_destroyed?: true)
   end
 
+  @doc """
+  Default new function for initializing Ash resource structs.
+
+  Returns the entity struct as-is without modifications. This function serves as the
+  default implementation for the `:new_function` operation when no custom function is
+  provided via `:ash_new_function` option.
+
+  ## Parameters
+
+  - `entity` (struct()) - The Ash resource struct to initialize.
+  - `opts` (keyword()) - Options (currently unused).
+
+  ## Returns
+
+  struct() - The unmodified entity struct.
+
+  ## Examples
+
+      iex> post = %Post{status: :draft}
+      iex> default_new_function(post, [])
+      %Post{status: :draft}
+  """
   @spec default_new_function(struct(), keyword()) :: struct()
   def default_new_function(entity, _opts) do
     entity
