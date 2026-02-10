@@ -211,22 +211,16 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       when auix_action in @new_function_aliases do
     opts
     |> get_option(@new_function_aliases, &AshCrud.default_new_function/2)
-    |> notify_error(@error_new_function_invalid, resource_name)
+    |> notify_error(@error_new_function_invalid, resource_name, 2)
     |> create_function_reference(ash_domain, ash_resource, auix_action)
   end
 
-  def option_value(_parsed_opts, _resource_config, _key), do: nil
-
-  @doc false
-  # Placeholder function used when no valid function reference is found.
-  @spec undefined_function(term(), term()) :: nil
-  def undefined_function(_arg1, _arg2 \\ nil), do: nil
+  def option_value(_parsed_opts, _resource_config, _opts, _key), do: nil
 
   ## PRIVATE
 
   # Retrieves actions for a specific action type from Ash resource.
   @spec get_proper_actions(nil | module(), nil | module(), nil | atom(), atom()) :: list(struct())
-  defp get_proper_actions(ash_domain, ash_resource, action_type, selected_action_name \\ nil)
   defp get_proper_actions(nil, nil, _action_type, _selected_action_name), do: []
 
   defp get_proper_actions(nil, ash_resource, action_type, selected_action_name) do
@@ -253,7 +247,12 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   defp action_module(:destroy), do: Actions.Destroy
 
   # Creates function reference tuple for Ash actions.
-  @spec create_function_reference(struct() | nil, module() | nil, module() | nil, atom()) ::
+  @spec create_function_reference(
+          struct() | function() | nil,
+          module() | nil,
+          module() | nil,
+          atom()
+        ) ::
           Connector.t()
 
   defp create_function_reference(ash_action, ash_domain, ash_resource, auix_action_name) do
@@ -280,7 +279,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   end
 
   # Retrieves Ash resource module from domain by action name.
-  @spec get_resource(atom() | nil, module()) :: module() | nil
+  @spec get_resource(nil | struct(), module()) :: nil | module()
   defp get_resource(action, domain) do
     resource =
       domain
@@ -311,10 +310,12 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   defp notify_action_error(action, _message, _resource_name, _ash_action_type, _ash_action_name),
     do: action
 
-  defp notify_error(function_ref, _message, _resource_name) when is_function(function_ref),
-    do: function_ref
+  @spec notify_error(function(), binary(), atom(), integer()) :: function()
+  defp notify_error(function_ref, _message, _resource_namei, arity)
+       when is_function(function_ref, arity),
+       do: function_ref
 
-  defp notify_error(_function_ref, message, resource_name),
+  defp notify_error(_function_ref, message, resource_name, _arity),
     do: raise("Error processing resource '#{resource_name}' options : #{message}")
 
   # Returns first valid action from filtered or fallback list.
@@ -325,10 +326,16 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   defp get_first_valid([filtered_first_action | _rest_filtered], _actions),
     do: filtered_first_action
 
+  @spec get_option(keyword(), list(), term()) :: nil | term()
   defp get_option(opts, keys, default_value) do
-    keys
-    |> Enum.map(&Keyword.get(opts, &1))
-    |> Enum.reject(&is_nil/1)
-    |> List.first(default_value)
+    existing_keys = Enum.filter(keys, &Keyword.has_key?(opts, &1))
+
+    if existing_keys == [] do
+      default_value
+    else
+      existing_keys
+      |> Enum.map(&Keyword.get(opts, &1))
+      |> List.first()
+    end
   end
 end

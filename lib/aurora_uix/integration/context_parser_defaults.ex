@@ -59,8 +59,7 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
   1. Implement `default_value/3` to handle option atoms
   2. Return `Connector.t()` wrapping the resolved function reference
   3. Use backend-specific conventions for function discovery
-  4. Return `&undefined_function/2` for unresolvable options
-  5. Document backend-specific behavior and conventions
+  4. Document backend-specific behavior and conventions
 
   ## Key Constraints
 

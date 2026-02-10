@@ -315,6 +315,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     Ash.destroy(entity, action: action_name, return_destroyed?: true)
   end
 
+  @spec default_new_function(struct(), keyword()) :: struct()
   def default_new_function(entity, _opts) do
     entity
   end

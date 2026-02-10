@@ -1,4 +1,23 @@
 defmodule Aurora.UixWeb.Guides.AshOverview do
+  @moduledoc """
+  Demonstrates Aurora UIX integration with Ash Framework resources.
+
+  This module showcases how to configure UI components for Ash resources including
+  blog posts, authors, categories, and tags. It defines custom layouts for index,
+  show, and edit views using Aurora UIX's declarative DSL.
+
+  ## Key Features
+  - Resource metadata configuration for Ash resources
+  - Custom index column definitions
+  - Declarative show and edit layouts with grouped fields
+  - Integration between Aurora UIX and Ash Framework
+
+  ## Key Constraints
+  - Requires Aurora.Uix behaviour implementation
+  - Depends on Blog domain resources (Author, Post, Category, Tag)
+  - Layout definitions must follow auix_create_ui DSL syntax
+  """
+
   use Aurora.Uix
 
   alias Aurora.Uix.Guides.Blog.Author
