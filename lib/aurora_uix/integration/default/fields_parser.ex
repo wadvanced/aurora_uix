@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Integration.None.FieldsParser do
+defmodule Aurora.Uix.Integration.Default.FieldsParser do
   @moduledoc """
   Field metadata parser for Context-based (Ecto) schemas.
 

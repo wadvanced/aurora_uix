@@ -26,7 +26,11 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   def new_subtitle(assigns),
     do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product)
+  auix_resource_metadata(:product,
+    context: Inventory,
+    schema: Product,
+    list_function_paginated: &Inventory.list_products_paginated/1
+  )
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.

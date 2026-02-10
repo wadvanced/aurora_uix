@@ -35,6 +35,15 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Integration.Ctx.CrudSpec
 
+  @list_function :list_function
+  @list_function_paginated :list_function_paginated
+  @get_function :get_function
+  @delete_function :delete_function
+  @create_function :create_function
+  @update_function :update_function
+  @change_function :change_function
+  @new_function :new_function
+
   @doc """
   Resolves default function references for Context-based operations.
 
@@ -48,7 +57,7 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
     * `:module` (binary()) - The module name (e.g., "user").
   - `resource_config` (map()) - Map with:
     * `:context` (module()) - The context module to introspect.
-  - `function_name` (atom()) - The Aurora UIX action key (e.g., `:list_function`,
+  - `auix_action_name` (atom()) - The Aurora UIX action key (e.g., `:list_function`,
     `:get_function`).
 
   ## Returns
@@ -64,89 +73,211 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
       iex> default_value(%{module: "post"}, %{context: MyApp.Blog}, :get_function)
       %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
   """
-  @spec default_value(map(), map(), atom()) :: Connector.t()
-  def default_value(
+  @spec option_value(map(), map(), keyword(), atom()) :: Connector.t()
+  def option_value(
         %{source: source, module: module},
-        %{context: context},
-        :list_function = function_name
+        %{context: context, name: resource_name},
+        opts,
+        @list_function = auix_action_name
       ) do
-    create_connector(context, ["list_#{source}", "list_#{module}"], 1, function_name)
-  end
+    function_ref =
+      Keyword.get(opts, @list_function)
 
-  def default_value(
-        %{source: source, module: module},
-        %{context: context},
-        :list_function_paginated = function_name
-      ) do
     create_connector(
       context,
-      ["list_#{source}_paginated", "list_#{module}_paginated"],
+      function_ref,
+      ["list_#{source}", "list_#{module}"],
       1,
-      function_name
+      resource_name,
+      auix_action_name
     )
   end
 
-  def default_value(%{module: module}, %{context: context}, :get_function = function_name) do
-    create_connector(context, ["get_#{module}", "get_#{module}!"], 2, function_name)
+  def option_value(
+        %{source: source, module: module},
+        %{context: context, name: resource_name},
+        opts,
+        @list_function_paginated = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @list_function_paginated)
+
+    create_connector(
+      context,
+      function_ref,
+      ["list_#{source}_paginated", "list_#{module}_paginated"],
+      1,
+      resource_name,
+      auix_action_name
+    )
   end
 
-  def default_value(%{module: module}, %{context: context}, :delete_function = function_name) do
-    create_connector(context, ["delete_#{module}", "delete_#{module}!"], 1, function_name)
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        @get_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @get_function)
+
+    create_connector(
+      context,
+      function_ref,
+      ["get_#{module}", "get_#{module}!"],
+      2,
+      resource_name,
+      auix_action_name
+    )
   end
 
-  def default_value(%{module: module}, %{context: context}, :create_function = function_name) do
-    create_connector(context, ["create_#{module}"], 1, function_name)
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        @delete_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @delete_function)
+
+    create_connector(
+      context,
+      function_ref,
+      ["delete_#{module}", "delete_#{module}!"],
+      1,
+      resource_name,
+      auix_action_name
+    )
   end
 
-  def default_value(%{module: module}, %{context: context}, :update_function = function_name) do
-    create_connector(context, ["update_#{module}"], 2, function_name)
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        @create_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @create_function)
+
+    create_connector(
+      context,
+      function_ref,
+      ["create_#{module}"],
+      1,
+      resource_name,
+      auix_action_name
+    )
   end
 
-  def default_value(%{module: module}, %{context: context}, :change_function = function_name) do
-    create_connector(context, ["change_#{module}"], 2, function_name)
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        :update_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @update_function)
+
+    create_connector(
+      context,
+      function_ref,
+      ["update_#{module}"],
+      2,
+      resource_name,
+      auix_action_name
+    )
   end
 
-  def default_value(%{module: module}, %{context: context}, :new_function = function_name) do
-    create_connector(context, ["new_#{module}"], 2, function_name)
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        :change_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @change_function)
+
+    create_connector(
+      context,
+      function_ref,
+      ["change_#{module}"],
+      2,
+      resource_name,
+      auix_action_name
+    )
+  end
+
+  def option_value(
+        %{module: module},
+        %{context: context, name: resource_name},
+        opts,
+        :new_function = auix_action_name
+      ) do
+    function_ref = Keyword.get(opts, @new_function)
+    create_connector(context, function_ref, ["new_#{module}"], 2, resource_name, auix_action_name)
   end
 
   @doc false
   # Placeholder function used when no valid function reference is found.
   @spec undefined_function(term(), term()) :: nil
-  def undefined_function(_arg1, _arg2 \\ nil), do: nil
+  def undefined_function(_arg1 \\ nil, _arg2 \\ nil), do: nil
 
   ## PRIVATE
 
   # Creates a Connector wrapping a CrudSpec with the discovered function reference.
-  @spec create_connector(module() | nil, list(), integer(), atom()) :: Connector.t()
-  defp create_connector(context, functions, arity, function_name) do
+  @spec create_connector(nil | module(), nil | function(), list(), integer(), atom(), atom()) ::
+          Connector.t()
+  defp create_connector(
+         context,
+         function_in_opts,
+         functions,
+         arity,
+         resource_name,
+         auix_action_name
+       ) do
     context
-    |> create_function_reference(functions, arity)
-    |> CrudSpec.new(function_name)
+    |> create_function_reference(function_in_opts, functions, arity)
+    |> notify_error(resource_name, auix_action_name, arity)
+    |> CrudSpec.new(auix_action_name)
     |> Connector.new(:ctx)
   end
 
   # Discovers and creates a function reference from the context module.
-  @spec create_function_reference(module() | nil, list(), integer()) :: function()
-  defp create_function_reference(nil, _functions, _expected_arity),
-    do: &__MODULE__.undefined_function/2
+  @spec create_function_reference(nil | module(), nil | function(), list(), integer()) ::
+          nil | function()
+  defp create_function_reference(nil, nil, _functions, expected_arity) do
+    {function_ref, _} =
+      Code.eval_string("&#{__MODULE__}.undefined_function/#{expected_arity}")
 
-  defp create_function_reference(context, [first_selected | _rest] = functions, expected_arity) do
+    function_ref
+  end
+
+  defp create_function_reference(context, nil, functions, expected_arity) do
     implemented_functions =
       :functions
       |> context.__info__()
       |> Enum.filter(fn {_name, arity} -> arity == expected_arity end)
       |> Enum.map(&(&1 |> elem(0) |> to_string()))
 
-    function_name =
+    auix_action_name =
       functions
       |> Enum.filter(&(&1 in implemented_functions))
-      |> List.first(first_selected)
+      |> List.first()
 
-    context
-    |> Module.concat(nil)
-    |> then(&"&#{&1}.#{function_name}/#{expected_arity}")
-    |> Code.eval_string()
-    |> elem(0)
+    if auix_action_name do
+      context
+      |> Module.concat(nil)
+      |> then(&"&#{&1}.#{auix_action_name}/#{expected_arity}")
+      |> Code.eval_string()
+      |> elem(0)
+    else
+      nil
+    end
   end
+
+  defp create_function_reference(_context, function_in_opts, _functions, expected_arity)
+       when is_function(function_in_opts, expected_arity), do: function_in_opts
+
+  @spec notify_error(nil | function(), atom(), atom(), integer) :: function()
+  defp notify_error(nil, resource_name, auix_action_name, arity),
+    do:
+      raise(
+        "Function reference error in option ':#{auix_action_name}' of resource ':#{resource_name}', expected a valid and existing function of arity '#{arity}'"
+      )
+
+  defp notify_error(function_ref, _resource_name, _auix_action_name, _arity), do: function_ref
 end

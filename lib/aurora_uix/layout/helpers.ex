@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Layout.Helpers do
                                        :fields_parser_integration_modules,
                                        ash: Aurora.Uix.Integration.Ash.FieldsParser,
                                        ctx: Aurora.Uix.Integration.Ctx.FieldsParser,
-                                       none: Aurora.Uix.Integration.None.FieldsParser
+                                       default: Aurora.Uix.Integration.Default.FieldsParser
                                      )
                                      |> Map.new()
 

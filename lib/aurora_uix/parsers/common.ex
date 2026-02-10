@@ -54,39 +54,40 @@ defmodule Aurora.Uix.Parsers.Common do
   ## Returns
   term() - The resolved default value for the property.
   """
-  @spec default_value(map(), map(), atom()) :: term()
-  def default_value(_parsed_opts, %{schema: module}, :module) do
+  @spec option_value(map(), map(), keyword(), atom()) :: term()
+  def option_value(_parsed_opts, %{schema: module}, _opts, :module) do
     module
     |> Module.split()
     |> List.last()
     |> Macro.underscore()
   end
 
-  def default_value(_parsed_opts, %{schema: module}, :module_name) do
+  def option_value(_parsed_opts, %{schema: module}, _opts, :module_name) do
     module
     |> Module.split()
     |> List.last()
   end
 
-  def default_value(_parsed_opts, %{schema: module}, :name) do
+  def option_value(_parsed_opts, %{schema: module}, _opts, :name) do
     module
     |> Module.split()
     |> List.last()
     |> CommonHelper.capitalize()
   end
 
-  def default_value(_parsed_opts, %{schema: module}, :source), do: module.__schema__(:source)
+  def option_value(_parsed_opts, %{schema: module}, _opts, :source),
+    do: module.__schema__(:source)
 
-  def default_value(_parsed_opts, %{schema: module}, :source_key),
+  def option_value(_parsed_opts, %{schema: module}, _opts, :source_key),
     do: :source |> module.__schema__() |> CommonHelper.safe_atom()
 
-  def default_value(_parsed_opts, %{schema: module}, :title) do
+  def option_value(_parsed_opts, %{schema: module}, _opts, :title) do
     :source
     |> module.__schema__()
     |> CommonHelper.capitalize()
   end
 
-  def default_value(_parsed_opts, %{schema: module}, :primary_key) do
+  def option_value(_parsed_opts, %{schema: module}, _opts, :primary_key) do
     module.__schema__(:primary_key)
   end
 end
