@@ -177,7 +177,7 @@ defmodule Aurora.Uix.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:wallaby, "~> 0.30", only: :test, runtime: false}
     ]
