@@ -160,16 +160,20 @@ Wallaby runs browser-based integration tests. Follow the [Wallaby setup guide](h
 
 Start test servers to manually validate your changes:
 
+#### Phoenix server with guides routes
 ```bash
 # Development server
 mix phx.server
 
 # Development server with iex
 iex -S mix phx.server
+```
+<a name="server-under-test-environment"></a>
+#### Server under test environment
 
-# Test server with all test UIs
+All routes will be available
+```bash
 MIX_ENV=test iex --dot-iex "test/start_test_server.exs" -S mix
-
 ```
 
 Test routes are configured in [`test/support/app_web/routes.ex`](test/support/app_web/routes.ex).
@@ -178,15 +182,14 @@ Test routes are configured in [`test/support/app_web/routes.ex`](test/support/ap
 
 When testing locally, use helpers to create sample data:
 
-```bash
-# In iex with test server running:
-iex> Aurora.Uix.Test.Helper.create_sample_products_with_transactions(100, 3, :use_any_prefix)
-iex> Aurora.Uix.Test.Helper.create_sample_product_locations(5, :eraseme)
-iex> Aurora.Uix.Test.Helper.create_sample_users(1, %{emails: [%{email: "one@test.com"}]})
-iex> Aurora.Uix.Test.Helper.delete_all_sample_data()
+Start the [test server](#server-under-test-environment), it will open an iex session.
+
+```elixir
+# In iex> with test server running:
+Aurora.Uix.Test.Helper.create_overview_sample_data()
 ```
 
-> **Keep in mind**: Sample data created in the iex are persisted (not sandboxed).
+> **Keep in mind**: All data will be deleted and recreated persistently (not sandboxed).
 
 See [`test/support/helper.ex`](test/support/helper.ex) for more helper functions.
 
@@ -223,24 +226,32 @@ Some guides include screenshots. Recommended dimensions:
 - **Desktop**: 1024px × 768px at 100% zoom
 - **Mobile**: 412px × 915px (Google Pixel 7)
 
-To capture screenshots on macOS:
+To capture screenshots:
+- All at once
+
+All the images are generated with proper data and format. This is the simplest way.
+If you need to add or modify an image, do it in the "test/guides/capture_image.exs"
 
 ```bash
-# Start a Phoenix server on your preferred environment
-mix phx.server
+MIX_ENV=test mix documentation
+```
 
+- Manually
+Start the [test server](#server-under-test-environment)
+
+```bash
 # Open Firefox Desktop Size
 /Applications/Firefox.app/Contents/MacOS/firefox \
-  -width 1024 -height 768 -new-instance "http://localhost:4001/guide-overview-products"
+  -width 1024 -height 768 -new-instance "http://localhost:4001/guides-overview/products"
 
 # Open Firefox Mobile Size
 /Applications/Firefox.app/Contents/MacOS/firefox \
-  -width 412 -height 915 -new-instance "http://localhost:4001/guide-overview-products"
+  -width 412 -height 915 -new-instance "http://localhost:4001/guides-overview/products"
 
 # Capture with Screenshot app or use browser extensions
 ```
 
-We use [FireShot](http://getfireshot.com/) for page captures.
+We use [FireShot](http://getfireshot.com/) for some manual page captures.
 
 ---
 ## Commit Conventions

@@ -57,13 +57,24 @@ end
 
 Generated layouts:
 - **Index**: Shows all fields in table columns
-- **Edit/Show**: Displays fields in vertical (stacked) order
 
 <!-- Screenshot captured in test server URL: create-ui-default-layout-products -->
 <!-- ../../test/cases_live/create_ui_default_layout_test.exs -->
-<img src="./images/layouts/default-index.png" width="600"/>
-<img src="./images/layouts/default-show.png" width="600"/>
-<img src="./images/layouts/default-edit.png" width="600"/>
+<div align="center">
+    <img src="./images/layouts/default_index-desktop.png" width="600"/>
+</div>
+
+- **Show**: Displays fields in vertical (stacked) order
+
+<div align="center">
+    <img src="./images/layouts/default_show-desktop.png" width="600"/>
+</div>
+
+- **Edit**: The same layout for edition mode
+
+<div align="center">
+    <img src="./images/layouts/default_edit-desktop.png" width="600"/>
+</div>
 
 ### 2. Inline Layout — Horizontal Field Arrangement
 <!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-product_locations -->
@@ -79,7 +90,9 @@ end
 
 **Result**: Three fields displayed horizontally in a single row.
 
-<img src="./images/layouts/inline-1.png" width="400"/>
+<div align="center">
+    <img src="./images/layouts/inline_1-desktop.png" width="400"/>
+</div>
 
 ### 3. Stacked Layout — Vertical Field Arrangement
 <!-- Screenshot captured in test server URL: association-many_to_one_selector-layout-products -->
@@ -103,7 +116,9 @@ end
 
 **Result**: Fields are displayed vertically in a column.
 
-<img src="./images/layouts/stacked-1.png" width="400"/>
+<div align="center">
+    <img src="./images/layouts/stacked_1-desktop.png" width="400"/>
+</div>
 
 ### 4. Group Layout — Bordered Field Grouping
 <!-- Screenshot captured in test server URL: group-ui-layout-products -->
@@ -130,7 +145,9 @@ end
 
 **Result**: Fields grouped in a bordered section with a title.
 
-<img src="./images/layouts/group-1.png" width="600"/>
+<div align="center">
+    <img src="./images/layouts/group-1.png" width="600"/>
+</div>
 
 ### 5. Sections Layout — Tabbed Interface
 <!-- Screenshot captured in test server URL: section-ui-layout-products -->
@@ -162,8 +179,13 @@ Use `sections` with `section` blocks to create a tabbed interface:
 
 **Result**: Multiple tabs; clicking a tab shows only that section's fields.
 
-<img src="./images/layouts/sections-1.png" width="600"/>
-<img src="./images/layouts/sections-2.png" width="600"/>
+<div align="center">
+    <img src="./images/layouts/sections-1.png" width="600"/>
+</div>
+
+<div align="center">
+    <img src="./images/layouts/sections-2.png" width="600"/>
+</div>
 
 ### 6. Complex Nested Layout
 <!-- Screenshot captured in test server URL: nested-sections-ui-layout-products -->
@@ -224,10 +246,17 @@ Combine all layout types for sophisticated UIs:
 - Middle: Tabbed sections for description and quantities
 - Bottom: Price field
 
-<img src="./images/layouts/nested-1.png" width="600"/>
-<img src="./images/layouts/nested-2.png" width="600"/>
-<img src="./images/layouts/nested-3.png" width="600"/>
+<div align="center">
+    <img src="./images/layouts/nested-1.png" width="600"/>
+</div>
 
+<div align="center">
+    <img src="./images/layouts/nested-2.png" width="600"/>
+</div>
+
+<div align="center">
+    <img src="./images/layouts/nested-3.png" width="600"/>
+</div>
 ## Layout Customization
 
 ### Layout Options by Type
