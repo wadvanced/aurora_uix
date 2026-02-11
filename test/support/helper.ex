@@ -68,14 +68,21 @@ defmodule Aurora.Uix.Test.Helper do
   - `product_count` (integer()) - Number of products to create.
   - `transactions_count` (integer()) - Number of transactions per product.
   - `prefix` (atom() | nil) - Prefix for product references.
+  - `attrs` (map()) - Attributes to override defaults.
 
   ## Returns
   map() - Map of product IDs with associated transactions.
   """
-  @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil) :: map()
-  def create_sample_products_with_transactions(product_count, transactions_count, prefix \\ nil) do
+  @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil, map() | nil) ::
+          map()
+  def create_sample_products_with_transactions(
+        product_count,
+        transactions_count,
+        prefix \\ nil,
+        attrs \\ %{}
+      ) do
     product_count
-    |> create_sample_products(prefix)
+    |> create_sample_products(prefix, attrs)
     |> Enum.map(&create_sample_product_transactions(&1, transactions_count))
   end
 
@@ -148,6 +155,29 @@ defmodule Aurora.Uix.Test.Helper do
         |> Enum.filter(&(elem(&1, 0) in [:name, :email, :bio]))
 
       Author
+      |> Ash.Changeset.for_create(:create, change)
+      |> Ash.create!()
+    end)
+  end
+
+  @doc """
+  Creates sample categories.
+  """
+  @spec create_sample_categories(non_neg_integer(), map()) :: :ok
+  def create_sample_categories(count, attrs \\ %{}) do
+    length = count |> to_string() |> String.length()
+
+    Enum.map(1..count, fn index ->
+      change =
+        %Category{
+          name: "Category-#{index}",
+          description: "Category for #{index} selected"
+        }
+        |> struct(attrs)
+        |> Map.from_struct()
+        |> Enum.filter(&(elem(&1, 0) in [:name, :description]))
+
+      Category
       |> Ash.Changeset.for_create(:create, change)
       |> Ash.create!()
     end)
@@ -233,6 +263,46 @@ defmodule Aurora.Uix.Test.Helper do
   def to_boolean(value) when is_number(value), do: value != 0
 
   def to_boolean(_value), do: false
+
+  def create_overview_sample_data do
+    delete_all_sample_data()
+
+    product_locations =
+      ["North", "South", "East", "West"]
+      |> Enum.map(fn location ->
+        id = String.downcase(location)
+
+        Aurora.Uix.Guides.Inventory.create_product_location(%{
+          reference: "overview-#{id}",
+          name: "#{location} Side",
+          type: "type-#{:rand.uniform(5)}"
+        })
+      end)
+
+    create_sample_products_with_transactions(100, 3, :overview, %{
+      quantity_initial: :rand.uniform(999),
+      product_location_id:
+        product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
+    })
+
+    blog_count = 5
+    categories = create_sample_categories(blog_count)
+
+    authors =
+      create_sample_authors(blog_count)
+
+    1..blog_count
+    |> Enum.each(fn index ->
+      reference_id = reference_id("overview", index, 1)
+
+      create_sample_posts(1, %{
+        title: "Post#{reference_id}",
+        content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
+        author_id: Enum.at(authors, index - 1).id,
+        category_id: Enum.at(categories, index - 1).id
+      })
+    end)
+  end
 
   ## PRIVATE ##
 

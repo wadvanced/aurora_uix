@@ -40,6 +40,8 @@ defmodule Aurora.Uix.MixProject do
         assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
         extras: [
           "CHANGELOG.md",
+          "README.md",
+          "CONTRIBUTING.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
           "guides/core/resource_metadata.md",
@@ -52,7 +54,8 @@ defmodule Aurora.Uix.MixProject do
         groups_for_extras: [
           Introduction: ~r{guides/introduction/.*},
           Core: ~r{guides/core/.*},
-          Advanced: ~r{guides/advanced/.*}
+          Advanced: ~r{guides/advanced/.*},
+          Developers: ~r{CONTRIBUTING*}
         ],
         groups_for_modules: [
           "Core Data Structures": [
@@ -226,13 +229,14 @@ defmodule Aurora.Uix.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
+      {:image, "~> 0.37", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:wallaby, "~> 0.30", only: :test, runtime: false}
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support/", "test/cases_live"]
+  defp elixirc_paths(:test), do: ["lib", "test/support/"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp xref(:test) do
@@ -301,6 +305,10 @@ defmodule Aurora.Uix.MixProject do
         "credo --strict",
         "dialyzer",
         "doctor"
+      ],
+      documentation: [
+        "test test/guides/capture_images.exs",
+        "docs"
       ]
     ]
   end

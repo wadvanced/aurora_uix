@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket with routing stack and form component.
+  `{:noreply, Socket.t()}` - Updated socket with routing stack and form component.
   """
   @callback auix_handle_params(params :: map(), url :: binary(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -136,7 +136,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  {:ok, Socket.t()} - The initialized socket with streamed entities from context.
+  `{:ok, Socket.t()}` - The initialized socket with streamed entities from context.
   """
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
@@ -179,7 +179,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket with routing stack, form component, and action applied.
+  `{:noreply, Socket.t()}` - Updated socket with routing stack, form component, and action applied.
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_params(params, url, socket) do
@@ -211,7 +211,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket after event handling.
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
   """
   @spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_event(
@@ -502,7 +502,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket with entity inserted into stream or unchanged.
+  `{:noreply, Socket.t()}` - Updated socket with entity inserted into stream or unchanged.
   """
   @spec handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_info(
@@ -527,7 +527,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  {:noreply, Socket.t()} - Updated socket with the new selection.
+  `{:noreply, Socket.t()}` - Updated socket with the new selection.
   """
   @spec handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_async(
