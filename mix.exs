@@ -307,7 +307,8 @@ defmodule Aurora.Uix.MixProject do
         "doctor"
       ],
       documentation: [
-        "test test/guides/capture_images.exs",
+        "test test/guides/capture_overview_images.exs",
+        "test test/guides/capture_layout_images.exs",
         "docs"
       ]
     ]

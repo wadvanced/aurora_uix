@@ -281,6 +281,8 @@ defmodule Aurora.Uix.Test.Helper do
 
     create_sample_products_with_transactions(100, 3, :overview, %{
       quantity_initial: :rand.uniform(999),
+      list_price: :rand.uniform(250) + 200,
+      rpp: :rand.uniform(250),
       product_location_id:
         product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
     })

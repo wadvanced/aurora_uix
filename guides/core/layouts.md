@@ -64,13 +64,13 @@ Generated layouts:
     <img src="./images/layouts/default_index-desktop.png" width="600"/>
 </div>
 
-- **Show**: Displays fields in vertical (stacked) order
+- **Show / Edit**: Displays fields in vertical (stacked) order
 
 <div align="center">
     <img src="./images/layouts/default_show-desktop.png" width="600"/>
 </div>
 
-- **Edit**: The same layout for edition mode
+---
 
 <div align="center">
     <img src="./images/layouts/default_edit-desktop.png" width="600"/>
@@ -142,11 +142,26 @@ edit_layout :product do
   group "Product Info", [:reference, :name, :description]
 end
 ```
+For example:
 
+```elixir
+edit_layout :product, [] do
+  inline([:reference, :name, :description])
+
+  group "Quantities" do
+    inline([:quantity_at_hand, :quantity_initial])
+  end
+
+  group "Sale Prices" do
+    stacked([:list_price, :rrp])
+  end
+end
+
+```
 **Result**: Fields grouped in a bordered section with a title.
 
 <div align="center">
-    <img src="./images/layouts/group-1.png" width="600"/>
+    <img src="./images/layouts/group_1-desktop.png" width="600"/>
 </div>
 
 ### 5. Sections Layout — Tabbed Interface
@@ -180,11 +195,13 @@ Use `sections` with `section` blocks to create a tabbed interface:
 **Result**: Multiple tabs; clicking a tab shows only that section's fields.
 
 <div align="center">
-    <img src="./images/layouts/sections-1.png" width="600"/>
+    <img src="./images/layouts/sections_1-desktop.png" width="600"/>
 </div>
 
+---
+
 <div align="center">
-    <img src="./images/layouts/sections-2.png" width="600"/>
+    <img src="./images/layouts/sections_2-desktop.png" width="600"/>
 </div>
 
 ### 6. Complex Nested Layout
@@ -247,15 +264,19 @@ Combine all layout types for sophisticated UIs:
 - Bottom: Price field
 
 <div align="center">
-    <img src="./images/layouts/nested-1.png" width="600"/>
+    <img src="./images/layouts/nested_1-desktop.png" width="600"/>
 </div>
 
-<div align="center">
-    <img src="./images/layouts/nested-2.png" width="600"/>
-</div>
+---
 
 <div align="center">
-    <img src="./images/layouts/nested-3.png" width="600"/>
+    <img src="./images/layouts/nested_2-desktop.png" width="600"/>
+</div>
+
+---
+
+<div align="center">
+    <img src="./images/layouts/nested_3-desktop.png" width="600"/>
 </div>
 ## Layout Customization
 
