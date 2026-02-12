@@ -1765,6 +1765,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-one-to-many-field {
         display: flex;
         flex-direction: column;
+        width: stretch;
         gap: var(--auix-gap-default);
       }
     """
