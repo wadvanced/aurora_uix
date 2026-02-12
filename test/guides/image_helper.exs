@@ -118,7 +118,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   # Pauses execution briefly to allow UI rendering to complete
   @spec pause(Wallaby.Session.t()) :: Wallaby.Session.t()
   defp pause(session) do
-    Process.sleep(100)
+    Process.sleep(500)
     session
   end
 
