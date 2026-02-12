@@ -33,14 +33,14 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
 
     # index
     |> visit(url)
-    |> capture(:index, screen_size, target, %{
+    |> capture(:ash_index, screen_size, target, %{
       desktop: [center_crop_width: 896, center_crop_height: 960],
       mobile: [crop_height: 1_024]
     })
 
     # show
     |> visit("#{url}/#{post_id}/show")
-    |> capture(:show, screen_size, target, %{
+    |> capture(:ash_show, screen_size, target, %{
       all: [
         click: "input[id^='auix-field-post-title-'][id$='#{post_id}--show']"
       ],
@@ -50,7 +50,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
 
     # edit
     |> visit("#{url}/#{post_id}/edit")
-    |> capture(:edit, screen_size, target, %{
+    |> capture(:ash_edit, screen_size, target, %{
       all: [
         click: "input[id^='auix-field-post-title-'][id$='#{post_id}--form']"
       ],

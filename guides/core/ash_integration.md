@@ -193,37 +193,37 @@ Here are the generated items
 #### Desktop generation
 
 <div align="center">
-    <img src="./images/ash/index-desktop.png" width="600" alt="Post list with status"/>
+    <img src="./images/ash/ash_index-desktop.png" width="600" alt="Post list with status"/>
 </div>
 
 ---
 
 <div align="center">
-    <img src="./images/ash/show-desktop.png" width="600" alt="Show the record"/>
+    <img src="./images/ash/ash_show-desktop.png" width="600" alt="Show the record"/>
 </div>
 
 ---
 
 <div align="center">
-    <img src="./images/ash/edit-desktop.png" width="600" alt="Record editing"/>
+    <img src="./images/ash/ash_edit-desktop.png" width="600" alt="Record editing"/>
 </div>
 
 #### Mobile generation
 
 <div align="center">
-    <img src="./images/ash/index-mobile.png" width="300" alt="Post list with status"/>
+    <img src="./images/ash/ash_index-mobile.png" width="300" alt="Post list with status"/>
 </div>
 
 ---
 
 <div align="center">
-    <img src="./images/ash/show-mobile.png" width="300" alt="Show the record"/>
+    <img src="./images/ash/ash_show-mobile.png" width="300" alt="Show the record"/>
 </div>
 
 ---
 
 <div align="center">
-    <img src="./images/ash/edit-mobile.png" width="300" alt="Record editing"/>
+    <img src="./images/ash/ash_edit-mobile.png" width="300" alt="Record editing"/>
 </div>
 ## Configuration Options
 

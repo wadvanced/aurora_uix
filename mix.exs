@@ -304,10 +304,6 @@ defmodule Aurora.Uix.MixProject do
         "credo --strict",
         "dialyzer",
         "doctor"
-      ],
-      documentation: [
-        "test test/guides/capture_overview_images.exs test/guides/capture_layout_images.exs",
-        "docs"
       ]
     ]
   end

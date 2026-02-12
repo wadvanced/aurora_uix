@@ -246,7 +246,7 @@ defmodule Aurora.Uix.Test.Helper do
       reference_id = reference_id("overview", index, 1)
 
       create_sample_posts(1, %{
-        title: "Post#{reference_id}",
+        title: "Overview Post #{index}",
         content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
         author_id: Enum.at(authors, index - 1).id,
         category_id: Enum.at(categories, index - 1).id
