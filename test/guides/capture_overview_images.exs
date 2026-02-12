@@ -10,7 +10,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
   alias Wallaby.Session
 
   feature "create_images", %{session: session} do
-    create_overview_sample_data()
+    create_guides_sample_data()
 
     session
     |> create_overview_images(:desktop)

@@ -186,7 +186,7 @@ Start the [test server](#server-under-test-environment), it will open an iex ses
 
 ```elixir
 # In iex> with test server running:
-Aurora.Uix.Test.Helper.create_overview_sample_data()
+Aurora.Uix.Test.Helper.create_guides_sample_data()
 ```
 
 > **Keep in mind**: All data will be deleted and recreated persistently (not sandboxed).

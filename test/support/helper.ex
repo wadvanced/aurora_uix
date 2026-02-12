@@ -213,8 +213,8 @@ defmodule Aurora.Uix.Test.Helper do
   @doc """
   Create overview sample data.
   """
-  @spec create_overview_sample_data() :: :ok
-  def create_overview_sample_data do
+  @spec create_guides_sample_data() :: :ok
+  def create_guides_sample_data do
     delete_all_sample_data()
 
     product_locations =

@@ -16,7 +16,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
   @screen_sizes %{desktop: %{width: 1_024, height: 768}, mobile: %{width: 412, height: 915}}
 
   feature "create_images", %{session: session} do
-    create_overview_sample_data()
+    create_guides_sample_data()
 
     create_layout_images(session, :desktop)
   end
