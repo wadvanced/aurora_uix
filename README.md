@@ -187,7 +187,7 @@ Aurora UIX is **best suited** when:
 ---
 ## 📖 Documentation & Guides
 
-Complete documentation is available in the [guides/](./guides/) directory and on [HexDocs](https://hexdocs.pm/aurora_uix):
+Complete documentation is available in the [guides](./guides/overview/overview.md) and on [HexDocs](https://hexdocs.pm/aurora_uix):
 
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
@@ -231,7 +231,7 @@ We welcome contributions! Aurora UIX is maintained by WAdvanced and community me
 ---
 ## 📜 License
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE.md).
 
 ---
 ## 📧 Contact

@@ -205,7 +205,7 @@ See [`test/support/helper.ex`](test/support/helper.ex) for more helper functions
 
 ### Guides & Examples
 
-Help improve our guides! They're in the [`guides/`](guides/) directory:
+Help improve our [guides](guides/overview/overview.md)!
 
 - `guides/introduction/` — Getting started
 - `guides/core/` — Core concepts

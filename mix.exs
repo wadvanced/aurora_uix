@@ -40,7 +40,6 @@ defmodule Aurora.Uix.MixProject do
         assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
         extras: [
           "CHANGELOG.md",
-          "README.md",
           "CONTRIBUTING.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
