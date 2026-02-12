@@ -34,8 +34,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
         } = assigns
       )
       when is_atom(field_name) do
-    inner_elements = get_association_paths(field_struct, auix.configurations, :show)
-    association_label = get_in(auix.configurations, [field_struct.resource, :parsed_opts, :name])
+    inner_elements =
+      get_association_paths(field_struct, auix.configurations, :show)
+
+    association_label =
+      get_in(auix.configurations, [field_struct.data.resource, :parsed_opts, :name])
 
     assigns
     |> put_in([:auix, :layout_tree], %{
