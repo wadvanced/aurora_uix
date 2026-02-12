@@ -12,7 +12,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     opts = get_options(screen_size, options_set)
 
     session
-    |> set_window_prefs(screen_size, opts)
+    |> set_window_prefs(opts)
     |> pause()
     |> take_screenshot(name: file_name, log: true)
     |> transform_image(file_name, opts)
@@ -66,7 +66,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     :ok
   end
 
-  defp set_window_prefs(session, screen_size, opts) do
+  defp set_window_prefs(session, opts) do
     Enum.reduce(opts, session, &apply_opt(&2, &1))
   end
 
