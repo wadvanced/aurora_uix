@@ -21,6 +21,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     create_layout_images(session, :desktop)
   end
 
+  @spec create_layout_images(Session.t(), atom()) :: Session.t()
   defp create_layout_images(session, screen_size) do
     product_id = get_product("item_overview-010").id
     product_location_id = get_product("item_overview-010").product_location_id
@@ -56,11 +57,11 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     })
 
     # inline layout
-    url = "/association-many_to_one_selector-layout-product_locations"
+    url_inline = "/association-many_to_one_selector-layout-product_locations"
 
     # edit
     session
-    |> visit("#{url}/#{product_location_id}/edit")
+    |> visit("#{url_inline}/#{product_location_id}/edit")
     |> capture(:inline_1, screen_size, target, %{
       desktop: [
         click:
@@ -72,10 +73,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # stacked layout
     # edit
-    url = "/association-many_to_one_selector-layout-products"
+    url_stacked = "/association-many_to_one_selector-layout-products"
 
     session
-    |> visit("#{url}/#{product_id}/edit")
+    |> visit("#{url_stacked}/#{product_id}/edit")
     |> capture(:stacked_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
@@ -85,10 +86,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # group layout
     # edit
-    url = "group-ui-layout-products"
+    url_group = "group-ui-layout-products"
 
     session
-    |> visit("#{url}/#{product_id}/edit")
+    |> visit("#{url_group}/#{product_id}/edit")
     |> capture(:group_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
@@ -98,10 +99,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # section layout
     # edit
-    url = "section-ui-layout-products"
+    url_section = "section-ui-layout-products"
 
     session
-    |> visit("#{url}/#{product_id}/edit")
+    |> visit("#{url_section}/#{product_id}/edit")
     |> capture(:sections_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
@@ -118,10 +119,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     })
 
     # nested sections
-    url = "nested-sections-ui-layout-products"
+    url_nested = "nested-sections-ui-layout-products"
 
     session
-    |> visit("#{url}/#{product_id}/edit")
+    |> visit("#{url_nested}/#{product_id}/edit")
     |> capture(:nested_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",

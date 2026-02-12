@@ -7,6 +7,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
 
   import Aurora.UixWeb.Test.Guides.ImageHelper
   alias Wallaby.Query
+  alias Wallaby.Session
 
   feature "create_images", %{session: session} do
     create_overview_sample_data()
@@ -16,6 +17,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
     |> create_overview_images(:mobile)
   end
 
+  @spec create_overview_images(Session.t(), atom()) :: Session.t()
   defp create_overview_images(session, screen_size) do
     product_id = get_product("item_overview-001").id
 

@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Guides.Blog.Author
   alias Aurora.Uix.Guides.Blog.Category
   alias Aurora.Uix.Guides.Blog.Post
+  alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
@@ -210,6 +211,50 @@ defmodule Aurora.Uix.Test.Helper do
   end
 
   @doc """
+  Create overview sample data.
+  """
+  @spec create_overview_sample_data() :: :ok
+  def create_overview_sample_data do
+    delete_all_sample_data()
+
+    product_locations =
+      Enum.map(["North", "South", "East", "West"], fn location ->
+        id = String.downcase(location)
+
+        Inventory.create_product_location(%{
+          reference: "overview-#{id}",
+          name: "#{location} Side",
+          type: "type-#{:rand.uniform(5)}"
+        })
+      end)
+
+    create_sample_products_with_transactions(100, 3, :overview, %{
+      quantity_initial: :rand.uniform(999),
+      list_price: :rand.uniform(250) + 200,
+      rpp: :rand.uniform(250),
+      product_location_id:
+        product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
+    })
+
+    blog_count = 5
+    categories = create_sample_categories(blog_count)
+
+    authors =
+      create_sample_authors(blog_count)
+
+    Enum.each(1..blog_count, fn index ->
+      reference_id = reference_id("overview", index, 1)
+
+      create_sample_posts(1, %{
+        title: "Post#{reference_id}",
+        content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
+        author_id: Enum.at(authors, index - 1).id,
+        category_id: Enum.at(categories, index - 1).id
+      })
+    end)
+  end
+
+  @doc """
   Deletes all inventory data. 
   """
   @spec delete_all_inventory_data() :: :ok
@@ -263,48 +308,6 @@ defmodule Aurora.Uix.Test.Helper do
   def to_boolean(value) when is_number(value), do: value != 0
 
   def to_boolean(_value), do: false
-
-  def create_overview_sample_data do
-    delete_all_sample_data()
-
-    product_locations =
-      ["North", "South", "East", "West"]
-      |> Enum.map(fn location ->
-        id = String.downcase(location)
-
-        Aurora.Uix.Guides.Inventory.create_product_location(%{
-          reference: "overview-#{id}",
-          name: "#{location} Side",
-          type: "type-#{:rand.uniform(5)}"
-        })
-      end)
-
-    create_sample_products_with_transactions(100, 3, :overview, %{
-      quantity_initial: :rand.uniform(999),
-      list_price: :rand.uniform(250) + 200,
-      rpp: :rand.uniform(250),
-      product_location_id:
-        product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
-    })
-
-    blog_count = 5
-    categories = create_sample_categories(blog_count)
-
-    authors =
-      create_sample_authors(blog_count)
-
-    1..blog_count
-    |> Enum.each(fn index ->
-      reference_id = reference_id("overview", index, 1)
-
-      create_sample_posts(1, %{
-        title: "Post#{reference_id}",
-        content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
-        author_id: Enum.at(authors, index - 1).id,
-        category_id: Enum.at(categories, index - 1).id
-      })
-    end)
-  end
 
   ## PRIVATE ##
 
