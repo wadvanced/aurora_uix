@@ -6,7 +6,6 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
   use Wallaby.Feature
 
   import Aurora.UixWeb.Test.Guides.ImageHelper
-  alias Wallaby.Query
   alias Wallaby.Session
 
   feature "create_images", %{session: session} do
@@ -34,8 +33,8 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
     # index
     |> visit(url)
     |> capture(:ash_index, screen_size, target, %{
-      desktop: [center_crop_width: 896, center_crop_height: 960],
-      mobile: [crop_height: 1_024]
+      desktop: [center_crop_width: 896],
+      mobile: []
     })
 
     # show
@@ -45,7 +44,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
         click: "input[id^='auix-field-post-title-'][id$='#{post_id}--show']"
       ],
       desktop: [zoom: 0.80, center_crop_width: 672],
-      mobile: [center_crop_width: 640, crop_height: 1_440]
+      mobile: []
     })
 
     # edit

@@ -30,7 +30,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
     # index
     |> visit(url)
     |> capture(:index, screen_size, target, %{
-      desktop: [zoom: 0.70, center_crop_width: 1_280, center_crop_height: 1_024]
+      desktop: [zoom: 0.70, center_crop_width: 1_024, center_crop_height: 620]
     })
 
     # show
@@ -49,14 +49,14 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']"
       ],
       desktop: [zoom: 0.90, center_crop_width: 1_024],
-      mobile: [zoom: 0.75, center_crop_width: 800]
+      mobile: [zoom: 0.75, center_crop_width: 500]
     })
 
     # edit switching
     |> click(Query.css("button.auix-sections-tab-button--inactive"))
     |> capture(:edit_section_switching, screen_size, target, %{
       desktop: [zoom: 0.90, center_crop_width: 1_024],
-      mobile: [zoom: 0.75, center_crop_width: 800]
+      mobile: [zoom: 0.75, center_crop_width: 500]
     })
   end
 end
