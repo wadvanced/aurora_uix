@@ -32,7 +32,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
 
   auix_resource_metadata(:category, ash_resource: Category)
 
-  auix_resource_metadata(:comment, ash_resource: Comment) do
+  auix_resource_metadata(:post__comment, ash_resource: Comment) do
     field :description, html_type: :textarea
   end
 
