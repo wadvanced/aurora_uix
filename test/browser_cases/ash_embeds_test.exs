@@ -95,6 +95,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     tags
     |> Enum.reduce(session, fn tag_entry, acc ->
       acc
+      |> pause()
       |> fill_field(&new_embed_form/1, :name, tag_entry.name)
       |> click_and_wait(@do_add_button, Query.css("Success!"))
     end)
@@ -181,8 +182,9 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     if has_value?(session, field, value) do
       session
     else
-      Process.sleep(100)
-      wait_for_value(session, field, value, retries - 1)
+      session
+      |> pause()
+      |> wait_for_value(field, value, retries - 1)
     end
   end
 
@@ -198,4 +200,9 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
   @spec tag_equals?(map(), map()) :: boolean()
   defp tag_equals?(%{name: name}, %{name: name}), do: true
   defp tag_equals?(_tag, _expected_tag), do: false
+
+  defp pause(session) do
+    Process.sleep(100)
+    session
+  end
 end
