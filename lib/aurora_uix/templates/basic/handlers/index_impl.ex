@@ -44,6 +44,20 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Phoenix.LiveView.Socket
 
   @doc """
+  Initializes the LiveView socket for the index page.
+
+  ## Parameters
+  - `params` (map()) - URL/query parameters.
+  - `session` (map()) - Session data.
+  - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
+
+  ## Returns
+  `{:ok, Socket.t()}` - The initialized socket with streamed entities from context.
+  """
+  @callback auix_mount(params :: map(), session :: map(), socket :: Socket.t()) ::
+              {:ok, Socket.t()}
+
+  @doc """
   Handles URL parameter changes, updates routing stack, and assigns form component.
 
   ## Parameters
@@ -55,6 +69,51 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   `{:noreply, Socket.t()}` - Updated socket with routing stack and form component.
   """
   @callback auix_handle_params(params :: map(), url :: binary(), socket :: Socket.t()) ::
+              {:noreply, Socket.t()}
+
+  @doc """
+  Internally handles all LiveView events for the index page.
+
+  ## Parameters
+  - `event` (binary()) - Event name.
+  - `params` (map()) - Event parameters.
+  - `socket` (Socket.t()) - LiveView socket.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket after event handling.
+  """
+  @callback auix_handle_event(
+              event :: binary(),
+              params :: map(),
+              socket :: Socket.t()
+            ) ::
+              {:noreply, Socket.t()}
+
+  @doc """
+  Handles info messages for the index LiveView.
+
+  ## Parameters
+  - `message` (term()) - Info message.
+  - `socket` (Socket.t()) - LiveView socket.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket after handling message.
+  """
+  @callback auix_handle_info(message :: term(), socket :: Socket.t()) ::
+              {:noreply, Socket.t()}
+
+  @doc """
+  Handles async task results for the index LiveView.
+
+  ## Parameters
+  - `task` (atom()) - Task name.
+  - `result` (term()) - Async task result.
+  - `socket` (Socket.t()) - LiveView socket.
+
+  ## Returns
+  `{:noreply, Socket.t()}` - Updated socket after handling async result.
+  """
+  @callback auix_handle_async(task :: atom(), result :: term(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
   @doc """
@@ -89,7 +148,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl LiveView
-      defdelegate mount(params, session, socket), to: IndexImpl
+      def mount(params, session, socket), do: auix_mount(params, session, socket)
 
       @doc false
       @impl LiveView
@@ -104,15 +163,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl LiveView
-      defdelegate handle_event(event, params, socket), to: IndexImpl
+      def handle_event(event, params, socket), do: auix_handle_event(event, params, socket)
 
       @doc false
       @impl LiveView
-      defdelegate handle_info(input, socket), to: IndexImpl
+      def handle_info(input, socket), do: auix_handle_info(input, socket)
 
       @doc false
       @impl LiveView
-      defdelegate handle_async(task, result, socket), to: IndexImpl
+      def handle_async(task, result, socket), do: auix_handle_async(task, result, socket)
+
+      @doc false
+      @impl IndexImpl
+      defdelegate auix_mount(params, session, socket), to: IndexImpl
 
       @doc false
       @impl IndexImpl
@@ -120,9 +183,26 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl IndexImpl
+      defdelegate auix_handle_event(event, params, socket), to: IndexImpl
+
+      @doc false
+      @impl IndexImpl
+      defdelegate auix_handle_info(message, socket), to: IndexImpl
+
+      @doc false
+      @impl IndexImpl
+      defdelegate auix_handle_async(task, result, socket), to: IndexImpl
+
+      @doc false
+      @impl IndexImpl
       defdelegate apply_action(socket, params), to: IndexImpl
 
       defoverridable Phoenix.LiveView
+      defoverridable auix_mount: 3
+      defoverridable auix_handle_params: 3
+      defoverridable auix_handle_event: 3
+      defoverridable auix_handle_info: 2
+      defoverridable auix_handle_async: 3
       defoverridable apply_action: 2
     end
   end
@@ -138,8 +218,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   `{:ok, Socket.t()}` - The initialized socket with streamed entities from context.
   """
-  @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(params, _session, %{assigns: %{auix: auix}} = socket) do
+  @spec auix_mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_mount(params, _session, %{assigns: %{auix: auix}} = socket) do
     form_component = ModulesGenerator.module_name(auix, ".FormComponent")
     show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
 
@@ -213,8 +293,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   `{:noreply, Socket.t()}` - Updated socket after event handling.
   """
-  @spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
-  def handle_event(
+  @spec auix_handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
+  def auix_handle_event(
         "delete",
         %{
           "id" => id,
@@ -239,7 +319,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event("delete", %{"id" => id}, %{assigns: %{auix: auix, streams: _streams}} = socket) do
+  def auix_handle_event(
+        "delete",
+        %{"id" => id},
+        %{assigns: %{auix: auix, streams: _streams}} = socket
+      ) do
     entity = apply_get_function(auix.get_function, id, [])
     {:ok, _} = apply_delete_function(auix.delete_function, entity)
 
@@ -251,7 +335,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "auix_route_forward",
         %{"route_type" => "navigate", "route_path" => path},
         socket
@@ -259,7 +343,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, auix_route_forward(socket, to: path)}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "auix_route_forward",
         %{"route_type" => "patch", "route_path" => path},
         socket
@@ -267,14 +351,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, auix_route_forward(socket, patch: path)}
   end
 
-  def handle_event("auix_route_back", _params, socket) do
+  def auix_handle_event("auix_route_back", _params, socket) do
     {:noreply,
      socket
      |> load_items()
      |> auix_route_back()}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "filter-toggle",
         _params,
         %{assigns: %{auix: %{filters_enabled?: filters_enabled?}}} = socket
@@ -282,7 +366,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, assign_auix(socket, :filters_enabled?, !filters_enabled?)}
   end
 
-  def handle_event("filters-clear", _params, %{assigns: %{auix: %{filters: filters}}} = socket) do
+  def auix_handle_event(
+        "filters-clear",
+        _params,
+        %{assigns: %{auix: %{filters: filters}}} = socket
+      ) do
     {:noreply,
      filters
      |> Enum.reduce(socket, fn {key, _filter}, acc_socket ->
@@ -291,7 +379,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_filters_selected_count()}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "filters-submit",
         _params,
         %{assigns: %{auix: %{filters: filters}}} = socket
@@ -305,7 +393,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["filter_condition__" <> filter_key = condition_key]} = params,
         socket
@@ -318,7 +406,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["filter_to__" <> filter_key = to_key]} = params,
         socket
@@ -327,7 +415,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["filter_from__" <> filter_key = from_key]} = params,
         socket
@@ -336,7 +424,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["selected_check__" <> id]},
         %{assigns: %{auix: %{selection: selection} = auix}} =
@@ -356,7 +444,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_selected_states()}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["selected_in_page__"], "_unused_selected_in_page__" => ""} = _params,
         socket
@@ -364,7 +452,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, socket}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "index-layout-change",
         %{"_target" => ["selected_in_page__"]} = _params,
         %{assigns: %{auix: %{selection: selection} = auix}} = socket
@@ -386,23 +474,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
-  def handle_event("index-layout-change", _params, socket), do: {:noreply, socket}
+  def auix_handle_event("index-layout-change", _params, socket), do: {:noreply, socket}
 
-  def handle_event("selected-toggle_all", params, socket) do
+  def auix_handle_event("selected-toggle_all", params, socket) do
     state? = Map.get(params, "state", "false") == "true"
 
     {:noreply, assign_async_selected_toggle_all(socket, state?)}
   end
 
-  def handle_event("selected-cancel_toggle_all", _params, socket) do
+  def auix_handle_event("selected-cancel_toggle_all", _params, socket) do
     {:noreply, cancel_async(socket, :auix_selection_toggle_all, :cancel)}
   end
 
-  def handle_event("selected-delete_all", _params, socket) do
+  def auix_handle_event("selected-delete_all", _params, socket) do
     {:noreply, assign_async_delete_all(socket)}
   end
 
-  def handle_event(
+  def auix_handle_event(
         "pagination_to_page",
         %{"page" => page},
         %{assigns: %{auix: %{pagination: %Pagination{}} = auix}} = socket
@@ -410,9 +498,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply, auix_route_forward(socket, patch: "/#{auix.uri_path}?page=#{page}")}
   end
 
-  def handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
+  def auix_handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
 
-  def handle_event(
+  def auix_handle_event(
         "pagination_previous",
         params,
         %{
@@ -435,9 +523,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     end
   end
 
-  def handle_event("pagination_previous", _params, socket), do: {:noreply, socket}
+  def auix_handle_event("pagination_previous", _params, socket), do: {:noreply, socket}
 
-  def handle_event(
+  def auix_handle_event(
         "pagination_next",
         params,
         %{
@@ -460,9 +548,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     end
   end
 
-  def handle_event("pagination_next", _params, socket), do: {:noreply, socket}
+  def auix_handle_event("pagination_next", _params, socket), do: {:noreply, socket}
 
-  def handle_event(
+  def auix_handle_event(
         "read_indexed_entry",
         %{"page" => new_page, "index" => index},
         socket
@@ -504,15 +592,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   `{:noreply, Socket.t()}` - Updated socket with entity inserted into stream or unchanged.
   """
-  @spec handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
-  def handle_info(
+  @spec auix_handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
+  def auix_handle_info(
         {_component, {:saved, entity}},
         %{assigns: %{auix: auix, streams: _streams}} = socket
       ) do
     {:noreply, stream_insert(socket, auix.source_key, entity)}
   end
 
-  def handle_info(_input, socket) do
+  def auix_handle_info(_input, socket) do
     {:noreply, socket}
   end
 
@@ -529,8 +617,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   `{:noreply, Socket.t()}` - Updated socket with the new selection.
   """
-  @spec handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}
-  def handle_async(
+  @spec auix_handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}
+  def auix_handle_async(
         :auix_selection_toggle_all,
         result,
         %{assigns: %{auix: %{selection: current_selection}}} = socket
@@ -548,7 +636,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
-  def handle_async(
+  def auix_handle_async(
         :auix_selection_delete_all,
         result,
         %{assigns: %{auix: %{selection: current_selection}}} = socket
