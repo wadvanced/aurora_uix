@@ -15,50 +15,39 @@ Requires:
 
 - **Ash Framework Integration** (#208)
   - Full support for Ash Framework as a backend alternative to Phoenix Contexts
-  - Ash resource field parsing with automatic type detection
-  - Support for Ash actions: `:read`, `:create`, `:update`, `:destroy`
-  - Ash pagination support (offset-based)
-  - Ash embeds support (`embeds_one`, `embeds_many`)
-  - Ash constraints processing (e.g., `:one_of` for enum fields)
-  - New integration modules:
-    - `Aurora.Uix.Integration.Ash.ContextParserDefaults`
-    - `Aurora.Uix.Integration.Ash.Crud`
-    - `Aurora.Uix.Integration.Ash.CrudSpec`
-    - `Aurora.Uix.Integration.Ash.FieldsParser`
-    - `Aurora.Uix.Integration.Ash.QueryParser`
-  - Comprehensive Ash integration guide (`guides/core/ash_integration.md`)
+  - Automatic field parsing, pagination, and embeds support
+  - Support for custom Ash actions (read, create, update, destroy)
+  - See `guides/core/ash_integration.md` for details
 
 - **Custom Action Support** (#214)
-  - Support for specifying custom Ash actions via resource metadata options
-  - Options for custom actions:
-    - `:ash_read_action` - Custom read action
-    - `:ash_read_action_paginated` - Custom paginated read action
-    - `:ash_get_action` - Custom get action
-    - `:ash_new_function` - Custom new function (arity 2)
-    - `:ash_create_action` - Custom create action
-    - `:ash_update_action` - Custom update action
-    - `:ash_destroy_action` - Custom destroy action
-  - Equivalent support for Context-based backends via `:ctx_*` options
+  - Support for custom backend actions via resource metadata options
+  - Custom Ash actions: `:ash_read_action`, `:ash_create_action`, `:ash_update_action`, etc.
+  - Custom Context functions: `:ctx_list_function`, `:ctx_create_function`, etc.
+  - See resource metadata guide for configuration options
 
 - **Integration Architecture**
-  - New `Aurora.Uix.Integration.Connector` behaviour for backend abstraction
-  - `Aurora.Uix.Integration.Crud` behaviour for CRUD operations
-  - Unified field parser interface via `Aurora.Uix.Integration.FieldsParser`
-  - Backend type detection (`:ctx` for Contexts, `:ash` for Ash Framework)
+  - New connector behaviour for backend abstraction
+  - Unified CRUD and field parser interfaces
+  - Automatic backend type detection (`:ctx` or `:ash`)
 
 
 ### Changed
 
 - **Refactored Integration Layer**
-  - Moved context parser logic to integration modules
-  - Renamed "none" integrator to "default" (`Aurora.Uix.Integration.Default.FieldsParser`)
-  - Enhanced `Aurora.Uix.Integration.Ctx.ContextParserDefaults` with custom function support
   - Improved separation of concerns between parsers and CRUD operations
+  - Enhanced support for custom functions in Context-based backends
   
-- **Enhanced Parser Module** (`Aurora.Uix.Parser`)
+- **Enhanced Parser Module**
   - Extended to support both Context and Ash backends
-  - Added backend type resolution
   - Improved error handling and validation
+
+- **Unified Handler Callback Pattern**
+  - All handler implementations now follow a consistent `auix_*` callback pattern
+  - Added `auix_mount/3`, `auix_handle_params/3`, `auix_handle_event/3`, `auix_handle_info/2`, `auix_handle_async/3` to IndexImpl
+  - Added `auix_update/2` to FormImpl and ShowComponentImpl
+  - All callbacks properly marked as `@callback` and `defoverridable`
+  - Phoenix callbacks remain overridable for advanced use cases
+  - See `guides/core/liveview.md` for comprehensive callback documentation
   
 - **Updated Dependencies**
   - `ash`: `3.12.0` → `3.16.0`
@@ -80,11 +69,13 @@ Requires:
 
 ### Documentation
 
-- Added comprehensive Ash Framework integration guide
-- Updated resource metadata guide with Ash examples
-- Enhanced parser module documentation
-- Improved integration module documentation
-- Updated guides to reflect new backend options
+- Added comprehensive Ash Framework integration guide (`guides/core/ash_integration.md`)
+- Updated resource metadata guide with backend-specific examples
+- Updated LiveView integration guide with unified callback pattern documentation (`guides/core/liveview.md`)
+  - Callback reference tables for IndexImpl, FormImpl, and ShowComponentImpl
+  - Distinction between Aurora UIX callbacks and Phoenix callbacks
+  - Examples and guidance for customization
+- Corrected QueryBuilder documentation in layouts guide (`guides/core/layouts.md`)
 
 
 ### Build
