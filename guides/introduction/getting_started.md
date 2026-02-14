@@ -166,10 +166,9 @@ end
 This automatically generates all the routes above with the standard CRUD pattern:
 - Index: `GET /products`
 - New: `GET /products/new`
-- Create: `POST /products` (handled by LiveView)
-- Show: `GET /products/:id`
+- Show: `GET /products/:id/show`
+- Edit from Show: `GET /products/:id/show-edit`
 - Edit: `GET /products/:id/edit`
-- Update: `PATCH /products/:id` (handled by LiveView)
 
 You can also selectively generate routes using `:only` or `:except` options:
 

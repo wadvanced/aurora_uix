@@ -39,8 +39,8 @@ defmodule Aurora.Uix.MixProject do
         logo: "./guides/images/aurora_uix-icon.png",
         assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
         extras: [
-          "CHANGELOG.md",
           "CONTRIBUTING.md",
+          "CHANGELOG.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
           "guides/core/resource_metadata.md",
@@ -54,7 +54,7 @@ defmodule Aurora.Uix.MixProject do
           Introduction: ~r{guides/introduction/.*},
           Core: ~r{guides/core/.*},
           Advanced: ~r{guides/advanced/.*},
-          Developers: ~r{CONTRIBUTING*}
+          Developers: [~r"CONTRIBUTING.*", ~r"CHANGELOG.*"]
         ],
         groups_for_modules: [
           "Core Data Structures": [

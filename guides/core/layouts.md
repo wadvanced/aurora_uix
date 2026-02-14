@@ -259,9 +259,9 @@ Combine all layout types for sophisticated UIs:
 ```
 
 **Result**:
-- Top section: Reference and name in a bordered group, arranged horizontally
-- Middle: Tabbed sections for description and quantities
-- Bottom: Price field
+- Top section: Reference and name in the same row
+- Middle: Nested section inside the first tab containing description and quantities
+- Information tab: Nested section inside the information top level tab containing price related fields 
 
 <div align="center">
     <img src="./images/layouts/nested_1-desktop.png" width="600"/>
@@ -298,7 +298,7 @@ index_columns :product, [:reference, :name, :price],
   where: dynamic([p], p.active == true)
 ```
 
-**Common Options:**
+**Options:**
 - `:page_title` — Main title (default: `"Listing {title}"`)
 - `:page_subtitle` — Subtitle (default: empty)
 - `:pagination_items_per_page` — Rows per page (default: 40)
@@ -321,7 +321,7 @@ do
 end
 ```
 
-**Common Options:**
+**Options:**
 - `:edit_title` — Title for edit form (default: `"Edit {name}"`)
 - `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage <strong>{title}</strong> records in your database"`)
 - `:new_title` — Title for create form (default: `"New {name}"`)
@@ -340,7 +340,7 @@ do
 end
 ```
 
-**Common Options:**
+**Options:**
 - `:page_title` — Main title (default: `"{name}"` - the resource name)
 - `:page_subtitle` — Subtitle (default: `"Details"`)
 
@@ -385,7 +385,7 @@ edit_layout :product do
 end
 ```
 
-**Common Field Options:**
+**Relevant Field Options:**
 - `:readonly` — Make field read-only
 - `:hidden` — Hide field from UI
 - `:renderer` — Custom rendering function
@@ -393,87 +393,303 @@ end
 - `:placeholder` — Placeholder text
 - `:option_label` — For select/radio fields
 
-For complete field option reference, see the `Aurora.Uix.Layout.Blueprint` module documentation.
+For complete field attributes reference, see the `Aurora.Uix.Field` module documentation.
 
 ## Actions: Customizing Buttons & Links
 
-Aurora UIX layouts support action customization for index, form, and show views. Actions control buttons and links in the UI (row actions for table rows, header actions for page-level buttons).
+Aurora UIX provides a comprehensive action system for customizing buttons and links across all layout types. Actions are function components that receive assigns and return rendered HTML.
 
-### Action Types
+### Understanding Actions
 
-**Row Actions** (index layouts only):
-- Default row actions: `:default_row_edit`, `:default_row_delete`
-- Can be added, replaced, or removed
+Actions are defined as `Aurora.Uix.Action` structs with:
+- `:name` — unique identifier (atom or binary)
+- `:function_component` — a function that receives assigns and returns rendered output
 
-**Header Actions**:
-- Default header actions: `:default_new`, `:default_export`
-- Can be added, replaced, or removed
+Actions are organized into **action groups** specific to each layout type. Each group represents a location where actions are rendered (headers, footers, rows, etc.).
 
-### Action Options
+### Action Groups by Layout Type
 
-All action options accept `{action_name, &function/1}` pairs where the function receives assigns:
+**Index Layout:**
+- `:index_row_actions` — Actions for each table row (show, edit, delete)
+- `:index_selected_actions` — Actions when items are selected (uncheck all, delete all, check all)
+- `:index_selected_all_actions` — Toggle selection of all rows in current page
+- `:index_header_actions` — Actions in the page header (toggle filters, clear filters, submit filters, new)
+- `:index_footer_actions` — Actions in the page footer (pagination)
+- `:index_filters_actions` — Actions in the filters section
 
+**Form Layout:**
+- `:form_header_actions` — Actions in the form header (typically empty by default)
+- `:form_footer_actions` — Actions in the form footer (save button)
+
+**Show Layout:**
+- `:show_header_actions` — Actions in the show page header (edit button)
+- `:show_footer_actions` — Actions in the show page footer (back link)
+
+**One-to-Many & Embeds-Many Layouts:**
+- `:one_to_many_header_actions` / `:embeds_many_header_actions`
+- `:one_to_many_footer_actions` / `:embeds_many_footer_actions`
+- `:one_to_many_row_actions` / `:embeds_many_row_actions`
+- `:embeds_many_new_entry_actions`
+- `:embeds_many_existing_actions`
+
+### Action Operations
+
+Aurora UIX provides four operations to customize actions in layout options:
+
+**Add Action** — Appends action to the end of the group:
 ```elixir
-# Add a custom action at the end
-add_row_action: {:custom_archive, &MyViews.archive_action/1}
+add_row_action: {:archive, &MyViews.archive_action/1}
+```
 
-# Insert a custom action at a specific position
-insert_row_action: {:custom_approve, &MyViews.approve_action/1}
+**Insert Action** — Prepends action to the beginning of the group:
+```elixir
+insert_row_action: {:approve, &MyViews.approve_action/1}
+```
 
-# Replace an existing action
+**Replace Action** — Replaces an existing action by name:
+```elixir
 replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1}
+```
 
-# Remove an action by name
+**Remove Action** — Removes an action by name:
+```elixir
 remove_row_action: :default_row_delete
 ```
 
-### Example: Custom Row & Header Actions
+All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name).
+
+### Default Actions Reference
+
+**Index Layout Defaults:**
+- `:default_row_show` — Show icon link in row actions
+- `:default_row_edit` — Edit icon link in row actions
+- `:default_row_delete` — Delete icon link with confirmation in row actions
+- `:default_toggle_all_selected` — Checkbox to select all rows in current page
+- `:default_selected_uncheck_all` — Button to uncheck all selected items
+- `:default_selected_delete_all` — Button to delete all selected items (with confirmation)
+- `:default_selected_check_all` — Button to check all items
+- `:default_toggle_filters` — Icon to open/close filters panel
+- `:default_clear` — Clear filters button
+- `:default_submit` — Submit filters button
+- `:default_new` — New entity button in header
+- `:default_pagination` — Pagination controls with responsive breakpoints
+
+**Form Layout Defaults:**
+- `:default_save` — Save button in footer
+
+**Show Layout Defaults:**
+- `:default_edit` — Edit button in header
+- `:default_back` — Back link in footer
+
+### Example: Customizing Index Actions
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
-  # Custom action for archive row
+  use Aurora.Uix.View
+
+  # Custom archive action for table rows
   def archive_action(assigns) do
-    {id, product} = assigns.auix.row_info
     ~H"""
-    <button phx-click="archive" phx-value-id={id} class="btn btn-sm btn-warning">
-      Archive
-    </button>
+    <.link
+      phx-click={JS.push("archive", value: %{id: row_info_id(@auix)})}
+      name={"auix-archive-#{@auix.module}"}
+      data-confirm="Archive this product?"
+    >
+      <.icon class="auix-icon-size-5 auix-icon-warning" name="hero-archive-box" />
+    </.link>
     """
   end
 
-  # Custom action for export header
+  # Custom export action for header
   def export_action(assigns) do
     ~H"""
-    <button phx-click="export-all" class="btn btn-sm btn-info">
+    <.button phx-click="export-all" name={"auix-export-#{@auix.module}"}>
+      <.icon name="hero-arrow-down-tray" class="auix-icon-size-4" />
       Export CSV
-    </button>
+    </.button>
     """
   end
 
-  # Layout with custom actions
-  index_columns :product, [:reference, :name, :price],
-    add_row_action: {:custom_archive, &archive_action/1},
-    remove_row_action: :default_row_delete,
-    add_header_action: {:export, &export_action/1}
-
-  edit_layout :product do
-    stacked [:reference, :name, :description]
+  # Custom edit with different styling
+  def custom_edit_action(assigns) do
+    ~H"""
+    <.auix_link 
+      class="auix-index-row-action auix-custom-edit"
+      patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"}
+      name={"auix-edit-#{@auix.module}"}
+    >
+      <.icon class="auix-icon-size-5 auix-icon-primary" name="hero-pencil" />
+    </.auix_link>
+    """
   end
 
-  show_layout :product do
-    stacked [:reference, :name, :price]
+  index_columns :product, [:reference, :name, :price, :stock],
+    # Add custom actions
+    add_row_action: {:archive, &archive_action/1},
+    add_header_action: {:export, &export_action/1},
+    # Replace default actions
+    replace_row_action: {:default_row_edit, &custom_edit_action/1},
+    # Remove unwanted actions
+    remove_row_action: :default_row_show
+
+  # Helper to extract row ID from auix context
+  defp row_info_id(%{row_info: {_index, row_entity}, primary_key: primary_key}) do
+    Aurora.Uix.Templates.Basic.Helpers.primary_key_value(row_entity, primary_key)
   end
 end
 ```
 
-### Important Notes
+### Example: Customizing Form Actions
 
-- **Row action receives** `@auix.row_info` — a tuple `{id, entity}` for the current row
-- **Header action receives** standard assigns; access resource via `assigns.entity`
-- **Named functions only** — anonymous functions are not supported
-- **Use in all layout types** — index, form, and show layouts support actions
+```elixir
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix.View
 
-For advanced action customization, see `Aurora.Uix.Templates.Basic.Actions` module documentation.
+  def save_and_continue_action(assigns) do
+    ~H"""
+    <.button 
+      phx-click="save-continue" 
+      phx-disable-with="Saving..." 
+      name={"auix-save-continue-#{@auix.module}"}
+    >
+      Save and Continue
+    </.button>
+    """
+  end
+
+  def cancel_action(assigns) do
+    ~H"""
+    <.auix_back class="auix-button auix-button--secondary">
+      Cancel
+    </.auix_back>
+    """
+  end
+
+  edit_layout :product,
+    add_footer_action: {:save_continue, &save_and_continue_action/1},
+    add_footer_action: {:cancel, &cancel_action/1}
+  do
+    stacked [:reference, :name, :description, :price]
+  end
+end
+```
+
+### Example: Customizing Show Actions
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix.View
+
+  def duplicate_action(assigns) do
+    ~H"""
+    <.auix_link 
+      patch={"/#{@auix.uri_path}/new?duplicate_from=#{@auix.entity.id}"}
+      name={"auix-duplicate-#{@auix.module}"}
+    >
+      <.button class="auix-button--secondary">Duplicate Product</.button>
+    </.auix_link>
+    """
+  end
+
+  def print_action(assigns) do
+    ~H"""
+    <.button phx-click="print" phx-value-id={@auix.entity.id} class="auix-button--alt">
+      <.icon name="hero-printer" /> Print
+    </.button>
+    """
+  end
+
+  show_layout :product,
+    add_header_action: {:duplicate, &duplicate_action/1},
+    add_header_action: {:print, &print_action/1}
+  do
+    stacked [:reference, :name, :description, :price]
+  end
+end
+```
+
+### Important Implementation Notes
+
+**Action Function Signature:**
+- Actions must be functions with arity 1 that accept assigns
+- Must return rendered output (use `~H"""..."""` sigil)
+- Must be named functions (not anonymous functions)
+
+**Available Assigns in Actions:**
+- `@auix` — Contains all Aurora UIX context
+  - `.row_info` — Tuple of `{index, entity}` for row actions (see Row Info Structure below)
+  - `.entity` — Current entity for form/show actions
+  - `.module` — Resource module name
+  - `.name` — Resource display name
+  - `.primary_key` — Primary key field(s)
+  - `.uri_path` — Current URI path for navigation
+  - `.selection` — Selection state (index layouts only)
+  - `.pagination` — Pagination state (index layouts only)
+  - `.filters_enabled?` — Whether filters panel is open
+
+**Row Info Structure:**
+
+The `@auix.row_info` in row actions is a 2-tuple containing:
+1. **Index/ID** (first element) — The stream identifier or row ID from Phoenix LiveView streams
+2. **Entity** (second element) — The actual entity struct/map for the row
+
+```elixir
+# Example row_info tuple structure
+row_info = {"products-123", %Product{id: 123, name: "Widget", price: 29.99}}
+
+# Extracting components
+{stream_id, entity} = assigns.auix.row_info
+# stream_id = "products-123"
+# entity = %Product{id: 123, name: "Widget", price: 29.99}
+
+# Common patterns for accessing data:
+# 1. Get the primary key value
+id = row_info_id(assigns.auix)  # Using helper function
+
+# 2. Access entity fields directly
+{_id, product} = assigns.auix.row_info
+price = product.price
+
+# 3. Pattern match in function head
+def custom_action(%{auix: %{row_info: {_index, entity}}} = assigns) do
+  ~H"""
+  <button phx-click="process" phx-value-id={entity.id}>
+    Process {entity.name}
+  </button>
+  """
+end
+```
+
+**Helper for Extracting Primary Keys:**
+
+Aurora UIX provides a helper to safely extract primary key values from row_info:
+
+```elixir
+defp row_info_id(%{row_info: {_index, row_entity}, primary_key: primary_key}) do
+  Aurora.Uix.Templates.Basic.Helpers.primary_key_value(row_entity, primary_key)
+end
+```
+
+This helper handles both single and composite primary keys:
+- Single key: Returns the value directly (e.g., `123`)
+- Composite keys: Returns a list of values (e.g., `[123, 456]`)
+
+**Helper Functions:**
+- Use `Aurora.Uix.Templates.Basic.Helpers.primary_key_value/2` to extract entity IDs
+- Use `<.auix_link>` component for navigation with routing stack preservation
+- Use `<.auix_back>` component for back navigation
+- Use `Phoenix.LiveView.JS` for client-side interactions
+
+**Action Styling:**
+- Use `auix-*` CSS classes for consistent styling
+- Row action icons: `auix-icon-size-5` with context classes (`auix-icon-info`, `auix-icon-safe`, `auix-icon-danger`)
+- Buttons: `auix-button`, `auix-button--secondary`, `auix-button--alt`
+
+### Action Modification Under the Hood
+
+Actions are stored in the socket's `assigns.auix` map under their respective action group keys. The modification functions (`add_auix_action`, `insert_auix_action`, `replace_auix_action`, `remove_auix_action`) from `Aurora.Uix.Templates.Basic.Helpers` manipulate these lists during layout setup.
+
+For a complete list of available action groups, call `Aurora.Uix.Action.action_groups()`.
 ## Advanced Patterns
 
 ### Nesting Fields and Blocks
@@ -501,23 +717,60 @@ end
 
 ### QueryBuilder for Advanced Filtering
 
-For complex filtering and sorting in index layouts, use `Aurora.Ctx.QueryBuilder` syntax:
+Aurora UIX index layouts support advanced filtering and sorting. The `:where` and `:order_by` options are passed to `Aurora.Ctx.QueryBuilder.options/2` for query construction.
+
+**Basic Filtering with Tuples:**
 
 ```elixir
-import Aurora.Ctx.QueryBuilder
-
 index_columns :product, [:reference, :name, :price],
-  where: dynamic([p], p.active == true and p.stock > 0),
-  order_by: [
-    {:name, :asc},
-    {:created_at, :desc}
-  ]
+  where: [{:active, true}],
+  order_by: [asc: :name, desc: :created_at]
+```
+
+**Using Comparison Operators:**
+
+The `:where` option accepts tuples with operators for complex filtering:
+
+```elixir
+index_columns :product, [:reference, :name, :price],
+  where: [
+    {:price, :greater_than, 10},
+    {:name, :ilike, "%widget%"}
+  ],
+  order_by: :name
+```
+
+**Supported Comparison Operators:**
+
+- `:greater_than` or `:gt` - Greater than
+- `:greater_equal_than` or `:ge` - Greater than or equal
+- `:less_than` or `:lt` - Less than
+- `:less_equal_than` or `:le` - Less than or equal
+- `:equal_to` or `:eq` - Equal to
+- `:like` - Pattern matching (SQL LIKE with `%` and `_`)
+- `:ilike` - Case-insensitive pattern matching
+- `:between` - Range query (requires start and end values)
+
+**Range Filtering with Between:**
+
+```elixir
+index_columns :product, [:reference, :name, :price],
+  where: [{:reference, :between, "A", "M"}],
+  order_by: :reference
+```
+
+**Multiple Sort Fields:**
+
+```elixir
+index_columns :product, [:reference, :name, :price],
+  order_by: [asc: :category, desc: :price, asc: :name]
 ```
 
 This enables:
-- Dynamic query predicates with Ecto's dynamic
-- Multi-field sorting
-- Complex business logic filters
+- Complex filtering with comparison operators
+- Multi-field sorting with customizable directions
+- Pattern matching with LIKE/ILIKE operators
+- Range queries with BETWEEN operator
 
 ### Conditional Field Visibility
 

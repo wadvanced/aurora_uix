@@ -12,9 +12,6 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
   import Aurora.UixWeb.Test.Guides.ImageHelper
 
-  @screenshot_dir Application.compile_env(:wallaby, :screenshot_dir)
-  @screen_sizes %{desktop: %{width: 1_024, height: 768}, mobile: %{width: 412, height: 915}}
-
   feature "create_images", %{session: session} do
     create_guides_sample_data()
 
@@ -31,16 +28,15 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     session
     |> visit(url)
-    |> capture(:default_index, screen_size, target, %{
-      desktop: [zoom: 0.40, width: 1_800, center_crop_width: 1800]
-    })
+    |> capture(:default_index, screen_size, target, %{desktop: [zoom: 0.40]})
+
     # show
     |> visit("#{url}/#{product_id}/show")
     |> capture(:default_show, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--show']",
         zoom: 0.60,
-        center_crop_width: 480,
+        center_crop_width: 600,
         sharpen: true
       ]
     })
@@ -52,7 +48,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
         zoom: 0.8,
-        center_crop_width: 912
+        center_crop_width: 600
       ]
     })
 
@@ -66,8 +62,8 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
       desktop: [
         click:
           "input[id^='auix-field-product_location-reference-'][id$='#{product_location_id}--form']",
-        center_crop_width: 1_024,
-        crop_height: 629
+        center_crop_width: 600,
+        crop_height: 320
       ]
     })
 
@@ -80,7 +76,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> capture(:stacked_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 1_024
+        center_crop_width: 600
       ]
     })
 
@@ -93,7 +89,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> capture(:group_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 1_024
+        center_crop_width: 600
       ]
     })
 
@@ -106,15 +102,15 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> capture(:sections_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 1_024,
-        crop_height: 629
+        center_crop_width: 600,
+        crop_height: 448
       ]
     })
     |> click(Query.css("button[data-button-sections-index='1'][data-button-tab-index='2']"))
     |> capture(:sections_2, screen_size, target, %{
       desktop: [
-        center_crop_width: 1_024,
-        crop_height: 629
+        center_crop_width: 600,
+        crop_height: 480
       ]
     })
 
@@ -126,17 +122,27 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> capture(:nested_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 1_024,
-        crop_height: 629
+        center_crop_width: 600,
+        crop_height: 480
       ]
     })
     |> click(Query.css("button[data-button-sections-index='1'][data-button-tab-index='2']"))
-    |> capture(:nested_2, screen_size, target, %{
-      desktop: [center_crop_width: 1_024, crop_height: 629]
-    })
+    |> capture(
+      :nested_2,
+      screen_size,
+      target,
+      %{
+        desktop: [center_crop_width: 600, crop_height: 480]
+      }
+    )
     |> click(Query.css("button[data-button-sections-index='3'][data-button-tab-index='1']"))
-    |> capture(:nested_3, screen_size, target, %{
-      desktop: [center_crop_width: 1_024, crop_height: 629]
-    })
+    |> capture(
+      :nested_3,
+      screen_size,
+      target,
+      %{
+        desktop: [center_crop_width: 600, crop_height: 480]
+      }
+    )
   end
 end

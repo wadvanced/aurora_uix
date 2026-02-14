@@ -45,7 +45,6 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 - **Responsive Design** - Layouts work seamlessly on desktop and mobile devices
 - **Customizable Themes** - Includes light and dark themes, fully customizable or replaceable
 - **Extensible** - Override templates, create custom renderers, integrate custom components
-- **i18n Support** - Built-in internationalization via configurable Gettext backend
 - **Minimal Overhead** - Compile-time generation means fast runtime performance
 
 ## Complete Example

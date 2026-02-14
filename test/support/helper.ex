@@ -166,8 +166,6 @@ defmodule Aurora.Uix.Test.Helper do
   """
   @spec create_sample_categories(non_neg_integer(), map()) :: :ok
   def create_sample_categories(count, attrs \\ %{}) do
-    length = count |> to_string() |> String.length()
-
     Enum.map(1..count, fn index ->
       change =
         %Category{

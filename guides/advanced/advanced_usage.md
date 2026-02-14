@@ -552,6 +552,438 @@ See test files for complete examples:
 - `test/cases_live/separated_single_resource_ui_test.exs` - Single resource separation
 - `test/cases_live/separated_multiple_resources_ui_test.exs` - Multiple resources separation
 
+## Defining Custom Backends
+
+Aurora UIX's architecture is extensible and supports custom backend implementations beyond the built-in Context (Ecto) and Ash Framework integrations. You can integrate other data layers, ORMs, or custom data sources by implementing the required behaviours.
+
+### Backend Architecture Overview
+
+Aurora UIX uses a polymorphic dispatch system for CRUD operations through three main components:
+
+1. **Connector** (`Aurora.Uix.Integration.Connector`) - Wraps backend-specific configuration with a type identifier
+2. **CRUD Interface** (`Aurora.Uix.Integration.Crud`) - Behaviour defining unified CRUD operations
+3. **Parser Interface** (`Aurora.Uix.Parser`) - Behaviour for extracting metadata from resources
+
+### When to Create a Custom Backend
+
+Consider creating a custom backend when:
+
+- Using a different ORM or database library (e.g., Mnesia, Datomic adapters)
+- Integrating with external APIs (REST, GraphQL, gRPC)
+- Working with non-relational data sources (Redis, document stores)
+- Implementing custom business logic layers
+- Needing specialized query or caching strategies
+
+### Step 1: Implement the CRUD Behaviour
+
+Create a module implementing `Aurora.Uix.Integration.Crud` with all 8 required callbacks:
+
+```elixir
+defmodule MyApp.CustomBackend.Crud do
+  @moduledoc """
+  Custom backend CRUD implementation for MyApp data layer.
+  """
+  
+  @behaviour Aurora.Uix.Integration.Crud
+
+  alias Aurora.Ctx.Pagination
+  alias MyApp.CustomBackend.CrudSpec
+
+  @impl true
+  def list(crud_spec, opts) do
+    # Implement listing logic for your backend
+    # Return: %Pagination{entries: [...], page: 1, pages_count: N}
+    resource = crud_spec.resource_module
+    entries = resource.all(opts)
+    
+    %Pagination{
+      entries: entries,
+      page: Keyword.get(opts, :page, 1),
+      pages_count: 1,
+      total_count: length(entries)
+    }
+  end
+
+  @impl true
+  def to_page(crud_spec, pagination, page) do
+    # Implement pagination navigation
+    %{pagination | page: page}
+  end
+
+  @impl true
+  def get(crud_spec, id, opts) do
+    # Implement single resource retrieval
+    crud_spec.resource_module.find(id, opts)
+  end
+
+  @impl true
+  def change(crud_spec, entity, form_name, attrs) do
+    # Create a changeset or form for the entity
+    # Return: changeset structure compatible with Phoenix forms
+    crud_spec.resource_module.changeset(entity, attrs)
+  end
+
+  @impl true
+  def new(crud_spec, attrs, opts) do
+    # Create a new resource struct
+    struct(crud_spec.resource_module, attrs)
+  end
+
+  @impl true
+  def create(crud_spec, params) do
+    # Implement resource creation
+    crud_spec.resource_module.insert(params)
+  end
+
+  @impl true
+  def update(crud_spec, entity, params) do
+    # Implement resource update
+    crud_spec.resource_module.update(entity, params)
+  end
+
+  @impl true
+  def delete(crud_spec, entity) do
+    # Implement resource deletion
+    crud_spec.resource_module.delete(entity)
+  end
+end
+```
+
+### Step 2: Define a CrudSpec Structure
+
+Create a module to hold backend-specific configuration:
+
+```elixir
+defmodule MyApp.CustomBackend.CrudSpec do
+  @moduledoc """
+  Specification structure for custom backend operations.
+  """
+  
+  @type t() :: %__MODULE__{
+    resource_module: module(),
+    action: atom(),
+    options: keyword()
+  }
+
+  @enforce_keys [:resource_module, :action]
+  defstruct [:resource_module, :action, options: []]
+
+  @doc """
+  Creates a new CrudSpec for the custom backend.
+  """
+  def new(resource_module, action, options \\ []) do
+    %__MODULE__{
+      resource_module: resource_module,
+      action: action,
+      options: options
+    }
+  end
+end
+```
+
+### Step 3: Implement Context Parser
+
+Create a parser to discover and configure CRUD functions from your backend:
+
+```elixir
+defmodule MyApp.CustomBackend.ContextParserDefaults do
+  @moduledoc """
+  Parser for resolving custom backend actions and configurations.
+  """
+  
+  alias Aurora.Uix.Integration.Connector
+  alias MyApp.CustomBackend.CrudSpec
+
+  @doc """
+  Resolves default values for backend operations.
+  
+  Called by Aurora.Uix.Parser to discover CRUD actions.
+  """
+  def option_value(_parsed_opts, resource_config, opts, :list_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :list,
+      Keyword.get(opts, :list_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :get_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :get,
+      Keyword.get(opts, :get_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :create_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :create,
+      Keyword.get(opts, :create_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :update_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :update,
+      Keyword.get(opts, :update_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :delete_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :delete,
+      Keyword.get(opts, :delete_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :change_function) do
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :change,
+      Keyword.get(opts, :change_options, [])
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  def option_value(_parsed_opts, resource_config, opts, :new_function) do
+    new_fn = Keyword.get(opts, :new_function, &default_new_function/2)
+    
+    crud_spec = CrudSpec.new(
+      resource_config.schema,
+      :new,
+      [new_function: new_fn]
+    )
+    
+    Connector.new(crud_spec, :custom)
+  end
+
+  # Fallback for unhandled options
+  def option_value(_parsed_opts, _resource_config, _opts, _key), do: nil
+
+  defp default_new_function(attrs, _opts) do
+    # Default implementation for creating new structs
+    %{}
+  end
+end
+```
+
+### Step 4: Implement Fields Parser
+
+Create a parser for extracting field metadata from your resources:
+
+```elixir
+defmodule MyApp.CustomBackend.FieldsParser do
+  @moduledoc """
+  Parses fields from custom backend resources.
+  """
+  
+  alias Aurora.Uix.Field
+
+  @doc """
+  Parses all fields from a custom resource.
+  """
+  def parse_fields(resource_module, resource_name) do
+    # Extract field definitions from your resource
+    resource_module.__fields__()
+    |> Enum.map(&parse_field(resource_module, resource_name, &1))
+  end
+
+  defp parse_field(resource_module, resource_name, field_spec) do
+    Field.new(
+      key: field_spec.name,
+      type: field_spec.type,
+      html_type: infer_html_type(field_spec.type),
+      label: humanize(field_spec.name),
+      resource: resource_name,
+      required: field_spec.required || false,
+      length: field_spec.max_length || 255
+    )
+  end
+
+  defp infer_html_type(:string), do: :text
+  defp infer_html_type(:integer), do: :number
+  defp infer_html_type(:boolean), do: :checkbox
+  defp infer_html_type(:date), do: :date
+  defp infer_html_type(:datetime), do: :"datetime-local"
+  defp infer_html_type(_), do: :text
+
+  defp humanize(atom) when is_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+    |> String.capitalize()
+  end
+end
+```
+
+### Step 5: Register Your Backend
+
+Add your backend to the application configuration:
+
+```elixir
+# config/config.exs
+
+config :aurora_uix, :crud_integration_modules,
+  ash: Aurora.Uix.Integration.Ash.Crud,
+  ctx: Aurora.Uix.Integration.Ctx.Crud,
+  custom: MyApp.CustomBackend.Crud  # Your custom backend
+```
+
+### Step 6: Use Your Custom Backend
+
+Define resources using your custom backend:
+
+```elixir
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix
+
+  alias MyApp.Products.Product
+
+  # Use custom backend options
+  auix_resource_metadata :product, 
+    schema: Product,
+    type: :custom,  # Specify your backend type
+    custom_option: :value do
+    
+    field :name, required: true
+    field :price, html_type: :number
+  end
+
+  auix_create_ui do
+    index_columns(:product, [:name, :price])
+    
+    show_layout :product do
+      stacked([:name, :price])
+    end
+    
+    edit_layout :product do
+      inline([:name, :price])
+    end
+  end
+end
+```
+
+### Step 7: Detect Backend Type (Optional)
+
+If you want automatic backend type detection, extend the resource metadata macro detection logic:
+
+```elixir
+# In your custom macro or configuration
+defp detect_backend_type(opts) do
+  cond do
+    Keyword.has_key?(opts, :custom_resource) -> :custom
+    Keyword.has_key?(opts, :ash_resource) -> :ash
+    Keyword.has_key?(opts, :context) -> :ctx
+    true -> :ctx  # default
+  end
+end
+```
+
+### Key Considerations
+
+**CRUD Spec Design:**
+- Keep backend-specific configuration in your CrudSpec struct
+- Store resource references, action names, and options
+- Make it serializable if storing in assigns
+
+**Field Parsing:**
+- Map your backend's types to Ecto-compatible types
+- Handle associations and embedded resources appropriately
+- Use the `__` naming convention for nested resources
+
+**Error Handling:**
+- Wrap backend errors in standard `{:ok, result}` or `{:error, reason}` tuples
+- Provide meaningful error messages
+- Handle missing resources gracefully
+
+**Pagination:**
+- Return `Aurora.Ctx.Pagination` structs from list operations
+- Implement proper page navigation in `to_page/3`
+- Track total counts when possible
+
+**Testing:**
+- Create integration tests for your CRUD operations
+- Test field parsing with various resource configurations
+- Verify connector type resolution
+
+### Example: GraphQL Backend
+
+Here's a minimal example for a GraphQL backend:
+
+```elixir
+defmodule MyApp.GraphQLBackend.Crud do
+  @behaviour Aurora.Uix.Integration.Crud
+  
+  alias Aurora.Ctx.Pagination
+  alias MyApp.GraphQLBackend.Client
+
+  @impl true
+  def list(crud_spec, opts) do
+    query = """
+    query List#{crud_spec.resource_name} {
+      #{crud_spec.resource_name}(limit: #{opts[:limit] || 20}) {
+        id
+        #{Enum.join(crud_spec.fields, "\n")}
+      }
+    }
+    """
+    
+    case Client.query(query) do
+      {:ok, %{data: data}} ->
+        %Pagination{
+          entries: data[crud_spec.resource_name],
+          page: 1,
+          pages_count: 1
+        }
+      
+      {:error, reason} ->
+        %Pagination{entries: [], page: 1, pages_count: 0, error: reason}
+    end
+  end
+
+  @impl true
+  def get(crud_spec, id, _opts) do
+    query = """
+    query Get#{crud_spec.resource_name} {
+      #{crud_spec.resource_name}(id: "#{id}") {
+        id
+        #{Enum.join(crud_spec.fields, "\n")}
+      }
+    }
+    """
+    
+    case Client.query(query) do
+      {:ok, %{data: data}} -> data[crud_spec.resource_name]
+      {:error, _reason} -> nil
+    end
+  end
+
+  # Implement other callbacks...
+end
+```
+
+### References
+
+For implementation examples, see:
+- `lib/aurora_uix/integration/ctx/` - Context backend implementation
+- `lib/aurora_uix/integration/ash/` - Ash Framework backend implementation
+- `lib/aurora_uix/integration/connector.ex` - Connector structure
+- `lib/aurora_uix/integration/crud.ex` - CRUD behaviour definition
+
 ## Managing Actions
 
 Actions are function components representing user interactions (buttons, links, etc.) attached to different parts of your views. Aurora UIX provides a comprehensive action system with support for adding, replacing, inserting, and removing actions via layout configuration.

@@ -239,6 +239,8 @@ When configuring an Ash resource, you can use these options:
 
 - `:ash_domain` (module()) - Ash domain containing the resource. If omitted, actions are resolved directly from the resource
 - `:order_by` (atom() | list() | keyword()) - Default ordering for index views
+- `:type` (atom()) - The type of backend is determined based on the `ash_resource` module.
+    Setting this value manually will bypass the detection mechanism, and it is useful to provide a custom backend
 
 #### Alternative Syntax
 
@@ -298,11 +300,21 @@ Aurora UIX automatically discovers and maps Ash actions to UI operations without
 
 ### Action Discovery Process
 
+Aurora UIX provides both automatic action discovery and manual configuration options.
+
+#### Automatic Discovery
+
+When actions are not explicitly configured, Aurora UIX automatically discovers them using the following priority:
+
 1. **Primary Actions First** - If an action is marked as `primary?: true`, it's selected
 2. **Fallback to First Available** - If no primary action exists, the first action of the matching type is used
 3. **Domain vs Resource Resolution**:
    - **With `:ash_domain`** - Actions are looked up through the domain's resource references
    - **Without `:ash_domain`** - Actions are resolved directly from the resource module
+
+#### Manual Configuration
+
+You can override automatic discovery by explicitly specifying actions using configuration options (see [Custom Actions](#custom-actions) below). When an option is provided, automatic discovery is bypassed for that specific action.
 
 ### Aurora UIX Operation Mapping
 
@@ -341,26 +353,30 @@ Aurora UIX will automatically use this action for paginated index views.
 
 ### Custom Actions
 
-You can specify custom actions using options:
+You can override automatic action discovery by explicitly specifying custom actions or action names. When provided, these options bypass the automatic discovery process and use the specified action instead.
 
 ```elixir
 auix_resource_metadata :post,
   ash_resource: Post,
-  ash_read_action: :published_posts,      # Custom read action
-  ash_create_action: :publish,            # Custom create action
-  ash_update_action: :edit_published do   # Custom update action
+  ash_read_action: :published_posts,      # Override default read action
+  ash_create_action: :publish,            # Override default create action
+  ash_update_action: :edit_published do   # Override default update action
   # field configuration...
 end
 ```
 
-Available custom action options:
-- `:ash_read_action` - Custom read action name
-- `:ash_read_action_paginated` - Custom paginated read action
-- `:ash_get_action` - Custom get action for show view
-- `:ash_new_function` - Custom 2-arity function for new form initialization (must return a struct)
-- `:ash_create_action` - Custom create action
-- `:ash_update_action` - Custom update action
-- `:ash_destroy_action` - Custom destroy action
+Available action configuration options:
+
+- `:ash_read_action` (or `:list_function`) - Custom read action name for non-paginated list
+- `:ash_read_action_paginated` (or `:list_function_paginated`) - Custom paginated read action name
+- `:ash_get_action` (or `:get_function`) - Custom read action for show view
+- `:ash_new_function` (or `:new_function`) - Custom 2-arity function for new form initialization (must return a struct)
+- `:ash_create_action` (or `:create_function`) - Custom create action name
+- `:ash_update_action` (or `:update_function`) - Custom update action name
+- `:ash_destroy_action` (or `:delete_function`) - Custom destroy action name
+- `:ash_change_action` (or `:change_function`) - Custom update action for changeset creation
+
+> **Note:** Each option has two aliases (e.g., `:ash_read_action` and `:list_function`). The `:ash_*` prefix is recommended for clarity when working with Ash resources.
 
 #### Custom New Function
 
@@ -424,35 +440,6 @@ end
 auix_resource_metadata :author, ash_resource: Author do
   field :posts, order_by: [desc: :published_at]
 end
-```
-
-### Many to Many Relationships
-
-For many-to-many relationships through join resources:
-
-```elixir
-# Define the join resource
-defmodule MyApp.Blog.PostTag do
-  use Ash.Resource,
-    data_layer: AshPostgres.DataLayer,
-    domain: MyApp.Blog
-
-  relationships do
-    belongs_to :post, MyApp.Blog.Post, primary_key?: true, allow_nil?: false
-    belongs_to :tag, MyApp.Blog.Tag, primary_key?: true, allow_nil?: false
-  end
-end
-
-# In your Post resource
-relationships do
-  many_to_many :tags, MyApp.Blog.Tag do
-    through MyApp.Blog.PostTag
-    source_attribute_on_join_resource :post_id
-    destination_attribute_on_join_resource :tag_id
-  end
-end
-
-# Aurora UIX will automatically handle this relationship
 ```
 
 ## Embedded Resources

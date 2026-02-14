@@ -131,6 +131,112 @@ Common issues and solutions for Aurora UIX.
 - Run pending migrations: `mix ecto.migrate`
 - Verify your schema module matches the actual database table structure
 
+## Embedded and Associated Resources Metadata
+
+**Symptoms:** Configuration changes to embedded or associated resources don't work, fields 
+don't appear in forms, or metadata options seem to be ignored.
+
+**Cause:** When a resource has embedded or associated resources, the metadata name must 
+reflect the relationship hierarchy using double underscore notation (`__`) to be recognized 
+by Aurora UIX.
+
+**Understanding the Naming Convention:**
+
+When you have a parent resource (e.g., `Post`) with embedded or associated child resources 
+(e.g., `Comment`), and the parent resource has metadata named `:post`, you must prefix the 
+embedded resource metadata with the parent's name:
+
+- Parent metadata: `:post`
+- Embedded resource metadata: `:post__comment` (not `:comment`)
+
+**Example:**
+
+```elixir
+# Parent resource metadata
+auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
+
+# CORRECT - Embedded resource uses parent prefix
+auix_resource_metadata(:post__comment, ash_resource: Comment) do
+  field :description, html_type: :textarea
+end
+
+# WRONG - This won't be recognized as belonging to Post
+auix_resource_metadata(:comment, ash_resource: Comment) do
+  field :description, html_type: :textarea
+end
+```
+
+**When to Use This Pattern:**
+
+1. **Embedded resources** defined with `embeds_one` or `embeds_many` in Ecto schemas
+2. **Associated resources** defined with `has_one`, `has_many`, `belongs_to` in Ecto schemas
+3. **Ash embedded resources** defined with `attribute` type embeds in Ash resources
+4. **Ash relationships** defined with `has_one`, `has_many`, `belongs_to` in Ash resources
+
+**Solutions:**
+
+1. **Rename your metadata definition:**
+   ```elixir
+   # If Post has embedded Comments, use:
+   auix_resource_metadata(:post__comment, ash_resource: Comment)
+   
+   # For multiple levels, continue the pattern:
+   auix_resource_metadata(:post__comment__reply, ash_resource: Reply)
+   ```
+
+2. **Update field configurations:**
+   ```elixir
+   # All field customizations must use the prefixed name
+   auix_resource_metadata(:post__comment, ash_resource: Comment) do
+     field :content, html_type: :textarea
+     field :author, label: "Comment Author"
+   end
+   ```
+
+3. **Reference in layouts:**
+   ```elixir
+   # In your UI layouts, reference the embedded resource normally
+   show_layout :post do
+     stacked([:title, :author, :comment])  # 'comment' works here
+   end
+   
+   edit_layout :post do
+     stacked([:title, :comment])  # Same here
+   end
+   ```
+
+4. **Verify the relationship structure:**
+   - Check your schema or Ash resource definition to confirm the embedding structure
+   - Ensure the parent resource metadata name matches what you're using as the prefix
+   - Use `mix phx.routes` or inspect compiled metadata to verify configuration
+
+**Complete Working Example:**
+
+```elixir
+use Aurora.Uix
+
+alias MyApp.Blog.Post
+alias MyApp.Blog.Comment
+
+# Parent resource
+auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
+
+# Embedded resource - note the :post__comment naming
+auix_resource_metadata(:post__comment, ash_resource: Comment) do
+  field :description, html_type: :textarea
+end
+
+auix_create_ui do
+  show_layout :post do
+    stacked([:status, :title, :author, :comment])
+  end
+  
+  edit_layout :post do
+    stacked([:title, :comment])
+  end
+end
+```
+
 ## Performance Issues
 
 **Symptoms:** Slow page loads or unresponsive UI.
@@ -140,6 +246,7 @@ Common issues and solutions for Aurora UIX.
 - Use Phoenix DevTools or `:observer` to identify bottlenecks
 - Verify preloads are configured for associations in your queries
 - Consider pagination for large data lists
+
 
 ## Still Stuck?
 

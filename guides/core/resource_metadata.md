@@ -36,16 +36,58 @@ The `auix_resource_metadata/3` macro provides a declarative interface for config
 
 ## Metadata Generation Process
 
-Resource metadata generation follows a multi-step compile-time process:
+Resource metadata generation follows a multi-step compile-time process that adapts based on the backend type (Context-based or Ash Framework):
 
-1. **Schema Parsing** - Inspects schema fields, types, and associations at compile-time using Ecto's reflection API
+### Common Steps (Both Backends)
+
+1. **Backend Detection** - Determines resource type (`:ctx` for Context-based, `:ash` for Ash Framework) based on provided options
+2. **Configuration Application** - Applies user-defined customizations from the resource metadata block to fields
+3. **Field Ordering** - Maintains field order as defined in configuration, with unconfigured fields appended at the end
+4. **Finalization** - Converts field lists to maps for efficient runtime access and generates a `fields_order` list
+
+### Context-based Resources (Ecto)
+
+For traditional Phoenix Context modules with Ecto schemas:
+
+1. **Schema Parsing** - Inspects schema fields, types, and associations at compile-time using Ecto's reflection API (`__schema__/1`, `__changeset__/0`)
 2. **Field Initialization** - Creates `Aurora.Uix.Field` structs with default values based on Ecto types (`:string` → `:text`, `:boolean` → `:checkbox`, etc.)
-3. **Configuration Application** - Applies user-defined customizations from the resource metadata block to fields
-4. **Association Processing** - Adds association metadata and configures many-to-one selectors with proper linking
-5. **Field Ordering** - Maintains field order as defined in configuration, with unconfigured fields appended at the end
-6. **Finalization** - Converts field lists to maps for efficient runtime access and generates a `fields_order` list
+3. **Association Processing** - Detects and configures:
+   - `belongs_to` → Many-to-one associations (rendered as select dropdowns)
+   - `has_many` → One-to-many associations (rendered as nested lists)
+   - `embeds_one`/`embeds_many` → Embedded schemas (rendered inline)
+4. **Context Function Discovery** - Infers CRUD function names from context module (e.g., `list_products/1`, `get_product/2`)
 
-This compile-time generation ensures minimal runtime overhead while providing complete UI configuration through introspection.
+### Ash Framework Resources
+
+For Ash resources with declarative actions:
+
+1. **Resource Parsing** - Inspects Ash resource attributes, relationships, and actions using `Ash.Resource.Info` API
+2. **Type Conversion** - Maps Ash types to Ecto-compatible types:
+   - `Ash.Type.String` → `:string`
+   - `Ash.Type.Integer` → `:integer`
+   - `Ash.Type.Decimal` → `:decimal`
+   - `Ash.Type.UtcDatetime` → `:utc_datetime`
+   - Parameterized types and custom types are handled appropriately
+3. **Field Initialization** - Creates `Aurora.Uix.Field` structs with Ash-specific metadata (constraints, validations)
+4. **Relationship Processing** - Detects and configures:
+   - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
+   - `has_many` → One-to-many relationships (rendered as nested lists)
+   - Embedded resources → Nested Ash resources (rendered inline with `__` naming convention)
+5. **Action Resolution** - Discovers CRUD actions from Ash resource or domain:
+   - Prioritizes primary actions (`:read`, `:create`, `:update`, `:destroy`)
+   - Falls back to first available action of the required type
+   - Validates pagination support for list operations
+   - Creates function references wrapped in `Aurora.Uix.Integration.Connector` structs
+
+### Embedded Resource Naming
+
+Both backends follow a consistent naming pattern for embedded/associated resources:
+
+- Parent resource: `:post`
+- Embedded resource: `:post__comment` (double underscore notation)
+- Nested embedded: `:post__comment__reply` (continues the pattern)
+
+This compile-time generation ensures minimal runtime overhead while providing complete UI configuration through introspection, regardless of the backend framework used.
 
 ## Defining Resource Metadata
 
@@ -212,6 +254,11 @@ The backend type determines how CRUD operations are resolved:
 - **Ash backend** - Resolves actions like `:read`, `:create`, `:update`, `:destroy` 
   from the Ash resource or domain
 
+> **Note:** Aurora UIX's architecture supports custom backend implementations beyond Context
+> and Ash. You can integrate other data layers or frameworks by implementing the required
+> behaviours. See [Defining Custom Backends](../advanced/advanced_usage.md#defining-custom-backends)
+> in the Advanced Usage guide for details.
+
 - `Aurora.Uix.Resource` - Holds information about the resource to be rendered.
 - `Aurora.Uix.Field` - Struct for the available field properties.
 
@@ -223,8 +270,11 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 
 - `key` - Schema's unique identifier for the field (atom)
 - `name` - The field key as a binary string
-- `type` - Ecto schema type (e.g., `:string`, `:integer`, `:decimal`, `:boolean`, `:utc_datetime`)
-- `html_type` - The HTML type inferred from Ecto type. Common values: `:text`, `:number`, `:checkbox`, `:select`, `:datetime-local`, `:time`, `:one_to_many_association`, `:many_to_one_association`
+- `type` - Ecto schema type (e.g., `:string`, `:integer`, `:decimal`, `:boolean`, `:utc_datetime`, 
+    `:one_to_many_association`, `:many_to_one_association`, `:embeds_one`, `:embeds_many`)
+- `html_type` - The HTML type inferred from Ecto type. Common values: `:text`, `textarea`, `:number`,
+    `:checkbox`, `:select`, `:datetime-local`, `:time` 
+    
 - `resource` - Reference to the resource this field belongs to
 
 ### Display and Interaction
@@ -249,16 +299,45 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `disabled` - If true, the field does not participate in form interaction (appears disabled)
 - `omitted` - If true, the field is completely excluded from the UI (as if it doesn't exist)
 
-### Association Data
+### Field Data
 
-For association fields, the `data` property contains:
+The `data` property is a versatile map that holds configuration specific to the field's purpose and type. Its structure varies depending on the field's functionality:
+
+**For many-to-one associations (`:many_to_one_association`):**
 
 - `resource` - The resource name of the related entity
 - `owner_key` - The foreign key field on this schema
 - `related` - The related schema module
 - `related_key` - The primary key of the related entity
-- `option_label` - (many-to-one only) Field/function to display as the label in dropdown
-- `query_opts` - (many-to-one only) Keyword list with `:order_by` and `:where` clauses
+- `option_label` - Field name (atom), or function (arity 1 or 2) to generate dropdown labels
+- `query_opts` - Optional keyword list with `:order_by` and `:where` clauses for filtering options
+
+**For one-to-many associations (`:one_to_many_association`):**
+
+- `resource` - The resource name of the related entities (may be `nil` if not configured)
+- `owner_key` - The primary key on this schema
+- `related` - The related schema module
+- `related_key` - The foreign key field on the related schema
+
+**For embedded schemas (`:embeds_one`, `:embeds_many`):**
+
+- `owner` - The owner schema module
+- `resource` - The embedded resource name (follows `parent__embed` naming pattern)
+- `related` - The embedded schema module
+
+**For select fields with fixed options:**
+
+- `select` - Map containing:
+  - `opts` - Keyword list of `{label, value}` pairs defining available options
+  - `multiple` - Boolean indicating if multiple selection is allowed (default: `false`)
+
+**For microsecond precision time fields (`:time_usec`, `:naive_datetime_usec`, `:utc_datetime_usec`):**
+
+- `step` - Set to `1` to enable microsecond precision in HTML datetime inputs
+
+**For other field types:**
+
+- Empty map `%{}` when no special configuration is needed
 
 ## Custom Field Types and Rendering
 
@@ -279,12 +358,16 @@ Aurora UIX supports four types of associations: **many_to_one** (`belongs_to`), 
 
 ### Automatic Association Detection
 
+Association detection behavior depends on the backend implementation. The mapping described below corresponds to the current implemented backends (Context-based and Ash Framework).
+
 Associations are automatically detected from your schema and converted to association fields:
 
-- `belongs_to` → `many_to_one_association` html_type
-- `has_many` → `one_to_many_association` html_type
-- `embeds_one` → `embeds_one` html_type
-- `embeds_many` → `embeds_many` html_type
+- `belongs_to` → `many_to_one_association` type
+- `has_many` → `one_to_many_association` type
+- `embeds_one` → `embeds_one` type
+- `embeds_many` → `embeds_many` type
+
+Custom backend implementations may provide different association detection mechanisms while maintaining compatibility with Aurora UIX's rendering system.
 
 ### Many-to-One (belongs_to)
 
