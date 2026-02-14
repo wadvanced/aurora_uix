@@ -201,6 +201,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
   defp tag_equals?(%{name: name}, %{name: name}), do: true
   defp tag_equals?(_tag, _expected_tag), do: false
 
+  @spec pause(Session.t()) :: Session.t()
   defp pause(session) do
     Process.sleep(100)
     session

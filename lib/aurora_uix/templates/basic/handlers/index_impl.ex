@@ -148,6 +148,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl LiveView
+      @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
       def mount(params, session, socket), do: auix_mount(params, session, socket)
 
       @doc false
@@ -163,14 +164,17 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl LiveView
+      @spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}
       def handle_event(event, params, socket), do: auix_handle_event(event, params, socket)
 
       @doc false
       @impl LiveView
+      @spec handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
       def handle_info(input, socket), do: auix_handle_info(input, socket)
 
       @doc false
       @impl LiveView
+      @spec handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}
       def handle_async(task, result, socket), do: auix_handle_async(task, result, socket)
 
       @doc false

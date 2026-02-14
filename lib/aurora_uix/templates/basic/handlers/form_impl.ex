@@ -88,6 +88,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
       @doc false
       @impl LiveComponent
+      @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
       def update(assigns, socket), do: auix_update(assigns, socket)
 
       @doc false
