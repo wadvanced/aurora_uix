@@ -1,18 +1,24 @@
 # Aurora UIX Feature Wishlist
 
-This document outlines potential features and enhancements for Aurora UIX. Rather than a committed roadmap with timelines, this is a dynamic wishlist that evolves based on community feedback, adoption patterns, and real-world use cases.
+This document outlines potential features and enhancements for Aurora UIX. Rather than a committed roadmap with timelines, 
+this is a dynamic wishlist that evolves based on community feedback, adoption patterns, and real-world use cases.
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.2
+## Current Status: v0.1.3
 
-Aurora UIX v0.1.2 introduces record navigation, allowing users to navigate between records directly from show and edit views without returning to the index page.
+Aurora UIX v0.1.3 introduces Ash Framework integration, allowing seamless CRUD UI generation for Ash resources alongside Ecto schemas.
 
-**Recent Changes (v0.1.2)**:
+**Recent Changes (v0.1.3)**:
+- Ash Framework integration with full CRUD support
+- Automatic adapter detection for Ash resources
+- Support for Ash actions and changesets
+
+**Previous Release (v0.1.2)**:
 - Record navigation feature with next/previous controls
 - Option to disable record navigation when needed
 
-**Previous Release (v0.1.1)**:
+**Earlier Release (v0.1.1)**:
 - Show view now uses LiveComponent instead of standalone LiveView module
 - Updated routing to handle show/edit actions through Index module
 - Foundation for implementing record navigation in modals
@@ -47,10 +53,6 @@ Aurora UIX v0.1.2 introduces record navigation, allowing users to navigate betwe
   %{"Text" => [:one, :two]} # <- Groups?
 ]
 ```
-
-### Compatibility with other frameworks
-
-- Ash framework?
 
 ### Enhanced Rendering Components
 

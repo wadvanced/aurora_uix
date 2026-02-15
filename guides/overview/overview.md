@@ -39,6 +39,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 
 ## Key Features
 
+- **Multiple Backend Support** - Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection
 - **Declarative Configuration** - Define resources and layouts as Elixir code, no templates to manage
 - **Automatic CRUD UIs** - Generate complete Create, Read, Update, Delete interfaces automatically
 - **Association Support** - Built-in handling for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`
