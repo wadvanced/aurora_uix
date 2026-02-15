@@ -1,6 +1,6 @@
 # Changelog for Aurora UIX
 
-## [0.1.3] - 2026-02-10
+## [0.1.3] - 2026-02-15
 
 **Ash Framework Integration & Improvements** - This release adds full support for Ash Framework as a backend alternative to Phoenix Contexts, along with custom action support and various improvements.
 
@@ -13,13 +13,13 @@ Requires:
 
 ### Added
 
-- **Ash Framework Integration** (#208)
+- **Ash Framework Integration** (#208)[https://github.com/wadvanced/aurora_uix/pull/208]
   - Full support for Ash Framework as a backend alternative to Phoenix Contexts
   - Automatic field parsing, pagination, and embeds support
   - Support for custom Ash actions (read, create, update, destroy)
   - See `guides/core/ash_integration.md` for details
 
-- **Custom Action Support** (#214)
+- **Custom Action Support** (#214)[https://github.com/wadvanced/aurora_uix/pull/214]
   - Support for custom backend actions via resource metadata options
   - Custom Ash actions: `:ash_read_action`, `:ash_create_action`, `:ash_update_action`, etc.
   - Custom Context functions: `:ctx_list_function`, `:ctx_create_function`, etc.
