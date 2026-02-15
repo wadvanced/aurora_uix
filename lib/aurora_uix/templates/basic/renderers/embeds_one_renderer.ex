@@ -72,10 +72,20 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
       ) do
     layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :show)
 
-    assigns
-    |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
-    |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
-    |> BasicHelpers.assign_auix(:entity, Map.get(entity || %{}, key))
-    |> Renderer.render_inner_elements()
+    assigns =
+      assigns
+      |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
+      |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
+      |> BasicHelpers.assign_auix(:entity, Map.get(entity || %{}, key))
+
+    ~H"""
+      <div class="auix-embeds-one-container">
+        <.header>
+          {@field.label}
+        </.header>
+          <Renderer.render_inner_elements auix={@auix} />     
+      </div>
+
+    """
   end
 end

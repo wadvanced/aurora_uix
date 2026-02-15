@@ -11,7 +11,7 @@ Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project 
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.2"}
+    {:aurora_uix, "~> 0.1.3"}
   ]
 end
 ```
@@ -166,10 +166,9 @@ end
 This automatically generates all the routes above with the standard CRUD pattern:
 - Index: `GET /products`
 - New: `GET /products/new`
-- Create: `POST /products` (handled by LiveView)
-- Show: `GET /products/:id`
+- Show: `GET /products/:id/show`
+- Edit from Show: `GET /products/:id/show-edit`
 - Edit: `GET /products/:id/edit`
-- Update: `PATCH /products/:id` (handled by LiveView)
 
 You can also selectively generate routes using `:only` or `:except` options:
 

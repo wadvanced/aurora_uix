@@ -1526,7 +1526,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-right: auto;
         width: max-content;
         max-width: max-content;
-        padding: var(--auix-padding-large);
+        padding: var(--auix-padding-default);
       }
     }
 
@@ -1717,10 +1717,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_form_field_container) do
     """
-      .auix-form-field-container {
-        display: flex;         
-        flex-direction: column; 
-      }
+    .auix-form-field-container {
+      display: flex;         
+      flex-direction: column; 
+      justify-content: space-between;
+      width: stretch;
+    }
+    .auix-form-field-container > * {
+      flex: 1;
+    }
     """
   end
 
@@ -1760,6 +1765,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-one-to-many-field {
         display: flex;
         flex-direction: column;
+        width: stretch;
         gap: var(--auix-gap-default);
       }
     """
@@ -1951,8 +1957,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-group-container {
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
+      width: stretch;
+
       gap: var(--auix-gap-default);
-      padding: var(--auix-padding-minimal);
+      padding: var(--auix-padding-default);
 
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
@@ -1960,6 +1969,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-color: var(--auix-color-border-primary);
 
       background-color: var(--auix-color-bg-light);
+    }
+
+    .auix-group-container > * {
+      flex: 1;
     }
     """
   end
@@ -2120,6 +2133,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_embeds_one_container) do
     """
     .auix-embeds-one-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: stretch;
+
       padding: var(--auix-padding-default);
 
       border-width: var(--auix-border-width-default);
@@ -2129,18 +2147,29 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       background-color: var(--auix-color-bg-inner-container);
       box-shadow: var(--auix-shadow-default);            
     }
+    .auix-embeds-one-container > * {
+      flex: 1;
+    }
     """
   end
 
   def rule(:auix_embeds_many_container) do
     """
     .auix-embeds-many-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: stretch;
+
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-default);                             
       border-color: var(--auix-color-border-secondary);
       background-color: var(--auix-color-bg-inner-container);
       box-shadow: var(--auix-shadow-default);            
+    }
+    .auix-embeds-many-container > * {
+      flex: 1;
     }
     """
   end

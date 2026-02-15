@@ -39,13 +39,13 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 
 ## Key Features
 
+- **Multiple Backend Support** - Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection
 - **Declarative Configuration** - Define resources and layouts as Elixir code, no templates to manage
 - **Automatic CRUD UIs** - Generate complete Create, Read, Update, Delete interfaces automatically
 - **Association Support** - Built-in handling for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`
 - **Responsive Design** - Layouts work seamlessly on desktop and mobile devices
 - **Customizable Themes** - Includes light and dark themes, fully customizable or replaceable
 - **Extensible** - Override templates, create custom renderers, integrate custom components
-- **i18n Support** - Built-in internationalization via configurable Gettext backend
 - **Minimal Overhead** - Compile-time generation means fast runtime performance
 
 ## Complete Example
@@ -121,34 +121,49 @@ Aurora UIX generates complete, responsive CRUD interfaces. Here are examples of 
 
 ### Desktop Views
 
-<!-- Screenshot captured in test server, or phx.server URL: guide-overview-products -->
+<!-- Screenshot captured in test server, or phx.server URL: guides-overview/products -->
 #### List View (Paginated Index)
-<img src="images/index-desktop.png" width="600" alt="Product list with pagination and filtering"/>
+<div align="center">
+    <img src="images/index-desktop.png" width="600" alt="Product list with pagination and filtering"/>
+</div>
 
 #### Detail View (Show)
-<img src="images/show-desktop.png" width="600" alt="Product detail view"/>
+<div align="center">
+    <img src="images/show-desktop.png" width="600" alt="Product detail view"/>
+</div>
 
 #### Edit View with Sections
-<img src="images/edit-desktop.png" width="600" alt="Product form with sections"/>
+<div align="center">
+    <img src="images/edit-desktop.png" width="600" alt="Product form with sections"/>
+</div>
 
 #### Section Navigation
-<img src="images/edit-desktop-section_switching.png" width="600" alt="Switching between form sections"/>
+<div align="center">
+    <img src="images/edit_section_switching-desktop.png" width="600" alt="Switching between form sections"/>
+</div>
 
 ### Mobile Views
 
 Aurora UIX layouts are fully responsive and adapt to mobile devices:
 
 #### Mobile List View (Infinite Scroll)
-<img src="images/index-mobile.png" width="300" alt="Mobile product list with infinite scroll"/>
-
+<div align="center">
+    <img src="images/index-mobile.png" width="300" alt="Mobile product list with infinite scroll"/>
+</div>
 #### Mobile Detail View (Show)
-<img src="images/show-mobile.png" width="300" alt="Mobile product detail view"/>
+<div align="center">
+    <img src="images/show-mobile.png" width="300" alt="Mobile product detail view"/>
+</div>
 
 #### Mobile Edit View with Sections
-<img src="images/edit-mobile.png" width="300" alt="Mobile product form with sections"/>
+<div align="center">
+    <img src="images/edit-mobile.png" width="300" alt="Mobile product form with sections"/>
+</div>
 
 #### Mobile Section Navigation
-<img src="images/edit-mobile-section_switching.png" width="300" alt="Mobile section navigation"/>
+<div align="center">
+    <img src="images/edit_section_switching-mobile.png" width="300" alt="Mobile section navigation"/>
+</div>
 
 
 ## Who Should Use Aurora UIX?

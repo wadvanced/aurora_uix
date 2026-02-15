@@ -35,6 +35,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   alias Phoenix.LiveView.Socket
 
   @doc """
+  Updates the form state and assigns for the LiveComponent.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `socket` (Socket.t()) - The current LiveView socket.
+
+  ## Returns
+  `{:ok, Socket.t()}` - The updated socket with form and routing stack assigned.
+  """
+  @callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
+
+  @doc """
   Internally handles all LiveView events for the form component.
 
   ## Parameters
@@ -44,7 +56,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Returns
   `{:noreply, Socket.t()}` - Updated socket after event handling.
-
   """
   @callback auix_handle_event(
               event :: binary(),
@@ -66,7 +77,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   ## Returns
   `{:ok, struct()}` - If the entity was correctly saved.
   `{:error, Ecto.Changeset.t()}` - If any error occurred with changeset details.
-
   """
   @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
               {:ok, struct()} | {:error, Ecto.Changeset.t()}
@@ -78,7 +88,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
       @doc false
       @impl LiveComponent
-      defdelegate update(assigns, socket), to: FormImpl
+      @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
+      def update(assigns, socket), do: auix_update(assigns, socket)
 
       @doc false
       @impl LiveComponent
@@ -120,6 +131,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
       @doc false
       @impl FormImpl
+      defdelegate auix_update(assigns, socket), to: FormImpl
+
+      @doc false
+      @impl FormImpl
       defdelegate auix_handle_event(event, params, socket), to: FormImpl
 
       @doc false
@@ -127,6 +142,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       defdelegate save_entity(socket, entity_params), to: FormImpl
 
       defoverridable LiveComponent
+      defoverridable auix_update: 2
+      defoverridable auix_handle_event: 3
       defoverridable save_entity: 2
     end
   end
@@ -140,10 +157,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Returns
   `{:ok, Socket.t()}` - The updated socket with form and routing stack assigned.
-
   """
-  @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
-  def update(
+  @spec auix_update(map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_update(
         %{auix: %{entity: entity, routing_stack: routing_stack}} = _assigns,
         %{assigns: %{auix: auix}} = socket
       ) do

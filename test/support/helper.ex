@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Guides.Blog.Author
   alias Aurora.Uix.Guides.Blog.Category
   alias Aurora.Uix.Guides.Blog.Post
+  alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
@@ -68,14 +69,21 @@ defmodule Aurora.Uix.Test.Helper do
   - `product_count` (integer()) - Number of products to create.
   - `transactions_count` (integer()) - Number of transactions per product.
   - `prefix` (atom() | nil) - Prefix for product references.
+  - `attrs` (map()) - Attributes to override defaults.
 
   ## Returns
   map() - Map of product IDs with associated transactions.
   """
-  @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil) :: map()
-  def create_sample_products_with_transactions(product_count, transactions_count, prefix \\ nil) do
+  @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil, map() | nil) ::
+          map()
+  def create_sample_products_with_transactions(
+        product_count,
+        transactions_count,
+        prefix \\ nil,
+        attrs \\ %{}
+      ) do
     product_count
-    |> create_sample_products(prefix)
+    |> create_sample_products(prefix, attrs)
     |> Enum.map(&create_sample_product_transactions(&1, transactions_count))
   end
 
@@ -154,6 +162,27 @@ defmodule Aurora.Uix.Test.Helper do
   end
 
   @doc """
+  Creates sample categories.
+  """
+  @spec create_sample_categories(non_neg_integer(), map()) :: :ok
+  def create_sample_categories(count, attrs \\ %{}) do
+    Enum.map(1..count, fn index ->
+      change =
+        %Category{
+          name: "Category-#{index}",
+          description: "Category for #{index} selected"
+        }
+        |> struct(attrs)
+        |> Map.from_struct()
+        |> Enum.filter(&(elem(&1, 0) in [:name, :description]))
+
+      Category
+      |> Ash.Changeset.for_create(:create, change)
+      |> Ash.create!()
+    end)
+  end
+
+  @doc """
   Creates sample posts.
   """
   @spec create_sample_posts(non_neg_integer(), map()) :: :ok
@@ -176,6 +205,50 @@ defmodule Aurora.Uix.Test.Helper do
       Post
       |> Ash.Changeset.for_create(:create, change)
       |> Ash.create!()
+    end)
+  end
+
+  @doc """
+  Create overview sample data.
+  """
+  @spec create_guides_sample_data() :: :ok
+  def create_guides_sample_data do
+    delete_all_sample_data()
+
+    product_locations =
+      Enum.map(["North", "South", "East", "West"], fn location ->
+        id = String.downcase(location)
+
+        Inventory.create_product_location(%{
+          reference: "overview-#{id}",
+          name: "#{location} Side",
+          type: "type-#{:rand.uniform(5)}"
+        })
+      end)
+
+    create_sample_products_with_transactions(100, 3, :overview, %{
+      quantity_initial: :rand.uniform(999),
+      list_price: :rand.uniform(250) + 200,
+      rpp: :rand.uniform(250),
+      product_location_id:
+        product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
+    })
+
+    blog_count = 5
+    categories = create_sample_categories(blog_count)
+
+    authors =
+      create_sample_authors(blog_count)
+
+    Enum.each(1..blog_count, fn index ->
+      reference_id = reference_id("overview", index, 1)
+
+      create_sample_posts(1, %{
+        title: "Overview Post #{index}",
+        content: "lorem ipsum lorem ipsum #{reference_id} lorem ipsum",
+        author_id: Enum.at(authors, index - 1).id,
+        category_id: Enum.at(categories, index - 1).id
+      })
     end)
   end
 

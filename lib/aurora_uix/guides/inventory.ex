@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Guides.Inventory do
   - `attrs` (map()) - Attributes for the new product. Defaults to `%{}`.
 
   ## Returns
-  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with created product or error.
+  `{:ok, Product.t()}` | `{:error, Ecto.Changeset.t()}` - Result tuple with created product or error.
   """
   @spec create_product(map()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def create_product(attrs \\ %{}) do
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Guides.Inventory do
   - `attrs` (map()) - Attributes to update.
 
   ## Returns
-  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with updated product or error.
+  `{:ok, Product.t()}` | `{:error, Ecto.Changeset.t()}` - Result tuple with updated product or error.
   """
   @spec update_product(Product.t(), map()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def update_product(%Product{} = product, attrs) do
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Guides.Inventory do
   - `product` (Product.t()) - The product to delete.
 
   ## Returns
-  {:ok, Product.t()} | {:error, Ecto.Changeset.t()} - Result tuple with deleted product or error.
+  `{:ok, Product.t()}` | `{:error, Ecto.Changeset.t()}` - Result tuple with deleted product or error.
   """
   @spec delete_product(Product.t()) :: {:ok, Product.t()} | {:error, Ecto.Changeset.t()}
   def delete_product(%Product{} = product), do: Repo.delete(product)

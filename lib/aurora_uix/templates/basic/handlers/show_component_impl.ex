@@ -34,6 +34,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   alias Phoenix.LiveView.Socket
 
   @doc """
+  Updates the show view state and assigns for the LiveComponent.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `socket` (Socket.t()) - The current LiveView socket.
+
+  ## Returns
+  `{:ok, Socket.t()}` - The updated socket with show view state and routing stack assigned.
+  """
+  @callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
+
+  @doc """
   Internally handles all LiveView events for the show component.
 
   ## Parameters
@@ -43,7 +55,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
 
   ## Returns
   `{:noreply, Socket.t()}` - Updated socket after event handling.
-
   """
   @callback auix_handle_event(
               event :: binary(),
@@ -59,7 +70,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
 
       @doc false
       @impl LiveComponent
-      defdelegate update(assigns, socket), to: ShowComponentImpl
+      @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
+      def update(assigns, socket), do: auix_update(assigns, socket)
 
       @doc false
       @impl LiveComponent
@@ -68,9 +80,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
 
       @doc false
       @impl ShowComponentImpl
+      defdelegate auix_update(assigns, socket), to: ShowComponentImpl
+
+      @doc false
+      @impl ShowComponentImpl
       defdelegate auix_handle_event(event, params, socket), to: ShowComponentImpl
 
       defoverridable LiveComponent
+      defoverridable auix_update: 2
+      defoverridable auix_handle_event: 3
     end
   end
 
@@ -83,10 +101,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
 
   ## Returns
   `{:ok, Socket.t()}` - The updated socket with show view state and routing stack assigned.
-
   """
-  @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
-  def update(
+  @spec auix_update(map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_update(
         %{auix: %{routing_stack: routing_stack}} = _assigns,
         socket
       ) do

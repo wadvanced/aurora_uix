@@ -22,23 +22,37 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
 
   alias Aurora.Uix.Guides.Blog.Author
   alias Aurora.Uix.Guides.Blog.Category
+  alias Aurora.Uix.Guides.Blog.Comment
   alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Blog.Tag
 
-  auix_resource_metadata(:author, ash_resource: Author)
-  auix_resource_metadata(:post, ash_resource: Post)
+  auix_resource_metadata(:author, ash_resource: Author) do
+    field :bio, html_type: :textarea
+  end
+
   auix_resource_metadata(:category, ash_resource: Category)
+
+  auix_resource_metadata(:post__comment, ash_resource: Comment) do
+    field :description, html_type: :textarea
+  end
+
+  auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
+
   auix_resource_metadata(:tag, ash_resource: Tag)
 
   auix_create_ui do
+    show_layout :author do
+      stacked([:name, :email, :bio])
+    end
+
+    edit_layout :author do
+      inline([:name, :email, :bio])
+    end
+
     index_columns(:post, [:title, :author, :status])
 
     show_layout :post do
-      stacked do
-        inline([:status])
-        inline([:title, :author])
-        inline([:comment])
-      end
+      stacked([:status, :title, :author, :comment])
     end
 
     edit_layout :post do
@@ -48,7 +62,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
         inline([:comment])
 
         group "details" do
-          inline([:status, :published_at])
+          stacked([:status, :published_at])
         end
 
         inline([:tags])

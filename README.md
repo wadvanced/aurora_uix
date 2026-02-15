@@ -26,6 +26,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Production-Ready Features** — Built-in pagination, validation, error handling, i18n, responsive design, and real-time updates via LiveView.
 
 **Key Features:**
+- **Multiple Backend Support** — Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection.
 - **Declarative Resource Metadata** — Define fields, validation, labels, and associations in a single, maintainable place.
 - **Flexible Layout DSL** — Compose complex UIs using `inline`, `stacked`, and `section` layout primitives.
 - **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
@@ -116,7 +117,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.2"}
+    {:aurora_uix, "~> 0.1.3"}
   ]
 end
 ```
@@ -187,7 +188,7 @@ Aurora UIX is **best suited** when:
 ---
 ## 📖 Documentation & Guides
 
-Complete documentation is available in the [guides/](./guides/) directory and on [HexDocs](https://hexdocs.pm/aurora_uix):
+Complete documentation is available in the [guides](./guides/overview/overview.md) and on [HexDocs](https://hexdocs.pm/aurora_uix):
 
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
@@ -231,7 +232,7 @@ We welcome contributions! Aurora UIX is maintained by WAdvanced and community me
 ---
 ## 📜 License
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE.md).
 
 ---
 ## 📧 Contact

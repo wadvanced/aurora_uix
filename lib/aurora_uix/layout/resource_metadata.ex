@@ -380,7 +380,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       resource.opts[:schema] ||
         resource.opts[:ash_resource]
 
-    resource_type = resource_type(schema)
+    resource_type = resource.opts[:type] || resource_type(schema)
     {schema, resource_type}
   end
 

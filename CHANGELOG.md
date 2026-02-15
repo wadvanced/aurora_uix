@@ -1,5 +1,90 @@
 # Changelog for Aurora UIX
 
+## [0.1.3] - 2026-02-10
+
+**Ash Framework Integration & Improvements** - This release adds full support for Ash Framework as a backend alternative to Phoenix Contexts, along with custom action support and various improvements.
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
+
+
+### Added
+
+- **Ash Framework Integration** (#208)
+  - Full support for Ash Framework as a backend alternative to Phoenix Contexts
+  - Automatic field parsing, pagination, and embeds support
+  - Support for custom Ash actions (read, create, update, destroy)
+  - See `guides/core/ash_integration.md` for details
+
+- **Custom Action Support** (#214)
+  - Support for custom backend actions via resource metadata options
+  - Custom Ash actions: `:ash_read_action`, `:ash_create_action`, `:ash_update_action`, etc.
+  - Custom Context functions: `:ctx_list_function`, `:ctx_create_function`, etc.
+  - See resource metadata guide for configuration options
+
+- **Integration Architecture**
+  - New connector behaviour for backend abstraction
+  - Unified CRUD and field parser interfaces
+  - Automatic backend type detection (`:ctx` or `:ash`)
+
+
+### Changed
+
+- **Refactored Integration Layer**
+  - Improved separation of concerns between parsers and CRUD operations
+  - Enhanced support for custom functions in Context-based backends
+  
+- **Enhanced Parser Module**
+  - Extended to support both Context and Ash backends
+  - Improved error handling and validation
+
+- **Unified Handler Callback Pattern**
+  - All handler implementations now follow a consistent `auix_*` callback pattern
+  - Added `auix_mount/3`, `auix_handle_params/3`, `auix_handle_event/3`, `auix_handle_info/2`, `auix_handle_async/3` to IndexImpl
+  - Added `auix_update/2` to FormImpl and ShowComponentImpl
+  - All callbacks properly marked as `@callback` and `defoverridable`
+  - Phoenix callbacks remain overridable for advanced use cases
+  - See `guides/core/liveview.md` for comprehensive callback documentation
+  
+- **Updated Dependencies**
+  - `ash`: `3.12.0` → `3.16.0`
+  - `ash_postgres`: `2.6.27` → `2.6.31`
+  - `bandit`: `1.10.1` → `1.10.2`
+  - `credo`: `1.7.15` → `1.7.16`
+  - `ex_doc`: `0.39.3` → `0.40.1`
+  - `lazy_html`: `0.1.8` → `0.1.10`
+  - `phoenix_live_view`: `1.1.19` → `1.1.22`
+
+
+### Fixed
+
+- Record navigator incorrectly rendered in new entry forms (#213)
+- Failure to detect `embeds_one` or `embeds_many` in some cases
+- Error resolving default function in `:ctx` type backends
+- Missing HTML type assignment for certain field types
+
+
+### Documentation
+
+- Added comprehensive Ash Framework integration guide (`guides/core/ash_integration.md`)
+- Updated resource metadata guide with backend-specific examples
+- Updated LiveView integration guide with unified callback pattern documentation (`guides/core/liveview.md`)
+  - Callback reference tables for IndexImpl, FormImpl, and ShowComponentImpl
+  - Distinction between Aurora UIX callbacks and Phoenix callbacks
+  - Examples and guidance for customization
+- Corrected QueryBuilder documentation in layouts guide (`guides/core/layouts.md`)
+
+
+### Build
+
+- Excluded guide modules from Hex package distribution
+- Updated test environment for Ash resources
+- Added Ash dependencies for development and testing
+
+
 ## [0.1.2] - 2026-01-14
 
 **Record Navigation** - Now users can navigate back and forth while editing or viewing records.
