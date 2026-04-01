@@ -236,7 +236,10 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   defp filter_selected_action(actions, nil), do: actions
 
   defp filter_selected_action(actions, selected_action_name) do
-    Enum.filter(actions, &(&1.name == selected_action_name))
+    case Enum.filter(actions, &(&1.name == selected_action_name)) do
+      [] -> actions
+      filtered -> filtered
+    end
   end
 
   # Maps action type atom to Ash action module.

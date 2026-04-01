@@ -192,6 +192,9 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
+      {:ash, "~> 3.0"},
+      {:ash_phoenix, "~> 2.3"},
+      {:ash_postgres, "~> 2.0"},
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.5"},
@@ -219,9 +222,6 @@ defmodule Aurora.Uix.MixProject do
       {:telemetry_poller, "~> 1.0"},
 
       ## Dev dependencies
-      {:ash, "~> 3.0", only: [:dev, :test]},
-      {:ash_phoenix, "~> 2.3", only: [:dev, :test]},
-      {:ash_postgres, "~> 2.0", only: [:dev, :test]},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
 
       ## Test dependencies
