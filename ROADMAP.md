@@ -5,11 +5,14 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.3
+## Current Status: v0.1.4
 
-Aurora UIX v0.1.3 introduces Ash Framework integration, allowing seamless CRUD UI generation for Ash resources alongside Ecto schemas.
+Aurora UIX v0.1.4 improves Ash Framework integration, allowing seamless CRUD UI generation for Ash resources alongside Ecto schemas.
 
-**Recent Changes (v0.1.3)**:
+** Recent Changes (v0.1.4)**:
+- Improved Ash framework compatibility
+
+**Previous Release (v0.1.3)**:
 - Ash Framework integration with full CRUD support
 - Automatic adapter detection for Ash resources
 - Support for Ash actions and changesets

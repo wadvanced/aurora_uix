@@ -1,5 +1,17 @@
 # Changelog for Aurora UIX
 
+## [0.1.4] -
+
+**Ash Framework improved support** - Changes in this release comes from the experience of adopting aurora_uix on real applications
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
+
+
+
 ## [0.1.3] - 2026-02-15
 
 **Ash Framework Integration & Improvements** - This release adds full support for Ash Framework as a backend alternative to Phoenix Contexts, along with custom action support and various improvements.
