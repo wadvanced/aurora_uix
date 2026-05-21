@@ -78,6 +78,6 @@ config :wallaby,
   screenshot_dir: "tmp",
   hackney_options: [timeout: 5_000],
   chromedriver: [
-    headless: true,
+    headless: System.get_env("WALLABY_CHROME_HEADLESS", "true") == "true",
     javascriptEnabled: false
   ]
