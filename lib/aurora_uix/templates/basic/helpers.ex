@@ -912,19 +912,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  Returns the upload configuration for a field, or `nil` if the field is not an upload field.
-
-  ## Parameters
-  - `field` (`Aurora.Uix.Field.t()`) - The field struct to inspect.
-
-  ## Returns
-  `map() | nil` - The `:upload` map from `field.data`, or `nil` when absent.
-  """
-  @spec upload_config(Aurora.Uix.Field.t()) :: map() | nil
-  def upload_config(%{data: data}) when is_map(data), do: Map.get(data, :upload)
-  def upload_config(_field), do: nil
-
-  @doc """
   Returns `true` iff the field carries a `data.upload` map (i.e., it is an upload field).
 
   ## Parameters
@@ -941,7 +928,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Returns the list of upload field structs for the current resource in an `auix` map.
 
   Traverses `auix.configurations[auix.resource_name].resource_config.fields` and returns
-  only those fields for which `upload_field?/1` is true.
+  only those fields for which the data field contains a upload key.
 
   ## Parameters
   - `auix` (map()) - The Aurora UIX context map containing `configurations` and `resource_name`.
