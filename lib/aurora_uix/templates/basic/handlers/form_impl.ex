@@ -101,32 +101,29 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           ) do
         entity_params = Map.get(params, auix.module)
 
-        case FormImpl.auix_consume_uploads(socket, entity_params) do
-          {:ok, consumed_params} ->
-            case save_entity(socket, consumed_params) do
-              {:ok, entity} ->
-                FormImpl.notify_parent({:saved, entity})
+        with {:ok, consumed_params} <- FormImpl.auix_consume_uploads(socket, entity_params),
+             {:ok, entity} <- save_entity(socket, consumed_params) do
+          FormImpl.notify_parent({:saved, entity})
 
-                new_entity =
-                  entity
-                  |> BasicHelpers.primary_key_value(auix.primary_key)
-                  |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
+          new_entity =
+            entity
+            |> BasicHelpers.primary_key_value(auix.primary_key)
+            |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
 
-                {:noreply,
-                 socket
-                 |> clear_flash()
-                 |> put_flash(:info, "#{auix.name} updated successfully")
-                 |> assign(:action, :edit)
-                 |> assign_auix(:entity, new_entity)
-                 |> FormImpl.conditional_route_back(action, auix.one2many_rendered?)}
-
-              {:error, %Ecto.Changeset{} = changeset} ->
-                {:noreply,
-                 socket
-                 |> clear_flash()
-                 |> put_flash(:error, format_changeset_errors(changeset))
-                 |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
-            end
+          {:noreply,
+           socket
+           |> clear_flash()
+           |> put_flash(:info, "#{auix.name} updated successfully")
+           |> assign(:action, :edit)
+           |> assign_auix(:entity, new_entity)
+           |> FormImpl.conditional_route_back(action, auix.one2many_rendered?)}
+        else
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply,
+             socket
+             |> clear_flash()
+             |> put_flash(:error, format_changeset_errors(changeset))
+             |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
 
           {:error, reason} ->
             {:noreply,
