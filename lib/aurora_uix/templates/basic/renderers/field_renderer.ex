@@ -47,8 +47,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
       %{renderer: custom_renderer} when is_function(custom_renderer, 1) ->
         custom_renderer.(assigns)
 
-      _field ->
-        default_render(assigns)
+      field ->
+        if BasicHelpers.upload_field?(field),
+          do: upload_render(assigns),
+          else: default_render(assigns)
     end
   end
 
@@ -80,6 +82,44 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @spec empty_render(map()) :: Phoenix.LiveView.Rendered.t()
   defp empty_render(assigns) do
     ~H"""
+    """
+  end
+
+  # Renders the upload component for fields with a data.upload config.
+  # Guards against a nil uploads entry by rendering nothing in that case.
+  @spec upload_render(map()) :: Phoenix.LiveView.Rendered.t()
+  defp upload_render(%{field: field} = assigns) do
+    upload = Map.get(assigns[:uploads] || %{}, field.key)
+    assigns = assign(assigns, :upload, upload)
+
+    ~H"""
+    <%= if @upload do %>
+      <div class="auix-form-field-container">
+        <label class="auix-form-field-label">{@field.label}</label>
+        <.live_file_input upload={@upload} />
+        <%= for entry <- @upload.entries do %>
+          <div class="auix-upload-entry">
+            <span class="auix-upload-entry-name">{entry.client_name}</span>
+            <span class="auix-upload-entry-progress">{entry.progress}%</span>
+            <button
+              type="button"
+              phx-click="auix_cancel_upload"
+              phx-value-field={to_string(@field.key)}
+              phx-value-ref={entry.ref}
+              phx-target={@auix._myself}
+            >
+              &times;
+            </button>
+            <%= for err <- upload_errors(@upload, entry) do %>
+              <span class="auix-upload-entry-error">{Phoenix.Naming.humanize(err)}</span>
+            <% end %>
+          </div>
+        <% end %>
+        <%= for err <- upload_errors(@upload) do %>
+          <span class="auix-upload-error">{Phoenix.Naming.humanize(err)}</span>
+        <% end %>
+      </div>
+    <% end %>
     """
   end
 

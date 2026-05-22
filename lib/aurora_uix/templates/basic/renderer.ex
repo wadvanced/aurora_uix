@@ -48,7 +48,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
     ~H"""
     <div id={@auix.layout_tree.config[:group_id]} class="auix-group-container">
       <h3 class="auix-group-title"><%= @auix.layout_tree.config[:title] %></h3>
-      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
     </div>
     """
   end
@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   def render(%{auix: %{layout_tree: %{tag: :inline}}} = assigns) do
     ~H"""
     <div class="auix-inline-container">
-      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
     </div>
     """
   end
@@ -65,7 +65,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   def render(%{auix: %{layout_tree: %{tag: :stacked}}} = assigns) do
     ~H"""
     <div class="auix-stacked-container">
-      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+      <.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
     </div>
     """
   end
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   @spec render_inner_elements(map()) :: Phoenix.LiveView.Rendered.t()
   def render_inner_elements(assigns) do
     ~H"""
-    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix.entity} :for={inner_path <- inner_path(@auix)} />
+    <.render auix={Map.put(@auix, :layout_tree, inner_path)} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} :for={inner_path <- inner_path(@auix)} />
     """
   end
 

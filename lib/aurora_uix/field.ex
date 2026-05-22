@@ -12,6 +12,28 @@ defmodule Aurora.Uix.Field do
     - `data` (`any`) - A general purpose field.
         Template parser expect specific format for this data, according to any of the field value.
         Refer to the template documentation to learn special fields data structure.
+
+        **Upload fields** — a field is treated as a file-upload field when `data` contains an
+        `:upload` key whose value is a map with the following structure:
+
+        ```elixir
+        field :uploaded_blob_ref,
+          data: %{
+            upload: %{
+              allow:   [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
+              consume: &MyApp.Templates.store_xlsx/1
+            }
+          }
+        ```
+
+        - `:allow` — keyword list forwarded to `Phoenix.LiveView.allow_upload/3`
+          (`:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, …).
+        - `:consume` — arity-1 callback. Receives a list of consumed binaries (`[binary()]`)
+          and must return:
+          - `{:ok, value}` — `value` is written onto the entity params under the field key.
+          - `:no_change` — the field is left untouched; no-file-selected is also short-circuited
+            to `:no_change` so the callback need not handle an empty list.
+          - `{:error, reason}` — save aborts and `reason` is shown as an error flash.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
