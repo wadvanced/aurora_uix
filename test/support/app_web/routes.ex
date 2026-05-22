@@ -247,6 +247,16 @@ defmodule Aurora.UixWeb.Test.Routes do
           BrowserEmbedsManyTest,
           "browser-embeds-many-"
         )
+
+        RoutesHelper.register_crud(
+          UploadFieldTest.Product,
+          "upload-field-products"
+        )
+
+        RoutesHelper.register_crud(
+          UploadFieldErrorTest.Product,
+          "upload-field-error-products"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

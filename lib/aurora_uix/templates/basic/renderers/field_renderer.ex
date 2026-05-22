@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
+  alias Aurora.Uix.Templates.Basic.Renderers.UploadRenderer
 
   alias Phoenix.HTML.Form
 
@@ -97,6 +98,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
   defp default_render(%{field: %{type: :embeds_many}} = assigns),
     do: EmbedsManyRenderer.render(assigns)
+
+  defp default_render(%{field: %{data: %{upload: upload_data}}} = assigns)
+       when is_map(upload_data),
+       do: UploadRenderer.render(assigns)
 
   # Renders standard field types with appropriate HTML structure
   defp default_render(assigns) do

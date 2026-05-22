@@ -58,7 +58,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
         phx-submit="save"
       >
         <div class="auix-form-container" data-layout={@auix.layout_tree.name}>
-          <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+          <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
         </div>
 
         <:actions>

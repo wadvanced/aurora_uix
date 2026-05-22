@@ -911,6 +911,43 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> struct(%{name: form_name, id: form_name})
   end
 
+  @doc """
+  Returns `true` iff the field carries a `data.upload` map (i.e., it is an upload field).
+
+  ## Parameters
+  - `field` (`Aurora.Uix.Field.t()`) - The field struct to inspect.
+
+  ## Returns
+  `boolean()` - `true` when `field.data[:upload]` is a map, `false` otherwise.
+  """
+  @spec upload_field?(Aurora.Uix.Field.t()) :: boolean()
+  def upload_field?(%{data: data}) when is_map(data), do: is_map(Map.get(data, :upload))
+  def upload_field?(_field), do: false
+
+  @doc """
+  Returns the list of upload field structs for the current resource in an `auix` map.
+
+  Traverses `auix.configurations[auix.resource_name].resource_config.fields` and returns
+  only those fields for which the data field contains a upload key.
+
+  ## Parameters
+  - `auix` (map()) - The Aurora UIX context map containing `configurations` and `resource_name`.
+
+  ## Returns
+  `list(Aurora.Uix.Field.t())` - Upload fields, or `[]` when none are configured.
+  """
+  @spec upload_fields(map()) :: list(Aurora.Uix.Field.t())
+  def upload_fields(%{configurations: configurations, resource_name: resource_name}) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:resource_config, %{})
+    |> Map.get(:fields, %{})
+    |> Map.values()
+    |> Enum.filter(&upload_field?/1)
+  end
+
+  def upload_fields(_auix), do: []
+
   ## PRIVATE
   @spec maybe_set_related_to_new_entity(
           binary | nil,

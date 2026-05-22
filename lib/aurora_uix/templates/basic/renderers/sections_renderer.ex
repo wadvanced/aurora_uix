@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
         <% end %>
       </div>
       <div class="auix-sections-content">
-        <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+        <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
       </div>
     </div>
     """
@@ -82,7 +82,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
       data-tab-sections-index={@auix.layout_tree.config[:sections_index]}
       data-tab-index={@auix.layout_tree.config[:tab_index]}
       data-tab-active={if @auix._sections[@auix.layout_tree.config[:sections_id]] == @auix.layout_tree.config[:tab_id] or (@auix._sections[@auix.layout_tree.config[:sections_id]] == nil and @auix.layout_tree.config[:active]), do: "active", else: "inactive"}>
-      <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
+      <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} uploads={assigns[:uploads] || %{}} />
     </div>
     """
   end

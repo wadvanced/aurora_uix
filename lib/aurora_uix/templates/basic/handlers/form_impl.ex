@@ -101,29 +101,35 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           ) do
         entity_params = Map.get(params, auix.module)
 
-        case save_entity(socket, entity_params) do
-          {:ok, entity} ->
-            FormImpl.notify_parent({:saved, entity})
+        with {:ok, consumed_params} <- FormImpl.auix_consume_uploads(socket, entity_params),
+             {:ok, entity} <- save_entity(socket, consumed_params) do
+          FormImpl.notify_parent({:saved, entity})
 
-            new_entity =
-              entity
-              |> BasicHelpers.primary_key_value(auix.primary_key)
-              |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
+          new_entity =
+            entity
+            |> BasicHelpers.primary_key_value(auix.primary_key)
+            |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
 
-            {:noreply,
-             socket
-             |> clear_flash()
-             |> put_flash(:info, "#{auix.name} updated successfully")
-             |> assign(:action, :edit)
-             |> assign_auix(:entity, new_entity)
-             |> FormImpl.conditional_route_back(action, auix.one2many_rendered?)}
-
+          {:noreply,
+           socket
+           |> clear_flash()
+           |> put_flash(:info, "#{auix.name} updated successfully")
+           |> assign(:action, :edit)
+           |> assign_auix(:entity, new_entity)
+           |> FormImpl.conditional_route_back(action, auix.one2many_rendered?)}
+        else
           {:error, %Ecto.Changeset{} = changeset} ->
             {:noreply,
              socket
              |> clear_flash()
              |> put_flash(:error, format_changeset_errors(changeset))
              |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
+
+          {:error, reason} ->
+            {:noreply,
+             socket
+             |> clear_flash()
+             |> put_flash(:error, reason)}
         end
       end
 
@@ -176,6 +182,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
      |> assign_layout_options()
      |> FormActions.set_actions()
+     |> maybe_allow_uploads(auix)
+     |> then(fn s -> assign_auix(s, :uploads, s.assigns[:uploads] || %{}) end)
      |> render_with(&Renderer.render/1)}
   end
 
@@ -225,6 +233,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   def auix_handle_event("auix_route_back", _params, socket) do
     {:noreply, auix_route_back(socket)}
+  end
+
+  def auix_handle_event("auix_cancel_upload", %{"field" => field, "ref" => ref}, socket) do
+    key = String.to_existing_atom(field)
+    {:noreply, Phoenix.LiveView.cancel_upload(socket, key, ref)}
   end
 
   def auix_handle_event(event, params, _socket) do
@@ -323,7 +336,59 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
+  @doc """
+  Consumes all uploaded entries for upload fields and merges the results into entity params.
+
+  For each upload field, reads the uploaded binaries and calls the field's `:consume` callback.
+  Returns `{:ok, updated_params}` on success, or `{:error, reason}` if any callback returns
+  an error (aborting further processing).
+
+  When no file is selected for a field, the callback is not invoked and the field is left
+  untouched in the params (`:no_change` short-circuit).
+
+  ## Parameters
+  - `socket` (Socket.t()) - The current LiveView socket.
+  - `entity_params` (map()) - The raw entity parameters from the form submission.
+
+  ## Returns
+  `{:ok, map()}` - Updated params with consumed upload values merged in.
+  `{:error, term()}` - If a `:consume` callback returns `{:error, reason}`.
+  """
+  @spec auix_consume_uploads(Socket.t(), map()) ::
+          {:ok, map()} | {:error, term()}
+  def auix_consume_uploads(%{assigns: %{auix: auix}} = socket, entity_params) do
+    fields = BasicHelpers.upload_fields(auix)
+
+    Enum.reduce_while(fields, {:ok, entity_params || %{}}, fn field, {:ok, params} ->
+      binaries =
+        Phoenix.LiveView.consume_uploaded_entries(socket, field.key, fn %{path: path}, _entry ->
+          {:ok, File.read!(path)}
+        end)
+
+      result = if binaries == [], do: :no_change, else: field.data.upload.consume.(binaries)
+
+      case result do
+        :no_change -> {:cont, {:ok, params}}
+        {:ok, value} -> {:cont, {:ok, Map.put(params, to_string(field.key), value)}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
   ## PRIVATE
+
+  @spec maybe_allow_uploads(Socket.t(), map()) :: Socket.t()
+  defp maybe_allow_uploads(socket, auix) do
+    auix
+    |> BasicHelpers.upload_fields()
+    |> Enum.reduce(socket, fn field, acc ->
+      if Map.has_key?(acc.assigns[:uploads] || %{}, field.key) do
+        acc
+      else
+        Phoenix.LiveView.allow_upload(acc, field.key, field.data.upload.allow)
+      end
+    end)
+  end
 
   @spec assign_layout_options(Socket.t()) :: Socket.t()
   defp assign_layout_options(socket) do
