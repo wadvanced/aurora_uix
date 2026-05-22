@@ -10,6 +10,14 @@ Requires:
 - Phoenix LiveView `1.1+`
 - Ecto `3.13+`
 
+### Added
+
+- **File-upload support via `data.upload` field config** [#251](https://github.com/wadvanced/aurora_uix/issues/251)
+  - A resource field can now carry a LiveView upload by setting `data: %{upload: %{allow: [...], consume: &fun/1}}`.
+  - The library registers uploads via `allow_upload/3`, renders `live_file_input` with entry progress and cancel buttons, and invokes the `:consume` callback on save.
+  - Purely additive — fields without `data.upload` are unaffected.
+  - See `guides/core/resource_metadata.md` for the `data.upload` configuration reference.
+
 
 
 ## [0.1.3] - 2026-02-15

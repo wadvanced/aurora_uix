@@ -335,6 +335,37 @@ The `data` property is a versatile map that holds configuration specific to the 
 
 - `step` - Set to `1` to enable microsecond precision in HTML datetime inputs
 
+**For file-upload fields:**
+
+Set `data: %{upload: %{allow: [...], consume: &fun/1}}` to turn any field into a managed
+LiveView upload field:
+
+```elixir
+auix_resource_metadata :template, context: MyApp.Templates, schema: MyApp.Template do
+  field :uploaded_blob_ref,
+    data: %{
+      upload: %{
+        allow:   [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
+        consume: &MyApp.Templates.store_xlsx/1
+      }
+    }
+end
+```
+
+- `:allow` — keyword list forwarded verbatim to `Phoenix.LiveView.allow_upload/3`.
+  Supports `:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, and any other
+  option that `allow_upload/3` accepts.
+- `:consume` — arity-1 callback receiving `[binary()]` (the read bytes of each selected file).
+  Return values:
+  - `{:ok, value}` — `value` is written onto the entity params under the field key before save.
+  - `:no_change` — the field is left untouched; the helper also short-circuits to `:no_change`
+    when no file is selected, so the callback need not handle an empty list.
+  - `{:error, reason}` — save aborts and `reason` is displayed as an error flash.
+
+Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
+against double registration on re-renders), `live_file_input` rendering with per-entry
+progress, cancel buttons, and upload/entry-level error display.
+
 **For other field types:**
 
 - Empty map `%{}` when no special configuration is needed
