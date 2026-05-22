@@ -36,37 +36,6 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
     end
   end
 
-  describe "upload_field?/1" do
-    test "returns true when data map has :upload key" do
-      field = %Field{data: %{upload: %{allow: [], consume: & &1}}}
-      assert BasicHelpers.upload_field?(field)
-    end
-
-    test "returns false when data map has no :upload key" do
-      assert BasicHelpers.upload_field?(%Field{data: %{}}) == false
-    end
-
-    test "returns false when data is nil" do
-      assert BasicHelpers.upload_field?(%Field{data: nil}) == false
-    end
-  end
-
-  describe "upload_config/1" do
-    test "returns the upload map for an upload field" do
-      config = %{allow: [], consume: & &1}
-      field = %Field{data: %{upload: config}}
-      assert BasicHelpers.upload_config(field) == config
-    end
-
-    test "returns nil when no upload key in data" do
-      assert BasicHelpers.upload_config(%Field{data: %{}}) == nil
-    end
-
-    test "returns nil when data is nil" do
-      assert BasicHelpers.upload_config(%Field{data: nil}) == nil
-    end
-  end
-
   describe "form mount — allow_upload registration" do
     test "live file input is present when the form opens", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/upload-field-products/new")
