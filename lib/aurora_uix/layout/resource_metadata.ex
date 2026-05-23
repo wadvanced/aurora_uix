@@ -107,7 +107,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
       Returns a list of resource configurations.
       """
-      @spec auix_resources() :: list()
+      @spec auix_resources() :: map()
       def auix_resources do
         unquote(Macro.escape(resources_metadata))
       end
