@@ -900,6 +900,66 @@ auix_resource_metadata :post,
   ash_read_action_paginated: :published_paginated
 ```
 
+## Authorization & policies
+
+Resources protected by `Ash.Policy.Authorizer` need an actor to satisfy their
+policies. Set `ash_actor_assign:` to the name of the `socket.assigns` key that
+holds the current actor (commonly `:current_user`); Aurora UIX will pull the
+actor at every CRUD call and forward it as `actor:` to Ash.
+
+```elixir
+auix_resource_metadata :template,
+  ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+  ash_actor_assign: :current_user
+```
+
+This single line threads the actor through every Ash call produced for the
+resource:
+
+- `Ash.read/2` (list, paginated list, `to_page`)
+- `Ash.get/3` (item lookup)
+- `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2`
+- `Ash.load/3` (preloads)
+- `AshPhoenix.Form.for_update/3` (forms)
+
+### Host responsibility: assign the actor
+
+Aurora UIX only **reads** the assign — it does not authenticate. The host must
+put the actor into `socket.assigns` before any Aurora UIX-generated LiveView
+mounts (typically via `on_mount` or a `live_session`):
+
+```elixir
+live_session :authenticated,
+  on_mount: {MyAppWeb.UserAuth, :ensure_authenticated} do
+  live "/templates", TemplateLive.Index, :index
+end
+```
+
+### Behaviour summary
+
+| Configuration                                            | Behaviour                                       |
+|----------------------------------------------------------|-------------------------------------------------|
+| `ash_actor_assign:` unset (default)                       | No `actor:` is added. Backward compatible.      |
+| `ash_actor_assign: :current_user` + assign present       | `actor: socket.assigns.current_user` forwarded. |
+| `ash_actor_assign: :current_user` + assign `nil` or missing | No `actor:` added. Policy denies as actor-less. |
+
+### Why `authorize?:` is not exposed
+
+Aurora UIX never sets `authorize?:` explicitly. The host's Ash domain `authorize`
+config (`:by_default`, `:when_requested`, or `:always`) continues to decide
+whether policies run — Aurora UIX never overrides that posture, and there is no
+"escape hatch" that silently disables authorization. The fix is always to thread
+the right actor.
+
+### What happens on a forbidden read or write
+
+- **Reads** (list, paginated list, `to_page`) translate `Ash.Error.Forbidden`
+  into an empty result so the generated index renders an empty state rather
+  than crashing.
+- **Writes** (create, update, destroy) propagate `{:error, %Ash.Error.Forbidden{}}`.
+  The generated form handler catches the error and renders an error flash; the
+  LiveView stays alive.
+
 ## Next Steps
 
 Now that you understand Aurora UIX's Ash integration, explore these Aurora UIX features:

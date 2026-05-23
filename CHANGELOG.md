@@ -18,6 +18,14 @@ Requires:
   - Purely additive — fields without `data.upload` are unaffected.
   - See `guides/core/resource_metadata.md` for the `data.upload` configuration reference.
 
+- **Actor threading for policy-protected Ash resources** [#253](https://github.com/wadvanced/aurora_uix/issues/253)
+  - `auix_resource_metadata` accepts `ash_actor_assign: :current_user` (or any other socket-assigns key). The named actor is forwarded as `actor:` to every generated Ash call: `Ash.read/2`, `Ash.get/3`, `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2`, `Ash.load/3`, and `AshPhoenix.Form.for_update/3`.
+  - Backward-compatible: omitting `ash_actor_assign` keeps the previous behaviour. A `nil` actor (assign missing or unset) is also a no-op — no `actor:` is added.
+  - `authorize?:` is **never** set explicitly; the host domain's `authorize` config (`:by_default` / `:when_requested` / `:always`) continues to decide whether policies run.
+  - Forbidden reads on policy-protected resources now render an empty index (instead of crashing) — `Ash.Error.Forbidden` is translated to an empty list for `list/2`, `list_function_paginated/2`, and `to_page/4`. Writes still propagate the error so the form handler can flash it.
+  - Adds a new `socket_opts/2` callback to the `Aurora.Uix.Integration.Crud` behaviour; the Ash backend resolves the actor from `socket.assigns`, the Ctx backend ignores it. `Connector` stays neutral — the new `actor_assign` field lives on the Ash `CrudSpec`.
+  - See `guides/core/ash_integration.md#authorization--policies`.
+
 
 
 ## [0.1.3] - 2026-02-15
