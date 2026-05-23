@@ -11,7 +11,7 @@ Resource metadata bridges the gap between data schema definitions and UI require
 Aurora UIX supports two backend types:
 
 - **Context-based** - Traditional Phoenix Context modules with Ecto schemas
-- **Ash Framework** - Ash resources with declarative actions and domains
+- **Ash Framework** - Ash resources with declarative actions
 
 ## Key Concepts
 
@@ -73,7 +73,7 @@ For Ash resources with declarative actions:
    - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
    - `has_many` → One-to-many relationships (rendered as nested lists)
    - Embedded resources → Nested Ash resources (rendered inline with `__` naming convention)
-5. **Action Resolution** - Discovers CRUD actions from Ash resource or domain:
+5. **Action Resolution** - Discovers CRUD actions from Ash resource:
    - Prioritizes primary actions (`:read`, `:create`, `:update`, `:destroy`)
    - Falls back to first available action of the required type
    - Validates pagination support for list operations
@@ -99,7 +99,7 @@ Use the `auix_resource_metadata/3` macro in your module. This macro accepts:
 Aurora UIX supports two types of resource backends:
 
 1. **Context-based Resources** - Traditional Phoenix Context modules with Ecto schemas
-2. **Ash Framework Resources** - Ash resources and domains
+2. **Ash Framework Resources** - Ash resources
 
 ### Context-based Resources
 
@@ -113,10 +113,8 @@ For traditional Ecto schemas with Phoenix Context modules:
 For Ash Framework resources:
 
 - `:ash_resource` (module()) - Required. Your Ash resource module
-- `:ash_domain` (module()) - Optional. Ash domain module containing the resource
 
 When using Ash resources, you can also use `:schema` as an alias for `:ash_resource` 
-and `:context` as an alias for `:ash_domain`.
 
 Let's see examples for both approaches:
 
@@ -175,7 +173,7 @@ end
 
 ### Ash Resource Configuration
 
-For Ash Framework resources, use `:ash_resource` and optionally `:ash_domain`:
+For Ash Framework resources, use `:ash_resource`:
 
 ```elixir
 defmodule MyAppWeb.BlogViews do
@@ -185,16 +183,6 @@ defmodule MyAppWeb.BlogViews do
   alias MyApp.Blog.Post
   alias MyApp.Blog.Author
 
-  # With Ash domain
-  auix_resource_metadata :post, 
-    ash_resource: Post, 
-    ash_domain: Blog do
-    field :title, required: true, max_length: 100
-    field :body, html_type: :textarea
-    field :published_at, readonly: true
-  end
-
-  # Without domain (actions resolved from resource)
   auix_resource_metadata :author, ash_resource: Author do
     field :name, required: true
     field :bio, html_type: :textarea
@@ -208,7 +196,7 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 
 - `name` - The resource identifier (`:product`)
 - `schema` - The Ecto schema or Ash resource module
-- `context` - Context module or Ash domain (optional)
+- `context` - Context module
 - `type` - Backend type (`:ctx` for Context, `:ash` for Ash)
 - `fields` - A map of field configurations by key
 - `fields_order` - List of field keys in display order
@@ -252,7 +240,7 @@ The backend type determines how CRUD operations are resolved:
 - **Context backend** - Looks for functions like `list_products/1`, `get_product/2`, 
   `create_product/1` in the context module
 - **Ash backend** - Resolves actions like `:read`, `:create`, `:update`, `:destroy` 
-  from the Ash resource or domain
+  from the Ash resource
 
 > **Note:** Aurora UIX's architecture supports custom backend implementations beyond Context
 > and Ash. You can integrate other data layers or frameworks by implementing the required

@@ -98,7 +98,7 @@ defmodule Aurora.Uix.Parser do
   - `resource_config` (map()) - Resource configuration containing:
     * `:schema` (module()) - Ecto schema or Ash resource module
     * `:type` (atom()) - Backend type (`:ctx` or `:ash`)
-    * `:context` (module()) - Context or domain module
+    * `:context` (module()) - Context
     * `:opts` (keyword()) - Default options
   - `opts` (keyword()) - Additional configuration options merged with resource defaults.
     Options are delegated to parser modules:

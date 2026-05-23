@@ -148,11 +148,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   For Ash Framework resources:
 
   - `:ash_resource` (module()) - Required. Ash resource module.
-  - `:ash_domain` (module()) - Optional. Ash domain module. If omitted, actions are
-    resolved directly from the resource.
 
-  Note: You can also use `:schema` as an alias for `:ash_resource` and `:context` as
-  an alias for `:ash_domain` when working with Ash resources.
+  Note: You can also use `:schema` as an alias for `:ash_resource` when working with Ash resources.
+  context is irrelevant as ash resources know the domain that they belong to.
 
   ## Examples
 
@@ -177,14 +175,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       auix_resource_metadata(:author,
         ash_resource: MyApp.Blog.Author,
         order_by: [:name]
-      )
-
-  ### Ash Resource with Domain
-
-      auix_resource_metadata(:post,
-        ash_resource: MyApp.Blog.Post,
-        ash_domain: MyApp.Blog,
-        order_by: [desc: :published_at]
       )
 
   ## Returns
@@ -347,14 +337,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp configure_resource_fields(resource) do
     {schema, resource_type} = define_schema_and_type(resource)
 
-    context = resource.opts[:context] || resource.opts[:ash_domain]
+    context = resource.opts[:context]
 
     opts =
       resource.opts
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
       |> Keyword.delete(:ash_resource)
-      |> Keyword.delete(:ash_domain)
 
     fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
 
