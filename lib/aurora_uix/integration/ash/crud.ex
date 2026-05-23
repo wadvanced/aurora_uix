@@ -13,12 +13,27 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - Query parsing with filters, sorting, and preloading
   - Primary action detection with fallback to first available action
   - AshPhoenix form integration for changesets
+  - Actor threading for policy-protected resources via `socket_opts/2` (see
+    "Authorization" below)
 
   ## Key Constraints
 
   - Requires valid Ash resource module with defined actions
   - Pagination requires Ash action configured with `pagination` option
   - Preloading handled differently: via Ash.Query.load for queries, Ecto repo for new structs
+
+  ## Authorization
+
+  Every CRUD call accepts an optional `:actor` keyword in its `opts`. When present
+  (and non-nil) the actor is forwarded to the underlying Ash call (`Ash.read/2`,
+  `Ash.get/3`, `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2`, `Ash.load/3`,
+  `AshPhoenix.Form.for_update/3`). When absent, no `actor:` is added — the host's
+  Ash domain `authorize` config (default `:by_default`) decides whether policies run.
+
+  `authorize?:` is **never** set explicitly by this module. The actor is resolved at
+  the call site by `socket_opts/2`, which reads `CrudSpec.actor_assign` (the atom
+  configured via `auix_resource_metadata ..., ash_actor_assign: :current_user`) and
+  pulls the actor from `socket.assigns`.
   """
   @behaviour Aurora.Uix.Integration.Crud
 
@@ -34,6 +49,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
   - `opts` (keyword()) - Query options:
+    * `:actor` (term()) - Actor forwarded to `Ash.Query.for_read/3` and `Ash.read/2`
+      for policy-protected resources.
     * `:where` (list()) - Filter clauses.
     * `:order_by` (term()) - Sort specification.
     * `:preload` (term()) - Associations to load.
@@ -62,41 +79,58 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
         %CrudSpec{action: %{name: action_name}, auix_action_name: :list_function} = crud_spec,
         opts
       ) do
-    {:ok, results} =
-      crud_spec.resource
-      |> Ash.Query.for_read(action_name)
-      |> QueryParser.parse(opts)
-      |> Ash.read()
+    actor_opt = actor_opt(opts)
 
-    results
+    read_result =
+      crud_spec.resource
+      |> Ash.Query.for_read(action_name, %{}, actor_opt)
+      |> QueryParser.parse(opts)
+      |> Ash.read(actor_opt)
+
+    case read_result do
+      {:ok, results} -> results
+      # Policy-protected resources without a satisfying actor surface as Forbidden;
+      # the LiveView should render an empty index, not crash. Other errors propagate.
+      {:error, %Ash.Error.Forbidden{}} -> []
+    end
   end
 
   def list(%CrudSpec{auix_action_name: :list_function_paginated} = crud_spec, opts) do
     paginate = Keyword.get(opts, :paginate, %Pagination{})
 
-    {:ok, %Offset{} = offset} =
-      read_paginated(
-        crud_spec.resource,
-        crud_spec.action,
-        opts,
-        paginate.page,
-        paginate.per_page,
-        true
-      )
+    case read_paginated(
+           crud_spec.resource,
+           crud_spec.action,
+           opts,
+           paginate.page,
+           paginate.per_page,
+           true
+         ) do
+      {:ok, %Offset{} = offset} ->
+        pages_count =
+          case Integer.mod(offset.count, paginate.per_page) do
+            0 -> Integer.floor_div(offset.count, paginate.per_page)
+            _ -> Integer.floor_div(offset.count, paginate.per_page) + 1
+          end
 
-    pages_count =
-      case Integer.mod(offset.count, paginate.per_page) do
-        0 -> Integer.floor_div(offset.count, paginate.per_page)
-        _ -> Integer.floor_div(offset.count, paginate.per_page) + 1
-      end
+        %Pagination{
+          entries: offset.results,
+          entries_count: offset.count,
+          page: paginate.page,
+          pages_count: pages_count,
+          per_page: paginate.per_page
+        }
 
-    %Pagination{
-      entries: offset.results,
-      entries_count: offset.count,
-      page: paginate.page,
-      pages_count: pages_count,
-      per_page: paginate.per_page
-    }
+      # Forbidden reads surface as an empty page so the index renders empty.
+      {:error, %Ash.Error.Forbidden{}} ->
+        %Pagination{
+          entries: [],
+          entries_count: 0,
+          page: paginate.page,
+          pages_count: 0,
+          per_page: paginate.per_page
+        }
+    end
   end
 
   @doc """
@@ -107,6 +141,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - `crud_spec` (CrudSpec.t()) - The CrudSpec (currently unused for page bounds checking).
   - `pagination` (Pagination.t()) - The current pagination structure.
   - `page` (integer()) - The page number to load (must be >= 1 and <= pages_count).
+  - `opts` (keyword()) - Additional options. Honours `:actor` for policy-protected reads.
 
   ## Returns
 
@@ -123,31 +158,38 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       %Pagination{page: 1, pages_count: 5}
   """
   @impl true
-  @spec to_page(CrudSpec.t(), Pagination.t(), integer()) :: Pagination.t()
-  def to_page(_crud_spec, pagination, page) when page < 1, do: pagination
+  @spec to_page(CrudSpec.t(), Pagination.t(), integer(), keyword()) :: Pagination.t()
+  def to_page(crud_spec, pagination, page, opts \\ [])
 
-  def to_page(_crud_spec, %{pages_count: pages_count} = pagination, page)
+  def to_page(_crud_spec, pagination, page, _opts) when page < 1, do: pagination
+
+  def to_page(_crud_spec, %{pages_count: pages_count} = pagination, page, _opts)
       when page > pages_count,
       do: pagination
 
-  def to_page(%CrudSpec{} = crud_spec, pagination, page) do
-    {:ok, %Offset{} = offset} =
-      read_paginated(
-        crud_spec.resource,
-        crud_spec.action,
-        pagination.opts,
-        page,
-        pagination.per_page,
-        true
-      )
+  def to_page(%CrudSpec{} = crud_spec, %Pagination{} = pagination, page, opts) do
+    merged_opts = Keyword.merge(pagination.opts || [], opts)
 
-    %Pagination{
-      entries: offset.results,
-      entries_count: pagination.entries_count,
-      page: page,
-      pages_count: pagination.pages_count,
-      per_page: pagination.per_page
-    }
+    case read_paginated(
+           crud_spec.resource,
+           crud_spec.action,
+           merged_opts,
+           page,
+           pagination.per_page,
+           true
+         ) do
+      {:ok, %Offset{} = offset} ->
+        %Pagination{
+          entries: offset.results,
+          entries_count: pagination.entries_count,
+          page: page,
+          pages_count: pagination.pages_count,
+          per_page: pagination.per_page
+        }
+
+      {:error, %Ash.Error.Forbidden{}} ->
+        %{pagination | entries: [], page: page}
+    end
   end
 
   @doc """
@@ -158,6 +200,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
   - `id` (term()) - The resource identifier.
   - `opts` (keyword()) - Query options:
+    * `:actor` (term()) - Actor forwarded to `Ash.get/3` and `Ash.load/3`.
     * `:preload` (term()) - Associations to load.
 
   ## Returns
@@ -176,7 +219,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   @impl true
   @spec get(CrudSpec.t(), term(), keyword()) :: struct() | nil
   def get(%CrudSpec{action: %{name: action_name}} = crud_spec, id, opts) do
-    parsed_opts = [action: action_name, load: Keyword.get(opts, :preload, [])]
+    parsed_opts =
+      Keyword.merge(
+        [action: action_name, load: Keyword.get(opts, :preload, [])],
+        actor_opt(opts)
+      )
 
     case Ash.get(crud_spec.resource, id, parsed_opts) do
       {:ok, item} -> item
@@ -191,7 +238,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
   - `entity` (struct()) - The Ash resource struct to update.
+  - `form_name` (atom() | binary()) - Underlying form name.
   - `attrs` (map()) - Attributes to apply to the form.
+  - `opts` (keyword()) - Additional options:
+    * `:actor` (term()) - Actor forwarded to `AshPhoenix.Form.for_update/3`.
 
   ## Returns
 
@@ -200,14 +250,24 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   ## Examples
 
       iex> crud_spec = %CrudSpec{action: %{name: :update}}
-      iex> change(crud_spec, %MyApp.User{}, %{name: "John"})
+      iex> change(crud_spec, %MyApp.User{}, "user", %{name: "John"})
       %AshPhoenix.Form{...}
   """
   @impl true
-  @spec change(CrudSpec.t(), struct(), atom() | binary(), map()) :: AshPhoenix.Form.t()
-  def change(%CrudSpec{action: %{name: action_name}}, entity, form_name, attrs) do
+  @spec change(CrudSpec.t(), struct(), atom() | binary(), map(), keyword()) ::
+          AshPhoenix.Form.t()
+  def change(crud_spec, entity, form_name, attrs, opts \\ [])
+
+  def change(%CrudSpec{action: %{name: action_name}}, entity, form_name, attrs, opts) do
     binary_form_name = to_string(form_name)
-    AshPhoenix.Form.for_update(entity, action_name, params: attrs, as: binary_form_name)
+
+    form_opts =
+      Keyword.merge(
+        [params: attrs, as: binary_form_name],
+        actor_opt(opts)
+      )
+
+    AshPhoenix.Form.for_update(entity, action_name, form_opts)
   end
 
   @doc """
@@ -218,7 +278,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource configuration.
   - `attrs` (map()) - Initial attributes for the new resource.
   - `opts` (keyword()) - Options:
-    * `:preload` (list()) - Associations to preload via Ecto repository.
+    * `:actor` (term()) - Actor forwarded to `Ash.load/3` during preload.
+    * `:preload` (list()) - Associations to preload.
 
   ## Returns
 
@@ -249,6 +310,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource and action configuration.
   - `params` (map()) - Parameters for the new resource.
+  - `opts` (keyword()) - Additional options:
+    * `:actor` (term()) - Actor forwarded to `Ash.create/3`.
 
   ## Returns
 
@@ -261,9 +324,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       {:ok, %MyApp.User{name: "Alice", email: "alice@example.com"}}
   """
   @impl true
-  @spec create(CrudSpec.t(), map()) :: tuple()
-  def create(%CrudSpec{resource: resource, action: %{name: action_name}}, params) do
-    Ash.create(resource, params, action: action_name)
+  @spec create(CrudSpec.t(), map(), keyword()) :: tuple()
+  def create(crud_spec, params, opts \\ [])
+
+  def create(%CrudSpec{resource: resource, action: %{name: action_name}}, params, opts) do
+    Ash.create(resource, params, [action: action_name] ++ actor_opt(opts))
   end
 
   @doc """
@@ -274,6 +339,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
   - `entity` (struct()) - The resource to update.
   - `params` (map()) - Parameters to update.
+  - `opts` (keyword()) - Additional options:
+    * `:actor` (term()) - Actor forwarded to `Ash.update/3`.
 
   ## Returns
 
@@ -286,9 +353,11 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       {:ok, %MyApp.User{id: 1, name: "Bob"}}
   """
   @impl true
-  @spec update(CrudSpec.t(), struct(), map()) :: tuple()
-  def update(%CrudSpec{action: %{name: action_name}}, entity, params) do
-    Ash.update(entity, params, action: action_name)
+  @spec update(CrudSpec.t(), struct(), map(), keyword()) :: tuple()
+  def update(crud_spec, entity, params, opts \\ [])
+
+  def update(%CrudSpec{action: %{name: action_name}}, entity, params, opts) do
+    Ash.update(entity, params, [action: action_name] ++ actor_opt(opts))
   end
 
   @doc """
@@ -298,6 +367,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The CrudSpec containing action configuration.
   - `entity` (struct()) - The resource to delete.
+  - `opts` (keyword()) - Additional options:
+    * `:actor` (term()) - Actor forwarded to `Ash.destroy/2`.
 
   ## Returns
 
@@ -310,10 +381,59 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       {:ok, %MyApp.User{id: 1}}
   """
   @impl true
-  @spec delete(CrudSpec.t(), struct()) :: tuple()
-  def delete(%CrudSpec{action: %{name: action_name}}, entity) do
-    Ash.destroy(entity, action: action_name, return_destroyed?: true)
+  @spec delete(CrudSpec.t(), struct(), keyword()) :: tuple()
+  def delete(crud_spec, entity, opts \\ [])
+
+  def delete(%CrudSpec{action: %{name: action_name}}, entity, opts) do
+    Ash.destroy(
+      entity,
+      [action: action_name, return_destroyed?: true] ++ actor_opt(opts)
+    )
   end
+
+  @doc """
+  Resolves per-call options from a LiveView socket for a given Ash CrudSpec.
+
+  Reads `crud_spec.actor_assign`, looks up that key on `socket.assigns`, and returns
+  `[actor: actor]` when the assign holds a non-nil value. Otherwise returns `[]`.
+
+  Safe to merge into any CRUD call's opts via `++`.
+
+  ## Parameters
+
+  - `crud_spec` (CrudSpec.t() | term()) - The CrudSpec carrying `:actor_assign`. Non
+    `%CrudSpec{}` values are treated as not-applicable and return `[]`.
+  - `socket` (Phoenix.LiveView.Socket.t() | map()) - A LiveView socket or any map with
+    an `:assigns` field.
+
+  ## Returns
+
+  keyword() - `[actor: actor]` when configured and resolved, otherwise `[]`.
+
+  ## Examples
+
+      iex> socket_opts(%CrudSpec{actor_assign: nil}, %{assigns: %{current_user: %{id: 1}}})
+      []
+
+      iex> socket_opts(%CrudSpec{actor_assign: :current_user},
+      ...>   %{assigns: %{current_user: %{id: 1}}})
+      [actor: %{id: 1}]
+
+      iex> socket_opts(%CrudSpec{actor_assign: :current_user}, %{assigns: %{}})
+      []
+  """
+  @impl true
+  @spec socket_opts(CrudSpec.t() | term(), Phoenix.LiveView.Socket.t() | map()) :: keyword()
+  def socket_opts(%CrudSpec{actor_assign: nil}, _socket), do: []
+
+  def socket_opts(%CrudSpec{actor_assign: key}, %{assigns: assigns}) when is_atom(key) do
+    case Map.get(assigns, key) do
+      nil -> []
+      actor -> [actor: actor]
+    end
+  end
+
+  def socket_opts(_crud_spec, _socket), do: []
 
   @doc """
   Default new function for initializing Ash resource structs.
@@ -344,19 +464,31 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## PRIVATE
 
+  # Builds `[actor: actor]` when present, otherwise `[]`. Centralised so every Ash call
+  # site uses the same shape and the actor never leaks as `nil`.
+  @spec actor_opt(keyword()) :: keyword()
+  defp actor_opt(opts) do
+    case Keyword.get(opts, :actor) do
+      nil -> []
+      actor -> [actor: actor]
+    end
+  end
+
   # Reads paginated results from an Ash action.
   @spec read_paginated(module(), map(), keyword(), integer(), integer(), boolean()) ::
           {:ok, Ash.Page.Offset.t()} | {:error, term()}
   defp read_paginated(action_module, %{name: action_name}, opts, page, per_page, count?) do
+    actor_opt = actor_opt(opts)
+
     action_module
-    |> Ash.Query.for_read(action_name)
+    |> Ash.Query.for_read(action_name, %{}, actor_opt)
     |> Ash.Query.page(
       limit: per_page,
       offset: per_page * (page - 1),
       count: count?
     )
     |> QueryParser.parse(opts)
-    |> Ash.read()
+    |> Ash.read(actor_opt)
   end
 
   # Applies Ecto preload to a struct if repository and preload option are present.
@@ -364,13 +496,13 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   defp maybe_apply_preload(entity, opts) do
     case opts[:preload] do
       nil -> entity
-      preload -> apply_preload(entity, preload)
+      preload -> apply_preload(entity, preload, opts)
     end
   end
 
-  @spec apply_preload(struct(), term()) :: struct()
-  defp apply_preload(entity, preload) do
-    case Ash.load(entity, preload) do
+  @spec apply_preload(struct(), term(), keyword()) :: struct()
+  defp apply_preload(entity, preload, opts) do
+    case Ash.load(entity, preload, actor_opt(opts)) do
       {:ok, entity_loaded} -> entity_loaded
       _ -> entity
     end

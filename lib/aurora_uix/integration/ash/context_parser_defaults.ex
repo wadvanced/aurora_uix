@@ -26,6 +26,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   - `:list_function` - Function reference for reading all elements
   - `:list_function_paginated` - Function reference for reading elements using pagination
   - `:get_function` - Function reference for getting one element
+  - `:ash_actor_assign` (alias: `:actor_assign`) - Atom naming the `socket.assigns`
+    key that holds the actor for policy-protected resources. Default `nil`. When set,
+    every generated CRUD call forwards `actor: socket.assigns[<assign>]` to Ash.
   """
   alias Ash.Resource.Actions
   alias Ash.Resource.Info
@@ -90,7 +93,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -113,7 +116,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       ash_action_type,
       ash_action_name
     )
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -130,7 +133,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -147,7 +150,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -164,7 +167,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -181,7 +184,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -198,7 +201,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(
@@ -211,7 +214,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     opts
     |> get_option(@new_function_aliases, &AshCrud.default_new_function/2)
     |> notify_error(@error_new_function_invalid, resource_name, 2)
-    |> create_function_reference(ash_resource, auix_action)
+    |> create_function_reference(ash_resource, auix_action, opts)
   end
 
   def option_value(_parsed_opts, _resource_config, _opts, _key), do: nil
@@ -252,17 +255,30 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @spec create_function_reference(
           struct() | function() | nil,
           module() | nil,
-          atom()
+          atom(),
+          keyword()
         ) ::
           Connector.t()
 
-  defp create_function_reference(ash_action, ash_resource, auix_action_name) do
+  defp create_function_reference(ash_action, ash_resource, auix_action_name, opts) do
+    spec_opts = [actor_assign: get_actor_assign(opts)]
+
     definition =
       if ash_resource,
-        do: CrudSpec.new(ash_resource, ash_action, auix_action_name),
+        do: CrudSpec.new(ash_resource, ash_action, auix_action_name, spec_opts),
         else: CrudSpec.new()
 
     Connector.new(definition, :ash)
+  end
+
+  # Reads the `:ash_actor_assign` option (with `:actor_assign` alias) from a
+  # resource-metadata options keyword. Returns `nil` when unset.
+  @spec get_actor_assign(keyword()) :: atom() | nil
+  defp get_actor_assign(opts) do
+    case get_option(opts, [:ash_actor_assign, :actor_assign], nil) do
+      key when is_atom(key) -> key
+      _ -> nil
+    end
   end
 
   # Selects primary action or falls back to first available action.

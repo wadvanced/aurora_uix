@@ -105,10 +105,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
              {:ok, entity} <- save_entity(socket, consumed_params) do
           FormImpl.notify_parent({:saved, entity})
 
+          get_opts =
+            socket
+            |> BasicHelpers.backend_socket_opts(auix.get_function)
+            |> Keyword.put(:preload, auix.preload)
+
           new_entity =
             entity
             |> BasicHelpers.primary_key_value(auix.primary_key)
-            |> then(&apply_get_function(auix.get_function, &1, preload: auix.preload))
+            |> then(&apply_get_function(auix.get_function, &1, get_opts))
 
           {:noreply,
            socket
@@ -169,9 +174,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         %{auix: %{entity: entity, routing_stack: routing_stack}} = _assigns,
         %{assigns: %{auix: auix}} = socket
       ) do
+    change_opts = backend_socket_opts(socket, auix.change_function)
+
     form =
       auix.change_function
-      |> apply_change_function(entity, auix.module, %{})
+      |> apply_change_function(entity, auix.module, %{}, change_opts)
       |> to_named_form(auix.module)
 
     {:ok,
@@ -214,10 +221,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     entity_params = Map.get(params, auix.module)
 
     socket = Phoenix.LiveView.clear_flash(socket)
+    change_opts = backend_socket_opts(socket, auix.change_function)
 
     form =
       auix.change_function
-      |> apply_change_function(socket.assigns[:auix][:entity], auix.module, entity_params)
+      |> apply_change_function(
+        socket.assigns[:auix][:entity],
+        auix.module,
+        entity_params,
+        change_opts
+      )
       |> to_named_form(auix.module, action: :validate)
 
     {:noreply, assign_auix(socket, :form, form)}
@@ -263,11 +276,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
       when action in [:edit, :show_edit] do
-    apply_update_function(auix.update_function, socket.assigns[:auix][:entity], entity_params)
+    update_opts = backend_socket_opts(socket, auix.update_function)
+
+    apply_update_function(
+      auix.update_function,
+      socket.assigns[:auix][:entity],
+      entity_params,
+      update_opts
+    )
   end
 
-  def save_entity(%{assigns: %{action: :new, auix: auix}}, entity_params) do
-    apply_create_function(auix.create_function, entity_params)
+  def save_entity(%{assigns: %{action: :new, auix: auix}} = socket, entity_params) do
+    create_opts = backend_socket_opts(socket, auix.create_function)
+    apply_create_function(auix.create_function, entity_params, create_opts)
   end
 
   @doc """

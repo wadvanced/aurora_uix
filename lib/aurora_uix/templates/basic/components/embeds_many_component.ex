@@ -44,6 +44,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
     only: [
       assign_auix: 3,
       assign_auix_new: 3,
+      backend_socket_opts: 2,
       get_layout: 3,
       get_resource: 3
     ]
@@ -233,9 +234,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
     params =
       cast_params(params)
 
+    change_opts = backend_socket_opts(socket, auix.change_function)
+
     errors =
       auix.change_function
-      |> apply_change_function(auix.entity, field.key, %{field.key => [params]})
+      |> apply_change_function(auix.entity, field.key, %{field.key => [params]}, change_opts)
       |> get_in([Access.key(:changes), field.key])
       |> Kernel.||(%{})
       |> Enum.filter(&(&1.action == :insert))
@@ -268,9 +271,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
     changes =
       add_embed_entry_changes(auix, field.key, params)
 
+    change_opts = backend_socket_opts(socket, auix.change_function)
+
     form =
       auix.change_function
-      |> apply_change_function(auix.entity, auix.module, %{field.key => changes})
+      |> apply_change_function(auix.entity, auix.module, %{field.key => changes}, change_opts)
       |> to_form()
 
     {:noreply,
@@ -294,9 +299,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       |> get_entries(field.key)
       |> List.delete_at(entry_index)
 
+    change_opts = backend_socket_opts(socket, auix.change_function)
+
     form =
       auix.change_function
-      |> apply_change_function(auix.entity, field.key, %{field.key => changes})
+      |> apply_change_function(auix.entity, field.key, %{field.key => changes}, change_opts)
       |> to_form()
 
     {:noreply,

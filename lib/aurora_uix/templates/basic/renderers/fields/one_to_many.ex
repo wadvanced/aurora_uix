@@ -160,14 +160,17 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       assigns
     else
       {custom_where, query_opts} = Keyword.pop(query_opts, :where)
+      list_function = association.related_parsed_opts.list_function
+      socket_opts = BasicHelpers.backend_socket_opts(assigns, list_function)
 
       owner_keys
       |> merge_keys(association.related_key)
       |> merge_custom_where(custom_where)
       |> then(
-        &apply_list_function(association.related_parsed_opts.list_function, [
-          {:where, &1} | query_opts
-        ])
+        &apply_list_function(
+          list_function,
+          [{:where, &1} | query_opts] ++ socket_opts
+        )
       )
       |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end

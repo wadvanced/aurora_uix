@@ -31,12 +31,52 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
+  alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
 
   alias Phoenix.LiveView.Socket
 
   @action_groups Action.action_groups()
+
+  @doc """
+  Resolves backend-specific per-call options from a LiveView socket for a connector.
+
+  Thin wrapper over `Aurora.Uix.Integration.Crud.apply_socket_opts/2` that lets
+  handlers stay backend-agnostic. The Ash backend uses this to pull an actor from
+  `socket.assigns` when `crud_spec.actor_assign` is set; the Ctx backend always
+  returns `[]`.
+
+  Accepts a `nil` connector (returns `[]`) so handlers can call it unconditionally
+  for sites where the connector may be absent.
+
+  ## Parameters
+
+  - `socket_or_assigns` (Phoenix.LiveView.Socket.t() | map()) - A LiveView socket or a
+    bare assigns map (will be wrapped as `%{assigns: assigns}` internally).
+  - `connector` (Connector.t() | nil) - The CRUD connector to extract opts for.
+
+  ## Returns
+
+  keyword() - Options to merge into the next CRUD call, e.g. `[actor: %User{}]`.
+  Always a keyword, safe to merge via `++`.
+
+  ## Examples
+
+      iex> backend_socket_opts(socket, auix.get_function)
+      [actor: %User{id: 1}]
+
+      iex> backend_socket_opts(socket, nil)
+      []
+  """
+  @spec backend_socket_opts(Socket.t() | map(), Connector.t() | nil) :: keyword()
+  def backend_socket_opts(_socket_or_assigns, nil), do: []
+
+  def backend_socket_opts(%{assigns: _} = socket, %Connector{} = connector),
+    do: apply_socket_opts(connector, socket)
+
+  def backend_socket_opts(assigns, %Connector{} = connector) when is_map(assigns),
+    do: apply_socket_opts(connector, %{assigns: assigns})
 
   @doc """
   Assigns a new entity to the socket based on related parameters.
@@ -865,9 +905,11 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         } = assigns
       ) do
     list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
+    socket_opts = backend_socket_opts(assigns, list_function)
 
     data
     |> Map.get(:query_opts, [])
+    |> Keyword.merge(socket_opts)
     |> then(&apply_list_function(list_function, &1))
     |> Enum.map(&get_many_to_one_select_option(assigns, &1))
     |> maybe_add_nil_option()
