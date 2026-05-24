@@ -237,18 +237,17 @@ When configuring an Ash resource, you can use these options:
 
 #### Optional Options
 
-- `:ash_domain` (module()) - Ash domain containing the resource. If omitted, actions are resolved directly from the resource
 - `:order_by` (atom() | list() | keyword()) - Default ordering for index views
 - `:type` (atom()) - The type of backend is determined based on the `ash_resource` module.
     Setting this value manually will bypass the detection mechanism, and it is useful to provide a custom backend
 
 #### Alternative Syntax
 
-You can also use `:schema` as an alias for `:ash_resource` and `:context` as an alias for `:ash_domain`:
+You can also use `:schema` as an alias for `:ash_resource`:
 
 ```elixir
 # These are equivalent
-auix_resource_metadata :user, ash_resource: User, ash_domain: Accounts
+auix_resource_metadata :user, ash_resource: User
 auix_resource_metadata :user, schema: User, context: Accounts
 ```
 
@@ -268,7 +267,6 @@ end
 ```elixir
 auix_resource_metadata :post,
   ash_resource: Post,
-  ash_domain: Blog,
   order_by: [desc: :published_at] do
   field :title, required: true, max_length: 100
   field :content, html_type: :textarea
@@ -285,9 +283,9 @@ defmodule MyAppWeb.BlogViews do
   alias MyApp.Blog
   alias MyApp.Blog.{Author, Post, Category}
 
-  auix_resource_metadata :author, ash_resource: Author, ash_domain: Blog
-  auix_resource_metadata :post, ash_resource: Post, ash_domain: Blog
-  auix_resource_metadata :category, ash_resource: Category, ash_domain: Blog
+  auix_resource_metadata :author, ash_resource: Author
+  auix_resource_metadata :post, ash_resource: Post 
+  auix_resource_metadata :category, ash_resource: Category
 
   auix_create_ui()
 end
@@ -308,9 +306,6 @@ When actions are not explicitly configured, Aurora UIX automatically discovers t
 
 1. **Primary Actions First** - If an action is marked as `primary?: true`, it's selected
 2. **Fallback to First Available** - If no primary action exists, the first action of the matching type is used
-3. **Domain vs Resource Resolution**:
-   - **With `:ash_domain`** - Actions are looked up through the domain's resource references
-   - **Without `:ash_domain`** - Actions are resolved directly from the resource module
 
 #### Manual Configuration
 
@@ -420,7 +415,7 @@ relationships do
 end
 
 # In your Aurora UIX configuration
-auix_resource_metadata :post, ash_resource: Post, ash_domain: Blog do
+auix_resource_metadata :post, ash_resource: Post do
   field :author_id, html_type: :select, option_label: :name
   field :category_id, html_type: :select, option_label: :name
 end
@@ -486,7 +481,6 @@ defmodule MyAppWeb.BlogViews do
 
   auix_resource_metadata :post,
     ash_resource: Post,
-    ash_domain: Blog,
     order_by: [desc: :published_at]
 
   auix_create_ui do
@@ -690,7 +684,7 @@ Aurora UIX supports both integration approaches equally well. The choice depends
 | **CRUD Operations** | Ash actions | Context functions |
 | **Discovery Method** | Automatic from actions | By naming convention |
 | **Authorization** | Via Ash policies | Manual in contexts |
-| **Configuration** | `:ash_resource`, `:ash_domain` | `:schema`, `:context` |
+| **Configuration** | `:ash_resource` | `:schema`, `:context` |
 
 ## Migrating Between Backends
 
@@ -747,8 +741,9 @@ If you want to add Ash to an existing Aurora UIX application using Contexts:
    auix_resource_metadata :user, schema: User, context: Accounts
    
    # After
-   # This is a semantic change, ash_resource is an alias of schema, and ash_domain is an alias of context
-   auix_resource_metadata :user, ash_resource: User, ash_domain: Accounts
+   # This is a semantic change, ash_resource is an alias of schema, 
+   # context (similar to ash domain in concept) is not used nor needed when working with ash
+   auix_resource_metadata :user, ash_resource: User
    ```
 
 ### From Ash to Context (Removing Ash Dependency)
@@ -803,7 +798,7 @@ If actions aren't being discovered, try:
 
 1. **Explicitly specify the domain**:
    ```elixir
-   auix_resource_metadata :user, ash_resource: User, ash_domain: Accounts
+   auix_resource_metadata :user, ash_resource: User
    ```
 
 2. **Or define domain actions**:
@@ -904,6 +899,66 @@ auix_resource_metadata :post,
   ash_read_action: :published,
   ash_read_action_paginated: :published_paginated
 ```
+
+## Authorization & policies
+
+Resources protected by `Ash.Policy.Authorizer` need an actor to satisfy their
+policies. Set `ash_actor_assign:` to the name of the `socket.assigns` key that
+holds the current actor (commonly `:current_user`); Aurora UIX will pull the
+actor at every CRUD call and forward it as `actor:` to Ash.
+
+```elixir
+auix_resource_metadata :template,
+  ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+  ash_actor_assign: :current_user
+```
+
+This single line threads the actor through every Ash call produced for the
+resource:
+
+- `Ash.read/2` (list, paginated list, `to_page`)
+- `Ash.get/3` (item lookup)
+- `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2`
+- `Ash.load/3` (preloads)
+- `AshPhoenix.Form.for_update/3` (forms)
+
+### Host responsibility: assign the actor
+
+Aurora UIX only **reads** the assign — it does not authenticate. The host must
+put the actor into `socket.assigns` before any Aurora UIX-generated LiveView
+mounts (typically via `on_mount` or a `live_session`):
+
+```elixir
+live_session :authenticated,
+  on_mount: {MyAppWeb.UserAuth, :ensure_authenticated} do
+  live "/templates", TemplateLive.Index, :index
+end
+```
+
+### Behaviour summary
+
+| Configuration                                            | Behaviour                                       |
+|----------------------------------------------------------|-------------------------------------------------|
+| `ash_actor_assign:` unset (default)                       | No `actor:` is added. Backward compatible.      |
+| `ash_actor_assign: :current_user` + assign present       | `actor: socket.assigns.current_user` forwarded. |
+| `ash_actor_assign: :current_user` + assign `nil` or missing | No `actor:` added. Policy denies as actor-less. |
+
+### Why `authorize?:` is not exposed
+
+Aurora UIX never sets `authorize?:` explicitly. The host's Ash domain `authorize`
+config (`:by_default`, `:when_requested`, or `:always`) continues to decide
+whether policies run — Aurora UIX never overrides that posture, and there is no
+"escape hatch" that silently disables authorization. The fix is always to thread
+the right actor.
+
+### What happens on a forbidden read or write
+
+- **Reads** (list, paginated list, `to_page`) translate `Ash.Error.Forbidden`
+  into an empty result so the generated index renders an empty state rather
+  than crashing.
+- **Writes** (create, update, destroy) propagate `{:error, %Ash.Error.Forbidden{}}`.
+  The generated form handler catches the error and renders an error flash; the
+  LiveView stays alive.
 
 ## Next Steps
 

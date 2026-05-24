@@ -64,6 +64,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       :status,
       :tags,
       :comment,
+      :published_at,
+      :category_id,
       :author_id
     ]
 

@@ -170,6 +170,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     if has?(page, expected) == state do
       page
     else
+      pause(session)
       click_and_wait(session, clickable, expected, state, retries - 1)
     end
   end

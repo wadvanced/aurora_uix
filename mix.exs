@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4-rc.1"
+  @version "0.1.4-rc.2"
 
   def project do
     [
@@ -217,6 +217,7 @@ defmodule Aurora.Uix.MixProject do
       {:phoenix_live_view, "~> 1.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:postgrex, ">= 0.0.0"},
+      {:simple_sat, "~> 0.1"},
       {:struct_inspect, "~> 0.1"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},

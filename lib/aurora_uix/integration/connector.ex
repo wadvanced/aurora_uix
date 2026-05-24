@@ -40,8 +40,8 @@ defmodule Aurora.Uix.Integration.Connector do
 
   ## Examples
 
-      iex> new(%CrudSpec{action: :read, domain: MyApp.Domain}, :ash)
-      %Connector{type: :ash, crud_spec: %CrudSpec{action: :read, domain: MyApp.Domain}}
+      iex> new(%CrudSpec{action: :read, resource: MyApp.Resources.MyResource}, :ash)
+      %Connector{type: :ash, crud_spec: %CrudSpec{action: :read, resource: MyApp.Resources.MyResource}}
 
       iex> new(%CrudSpec{function_spec: &MyContext.list_users/1}, :ctx)
       %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyContext.list_users/1}}

@@ -18,6 +18,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
   alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Phoenix.HTML.Safe
 
   @doc """
   Renders a one-to-many association field.
@@ -95,7 +96,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           streams={get_in(@auix, [:entity, Access.key!(@field.key)])}
         >
           <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"} field={related_field}>
-            {Map.get(entity, related_field.key)}
+            {display_value(entity, related_field.key)}
           </:col>
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
               {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
@@ -160,14 +161,17 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       assigns
     else
       {custom_where, query_opts} = Keyword.pop(query_opts, :where)
+      list_function = association.related_parsed_opts.list_function
+      socket_opts = BasicHelpers.backend_socket_opts(assigns, list_function)
 
       owner_keys
       |> merge_keys(association.related_key)
       |> merge_custom_where(custom_where)
       |> then(
-        &apply_list_function(association.related_parsed_opts.list_function, [
-          {:where, &1} | query_opts
-        ])
+        &apply_list_function(
+          list_function,
+          [{:where, &1} | query_opts] ++ socket_opts
+        )
       )
       |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end
@@ -215,5 +219,18 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   @spec set_related_new_link(map()) :: map()
   defp set_related_new_link(%{uri_path: uri_path} = related_parsed_opts) do
     Map.put(related_parsed_opts, :index_new_link, "/#{uri_path}/new")
+  end
+
+  @spec display_value(term() | nil, binary() | nil) :: String.t()
+  defp display_value(nil, _key), do: ""
+  defp display_value(_entity, nil), do: ""
+
+  defp display_value(entity, key) do
+    value = Map.get(entity, key)
+
+    case Safe.impl_for(value) do
+      nil -> inspect(value)
+      _ -> value
+    end
   end
 end

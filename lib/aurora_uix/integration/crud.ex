@@ -8,11 +8,14 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Key Features
 
-  - Behaviour contract with 8 callbacks for CRUD operations
+  - Behaviour contract with 9 callbacks for CRUD operations (8 data callbacks plus
+    `socket_opts/2` for per-call options resolved from `socket.assigns`)
   - Polymorphic dispatch to backend-specific implementations
   - Runtime module resolution via application configuration
   - Consistent interface across Ash and Context backends
   - Type-safe connector-based routing
+  - Backend-specific extraction of socket-derived options (e.g. the Ash backend
+    pulls an `actor:` from `socket.assigns` for policy-protected resources)
 
   ## Implementation Resolution
 
@@ -32,7 +35,7 @@ defmodule Aurora.Uix.Integration.Crud do
 
   ## Key Constraints
 
-  - Implementation modules must implement all 8 callbacks
+  - Implementation modules must implement all 9 callbacks
   - Connector type must be configured in application environment
   - Invalid or missing types raise runtime errors
   - Backend implementations are resolved at compile time for performance
@@ -53,7 +56,9 @@ defmodule Aurora.Uix.Integration.Crud do
   ## Parameters
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
-  - `opts` (keyword()) - Query options passed to the backend implementation.
+  - `opts` (keyword()) - Query options passed to the backend implementation. The Ash
+    backend honours `:actor` to forward an actor on `Ash.Query.for_read/3` and
+    `Ash.read/2`.
 
   ## Returns
 
@@ -69,12 +74,13 @@ defmodule Aurora.Uix.Integration.Crud do
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `pagination` (Pagination.t()) - The current pagination structure.
   - `page` (integer()) - The target page number.
+  - `opts` (keyword()) - Additional options. The Ash backend honours `:actor`.
 
   ## Returns
 
   Pagination.t() - Updated pagination structure with the requested page data.
   """
-  @callback to_page(term(), Pagination.t(), integer()) :: Pagination.t()
+  @callback to_page(term(), Pagination.t(), integer(), keyword()) :: Pagination.t()
 
   @doc """
   Retrieves a single resource by ID.
@@ -83,7 +89,8 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `id` (term()) - The resource identifier.
-  - `opts` (keyword()) - Additional query options.
+  - `opts` (keyword()) - Additional query options. The Ash backend honours `:actor`
+    (forwarded to `Ash.get/3` and `Ash.load/3`) and `:preload`.
 
   ## Returns
 
@@ -100,12 +107,14 @@ defmodule Aurora.Uix.Integration.Crud do
   - `entity` (struct()) - The resource to create a changeset for.
   - `form_name` (atom() | binary()) - The name of the underlying form.
   - `attrs` (map()) - Attributes to apply.
+  - `opts` (keyword()) - Additional options. The Ash backend forwards `:actor` to
+    `AshPhoenix.Form.for_update/3`.
 
   ## Returns
 
   struct() - A changeset or form structure.
   """
-  @callback change(term(), struct(), atom() | binary(), map()) :: struct()
+  @callback change(term(), struct(), atom() | binary(), map(), keyword()) :: struct()
 
   @doc """
   Creates a new resource struct with optional preloading.
@@ -114,7 +123,8 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `attrs` (map()) - Initial attributes for the new resource.
-  - `opts` (keyword()) - Additional options.
+  - `opts` (keyword()) - Additional options. The Ash backend honours `:actor` when
+    preloading associations via `Ash.load/3`.
 
   ## Returns
 
@@ -129,12 +139,14 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `params` (map()) - Parameters for the new resource.
+  - `opts` (keyword()) - Additional options. The Ash backend forwards `:actor` to
+    `Ash.create/3`.
 
   ## Returns
 
   tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
   """
-  @callback create(term(), map()) :: tuple()
+  @callback create(term(), map(), keyword()) :: tuple()
 
   @doc """
   Updates an existing resource in the database.
@@ -144,12 +156,14 @@ defmodule Aurora.Uix.Integration.Crud do
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `entity` (struct()) - The resource to update.
   - `params` (map()) - Parameters to update.
+  - `opts` (keyword()) - Additional options. The Ash backend forwards `:actor` to
+    `Ash.update/3`.
 
   ## Returns
 
   tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
   """
-  @callback update(term(), struct(), map()) :: tuple()
+  @callback update(term(), struct(), map(), keyword()) :: tuple()
 
   @doc """
   Deletes a resource from the database.
@@ -158,12 +172,35 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `crud_spec` (term()) - Backend-specific CRUD specification.
   - `entity` (struct()) - The resource to delete.
+  - `opts` (keyword()) - Additional options. The Ash backend forwards `:actor` to
+    `Ash.destroy/2`.
 
   ## Returns
 
   tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
   """
-  @callback delete(term(), struct()) :: tuple()
+  @callback delete(term(), struct(), keyword()) :: tuple()
+
+  @doc """
+  Resolves per-call options from a LiveView socket for a given crud_spec.
+
+  Each backend decides — using only its own crud_spec — what (if anything) should be
+  pulled from `socket.assigns` and forwarded as opts to subsequent CRUD calls. The Ash
+  backend reads `crud_spec.actor_assign` and returns `[actor: socket.assigns[<assign>]]`
+  when the named assign holds a non-nil value; the Ctx backend returns `[]`.
+
+  ## Parameters
+
+  - `crud_spec` (term()) - Backend-specific CRUD specification.
+  - `socket` (Phoenix.LiveView.Socket.t() | map()) - A LiveView socket (or any map with
+    an `:assigns` field).
+
+  ## Returns
+
+  keyword() - Options to merge into subsequent CRUD calls (e.g. `[actor: %User{}]`).
+  Returns `[]` when nothing applies.
+  """
+  @callback socket_opts(term(), Phoenix.LiveView.Socket.t() | map()) :: keyword()
 
   @doc """
   Applies a list operation using the provided Connector.
@@ -199,6 +236,7 @@ defmodule Aurora.Uix.Integration.Crud do
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `pagination` (Pagination.t()) - The current `%Pagination{}` structure.
   - `page` (integer()) - The target page number.
+  - `opts` (keyword()) - Additional options. Defaults to `[]`. Forwarded to the backend.
 
   ## Returns
 
@@ -210,9 +248,9 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_to_page(connector, %Pagination{page: 1, pages_count: 5}, 2)
       %Pagination{page: 2, entries: [...]}
   """
-  @spec apply_to_page(Connector.t(), Pagination.t(), integer()) :: Pagination.t()
-  def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page),
-    do: get_crud_module(type).to_page(crud_spec, pagination, page)
+  @spec apply_to_page(Connector.t(), Pagination.t(), integer(), keyword()) :: Pagination.t()
+  def apply_to_page(%Connector{type: type, crud_spec: crud_spec}, pagination, page, opts \\ []),
+    do: get_crud_module(type).to_page(crud_spec, pagination, page, opts)
 
   @doc """
   Retrieves a single entity by ID using the provided Connector.
@@ -222,6 +260,7 @@ defmodule Aurora.Uix.Integration.Crud do
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `id` (term()) - The entity identifier.
   - `opts` (keyword()) - Options:
+    * `:actor` (term()) - Actor for Ash policy authorization (Ash only).
     * `:where` (list()) - Additional filter clauses (Ash only).
     * `:preload` (term()) - Associations to load.
 
@@ -255,6 +294,8 @@ defmodule Aurora.Uix.Integration.Crud do
   - `entity` (struct()) - The entity to create a changeset for.
   - `form_name` (atom() | binary()) - The name of the underlying form.
   - `attrs` (map()) - Attributes to apply to the changeset. Defaults to `%{}`.
+  - `opts` (keyword()) - Additional options. Defaults to `[]`. Forwarded to the backend
+    (the Ash backend honours `:actor`).
 
   ## Returns
 
@@ -263,21 +304,23 @@ defmodule Aurora.Uix.Integration.Crud do
   ## Examples
 
       iex> connector = %Connector{type: :ash, crud_spec: %CrudSpec{...}}
-      iex> apply_change_function(connector, %MyApp.User{}, %{name: "John"})
+      iex> apply_change_function(connector, %MyApp.User{}, "user", %{name: "John"})
       %AshPhoenix.Form{...}
 
       iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
-      iex> apply_change_function(connector, %MyContext.Item{}, %{status: "active"})
+      iex> apply_change_function(connector, %MyContext.Item{}, "item", %{status: "active"})
       %Ecto.Changeset{...}
   """
-  @spec apply_change_function(Connector.t(), struct(), atom() | binary(), map()) :: struct()
+  @spec apply_change_function(Connector.t(), struct(), atom() | binary(), map(), keyword()) ::
+          struct()
   def apply_change_function(
         %Connector{type: type, crud_spec: crud_spec},
         entity,
         form_name,
-        attrs \\ %{}
+        attrs \\ %{},
+        opts \\ []
       ),
-      do: get_crud_module(type).change(crud_spec, entity, form_name, attrs)
+      do: get_crud_module(type).change(crud_spec, entity, form_name, attrs, opts)
 
   @doc """
   Creates a new entity struct using the provided Connector.
@@ -287,6 +330,8 @@ defmodule Aurora.Uix.Integration.Crud do
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `attrs` (map()) - Initial attributes for the new entity.
   - `opts` (keyword()) - Options:
+    * `:actor` (term()) - Actor for Ash policy authorization (Ash only, used during
+      preloading).
     * `:preload` (list()) - Associations to load.
 
   ## Returns
@@ -319,6 +364,8 @@ defmodule Aurora.Uix.Integration.Crud do
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The resource to update.
   - `params` (map()) - Parameters to update.
+  - `opts` (keyword()) - Additional options. Defaults to `[]`. Forwarded to the backend
+    (the Ash backend honours `:actor`).
 
   ## Returns
 
@@ -330,13 +377,14 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_update_function(connector, %MyApp.User{id: 1}, %{name: "Bob"})
       {:ok, %MyApp.User{id: 1, name: "Bob"}}
   """
-  @spec apply_update_function(Connector.t(), struct(), map()) :: tuple()
+  @spec apply_update_function(Connector.t(), struct(), map(), keyword()) :: tuple()
   def apply_update_function(
         %Connector{type: type, crud_spec: crud_spec},
         entity,
-        params
+        params,
+        opts \\ []
       ),
-      do: get_crud_module(type).update(crud_spec, entity, params)
+      do: get_crud_module(type).update(crud_spec, entity, params, opts)
 
   @doc """
   Creates a new resource in the database.
@@ -345,6 +393,8 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `params` (map()) - Parameters for the new resource.
+  - `opts` (keyword()) - Additional options. Defaults to `[]`. Forwarded to the backend
+    (the Ash backend honours `:actor`).
 
   ## Returns
 
@@ -356,12 +406,13 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_create_function(connector, %{name: "Alice", email: "alice@example.com"})
       {:ok, %MyApp.User{name: "Alice"}}
   """
-  @spec apply_create_function(Connector.t(), map()) :: tuple()
+  @spec apply_create_function(Connector.t(), map(), keyword()) :: tuple()
   def apply_create_function(
         %Connector{type: type, crud_spec: crud_spec},
-        params
+        params,
+        opts \\ []
       ),
-      do: get_crud_module(type).create(crud_spec, params)
+      do: get_crud_module(type).create(crud_spec, params, opts)
 
   @doc """
   Deletes a resource from the database.
@@ -370,6 +421,8 @@ defmodule Aurora.Uix.Integration.Crud do
 
   - `connector` (Connector.t()) - The `%Connector{}` containing type and crud_spec.
   - `entity` (struct()) - The resource to delete.
+  - `opts` (keyword()) - Additional options. Defaults to `[]`. Forwarded to the backend
+    (the Ash backend honours `:actor`).
 
   ## Returns
 
@@ -381,12 +434,52 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_delete_function(connector, %MyApp.User{id: 1})
       {:ok, %MyApp.User{id: 1}}
   """
-  @spec apply_delete_function(Connector.t(), struct()) :: tuple()
+  @spec apply_delete_function(Connector.t(), struct(), keyword()) :: tuple()
   def apply_delete_function(
         %Connector{type: type, crud_spec: crud_spec},
-        entity
+        entity,
+        opts \\ []
       ),
-      do: get_crud_module(type).delete(crud_spec, entity)
+      do: get_crud_module(type).delete(crud_spec, entity, opts)
+
+  @doc """
+  Resolves per-call options from a LiveView socket for the given Connector.
+
+  Polymorphic over connector type — delegates to the backend's `socket_opts/2`
+  callback, which inspects its own crud_spec. The Ash backend returns
+  `[actor: socket.assigns[crud_spec.actor_assign]]` when configured; the Ctx backend
+  returns `[]`.
+
+  Always returns a keyword list, safe to merge into per-call opts via `++`.
+
+  ## Parameters
+
+  - `connector` (Connector.t() | nil) - The `%Connector{}` to extract opts for; a nil
+    connector returns `[]`.
+  - `socket` (Phoenix.LiveView.Socket.t() | map()) - The LiveView socket (or any map
+    with an `:assigns` key).
+
+  ## Returns
+
+  keyword() - Options to merge into the next CRUD call.
+
+  ## Examples
+
+      iex> apply_socket_opts(nil, socket)
+      []
+
+      iex> apply_socket_opts(%Connector{type: :ash, crud_spec: %CrudSpec{actor_assign: :current_user}},
+      ...>   %{assigns: %{current_user: %{id: 1}}})
+      [actor: %{id: 1}]
+
+      iex> apply_socket_opts(%Connector{type: :ctx, crud_spec: %CtxCrudSpec{}}, socket)
+      []
+  """
+  @spec apply_socket_opts(Connector.t() | nil, Phoenix.LiveView.Socket.t() | map()) :: keyword()
+  def apply_socket_opts(nil, _socket), do: []
+
+  def apply_socket_opts(%Connector{type: type, crud_spec: crud_spec}, socket),
+    do: get_crud_module(type).socket_opts(crud_spec, socket)
 
   ## PRIVATE
 

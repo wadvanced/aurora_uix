@@ -127,37 +127,62 @@ Then run:
 mix deps.get
 ```
 
-#### 2. Configure Routes & Layout
+#### 2. Configure the Stylesheet
 
-Add the stylesheet route to your router (`lib/my_app_web/router.ex`):
+Aurora UIX ships with pre-built CSS themes (`light` and `dark` by default). Generate the stylesheet:
+
+```shell
+mix auix.gen.stylesheet
+```
+
+This creates `assets/css/auix-stylesheet.css`. Import it **at the end** of your `assets/css/app.css`:
+
+```css
+@import "./auix-stylesheet.css";
+```
+
+> **Important**: The Aurora UIX stylesheet must be the **last line** in `app.css` so its styles take priority over any conflicting rules.
+
+> **Tip**: If you change the theme configuration or customize its style, re-run `mix auix.gen.stylesheet` to regenerate the stylesheet.
+
+#### 3. Configure Icons (optional)
+
+Aurora UIX uses **Heroicons** for all UI icons. If your project doesn't already use Heroicons, generate the icon CSS classes:
+
+```shell
+mix auix.gen.icons
+```
+
+Then add an import **at the top** of your `assets/css/app.css`:
+
+```css
+@import "auix-icons.css";
+```
+
+#### 4. Create Your First CRUD UI
+
+Create a module (e.g., `lib/my_app_web/auix/product_ui.ex`) and use the example above. Then register LiveView routes in your router:
 
 ```elixir
-scope "/auix/assets/", Aurora.Uix do
-  pipe_through(:api)
-  get("/css/stylesheet.css", Templates.CssServer, :generate)
+scope "/inventory" do
+  pipe_through(:browser)
+  live "/products", Overview.Product.Index
+  live "/products/new", Overview.Product.Index, :new
+  live "/products/:id/edit", Overview.Product.Index, :edit
+  live "/products/:id/show", Overview.Product.Index, :show
 end
 ```
 
-Add the stylesheet link to your layout (`lib/my_app_web/components/layouts/root.html.heex`):
+Or use the route helper for a shorter syntax:
 
-```html
-<head>
-  <!-- ... other meta tags ... -->
-  <link rel="stylesheet" href={~p"/assets/css/app.css"} />
-  <!-- Aurora UIX Stylesheet -->
-  <link rel="stylesheet" href="/auix/assets/css/stylesheet.css" />
-  <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}></script>
-</head>
+```elixir
+import Aurora.Uix.RouteHelper
+
+scope "/inventory", Aurora.UixWeb.Guides do
+  pipe_through(:browser)
+  auix_live_resources("/products", Overview.Product)
+end
 ```
-
-> **Tip**: If styles don't apply after reload, add a cache-buster:
-> ```html
-> <link rel="stylesheet" href={"/auix/assets/css/stylesheet.css?v=#{System.os_time()}"} />
-> ```
-
-#### 3. Create Your First CRUD UI
-
-Create a module (e.g., `lib/my_app_web/auix/product_ui.ex`) and use the example from the Quick Example section above. Then register routes in your router to test.
 
 ### 📚 Next Steps
 
@@ -239,4 +264,3 @@ Licensed under the [MIT License](LICENSE.md).
 
 - **Email:** [contact@wadvanced.com](mailto:contact@wadvanced.com)
 - **Repository:** [https://github.com/wadvanced/aurora_uix](https://github.com/wadvanced/aurora_uix)
-

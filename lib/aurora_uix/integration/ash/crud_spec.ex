@@ -2,35 +2,39 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   @moduledoc """
   Defines the specification structure for Ash CRUD operations.
 
-  Encapsulates the Ash domain, resource, action, and Aurora UIX action name required
-  for generating function references in the integration layer. This structure serves
-  as a configuration container for Ash-based CRUD operations.
+  Encapsulates the Ash resource, action, Aurora UIX action name, and the optional
+  `socket.assigns` key that holds the runtime actor used to authorize policy-protected
+  resources.
 
   ## Key Features
 
-  - Stores Ash domain and resource module references
+  - Stores Ash resource module references
   - Associates Ash actions with Aurora UIX action names
-  - Supports domain-only or domain-resource configurations
   - Enables structured function reference creation
+  - Carries `:actor_assign` — the compile-time atom naming which `socket.assigns`
+    key holds the actor, resolved at every CRUD call site by
+    `Aurora.Uix.Integration.Ash.Crud.socket_opts/2`
   - Factory methods for convenient instantiation
 
   ## Key Constraints
 
-  - At least one of `:domain` or `:resource` should be provided for meaningful usage
-  - `:action` contains Ash action struct (Read, Create, Update, or Destroy) or 
+  - At least `:resource` should be provided for meaningful usage
+  - `:action` contains Ash action struct (Read, Create, Update, or Destroy) or
     a function reference (only valid in :ash_new_function option)
   - `:auix_action_name` maps to Aurora UIX action conventions (e.g., `:list_function`,
     `:get_function`)
+  - `:actor_assign` is `nil` by default — no `actor:` is forwarded to Ash, preserving
+    the previous behaviour for resources that do not use `Ash.Policy.Authorizer`
   """
 
   @type t() :: %__MODULE__{
-          domain: module() | nil,
           resource: module() | nil,
           action: struct() | function() | nil,
-          auix_action_name: atom() | nil
+          auix_action_name: atom() | nil,
+          actor_assign: atom() | nil
         }
 
-  defstruct [:domain, :resource, :action, :auix_action_name]
+  defstruct [:resource, :action, :auix_action_name, :actor_assign]
 
   @doc """
   Creates an empty CrudSpec struct.
@@ -42,7 +46,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   ## Examples
 
       iex> new()
-      %CrudSpec{domain: nil, resource: nil, action: nil, auix_action_name: nil}
+      %CrudSpec{resource: nil, action: nil, auix_action_name: nil, actor_assign: nil}
   """
   @spec new() :: t()
   def new, do: %__MODULE__{}
@@ -52,10 +56,13 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
 
   ## Parameters
 
-  - `domain` (module() | nil) - The Ash domain module.
   - `resource` (module() | nil) - The Ash resource module.
   - `action` (struct() | nil) - The Ash action struct.
   - `auix_action_name` (atom() | nil) - The Aurora UIX action name.
+  - `opts` (keyword()) - Optional extras:
+    * `:actor_assign` (atom() | nil) - Name of the `socket.assigns` key that holds
+      the actor. When set, `Aurora.Uix.Integration.Ash.Crud.socket_opts/2` extracts
+      the actor from the socket and forwards it as `actor:` on every Ash call.
 
   ## Returns
 
@@ -63,17 +70,24 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
 
   ## Examples
 
-      iex> new(MyApp.Accounts, MyApp.User, %Ash.Resource.Actions.Read{}, :list_function)
-      %CrudSpec{domain: MyApp.Accounts, resource: MyApp.User,
-        action: %Ash.Resource.Actions.Read{}, auix_action_name: :list_function}
+      iex> new(MyApp.User, %Ash.Resource.Actions.Read{}, :list_function)
+      %CrudSpec{resource: MyApp.User,
+        action: %Ash.Resource.Actions.Read{}, auix_action_name: :list_function,
+        actor_assign: nil}
+
+      iex> new(MyApp.User, %Ash.Resource.Actions.Read{}, :list_function,
+      ...>   actor_assign: :current_user)
+      %CrudSpec{resource: MyApp.User,
+        action: %Ash.Resource.Actions.Read{}, auix_action_name: :list_function,
+        actor_assign: :current_user}
   """
-  @spec new(module() | nil, module() | nil, struct() | nil, atom() | nil) :: t()
-  def new(domain, resource, action, auix_action_name) do
+  @spec new(module() | nil, struct() | nil, atom() | nil, keyword()) :: t()
+  def new(resource, action, auix_action_name, opts \\ []) do
     %__MODULE__{
-      domain: domain,
       resource: resource,
       action: action,
-      auix_action_name: auix_action_name
+      auix_action_name: auix_action_name,
+      actor_assign: Keyword.get(opts, :actor_assign)
     }
   end
 end

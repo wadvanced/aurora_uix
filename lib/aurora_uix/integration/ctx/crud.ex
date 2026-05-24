@@ -13,12 +13,16 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   - Pagination integration via `Aurora.Ctx.Core`
   - Consistent interface matching Ash CRUD operations
   - Compatible with Ecto-based contexts
+  - Implements `socket_opts/2` as a no-op — Ecto contexts have no concept of an Ash
+    actor, so socket-derived options are not forwarded
 
   ## Key Constraints
 
   - Requires valid CrudSpec with function_spec field populated
   - Function arities must match the operation requirements
   - Pagination relies on `Aurora.Ctx.Core.to_page/2`
+  - The trailing `opts` argument on `create`, `update`, `delete`, `change`, `to_page`
+    is accepted to satisfy the `Aurora.Uix.Integration.Crud` behaviour but is ignored
   """
   @behaviour Aurora.Uix.Integration.Crud
 
@@ -56,6 +60,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   - `crud_spec` (CrudSpec.t()) - The spec (currently unused).
   - `pagination` (Pagination.t()) - The current pagination structure.
   - `page` (integer()) - The target page number.
+  - `opts` (keyword()) - Ignored. Present to satisfy the behaviour contract.
 
   ## Returns
 
@@ -67,8 +72,9 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       %Pagination{page: 3, entries: [...]}
   """
   @impl true
-  @spec to_page(CrudSpec.t(), Pagination.t(), integer()) :: Pagination.t()
-  def to_page(_crud_spec, pagination, page), do: CtxCore.to_page(pagination, page)
+  @spec to_page(CrudSpec.t(), Pagination.t(), integer(), keyword()) :: Pagination.t()
+  def to_page(crud_spec, pagination, page, opts \\ [])
+  def to_page(_crud_spec, pagination, page, _opts), do: CtxCore.to_page(pagination, page)
 
   @doc """
   Retrieves a single resource by ID.
@@ -101,7 +107,9 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The spec containing the change function reference.
   - `entity` (struct()) - The resource to create a changeset for.
+  - `form_name` (atom() | binary()) - Unused for the ctx backend.
   - `attrs` (map()) - Attributes to apply to the changeset.
+  - `opts` (keyword()) - Ignored. Present to satisfy the behaviour contract.
 
   ## Returns
 
@@ -110,12 +118,15 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   ## Examples
 
       iex> crud_spec = %CrudSpec{function_spec: &MyContext.change_user/2}
-      iex> change(crud_spec, %User{}, %{name: "John"})
+      iex> change(crud_spec, %User{}, "user", %{name: "John"})
       %Ecto.Changeset{...}
   """
   @impl true
-  @spec change(CrudSpec.t(), struct(), atom() | binary(), map()) :: Ecto.Changeset.t()
-  def change(%CrudSpec{function_spec: function_spec}, entity, _form_name, attrs),
+  @spec change(CrudSpec.t(), struct(), atom() | binary(), map(), keyword()) ::
+          Ecto.Changeset.t()
+  def change(crud_spec, entity, form_name, attrs, opts \\ [])
+
+  def change(%CrudSpec{function_spec: function_spec}, entity, _form_name, attrs, _opts),
     do: function_spec.(entity, attrs)
 
   @doc """
@@ -148,6 +159,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The spec containing the create function reference.
   - `params` (map()) - Parameters for the new resource.
+  - `opts` (keyword()) - Ignored. Present to satisfy the behaviour contract.
 
   ## Returns
 
@@ -160,8 +172,10 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       {:ok, %User{name: "Alice"}}
   """
   @impl true
-  @spec create(CrudSpec.t(), map()) :: tuple()
-  def create(%CrudSpec{function_spec: function_spec}, params),
+  @spec create(CrudSpec.t(), map(), keyword()) :: tuple()
+  def create(crud_spec, params, opts \\ [])
+
+  def create(%CrudSpec{function_spec: function_spec}, params, _opts),
     do: function_spec.(params)
 
   @doc """
@@ -172,6 +186,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   - `crud_spec` (CrudSpec.t()) - The spec containing the update function reference.
   - `entity` (struct()) - The resource to update.
   - `params` (map()) - Parameters to update.
+  - `opts` (keyword()) - Ignored. Present to satisfy the behaviour contract.
 
   ## Returns
 
@@ -184,8 +199,10 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       {:ok, %User{id: 1, name: "Bob"}}
   """
   @impl true
-  @spec update(CrudSpec.t(), struct(), map()) :: tuple()
-  def update(%CrudSpec{function_spec: function_spec}, entity, params),
+  @spec update(CrudSpec.t(), struct(), map(), keyword()) :: tuple()
+  def update(crud_spec, entity, params, opts \\ [])
+
+  def update(%CrudSpec{function_spec: function_spec}, entity, params, _opts),
     do: function_spec.(entity, params)
 
   @doc """
@@ -195,6 +212,7 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   - `crud_spec` (CrudSpec.t()) - The spec containing the delete function reference.
   - `entity` (struct()) - The resource to delete.
+  - `opts` (keyword()) - Ignored. Present to satisfy the behaviour contract.
 
   ## Returns
 
@@ -207,7 +225,29 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
       {:ok, %User{id: 1}}
   """
   @impl true
-  @spec delete(CrudSpec.t(), struct()) :: tuple()
-  def delete(%CrudSpec{function_spec: function_spec}, entity),
+  @spec delete(CrudSpec.t(), struct(), keyword()) :: tuple()
+  def delete(crud_spec, entity, opts \\ [])
+
+  def delete(%CrudSpec{function_spec: function_spec}, entity, _opts),
     do: function_spec.(entity)
+
+  @doc """
+  Returns `[]` — Ecto contexts have no concept of an Ash actor.
+
+  Present to satisfy the `Aurora.Uix.Integration.Crud` behaviour. Handlers that call
+  `Aurora.Uix.Integration.Crud.apply_socket_opts/2` on a ctx connector get back an
+  empty keyword list and merge nothing into subsequent calls.
+
+  ## Parameters
+
+  - `crud_spec` (CrudSpec.t()) - Ignored.
+  - `socket` (Phoenix.LiveView.Socket.t() | map()) - Ignored.
+
+  ## Returns
+
+  keyword() - Always `[]`.
+  """
+  @impl true
+  @spec socket_opts(CrudSpec.t(), Phoenix.LiveView.Socket.t() | map()) :: keyword()
+  def socket_opts(_crud_spec, _socket), do: []
 end

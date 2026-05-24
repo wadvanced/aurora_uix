@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   ## Key Constraints
 
-  - Requires valid context or domain module in resource configuration
+  - Requires valid context module in resource configuration
   - Type must be configured in application environment
   - Invalid types raise runtime errors
   - Implementations define their own option handling logic
@@ -121,7 +121,7 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
     * `:module` (binary()) - Schema module name (e.g., "user")
   - `resource_config` (map()) - Resource configuration:
     * `:type` (atom()) - Backend type (`:ash` or `:ctx`)
-    * `:context` (module()) - Context or domain module
+    * `:context` (module()) - Context
     * `:schema` (module()) - Schema or resource module (optional)
   - `opts` (keyword()) - Un-parsed opts  
   - `option` (atom()) - The option key to resolve (e.g., `:list_function`, `:get_function`)

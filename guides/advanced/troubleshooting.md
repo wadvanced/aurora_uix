@@ -237,6 +237,41 @@ auix_create_ui do
 end
 ```
 
+## Ash Policy-Protected Resource Shows No Rows
+
+**Symptoms:** The generated index for an Ash resource is empty, even though the
+data exists in the database. No error in the logs.
+
+**Cause:** The resource is guarded by `Ash.Policy.Authorizer` with a policy
+that requires an actor (e.g. `authorize_if actor_present()`), but Aurora UIX is
+not forwarding one. Reads quietly translate `Ash.Error.Forbidden` to an empty
+result so the LiveView stays alive.
+
+**Solution:** Tell Aurora UIX which `socket.assigns` key holds the actor:
+
+```elixir
+auix_resource_metadata :template,
+  ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+  ash_actor_assign: :current_user
+```
+
+Also confirm the assign is actually set — typically via an `on_mount` hook
+inside a `live_session`. See
+[Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
+
+## Ash Save Raises or Shows "Forbidden" Flash
+
+**Symptoms:** Submitting a generated form for an Ash resource flashes an error
+that mentions `Ash.Error.Forbidden`, or — on a host without the actor wired in
+— the LiveView crashes with `MatchError` on `{:error, %Forbidden{}}`.
+
+**Cause:** Same as above — the actor is missing. Writes (`create`, `update`,
+`destroy`) cannot fall back to "empty" the way reads do, so the policy denial
+surfaces.
+
+**Solution:** Set `ash_actor_assign:` on the resource metadata, and make sure
+the assign is populated on the socket before the form mounts.
+
 ## Performance Issues
 
 **Symptoms:** Slow page loads or unresponsive UI.

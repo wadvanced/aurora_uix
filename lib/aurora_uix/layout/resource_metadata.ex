@@ -107,7 +107,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
       Returns a list of resource configurations.
       """
-      @spec auix_resources() :: list()
+      @spec auix_resources() :: map()
       def auix_resources do
         unquote(Macro.escape(resources_metadata))
       end
@@ -148,11 +148,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   For Ash Framework resources:
 
   - `:ash_resource` (module()) - Required. Ash resource module.
-  - `:ash_domain` (module()) - Optional. Ash domain module. If omitted, actions are
-    resolved directly from the resource.
+  - `:ash_actor_assign` (atom()) - Optional. Name of the `socket.assigns` key that
+    holds the actor for policy-protected resources. When set, every generated CRUD
+    call forwards `actor: socket.assigns[<assign>]` to Ash (`Ash.read/get/create/
+    update/destroy/load` and `AshPhoenix.Form.for_update`). When unset (default),
+    no `actor:` is added, preserving the previous behaviour for resources that do
+    not use `Ash.Policy.Authorizer`. `authorize?:` is never set explicitly — the
+    host domain's own `authorize` config decides whether policies run.
 
-  Note: You can also use `:schema` as an alias for `:ash_resource` and `:context` as
-  an alias for `:ash_domain` when working with Ash resources.
+  Note: You can also use `:schema` as an alias for `:ash_resource` when working with Ash resources.
+  context is irrelevant as ash resources know the domain that they belong to.
 
   ## Examples
 
@@ -179,12 +184,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         order_by: [:name]
       )
 
-  ### Ash Resource with Domain
+  ### Ash Resource with policy-protected actions (actor threading)
 
-      auix_resource_metadata(:post,
-        ash_resource: MyApp.Blog.Post,
-        ash_domain: MyApp.Blog,
-        order_by: [desc: :published_at]
+      auix_resource_metadata(:template,
+        ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+        ash_actor_assign: :current_user
       )
 
   ## Returns
@@ -347,14 +351,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp configure_resource_fields(resource) do
     {schema, resource_type} = define_schema_and_type(resource)
 
-    context = resource.opts[:context] || resource.opts[:ash_domain]
+    context = resource.opts[:context]
 
     opts =
       resource.opts
       |> Keyword.delete(:schema)
       |> Keyword.delete(:context)
       |> Keyword.delete(:ash_resource)
-      |> Keyword.delete(:ash_domain)
 
     fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
 

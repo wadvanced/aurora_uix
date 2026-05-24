@@ -310,9 +310,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {get_function, _} = Code.eval_string(get_function_string)
     {delete_function, _} = Code.eval_string(delete_function_string)
 
+    get_opts = backend_socket_opts(socket, get_function)
+    delete_opts = backend_socket_opts(socket, delete_function)
+
     socket =
-      with %{} = entity <- apply_get_function(get_function, id, []),
-           {:ok, _changeset} <- apply_delete_function(delete_function, entity) do
+      with %{} = entity <- apply_get_function(get_function, id, get_opts),
+           {:ok, _changeset} <- apply_delete_function(delete_function, entity, delete_opts) do
         socket
         |> put_flash(:info, gettext("Item deleted successfully"))
         |> push_patch(to: socket.assigns.auix[:_current_path])
@@ -328,8 +331,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{"id" => id},
         %{assigns: %{auix: auix, streams: _streams}} = socket
       ) do
-    entity = apply_get_function(auix.get_function, id, [])
-    {:ok, _} = apply_delete_function(auix.delete_function, entity)
+    get_opts = backend_socket_opts(socket, auix.get_function)
+    delete_opts = backend_socket_opts(socket, auix.delete_function)
+    entity = apply_get_function(auix.get_function, id, get_opts)
+    {:ok, _} = apply_delete_function(auix.delete_function, entity, delete_opts)
 
     {:noreply,
      socket
@@ -679,7 +684,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :edit}} = socket,
         %{"id" => id} = params
       ) do
-    new_entity = apply_get_function(auix.get_function, id, preload: auix.preload)
+    get_opts =
+      socket
+      |> backend_socket_opts(auix.get_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    new_entity = apply_get_function(auix.get_function, id, get_opts)
 
     socket
     |> assign_new_entity(params, new_entity)
@@ -691,7 +701,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :show}} = socket,
         %{"id" => id} = params
       ) do
-    new_entity = apply_get_function(auix.get_function, id, preload: auix.preload)
+    get_opts =
+      socket
+      |> backend_socket_opts(auix.get_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    new_entity = apply_get_function(auix.get_function, id, get_opts)
 
     socket
     |> assign_new_entity(params, new_entity)
@@ -703,8 +718,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
         %{"id" => id} = params
       ) do
-    new_entity =
-      apply_get_function(auix.get_function, id, preload: auix.preload)
+    get_opts =
+      socket
+      |> backend_socket_opts(auix.get_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    new_entity = apply_get_function(auix.get_function, id, get_opts)
 
     socket
     |> assign_new_entity(params, new_entity)
@@ -713,7 +732,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
-    new_entity = apply_new_function(auix.new_function, %{}, preload: auix.preload)
+    new_opts =
+      socket
+      |> backend_socket_opts(auix.new_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    new_entity = apply_new_function(auix.new_function, %{}, new_opts)
 
     socket
     |> assign_new_entity(params, new_entity)
@@ -786,8 +810,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
            socket,
          page
        ) do
+    extra_opts = backend_socket_opts(socket, list_function)
+
     list_function
-    |> apply_to_page(pagination, page)
+    |> apply_to_page(pagination, page, extra_opts)
     |> then(&assign_auix(socket, :read_items, &1))
     |> update_streams()
     |> assign_item_index()
@@ -865,9 +891,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
          } = socket,
          options
        ) do
+    extra_opts = backend_socket_opts(socket, list_function)
+
     read_items =
       query_options
       |> Keyword.merge(options)
+      |> Keyword.merge(extra_opts)
       |> then(&apply_list_function(list_function, &1))
 
     assign_auix(socket, :read_items, read_items)
@@ -1034,6 +1063,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
        ) do
     toggle_all_mode = if state?, do: :check, else: :uncheck
     pagination = struct(pagination, %{entries: []})
+    # Resolve socket-derived opts (e.g. actor:) BEFORE start_async — the spawned task
+    # runs in a separate process and must not touch the socket.
+    extra_opts = backend_socket_opts(socket, list_function)
 
     function =
       fn ->
@@ -1042,7 +1074,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           selection,
           fn page, acc_selection ->
             list_function
-            |> apply_to_page(pagination, page)
+            |> apply_to_page(pagination, page, extra_opts)
             |> Map.get(:entries, [])
             |> Enum.map(&BasicHelpers.primary_key_value(&1, primary_key))
             |> Enum.reduce(acc_selection, &Selection.set_selected(&1, &2, state?, page))
@@ -1058,11 +1090,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec assign_async_delete_all(Socket.t()) :: Socket.t()
   defp assign_async_delete_all(%{assigns: %{auix: %{selection: selection} = auix}} = socket) do
+    # Capture per-connector opts BEFORE start_async — the spawned task must not access
+    # the socket from another process.
+    get_opts = backend_socket_opts(socket, auix.get_function)
+    delete_opts = backend_socket_opts(socket, auix.delete_function)
+
     function =
       fn ->
         selection.selected
-        |> Enum.map(&apply_get_function(auix.get_function, &1, []))
-        |> Enum.each(&apply_delete_function(auix.delete_function, &1))
+        |> Enum.map(&apply_get_function(auix.get_function, &1, get_opts))
+        |> Enum.each(&apply_delete_function(auix.delete_function, &1, delete_opts))
       end
 
     start_async(socket, :auix_selection_delete_all, function)
@@ -1154,15 +1191,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp next_page(%{page: page}), do: page + 1
 
   @spec get_page_items_id(Socket.t()) :: list()
-  defp get_page_items_id(%{
-         assigns: %{auix: auix}
-       }) do
+  defp get_page_items_id(%{assigns: %{auix: auix}} = socket) do
+    extra_opts = backend_socket_opts(socket, auix.list_function_selected)
+
     auix.pagination
     |> Map.get(:opts, [])
     |> Keyword.put(:select, auix.primary_key)
     |> Keyword.put(:paginate, %{per_page: auix.pagination.per_page})
     |> then(&Map.put(auix.pagination, :opts, &1))
-    |> then(&apply_to_page(auix.list_function_selected, &1, auix.pagination.page))
+    |> then(&apply_to_page(auix.list_function_selected, &1, auix.pagination.page, extra_opts))
     |> Map.get(:entries, [])
     |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
   end

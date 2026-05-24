@@ -17,6 +17,15 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
     edit_layout :author do
       stacked([:name, :email, :posts])
     end
+
+    edit_layout :post,
+      new_title: "Embeds many" do
+      stacked do
+        inline([:status])
+        stacked([:title, :content])
+        stacked([:comment, :tags])
+      end
+    end
   end
 
   test "Show from list embeds-many", %{conn: conn} do
