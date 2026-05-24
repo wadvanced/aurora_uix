@@ -18,6 +18,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
   alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Phoenix.HTML.Safe
 
   @doc """
   Renders a one-to-many association field.
@@ -220,13 +221,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
     Map.put(related_parsed_opts, :index_new_link, "/#{uri_path}/new")
   end
 
+  @spec display_value(term() | nil, binary() | nil) :: String.t()
   defp display_value(nil, _key), do: ""
   defp display_value(_entity, nil), do: ""
 
   defp display_value(entity, key) do
     value = Map.get(entity, key)
 
-    case Phoenix.HTML.Safe.impl_for(value) do
+    case Safe.impl_for(value) do
       nil -> inspect(value)
       _ -> value
     end
