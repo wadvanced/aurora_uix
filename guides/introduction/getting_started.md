@@ -36,32 +36,61 @@ Run the stylesheet generator task:
 mix auix.gen.stylesheet
 ```
 
-This generates `assets/css/auix-stylesheet.css` with your configured theme and styling.
+This generates three files under `assets/css/`:
 
-### Step 2: Import Stylesheet in app.css
+- `auix-variables.css` — `:root` declarations for all `--auix-*` custom properties (sizes, colors, shadows).
+- `auix-rules.css` — the `.auix-*` component rules that consume those variables.
+- `auix-stylesheet.css` — back-compat shim that re-imports the two files above.
 
-In your `assets/css/app.css`, add an import statement **at the end** (as the last line):
+### Step 2: Import Stylesheets in app.css
+
+In your `assets/css/app.css`, import the variables first, optionally override individual `--auix-*` vars (directly or via a bridge file — see below), then import the rules **last**:
 
 ```css
 /* Your custom styles and other imports go here */
 
-/* Aurora UIX stylesheet must be imported last to avoid conflicts */
-@import "auix-stylesheet.css";
+@import "auix-variables.css";       /* Aurora UIX defaults */
+:root { /* optional: override --auix-* vars here */ }
+@import "auix-rules.css";           /* must be last */
 ```
 
-> #### Why Last? {: .warning}
-> The Aurora UIX stylesheet must be imported as the **last line** in `app.css` to ensure its styles have the highest specificity and properly override any conflicting styles from other CSS files or frameworks.
+Hosts on the previous single-file install keep working — `@import "auix-stylesheet.css"` is still generated and now just re-imports the two halves above.
 
-That's it! The stylesheet will be bundled with your application CSS and automatically served alongside your other assets. Your main layout file (`root.html.heex` or `app.html.heex`) already includes the standard asset link:
+> #### Why Rules Last? {: .warning}
+> `auix-rules.css` must be imported as the **last** Aurora UIX line in `app.css` so its component selectors have the highest specificity and any overrides you placed between the two imports take effect.
+
+The stylesheets are bundled with your application CSS and served alongside your other assets. Your main layout file (`root.html.heex` or `app.html.heex`) already includes the standard asset link:
 
 ```html
 <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
 ```
 
 > #### Regenerating After Theme Changes {: .info}
-> If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheet.
+> If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheets.
 >
 > **Note**: This command is also used when creating custom themes. See [Creating Custom Registered Themes](../advanced/advanced_usage.html#creating-custom-registered-themes) in the Advanced Guide for details on building your own themes.
+
+### Step 3 (optional): Inherit the host's daisyUI theme
+
+If your Phoenix app uses Tailwind v4 + daisyUI, Aurora UIX can follow the host theme automatically. The first time you run `mix auix.gen.stylesheet` it also copies a bridge file — `assets/css/auix-bridge-daisyui.css` — a small mapping that connects daisyUI tokens (`--color-primary`, `--color-base-100`, `--radius-field`, …) to `--auix-*` variables. Import it between the variables and the rules:
+
+```css
+@import "tailwindcss";
+@plugin "daisyui";
+
+@import "auix-variables.css";       /* Aurora UIX defaults */
+@import "auix-bridge-daisyui.css";  /* inherit daisyUI theme */
+:root { /* optional host overrides */ }
+@import "auix-rules.css";           /* must be last */
+```
+
+Switching the daisyUI theme (or toggling dark mode) then automatically restyles every Aurora UIX component with no further mix tasks. The bridge file is yours to edit — subsequent runs of `mix auix.gen.stylesheet` leave it untouched. Run with `--force` to refresh it from the library version:
+
+```shell
+mix auix.gen.stylesheet --force
+```
+
+If you use a design system other than daisyUI, see the [Writing a Bridge](../advanced/writing_a_bridge.html) guide to create your own mapping.
 
 ## Icons Configuration
 

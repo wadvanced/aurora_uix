@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4-rc.2"
+  @version "0.1.4-rc.3"
 
   def project do
     [
@@ -28,7 +28,7 @@ defmodule Aurora.Uix.MixProject do
         maintainers: ["Federico Alcántara"],
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
-        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib),
+        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib priv/static/css),
         exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", ~r"/aurora_uix/guides/*"]
       ],
 
@@ -48,7 +48,8 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/layouts.md",
           "guides/core/liveview.md",
           "guides/advanced/advanced_usage.md",
-          "guides/advanced/troubleshooting.md"
+          "guides/advanced/troubleshooting.md",
+          "guides/advanced/writing_a_bridge.md"
         ],
         groups_for_extras: [
           Introduction: ~r{guides/introduction/.*},
