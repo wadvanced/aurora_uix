@@ -28,6 +28,25 @@ Requires:
 
 
 
+### Changed
+
+- **Stylesheet split for host-theme inheritance** [#259](https://github.com/wadvanced/aurora_uix/issues/259)
+  - `mix auix.gen.stylesheet` now writes three files instead of one:
+    - `auix-variables.css` — all `:root` / `--auix-*` custom-property declarations (sizes, colors, shadows, palette variants).
+    - `auix-rules.css` — all `.auix-*` component rules that consume those variables.
+    - `auix-stylesheet.css` — back-compat shim that re-imports the two files above. Existing hosts importing only this file continue to work unchanged.
+  - On first run the task also copies `assets/css/auix-bridge-daisyui.css` into the host project — a small CSS file that maps daisyUI v5 tokens (`--color-primary`, `--color-base-100`, `--radius-field`, …) onto `--auix-*` variables so Aurora UIX components follow the host theme automatically. The file is treated as user-editable and is not overwritten on subsequent runs; pass `--force` to refresh it from the library version.
+  - Hosts using Tailwind v4 + daisyUI import the files in this order in `app.css`:
+    ```css
+    @import "auix-variables.css";
+    @import "auix-bridge-daisyui.css";
+    :root { /* optional per-host overrides */ }
+    @import "auix-rules.css";
+    ```
+  - Added `guides/advanced/writing_a_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
+  - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
+
+
 ## [0.1.3] - 2026-02-15
 
 **Ash Framework Integration & Improvements** - This release adds full support for Ash Framework as a backend alternative to Phoenix Contexts, along with custom action support and various improvements.
