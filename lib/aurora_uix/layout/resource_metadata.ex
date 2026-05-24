@@ -153,8 +153,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     call forwards `actor: socket.assigns[<assign>]` to Ash (`Ash.read/get/create/
     update/destroy/load` and `AshPhoenix.Form.for_update`). When unset (default),
     no `actor:` is added, preserving the previous behaviour for resources that do
-    not use `Ash.Policy.Authorizer`. `authorize?:` is never set explicitly — the
-    host domain's own `authorize` config decides whether policies run.
+    not use `Ash.Policy.Authorizer`. `:actor_assign` is accepted as a shorthand
+    alias. `authorize?:` is never set explicitly — the host domain's own
+    `authorize` config decides whether policies run. See the
+    [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+    for the worked example, behaviour matrix, and troubleshooting.
 
   Note: You can also use `:schema` as an alias for `:ash_resource` when working with Ash resources.
   context is irrelevant as ash resources know the domain that they belong to.

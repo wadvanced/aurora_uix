@@ -902,63 +902,182 @@ auix_resource_metadata :post,
 
 ## Authorization & policies
 
-Resources protected by `Ash.Policy.Authorizer` need an actor to satisfy their
-policies. Set `ash_actor_assign:` to the name of the `socket.assigns` key that
-holds the current actor (commonly `:current_user`); Aurora UIX will pull the
-actor at every CRUD call and forward it as `actor:` to Ash.
+Aurora UIX threads an **actor** through every Ash call it generates, so resources
+protected by `Ash.Policy.Authorizer` work out of the box. You declare *where* the
+actor lives on `socket.assigns`; Aurora UIX does the plumbing.
+
+Use this when your Ash resources declare policies and you would otherwise have
+to pass `actor: …` to each `Ash.read/2`, `Ash.create/3`, etc. by hand.
+
+### End-to-end example
+
+#### 1. The Ash resource with a policy
+
+```elixir
+defmodule MyApp.Templates.InterfaceDocumentTemplate do
+  use Ash.Resource,
+    domain: MyApp.Templates,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
+
+  policies do
+    policy action_type(:read) do
+      authorize_if relates_to_actor_via(:owner)
+    end
+
+    policy action_type([:create, :update, :destroy]) do
+      authorize_if actor_attribute_equals(:role, :admin)
+    end
+  end
+
+  # ... attributes, relationships, actions
+end
+```
+
+#### 2. The Aurora UIX resource metadata
+
+```elixir
+defmodule MyAppWeb.TemplatesLive do
+  use Aurora.Uix.Layout
+
+  auix_resource_metadata :template,
+    ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+    ash_actor_assign: :current_user
+
+  auix_create_ui do
+    edit_layout :template do
+      inline [:title, :body]
+    end
+  end
+end
+```
+
+That one option — `ash_actor_assign: :current_user` — is all the configuration
+this feature needs.
+
+#### 3. Put the actor on `socket.assigns`
+
+Aurora UIX only **reads** the assign; it does not authenticate. Your host app
+must populate it before the generated LiveView mounts. The Phoenix 1.8 +
+AshAuthentication idiom is an `on_mount` hook inside a `live_session`:
+
+```elixir
+# lib/my_app_web/router.ex
+live_session :authenticated,
+  on_mount: {MyAppWeb.UserAuth, :ensure_authenticated} do
+  live "/templates", TemplatesLive, :index
+  live "/templates/new", TemplatesLive, :new
+  live "/templates/:id/edit", TemplatesLive, :edit
+end
+```
+
+```elixir
+# lib/my_app_web/user_auth.ex
+def on_mount(:ensure_authenticated, _params, session, socket) do
+  case fetch_current_user(session) do
+    {:ok, user} -> {:cont, assign(socket, :current_user, user)}
+    :error      -> {:halt, redirect(socket, to: ~p"/sign-in")}
+  end
+end
+```
+
+The assign key (`:current_user`) must match `ash_actor_assign:` exactly.
+
+### Where the actor is forwarded
+
+The single `ash_actor_assign:` line threads the actor through every Ash call
+Aurora UIX produces for the resource:
+
+- `Ash.read/2` — list, paginated list, `to_page`
+- `Ash.get/3` — item lookup for show/edit
+- `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2` — write actions
+- `Ash.load/3` — relationship preloads
+- `AshPhoenix.Form.for_update/3` — form initialisation
+- Select/relationship dropdowns populated via `Ash.Query` — so option lists
+  also respect read policies
+
+### Alias: `:actor_assign`
+
+`:actor_assign` is accepted as a shorthand alias for `:ash_actor_assign` —
+they are interchangeable:
 
 ```elixir
 auix_resource_metadata :template,
   ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-  ash_actor_assign: :current_user
+  actor_assign: :current_user   # same as ash_actor_assign: :current_user
 ```
 
-This single line threads the actor through every Ash call produced for the
-resource:
-
-- `Ash.read/2` (list, paginated list, `to_page`)
-- `Ash.get/3` (item lookup)
-- `Ash.create/3`, `Ash.update/3`, `Ash.destroy/2`
-- `Ash.load/3` (preloads)
-- `AshPhoenix.Form.for_update/3` (forms)
-
-### Host responsibility: assign the actor
-
-Aurora UIX only **reads** the assign — it does not authenticate. The host must
-put the actor into `socket.assigns` before any Aurora UIX-generated LiveView
-mounts (typically via `on_mount` or a `live_session`):
-
-```elixir
-live_session :authenticated,
-  on_mount: {MyAppWeb.UserAuth, :ensure_authenticated} do
-  live "/templates", TemplateLive.Index, :index
-end
-```
+Pick the spelling that reads better in your codebase. The canonical name is
+`:ash_actor_assign` because Aurora UIX is backend-aware: future backends may
+introduce their own actor options without clashing.
 
 ### Behaviour summary
 
-| Configuration                                            | Behaviour                                       |
-|----------------------------------------------------------|-------------------------------------------------|
-| `ash_actor_assign:` unset (default)                       | No `actor:` is added. Backward compatible.      |
-| `ash_actor_assign: :current_user` + assign present       | `actor: socket.assigns.current_user` forwarded. |
-| `ash_actor_assign: :current_user` + assign `nil` or missing | No `actor:` added. Policy denies as actor-less. |
+| Configuration                                                  | Behaviour                                                |
+|----------------------------------------------------------------|----------------------------------------------------------|
+| `ash_actor_assign:` unset (default)                             | No `actor:` added. Backward compatible.                  |
+| `ash_actor_assign: :current_user` + assign present             | `actor: socket.assigns.current_user` forwarded.          |
+| `ash_actor_assign: :current_user` + assign `nil` or missing    | No `actor:` added. Policy denies as actor-less.          |
+| `ash_actor_assign: "current_user"` (non-atom)                  | Silently ignored. Behaves as if the option were unset.   |
 
 ### Why `authorize?:` is not exposed
 
-Aurora UIX never sets `authorize?:` explicitly. The host's Ash domain `authorize`
+Aurora UIX never sets `authorize?:` explicitly. Your Ash domain's `authorize`
 config (`:by_default`, `:when_requested`, or `:always`) continues to decide
 whether policies run — Aurora UIX never overrides that posture, and there is no
-"escape hatch" that silently disables authorization. The fix is always to thread
-the right actor.
+"escape hatch" that silently disables authorization. The fix is always to
+thread the right actor.
 
 ### What happens on a forbidden read or write
 
-- **Reads** (list, paginated list, `to_page`) translate `Ash.Error.Forbidden`
-  into an empty result so the generated index renders an empty state rather
-  than crashing.
-- **Writes** (create, update, destroy) propagate `{:error, %Ash.Error.Forbidden{}}`.
-  The generated form handler catches the error and renders an error flash; the
-  LiveView stays alive.
+- **Reads** (list, paginated list, `to_page`, dropdown queries) translate
+  `Ash.Error.Forbidden` into an empty result so the generated index renders an
+  empty state rather than crashing.
+- **Writes** (create, update, destroy) propagate
+  `{:error, %Ash.Error.Forbidden{}}`. The generated form handler catches the
+  error and renders an error flash; the LiveView stays alive.
+
+### Using the actor from custom handlers
+
+If you override Aurora UIX's generated handlers (see
+[LiveView integration](liveview.md)) and call CRUD functions yourself, use
+`Aurora.Uix.Templates.Basic.Helpers.backend_socket_opts/2` to extract the
+`[actor: …]` keyword list from the socket before merging it into your own
+options:
+
+```elixir
+import Aurora.Uix.Templates.Basic.Helpers, only: [backend_socket_opts: 2]
+
+def handle_event("custom_filter", %{"q" => q}, socket) do
+  socket_opts = backend_socket_opts(socket, socket.assigns.auix.list_function)
+  results = apply_list_function(
+    socket.assigns.auix.list_function,
+    socket_opts ++ [filter: [title: q]]
+  )
+  {:noreply, stream(socket, :items, results, reset: true)}
+end
+```
+
+This is the same helper Aurora UIX's own select/dropdown population uses,
+which is why dropdowns are policy-correct without further configuration.
+
+### Troubleshooting
+
+- **"I get `Forbidden` but the user is logged in."** Check that the
+  `ash_actor_assign:` value matches the assign key set by your `on_mount`
+  hook *exactly*. Also confirm the `on_mount` is wired in the `live_session`
+  that contains the Aurora UIX route — a missing hook leaves the assign
+  unset and Aurora UIX falls through to actor-less calls.
+- **"The list comes back empty."** Expected when the read policy denies the
+  current actor. Aurora UIX swallows `Ash.Error.Forbidden` on reads so the
+  index page still renders. Inspect with `Ash.read/2` from `iex` using the
+  same actor to confirm.
+- **"`ash_actor_assign:` seems ignored."** Only atoms are accepted — strings
+  and other types are silently dropped to keep the option defensive against
+  config typos. Use `:current_user`, not `"current_user"`.
+- **"I want policies off for one screen."** Don't. Configure the domain's
+  `authorize` posture (or the resource's policies) instead of trying to
+  override Aurora UIX. There is intentionally no escape hatch here.
 
 ## Next Steps
 

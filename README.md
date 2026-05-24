@@ -27,6 +27,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 
 **Key Features:**
 - **Multiple Backend Support** — Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection.
+- **Policy-Aware CRUD** — For Ash resources protected by `Ash.Policy.Authorizer`, set [`ash_actor_assign:`](./guides/core/ash_integration.md#authorization--policies) and Aurora UIX threads the current actor through every generated call.
 - **Declarative Resource Metadata** — Define fields, validation, labels, and associations in a single, maintainable place.
 - **Flexible Layout DSL** — Compose complex UIs using `inline`, `stacked`, and `section` layout primitives.
 - **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
