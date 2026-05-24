@@ -222,6 +222,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
 - **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
+- **[CSS Bridges](./guides/advanced/writing_a_bridge.md)** — Custom components and themes
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---
