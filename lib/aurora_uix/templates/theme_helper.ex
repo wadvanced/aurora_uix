@@ -32,27 +32,51 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec generate_stylesheet() :: binary()
   def generate_stylesheet do
-    registered_themes =
-      registered_themes()
+    generate_variables_stylesheet() <> "\n" <> generate_rules_stylesheet()
+  end
 
+  @doc """
+  Generates the variables half of the stylesheet.
+
+  Emits the `:root` declarations from the configured theme (sizes, typography,
+  shadows) followed by every registered palette's `:root_colors`. Host
+  applications can `@import` this file, override individual `--auix-*` vars,
+  and then `@import` the rules file.
+
+  ## Returns
+  `binary()` - The combined CSS variable declarations.
+  """
+  @spec generate_variables_stylesheet() :: binary()
+  def generate_variables_stylesheet do
     palettes =
-      registered_themes
-      |> Enum.map(fn {_name, module} ->
-        style([:root_colors], module)
-      end)
+      registered_themes()
+      |> Enum.map(fn {_name, module} -> style([:root_colors], module) end)
       |> Enum.reverse()
 
+    root_block = style([:root], theme_module())
+
+    [root_block | palettes]
+    |> List.flatten()
+    |> Enum.join(" ")
+  end
+
+  @doc """
+  Generates the rules half of the stylesheet.
+
+  Emits every theme rule except `:root` and `:root_colors`, which are
+  handled by `generate_variables_stylesheet/0`.
+
+  ## Returns
+  `binary()` - The component CSS rules.
+  """
+  @spec generate_rules_stylesheet() :: binary()
+  def generate_rules_stylesheet do
     theme_module = theme_module()
 
-    rule_names = theme_module.rule_names()
-
-    # Merge all root_colors, setting the default one as the first one.
-    rule_names
+    theme_module.rule_names()
     |> List.flatten()
-    |> Enum.reject(&(&1 == :root_colors))
+    |> Enum.reject(&(&1 in [:root, :root_colors]))
     |> style(theme_module)
-    |> Enum.reduce(palettes, &[&1 | &2])
-    |> Enum.reverse()
     |> Enum.join(" ")
   end
 
