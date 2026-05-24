@@ -122,6 +122,11 @@ This tells Aurora UIX:
 
 For detailed configuration options, see the [Resource Metadata Guide](../core/resource_metadata.md).
 
+> **Using Ash with policies?** If your resource is protected by
+> `Ash.Policy.Authorizer`, add `ash_actor_assign: :current_user` to thread the
+> current user as the Ash actor on every generated CRUD call. See
+> [Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
+
 ### 2. Generate UI Layout
 
 Use the layout DSL to define which fields appear in your index (list), show, and form views. You can use sensible defaults or customize the layout:
