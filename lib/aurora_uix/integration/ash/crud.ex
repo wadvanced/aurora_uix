@@ -34,6 +34,22 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   the call site by `socket_opts/2`, which reads `CrudSpec.actor_assign` (the atom
   configured via `auix_resource_metadata ..., ash_actor_assign: :current_user`) and
   pulls the actor from `socket.assigns`.
+
+  ### Resolution example
+
+  Given `auix_resource_metadata :template, ash_resource: Tpl, ash_actor_assign: :current_user`
+  and a LiveView with `socket.assigns.current_user = %User{id: 1}`:
+
+      iex> socket_opts(crud_spec, socket)
+      [actor: %User{id: 1}]
+
+  Handlers extending Aurora UIX should not call `socket_opts/2` directly — use
+  `Aurora.Uix.Templates.Basic.Helpers.backend_socket_opts/2` instead, which is
+  backend-agnostic and accepts both full sockets and bare assigns maps.
+
+  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  for the end-to-end worked example, alias (`:actor_assign`), behaviour matrix,
+  and troubleshooting.
   """
   @behaviour Aurora.Uix.Integration.Crud
 

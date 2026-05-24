@@ -68,6 +68,20 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
       iex> backend_socket_opts(socket, nil)
       []
+
+  ## Usage in custom handlers
+
+  Merge the result into your own opts so policy-protected CRUD calls receive
+  the configured actor:
+
+      socket_opts = backend_socket_opts(socket, socket.assigns.auix.list_function)
+      results = apply_list_function(
+        socket.assigns.auix.list_function,
+        socket_opts ++ [filter: [title: query]]
+      )
+
+  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  for the end-to-end flow.
   """
   @spec backend_socket_opts(Socket.t() | map(), Connector.t() | nil) :: keyword()
   def backend_socket_opts(_socket_or_assigns, nil), do: []

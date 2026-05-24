@@ -29,6 +29,18 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   - `:ash_actor_assign` (alias: `:actor_assign`) - Atom naming the `socket.assigns`
     key that holds the actor for policy-protected resources. Default `nil`. When set,
     every generated CRUD call forwards `actor: socket.assigns[<assign>]` to Ash.
+    Non-atom values are silently rejected as a defensive measure against typos.
+
+  ## Example
+
+      auix_resource_metadata :template,
+        ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
+        ash_actor_assign: :current_user      # canonical
+        # or, equivalently:
+        # actor_assign: :current_user        # alias
+
+  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  for the worked example and the full behaviour matrix.
   """
   alias Ash.Resource.Actions
   alias Ash.Resource.Info
