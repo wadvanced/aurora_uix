@@ -362,7 +362,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       do: :select,
       else:
         raise(
-          "Invalid type, :atom found in '#{attrs.resource_schema}' can only be used with the 'one_of' constraint. Change to :string"
+          "Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it can only be used in conjuntion of ':one_of' constraint. Change to :string"
         )
   end
 
