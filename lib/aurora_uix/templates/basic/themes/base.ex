@@ -11,55 +11,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   # ---  BASE RULES --#
   @impl true
   @spec rule(atom()) :: binary()
-  def rule(:_auix_html) do
-    """
-    html, :host {
-      line-height: revert;
-      background-color: var(--auix-color-bg-default);
-      color: var(--auix-color-text-primary);
-      -webkit-text-size-adjust: 100%;
-      tab-size: 4;
-      font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
-      font-feature-settings: var(--auix-default-font-feature-settings, normal);
-      font-variation-settings: var(--auix-default-font-variation-settings, normal);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Reverts tailwind overall setting */
-    *, ::after, ::before, ::backdrop, ::file-selector-button {
-      border: revert;
-    }
-    button, input, select, optgroup, textarea, ::file-selector-button {
-      color: var(--auix-color-text-primary);
-      border-radius: var(--auix-border-radius-small);
-      background-color: transparent;
-      opacity: var(--auix-opacity-100);
-    }
-    """
-  end
-
-  def rule(:_auix_tag_body) do
-    """
-    body {
-      margin: var(--auix-margin-medium); 
-    }
-    """
-  end
-
-  def rule(:_auix_tag_a) do
-    """
-    a {
-      color: inherit;
-      -webkit-text-decoration: inherit;
-      text-decoration: inherit;
-    }
-
-    a:hover {
-      cursor: pointer;
-    }
-    """
-  end
-
   def rule(:_auix_button_default) do
     """
     .auix-button-default {
@@ -80,20 +31,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:_auix_flash) do
     """
-      .auix-flash {
-        position: fixed;                 
-        top: var(--auix-margin-default);                     
-        right: var(--auix-margin-default);                   
-        margin-right: var(--auix-margin-default);            
-        z-index: 50;
+    .auix-flash {
+      position: fixed;                 
+      top: var(--auix-margin-default);                     
+      right: var(--auix-margin-default);                   
+      margin-right: var(--auix-margin-default);            
+      z-index: 50;
 
-        display: flex;
-        flex-direction: column;
-        gap: var(--auix-gap-minimal);
+      display: flex;
+      flex-direction: column;
+      gap: var(--auix-gap-minimal);
 
-        border-radius: var(--auix-border-radius-default);           
-        padding: var(--auix-padding-default);
-      }
+      border-radius: var(--auix-border-radius-default);           
+      padding: var(--auix-padding-default);
+    }
     """
   end
 

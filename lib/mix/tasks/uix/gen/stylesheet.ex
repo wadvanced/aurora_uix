@@ -20,11 +20,16 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
       mix auix.gen.stylesheet
       mix auix.gen.stylesheet --force
 
+  The three files use CSS cascade layers (`auix.variables → auix.bridge → auix.rules`)
+  so that a bridge's `:root, :host` selector always wins over the higher-specificity
+  theme selectors in the variables file, regardless of source order. Any CSS written
+  outside all layers in the host's own `app.css` still wins over everything, so
+  one-off overrides continue to work as expected.
+
   Hosts can import the variables file, optionally import the bridge (or a
-  custom replacement), override individual `--auix-*` vars, and then import
-  the rules file last. Hosts using the legacy single-file import keep working
-  — `auix-stylesheet.css` is still generated and now just re-imports the two
-  halves above.
+  custom replacement wrapping its overrides in `@layer auix.bridge { … }`),
+  and then import the rules file last. Hosts using the legacy single-file import
+  keep working — `auix-stylesheet.css` is still generated and re-imports both halves.
   """
 
   use Mix.Task
@@ -50,8 +55,16 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
     rules_path = Path.join(@output_dir, @rules_file)
     combined_path = Path.join(@output_dir, @combined_file)
 
-    File.write!(variables_path, @header <> ThemeHelper.generate_variables_stylesheet())
-    File.write!(rules_path, @header <> ThemeHelper.generate_rules_stylesheet())
+    layer_order = "@layer auix.variables, auix.bridge, auix.rules;\n"
+
+    variables_body = ThemeHelper.generate_variables_stylesheet()
+    variables_css = layer_order <> "@layer auix.variables {\n" <> variables_body <> "\n}"
+
+    rules_body = ThemeHelper.generate_rules_stylesheet()
+    rules_css = "@layer auix.rules {\n" <> rules_body <> "\n}"
+
+    File.write!(variables_path, @header <> variables_css)
+    File.write!(rules_path, @header <> rules_css)
 
     File.write!(
       combined_path,

@@ -8,10 +8,12 @@ Aurora UIX components are styled exclusively via `--auix-*` custom properties de
 
 ```css
 /* Minimal bridge structure */
-:root, :host {
-  --auix-color-bg-default: var(--my-framework-background);
-  --auix-color-text-primary: var(--my-framework-on-background);
-  /* … */
+@layer auix.bridge {
+  :root, :host {
+    --auix-color-bg-default: var(--my-framework-background);
+    --auix-color-text-primary: var(--my-framework-on-background);
+    /* … */
+  }
 }
 ```
 
@@ -52,22 +54,24 @@ A bridge mapping the most visible `--auix-*` variables:
 /* my-bridge.css
    Import AFTER auix-variables.css and BEFORE auix-rules.css. */
 
-:root, :host {
-  --auix-color-bg-default:     var(--ds-surface);
-  --auix-color-text-primary:   var(--ds-on-surface);
-  --auix-color-text-secondary: var(--ds-on-surface);
-  --auix-color-text-label:     var(--ds-on-surface);
-  --auix-color-text-on-accent: var(--ds-on-primary);
+@layer auix.bridge {
+  :root, :host {
+    --auix-color-bg-default:     var(--ds-surface);
+    --auix-color-text-primary:   var(--ds-on-surface);
+    --auix-color-text-secondary: var(--ds-on-surface);
+    --auix-color-text-label:     var(--ds-on-surface);
+    --auix-color-text-on-accent: var(--ds-on-primary);
 
-  --auix-color-border-focus:   var(--ds-primary);
-  --auix-color-focus-ring:     var(--ds-primary);
+    --auix-color-border-focus:   var(--ds-primary);
+    --auix-color-focus-ring:     var(--ds-primary);
 
-  --auix-color-error:          var(--ds-danger);
-  --auix-color-error-text:     var(--ds-danger);
-  --auix-color-error-ring:     var(--ds-danger);
+    --auix-color-error:          var(--ds-danger);
+    --auix-color-error-text:     var(--ds-danger);
+    --auix-color-error-ring:     var(--ds-danger);
 
-  --auix-border-radius-default: var(--ds-radius-md);
-  --auix-border-radius-small:   var(--ds-radius-sm);
+    --auix-border-radius-default: var(--ds-radius-md);
+    --auix-border-radius-small:   var(--ds-radius-sm);
+  }
 }
 ```
 
@@ -88,7 +92,8 @@ No mix task is needed. Drop the file anywhere that your bundler (esbuild) can re
 
 ## Tips
 
+- **Always wrap in `@layer auix.bridge { … }`.** Aurora UIX uses CSS cascade layers (`auix.variables → auix.bridge → auix.rules`). Without the layer wrapper, the bridge's plain `:root` selector (specificity 0,1,0) loses to the themes' `[data-theme-name="…"]` selectors (specificity 0,2,0), so your overrides are silently ignored. Anything written *outside* all layers (in your own `app.css`) still wins over everything, so host one-off tweaks work as expected.
 - **Bridge only what differs.** Fewer overrides mean less to maintain when either side updates its token names.
 - **Use `var(…, fallback)`.** If a host token might not always be defined, provide a sensible fallback: `var(--ds-radius-md, 0.5rem)`.
-- **Check dark mode.** If your design system uses attribute or class selectors for dark mode (e.g., `[data-theme="dark"]`, `.dark`), scope your dark overrides the same way your design system does.
+- **Check dark mode.** If your design system uses attribute or class selectors for dark mode (e.g., `[data-theme="dark"]`, `.dark`), scope your dark overrides the same way your design system does inside the `@layer auix.bridge` block.
 - **Keep the file in version control.** The bridge is part of your application's styling, not a generated artefact.
