@@ -107,8 +107,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
         association_or_embed: association_or_embed
       })
 
+    resource_schema_string =
+      resource_schema |> to_string() |> String.replace_leading("Elixir\.", "")
+
     attrs =
-      %{resource: resource_name, key: field_key}
+      %{resource_schema: resource_schema_string, resource: resource_name, key: field_key}
       |> set(&field_type/2, :type, attribute)
       |> set(&field_html_type/2, :html_type, attribute)
       |> set(&field_label/2, :label, attribute)
@@ -122,7 +125,9 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> set(&field_filterable/2, :filterable?, attribute)
       |> set(&field_data/2, :data, attribute)
 
-    Field.new(attrs)
+    attrs
+    |> Map.delete(:resource_schema)
+    |> Field.new()
   end
 
   @doc """
@@ -348,12 +353,17 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Maps an Ash type to an HTML input type for form rendering.
   @spec field_html_type(map() | nil, map()) :: atom()
-  defp field_html_type(_attrs, %{
+  defp field_html_type(attrs, %{
          type: resource_type,
          constraints: constraints
        })
        when resource_type in [Ash.Type.Atom, Ash.Type.Atom.EctoType] do
-    if Keyword.has_key?(constraints, :one_of), do: :select, else: :string
+    if Keyword.has_key?(constraints, :one_of),
+      do: :select,
+      else:
+        raise(
+          "Invalid type, :atom found in '#{attrs.resource_schema}' can only be used with the 'one_of' constraint. Change to :string"
+        )
   end
 
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
