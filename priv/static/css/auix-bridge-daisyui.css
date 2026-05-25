@@ -3,51 +3,53 @@
    daisyUI swaps --color-base-* per active theme, so light/dark are inherited
    automatically — no separate dark block is needed. */
 
-:root, :host {
-  /* Backgrounds */
-  --auix-color-bg-default:          var(--color-base-100);
-  --auix-color-bg-secondary:        var(--color-base-200);
-  --auix-color-bg-light:            var(--color-base-200);
-  --auix-color-bg-hover:            var(--color-base-200);
-  --auix-color-bg-inner-container:  var(--color-base-100);
-  --auix-color-bg-backdrop:         var(--color-base-100);
-  --auix-color-bg-disabled:         var(--color-base-300);
-  --auix-color-bg-info:             var(--color-info);
-  --auix-color-bg-danger:           var(--color-error);
-  --auix-color-bg-danger-hover:     var(--color-error);
+@layer auix.bridge {
+  :root, :host {
+    /* Backgrounds */
+    --auix-color-bg-default:          var(--color-base-100);
+    --auix-color-bg-secondary:        var(--color-base-200);
+    --auix-color-bg-light:            var(--color-base-200);
+    --auix-color-bg-hover:            var(--color-base-200);
+    --auix-color-bg-inner-container:  var(--color-base-100);
+    --auix-color-bg-backdrop:         var(--color-base-100);
+    --auix-color-bg-disabled:         var(--color-base-300);
+    --auix-color-bg-info:             var(--color-info);
+    --auix-color-bg-danger:           var(--color-error);
+    --auix-color-bg-danger-hover:     var(--color-error);
 
-  /* Text */
-  --auix-color-text-primary:        var(--color-base-content);
-  --auix-color-text-secondary:      var(--color-base-content);
-  --auix-color-text-tertiary:       var(--color-neutral);
-  --auix-color-text-label:          var(--color-base-content);
-  --auix-color-text-on-accent:      var(--color-primary-content);
+    /* Text */
+    --auix-color-text-primary:        var(--color-base-content);
+    --auix-color-text-secondary:      var(--color-base-content);
+    --auix-color-text-tertiary:       var(--color-neutral);
+    --auix-color-text-label:          var(--color-base-content);
+    --auix-color-text-on-accent:      var(--color-primary-content);
 
-  /* Status */
-  --auix-color-error:               var(--color-error);
-  --auix-color-error-text:          var(--color-error);
-  --auix-color-error-text-default:  var(--color-error);
-  --auix-color-error-ring:          var(--color-error);
-  --auix-color-info-text:           var(--color-info);
-  --auix-color-info-ring:           var(--color-info);
+    /* Status */
+    --auix-color-error:               var(--color-error);
+    --auix-color-error-text:          var(--color-error);
+    --auix-color-error-text-default:  var(--color-error);
+    --auix-color-error-ring:          var(--color-error);
+    --auix-color-info-text:           var(--color-info);
+    --auix-color-info-ring:           var(--color-info);
 
-  /* Icons */
-  --auix-color-icon-default:        var(--color-base-content);
-  --auix-color-icon-safe:           var(--color-success);
-  --auix-color-icon-info:           var(--color-info);
-  --auix-color-icon-danger:         var(--color-error);
-  --auix-color-icon-inactive:       var(--color-base-300);
+    /* Icons */
+    --auix-color-icon-default:        var(--color-base-content);
+    --auix-color-icon-safe:           var(--color-success);
+    --auix-color-icon-info:           var(--color-info);
+    --auix-color-icon-danger:         var(--color-error);
+    --auix-color-icon-inactive:       var(--color-base-300);
 
-  /* Borders + focus */
-  --auix-color-border-primary:      var(--color-base-300);
-  --auix-color-border-secondary:    var(--color-base-200);
-  --auix-color-border-tertiary:     var(--color-base-200);
-  --auix-color-border-focus:        var(--color-primary);
-  --auix-color-focus-ring:          var(--color-primary);
+    /* Borders + focus */
+    --auix-color-border-primary:      var(--color-base-300);
+    --auix-color-border-secondary:    var(--color-base-200);
+    --auix-color-border-tertiary:     var(--color-base-200);
+    --auix-color-border-focus:        var(--color-primary);
+    --auix-color-focus-ring:          var(--color-primary);
 
-  /* Dimensions */
-  --auix-border-radius-default:     var(--radius-field, 0.5rem);
-  --auix-border-radius-small:       var(--radius-selector, 0.25rem);
-  --auix-border-radius-large:       var(--radius-box, 1rem);
-  --auix-border-width-default:      var(--border, 1px);
+    /* Dimensions */
+    --auix-border-radius-default:     var(--radius-field, 0.5rem);
+    --auix-border-radius-small:       var(--radius-selector, 0.25rem);
+    --auix-border-radius-large:       var(--radius-box, 1rem);
+    --auix-border-width-default:      var(--border, 1px);
+  }
 }
