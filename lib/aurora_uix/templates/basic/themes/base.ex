@@ -2289,6 +2289,22 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   ## PRIVATE
 
+  @doc """
+  Returns the CSS breakpoint value in pixels for the given size atom.
+
+  ## Parameters
+  - `size` (atom()) - The breakpoint size. Supported values: `:sm`, `:md`, `:lg`, `:xl`, `:xxl`.
+
+  ## Returns
+  binary() - The CSS pixel value string for the breakpoint.
+
+  ## Examples
+
+  ```elixir
+  iex> Aurora.Uix.Templates.Basic.Themes.Base.breakpoint(:md)
+  "768px"
+  ```
+  """
   @spec breakpoint(atom()) :: binary()
   def breakpoint(:sm), do: "640px"
   def breakpoint(:md), do: "768px"
