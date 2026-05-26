@@ -222,7 +222,8 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
 - **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
-- **[CSS Bridges](./guides/advanced/writing_a_bridge.md)** — Custom components and themes
+- **[Styling](./guides/core/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
+- **[CSS Bridges](./guides/advanced/writing_a_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---

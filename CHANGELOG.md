@@ -26,7 +26,9 @@ Requires:
   - Adds a new `socket_opts/2` callback to the `Aurora.Uix.Integration.Crud` behaviour; the Ash backend resolves the actor from `socket.assigns`, the Ctx backend ignores it. `Connector` stays neutral — the new `actor_assign` field lives on the Ash `CrudSpec`.
   - See `guides/core/ash_integration.md#authorization--policies`.
 
+- **Styling guide and customization scaffold** — new [Styling](./guides/core/styling.md) guide; `mix auix.gen.stylesheet --custom` seeds an opt-in `auix-custom.css` stub for token-level overrides (add `--force` to refresh an existing stub).
 
+- **Non-Tailwind baseline stylesheet (opt-in)** — `mix auix.gen.stylesheet --baseline` scaffolds `assets/css/auix-baseline.css`, a tag-selector reset (`html`, `body`, `a`) for hosts without a CSS preflight. Host-owned once created; refresh with `--baseline --force`. Tailwind hosts skip the flag and the file. See [Hosts without Tailwind](./guides/core/styling.md#hosts-without-tailwind).
 
 ### Changed
 
@@ -45,6 +47,10 @@ Requires:
     ```
   - Added `guides/advanced/writing_a_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
+
+### CSS class changes
+
+_No changes in this release._
 
 
 ## [0.1.3] - 2026-02-15
