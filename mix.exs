@@ -47,6 +47,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
+          "guides/core/styling.md",
           "guides/advanced/advanced_usage.md",
           "guides/advanced/troubleshooting.md",
           "guides/advanced/writing_a_bridge.md"
