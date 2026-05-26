@@ -1160,7 +1160,7 @@ Aurora UIX themes follow a three-layer pattern:
 - Example: `BaseVariables` defines `--auix-padding-default`, `--auix-border-radius-default`, etc.
 
 **Layer 3: Base Rules**
-- Defines all CSS class rules (`.auix-button`, `.auix-input`, etc.)
+- Defines all CSS class rules (`.auix-button-default`, `.auix-button`, `.auix-input`, etc.)
 - Uses the color variables from Layer 1
 - Shared across all themes
 - Delegated through pattern matching for composition
@@ -1425,11 +1425,13 @@ defmodule MyApp.Themes.CompactTheme do
   
   alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
 
-  # Override the button styling
+  # Because `<.button>` applies `.auix-button-default` as its structural base,
+  # customising it here propagates to every button variant (primary, alt, index-bar)
+  # without touching color rules.
   @impl true
   def rule(:_auix_button_default) do
     """
-    .-auix-button-default {
+    .auix-button-default {
       display: flex;
       flex-direction: row;
       align-items: center;

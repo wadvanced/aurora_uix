@@ -559,7 +559,7 @@ defmodule MyAppWeb.ProductViews do
 
   def cancel_action(assigns) do
     ~H"""
-    <.auix_back class="auix-button auix-button--secondary">
+    <.auix_back class="auix-button--alt">
       Cancel
     </.auix_back>
     """
@@ -586,7 +586,7 @@ defmodule MyAppWeb.ProductViews do
       patch={"/#{@auix.uri_path}/new?duplicate_from=#{@auix.entity.id}"}
       name={"auix-duplicate-#{@auix.module}"}
     >
-      <.button class="auix-button--secondary">Duplicate Product</.button>
+      <.button class="auix-button--alt">Duplicate Product</.button>
     </.auix_link>
     """
   end
@@ -683,7 +683,7 @@ This helper handles both single and composite primary keys:
 **Action Styling:**
 - Use `auix-*` CSS classes for consistent styling
 - Row action icons: `auix-icon-size-5` with context classes (`auix-icon-info`, `auix-icon-safe`, `auix-icon-danger`)
-- Buttons: `auix-button`, `auix-button--secondary`, `auix-button--alt`
+- Buttons: `auix-button` (primary, default), `auix-button--alt` (secondary), `auix-index-all-action-button` (index-bar select-all). Pick exactly one — `<.button>` already supplies the structural base.
 
 ### Action Modification Under the Hood
 
