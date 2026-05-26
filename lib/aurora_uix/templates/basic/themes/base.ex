@@ -69,12 +69,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-small);            
 
-      color: var(--auix-color-text-primary); 
+      color: var(--auix-color-textarea-text); 
       background-color: transparent;
-      caret-color: var(--auix-color-text-primary);
+      caret-color: var(--auix-color-textarea-text);
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: #{breakpoint(:sm)}) {
       .auix-textarea {
         font-size: var(--auix-font-size-caption);            
       }
@@ -91,9 +91,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-small);
 
-      color: var(--auix-color-text-primary);
+      color: var(--auix-color-input-text);
       background-color: transparent;
-      caret-color: var(--auix-color-text-primary);
+      caret-color: var(--auix-color-input-text);
     }
 
     .auix-input:focus {
@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       outline: none;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: #{breakpoint(:sm)}) {
       .auix-input {
         font-size: var(--auix-font-size-caption);
       }
@@ -127,7 +127,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_horizontal_divider) do
     """
     .auix-horizontal-divider {
-      border-top: var(--auix-border-width-default) solid var(--auix-color-border-primary);
+      border-top: var(--auix-border-width-default) solid var(--auix-color-horizontal-divider);
       margin-top: var(--auix-margin-default);
       margin-bottom: var(--auix-margin-default);
     }
@@ -330,7 +330,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-flash-close-button {
       background: transparent;
       border: none;
-      color: var(--auix-color-text-secondary);
+      color: var(--auix-color-flash-close-text);
     }
     """
   end
@@ -360,8 +360,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     #{import_rule(:_auix_button_default, :auix_button)}
 
     .auix-button {
-      background-color: var(--auix-color-bg-default--reverted);
-      color: var(--auix-color-text-on-accent);
+      background-color: var(--auix-color-button-bg);
+      color: var(--auix-color-button-text);
     }
 
     .auix-button:hover {
@@ -385,9 +385,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     #{import_rule(:_auix_button_default, :auix_button__alt)}
 
     .auix-button--alt {
-      background-color: var(--auix-color-bg-light);
-      color: var(--auix-color-text-tertiary);
-      border-color: var(--auix-color-text-label);         
+      background-color: var(--auix-color-button-alt-bg);
+      color: var(--auix-color-button-alt-text);
+      border-color: var(--auix-color-button-alt-border);         
     }
 
     .auix-button--alt:disabled {
@@ -495,9 +495,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-style: var(--auix-border-style-default);
 
         border-radius: var(--auix-border-radius-small);
-        border-color: var(--auix-color-border-primary);
+        border-color: var(--auix-color-checkbox-border);
         background-color: var(--auix-color-bg-default);
-        color: var(--auix-color-text-primary);
+        color: var(--auix-color-checkbox-text);
 
         box-shadow: none;
         outline: none;
@@ -577,7 +577,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         align-items: center;
         gap: var(auix-gap-default);
         font-size: var(--auix-font-size-caption);
-        color: var(--auix-color-text-secondary);
+        color: var(--auix-color-checkbox-label-text);
       }
     """
   end
@@ -588,7 +588,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-radius: var(--auix-border-radius-small);
         border-width: var(--auix-border-width-default);
         border-style: var(--auix-border-style-default);
-        border-color: var(--auix-color-border-primary);
+        border-color: var(--auix-color-select-border);
         appearance: none;
         background-position: right var(--auix-padding-medium) center;
         background-repeat: no-repeat;
@@ -612,13 +612,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
       .auix-select:focus {
-        border-color: var(--auix-color-border-focus);
+        border-color: var(--auix-color-select-border-focus);
         --auix-ring-color: transparent;
         box-shadow: none;
         outline: none;
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-select {
           font-size: var(--auix-font-size-caption);
         }
@@ -640,10 +640,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     #{import_rule(:_auix_textarea, :auix_textarea)}
 
     .auix-textarea {
-      border-color: var(--auix-color-border-primary);
+      border-color: var(--auix-color-textarea-border);
     }
     .auix-textarea:focus {
-      border-color: var(--auix-color-border-focus);
+      border-color: var(--auix-color-textarea-border-focus);
     }
     """
   end
@@ -654,11 +654,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     #{import_rule(:_auix_textarea, :auix_textarea__errors)}
 
     .auix-textarea--errors {
-      border-color: var(--auix-color-error);
+      border-color: var(--auix-color-textarea-border-error);
     }
 
     .auix-textarea--errors:focus {
-      border-color: var(--auix-color-error);
+      border-color: var(--auix-color-textarea-border-error);
     }
     """
   end
@@ -669,10 +669,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       #{import_rule(:_auix_input, :auix_input)}
 
       .auix-input {
-        border-color: var(--auix-color-border-primary);
+        border-color: var(--auix-color-input-border);
       }
       .auix-input:focus {
-        border-color: var(--auix-color-border-focus);
+        border-color: var(--auix-color-input-border-focus);
       }
     """
   end
@@ -683,10 +683,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       #{import_rule(:_auix_input, :auix_input__errors)}
 
       .auix-input--errors {
-        border-color: var(--auix-color-error); 
+        border-color: var(--auix-color-input-border-error); 
       }
       .auix-input--errors:focus {
-        border-color: var(--auix-color-error); 
+        border-color: var(--auix-color-input-border-error); 
       }
     """
   end
@@ -696,7 +696,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-label {
       font-size: var(--auix-font-size-caption);             
       font-weight: var(--auix-font-weight-bold);                
-      color: var(--auix-color-text-label); 
+      color: var(--auix-color-label-text); 
     }
     """
   end
@@ -750,7 +750,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-header-title {
         font-size: var(--auix-font-size-title);                      
         font-weight: var(--auix-font-weight-bold);                         
-        color: var(--auix-color-text-label);
+        color: var(--auix-color-header-title-text);
         margin: 0;
       }
     """
@@ -762,7 +762,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-top: 0;
         margin-bottom: 0;
         font-size: var(--auix-font-size-subtitle);
-        color: var(--auix-color-text-secondary);   
+        color: var(--auix-color-header-subtitle-text);   
       }
     """
   end
@@ -798,7 +798,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-bottom-width: calc(1px * var(--auix-divide-y-reverse));
         border-style: var(--auix-border-style-default); 
 
-        border-color: var(--auix-color-bg-light);
+        border-color: var(--auix-color-list-container-divider);
       }
     """
   end
@@ -811,10 +811,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-top: 1rem;             
         padding-bottom: 1rem;          
         font-size: var(--auix-font-size-caption);           
-        line-height: 1.5rem;           
+        line-height: var(--auix-line-height-relaxed);           
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-list-item {
           gap: 2rem;                   
         }
@@ -828,7 +828,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       width: 25%;
       flex-shrink: 0;
       flex-grow: 0;
-      color: var(--auix-color-text-tertiary);
+      color: var(--auix-color-list-item-title-text);
     }
     """
   end
@@ -836,7 +836,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_list_item_content) do
     """
     .auix-list-item-content {
-      color: var(--auix-color-text-hover);
+      color: var(--auix-color-list-item-content-text);
     }
     """
   end
@@ -853,12 +853,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-back-link {
       font-size: var(--auix-font-size-caption);
       font-weight: 600;
-      line-height: 1.5rem;
-      color: var(--auix-color-text-primary);
+      line-height: var(--auix-line-height-relaxed);
+      color: var(--auix-color-back-link-text);
     }
 
     .auix-back-link:hover {
-      color: var(--auix-color-text-hover);
+      color: var(--auix-color-back-link-text-hover);
     }
     """
   end
@@ -880,7 +880,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         transform: translateY(1rem);
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-show-transition--start {
           transform: translateY(0) scale(0.95);
         }
@@ -895,7 +895,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         transform: translateY(0);
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-show-transition-end {
           transform: scale(1);
         }
@@ -920,7 +920,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         transform: translateY(0);
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-hide-transition--start {
           transform: scale(1);
         }
@@ -935,7 +935,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         transform: translateY(1rem);
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-hide-transition--end {
           transform: translateY(0) scale(0.95);
         }
@@ -1018,7 +1018,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         display: none;
       }
 
-      @media (min-width: 768px) {
+      @media (min-width: #{breakpoint(:md)}) {
         .auix-items-desktop {
           display: block;
         }
@@ -1032,15 +1032,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         margin-top: 0;
       }
 
-      @media (min-width: 768px) {
+      @media (min-width: #{breakpoint(:md)}) {
         .auix-items-mobile {
           visibility: hidden;
           aria-hidden: true;
           position: fixed;
           top: -9999px;
           left: -9999px;
-          width: 1px;
-          height: 1px;
+          width: var(--auix-hidden-element-size);
+          height: var(--auix-hidden-element-size);
           overflow: hidden;
           pointer-events: none;
           z-index: -9999;
@@ -1057,7 +1057,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-right: var(--auix-padding-default);      
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-items-table-container {
           overflow-y: visible;            
           padding-left: 0;                
@@ -1074,7 +1074,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       margin-top: 0;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: #{breakpoint(:sm)}) {
       .auix-items-table {
         width: 100%;
       }
@@ -1086,7 +1086,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     .auix-items-table-header {
       font-size: var(--auix-font-size-caption);
-      color: var(--auix-color-text-tertiary);
+      color: var(--auix-color-items-table-header-text);
     }
     """
   end
@@ -1130,14 +1130,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       position: relative;
 
       border-top-width: var(--auix-border-width-default);
-      border-top-color: var(--auix-color-border-secondary);
+      border-top-color: var(--auix-color-items-table-body-border);
 
       font-size: var(--auix-font-size-caption);
-      color: var(--auix-color-text-hover);
+      color: var(--auix-color-items-table-body-text);
     }
 
     .auix-items-table-body > tr:not(:last-child) {
-      border-bottom-width: 1px;
+      border-bottom-width: var(--auix-border-width-default);
       border-bottom-color: var(--auix-color-border-tertiary);
     }
     """
@@ -1148,7 +1148,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-items-table-row {
     }
     .auix-items-table-row:hover {
-      background-color: var(--auix-color-bg-hover);
+      background-color: var(--auix-color-items-table-row-bg-hover);
     }
     """
   end
@@ -1215,7 +1215,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       padding-bottom: var(--auix-padding-small);
       margin-bottom: var(--auix-padding-small);
       border-radius: var(--auix-border-radius-default);
-      color: var(--auix-color-text-primary);
+      color: var(--auix-color-items-card-item-content-text);
     }
     """
   end
@@ -1331,14 +1331,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_pagination_bar_current_page_number) do
     """
     .auix-pagination-bar-current-page-number {
-      border: 1px solid var(--auix-color-border-focus);
-      border-radius: 9999px;
+      border: var(--auix-border-width-default) solid var(--auix-color-pagination-current-border);
+      border-radius: var(--auix-border-radius-round);
       padding-top: 0;
       padding-bottom: 0;
       padding-left: var(--auix-padding-default);
       padding-right: var(--auix-padding-default);
-      color: var(--auix-color-text-on-accent);
-      background-color: var(--auix-color-bg-default--reverted);
+      color: var(--auix-color-pagination-current-text);
+      background-color: var(--auix-color-pagination-current-bg);
     }
     """
   end
@@ -1369,7 +1369,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   def rule(:auix_filter_card) do
     """
     .auix-filter-card:not(:nth-child(1)) {
-      border-bottom: 1px solid var(--auix-color-border-primary);
+      border-bottom: var(--auix-border-width-default) solid var(--auix-color-filter-card-border);
     }
     """
   end
@@ -1403,13 +1403,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-filter-input {
         border-radius: var(--auix-border-radius-small);
-        border-color: var(--auix-color-border-primary);
+        border-color: var(--auix-color-filter-input-border);
         box-shadow: var(--auix-shadow-small);
       }
 
       .auix-filter-input:focus {
-        border-color: var(--auix-color-focus-ring);
-        outline: 2px solid transparent;
+        border-color: var(--auix-color-filter-input-border-focus);
+        outline: var(--auix-focus-outline-width) solid transparent;
         outline-offset: 2px;
 
       box-shadow:
@@ -1418,7 +1418,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         var(--auix-shadow-primary);
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-filter-input {
           font-size: var(--auix-font-size-caption);
         }
@@ -1441,7 +1441,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   def rule(:auix_filter_condition_label) do
     """
-    @media (min-width: 768px) {
+    @media (min-width: #{breakpoint(:md)}) {
       .auix-filter-condition-label {
         display: none;
       }
@@ -1465,13 +1465,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       caret-color: transparent;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: #{breakpoint(:sm)}) {
       .auix-index-container {
         padding: var(--auix-padding-default);
       }
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: #{breakpoint(:md)}) {
       .auix-index-container {
         margin-left: auto;
         margin-right: auto;
@@ -1481,7 +1481,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: #{breakpoint(:lg)}) {
       .auix-index-container {
         padding-top: var(--auix-padding-xl);
         padding-bottom: var(--auix-padding-xl);
@@ -1551,7 +1551,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     #{import_rule(:auix_index_container, :auix_show_container)}
 
-    @media (min-width: 768px) {
+    @media (min-width: #{breakpoint(:md)}) {
       .auix-show-container {
         border-width: var(--auix-border-width-default);
         border-radius: var(--auix-border-radius-default);
@@ -1573,7 +1573,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-width: var(--auix-border-width-default);
       border-radius: var(--auix-border-radius-default);
       box-shadow: var(--auix-shadow-md);
-      background-color: var(--auix-color-bg-default);
+      background-color: var(--auix-color-show-content-bg);
     }
     """
   end
@@ -1589,7 +1589,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-radius: var(--auix-border-radius-default);
       border-width: var(--auix-border-width-default);
 
-      background-color: var(--auix-color-bg-default);
+      background-color: var(--auix-color-form-container-bg);
       box-shadow: var(--auix-shadow-default);
     }
     """
@@ -1611,7 +1611,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       flex-direction: column;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: #{breakpoint(:sm)}) {
       .auix-sections-tab-container {
         flex-direction: row;
       }
@@ -1626,10 +1626,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     .auix-sections-tab-button--active {
       font-weight: var(--auix-font-weight-bold);
-      color: var(--auix-color-text-label);
-      background-color: var(--auix-color-bg-light);
+      color: var(--auix-color-sections-tab-active-text);
+      background-color: var(--auix-color-sections-tab-active-bg);
       border-left-width: var(--auix-border-width-default);
-      border-color: var(--auix-color-bg-light);
+      border-color: var(--auix-color-sections-tab-active-border);
       border-style: var(--auix-border-style-default);
     }
     """
@@ -1643,7 +1643,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-sections-tab-button--inactive {
       font-weight: var(--auix-font-weight-bold);
       color: var(--auix-color-text-inactive);
-      background-color: var(--auix-color-bg-hover);
+      background-color: var(--auix-color-sections-tab-inactive-bg);
     }
     """
   end
@@ -1655,7 +1655,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       padding: var(--auix-padding-default);            
 
       border-width: var(--auix-border-width-default);        
-      border-color: var(--auix-color-bg-light); 
+      border-color: var(--auix-color-sections-content-border); 
       border-style: var(--auix-border-style-default);
       border-top-left-radius: 0;
       border-top-right-radius: var(--auix-border-radius-default);
@@ -1686,7 +1686,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         border-width: var(--auix-border-width-default);
         border-style: var(--auix-border-style-default);
         border-radius: var(--auix-border-radius-small);
-        border-color: var(--auix-color-border-primary);
+        border-color: var(--auix-color-form-field-input-border);
 
         box-shadow: var(--auix-shadow-small);
 
@@ -1694,16 +1694,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
       .auix-form-field-input:focus {
-        outline: 2px solid transparent;
+        outline: var(--auix-focus-outline-width) solid transparent;
         outline-offset: 2px;
 
-        border-color: var(--auix-color-focus-ring);
+        border-color: var(--auix-color-form-field-input-border-focus);
 
         box-shadow:
-          0 0 0 3px var(--auix-color-focus-ring), var(--auix-shadow-small); 
+          0 0 0 3px var(--auix-color-form-field-input-border-focus), var(--auix-shadow-small); 
       }
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-form-field-input {
           font-size: var(--auix-font-size-caption);
         }
@@ -1749,12 +1749,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         padding-left: var(--auix-padding-minimal);
         padding-right: var(--auix-padding-minimal);
 
-        color: var(--auix-color-text-primary);
-        border-color: var(--auix-color-border-primary);
+        color: var(--auix-color-one-to-many-text);
+        border-color: var(--auix-color-one-to-many-border);
       }
 
 
-      @media (min-width: 640px) {
+      @media (min-width: #{breakpoint(:sm)}) {
         .auix-one-to-many-container {
           font-size: var(--auix-font-size-caption);
         }
@@ -1784,8 +1784,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
       .auix-visually-hidden {
         position: absolute;
-        width: 1px;
-        height: 1px;
+        width: var(--auix-hidden-element-size);
+        height: var(--auix-hidden-element-size);
         padding: 0;
         margin: -1px;
         overflow: hidden;
@@ -1814,7 +1814,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1536px) {
+      @media (min-width: #{breakpoint(:xxl)}) {
         .auix-pagination-breakpoint-xl2 {
           visibility: visible;
           height: auto;
@@ -1832,7 +1832,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1280px) {
+      @media (min-width: #{breakpoint(:xl)}) {
         .auix-pagination-breakpoint-xl {
           visibility: visible;
           height: auto;
@@ -1840,7 +1840,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1536px) {
+      @media (min-width: #{breakpoint(:xxl)}) {
         .auix-pagination-breakpoint-xl {
           visibility: hidden;
           height: 0;
@@ -1858,7 +1858,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1024px) {
+      @media (min-width: #{breakpoint(:lg)}) {
         .auix-pagination-breakpoint-lg {
           visibility: visible;
           height: auto;
@@ -1866,7 +1866,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1280px) {
+      @media (min-width: #{breakpoint(:xl)}) {
         .auix-pagination-breakpoint-lg {
           visibility: hidden;
           height: 0;
@@ -1886,7 +1886,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 768px) {
+      @media (min-width: #{breakpoint(:md)}) {
         .auix-pagination-breakpoint-md {
           visibility: visible;
           height: auto;
@@ -1894,7 +1894,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 1024px) {
+      @media (min-width: #{breakpoint(:lg)}) {
         .auix-pagination-breakpoint-md {
           visibility: hidden;
           height: 0; 
@@ -1917,9 +1917,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-default);
-      border-color: var(--auix-color-border-primary);
+      border-color: var(--auix-color-group-container-border);
 
-      background-color: var(--auix-color-bg-light);
+      background-color: var(--auix-color-group-container-bg);
     }
 
     .auix-group-container > * {
@@ -1947,7 +1947,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       }
 
 
-      @media (min-width: 768px) {
+      @media (min-width: #{breakpoint(:md)}) {
         .auix-inline-container {
           flex-direction: row;
         }
@@ -1963,7 +1963,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         gap: var(--auix-gap-minimal);               
       }
       
-      @media (min-width: 768px) {
+      @media (min-width: #{breakpoint(:md)}) {
         .auix-inline-container {
           gap: var(--auix-gap-default);               
         }
@@ -2094,8 +2094,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-default);                             
-      border-color: var(--auix-color-border-secondary);
-      background-color: var(--auix-color-bg-inner-container);
+      border-color: var(--auix-color-embeds-border);
+      background-color: var(--auix-color-embeds-bg);
       box-shadow: var(--auix-shadow-default);            
     }
     .auix-embeds-one-container > * {
@@ -2115,8 +2115,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-default);                             
-      border-color: var(--auix-color-border-secondary);
-      background-color: var(--auix-color-bg-inner-container);
+      border-color: var(--auix-color-embeds-border);
+      background-color: var(--auix-color-embeds-bg);
       box-shadow: var(--auix-shadow-default);            
     }
     .auix-embeds-many-container > * {
@@ -2256,8 +2256,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-width: var(--auix-border-width-default);
       border-style: var(--auix-border-style-default);
       border-radius: var(--auix-border-radius-default);                             
-      border-color: var(--auix-color-border-secondary);
-      background-color: var(--auix-color-bg-inner-container);
+      border-color: var(--auix-color-embeds-border);
+      background-color: var(--auix-color-embeds-bg);
       box-shadow: var(--auix-shadow-default);            
     }
     """
@@ -2276,8 +2276,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     .auix-embeds-many-entry--badge-text {
       padding: var(--auix-padding-small) var(--auix-padding-medium);
-      background-color: var(--auix-color-bg-default--reverted);
-      color: var(--auix-color-text-on-accent);
+      background-color: var(--auix-color-embeds-many-badge-bg);
+      color: var(--auix-color-embeds-many-badge-text);
       border-radius: var(--auix-border-radius-round);
       font-size: var(--auix-font-size-small);
       font-weight: var(--auix-font-weight-bold);
@@ -2286,4 +2286,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   end
 
   def rule(_), do: ""
+
+  ## PRIVATE
+
+  @spec breakpoint(atom()) :: binary()
+  def breakpoint(:sm), do: "640px"
+  def breakpoint(:md), do: "768px"
+  def breakpoint(:lg), do: "1024px"
+  def breakpoint(:xl), do: "1280px"
+  def breakpoint(:xxl), do: "1536px"
 end

@@ -5,6 +5,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
   """
   use Aurora.Uix.Templates.Theme
 
+  import Aurora.Uix.Templates.Basic.Themes.Base, only: [breakpoint: 1]
+
   alias Aurora.Uix.Templates.Basic.Themes.Base
 
   @impl true
@@ -19,6 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
       --auix-box-size-unit: 1rem;
 
       --auix-line-height-default: 1.250rem;
+      --auix-line-height-relaxed: 1.5rem;
 
       --auix-border-radius-default: 0.5rem;
       --auix-border-radius-small: 0.250rem;
@@ -45,6 +48,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
 
       --auix-input-height-default: 1rem;
       --auix-button-height-default: 2em;
+
+      --auix-hidden-element-size: 1px;
+      --auix-focus-outline-width: 2px;
       
       --auix-icon-size-base: 0.25rem;
       --auix-icon-size-3: calc(var(--auix-icon-size-base) * 3);
@@ -118,6 +124,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
         calc(1px + var(--auix-ring-offset-width))
         var(--auix-ring-color);
       --auix-ring-secondary: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-shadow-alpha);
+
+      /* BREAKPOINTS */
+
+      --auix-breakpoint-sm: #{breakpoint(:sm)};
+      --auix-breakpoint-md: #{breakpoint(:md)};
+      --auix-breakpoint-lg: #{breakpoint(:lg)};
+      --auix-breakpoint-xl: #{breakpoint(:xl)};
+      --auix-breakpoint-xxl: #{breakpoint(:xxl)};
 
     }
     """

@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
   """
   use Aurora.Uix.Templates.Theme, theme_name: :white_charcoal
 
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   @impl true
   @spec rule(atom()) :: binary()
@@ -233,5 +233,5 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
 
   @impl true
   @spec rule(atom()) :: binary()
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end

@@ -39,9 +39,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   Generates the variables half of the stylesheet.
 
   Emits the `:root` declarations from the configured theme (sizes, typography,
-  shadows) followed by every registered palette's `:root_colors`. Host
-  applications can `@import` this file, override individual `--auix-*` vars,
-  and then `@import` the rules file.
+  shadows) followed by every registered palette's `:root_colors`, then the
+  shared `:root_color_aliases` block. Host applications can `@import` this
+  file, override individual `--auix-*` vars, and then `@import` the rules file.
 
   ## Returns
   `binary()` - The combined CSS variable declarations.
@@ -54,8 +54,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
       |> Enum.reverse()
 
     root_block = style([:root], theme_module())
+    alias_block = style([:root_color_aliases], theme_module())
 
-    [root_block | palettes]
+    ([root_block] ++ palettes ++ [alias_block])
     |> List.flatten()
     |> Enum.join(" ")
   end
@@ -75,7 +76,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
     theme_module.rule_names()
     |> List.flatten()
-    |> Enum.reject(&(&1 in [:root, :root_colors]))
+    |> Enum.reject(&(&1 in [:root, :root_colors, :root_color_aliases]))
     |> style(theme_module)
     |> Enum.join(" ")
   end
