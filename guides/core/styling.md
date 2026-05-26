@@ -388,6 +388,26 @@ Common visual adjustments and the minimal set of variables to override:
 | Tighter list rows | `--auix-gap-minimal`, `--auix-padding-minimal`, `--auix-margin-default` |
 | Bolder labels | `--auix-font-weight-bold`, `--auix-color-text-label` |
 
+## Rule: one color class per element
+
+An element may carry multiple CSS classes, but at most one of them may set `color`,
+`background-color`, or `border-color`. The classes ending in a BEM modifier (`--alt`,
+`--errors`, `--iconized`) and the named full-variant classes (`.auix-index-all-action-button`)
+are the color-bearing classes. Structural bases like `.auix-button-default` and size utilities
+like `.auix-icon-size-5` are color-neutral and safe to combine freely with a color class.
+
+When adding a brand variant, mirror the same pattern — declare a single class that sets
+color rules only (no `padding`, `border-width`, `font-*`, etc.) and let the component's
+structural base handle the rest:
+
+```css
+/* ✅ Color-only variant — safe to layer on top of .auix-button-default */
+.my-host-app .auix-button--promo {
+  background-color: var(--my-brand-promo);
+  color: var(--my-brand-promo-text);
+}
+```
+
 ## Escape hatch: semantic class overrides
 
 When a variable override cannot express the desired structural change — for example, switching
@@ -405,8 +425,10 @@ a component's flex direction or inserting an additional layout layer — you can
 
 | Class | Used by | Tokens it consumes |
 |---|---|---|
-| `.auix-button` | Primary action button | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-small`, `--auix-padding-minimal`, `--auix-font-size-caption`, `--auix-font-weight-bold`, `--auix-color-button-bg`, `--auix-color-button-text`, `--auix-color-bg-hover--reverted`, `--auix-color-text-on-accent-active`, `--auix-opacity-75` |
-| `.auix-button--alt` | Secondary / alternative button | `--auix-color-button-alt-bg`, `--auix-color-button-alt-text`, `--auix-color-button-alt-border`, `--auix-color-bg-hover`, `--auix-color-text-inactive` |
+| `.auix-button-default` | Structural base auto-applied to every `<.button>` (layout, border, padding, typography — no color) | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-small`, `--auix-padding-minimal`, `--auix-font-size-caption`, `--auix-font-weight-bold` |
+| `.auix-button` | Primary color variant (default for `<.button>` when no variant is passed) | `--auix-color-button-bg`, `--auix-color-button-text`, `--auix-color-bg-hover--reverted`, `--auix-color-text-on-accent-active`, `--auix-opacity-75` |
+| `.auix-button--alt` | Secondary / alternative button (caller-supplied via `class=`; sits on top of the auto-applied `.auix-button-default` — never combine with `.auix-button`) | `--auix-color-button-alt-bg`, `--auix-color-button-alt-text`, `--auix-color-button-alt-border`, `--auix-color-bg-hover`, `--auix-color-text-inactive` |
+| `.auix-index-all-action-button` | Select-all / deselect-all index-bar variant — color only; replaces, not supplements, `.auix-button` | `--auix-color-button-bg`, `--auix-color-button-text` |
 | `.auix-button--iconized` | Icon-only button (no border) | `--auix-color-bg-secondary` (hover) |
 | `.auix-button-badge` | Embedded-relation count badge | `--auix-font-size-small`, `--auix-border-radius-round`, `--auix-padding-minimal` |
 | `.auix-input` | Text / number / date inputs | `--auix-padding-minimal`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-small`, `--auix-color-input-text`, `--auix-font-size-caption` |
@@ -438,6 +460,9 @@ a component's flex direction or inserting an additional layout layer — you can
 Scope overrides to a specific host section to avoid leaking into unrelated components:
 
 ```css
+/* Overrides the primary color variant only; sibling variants (.auix-button--alt,
+   .auix-index-all-action-button) are unaffected and need their own override if
+   matching brand color is desired there. */
 .my-host-app .auix-button {
   background-color: var(--my-brand);
 }

@@ -50,7 +50,17 @@ Requires:
 
 ### CSS class changes
 
-_No changes in this release._
+- **`.auix-button` no longer carries structural rules** (`display`, `border-*`, `padding`, `font-*`).
+  Structure has moved to `.auix-button-default`, which is now auto-applied by the `<.button>`
+  component. Hosts that selected `.auix-button` to override padding or borders should switch
+  their selector to `.auix-button-default`.
+- **`.auix-button-default` is now a public/semi-public class.** Hosts that previously applied
+  `.auix-button` directly (without going through `<.button>`) will now receive only the color
+  rules. Add `.auix-button-default` explicitly to restore the structural styles.
+- **`.auix-index-all-action-button` lost its structural declarations** (previously duplicated
+  from `.auix-button`). Visible behaviour is identical when the button is rendered through
+  `<.button>` as intended, because `.auix-button-default` is auto-applied.
+
 
 
 ## [0.1.3] - 2026-02-15

@@ -255,11 +255,19 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
     layer_close = "  }\n}\n"
 
     example =
-      "\n/* Semantic class override example — paste outside the @layer above to use.\n" <>
-        ".my-host-app .auix-button {\n" <>
-        "  background-color: var(--my-brand);\n" <>
-        "}\n" <>
-        "*/\n"
+      """
+        /* Might need to uncomment this rule to let border of container behave as
+          designed by aurora_uix */
+        .auix-modal-focus-wrap, .auix-show-container, .auix-show-content {
+          border: revert; 
+        }
+
+        /* Semantic class override example — paste outside the @layer above to use.
+        .my-host-app .auix-button { 
+          background-color: var(--my-brand);
+        }
+        */
+      """
 
     header <> layer_open <> sections <> "\n" <> layer_close <> example
   end

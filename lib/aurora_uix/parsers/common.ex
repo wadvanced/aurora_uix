@@ -68,11 +68,9 @@ defmodule Aurora.Uix.Parsers.Common do
     |> List.last()
   end
 
-  def option_value(_parsed_opts, %{schema: module}, _opts, :name) do
-    module
-    |> Module.split()
-    |> List.last()
-    |> CommonHelper.capitalize()
+  def option_value(parsed_opts, resource_config, opts, :name) do
+    has_key? = Keyword.has_key?(opts, :name)
+    process_name(parsed_opts, resource_config, opts, has_key?)
   end
 
   def option_value(_parsed_opts, %{schema: module}, _opts, :source),
@@ -81,13 +79,43 @@ defmodule Aurora.Uix.Parsers.Common do
   def option_value(_parsed_opts, %{schema: module}, _opts, :source_key),
     do: :source |> module.__schema__() |> CommonHelper.safe_atom()
 
-  def option_value(_parsed_opts, %{schema: module}, _opts, :title) do
-    :source
-    |> module.__schema__()
-    |> CommonHelper.capitalize()
+  def option_value(parsed_opts, resource_config, opts, :title) do
+    has_key? = Keyword.has_key?(opts, :title)
+    process_title(parsed_opts, resource_config, opts, has_key?)
   end
 
   def option_value(_parsed_opts, %{schema: module}, _opts, :primary_key) do
     module.__schema__(:primary_key)
+  end
+
+  ## PRIVATE
+  @spec process_name(map(), map(), keyword(), boolean()) :: binary()
+  defp process_name(_parsed_opts, _resource_config, opts, true) do
+    case opts[:name] do
+      nil -> ""
+      value -> value
+    end
+  end
+
+  defp process_name(_parsed_opts, %{schema: module}, _opts, false) do
+    module
+    |> Module.split()
+    |> List.last()
+    |> CommonHelper.capitalize()
+  end
+
+  @spec process_title(map(), map(), keyword(), boolean()) :: binary()
+  defp process_title(_parsed_opts, _resource_config, opts, true) do
+    case opts[:title] do
+      # Nil will be blank so title: nil is valid
+      nil -> ""
+      value -> value
+    end
+  end
+
+  defp process_title(_parsed_opts, %{schema: module}, _opts, false) do
+    :source
+    |> module.__schema__()
+    |> CommonHelper.capitalize()
   end
 end
