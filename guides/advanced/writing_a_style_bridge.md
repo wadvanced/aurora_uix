@@ -1,12 +1,12 @@
-# Writing a Bridge
+# Writing a Style Bridge
 
-*See also: [Styling Aurora UIX in a Host Application](../core/styling.md) — for token-level overrides without writing a full bridge.*
+*See also: [Styling Aurora UIX in a Host Application](../core/styling.md) — for token-level overrides without writing a full style bridge.*
 
 A **bridge** is a plain CSS file that maps your host application's design-system tokens onto Aurora UIX's `--auix-*` variables. The library ships one bridge for daisyUI (`auix-bridge-daisyui.css`); this guide explains how to write one for any other design system.
 
-## What a bridge does
+## What a style bridge does
 
-Aurora UIX components are styled exclusively via `--auix-*` custom properties defined in `auix-variables.css`. A bridge overrides a subset of those properties at `:root` level, pointing them at equivalent tokens from the host framework. When the host's theme changes — by switching a daisyUI theme, toggling dark mode, or updating a Tailwind `@theme` value — the `--auix-*` vars resolve to the new values automatically, and every Aurora UIX component follows.
+Aurora UIX components are styled exclusively via `--auix-*` custom properties defined in `auix-variables.css`. A style bridge overrides a subset of those properties at `:root` level, pointing them at equivalent tokens from the host framework. When the host's theme changes — by switching a daisyUI theme, toggling dark mode, or updating a Tailwind `@theme` value — the `--auix-*` vars resolve to the new values automatically, and every Aurora UIX component follows.
 
 ```css
 /* Minimal bridge structure */

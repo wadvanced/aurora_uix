@@ -2,7 +2,7 @@
 
 Aurora UIX renders all of its generated components against a set of `--auix-*` CSS custom
 properties. This guide shows how to align those properties with your host application's design
-system — either by remapping them through a bridge file or by overriding individual tokens
+system — either by remapping them through a style bridge file or by overriding individual tokens
 directly — without touching any library source.
 
 ## The five files and their cascade layers
@@ -38,11 +38,11 @@ this file — see [Hosts without Tailwind](#hosts-without-tailwind) below.
 **Bridge.** Add the daisyUI bridge (`auix-bridge-daisyui.css`) or write your own. The bridge
 maps your framework's semantic tokens onto `--auix-*` variables so every component follows
 theme changes (dark mode, brand tokens, etc.) automatically. See
-[Writing a Bridge](../advanced/writing_a_bridge.md) for authoring guidance.
+[Writing a Style Bridge](../advanced/writing_a_style_bridge.md) for authoring guidance.
 
-**Recommended: bridge + `auix-custom.css`.** For hosts that already use a bridge but need a
+**Recommended: style bridge + `auix-custom.css`.** For hosts that already use a style bridge but need a
 few additional per-project tweaks, an `auix-custom.css` file provides a safe override layer
-that sits at the same cascade level as the bridge. Token overrides written here take effect
+that sits at the same cascade level as the style bridge. Token overrides written here take effect
 without modifying either library file. Run `mix auix.gen.stylesheet --custom` to scaffold the
 stub on first use.
 
@@ -146,9 +146,9 @@ Add one extra import **before** `auix-variables.css`:
 @import "auix-rules.css";
 ```
 
-The reset uses the same `--auix-*` variables a bridge maps, so a bridge still controls
-colours and typography — the baseline and bridge complement each other. The reset sits in
-`@layer auix.baseline`, the lowest layer in the cascade, so both the bridge and any
+The reset uses the same `--auix-*` variables a bridge maps, so a style bridge still controls
+colours and typography — the baseline and style bridge complement each other. The reset sits in
+`@layer auix.baseline`, the lowest layer in the cascade, so both the style bridge and any
 rules-level overrides win over it.
 
 > **Tailwind hosts:** do not pass `--baseline` and do not import this file. Tailwind's

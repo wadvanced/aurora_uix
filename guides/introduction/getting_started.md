@@ -90,7 +90,7 @@ Switching the daisyUI theme (or toggling dark mode) then automatically restyles 
 mix auix.gen.stylesheet --force
 ```
 
-If you use a design system other than daisyUI, see the [Writing a Bridge](../advanced/writing_a_bridge.html) guide to create your own mapping.
+If you use a design system other than daisyUI, see the [Writing a Style Bridge](../advanced/writing_a_style_bridge.html) guide to create your own mapping.
 
 ## Icons Configuration
 
