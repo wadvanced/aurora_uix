@@ -1536,10 +1536,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     /* auix-index-all-action-button */
 
-    #{import_rule(:auix_button__alt, :auix_index_all_action_button)}
-
     .auix-index-all-action-button {
-      gap: var(--auix-gap-default);
+      background-color: var(--auix-color-button-alt-bg);
+      color: var(--auix-color-button-alt-text);
+      border-color: var(--auix-color-button-alt-border);
+    }
+
+    .auix-index-all-action-button:disabled {
+      background-color: var(--auix-color-bg-backdrop);
+      color: var(--auix-color-text-inactive);
+    }
+
+    .auix-index-all-action-button:hover {
+      background-color: var(--auix-color-bg-hover);
+      cursor: pointer;
     }
 
     """

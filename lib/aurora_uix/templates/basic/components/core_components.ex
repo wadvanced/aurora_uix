@@ -234,7 +234,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
   attr(:type, :string, default: nil)
-  attr(:class, :string, default: nil)
+
+  attr(:class, :string,
+    default: "auix-button",
+    doc: "color/variant class; one of auix-button, auix-button--alt, auix-index-all-action-button"
+  )
+
   attr(:rest, :global, include: ~w(disabled form name value))
 
   slot(:inner_block, required: true)
@@ -244,7 +249,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <button
       type={@type}
-      class={["auix-button", @class]}
+      class={["auix-button-default", @class]}
       {@rest}
     >
       {render_slot(@inner_block)}
