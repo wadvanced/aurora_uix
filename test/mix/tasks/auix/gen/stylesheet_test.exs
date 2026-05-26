@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Auix.Gen.StylesheetTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Mix.Tasks.Auix.Gen.Stylesheet
 
