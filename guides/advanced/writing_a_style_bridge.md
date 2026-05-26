@@ -1,10 +1,12 @@
-# Writing a Bridge
+# Writing a Style Bridge
+
+*See also: [Styling Aurora UIX in a Host Application](../core/styling.md) — for token-level overrides without writing a full style bridge.*
 
 A **bridge** is a plain CSS file that maps your host application's design-system tokens onto Aurora UIX's `--auix-*` variables. The library ships one bridge for daisyUI (`auix-bridge-daisyui.css`); this guide explains how to write one for any other design system.
 
-## What a bridge does
+## What a style bridge does
 
-Aurora UIX components are styled exclusively via `--auix-*` custom properties defined in `auix-variables.css`. A bridge overrides a subset of those properties at `:root` level, pointing them at equivalent tokens from the host framework. When the host's theme changes — by switching a daisyUI theme, toggling dark mode, or updating a Tailwind `@theme` value — the `--auix-*` vars resolve to the new values automatically, and every Aurora UIX component follows.
+Aurora UIX components are styled exclusively via `--auix-*` custom properties defined in `auix-variables.css`. A style bridge overrides a subset of those properties at `:root` level, pointing them at equivalent tokens from the host framework. When the host's theme changes — by switching a daisyUI theme, toggling dark mode, or updating a Tailwind `@theme` value — the `--auix-*` vars resolve to the new values automatically, and every Aurora UIX component follows.
 
 ```css
 /* Minimal bridge structure */
@@ -97,3 +99,12 @@ No mix task is needed. Drop the file anywhere that your bundler (esbuild) can re
 - **Use `var(…, fallback)`.** If a host token might not always be defined, provide a sensible fallback: `var(--ds-radius-md, 0.5rem)`.
 - **Check dark mode.** If your design system uses attribute or class selectors for dark mode (e.g., `[data-theme="dark"]`, `.dark`), scope your dark overrides the same way your design system does inside the `@layer auix.bridge` block.
 - **Keep the file in version control.** The bridge is part of your application's styling, not a generated artefact.
+
+## Hosts without Tailwind
+
+Hosts without a CSS preflight (plain CSS, vanilla Phoenix, Web Components)
+need an extra import and the opt-in `auix-baseline.css` scaffold. See the
+canonical [Hosts without Tailwind](../core/styling.md#hosts-without-tailwind)
+section in the styling guide for the import order, the `--baseline` flag, and
+the rationale. The same guidance applies whether you use the daisyUI bridge, a
+custom bridge, or no bridge at all.

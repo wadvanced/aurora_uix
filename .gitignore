@@ -52,6 +52,8 @@ aurora_uix-*.tar
 /priv/static/images/aurora-transparent-icon-*.svg
 /priv/static/favicon-*.ico
 /priv/static/robots-*.txt
+/priv/static/css/auix-bridge-daisyui*.*
+
 
 /tailwindcss-*.log
 

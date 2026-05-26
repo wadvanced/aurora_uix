@@ -4,12 +4,21 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   Offers a convenient way to include compiled or dynamic themeable stylesheets. Leverages
   the configured theme module to apply consistent styling and manage CSS rule generation.
+
+  The stylesheet is split across three files:
+
+    * `auix-variables.css` — `:root` variable declarations and palette colors.
+    * `auix-rules.css` — `.auix-*` component rules.
+    * `auix-baseline.css` — tag-selector reset for hosts **without** a CSS preflight.
+      Tailwind hosts should ignore this file; non-Tailwind hosts `@import` it before
+      `auix-variables.css`.
   """
 
   use Phoenix.Component
 
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
+  alias Aurora.Uix.Templates.Basic.Themes.Baseline
   alias Aurora.Uix.Templates.CssSanitizer
   alias Aurora.Uix.Templates.Theme
 
@@ -39,9 +48,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   Generates the variables half of the stylesheet.
 
   Emits the `:root` declarations from the configured theme (sizes, typography,
-  shadows) followed by every registered palette's `:root_colors`. Host
-  applications can `@import` this file, override individual `--auix-*` vars,
-  and then `@import` the rules file.
+  shadows) followed by every registered palette's `:root_colors`, then the
+  shared `:root_color_aliases` block. Host applications can `@import` this
+  file, override individual `--auix-*` vars, and then `@import` the rules file.
 
   ## Returns
   `binary()` - The combined CSS variable declarations.
@@ -54,8 +63,9 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
       |> Enum.reverse()
 
     root_block = style([:root], theme_module())
+    alias_block = style([:root_color_aliases], theme_module())
 
-    [root_block | palettes]
+    [[root_block | palettes], alias_block]
     |> List.flatten()
     |> Enum.join(" ")
   end
@@ -75,8 +85,28 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
     theme_module.rule_names()
     |> List.flatten()
-    |> Enum.reject(&(&1 in [:root, :root_colors]))
+    |> Enum.reject(&(&1 in [:root, :root_colors, :root_color_aliases]))
     |> style(theme_module)
+    |> Enum.join(" ")
+  end
+
+  @doc """
+  Generates the baseline tag-selector stylesheet for non-Tailwind hosts.
+
+  Hosts on Tailwind v4 (or any other CSS reset) should NOT import this — it
+  patches `html`, `body`, and `a` selectors that Tailwind's preflight
+  already normalises. Hosts without a reset import `auix-baseline.css`
+  BEFORE `auix-variables.css` so the `@layer auix.baseline` placement is
+  honoured.
+
+  ## Returns
+  `binary()` - The combined baseline CSS rules.
+  """
+  @spec generate_baseline_stylesheet() :: binary()
+  def generate_baseline_stylesheet do
+    Baseline.rule_names()
+    |> List.flatten()
+    |> style(Baseline)
     |> Enum.join(" ")
   end
 

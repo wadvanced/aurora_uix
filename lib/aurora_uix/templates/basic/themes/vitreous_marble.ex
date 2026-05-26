@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
   """
   use Aurora.Uix.Templates.Theme, theme_name: :vitreous_marble
 
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   @impl true
   @spec rule(atom()) :: binary()
@@ -229,5 +229,5 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     """
   end
 
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end

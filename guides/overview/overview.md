@@ -213,3 +213,5 @@ Guide for tackling known issues and corner cases:
 
 - **[Troubleshooting](../advanced/troubleshooting.md)**
 
+
+> See also: [Styling Aurora UIX in a Host Application](../core/styling.md).

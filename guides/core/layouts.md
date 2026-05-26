@@ -801,3 +801,5 @@ end
 - Review [Resource Metadata](./resource_metadata.md) for field configuration options
 - Explore [LiveView Integration](./liveview.md) to handle custom events in your layouts
 - Check the [Troubleshooting Guide](../advanced/troubleshooting.md) for common layout issues
+
+> For styling generated layouts, see [Styling Aurora UIX in a Host Application](./styling.md).

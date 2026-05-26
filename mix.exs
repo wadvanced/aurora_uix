@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4-rc.4"
+  @version "0.1.4-rc.5"
 
   def project do
     [
@@ -47,9 +47,10 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
+          "guides/core/styling.md",
           "guides/advanced/advanced_usage.md",
           "guides/advanced/troubleshooting.md",
-          "guides/advanced/writing_a_bridge.md"
+          "guides/advanced/writing_a_style_bridge.md"
         ],
         groups_for_extras: [
           Introduction: ~r{guides/introduction/.*},
