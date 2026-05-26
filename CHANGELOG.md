@@ -45,7 +45,7 @@ Requires:
     :root { /* optional per-host overrides */ }
     @import "auix-rules.css";
     ```
-  - Added `guides/advanced/writing_a_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
+  - Added `guides/advanced/writing_a_style_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
 
 ### CSS class changes
