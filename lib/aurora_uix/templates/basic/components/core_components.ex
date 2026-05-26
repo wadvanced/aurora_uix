@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
                     aria-label={gettext("close")}
                   >
                     <.icon
-                    name="hero-x-mark-solid" class="auix-icon-size-button" />
+                    name="hero-x-mark" class="auix-icon-size-button" />
                   </button>
                 </div>
                 <div id={"#{@id}-content"}>
@@ -511,7 +511,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         navigate={@navigate}
         class="auix-back-link"
       >
-        <.icon name="hero-arrow-left-solid" class="auix-icon-size-3" />
+        <.icon name="hero-arrow-left" class="auix-icon-size-3" />
         {render_slot(@inner_block)}
       </.link>
     </div>
