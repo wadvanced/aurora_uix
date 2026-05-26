@@ -3,33 +3,97 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
 
   @moduledoc """
   Finds registered themes along with the configured theme name and generates
-  the Aurora UIX stylesheet in three files:
+  the Aurora UIX stylesheet in three files (plus two optional host-owned files):
 
     * `assets/css/auix-variables.css` — `:root` / `:root_colors` declarations.
     * `assets/css/auix-rules.css` — `.auix-*` component rules.
     * `assets/css/auix-stylesheet.css` — back-compat shim that re-imports
-      the two files above.
+      only the variables and rules files (Tailwind happy path).
 
   Also copies the daisyUI bridge file (`assets/css/auix-bridge-daisyui.css`)
   on first run. On subsequent runs the bridge is left untouched so host
   applications can customise their token mappings freely. Pass `--force` to
   overwrite an existing bridge.
 
+  Two opt-in scaffolds are available behind flags: `--baseline` writes
+  `assets/css/auix-baseline.css` (a tag-selector reset for hosts without a
+  CSS preflight) and `--custom` writes `assets/css/auix-custom.css` (a
+  host-owned override layer). Both are host-owned once created and are not
+  overwritten unless `--force` is passed.
+
   ## Usage
 
       mix auix.gen.stylesheet
       mix auix.gen.stylesheet --force
+      mix auix.gen.stylesheet --baseline
+      mix auix.gen.stylesheet --baseline --force
+      mix auix.gen.stylesheet --custom
+      mix auix.gen.stylesheet --custom --force
 
-  The three files use CSS cascade layers (`auix.variables → auix.bridge → auix.rules`)
-  so that a bridge's `:root, :host` selector always wins over the higher-specificity
-  theme selectors in the variables file, regardless of source order. Any CSS written
-  outside all layers in the host's own `app.css` still wins over everything, so
-  one-off overrides continue to work as expected.
+  ## `--baseline` flag: opt-in `auix-baseline.css` scaffold
 
-  Hosts can import the variables file, optionally import the bridge (or a
-  custom replacement wrapping its overrides in `@layer auix.bridge { … }`),
-  and then import the rules file last. Hosts using the legacy single-file import
-  keep working — `auix-stylesheet.css` is still generated and re-imports both halves.
+  Tailwind v4 (and similar resets) already normalises `html`, `body`, and `a`.
+  Hosts with no preflight — plain CSS apps, vanilla Phoenix apps, Web
+  Component hosts — should pass `--baseline` to scaffold
+  `assets/css/auix-baseline.css`, then `@import` it **before**
+  `auix-variables.css`. Tailwind hosts must skip this file; double-resetting
+  can produce subtle border and spacing regressions.
+
+  ## `--custom` flag: opt-in `auix-custom.css` scaffold
+
+  Most hosts cover their styling needs through a bridge alone. Pass `--custom`
+  to also scaffold `assets/css/auix-custom.css` — a host-owned file that sits
+  in `@layer auix.bridge` and contains every `--auix-*` variable commented out
+  with its current default. Uncomment the variables you want to override.
+
+  The file is treated as host-owned and will not be overwritten on subsequent
+  runs. Combine `--custom` with `--force` to regenerate an existing stub from
+  the current theme defaults.
+
+  ## Flag matrix
+
+  | Invocation | Variables / rules / shim | daisyUI bridge | `auix-baseline.css` | `auix-custom.css` |
+  |---|---|---|---|---|
+  | `mix auix.gen.stylesheet` | regenerated | copied if absent | not created | not created |
+  | `mix auix.gen.stylesheet --force` | regenerated | overwritten | not created | not created |
+  | `mix auix.gen.stylesheet --baseline` | regenerated | copied if absent | created if absent; skipped (with stdout note) if present | not created |
+  | `mix auix.gen.stylesheet --baseline --force` | regenerated | overwritten | overwritten | not created |
+  | `mix auix.gen.stylesheet --custom` | regenerated | copied if absent | not created | created if absent; skipped (with stdout note) if present |
+  | `mix auix.gen.stylesheet --custom --force` | regenerated | overwritten | not created | overwritten |
+  | `mix auix.gen.stylesheet --baseline --custom` | regenerated | copied if absent | created if absent | created if absent |
+  | `mix auix.gen.stylesheet --baseline --custom --force` | regenerated | overwritten | overwritten | overwritten |
+
+  ## Import order for hosts using customization
+
+  ```css
+  @import "auix-variables.css";
+  @import "auix-bridge-daisyui.css";  /* or your custom bridge */
+  @import "auix-custom.css";          /* host customizations (opt-in via --custom) */
+  @import "auix-rules.css";
+  ```
+
+  For the full customization workflow, including the variable reference and recipe
+  table, see `guides/core/styling.md`.
+
+  ## Import order for non-Tailwind hosts (no customization)
+
+  ```css
+  @import "auix-baseline.css"; /* non-Tailwind hosts only; generate with --baseline */
+  @import "auix-variables.css";
+  @import "<your-bridge>.css";  /* optional */
+  @import "auix-rules.css";
+  ```
+
+  ## Import order for Tailwind hosts (no customization)
+
+  Hosts using Tailwind v4 (or any other CSS preflight/reset) should skip
+  `auix-baseline.css` and use the two-file path or the legacy shim:
+
+  ```css
+  @import "auix-variables.css";
+  @import "auix-rules.css";
+  /* or simply: @import "auix-stylesheet.css"; */
+  ```
   """
 
   use Mix.Task
@@ -39,9 +103,12 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   @output_dir "assets/css"
   @variables_file "auix-variables.css"
   @rules_file "auix-rules.css"
+  @baseline_file "auix-baseline.css"
   @combined_file "auix-stylesheet.css"
   @bridge_src "priv/static/css/auix-bridge-daisyui.css"
   @bridge_dest "assets/css/auix-bridge-daisyui.css"
+  @custom_file "auix-custom.css"
+  @custom_dest "assets/css/#{@custom_file}"
   @header "/* Generated by auix.gen.stylesheet. Do not edit. */\n"
 
   @doc """
@@ -51,11 +118,16 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   def run(args) do
     File.mkdir_p!(@output_dir)
 
+    force? = "--force" in args
+    custom? = "--custom" in args
+    baseline? = "--baseline" in args
+
     variables_path = Path.join(@output_dir, @variables_file)
     rules_path = Path.join(@output_dir, @rules_file)
     combined_path = Path.join(@output_dir, @combined_file)
 
-    layer_order = "@layer auix.variables, auix.bridge, auix.rules;\n"
+    layer_order =
+      "@layer auix.baseline, auix.variables, auix.bridge, auix.rules;\n"
 
     variables_body = ThemeHelper.generate_variables_stylesheet()
     variables_css = layer_order <> "@layer auix.variables {\n" <> variables_body <> "\n}"
@@ -74,7 +146,9 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
 
     IO.puts("\e[32mGenerated #{variables_path}, #{rules_path}, and #{combined_path}\e[0m")
 
-    copy_bridge("--force" in args)
+    copy_bridge(force?)
+    maybe_generate_custom(custom?, force?, variables_body)
+    maybe_generate_baseline(baseline?, force?)
   end
 
   @spec copy_bridge(boolean()) :: :ok
@@ -94,6 +168,111 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
       true ->
         File.cp!(src, @bridge_dest)
         IO.puts("\e[32mCopied #{@bridge_dest}\e[0m")
+    end
+  end
+
+  @spec maybe_generate_baseline(boolean(), boolean()) :: :ok
+  defp maybe_generate_baseline(false, _force?), do: :ok
+
+  defp maybe_generate_baseline(true, force?) do
+    baseline_dest = Path.join(@output_dir, @baseline_file)
+
+    contents =
+      @header <> "@layer auix.baseline {\n" <> ThemeHelper.generate_baseline_stylesheet() <> "\n}"
+
+    cond do
+      force? ->
+        File.write!(baseline_dest, contents)
+        IO.puts("\e[32mOverwrote #{baseline_dest}\e[0m")
+
+      File.exists?(baseline_dest) ->
+        IO.puts(
+          "\e[33mSkipped #{baseline_dest} (already exists; pass --force with --baseline to overwrite)\e[0m"
+        )
+
+      true ->
+        File.write!(baseline_dest, contents)
+        IO.puts("\e[32mGenerated #{baseline_dest}\e[0m")
+    end
+  end
+
+  @spec maybe_generate_custom(boolean(), boolean(), binary()) :: :ok
+  defp maybe_generate_custom(false, _force?, _variables_body), do: :ok
+
+  defp maybe_generate_custom(true, force?, variables_body) do
+    contents = build_custom_css(variables_body)
+
+    cond do
+      force? ->
+        File.write!(@custom_dest, contents)
+        IO.puts("\e[32mOverwrote #{@custom_dest}\e[0m")
+
+      File.exists?(@custom_dest) ->
+        IO.puts(
+          "\e[33mSkipped #{@custom_dest} (already exists; pass --force with --custom to overwrite)\e[0m"
+        )
+
+      true ->
+        File.write!(@custom_dest, contents)
+        IO.puts("\e[32mGenerated #{@custom_dest}\e[0m")
+    end
+  end
+
+  @spec build_custom_css(binary()) :: binary()
+  defp build_custom_css(variables_body) do
+    date = Date.to_iso8601(Date.utc_today())
+
+    buckets =
+      variables_body
+      |> then(&Regex.scan(~r/(--auix-[\w-]+)\s*:\s*([^;]+);/, &1))
+      |> Enum.map(fn [_full, name, value] -> {name, String.trim(value)} end)
+      |> Enum.uniq_by(&elem(&1, 0))
+      |> Enum.group_by(&bucket_for/1)
+
+    bucket_order = [
+      {"Sizes & dimensions", :sizes},
+      {"Typography", :typography},
+      {"Opacity", :opacity},
+      {"Shadows & rings", :shadows},
+      {"Colors", :colors}
+    ]
+
+    sections =
+      Enum.map_join(bucket_order, "\n", fn {label, key} ->
+        vars =
+          buckets
+          |> Map.get(key, [])
+          |> Enum.sort_by(&elem(&1, 0))
+          |> Enum.map_join("\n", fn {name, value} -> "    /* #{name}: #{value}; */" end)
+
+        "    /* ----- #{label} ----- */\n#{vars}"
+      end)
+
+    header = "/* Generated by mix auix.gen.stylesheet on #{date}. Edit freely. */\n"
+
+    layer_open = "@layer auix.bridge {\n  :root, :host {\n"
+
+    layer_close = "  }\n}\n"
+
+    example =
+      "\n/* Semantic class override example — paste outside the @layer above to use.\n" <>
+        ".my-host-app .auix-button {\n" <>
+        "  background-color: var(--my-brand);\n" <>
+        "}\n" <>
+        "*/\n"
+
+    header <> layer_open <> sections <> "\n" <> layer_close <> example
+  end
+
+  @spec bucket_for({binary(), binary()}) :: atom()
+  defp bucket_for({name, _value}) do
+    cond do
+      String.starts_with?(name, "--auix-color-") -> :colors
+      String.starts_with?(name, "--auix-font-") -> :typography
+      String.starts_with?(name, "--auix-opacity-") -> :opacity
+      String.starts_with?(name, "--auix-ring-") -> :shadows
+      String.starts_with?(name, "--auix-shadow-") -> :shadows
+      true -> :sizes
     end
   end
 end
