@@ -28,6 +28,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   alias Aurora.Uix.Integration.FieldsParser, as: CommonFieldsParser
   alias Aurora.Uix.Resource
 
+  require Logger
+
   @doc """
   Parses all attributes from an Ash resource into Field structs.
 
@@ -358,12 +360,16 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
          constraints: constraints
        })
        when resource_type in [Ash.Type.Atom, Ash.Type.Atom.EctoType] do
-    if Keyword.has_key?(constraints, :one_of),
-      do: :select,
-      else:
-        raise(
-          "Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it can only be used in conjuntion of ':one_of' constraint. Change to :string"
-        )
+    if Keyword.has_key?(constraints, :one_of) do
+      :select
+    else
+      Logger.warning("""
+              Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it makes sense to be used in conjuntion of ':one_of' constraint.
+              Setting values of NON existant atoms will raise an error on the host runtime. 
+      """)
+
+      :text
+    end
   end
 
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
