@@ -3,16 +3,6 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
   Integration tests verifying that the actor assign is correctly forwarded from the
   Index LiveView to FormComponent and EmbedsManyComponent when `ash_actor_assign` is
   configured on `auix_resource_metadata`.
-
-  Covers all 8 Acceptance Criteria from issue #271:
-  - AC-1: default actor key (:current_user) forwarded to create → succeeds
-  - AC-2: non-default actor key (:scope) forwarded to create → succeeds
-  - AC-3: actor forwarded to update → succeeds
-  - AC-4: actor forwarded to delete → element is present in UI
-  - AC-5: actor forwarded through EmbedsManyComponent → add entry toggle succeeds
-  - AC-6: no ash_actor_assign configured → renders without crash
-  - AC-7: ash_actor_assign configured but assign absent → renders without crash
-  - AC-8: policy denies (no actor) → error shown, no crash
   """
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
@@ -67,7 +57,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     |> Ash.create!(authorize?: true)
   end
 
-  describe "AC-1: create with :current_user actor" do
+  describe "create with :current_user actor" do
     test "form submission succeeds when actor is present in session", %{conn: conn} do
       conn = with_actor(conn, @actor)
       {:ok, view, _html} = live(conn, "/ash-actor-policy-items/new")
@@ -80,7 +70,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-2: create with non-default :scope actor key" do
+  describe "create with non-default :scope actor key" do
     test "form submission succeeds when scope actor is present in session", %{conn: conn} do
       conn = with_scope(conn, @actor)
       {:ok, view, _html} = live(conn, "/ash-actor-scope-items/new")
@@ -93,7 +83,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-3: update with actor forwarded" do
+  describe "update with actor forwarded" do
     test "form submission succeeds when actor is present in session", %{conn: conn} do
       item = seed_policy_item("original-item")
       conn = with_actor(conn, @actor)
@@ -107,7 +97,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-4: delete with actor forwarded" do
+  describe "delete with actor forwarded" do
     test "delete link is rendered for items in the list", %{conn: conn} do
       _item = seed_policy_item("delete-test-item")
       conn = with_actor(conn, @actor)
@@ -117,7 +107,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-5: EmbedsManyComponent with actor forwarded" do
+  describe "EmbedsManyComponent with actor forwarded" do
     test "EmbedsManyComponent renders and toggle button is present when actor in session",
          %{conn: conn} do
       item = seed_policy_item("embeds-test-item")
@@ -138,7 +128,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-6: no ash_actor_assign configured" do
+  describe "no ash_actor_assign configured" do
     test "index renders without crash when no actor is configured", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/ash-actor-public-items")
 
@@ -152,7 +142,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-7: ash_actor_assign configured but assign absent in session" do
+  describe "ash_actor_assign configured but assign absent in session" do
     test "index renders without crash when session has no actor", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/ash-actor-policy-items")
 
@@ -166,7 +156,7 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     end
   end
 
-  describe "AC-8: policy denies when actor is absent" do
+  describe "policy denies when actor is absent" do
     test "submitting create without actor results in an error, no crash", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/ash-actor-policy-items/new")
 
