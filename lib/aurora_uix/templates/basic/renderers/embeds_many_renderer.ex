@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer do
 
   import Phoenix.Component, only: [sigil_H: 2, live_component: 1]
   alias Aurora.Uix.Templates.Basic.EmbedsManyComponent
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
   @doc """
   Renders an embeds_many field using the EmbedsManyComponent.
@@ -33,6 +34,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer do
     <.live_component
       id={"#{@field.html_id}-#{@auix.layout_type}"}
       module={EmbedsManyComponent}
+      {BasicHelpers.actor_assign_prop(@auix, @auix)}
       auix={@auix}
       field={@field}
       />

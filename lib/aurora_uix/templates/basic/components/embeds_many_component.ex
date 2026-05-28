@@ -46,7 +46,8 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       assign_auix_new: 3,
       backend_socket_opts: 2,
       get_layout: 3,
-      get_resource: 3
+      get_resource: 3,
+      maybe_assign_actor: 2
     ]
 
   alias Aurora.Uix.Templates.Basic.Actions.EmbedsMany, as: EmbedsManyActions
@@ -92,6 +93,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      socket
      |> assign(:auix, assigns.auix)
      |> assign(:field, assigns.field)
+     |> maybe_assign_actor(assigns.auix)
      |> assign_new_embeds_many_form()
      |> assign_auix_new(:enable_add_embeds, false)
      |> assign_auix(:layout_tree, layout_tree)

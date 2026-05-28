@@ -93,6 +93,94 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     do: apply_socket_opts(connector, %{assigns: assigns})
 
   @doc """
+  Returns a keyword list suitable for spreading as component props with the configured actor
+  assign, or an empty list if no actor is configured.
+
+  Reads the actor key from the auix connector configuration and the actor value from `assigns`.
+  Safe to use in HEEx with `{actor_assign_prop(@auix, assigns)}` — returns `[]` when the
+  backend is Ctx or no actor key is configured.
+
+  ## Parameters
+
+  - `auix` (map()) - The Aurora UIX context map, used to determine the configured actor key.
+  - `assigns` (map()) - The map to read the actor value from (use `assigns` in the IndexRenderer,
+    or `@auix` in the EmbedsManyRenderer where the actor is stored in auix).
+
+  ## Returns
+
+  keyword() - `[{key, value}]` when configured, `[]` otherwise.
+
+  ## Examples
+
+      iex> actor_assign_prop(%{create_function: %Connector{crud_spec: %AshCrudSpec{actor_assign: :current_user}}},
+      ...>   %{current_user: %User{}})
+      [current_user: %User{}]
+
+      iex> actor_assign_prop(%{create_function: %Connector{crud_spec: %CtxCrudSpec{}}}, %{current_user: %User{}})
+      []
+  """
+  @spec actor_assign_prop(map(), map()) :: keyword()
+  def actor_assign_prop(auix, assigns) do
+    case actor_assign_key(auix) do
+      nil -> []
+      key -> [{key, assigns[key]}]
+    end
+  end
+
+  @doc """
+  Stores the configured actor value inside `socket.assigns.auix` so it travels through the
+  rendering chain to descendant live components (e.g. `EmbedsManyComponent`).
+
+  Reads the actor key from the auix connector configuration, then reads the actor value from
+  `socket.assigns`, and stores it in `socket.assigns.auix` under the same key. No-op when no
+  actor key is configured.
+
+  Must be called AFTER `assign_parsed_opts/2` (so that connectors are available on the auix
+  map) and AFTER the initial `assign(assigns)` (so that the actor value is in socket.assigns).
+
+  ## Parameters
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+
+  ## Returns
+
+  Phoenix.LiveView.Socket.t() - Socket with actor value stored in auix (unchanged if not configured).
+  """
+  @spec assign_actor_to_auix(Socket.t()) :: Socket.t()
+  def assign_actor_to_auix(%{assigns: %{auix: auix}} = socket) do
+    case actor_assign_key(auix) do
+      nil -> socket
+      key -> assign_auix(socket, key, Map.get(socket.assigns, key))
+    end
+  end
+
+  def assign_actor_to_auix(socket), do: socket
+
+  @doc """
+  Assigns the configured actor from `auix` into the socket so that `backend_socket_opts/2`
+  can resolve it for descendant CRUD calls.
+
+  Used in live component `update/2` callbacks (e.g. `EmbedsManyComponent`) where the actor
+  value was stored in auix by the parent `FormComponent` via `assign_actor_to_auix/1`.
+
+  ## Parameters
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `auix` (map()) - The Aurora UIX context containing the stored actor value.
+
+  ## Returns
+
+  Phoenix.LiveView.Socket.t() - Socket with actor assigned, or unchanged if not configured.
+  """
+  @spec maybe_assign_actor(Socket.t(), map()) :: Socket.t()
+  def maybe_assign_actor(socket, auix) do
+    case actor_assign_key(auix) do
+      nil -> socket
+      key -> assign(socket, key, Map.get(auix, key))
+    end
+  end
+
+  @doc """
   Assigns a new entity to the socket based on related parameters.
 
   ## Parameters
@@ -1005,6 +1093,22 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   def upload_fields(_auix), do: []
 
   ## PRIVATE
+
+  # Reads the configured actor assign key from the first available connector in auix.
+  # Returns nil for Ctx connectors (no actor_assign field) and when no connector is present.
+  @spec actor_assign_key(map()) :: atom() | nil
+  defp actor_assign_key(auix) do
+    Enum.find_value(
+      [:create_function, :update_function, :change_function, :get_function, :list_function],
+      fn fn_key ->
+        case Map.get(auix, fn_key) do
+          %Connector{crud_spec: crud_spec} -> Map.get(crud_spec, :actor_assign)
+          _ -> nil
+        end
+      end
+    )
+  end
+
   @spec maybe_set_related_to_new_entity(
           binary | nil,
           Socket.t(),

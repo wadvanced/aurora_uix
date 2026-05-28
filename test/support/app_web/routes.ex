@@ -257,6 +257,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           UploadFieldErrorTest.Product,
           "upload-field-error-products"
         )
+
+        RoutesHelper.register_crud(
+          AshActorPolicyTest.PublicItem,
+          "ash-actor-public-items"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

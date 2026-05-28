@@ -61,6 +61,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
           socket
           |> assign(assigns)
           |> BasicHelpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+          |> BasicHelpers.assign_actor_to_auix()
           |> then(&unquote(handler_module).update(assigns, &1))
         end
 
