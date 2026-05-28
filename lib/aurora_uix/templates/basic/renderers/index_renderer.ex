@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   use Phoenix.LiveView
 
   import Aurora.Uix.Templates.Basic.Components
@@ -89,7 +90,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
                       auix={@auix}/>
           </:filter_element>
 
-          <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={field.label} field={field}>
+          <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={dt(field.label)} field={field}>
             <%= if field.key == :selected_check__ do %>
               <.field_value entity={entity} field={field} auix={@auix}/>
             <% else %>
@@ -173,7 +174,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           name={"#{@field.key}#{@selected_id}"}
           value={Map.get(@entity, @field.key)}
           type={"#{@field.html_type}"}
-          label={@field.label}
+          label={dt(@field.label)}
           disabled={@auix.selection.toggle_all_mode != :none}
         />
     """

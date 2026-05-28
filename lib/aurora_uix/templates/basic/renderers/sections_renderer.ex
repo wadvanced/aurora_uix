@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """
@@ -50,7 +51,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
             phx-target={@auix._myself}
             phx-value-tab-id={Jason.encode!(%{sections_id: tab.sections_id, tab_id: tab.tab_id})}
             >
-            <%= tab.label %>
+            <%= dt(tab.label) %>
           </button>
         <% end %>
       </div>

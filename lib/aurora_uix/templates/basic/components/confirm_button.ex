@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
                 <%= if @confirm_message do %>
                   {render_slot(@confirm_message)}
                 <% else %>
-                  {gettext("Indicate if you want to continue the action")}
+                  {dt("Indicate if you want to continue the action")}
                 <% end %>
               </div> 
             
@@ -111,14 +111,14 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
                   <%= if @accept_message do %>
                     {render_slot(@accept_message)}
                   <% else %>
-                    <span>{gettext("Yes")}</span>
+                    <span>{dt("Yes")}</span>
                   <% end %>
                 </button>  
                 <button type="button" class={@cancel_button_class || @class} phx-click={JS.push("hide-modal", target: @myself)}>
                   <%= if @cancel_message do %>
                     {render_slot(@cancel_message)}
                   <% else %>
-                    <span>{gettext("No")}</span>
+                    <span>{dt("No")}</span>
                   <% end %>
                 </button>
               </div>

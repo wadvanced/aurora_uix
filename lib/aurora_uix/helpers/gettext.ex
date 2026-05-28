@@ -40,6 +40,8 @@ defmodule Aurora.Uix.Gettext do
   ```
   """
 
+  @gettext_domain Application.compile_env(:aurora_uix, :gettext_domain, nil)
+
   @doc false
   @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
@@ -47,6 +49,15 @@ defmodule Aurora.Uix.Gettext do
 
     backend_module =
       Application.get_env(:aurora_uix, :gettext_backend, default_backend)
+
+    gettext_domain = @gettext_domain
+
+    dt_implementation =
+      if gettext_domain do
+        domain_dt_implementation(gettext_domain)
+      else
+        default_dt_implementation()
+      end
 
     # For deprecated implementation
     gettext_module = Application.get_env(:aurora_uix, :gettext)
@@ -64,10 +75,56 @@ defmodule Aurora.Uix.Gettext do
 
     quote do
       unquote(implementation)
+      @gettext_domain unquote(gettext_domain)
+      unquote(dt_implementation)
 
       @doc false
       def backend do
         unquote(backend_module)
+      end
+    end
+  end
+
+  @spec domain_dt_implementation(binary() | nil) :: Macro.t()
+  defp domain_dt_implementation(gettext_domain) do
+    quote do
+      defmacrop dt(msgid) do
+        domain = unquote(gettext_domain)
+
+        case msgid do
+          binary when is_binary(binary) ->
+            quote do: dgettext(unquote(domain), unquote(binary))
+
+          _dynamic ->
+            quote do
+              if is_binary(unquote(msgid)) do
+                Gettext.dgettext(backend(), unquote(domain), unquote(msgid))
+              else
+                unquote(msgid)
+              end
+            end
+        end
+      end
+    end
+  end
+
+  @spec default_dt_implementation() :: Macro.t()
+  defp default_dt_implementation do
+    quote do
+      defmacrop dt(msgid) do
+        case msgid do
+          binary when is_binary(binary) ->
+            quote do: gettext(unquote(binary))
+
+          _dynamic ->
+            quote do
+              if is_binary(unquote(msgid)) do
+                Gettext.gettext(backend(), unquote(msgid))
+              else
+                unquote(msgid)
+              end
+            end
+        end
       end
     end
   end

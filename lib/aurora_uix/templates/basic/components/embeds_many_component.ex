@@ -132,7 +132,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
         <details name={"auix-details-#{@field.html_id}"} class="auix-embeds-many-details" open={@details_opened}>
           <summary class="auix-embeds-many-summary" phx-click="toggle-details-state" phx-target={@myself}>
               <div class="auix-embeds-many-summary-content">
-                <span>{@field.label}</span>
+                <span>{dt(@field.label)}</span>
                 <span :if={!@details_opened} class="auix-button-badge">
                   <.embedded_entries_count auix={@auix} field={@field} />
                 </span>
@@ -155,7 +155,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
                           show={@auix.enable_add_embeds}
                           on_cancel={JS.push("toggle-add-embeds", target: @myself)}>
                   <.header>
-                    <span>{gettext("Add new entry")}</span>
+                    <span>{dt("Add new entry")}</span>
                   </.header>
                   <.simple_form
                     for={@auix.new_entry_form}
@@ -284,11 +284,11 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      socket
      |> assign_auix(:form, form)
      |> assign_new_embeds_many_form()
-     |> put_flash(:info, gettext("Entry added successfully"))}
+     |> put_flash(:info, dt("Entry added successfully"))}
   end
 
   def handle_event("add-embeds-many", _params, socket) do
-    {:noreply, put_flash(socket, :error, gettext("Entry contains errors"))}
+    {:noreply, put_flash(socket, :error, dt("Entry contains errors"))}
   end
 
   def handle_event(
@@ -312,7 +312,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      socket
      |> assign_auix(:form, form)
      |> assign_new_embeds_many_form()
-     |> put_flash(:info, gettext("Entry removed successfully"))}
+     |> put_flash(:info, dt("Entry removed successfully"))}
   end
 
   ## PRIVATE

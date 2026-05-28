@@ -16,6 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   import Aurora.Uix.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Action
@@ -60,7 +61,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   def edit_header_action(assigns) do
     ~H"""
       <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show-edit"} name={"auix-edit-#{@auix.module}"}>
-        <.button>Edit {@auix.name}</.button>
+        <.button>{dt("Edit")} {@auix.name}</.button>
       </.auix_link>
     """
   end

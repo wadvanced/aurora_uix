@@ -149,6 +149,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          GettextDomainTest,
+          "gettext-domain-"
+        )
+
+        RoutesHelper.register_product_crud(
           AssociationOne2ManyUIActionsTest,
           "association-one_to_many-actions-"
         )

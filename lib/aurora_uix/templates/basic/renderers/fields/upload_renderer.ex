@@ -4,6 +4,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
 
   @doc """
   Renders a file upload field for a form.
@@ -16,7 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
     ~H"""
     <%= if @upload do %>
       <div class="auix-form-field-container">
-        <label class="auix-form-field-label">{@field.label}</label>
+        <label class="auix-form-field-label">{dt(@field.label)}</label>
         <.live_file_input upload={@upload} />
         <%= for entry <- @upload.entries do %>
           <div class="auix-upload-entry">

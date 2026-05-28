@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions
@@ -58,7 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   @spec save_action(map()) :: Rendered.t()
   def save_action(assigns) do
     ~H"""
-    <.button phx-disable-with="Saving..." name={"auix-save-#{@auix.module}"}>Save {@auix.name}</.button>
+    <.button phx-disable-with={dt("Saving...")} name={"auix-save-#{@auix.module}"}>{dt("Save")} {@auix.name}</.button>
     """
   end
 

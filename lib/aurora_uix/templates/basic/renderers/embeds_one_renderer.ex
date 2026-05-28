@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   - Layout must be available for the embedded resource.
   """
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
 
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -55,7 +56,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
     ~H"""
       <div class="auix-embeds-one-container">
         <.header>
-          {@field.label}
+          {dt(@field.label)}
         </.header>
         <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
           <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />     
@@ -81,7 +82,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
     ~H"""
       <div class="auix-embeds-one-container">
         <.header>
-          {@field.label}
+          {dt(@field.label)}
         </.header>
           <Renderer.render_inner_elements auix={@auix} />     
       </div>

@@ -18,6 +18,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
+  @gettext_domain Application.compile_env(:aurora_uix, :gettext_domain, nil)
+
   @doc """
   Generates a LiveComponent module for form handling.
 
@@ -30,6 +32,33 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
+
+    field_labels =
+      cleaned_parsed_opts
+      |> Map.get(:fields, [])
+      |> Enum.map(& &1.label)
+      |> Enum.filter(&is_binary/1)
+      |> Enum.uniq()
+
+    gettext_domain = @gettext_domain
+
+    extract_function =
+      if gettext_domain && field_labels != [] do
+        dgettext_calls =
+          Enum.map(field_labels, fn label ->
+            quote do: dgettext(unquote(gettext_domain), unquote(label))
+          end)
+
+        quote do
+          @compile {:nowarn_unused_function, _aurora_uix_extract: 0}
+          @doc false
+          defp _aurora_uix_extract do
+            (unquote_splicing(dgettext_calls))
+          end
+        end
+      else
+        quote do: nil
+      end
 
     form_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".FormComponent")
     handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, FormHandler)
@@ -54,7 +83,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component
+        use Aurora.Uix.Gettext
         alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+
+        unquote(extract_function)
 
         @impl true
         def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do
