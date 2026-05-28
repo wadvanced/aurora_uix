@@ -11,6 +11,9 @@ defmodule Aurora.UixWeb.Test.Router do
   import Aurora.UixWeb.Routes
   import Aurora.UixWeb.Test.Routes
 
+  alias Aurora.UixWeb.Test.RoutesHelper
+  require Aurora.UixWeb.Test.RoutesHelper
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -36,6 +39,15 @@ defmodule Aurora.UixWeb.Test.Router do
 
   scope "/", Aurora.UixWeb.Test do
     pipe_through(:browser)
+
+    live_session :actor_current_user, on_mount: [{AshActorTest.SetActorHook, :current_user}] do
+      RoutesHelper.register_crud(AshActorPolicyTest.PolicyItem, "ash-actor-policy-items")
+    end
+
+    live_session :actor_scope, on_mount: [{AshActorTest.SetActorHook, :scope}] do
+      RoutesHelper.register_crud(AshActorPolicyTest.PolicyItemScope, "ash-actor-scope-items")
+    end
+
     load_test_routes()
   end
 

@@ -119,11 +119,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             module={@auix.live_component}
             id={entity_id(@auix) || @live_action}
             action={@live_action}
+            {BasicHelpers.actor_assign_prop(@auix, assigns)}
             auix={
-              %{entity: @auix.entity, 
-                routing_stack: @auix.routing_stack, 
-                uri_path: @auix.uri_path, 
-                one_to_many_related_key: @auix[:one_to_many_related_key], 
+              %{entity: @auix.entity,
+                routing_stack: @auix.routing_stack,
+                uri_path: @auix.uri_path,
+                one_to_many_related_key: @auix[:one_to_many_related_key],
                 pagination: @auix.pagination,
                 item_index: @auix.item_index}
             }
