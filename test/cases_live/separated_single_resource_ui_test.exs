@@ -8,7 +8,7 @@ defmodule Aurora.UixWeb.Test.SeparatedSingleResourceUITest do
     auix_resource_metadata(:product, context: Inventory, schema: Product)
   end
 
-  @auix_resource_metadata TestResources.auix_resource(:product)
+  @auix_resource_metadata %{product: TestResources.auix_resource(:product)}
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
