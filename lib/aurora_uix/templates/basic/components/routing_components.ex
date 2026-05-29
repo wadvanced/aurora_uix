@@ -59,6 +59,16 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
     """
   end
 
+  def auix_link(assigns) do
+    ~H"""
+    <a 
+      phx-no-format
+      {@rest}>
+      {render_slot(@inner_block)}
+    </a>
+    """
+  end
+
   @doc """
   Renders a simple back navigation link without styling.
 
