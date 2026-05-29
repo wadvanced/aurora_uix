@@ -30,6 +30,10 @@ Requires:
 
 - **Non-Tailwind baseline stylesheet (opt-in)** — `mix auix.gen.stylesheet --baseline` scaffolds `assets/css/auix-baseline.css`, a tag-selector reset (`html`, `body`, `a`) for hosts without a CSS preflight. Host-owned once created; refresh with `--baseline --force`. Tailwind hosts skip the flag and the file. See [Hosts without Tailwind](./guides/core/styling.md#hosts-without-tailwind).
 
+- **Several new introspection function for UI modules**
+  - auix_layout_trees(): is the layout trees as defined (without the default ones)
+  - auix_configurations(): fat configurations information, all UI is generated from this mappings
+
 ### Changed
 
 - **Stylesheet split for host-theme inheritance** [#259](https://github.com/wadvanced/aurora_uix/issues/259)
@@ -47,6 +51,11 @@ Requires:
     ```
   - Added `guides/advanced/writing_a_style_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
+
+### Fixes  
+
+- **auix_resource(_resource) function returned a map with a single key corresponding to the resource being aske**
+    - When introspecting resource metadata with auix_resource/1 returned a map instead of a resource data.
 
 ### CSS class changes
 
