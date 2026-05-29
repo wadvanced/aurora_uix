@@ -16,7 +16,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.Gettext
 
-  alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -36,27 +35,31 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   def render(
         %{
           field: %{data: %{resource: embed_resource_name}} = field,
-          auix: %{layout_type: :form}
+          auix: %{layout_type: :form} = auix
         } = assigns
       ) do
-    layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :form)
+    is_empty? =
+      is_nil(auix.form[field.key]) or is_nil(auix.form[field.key].value) or
+        auix.form[field.key].value == []
 
-    field =
-      assigns
-      |> BasicHelpers.get_resource(embed_resource_name, [:resource_config, :name])
-      |> CommonHelper.capitalize()
-      |> then(&struct(field, label: &1))
+    layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :form)
 
     assigns =
       assigns
       |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
       |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
       |> assign(:field, field)
+      |> assign(:is_empty?, is_empty?)
 
     ~H"""
       <div class="auix-embeds-one-container">
         <.header>
           {dt(@field.label)}
+          <:subtitle :if={@is_empty?}>
+            <span class="auix-embeds-one-empty-msg" >
+              {dt("Field is empty")}
+            </span>
+          </:subtitle>
         </.header>
         <.inputs_for :let={embed_form} field={@auix.form[@field.key]}>
           <Renderer.render_inner_elements auix={Map.put(@auix, :form, embed_form)} />     
@@ -71,6 +74,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
           auix: %{entity: entity, layout_type: :show}
         } = assigns
       ) do
+    is_empty? = entity |> Kernel.||(%{}) |> Map.get(key) |> is_nil()
     layout_tree = BasicHelpers.get_layout(assigns, embed_resource_name, :show)
 
     assigns =
@@ -78,13 +82,19 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
       |> BasicHelpers.assign_auix(:layout_tree, layout_tree)
       |> BasicHelpers.assign_auix(:resource_name, embed_resource_name)
       |> BasicHelpers.assign_auix(:entity, Map.get(entity || %{}, key))
+      |> assign(:is_empty?, is_empty?)
 
     ~H"""
       <div class="auix-embeds-one-container">
         <.header>
           {dt(@field.label)}
+          <:subtitle :if={@is_empty?}>
+            <span class="auix-embeds-one-empty-msg" >
+              {dt("Field is empty")}
+            </span>
+          </:subtitle>
         </.header>
-          <Renderer.render_inner_elements auix={@auix} />     
+          <Renderer.render_inner_elements :if={!@is_empty?} auix={@auix} />     
       </div>
 
     """
