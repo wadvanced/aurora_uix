@@ -33,22 +33,22 @@ defmodule Aurora.Uix.Layout.CreateLayout do
   # ## Returns
   # Macro.t() - A quoted expression containing the generated function.
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
-  defmacro __before_compile__(env) do
-    module = env.module
+  defmacro __before_compile__(_env) do
+    # module = env.module
 
     __auix_create_missing_layouts()
 
-    layout_trees =
-      module
-      |> Module.get_attribute(:auix_layout_trees, [])
-      |> Macro.escape()
+    # layout_trees =
+    #   module
+    #   |> Module.get_attribute(:auix_layout_trees, [])
+    #   |> Macro.escape()
 
     quote do
-      @doc false
-      @spec auix_layout_trees() :: list()
-      def auix_layout_trees do
-        unquote(layout_trees)
-      end
+      # @doc false
+      # @spec auix_layout_trees() :: list()
+      # def auix_layout_trees do
+      #   unquote(layout_trees)
+      # end
     end
   end
 

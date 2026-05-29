@@ -113,6 +113,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       end
 
       unquote(resource_functions)
+
+      def auix_resource(_), do: nil
     end
   end
 
@@ -331,7 +333,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       """
       @spec auix_resource(atom()) :: map()
       def auix_resource(unquote(resource_key)) do
-        %{unquote(resource_key) => unquote(Macro.escape(resource))}
+        unquote(Macro.escape(resource))
       end
     end
   end

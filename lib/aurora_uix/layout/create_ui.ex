@@ -41,16 +41,37 @@ defmodule Aurora.Uix.Layout.CreateUI do
       |> Enum.group_by(&{&1.name, &1.tag})
       |> Enum.map(&merge_layout_trees/1)
 
-    modules =
+    configurations =
       module
       |> Module.get_attribute(:auix_resource_metadata, [])
       |> Enum.reduce(%{}, fn resource, acc ->
         Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), elem(&1, 1)))
       end)
-      |> build_ui(module, merged_layout_trees, opts)
+      |> filter_resources(opts[:for])
+      |> Enum.reduce(
+        [],
+        &[build_configurations(module, &1, merged_layout_trees, opts) | &2]
+      )
+      |> Enum.reject(&is_nil/1)
+      |> Map.new()
+
+    modules =
+      build_layouts(configurations, module)
 
     quote do
       unquote(modules)
+
+      @doc false
+      @spec auix_layout_trees() :: list()
+      def auix_layout_trees do
+        unquote(Macro.escape(merged_layout_trees))
+      end
+
+      @doc false
+      @spec auix_configurations() :: map()
+      def auix_configurations do
+        unquote(Macro.escape(configurations))
+      end
     end
   end
 
@@ -95,26 +116,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   ## PRIVATE
-  # Builds UI layouts based on resource configurations.
-  #
-  # ## Parameters
-  # - `resource_configs` (map()) - A map of resource configurations.
-  # - `caller` (module()) - The calling module.
-  # - `layout_trees` (list()) - A list of layout tree definitions.
-  # - `opts` (keyword()) - Configuration options.
-  #
-  # ## Options
-  # - `:for` (atom() | list()) - Generates UI for one or more specific resources.
-  #
-  # ## Returns
-  # list() - A list of quoted expressions representing the generated UI layout modules.
-  @spec build_ui(map(), module(), list(), keyword()) :: list()
-  defp build_ui(resource_configs, caller, layout_trees, opts) do
-    resource_configs
-    |> filter_resources(opts[:for])
-    |> build_layouts(caller, layout_trees, opts)
-  end
-
   # Merges layout paths by their name and tag, combining inner elements and options.
   @spec merge_layout_trees(tuple()) :: list()
   defp merge_layout_trees({_, paths}) do
@@ -155,17 +156,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Builds the layouts for the given resource configurations.
-  @spec build_layouts(map(), module(), list(), keyword()) :: [Macro.t()]
-  defp build_layouts(resource_configs, caller, layout_trees, opts) do
-    configurations =
-      resource_configs
-      |> Enum.reduce(
-        [],
-        &[build_configurations(caller, &1, layout_trees, opts) | &2]
-      )
-      |> Enum.reject(&is_nil/1)
-      |> Map.new()
-
+  @spec build_layouts(map(), module()) :: [Macro.t()]
+  defp build_layouts(configurations, caller) do
     resource_preloads = extract_resource_preloads(configurations)
 
     configurations

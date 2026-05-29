@@ -9,6 +9,7 @@ defmodule Aurora.Uix.Guides.Blog.Comment do
     data_layer: :embedded
 
   attributes do
+    attribute :title, :string, public?: true
     attribute :description, :string, public?: true
   end
 end
