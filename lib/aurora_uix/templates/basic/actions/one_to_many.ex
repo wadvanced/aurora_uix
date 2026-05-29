@@ -113,7 +113,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
-          <.icon name="hero-pencil-square" class="auix-icon-safe"/>
+          <.icon name="hero-pencil" class="auix-icon-safe"/>
       </.auix_link>
     """
   end

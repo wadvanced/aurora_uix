@@ -23,10 +23,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.Gettext
+  use Phoenix.Component
 
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Templates.Basic.RoutingComponents
-  import Phoenix.Component, only: [sigil_H: 2, link: 1, live_component: 1]
+  # import Phoenix.Component, only: [sigil_H: 2, link: 1, live_component: 1, slot: 2]
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions
@@ -74,11 +75,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "show" action link.
   """
+  slot(:contents)
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(assigns) do
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"}>
-        <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+        <%= if Map.get(assigns, :contents) == [] do %>
+          <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+        <% else %>
+          {render_slot(@contents)}
+        <% end %>
       </.auix_link>
     """
   end
@@ -95,11 +101,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Returns
   Rendered.t() - The rendered "edit" action link
   """
+  slot(:contents)
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(assigns) do
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
-        <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil-square" />
+        <%= if Map.get(assigns, :contents) == [] do %>
+          <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil" />
+        <% else %>
+          {render_slot(@contents)}
+        <% end %>
       </.auix_link>
     """
   end
@@ -119,16 +130,21 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   ## Edge Cases
   - If `@auix.row_info` is missing or malformed, returns malformed link
   """
+  slot(:contents)
   @spec remove_row_action(map()) :: Rendered.t()
   def remove_row_action(assigns) do
     ~H"""
-      <.link
+      <.auix_link
             phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> uix_hide("##{row_info_id(@auix)}")}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={dt("Are you sure?")}
           >
-        <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
-      </.link>
+        <%= if Map.get(assigns, :contents) == [] do %>
+          <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
+        <% else %>
+          {render_slot(@contents)}
+        <% end %>
+      </.auix_link>
     """
   end
 
