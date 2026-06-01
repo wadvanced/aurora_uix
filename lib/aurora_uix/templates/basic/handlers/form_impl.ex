@@ -386,9 +386,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           {:ok, File.read!(path)}
         end)
 
-      result = if binaries == [], do: :no_change, else: field.data.upload.consume.(binaries)
-
-      case result do
+      case do_consume_uploads(field, binaries) do
         :no_change -> {:cont, {:ok, params}}
         {:ok, value} -> {:cont, {:ok, Map.put(params, to_string(field.key), value)}}
         {:error, reason} -> {:halt, {:error, reason}}
@@ -397,6 +395,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   end
 
   ## PRIVATE
+  @spec do_consume_uploads(map(), list()) :: {:ok, any()} | :no_change | {:error, any()}
+  defp do_consume_uploads(_field, []), do: :no_change
+
+  defp do_consume_uploads(%{key: key, data: %{upload: %{consume: consume}}} = _field, binaries) do
+    case Function.info(consume)[:arity] do
+      1 -> consume.(binaries)
+      2 -> consume.(binaries, key)
+      _ -> :no_change
+    end
+  end
+
+  defp do_consume_uploads(_field, _binaries), do: :no_change
 
   @spec maybe_allow_uploads(Socket.t(), map()) :: Socket.t()
   defp maybe_allow_uploads(socket, auix) do
