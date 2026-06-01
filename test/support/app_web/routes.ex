@@ -264,6 +264,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          SocketAwareUploadFieldTest.Product,
+          "socket-aware-upload-products"
+        )
+
+        RoutesHelper.register_crud(
           AshActorPolicyTest.PublicItem,
           "ash-actor-public-items"
         )
