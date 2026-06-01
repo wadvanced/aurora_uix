@@ -79,71 +79,86 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
                                        |> Map.new()
 
   @doc """
-  Returns the list of commonly supported option keys.
+  Resolves the default value for a configuration key.
 
-  Provides a reference list of option atoms that implementations typically handle.
-  This list is descriptive, not prescriptive - implementations may support additional
-  options or handle these differently based on their backend's capabilities.
-
-  ## Returns
-
-  list() - List of common option keys for parser reference.
-
-  ## Examples
-
-      iex> get_options()
-      [:list_function, :list_function_paginated, :get_function, ...]
-  """
-  @spec get_options() :: list()
-  def get_options do
-    [
-      :list_function,
-      :list_function_paginated,
-      :get_function,
-      :delete_function,
-      :update_function,
-      :create_function,
-      :change_function,
-      :new_function
-    ]
-  end
-
-  @doc """
-  Resolves default values for context-derived properties.
-
-  Dispatches to the appropriate parser defaults implementation based on resource type.
-  Uses the type from resource_config to look up and delegate to backend-specific parsers.
+  Called by the parsing process to determine the value for each option key. Implementations
+  can inspect parsed options, resource configuration, and raw options to compute values.
 
   ## Parameters
 
-  - `parsed_opts` (map()) - Map containing resolved options:
-    * `:source` (binary()) - Table/resource name (e.g., "users")
-    * `:module` (binary()) - Schema module name (e.g., "user")
-  - `resource_config` (map()) - Resource configuration:
-    * `:type` (atom()) - Backend type (`:ash` or `:ctx`)
-    * `:context` (module()) - Context
-    * `:schema` (module()) - Schema or resource module (optional)
-  - `opts` (keyword()) - Un-parsed opts  
-  - `option` (atom()) - The option key to resolve (e.g., `:list_function`, `:get_function`)
+  - `parsed_opts` (map()) - Accumulator of previously parsed options. Useful for deriving
+    values based on other resolved options.
+  - `resource_config` (map()) - Resource configuration containing `:schema`, `:type`,
+    `:context`, and other metadata.
+  - `opts` (keyword()) - Raw un-parsed keyword options passed to `parse/2`.
+  - `key` (atom()) - Configuration key to resolve (e.g., `:module`, `:list_function`).
 
   ## Returns
 
-  Connector.t() | function() - Returns a `%Connector{}` struct wrapping the resolved
-  function reference, or `&undefined_function/2` if resolution fails.
+  term() - The resolved value for the given key. Type depends on the key being resolved.
 
-  ## Examples
-
-      iex> default_value(%{source: "users", module: "user"},
-      ...>   %{type: :ctx, context: MyApp.Accounts}, :list_function)
-      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Accounts.list_users/1}}
-
-      iex> default_value(%{}, %{type: :ash, context: MyApp.Accounts,
-      ...>   schema: MyApp.User}, :get_function)
-      %Connector{type: :ash, crud_spec: %CrudSpec{action: %{name: :read}, ...}}
   """
-  @spec option_value(map(), map(), keyword(), atom()) :: term()
+  @callback option_value(
+              parsed_opts :: map(),
+              resource_config :: map(),
+              opts :: keyword(),
+              key :: atom()
+            ) :: term()
+
+  @doc """
+  Fills in missing configuration options based on parsed values and resource configuration.
+
+  This callback can be used to perform any final adjustments or fill in derived options after the main parsing process has completed. 
+  It receives the fully parsed options and can return an updated map with any additional options or adjustments needed for UI rendering. 
+
+  ## Parameters
+  - `parsed_opts` (map()) - The fully parsed options after processing all parsers. Contains all resolved configuration values.
+  - `resource_config` (map()) - The original resource configuration passed to `parse/2`. Contains the initial schema, type, context, and any default options.
+  ## Returns
+  map() - An updated map of options with any missing values filled in or adjustments made. This allows for final transformations or derived values to be added after the main parsing process.
+  """
+  @callback fill_missing_options(parsed_opts :: map, resource_config :: map()) :: map()
+
+  @doc """
+  Filters the valid options for this parser based on the resource configuration and raw options.
+  This callback allows implementations to dynamically determine which options they will handle based on the resource configuration and the raw options provided. It can be used to conditionally support certain options or to adjust the set of options based on the context. 
+
+  ## Parameters
+  - `valid_opts` (map()) - A map of all valid options that have been collected from all parsers. This represents the full set of options that could potentially be handled.
+  - `resource_opts` (map()) - The original resource configuration options passed to `parse/2`. This includes the initial schema, type, context, and any default options.
+
+  ## Returns
+  list(atom()) - A list of option keys (atoms) that this parser will handle. The parsing process will only call `option_value/3` for the options returned in this list. 
+  This allows the parser to focus on a specific subset of options and ignore others.
+  """
+  @callback filter_options(valid_opts :: list(atom()), resource_opts :: keyword()) :: list(atom())
+
+  @impl true
+  def get_options(%{type: type} = _resource_config, resource_opts) do
+    parser = get_parser_defaults_module(type)
+
+    parser.filter_options(
+      [
+        :list_function,
+        :list_function_paginated,
+        :get_function,
+        :delete_function,
+        :update_function,
+        :create_function,
+        :change_function,
+        :new_function
+      ],
+      resource_opts
+    )
+  end
+
+  @impl true
   def option_value(parsed_opts, %{type: type} = resource_config, opts, option),
     do: get_parser_defaults_module(type).option_value(parsed_opts, resource_config, opts, option)
+
+  @impl true
+  def fill_missing_options(parsed_opts, %{type: type} = resource_config),
+    do: get_parser_defaults_module(type).fill_missing_options(parsed_opts, resource_config)
 
   ## PRIVATE
 

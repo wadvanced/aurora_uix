@@ -42,6 +42,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
   for the worked example and the full behaviour matrix.
   """
+  @behaviour Aurora.Uix.Integration.ContextParserDefaults
+
   alias Ash.Resource.Actions
   alias Ash.Resource.Info
   alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
@@ -60,6 +62,28 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @error_action_type "Does not exists or it is of the wrong type"
   @error_action_needs_pagination "#{@error_action_type}, or pagination is not supported"
   @error_new_function_invalid "The function reference is nil or invalid, should be a function with 2 arity (attrs, opts)"
+
+  @doc """
+  Filters out options that are not relevant based on the presence of related options.
+
+  In the ash case, update and change actions are usually the same. In this case we want
+  to use the primary update action if neither of them were defined. But if only one of 
+  them is defined, then both should used the same provided action.
+
+  The fill_missing_options in in charge of 'copying' the missing one, thus ensuring that
+  both are the same wether one or none were provided and respect the distinction if both were provided.
+  """
+  @impl true
+  def filter_options(valid_options, resource_opts) do
+    has_update? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @update_function_aliases))
+    has_change? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @change_function_aliases))
+
+    case {has_update?, has_change?} do
+      {_, false} -> valid_options -- @change_function_aliases
+      {false, true} -> valid_options -- @update_function_aliases
+      {true, true} -> valid_options
+    end
+  end
 
   @doc """
   Resolves default values for context-derived properties.
@@ -89,6 +113,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
       %Connector{type: :ash, crud_spec: %CrudSpec{...}}
   """
+  @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec option_value(map(), map(), keyword(), atom()) :: Connector.t() | nil
   def option_value(
         _parsed_opts,
@@ -206,8 +231,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
         auix_action
       )
       when auix_action in @change_function_aliases do
+    auix_action = :change_function
     ash_action_type = :update
-    ash_action_name = get_option(opts, @change_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @change_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -230,6 +256,40 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   end
 
   def option_value(_parsed_opts, _resource_config, _opts, _key), do: nil
+
+  @doc """
+  Fills in any missing options with default values derived from the Ecto schema or Ash resource.
+  This function can be used to ensure that all necessary options are populated, even if the user did not explicitly provide them.
+  The implementation can be customized to fill in defaults based on the schema or resource configuration.
+
+  ## Parameters
+  - `parsed_opts` (map()): The current map of parsed options that may be missing some keys.
+  - `resource_config` (map()): The resource configuration that may contain the Ecto
+  schema or Ash resource information needed to derive default values.
+  ## Returns
+  - `map()`: The updated map of parsed options with missing values filled in.
+  """
+  @impl Aurora.Uix.Integration.ContextParserDefaults
+  @spec fill_missing_options(map(), map()) :: map()
+  def fill_missing_options(parsed_opts, _resource_config) do
+    case {parsed_opts[:update_function], parsed_opts[:change_function]} do
+      {nil, nil} ->
+        parsed_opts
+
+      {update_function, nil} ->
+        update_function
+        |> struct(%{auix_action_name: :change_function})
+        |> then(&Map.put(parsed_opts, :change_function, &1))
+
+      {nil, change_function} ->
+        change_function
+        |> struct(%{auix_action_name: :update_function})
+        |> then(&Map.put(parsed_opts, :update_function, &1))
+
+      _ ->
+        parsed_opts
+    end
+  end
 
   ## PRIVATE
 

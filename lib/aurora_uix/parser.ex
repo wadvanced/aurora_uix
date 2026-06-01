@@ -32,6 +32,7 @@ defmodule Aurora.Uix.Parser do
 
   - `get_options/0` - Returns list of option keys the parser supports
   - `option_value/4` - Resolves default values for configuration options
+  - `fill_missing_options/1` - Fills in any missing configuration options after parsing
 
   ## Key Constraints
 
@@ -50,6 +51,14 @@ defmodule Aurora.Uix.Parser do
   Parser implementations use this to declare which configuration options they can resolve.
   The keys are used by `parse/2` to iterate and resolve values through `option_value/4`.
 
+  ## Parameters
+  - `resource_config` (map()) - The resource configuration map passed to `parse/2`, containing keys like
+    `:schema`, `:type`, `:context`, and any default options. This allows parsers to conditionally
+    declare supported options based on the resource configuration.
+  - `opts` (map()) - The resource configuration map passed to `parse/2`, containing keys like
+    `:schema`, `:type`, `:context`, and any default options. This allows parsers to conditionally
+    declare supported options based on the resource configuration.
+
   ## Returns
 
   list(atom()) - List of configuration option keys supported by the parser.
@@ -59,7 +68,7 @@ defmodule Aurora.Uix.Parser do
       iex> Aurora.Uix.Parsers.Common.get_options()
       [:module, :module_name, :name, :source, :source_key, :title, :primary_key]
   """
-  @callback get_options() :: list(atom())
+  @callback get_options(resource_config :: map(), opts :: map()) :: list(atom())
   @doc """
   Resolves the default value for a configuration key.
 
@@ -86,6 +95,20 @@ defmodule Aurora.Uix.Parser do
               opts :: keyword(),
               key :: atom()
             ) :: term()
+
+  @doc """
+  Fills in missing configuration options based on parsed values and resource configuration.
+
+  This callback can be used to perform any final adjustments or fill in derived options after the main parsing process has completed. 
+  It receives the fully parsed options and can return an updated map with any additional options or adjustments needed for UI rendering. 
+
+  ## Parameters
+  - `parsed_opts` (map()) - The fully parsed options after processing all parsers. Contains all resolved configuration values.
+  - `resource_config` (map()) - The original resource configuration passed to `parse/2`. Contains the initial schema, type, context, and any default options.
+  ## Returns
+  map() - An updated map of options with any missing values filled in or adjustments made. This allows for final transformations or derived values to be added after the main parsing process.
+  """
+  @callback fill_missing_options(parsed_opts :: map, resource_config :: map()) :: map()
 
   @doc """
   Parses resource configuration into a structured map for UI rendering.
@@ -191,14 +214,18 @@ defmodule Aurora.Uix.Parser do
     Enum.reduce(
       [Common, ContextParserDefaults],
       %{},
-      &parser_process_options(&1, &2, resource_config, opts)
+      fn parser, parsed_opts ->
+        parser
+        |> parser_process_options(parsed_opts, resource_config, opts)
+        |> parser.fill_missing_options(resource_config)
+      end
     )
   end
 
   # Applies parser options to the parsed_opts accumulator.
   @spec parser_process_options(module(), map(), map(), keyword()) :: map()
   defp parser_process_options(parser, parsed_opts, resource_config, opts) do
-    parser_options = parser.get_options()
+    parser_options = parser.get_options(resource_config, opts)
     Enum.reduce(parser_options, parsed_opts, &add_opt(&1, &2, parser, resource_config, opts))
   end
 
