@@ -104,10 +104,19 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       |> Ash.read(actor_opt)
 
     case read_result do
-      {:ok, results} -> results
+      {:ok, results} ->
+        %Pagination{
+          entries: results,
+          entries_count: length(results),
+          page: 1,
+          pages_count: 1,
+          per_page: length(results) + 1
+        }
+
       # Policy-protected resources without a satisfying actor surface as Forbidden;
       # the LiveView should render an empty index, not crash. Other errors propagate.
-      {:error, %Ash.Error.Forbidden{}} -> []
+      {:error, %Ash.Error.Forbidden{}} ->
+        []
     end
   end
 

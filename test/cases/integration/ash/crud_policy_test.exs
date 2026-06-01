@@ -120,8 +120,8 @@ defmodule Aurora.Uix.Integration.Ash.CrudPolicyTest do
 
     test "returns rows when actor is present" do
       results = AshCrud.list(list_spec(), actor: @actor)
-      assert is_list(results)
-      assert Enum.any?(results, &(&1.name == "visible"))
+      assert is_list(results.entries)
+      assert Enum.any?(results.entries, &(&1.name == "visible"))
     end
 
     test "returns [] when actor is absent (policy filters)" do
@@ -183,7 +183,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudPolicyTest do
       socket_opts = AshCrud.socket_opts(list_spec(), socket)
 
       results = AshCrud.list(list_spec(), socket_opts)
-      assert Enum.any?(results, &(&1.name == "from-handler"))
+      assert Enum.any?(results.entries, &(&1.name == "from-handler"))
     end
 
     test "missing actor in socket.assigns yields empty results, not a crash" do

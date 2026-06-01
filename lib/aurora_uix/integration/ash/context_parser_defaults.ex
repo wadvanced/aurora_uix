@@ -75,14 +75,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   """
   @impl true
   def filter_options(valid_options, resource_opts) do
-    has_update? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @update_function_aliases))
-    has_change? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @change_function_aliases))
-
-    case {has_update?, has_change?} do
-      {_, false} -> valid_options -- @change_function_aliases
-      {false, true} -> valid_options -- @update_function_aliases
-      {true, true} -> valid_options
-    end
+    valid_options
+    |> filter_update_change(resource_opts)
+    |> filter_list_paginated(resource_opts)
   end
 
   @doc """
@@ -272,23 +267,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec fill_missing_options(map(), map()) :: map()
   def fill_missing_options(parsed_opts, _resource_config) do
-    case {parsed_opts[:update_function], parsed_opts[:change_function]} do
-      {nil, nil} ->
-        parsed_opts
-
-      {update_function, nil} ->
-        update_function
-        |> struct(%{auix_action_name: :change_function})
-        |> then(&Map.put(parsed_opts, :change_function, &1))
-
-      {nil, change_function} ->
-        change_function
-        |> struct(%{auix_action_name: :update_function})
-        |> then(&Map.put(parsed_opts, :update_function, &1))
-
-      _ ->
-        parsed_opts
-    end
+    parsed_opts
+    |> fill_missing_update_change()
+    |> fill_missing_list_paginated()
   end
 
   ## PRIVATE
@@ -397,6 +378,75 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       existing_keys
       |> Enum.map(&Keyword.get(opts, &1))
       |> List.first()
+    end
+  end
+
+  @spec filter_update_change(list(), keyword()) :: list()
+  defp filter_update_change(valid_options, resource_opts) do
+    has_update? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @update_function_aliases))
+    has_change? = resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @change_function_aliases))
+
+    case {has_update?, has_change?} do
+      {_, false} -> valid_options -- @change_function_aliases
+      {false, true} -> valid_options -- @update_function_aliases
+      {true, true} -> valid_options
+    end
+  end
+
+  @spec filter_list_paginated(list(), keyword()) :: list()
+  defp filter_list_paginated(valid_options, resource_opts) do
+    has_paginated? =
+      resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @list_function_paginated_aliases))
+
+    has_list? =
+      resource_opts |> Keyword.keys() |> Enum.any?(&(&1 in @list_function_aliases))
+
+    case {has_paginated?, has_list?} do
+      {_, false} -> valid_options -- @list_function_aliases
+      {false, true} -> valid_options -- @list_function_paginated_aliases
+      {true, true} -> valid_options
+    end
+  end
+
+  @spec fill_missing_update_change(map()) :: map()
+  defp fill_missing_update_change(parsed_opts) do
+    case {parsed_opts[:update_function], parsed_opts[:change_function]} do
+      {nil, nil} ->
+        parsed_opts
+
+      {update_function, nil} ->
+        update_function
+        |> struct(%{auix_action_name: :change_function})
+        |> then(&Map.put(parsed_opts, :change_function, &1))
+
+      {nil, change_function} ->
+        change_function
+        |> struct(%{auix_action_name: :update_function})
+        |> then(&Map.put(parsed_opts, :update_function, &1))
+
+      _ ->
+        parsed_opts
+    end
+  end
+
+  @spec fill_missing_list_paginated(map()) :: map()
+  defp fill_missing_list_paginated(parsed_opts) do
+    case {parsed_opts[:list_function_paginated], parsed_opts[:list_function]} do
+      {nil, nil} ->
+        parsed_opts
+
+      {list_function_paginated, nil} ->
+        list_function_paginated
+        |> struct(%{auix_action_name: :list_function})
+        |> then(&Map.put(parsed_opts, :list_function, &1))
+
+      {nil, list_function} ->
+        list_function
+        |> struct(%{auix_action_name: :list_function_paginated})
+        |> then(&Map.put(parsed_opts, :list_function_paginated, &1))
+
+      _ ->
+        parsed_opts
     end
   end
 end
