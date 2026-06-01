@@ -64,6 +64,7 @@ jobs:
     
     - name: Setup assets
       run: |
+        mix auix.gen.stylesheet --baseline
         mix assets.setup
         mix assets.build    
 
