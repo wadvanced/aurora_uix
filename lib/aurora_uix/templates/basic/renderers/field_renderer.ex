@@ -12,6 +12,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
 
   alias Aurora.Uix.Counter
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -146,7 +147,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
           id={field_id(@auix.form, @field, @auix.primary_key, @auix.layout_type)}
           field={@auix.form[@field.key]}
           type={"#{@field.html_type}"}
-          label={@field.label}
+          label={dt(@field.label)}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}
@@ -172,7 +173,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
           name={@field.key}
           value={Map.get(@auix.entity || %{}, @field.key)}
           type={"#{@field.html_type}"}
-          label={@field.label}
+          label={dt(@field.label)}
           options={@select_opts[:options]}
           multiple={@select_opts[:multiple]}
           readonly={@field.readonly}

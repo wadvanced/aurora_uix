@@ -32,6 +32,8 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   - `:change_function` - Creates a changeset for updates
   - `:new_function` - Creates a new resource struct
   """
+  @behaviour Aurora.Uix.Integration.ContextParserDefaults
+
   alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Integration.Ctx.CrudSpec
 
@@ -43,6 +45,9 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   @update_function :update_function
   @change_function :change_function
   @new_function :new_function
+
+  @impl true
+  def filter_options(valid_options, _resource_opts), do: valid_options
 
   @doc """
   Resolves default function references for Context-based operations.
@@ -73,6 +78,7 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
       iex> default_value(%{module: "post"}, %{context: MyApp.Blog}, :get_function)
       %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
   """
+  @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec option_value(map(), map(), keyword(), atom()) :: Connector.t()
   def option_value(
         %{source: source, module: module},
@@ -210,6 +216,22 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
     function_ref = Keyword.get(opts, @new_function)
     create_connector(context, function_ref, ["new_#{module}"], 2, resource_name, auix_action_name)
   end
+
+  @doc """
+  Fills in any missing options with default values derived from the Ecto schema or Ash resource.
+  This function can be used to ensure that all necessary options are populated, even if the user did not explicitly provide them.
+  The implementation can be customized to fill in defaults based on the schema or resource configuration.
+
+  ## Parameters
+  - `parsed_opts` (map()): The current map of parsed options that may be missing some keys.
+  - `resource_config` (map()): The resource configuration that may contain the Ecto
+  schema or Ash resource information needed to derive default values.
+  ## Returns
+  - `map()`: The updated map of parsed options with missing values filled in.
+  """
+  @impl Aurora.Uix.Integration.ContextParserDefaults
+  @spec fill_missing_options(map(), map()) :: map()
+  def fill_missing_options(parsed_opts, _resource_config), do: parsed_opts
 
   @doc false
   # Placeholder function used when no valid function reference is found.

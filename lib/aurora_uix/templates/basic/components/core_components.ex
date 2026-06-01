@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
                     phx-click={JS.exec("data-cancel", to: "##{@id}")}
                     type="button"
                     class="auix-modal-close-button"
-                    aria-label={gettext("close")}
+                    aria-label={dt("close")}
                   >
                     <.icon
                     name="hero-x-mark" class="auix-icon-size-button" />
@@ -135,7 +135,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
           <span>{@title}</span>
         </div>
-        <button type="button" class="auix-flash-close-button" aria-label={gettext("close")}>
+        <button type="button" class="auix-flash-close-button" aria-label={dt("close")}>
           <.icon name="hero-x-circle" />
         </button>
       </div>
@@ -158,29 +158,29 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def flash_group(assigns) do
     ~H"""
     <div id={@id}>
-      <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
-      <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
+      <.flash kind={:info} title={dt("Success!")} flash={@flash} />
+      <.flash kind={:error} title={dt("Error!")} flash={@flash} />
       <.flash
         id="client-error"
         kind={:error}
-        title={gettext("We can't find the internet")}
+        title={dt("We can't find the internet")}
         phx-disconnected={uix_show(".phx-client-error #client-error")}
         phx-connected={uix_hide("#client-error")}
         hidden
       >
-        {gettext("Attempting to reconnect")}
+        {dt("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
       </.flash>
 
       <.flash
         id="server-error"
         kind={:error}
-        title={gettext("Something went wrong!")}
+        title={dt("Something went wrong!")}
         phx-disconnected={uix_show(".phx-server-error #server-error")}
         phx-connected={uix_hide("#server-error")}
         hidden
       >
-        {gettext("Hang in there while we get back on track")}
+        {dt("Hang in there while we get back on track")}
         <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
       </.flash>
     </div>

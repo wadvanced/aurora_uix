@@ -19,8 +19,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   > which will import either this module or a custom one as configured in your application or template.
 
   """
-  use Aurora.Uix.Gettext
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
@@ -220,7 +220,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         </tbody>
       </table>
       <div :if={@auix.empty_list?} class="auix-items-table-empty">
-        {gettext("No items to show")}
+        {dt("No items to show")}
       </div>
     </div>
     """
@@ -297,7 +297,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               </div>
               <div class="auix-items-card-item">
                 <div :for={col <- get_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
-                  <div class="auix-items-card-item-label">{col.label}</div>
+                  <div class="auix-items-card-item-label">{dt(col.label)}</div>
                   <div class="auix-items-card-item-value" name="auix-column-value">
                     {render_slot(col, @row_item.(row))}
                   </div>
@@ -313,7 +313,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         </div>
       </div>
       <div :if={@auix.empty_list?} class="auix-items-card-empty">
-        {gettext("No items to show")}
+        {dt("No items to show")}
       </div>
     </div>
     """
@@ -470,7 +470,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp table_column_label(assigns) do
     ~H"""
-    {@label}
+    {dt(@label)}
     """
   end
 

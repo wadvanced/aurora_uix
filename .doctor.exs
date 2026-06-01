@@ -3,7 +3,7 @@
     Aurora.Uix.Guides.Accounts.User.Email,
     Aurora.Uix.Guides.Accounts.User.Profile,
     Aurora.Uix.Gettext,
-    Aurora.Uix.Layout.CreateLayout,
+    Aurora.Uix.Layout.CreateUI,
     Aurora.Uix.Layout.Options,
     Aurora.Uix.Layout.ResourceMetadata,
     Aurora.Uix.Templates.Theme

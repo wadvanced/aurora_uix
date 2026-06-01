@@ -6,6 +6,17 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest.Consumer do
   def consume_image([binary]), do: {:ok, binary}
 end
 
+defmodule Aurora.UixWeb.Test.UploadFieldTest.SocketAwareConsumer do
+  @moduledoc false
+
+  @doc false
+  @spec consume_with_action(Phoenix.LiveView.Socket.t(), list(binary())) :: {:ok, binary()}
+  def consume_with_action(socket, binaries) do
+    action = to_string(socket.assigns[:action] || :unknown)
+    {:ok, "#{action}:#{List.first(binaries, "")}"}
+  end
+end
+
 defmodule Aurora.UixWeb.Test.UploadFieldTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
@@ -186,6 +197,68 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
       }
 
       assert BasicHelpers.upload_fields(auix) == []
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.SocketAwareUploadFieldTest do
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Repo
+  alias Aurora.UixWeb.Test.UploadFieldTest.SocketAwareConsumer
+
+  auix_resource_metadata :product, context: Inventory, schema: Product do
+    field(:image,
+      data: %{
+        upload: %{
+          allow: [accept: ~w(.png .jpg), max_entries: 1],
+          consume: &SocketAwareConsumer.consume_with_action/2
+        }
+      }
+    )
+  end
+
+  # Route registered as "socket-aware-upload-products" in test/support/app_web/routes.ex
+  auix_create_ui do
+    edit_layout :product, [] do
+      stacked([:reference, :name, :quantity_initial, :image])
+    end
+  end
+
+  describe "arity-2 socket-aware consume callback" do
+    test "consume receives socket and embeds assign-derived data in persisted value",
+         %{conn: conn} do
+      delete_all_inventory_data()
+      reference = "socket-aware-upload-#{System.unique_integer([:positive])}"
+      {:ok, view, _html} = live(conn, "/socket-aware-upload-products/new")
+
+      content = "fake-png-binary-content"
+
+      upload =
+        file_input(view, "#auix-product-form", :image, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "test.png",
+            content: content,
+            size: byte_size(content),
+            type: "image/png"
+          }
+        ])
+
+      render_upload(upload, "test.png")
+
+      view
+      |> form("#auix-product-form",
+        product: %{reference: reference, name: "Socket Aware Upload", quantity_initial: 0}
+      )
+      |> render_submit()
+
+      product = Repo.get_by!(Product, reference: reference)
+      # The arity-2 consumer prefixes the binary with the live_action assign value.
+      assert product.image == "new:#{content}"
     end
   end
 end

@@ -28,12 +28,23 @@ defmodule Aurora.Uix.Field do
 
         - `:allow` — keyword list forwarded to `Phoenix.LiveView.allow_upload/3`
           (`:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, …).
-        - `:consume` — arity-1 callback. Receives a list of consumed binaries (`[binary()]`)
-          and must return:
+        - `:consume` — callback invoked with the consumed binaries. Arity is detected
+          automatically via `Function.info/1`:
+
+          | Arity | Call shape                           | When to use                                     |
+          |-------|--------------------------------------|-------------------------------------------------|
+          | 1     | `consume.(binaries)`                 | Pure transform; no socket context needed.       |
+          | 2     | `consume.(socket, binaries)`         | Needs socket assigns (e.g. `current_user`).     |
+          | 3     | `consume.(socket, binaries, key)`    | One callback handles multiple upload fields.    |
+
+          All arities must return one of:
           - `{:ok, value}` — `value` is written onto the entity params under the field key.
           - `:no_change` — the field is left untouched; no-file-selected is also short-circuited
             to `:no_change` so the callback need not handle an empty list.
           - `{:error, reason}` — save aborts and `reason` is shown as an error flash.
+
+          The socket is **never** returned by `:consume`; use `handle_event("save", …)` override
+          for socket mutations on save.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.

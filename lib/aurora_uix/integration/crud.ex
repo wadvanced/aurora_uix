@@ -317,13 +317,14 @@ defmodule Aurora.Uix.Integration.Crud do
   @spec apply_change_function(Connector.t(), struct(), atom() | binary(), map(), keyword()) ::
           struct()
   def apply_change_function(
-        %Connector{type: type, crud_spec: crud_spec},
+        %Connector{type: type, crud_spec: crud_spec} = _function_ref,
         entity,
         form_name,
         attrs \\ %{},
         opts \\ []
-      ),
-      do: get_crud_module(type).change(crud_spec, entity, form_name, attrs, opts)
+      ) do
+    get_crud_module(type).change(crud_spec, entity, form_name, attrs, opts)
+  end
 
   @doc """
   Creates a new entity struct using the provided Connector.

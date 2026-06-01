@@ -68,7 +68,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
     ~H"""
       <.button class="auix-button--alt" type="button" phx-click="toggle-add-embeds" phx-target={@target}>
         <.icon name="hero-plus" class="auix-icon-size-button"/> 
-        <span>{gettext("Add new entry")}</span>
+        <span>{dt("Add new entry")}</span>
       </.button>
     """
   end
@@ -93,7 +93,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
       <%= if Enum.count(@auix.form[@field.key].value) > 0 do %>
         <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
           <.icon name="hero-plus" class="auix-icon-size-button" />
-          <span>{gettext("Add new entry")}</span>
+          <span>{dt("Add new entry")}</span>
         </.button>
       <% end %>
     """
@@ -120,7 +120,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
       <.button type="submit" class="auix-button--alt" form={@form_id} phx-target={@target}
           disabled={@disabled}>
         <.icon name="hero-plus" class="auix-icon-size-button" />
-        <span>{gettext("Add")}</span>
+        <span>{dt("Add")}</span>
       </.button>
     """
   end
@@ -154,8 +154,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
 
         <:confirm_message>
           <div class="auix-embeds-many--remove-entry-action">
-            <span class="auix-header-title">{gettext("Entry:")} {@entry_index + 1}</span>
-            <span>{gettext("Do you want to remove this entry?")}</span>
+            <span class="auix-header-title">{dt("Entry:")} {@entry_index + 1}</span>
+            <span>{dt("Do you want to remove this entry?")}</span>
           </div>
         </:confirm_message>
         

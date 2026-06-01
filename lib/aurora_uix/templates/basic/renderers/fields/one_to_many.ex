@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Integration.Crud
 
@@ -95,7 +96,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
             layout_options: %{pagination_disabled?: false, infinite_scroll_items_load: nil}}}
           streams={get_in(@auix, [:entity, Access.key!(@field.key)])}
         >
-          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={"#{related_field.label}"} field={related_field}>
+          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={dt(related_field.label)} field={related_field}>
             {display_value(entity, related_field.key)}
           </:col>
           <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>

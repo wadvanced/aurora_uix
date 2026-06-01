@@ -2114,6 +2114,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_embeds_one_empty_msg) do
+    """
+    .auix-embeds-one-empty-msg {
+       font-size: var(--auix-font-size-small); 
+       font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
   def rule(:auix_embeds_many_container) do
     """
     .auix-embeds-many-container {

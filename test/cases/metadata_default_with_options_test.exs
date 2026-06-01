@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
   end
 
   test "Test the `auix_resource` function with multiple resources" do
-    product = __MODULE__.auix_resource(:product).product
+    product = __MODULE__.auix_resource(:product)
 
     assert product.schema == Aurora.Uix.Guides.Inventory.Product
     assert product.context == Aurora.Uix.Guides.Inventory
@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataDefaultWithOptionsTest do
     assert product.fields != []
 
     product_transaction =
-      __MODULE__.auix_resource(:product_transaction).product_transaction
+      __MODULE__.auix_resource(:product_transaction)
 
     assert product_transaction.schema == Aurora.Uix.Guides.Inventory.ProductTransaction
     assert product_transaction.context == Aurora.Uix.Guides.Inventory

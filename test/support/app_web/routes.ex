@@ -149,6 +149,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          GettextDomainTest,
+          "gettext-domain-"
+        )
+
+        RoutesHelper.register_product_crud(
           AssociationOne2ManyUIActionsTest,
           "association-one_to_many-actions-"
         )
@@ -256,6 +261,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_crud(
           UploadFieldErrorTest.Product,
           "upload-field-error-products"
+        )
+
+        RoutesHelper.register_crud(
+          SocketAwareUploadFieldTest.Product,
+          "socket-aware-upload-products"
         )
 
         RoutesHelper.register_crud(

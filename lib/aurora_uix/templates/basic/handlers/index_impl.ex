@@ -317,7 +317,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       with %{} = entity <- apply_get_function(get_function, id, get_opts),
            {:ok, _changeset} <- apply_delete_function(delete_function, entity, delete_opts) do
         socket
-        |> put_flash(:info, gettext("Item deleted successfully"))
+        |> put_flash(:info, dt("Item deleted successfully"))
         |> push_patch(to: socket.assigns.auix[:_current_path])
       else
         _ -> socket
@@ -340,7 +340,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      socket
      |> stream_delete(auix.source_key, entity)
      |> assign_selected_states()
-     |> put_flash(:info, gettext("Item deleted successfully"))
+     |> put_flash(:info, dt("Item deleted successfully"))
      |> refresh_current_page()}
   end
 

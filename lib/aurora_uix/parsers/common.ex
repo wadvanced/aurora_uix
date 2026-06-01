@@ -21,14 +21,8 @@ defmodule Aurora.Uix.Parsers.Common do
 
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
 
-  @doc """
-  Returns the list of supported option keys for schema metadata extraction.
-
-  ## Returns
-  list(atom()) - List of supported option keys.
-  """
-  @spec get_options() :: list(atom())
-  def get_options do
+  @impl true
+  def get_options(_resource_config, _opts) do
     [
       :module,
       :module_name,
@@ -40,21 +34,7 @@ defmodule Aurora.Uix.Parsers.Common do
     ]
   end
 
-  @doc """
-  Resolves the default value for a given schema-derived property.
-
-  Uses the Ecto schema module to extract metadata. Requires `:schema` key in
-  resource_config containing a valid Ecto schema module.
-
-  ## Parameters
-  - `parsed_opts` (map()) - Accumulator for parsed options.
-  - `resource_config` (map()) - Contains `:schema` (module()) - the Ecto schema module.
-  - `key` (atom()) - The property key to resolve.
-
-  ## Returns
-  term() - The resolved default value for the property.
-  """
-  @spec option_value(map(), map(), keyword(), atom()) :: term()
+  @impl true
   def option_value(_parsed_opts, %{schema: module}, _opts, :module) do
     module
     |> Module.split()
@@ -87,6 +67,9 @@ defmodule Aurora.Uix.Parsers.Common do
   def option_value(_parsed_opts, %{schema: module}, _opts, :primary_key) do
     module.__schema__(:primary_key)
   end
+
+  @impl true
+  def fill_missing_options(parsed_opts, _resource_config), do: parsed_opts
 
   ## PRIVATE
   @spec process_name(map(), map(), keyword(), boolean()) :: binary()

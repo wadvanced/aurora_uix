@@ -14,10 +14,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   use Phoenix.LiveView
 
   import Aurora.Uix.Templates.Basic.Components
-  import Aurora.Uix.Templates.Basic.RoutingComponents
 
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -39,6 +39,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
+    default_show_function =
+      case Enum.find(assigns.auix.index_row_actions, &(&1.name == :default_row_show)) do
+        nil -> nil
+        default_show_action -> Map.get(default_show_action, :function_component)
+      end
+
+    assigns = Map.put(assigns, :default_show_function, default_show_function)
+
     ~H"""
     <div id={"auix-table-#{@auix.uri_path_id}-index-hook"} class="auix-index-container" phx-hook="AuixThemeName">
     </div>
@@ -89,13 +97,15 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
                       auix={@auix}/>
           </:filter_element>
 
-          <:col :let={{_id, entity}} :for={field <- @auix.index_fields} label={field.label} field={field}>
-            <%= if field.key == :selected_check__ do %>
+          <:col :let={{_id, entity} = row_info} :for={field <- @auix.index_fields} label={dt(field.label)} field={field}>
+            <%= if field.key == :selected_check__ or !@default_show_function do %>
               <.field_value entity={entity} field={field} auix={@auix}/>
             <% else %>
-              <.auix_link href="#" name={"auix-show-#{@auix.module}"} patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(entity, @auix.primary_key)}/show"}>
-                <.field_value entity={entity} field={field} auix={@auix}/>
-              </.auix_link>
+              {@default_show_function.(%{auix: Map.put(@auix, :row_info, row_info),
+                contents: [%{inner_block: fn _, _ -> 
+                  assigns = %{entity: entity, field: field, auix: @auix}
+                  ~H"<.field_value entity={@entity} field={@field} auix={@auix}/>" end}]}
+              )}
             <% end %>
           </:col>
 
@@ -136,6 +146,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   end
 
   # PRIVATE
+
   @spec entity_id(map()) :: term() | list() | nil
   defp entity_id(%{entity: entity, primary_key: primary_key}),
     do: BasicHelpers.primary_key_value(entity, primary_key)
@@ -173,7 +184,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           name={"#{@field.key}#{@selected_id}"}
           value={Map.get(@entity, @field.key)}
           type={"#{@field.html_type}"}
-          label={@field.label}
+          label={dt(@field.label)}
           disabled={@auix.selection.toggle_all_mode != :none}
         />
     """
