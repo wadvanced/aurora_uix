@@ -253,6 +253,22 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     {:noreply, Phoenix.LiveView.cancel_upload(socket, key, ref)}
   end
 
+  def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
+    key = String.to_existing_atom(field)
+    binary = Map.get(socket.assigns.auix[:entity] || %{}, key)
+
+    socket =
+      if binary,
+        do:
+          Phoenix.LiveView.push_event(socket, "auix_download", %{
+            name: to_string(key),
+            data: Base.encode64(binary)
+          }),
+        else: socket
+
+    {:noreply, socket}
+  end
+
   def auix_handle_event(event, params, _socket) do
     raise "Event not handled. event: #{inspect(event)}. params: #{inspect(params)}"
   end

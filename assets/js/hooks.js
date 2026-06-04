@@ -8,4 +8,17 @@ Hooks.AuixThemeName = {
   }
 }
 
+window.addEventListener("phx:auix_download", ({ detail: { name, data } }) => {
+  const bytes = Uint8Array.from(atob(data), c => c.charCodeAt(0))
+  const blob = new Blob([bytes])
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+})
+
 export { Hooks }

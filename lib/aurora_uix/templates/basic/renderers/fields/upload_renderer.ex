@@ -7,38 +7,78 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   use Aurora.Uix.Gettext
 
   @doc """
-  Renders a file upload field for a form.
+  Renders a file upload field.
+
+  In show mode, renders a download button when a file exists, or a "No file" indicator otherwise.
+  In edit mode, shows a download button when the entity already has a file. The file input and
+  entry list are only rendered when the field is not readonly or disabled.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
+  def render(%{auix: %{layout_type: :show, entity: entity}, field: field} = assigns) do
+    file_ref = Map.get(entity || %{}, field.key)
+    assigns = assign(assigns, :file_ref, file_ref)
+
+    ~H"""
+    <div class="auix-form-field-container">
+      <.label>{dt(@field.label)}</.label>
+      <%= if @file_ref do %>
+        <.button
+          type="button"
+          phx-click="auix_download_upload"
+          phx-value-field={to_string(@field.key)}
+          phx-target={@auix._myself}
+        >
+          {dt("Download")}
+        </.button>
+      <% else %>
+        <span>{dt("No file")}</span>
+      <% end %>
+    </div>
+    """
+  end
+
   def render(%{field: field} = assigns) do
     upload = Map.get(assigns[:uploads] || %{}, field.key)
-    assigns = assign(assigns, :upload, upload)
+    file_ref = Map.get((assigns[:auix] || %{})[:entity] || %{}, field.key)
+    assigns = assigns |> assign(:upload, upload) |> assign(:file_ref, file_ref)
 
     ~H"""
     <%= if @upload do %>
       <div class="auix-form-field-container">
-        <label class="auix-form-field-label">{dt(@field.label)}</label>
-        <.live_file_input upload={@upload} />
-        <%= for entry <- @upload.entries do %>
-          <div class="auix-upload-entry">
-            <span class="auix-upload-entry-name">{entry.client_name}</span>
-            <span class="auix-upload-entry-progress">{entry.progress}%</span>
-            <button
-              type="button"
-              phx-click="auix_cancel_upload"
-              phx-value-field={to_string(@field.key)}
-              phx-value-ref={entry.ref}
-              phx-target={@auix._myself}
-            >
-              &times;
-            </button>
-            <%= for err <- upload_errors(@upload, entry) do %>
-              <span class="auix-upload-entry-error">{Phoenix.Naming.humanize(err)}</span>
-            <% end %>
-          </div>
+        <.label>{dt(@field.label)}</.label>
+        <%= if @file_ref do %>
+          <.button
+            type="button"
+            phx-click="auix_download_upload"
+            phx-value-field={to_string(@field.key)}
+            phx-target={@auix._myself}
+          >
+            {dt("Download")}
+          </.button>
         <% end %>
-        <%= for err <- upload_errors(@upload) do %>
-          <span class="auix-upload-error">{Phoenix.Naming.humanize(err)}</span>
+        <%= unless @field.readonly or @field.disabled do %>
+          <.live_file_input upload={@upload} />
+          <%= for entry <- @upload.entries do %>
+            <div class="auix-upload-entry">
+              <span>{entry.client_name}</span>
+              <span>{entry.progress}%</span>
+              <.button
+                type="button"
+                phx-click="auix_cancel_upload"
+                phx-value-field={to_string(@field.key)}
+                phx-value-ref={entry.ref}
+                phx-target={@auix._myself}
+              >
+                &times;
+              </.button>
+              <%= for err <- upload_errors(@upload, entry) do %>
+                <.error>{Phoenix.Naming.humanize(err)}</.error>
+              <% end %>
+            </div>
+          <% end %>
+          <%= for err <- upload_errors(@upload) do %>
+            <.error>{Phoenix.Naming.humanize(err)}</.error>
+          <% end %>
         <% end %>
       </div>
     <% end %>

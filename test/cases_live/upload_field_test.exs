@@ -42,6 +42,10 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui do
+    show_layout :product do
+      stacked([:reference, :name, :quantity_initial, :image])
+    end
+
     edit_layout :product, [] do
       stacked([:reference, :name, :quantity_initial, :image])
     end
@@ -162,6 +166,79 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
       |> render_click()
 
       refute has_element?(view, ".auix-upload-entry")
+    end
+  end
+
+  describe "show mode" do
+    test "renders a download button when the entity has a file", %{conn: conn} do
+      delete_all_inventory_data()
+      content = "fake-image-binary"
+
+      product =
+        Repo.insert!(%Product{
+          reference: "show-with-file-#{System.unique_integer([:positive])}",
+          name: "Show With File",
+          quantity_initial: 0,
+          image: content
+        })
+
+      {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/show")
+
+      assert has_element?(view, "button[phx-click='auix_download_upload']")
+      refute has_element?(view, "input[type='file']")
+    end
+
+    test "renders a 'No file' indicator when the entity has no file", %{conn: conn} do
+      delete_all_inventory_data()
+
+      product =
+        Repo.insert!(%Product{
+          reference: "show-no-file-#{System.unique_integer([:positive])}",
+          name: "Show No File",
+          quantity_initial: 0
+        })
+
+      {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/show")
+
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "span", "No file")
+    end
+  end
+
+  describe "edit mode with existing file" do
+    test "shows download button alongside file input when entity already has a file",
+         %{conn: conn} do
+      delete_all_inventory_data()
+      content = "existing-image-binary"
+
+      product =
+        Repo.insert!(%Product{
+          reference: "edit-with-file-#{System.unique_integer([:positive])}",
+          name: "Edit With File",
+          quantity_initial: 0,
+          image: content
+        })
+
+      {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/edit")
+
+      assert has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "input[type='file']")
+    end
+
+    test "does not show download button in edit form when entity has no file", %{conn: conn} do
+      delete_all_inventory_data()
+
+      product =
+        Repo.insert!(%Product{
+          reference: "edit-no-file-#{System.unique_integer([:positive])}",
+          name: "Edit No File",
+          quantity_initial: 0
+        })
+
+      {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/edit")
+
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "input[type='file']")
     end
   end
 
