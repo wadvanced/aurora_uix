@@ -33,7 +33,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
 - **Association Support** — First-class support for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`.
 - **Responsive Design** — Mobile-first layouts that work seamlessly on all devices.
-- **i18n Support** — Built-in internationalization via configurable Gettext backend.
+- **i18n Support** — Built-in internationalization via a configurable Gettext backend. Missing translations are automatically written to `.pot` files at runtime so translators always have up-to-date templates. Opt-in `Logger` warnings surface gaps during development. See the [Internationalization guide](./guides/core/internationalization.md).
 - **Customizable Themes** — Besides the included themes, you can create your own or override partially the existing ones.
 
 **Technology Stack:**
@@ -223,6 +223,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
 - **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
 - **[Styling](./guides/core/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
+- **[Internationalization](./guides/core/internationalization.md)** — Configuring the Gettext backend, automatic POT generation, and translation workflow
 - **[CSS Bridges](./guides/advanced/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 

@@ -34,6 +34,19 @@ Requires:
   - auix_layout_trees(): is the layout trees as defined (without the default ones)
   - auix_configurations(): fat configurations information, all UI is generated from this mappings
 
+- **Complete Gettext backend with automatic POT generation**
+  - `Aurora.Uix.GettextBackend` now implements all three `Gettext.Backend` callbacks:
+    `handle_missing_translation/5`, `handle_missing_plural_translation/7`, and
+    `handle_missing_bindings/2`.
+  - Missing singular and plural translations are appended as stubs to the matching `.pot`
+    file when `gettext_pot_path` is configured, keeping translation templates in sync with
+    the UI without manual editing.
+  - New `gettext_show_warnings?` config key (default `false`) opts in to `Logger.warning`
+    emission for missing translations during development. Configure in `config/dev.exs`.
+  - New `gettext_domain` config key (compile-time) isolates Aurora UIX strings in their own
+    Gettext domain, preventing `mix gettext.merge` from intermixing them with host strings.
+  - See the new [Internationalization guide](./guides/core/internationalization.md).
+
 ### Changed
 
 - **Stylesheet split for host-theme inheritance** [#259](https://github.com/wadvanced/aurora_uix/issues/259)
