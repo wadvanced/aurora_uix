@@ -30,8 +30,6 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
 # Configure Ash domains
 config :aurora_uix, ash_domains: [Aurora.Uix.Guides.Blog]
 
-config :aurora_uix, gettext_pot_path: Path.relative_to_cwd("priv/gettext")
-
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
