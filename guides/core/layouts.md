@@ -405,81 +405,197 @@ Actions are defined as `Aurora.Uix.Action` structs with:
 - `:name` — unique identifier (atom or binary)
 - `:function_component` — a function that receives assigns and returns rendered output
 
-Actions are organized into **action groups** specific to each layout type. Each group represents a location where actions are rendered (headers, footers, rows, etc.).
+Actions are organized into **action groups** specific to each layout type. Each group represents a location where actions are rendered (headers, footers, rows, etc.). To customize a group you write an **operation key** as a layout option — the key tells Aurora UIX both which group to target and what to do (add, insert, replace, or remove). The same key name (e.g. `add_header_action`) targets a different internal group depending on which layout macro you are inside.
 
-### Action Groups by Layout Type
+### Index Layout Actions
 
-**Index Layout:**
-- `:index_row_actions` — Actions for each table row (show, edit, delete)
-- `:index_selected_actions` — Actions when items are selected (uncheck all, delete all, check all)
-- `:index_selected_all_actions` — Toggle selection of all rows in current page
-- `:index_header_actions` — Actions in the page header (toggle filters, clear filters, submit filters, new)
-- `:index_footer_actions` — Actions in the page footer (pagination)
-- `:index_filters_actions` — Actions in the filters section
+```
+┌───────────────────────────────────────────────────────────┐
+│  PAGE HEADER                                              │
+│  ┌─ :index_header_actions ─────────────────────────────┐  │
+│  │  [toggle_filters]  [clear]  [submit]  [new]         │  │
+│  └─────────────────────────────────────────────────────┘  │
+│                                                           │
+│  ┌─ :index_selected_all_actions ───────────────────────┐  │
+│  │  [toggle_all_selected checkbox]                     │  │
+│  ├─ :index_selected_actions ───────────────────────────┤  │
+│  │  [uncheck_all]  [delete_all]  [check_all]           │  │
+│  └─────────────────────────────────────────────────────┘  │
+│                                                           │
+│  ┌──────┬────────────────┬─────────────────────────────┐  │
+│  │  □   │  Col A  Col B  │  :index_row_actions         │  │
+│  │  □   │  ...           │  [show]  [edit]  [delete]   │  │
+│  │  □   │  ...           │  [show]  [edit]  [delete]   │  │
+│  └──────┴────────────────┴─────────────────────────────┘  │
+│                                                           │
+│  ┌─ :index_filters_actions ────────────────────────────┐  │
+│  │  (filters panel, shown when toggle_filters active)  │  │
+│  └─────────────────────────────────────────────────────┘  │
+│                                                           │
+│  ┌─ :index_footer_actions ─────────────────────────────┐  │
+│  │  [← prev]  [1] [2] [3]  [next →]   (pagination)     │  │
+│  └─────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────┘
+```
 
-**Form Layout:**
-- `:form_header_actions` — Actions in the form header (typically empty by default)
-- `:form_footer_actions` — Actions in the form footer (save button)
+> The slot labels above (`:index_header_actions`, etc.) are internal names used in socket assigns. Use the operation key prefixes in the table below as your `index_columns` options.
 
-**Show Layout:**
-- `:show_header_actions` — Actions in the show page header (edit button)
-- `:show_footer_actions` — Actions in the show page footer (back link)
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_clear`, `:default_submit`, `:default_new` |
+| `*_selected_all_action` | replace, remove *(no add / insert)* | `:default_toggle_all_selected` |
+| `*_selected_action` | add, insert, replace, remove | `:default_selected_uncheck_all`, `:default_selected_delete_all`, `:default_selected_check_all` |
+| `*_filters_action` | add, insert, replace, remove | *(none by default)* |
+| `*_row_action` | add, insert, replace, remove | `:default_row_show`, `:default_row_edit`, `:default_row_delete` |
+| `*_footer_action` | add, insert, replace, remove | `:default_pagination` |
 
-**One-to-Many & Embeds-Many Layouts:**
-- `:one_to_many_header_actions` / `:embeds_many_header_actions`
-- `:one_to_many_footer_actions` / `:embeds_many_footer_actions`
-- `:one_to_many_row_actions` / `:embeds_many_row_actions`
-- `:embeds_many_new_entry_actions`
-- `:embeds_many_existing_actions`
+### Form Layout Actions
+
+```
+┌──────────────────────────────────────────┐
+│  ┌─ :form_header_actions ─────────────┐  │
+│  │  (empty by default)                │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│   field: value                           │
+│   field: value                           │
+│                                          │
+│  ┌─ :form_footer_actions ─────────────┐  │
+│  │  [Save]                            │  │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
+```
+
+> Use the operation key prefixes below as your `edit_layout` options.
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
+| `*_footer_action` | add, insert, replace, remove | `:default_save` |
+
+### Show Layout Actions
+
+```
+┌──────────────────────────────────────────┐
+│  ┌─ :show_header_actions ─────────────┐  │
+│  │  [Edit]                            │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│   field: value                           │
+│   field: value                           │
+│                                          │
+│  ┌─ :show_footer_actions ─────────────┐  │
+│  │  [← Back]                          │  │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
+```
+
+> Use the operation key prefixes below as your `show_layout` options.
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | `:default_edit` |
+| `*_footer_action` | add, insert, replace, remove | `:default_back` |
+
+### One-to-Many & Embeds-Many Layout Actions
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ┌─ :one_to_many_header_actions ──────────────────────┐  │
+│  │  (embeds_many: new entry button)                   │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌──────────────────────┬─────────────────────────────┐  │
+│  │  field  field        │ :one_to_many_row_actions    │  │
+│  │  ...                 │ :embeds_many_row_actions    │  │
+│  └──────────────────────┴─────────────────────────────┘  │
+│                                                          │
+│  ┌─ :embeds_many_new_entry_actions ───────────────────┐  │
+│  │  (inline new-entry form controls)                  │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :embeds_many_existing_actions ────────────────────┐  │
+│  │  (per-row existing entry controls)                 │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :one_to_many_footer_actions ──────────────────────┐  │
+│  │  (empty by default)                                │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+> `one_to_many` and `embeds_many` share similar slot positions but differ in available operation keys — see both tables below.
+
+**one_to_many layout options:**
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
+| `*_row_action` | add, insert, replace, remove | *(none by default)* |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+**embeds_many layout options:**
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
+| `*_new_entry_action` | add, insert, replace, remove | *(none by default)* |
+| `*_existing_action` | add, insert, replace, remove | *(none by default)* |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
 
 ### Action Operations
 
-Aurora UIX provides four operations to customize actions in layout options:
+Aurora UIX provides four operations to customize actions in layout options. The operation key you write combines the operation (`add_`, `insert_`, `replace_`, `remove_`) with the slot suffix (`_header_action`, `_row_action`, etc.) — for example `add_header_action`, `replace_row_action`. Because the same suffix maps to different internal groups per layout type, `add_header_action` inside `index_columns` targets the index header, while the same key inside `edit_layout` targets the form header.
 
-**Add Action** — Appends action to the end of the group:
+**Add Action** — Appends an action to the end of the group:
 ```elixir
+# Append a custom archive button after the default row actions
 add_row_action: {:archive, &MyViews.archive_action/1}
+
+# Append an Export CSV button after the default header actions (toggle_filters, clear, submit, new)
+add_header_action: {:export, &MyViews.export_action/1}
+
+# Append a "Save and Continue" button after the default Save button in a form
+add_footer_action: {:save_continue, &MyViews.save_and_continue_action/1}
 ```
 
-**Insert Action** — Prepends action to the beginning of the group:
+**Insert Action** — Prepends an action to the beginning of the group:
 ```elixir
+# Prepend an Approve button before the default row actions (show, edit, delete)
 insert_row_action: {:approve, &MyViews.approve_action/1}
+
+# Prepend a Help link before the default header actions
+insert_header_action: {:help, &MyViews.help_action/1}
+
+# Prepend a Cancel button before the default Save button in a form
+insert_footer_action: {:cancel, &MyViews.cancel_action/1}
 ```
 
 **Replace Action** — Replaces an existing action by name:
 ```elixir
+# Swap the default edit icon for a custom styled one in row actions
 replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1}
+
+# Swap the default New button for one that opens a slide-over instead of navigating
+replace_header_action: {:default_new, &MyViews.slide_over_new_action/1}
+
+# Swap the default Save button for one with a loading spinner
+replace_footer_action: {:default_save, &MyViews.spinner_save_action/1}
 ```
 
 **Remove Action** — Removes an action by name:
 ```elixir
-remove_row_action: :default_row_delete
+# Remove the Show icon from row actions (edit and delete remain)
+remove_row_action: :default_row_show
+
+# Remove the New button from the header (useful for read-only index views)
+remove_header_action: :default_new
+
+# Remove the Back link from a show page footer
+remove_footer_action: :default_back
 ```
 
 All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name).
-
-### Default Actions Reference
-
-**Index Layout Defaults:**
-- `:default_row_show` — Show icon link in row actions
-- `:default_row_edit` — Edit icon link in row actions
-- `:default_row_delete` — Delete icon link with confirmation in row actions
-- `:default_toggle_all_selected` — Checkbox to select all rows in current page
-- `:default_selected_uncheck_all` — Button to uncheck all selected items
-- `:default_selected_delete_all` — Button to delete all selected items (with confirmation)
-- `:default_selected_check_all` — Button to check all items
-- `:default_toggle_filters` — Icon to open/close filters panel
-- `:default_clear` — Clear filters button
-- `:default_submit` — Submit filters button
-- `:default_new` — New entity button in header
-- `:default_pagination` — Pagination controls with responsive breakpoints
-
-**Form Layout Defaults:**
-- `:default_save` — Save button in footer
-
-**Show Layout Defaults:**
-- `:default_edit` — Edit button in header
-- `:default_back` — Back link in footer
 
 ### Example: Customizing Index Actions
 
