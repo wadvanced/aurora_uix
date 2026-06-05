@@ -98,7 +98,11 @@ Aurora UIX uses **Heroicons** for all UI icons. Heroicons provides multiple icon
 
 ### If You're Already Using Heroicons
 
-If your host application is already using Heroicons, **no additional setup is needed**. Aurora UIX will use your existing Heroicons installation.
+If your host application is already using Heroicons, add this single source line to your `app.css` so Tailwind includes only the icon classes Aurora UIX needs — without scanning the entire dependency tree:
+
+```css
+@source "../../deps/aurora_uix/priv/static/classes.js";
+```
 
 ### If You're Not Using Heroicons
 
