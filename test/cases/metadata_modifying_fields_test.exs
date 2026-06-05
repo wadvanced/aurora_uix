@@ -2,6 +2,8 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
+  alias Aurora.Uix.Guides.Accounts
+  alias Aurora.Uix.Guides.Accounts.User
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
@@ -13,6 +15,10 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
     field(:height, scale: 1)
     field(:data_virtual, html_type: :checkbox)
     field(:status, data: [:in_stock, :discontinued, :online_only, :in_store_only])
+  end
+
+  auix_resource_metadata(:user, context: Accounts, schema: User) do
+    field(:emails, expanded: true)
   end
 
   test "Test field modifications" do
@@ -29,6 +35,19 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
       data_virtual: %{html_type: :checkbox},
       status: %{data: [:in_stock, :discontinued, :online_only, :in_store_only]}
     )
+  end
+
+  test "embeds_many :expanded option is routed into the field data, preserving embed keys" do
+    emails =
+      __MODULE__
+      |> resource_configs()
+      |> get_in([:user, Access.key!(:fields), :emails])
+
+    assert emails.data.expanded == true
+    # The embeds_many source-of-truth keys must survive the merge.
+    assert Map.has_key?(emails.data, :related)
+    assert Map.has_key?(emails.data, :owner)
+    assert Map.has_key?(emails.data, :resource)
   end
 
   test "Check fields order" do
