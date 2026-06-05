@@ -2,6 +2,12 @@
 
 Aurora UIX leverages Phoenix LiveView to provide dynamic, real-time CRUD interfaces. The framework generates fully-functional LiveView and LiveComponent modules at compile time, handling all the boilerplate while remaining customizable.
 
+> #### JavaScript setup required {: .warning}
+> Aurora UIX requires its client-side hooks to be imported in your `app.js`. Without this, features
+> like file downloads and the theme switcher will not work. See
+> [JavaScript Setup](../introduction/getting_started.html#javascript-setup) in the Getting Started
+> guide.
+
 ## How It Works
 
 ### Module Generation with `auix_create_ui`
