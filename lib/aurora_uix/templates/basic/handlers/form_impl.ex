@@ -130,6 +130,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
              |> put_flash(:error, format_changeset_errors(changeset))
              |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
 
+          {:error, %{errors: _} = ash_error} ->
+            {:noreply,
+             socket
+             |> clear_flash()
+             |> put_flash(:error, format_ash_error(ash_error))}
+
           {:error, reason} ->
             {:noreply,
              socket

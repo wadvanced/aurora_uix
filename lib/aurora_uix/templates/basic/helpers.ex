@@ -945,6 +945,36 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
+  A helper that transforms Ash errors into a list of messages.
+
+  ## Parameters
+  - `error` (Exception.t()) - The Ash error struct.
+
+  ## Returns
+  list() - List of formatted error messages.
+  """
+  @spec format_ash_error(Exception.t()) :: list()
+  def format_ash_error(%{errors: errors}) when is_list(errors) do
+    Enum.flat_map(errors, &format_ash_error/1)
+  end
+
+  def format_ash_error(%{field: field, message: message}) when is_nil(field) do
+    [message]
+  end
+
+  def format_ash_error(%{field: field, message: message}) do
+    ["#{field}: #{message}"]
+  end
+
+  def format_ash_error(%{message: message}) when is_binary(message) do
+    [message]
+  end
+
+  def format_ash_error(error) do
+    [Exception.message(error)]
+  end
+
+  @doc """
   Gets the value of an entity's primary key.
 
   ## Parameters
