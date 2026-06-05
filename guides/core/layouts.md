@@ -393,6 +393,11 @@ end
 - `:placeholder` — Placeholder text
 - `:option_label` — For select/radio fields
 
+> **Note:** Some field options are resolved from the field's `data` map and must be set in
+> `auix_resource_metadata` rather than inline in a layout (layouts do not accept these rendering
+> options in this version). The `:expanded` option for `embeds_many` fields is one such case — see
+> the Resource Metadata guide.
+
 For complete field attributes reference, see the `Aurora.Uix.Field` module documentation.
 
 ## Actions: Customizing Buttons & Links

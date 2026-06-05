@@ -327,6 +327,19 @@ The `data` property is a versatile map that holds configuration specific to the 
 - `owner` - The owner schema module
 - `resource` - The embedded resource name (follows `parent__embed` naming pattern)
 - `related` - The embedded schema module
+- `expanded` - (`:embeds_many` only) Controls whether the embedded collection renders expanded or
+  collapsed on initial load, in both show and edit modes. Defaults to `false` (collapsed). Accepts a
+  boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
+  escaped at compile time) that receives the rendering assigns and returns a boolean. The runtime
+  collapse/expand toggle stays available regardless. Configure it via the `:expanded` field option:
+
+  ```elixir
+  # Always expanded
+  field :addresses, expanded: true
+
+  # Expanded conditionally, based on the rendering assigns
+  field :addresses, expanded: &MyApp.Inventory.addresses_expanded?/1
+  ```
 
 **For select fields with fixed options:**
 
