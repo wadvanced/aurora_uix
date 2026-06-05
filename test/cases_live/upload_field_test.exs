@@ -6,6 +6,18 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest.Consumer do
   def consume_image([binary]), do: {:ok, binary}
 end
 
+defmodule Aurora.UixWeb.Test.UploadFieldTest.Downloader do
+  @moduledoc false
+
+  @doc false
+  @spec fetch(binary()) :: {:ok, %{name: binary(), content: binary()}}
+  def fetch(value), do: {:ok, %{name: "image.png", content: value}}
+
+  @doc false
+  @spec can_download?(binary()) :: boolean()
+  def can_download?(value), do: not is_nil(value)
+end
+
 defmodule Aurora.UixWeb.Test.UploadFieldTest.SocketAwareConsumer do
   @moduledoc false
 
@@ -169,8 +181,8 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
     end
   end
 
-  describe "show mode" do
-    test "renders a download button when the entity has a file", %{conn: conn} do
+  describe "show mode (opt-in: no :download configured)" do
+    test "does not render a download button even when the entity has a file", %{conn: conn} do
       delete_all_inventory_data()
       content = "fake-image-binary"
 
@@ -184,7 +196,7 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
 
       {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/show")
 
-      assert has_element?(view, "button[phx-click='auix_download_upload']")
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
       refute has_element?(view, "input[type='file']")
     end
 
@@ -205,9 +217,8 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
     end
   end
 
-  describe "edit mode with existing file" do
-    test "shows download button alongside file input when entity already has a file",
-         %{conn: conn} do
+  describe "edit mode with existing file (opt-in: no :download configured)" do
+    test "does not show download button even when entity already has a file", %{conn: conn} do
       delete_all_inventory_data()
       content = "existing-image-binary"
 
@@ -221,7 +232,7 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
 
       {:ok, view, _html} = live(conn, "/upload-field-products/#{product.id}/edit")
 
-      assert has_element?(view, "button[phx-click='auix_download_upload']")
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
       assert has_element?(view, "input[type='file']")
     end
 
@@ -336,6 +347,154 @@ defmodule Aurora.UixWeb.Test.SocketAwareUploadFieldTest do
       product = Repo.get_by!(Product, reference: reference)
       # The arity-2 consumer prefixes the binary with the live_action assign value.
       assert product.image == "new:#{content}"
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.DownloadUploadFieldTest do
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+
+  alias Aurora.Uix.Guides.Inventory
+  alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Repo
+  alias Aurora.UixWeb.Test.UploadFieldTest.Consumer
+  alias Aurora.UixWeb.Test.UploadFieldTest.Downloader
+
+  auix_resource_metadata :product, context: Inventory, schema: Product do
+    field(:image,
+      data: %{
+        upload: %{
+          allow: [accept: ~w(.png .jpg), max_entries: 1],
+          consume: &Consumer.consume_image/1,
+          downloadable?: &Downloader.can_download?/1,
+          download: &Downloader.fetch/1
+        }
+      }
+    )
+  end
+
+  # Route registered as "download-upload-field-products" in test/support/app_web/routes.ex
+  auix_create_ui do
+    show_layout :product do
+      stacked([:reference, :name, :quantity_initial, :image])
+    end
+
+    edit_layout :product, [] do
+      stacked([:reference, :name, :quantity_initial, :image])
+    end
+  end
+
+  describe "show mode with :download configured" do
+    test "renders download button when entity has a file", %{conn: conn} do
+      delete_all_inventory_data()
+      content = "downloadable-image"
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-show-with-file-#{System.unique_integer([:positive])}",
+          name: "DL Show With File",
+          quantity_initial: 0,
+          image: content
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/show")
+
+      assert has_element?(view, "button[phx-click='auix_download_upload']")
+    end
+
+    test "does not render download button when entity has no file", %{conn: conn} do
+      delete_all_inventory_data()
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-show-no-file-#{System.unique_integer([:positive])}",
+          name: "DL Show No File",
+          quantity_initial: 0
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/show")
+
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "span", "No file")
+    end
+  end
+
+  describe "edit mode with :download configured" do
+    test "shows download button alongside file input when entity already has a file",
+         %{conn: conn} do
+      delete_all_inventory_data()
+      content = "downloadable-edit-image"
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-edit-with-file-#{System.unique_integer([:positive])}",
+          name: "DL Edit With File",
+          quantity_initial: 0,
+          image: content
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/edit")
+
+      assert has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "input[type='file']")
+    end
+
+    test "does not show download button when entity has no file", %{conn: conn} do
+      delete_all_inventory_data()
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-edit-no-file-#{System.unique_integer([:positive])}",
+          name: "DL Edit No File",
+          quantity_initial: 0
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/edit")
+
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
+      assert has_element?(view, "input[type='file']")
+    end
+  end
+
+  describe "auix_download_upload event" do
+    test "clicking download button pushes auix_download event with name and base64 content",
+         %{conn: conn} do
+      delete_all_inventory_data()
+      content = "the-file-bytes"
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-click-#{System.unique_integer([:positive])}",
+          name: "DL Click",
+          quantity_initial: 0,
+          image: content
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/show")
+
+      view
+      |> element("button[phx-click='auix_download_upload']")
+      |> render_click()
+
+      assert_push_event(view, "auix_download", %{name: "image.png", data: data})
+      assert Base.decode64!(data) == content
+    end
+
+    test ":no_download from producer does not push the event", %{conn: conn} do
+      delete_all_inventory_data()
+
+      product =
+        Repo.insert!(%Product{
+          reference: "dl-no-dl-#{System.unique_integer([:positive])}",
+          name: "DL No Download",
+          quantity_initial: 0
+        })
+
+      {:ok, view, _html} = live(conn, "/download-upload-field-products/#{product.id}/show")
+
+      refute has_element?(view, "button[phx-click='auix_download_upload']")
+      refute_push_event(view, "auix_download", _)
     end
   end
 end
