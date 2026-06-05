@@ -191,6 +191,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> FormActions.set_actions()
      |> maybe_allow_uploads(auix)
      |> then(fn s -> assign_auix(s, :uploads, s.assigns[:uploads] || %{}) end)
+     |> BasicHelpers.assign_upload_downloadable()
      |> render_with(&Renderer.render/1)}
   end
 
@@ -254,19 +255,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   end
 
   def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
-    key = String.to_existing_atom(field)
-    binary = Map.get(socket.assigns.auix[:entity] || %{}, key)
-
-    socket =
-      if binary,
-        do:
-          Phoenix.LiveView.push_event(socket, "auix_download", %{
-            name: to_string(key),
-            data: Base.encode64(binary)
-          }),
-        else: socket
-
-    {:noreply, socket}
+    {:noreply, BasicHelpers.download_upload(socket, field)}
   end
 
   def auix_handle_event(event, params, _socket) do

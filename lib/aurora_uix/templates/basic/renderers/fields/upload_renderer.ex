@@ -16,12 +16,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_type: :show, entity: entity}, field: field} = assigns) do
     file_ref = Map.get(entity || %{}, field.key)
-    assigns = assign(assigns, :file_ref, file_ref)
+    downloadable? = get_in(assigns, [:auix, :upload_downloadable, field.key]) || false
+    assigns = assigns |> assign(:file_ref, file_ref) |> assign(:downloadable?, downloadable?)
 
     ~H"""
     <div class="auix-form-field-container">
       <.label>{dt(@field.label)}</.label>
-      <%= if @file_ref do %>
+      <%= if @downloadable? do %>
         <.button
           type="button"
           phx-click="auix_download_upload"
@@ -31,7 +32,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
           {dt("Download")}
         </.button>
       <% else %>
-        <span>{dt("No file")}</span>
+        <%= if is_nil(@file_ref) do %>
+          <span>{dt("No file")}</span>
+        <% end %>
       <% end %>
     </div>
     """
@@ -40,13 +43,19 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   def render(%{field: field} = assigns) do
     upload = Map.get(assigns[:uploads] || %{}, field.key)
     file_ref = Map.get((assigns[:auix] || %{})[:entity] || %{}, field.key)
-    assigns = assigns |> assign(:upload, upload) |> assign(:file_ref, file_ref)
+    downloadable? = get_in(assigns, [:auix, :upload_downloadable, field.key]) || false
+
+    assigns =
+      assigns
+      |> assign(:upload, upload)
+      |> assign(:file_ref, file_ref)
+      |> assign(:downloadable?, downloadable?)
 
     ~H"""
     <%= if @upload do %>
       <div class="auix-form-field-container">
         <.label>{dt(@field.label)}</.label>
-        <%= if @file_ref do %>
+        <%= if @downloadable? do %>
           <.button
             type="button"
             phx-click="auix_download_upload"
