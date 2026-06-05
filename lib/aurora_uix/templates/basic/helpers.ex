@@ -1124,6 +1124,75 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   def upload_fields(_auix), do: []
 
   @doc """
+  Returns `true` when the field is an `embeds_many` field.
+
+  ## Parameters
+  - `field` (`Aurora.Uix.Field.t()`) - The field struct to inspect.
+
+  ## Returns
+  `boolean()` - `true` when `field.type` is `:embeds_many`, `false` otherwise.
+  """
+  @spec embeds_many_field?(Aurora.Uix.Field.t()) :: boolean()
+  def embeds_many_field?(%{type: :embeds_many}), do: true
+  def embeds_many_field?(_field), do: false
+
+  @doc """
+  Returns the list of `embeds_many` field structs for the current resource in an `auix` map.
+
+  Traverses `auix.configurations[auix.resource_name].resource_config.fields` and returns
+  only those fields whose type is `:embeds_many`.
+
+  ## Parameters
+  - `auix` (map()) - The Aurora UIX context map containing `configurations` and `resource_name`.
+
+  ## Returns
+  `list(Aurora.Uix.Field.t())` - Embeds_many fields, or `[]` when none are configured.
+  """
+  @spec embeds_many_fields(map()) :: list(Aurora.Uix.Field.t())
+  def embeds_many_fields(%{configurations: configurations, resource_name: resource_name}) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:resource_config, %{})
+    |> Map.get(:fields, %{})
+    |> Map.values()
+    |> Enum.filter(&embeds_many_field?/1)
+  end
+
+  def embeds_many_fields(_auix), do: []
+
+  @doc """
+  Precomputes the initial expanded state for every `embeds_many` field and stores it in
+  `auix.embeds_expanded` as a `%{field_key => boolean}` map.
+
+  Must be called in `auix_update/2` (form and show impls) where the rich assigns (form,
+  entity, actor) are available. The renderer reads the precomputed boolean so no
+  user-provided gate runs inside the pure render path.
+
+  A field's `:expanded` data option may be a boolean or a function of arity 1 that
+  receives the current assigns and returns a boolean. When absent, the default is `false`
+  (collapsed).
+
+  ## Parameters
+  - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
+
+  ## Returns
+  `Phoenix.LiveView.Socket.t()` - Socket with `auix.embeds_expanded` assigned.
+  """
+  @spec assign_embeds_expanded(Socket.t()) :: Socket.t()
+  def assign_embeds_expanded(%Socket{assigns: assigns} = socket) do
+    expanded_map =
+      socket.assigns.auix
+      |> embeds_many_fields()
+      |> Map.new(fn %{key: key, data: data} ->
+        {key, field_expanded?(assigns, Map.get(data, :expanded, false))}
+      end)
+
+    assign_auix(socket, :embeds_expanded, expanded_map)
+  end
+
+  def assign_embeds_expanded(socket), do: socket
+
+  @doc """
   Precomputes the download-button visibility for every upload field and stores it in
   `auix.upload_downloadable` as a `%{field_key => boolean}` map.
 
@@ -1193,6 +1262,11 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       _ -> :no_download
     end
   end
+
+  @spec field_expanded?(map(), boolean() | function()) :: boolean()
+  defp field_expanded?(assigns, gate) when is_function(gate, 1), do: gate.(assigns) == true
+  defp field_expanded?(_assigns, gate) when is_boolean(gate), do: gate
+  defp field_expanded?(_assigns, _gate), do: false
 
   @spec field_downloadable?(Socket.t(), map(), term(), atom()) :: boolean()
   defp field_downloadable?(socket, upload, value, key) do

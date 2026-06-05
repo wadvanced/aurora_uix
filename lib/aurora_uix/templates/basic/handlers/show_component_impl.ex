@@ -115,6 +115,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
      |> assign_layout_options()
      |> ShowComponentActions.set_actions()
      |> BasicHelpers.assign_upload_downloadable()
+     |> BasicHelpers.assign_embeds_expanded()
      |> render_with(&Renderer.render/1)}
   end
 

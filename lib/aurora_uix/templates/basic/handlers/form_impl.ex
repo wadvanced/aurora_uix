@@ -198,6 +198,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> maybe_allow_uploads(auix)
      |> then(fn s -> assign_auix(s, :uploads, s.assigns[:uploads] || %{}) end)
      |> BasicHelpers.assign_upload_downloadable()
+     |> BasicHelpers.assign_embeds_expanded()
      |> render_with(&Renderer.render/1)}
   end
 

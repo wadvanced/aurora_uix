@@ -249,6 +249,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `:required` (`boolean()`) - Marks the field as required.
   - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
   - `:omitted` (`boolean()`) - If true, the field will be entirely excluded from the UI and configuration.
+  - `:expanded` (`boolean()` | `function()`) - For `embeds_many` fields only. Controls whether the
+    embedded collection renders expanded (`true`) or collapsed (`false`, the default) on initial load,
+    in both show and edit modes. Accepts a boolean or a captured function of arity 1 (e.g.
+    `&MyApp.expanded?/1`, not an inline `fn`) that receives the rendering assigns and returns a
+    boolean. The runtime collapse/expand toggle remains available regardless.
 
   ## Example
 
@@ -444,6 +449,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     |> Map.get(:query_opts, [])
     |> Keyword.put(option_key, option_value)
     |> then(&Map.put(data, :query_opts, &1))
+    |> then(&Map.put(result, :data, &1))
+  end
+
+  defp maybe_add_option_to_data({:expanded, expanded}, result) do
+    result
+    |> Map.get(:data, %{})
+    |> Map.put(:expanded, expanded)
     |> then(&Map.put(result, :data, &1))
   end
 
