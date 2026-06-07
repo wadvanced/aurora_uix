@@ -1,6 +1,6 @@
 # Changelog for Aurora UIX
 
-## [0.1.4] -
+## [0.1.4] - 2026-06-07
 
 **Ash Framework improved support** - Changes in this release comes from the experience of adopting aurora_uix on real applications
 
@@ -16,6 +16,7 @@ Requires:
   - A resource field can now carry a LiveView upload by setting `data: %{upload: %{allow: [...], consume: &fun/1}}`.
   - The library registers uploads via `allow_upload/3`, renders `live_file_input` with entry progress and cancel buttons, and invokes the `:consume` callback on save.
   - Purely additive — fields without `data.upload` are unaffected.
+  - **Download support**: add a `:download` producer callback (arity 1–3) to show a Download button on show and edit views. The callback receives the stored field value and returns `{:ok, %{name: filename, content: binary}}`, `:no_download`, or `{:error, reason}`. An optional `:downloadable?` gate callback (same arities) controls whether the button renders at all.
   - See `guides/core/resource_metadata.md` for the `data.upload` configuration reference.
 
 - **Actor threading for policy-protected Ash resources** [#253](https://github.com/wadvanced/aurora_uix/issues/253)
@@ -30,9 +31,11 @@ Requires:
 
 - **Non-Tailwind baseline stylesheet (opt-in)** — `mix auix.gen.stylesheet --baseline` scaffolds `assets/css/auix-baseline.css`, a tag-selector reset (`html`, `body`, `a`) for hosts without a CSS preflight. Host-owned once created; refresh with `--baseline --force`. Tailwind hosts skip the flag and the file. See [Hosts without Tailwind](./guides/core/styling.md#hosts-without-tailwind).
 
-- **Several new introspection function for UI modules**
-  - auix_layout_trees(): is the layout trees as defined (without the default ones)
-  - auix_configurations(): fat configurations information, all UI is generated from this mappings
+- **New `mix auix.gen.tailwind_classes` task** — scans Aurora UIX source files for Heroicon class names and writes a minimal JS safelist to `priv/static/classes.js`. Host Tailwind configs can reference this file with `@source "../deps/aurora_uix/priv/static/classes.js"` instead of scanning the entire dependency tree.
+
+- **New introspection functions on UI modules**
+  - `auix_layout_trees/0` — returns the layout trees as defined (excluding auto-generated defaults).
+  - `auix_configurations/0` — returns the full configuration map from which all UI is generated; useful for debugging and tooling.
 
 - **Complete Gettext backend with automatic POT generation**
   - `Aurora.Uix.GettextBackend` now implements all three `Gettext.Backend` callbacks:
@@ -65,10 +68,9 @@ Requires:
   - Added `guides/advanced/writing_a_style_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
 
-### Fixes  
+### Fixes
 
-- **auix_resource(_resource) function returned a map with a single key corresponding to the resource being aske**
-    - When introspecting resource metadata with auix_resource/1 returned a map instead of a resource data.
+- **`auix_resource/1` returned a map instead of a struct** — calling `auix_resource(:name)` on a metadata module previously returned a single-key map wrapping the resource. It now returns the `Aurora.Uix.Resource` struct directly.
 
 ### CSS class changes
 
@@ -82,7 +84,6 @@ Requires:
 - **`.auix-index-all-action-button` lost its structural declarations** (previously duplicated
   from `.auix-button`). Visible behaviour is identical when the button is rendered through
   `<.button>` as intended, because `.auix-button-default` is auto-applied.
-
 
 
 ## [0.1.3] - 2026-02-15
