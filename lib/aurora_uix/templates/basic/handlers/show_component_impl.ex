@@ -114,6 +114,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
      |> assign_layout_options()
      |> ShowComponentActions.set_actions()
+     |> BasicHelpers.assign_upload_downloadable()
+     |> BasicHelpers.assign_embeds_expanded()
      |> render_with(&Renderer.render/1)}
   end
 
@@ -138,6 +140,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
     socket = Phoenix.LiveView.clear_flash(socket)
 
     {:noreply, assign_auix_sections(socket, sections_id, tab_id)}
+  end
+
+  def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
+    {:noreply, BasicHelpers.download_upload(socket, field)}
   end
 
   def auix_handle_event(event, params, _socket) do

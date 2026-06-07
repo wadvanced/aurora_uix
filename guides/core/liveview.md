@@ -2,6 +2,12 @@
 
 Aurora UIX leverages Phoenix LiveView to provide dynamic, real-time CRUD interfaces. The framework generates fully-functional LiveView and LiveComponent modules at compile time, handling all the boilerplate while remaining customizable.
 
+> #### JavaScript setup required {: .warning}
+> Aurora UIX requires its client-side hooks to be imported in your `app.js`. Without this, features
+> like file downloads and the theme switcher will not work. See
+> [JavaScript Setup](../introduction/getting_started.html#javascript-setup) in the Getting Started
+> guide.
+
 ## How It Works
 
 ### Module Generation with `auix_create_ui`
@@ -608,23 +614,40 @@ The Index module is a full Phoenix LiveView with Aurora UIX callbacks for custom
 
 #### Aurora UIX Callbacks (IndexImpl)
 
-| Callback | Purpose | When to Override |
-|----------|---------|------------------|
-| `auix_mount/3` | Initialize socket | Add custom initialization, load session data |
-| `auix_handle_params/3` | Handle URL changes | Custom routing logic, filter extraction |
-| `auix_handle_event/3` | Handle events | Add custom event handlers |
-| `auix_handle_info/2` | Handle messages | Process custom info messages |
-| `auix_handle_async/3` | Handle async results | Process custom async task results |
-| `apply_action/2` | Apply route actions | Load action-specific data |
+| Callback | Signature | Purpose | When to Override |
+|----------|-----------|---------|------------------|
+| `auix_mount/3` | `(map(), map(), Socket.t()) :: {:ok, Socket.t()}` | Initialize socket | Add custom initialization, load session data |
+| `auix_handle_params/3` | `(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}` | Handle URL changes | Custom routing logic, filter extraction |
+| `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle events | Add custom event handlers |
+| `auix_handle_info/2` | `(term(), Socket.t()) :: {:noreply, Socket.t()}` | Handle messages | Process custom info messages |
+| `auix_handle_async/3` | `(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}` | Handle async results | Process custom async task results |
+| `apply_action/2` | `(Socket.t(), map()) :: Socket.t()` | Apply route actions | Load action-specific data |
+
+```elixir
+@callback auix_mount(params :: map(), session :: map(), socket :: Socket.t()) ::
+            {:ok, Socket.t()}
+@callback auix_handle_params(params :: map(), url :: binary(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+@callback auix_handle_event(event :: binary(), params :: map(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+@callback auix_handle_info(message :: term(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+@callback auix_handle_async(task :: atom(), result :: term(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+@callback apply_action(socket :: Socket.t(), params :: map()) :: Socket.t()
+```
 
 #### Phoenix.LiveView Callbacks (Advanced)
 
 All standard Phoenix.LiveView callbacks are overridable for advanced use cases:
-- `mount/3` - Raw socket initialization
-- `handle_params/3` - Raw parameter handling
-- `handle_event/3` - Raw event handling
-- `handle_info/2` - Raw info message handling
-- `handle_async/3` - Raw async result handling
+
+| Callback | Signature |
+|----------|-----------|
+| `mount/3` | `(map(), map(), Socket.t()) :: {:ok, Socket.t()}` |
+| `handle_params/3` | `(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}` |
+| `handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` |
+| `handle_info/2` | `(term(), Socket.t()) :: {:noreply, Socket.t()}` |
+| `handle_async/3` | `(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}` |
 
 ### FormComponent Callbacks
 
@@ -632,16 +655,26 @@ The FormComponent is a Phoenix.LiveComponent with Aurora UIX callbacks for custo
 
 #### Aurora UIX Callbacks (FormImpl)
 
-| Callback | Purpose | When to Override |
-|----------|---------|------------------|
-| `auix_update/2` | Initialize/update component | Add metadata, load templates |
-| `auix_handle_event/3` | Handle custom events | Add custom form interactions |
-| `save_entity/2` | Save/update entity | Custom validation, authorization, side effects |
+| Callback | Signature | Purpose | When to Override |
+|----------|-----------|---------|------------------|
+| `auix_update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` | Initialize/update component | Add metadata, load templates |
+| `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle custom events | Add custom form interactions |
+| `save_entity/2` | `(Socket.t(), map()) :: {:ok, struct()} \| {:error, Ecto.Changeset.t()}` | Save/update entity | Custom validation, authorization, side effects |
+
+```elixir
+@callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
+@callback auix_handle_event(event :: binary(), params :: map(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+@callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
+            {:ok, struct()} | {:error, Ecto.Changeset.t()}
+```
 
 #### Phoenix.LiveComponent Callbacks (Advanced)
 
-- `update/2` - Raw component update
-- `handle_event/3` - Raw event handling (note: "save" is handled specially)
+| Callback | Signature |
+|----------|-----------|
+| `update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` |
+| `handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` (note: `"save"` is handled specially) |
 
 ### ShowComponent Callbacks
 
@@ -649,15 +682,23 @@ The ShowComponent is a Phoenix.LiveComponent with Aurora UIX callbacks for custo
 
 #### Aurora UIX Callbacks (ShowComponentImpl)
 
-| Callback | Purpose | When to Override |
-|----------|---------|------------------|
-| `auix_update/2` | Initialize/update component | Load analytics, related data |
-| `auix_handle_event/3` | Handle custom events | Add custom show view actions |
+| Callback | Signature | Purpose | When to Override |
+|----------|-----------|---------|------------------|
+| `auix_update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` | Initialize/update component | Load analytics, related data |
+| `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle custom events | Add custom show view actions |
+
+```elixir
+@callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
+@callback auix_handle_event(event :: binary(), params :: map(), socket :: Socket.t()) ::
+            {:noreply, Socket.t()}
+```
 
 #### Phoenix.LiveComponent Callbacks (Advanced)
 
-- `update/2` - Raw component update
-- `handle_event/3` - Raw event handling
+| Callback | Signature |
+|----------|-----------|
+| `update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` |
+| `handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` |
 
 ## Form Handling
 

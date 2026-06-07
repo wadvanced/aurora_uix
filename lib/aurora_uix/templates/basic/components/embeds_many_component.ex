@@ -58,11 +58,6 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   alias Phoenix.LiveView.Socket
 
   @impl Phoenix.LiveComponent
-  def mount(socket) do
-    {:ok, assign(socket, :details_opened, false)}
-  end
-
-  @impl Phoenix.LiveComponent
   @spec update(map(), Socket.t()) :: {:ok, Socket.t()}
   def update(
         %{
@@ -93,6 +88,9 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      socket
      |> assign(:auix, assigns.auix)
      |> assign(:field, assigns.field)
+     |> assign_new(:details_opened, fn ->
+       assigns.auix |> Map.get(:embeds_expanded, %{}) |> Map.get(key, false)
+     end)
      |> maybe_assign_actor(assigns.auix)
      |> assign_new_embeds_many_form()
      |> assign_auix_new(:enable_add_embeds, false)

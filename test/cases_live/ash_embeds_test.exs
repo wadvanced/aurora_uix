@@ -11,7 +11,14 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   auix_resource_metadata(:author, schema: Author, order_by: [:bio])
-  auix_resource_metadata(:post, schema: Post, order_by: [published_at: :desc])
+
+  auix_resource_metadata :post, schema: Post, order_by: [published_at: :desc] do
+    field(:tags, expanded: &__MODULE__.always_expanded/1)
+  end
+
+  @doc false
+  @spec always_expanded(map()) :: boolean()
+  def always_expanded(_assigns), do: true
 
   auix_create_ui do
     edit_layout :author do
@@ -99,6 +106,32 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
         "details[name^='auix-details-auix-field-post-tags-'] input[name='name'][value='#{Enum.at(post.tags, 1).name}']"
       )
     )
+  end
+
+  test "embeds_many with :expanded renders the details open in show and edit", %{conn: conn} do
+    delete_all_blog_data()
+
+    author =
+      1
+      |> create_sample_authors()
+      |> List.first()
+
+    post =
+      1
+      |> create_sample_posts(%{
+        author_id: author.id,
+        comment: %{description: "My super comment"},
+        tags: [%{name: "one"}]
+      })
+      |> List.first()
+
+    details_open = "details[name^='auix-details-auix-field-post-tags-'][open]"
+
+    {:ok, show_view, _html} = live(conn, "/ash-embeds-posts/#{post.id}/show")
+    assert has_element?(show_view, details_open)
+
+    {:ok, edit_view, _html} = live(conn, "/ash-embeds-posts/#{post.id}/edit")
+    assert has_element?(edit_view, details_open)
   end
 
   test "Test forms creation", %{conn: _conn} do

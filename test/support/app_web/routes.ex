@@ -269,6 +269,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          DownloadUploadFieldTest.Product,
+          "download-upload-field-products"
+        )
+
+        RoutesHelper.register_crud(
           AshActorPolicyTest.PublicItem,
           "ash-actor-public-items"
         )

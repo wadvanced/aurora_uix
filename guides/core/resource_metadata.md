@@ -327,6 +327,19 @@ The `data` property is a versatile map that holds configuration specific to the 
 - `owner` - The owner schema module
 - `resource` - The embedded resource name (follows `parent__embed` naming pattern)
 - `related` - The embedded schema module
+- `expanded` - (`:embeds_many` only) Controls whether the embedded collection renders expanded or
+  collapsed on initial load, in both show and edit modes. Defaults to `false` (collapsed). Accepts a
+  boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
+  escaped at compile time) that receives the rendering assigns and returns a boolean. The runtime
+  collapse/expand toggle stays available regardless. Configure it via the `:expanded` field option:
+
+  ```elixir
+  # Always expanded
+  field :addresses, expanded: true
+
+  # Expanded conditionally, based on the rendering assigns
+  field :addresses, expanded: &MyApp.Inventory.addresses_expanded?/1
+  ```
 
 **For select fields with fixed options:**
 
@@ -364,10 +377,25 @@ end
   - `:no_change` — the field is left untouched; the helper also short-circuits to `:no_change`
     when no file is selected, so the callback need not handle an empty list.
   - `{:error, reason}` — save aborts and `reason` is displayed as an error flash.
+- `:download` — **optional** producer callback invoked when the user clicks the Download button
+  on show and edit views. Its presence is the opt-in master switch: without this key, no Download
+  button is rendered. Accepts arity 1, 2, or 3:
+  - Arity 1: `download.(value)` — field value only.
+  - Arity 2: `download.(socket, value)` — socket available for actor/assign access.
+  - Arity 3: `download.(socket, value, key)` — one callback handles multiple upload fields.
+  Return values:
+  - `{:ok, %{name: filename, content: binary}}` — triggers a client-side file download.
+  - `:no_download` — does nothing (button click is a no-op).
+  - `{:error, reason}` — displays `reason` as an error flash.
+- `:downloadable?` — **optional** gate callback evaluated when the component mounts or updates.
+  Controls whether the Download button is visible. Only evaluated when `:download` is also set.
+  Accepts arity 1, 2, or 3 (same dispatch as `:download`). Must return a boolean. When omitted,
+  the button is shown whenever `:download` is present and the current field value is non-nil.
 
 Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
 against double registration on re-renders), `live_file_input` rendering with per-entry
-progress, cancel buttons, and upload/entry-level error display.
+progress, cancel buttons, upload/entry-level error display, and client-side download dispatch
+via the `phx:auix_download` event (requires `hooks.js` — see the Getting Started guide).
 
 **For other field types:**
 

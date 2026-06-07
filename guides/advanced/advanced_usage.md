@@ -298,6 +298,22 @@ To access metadata defined in another module, use the `auix_resource/1` function
 
 This retrieves the compiled resource metadata struct from the metadata module.
 
+### Introspecting generated UI modules
+
+Every module produced by `auix_create_ui` exposes two introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
+
+- **`auix_layout_trees/0`** — returns the layout trees as you defined them (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
+
+  ```elixir
+  MyAppWeb.Products.Index.auix_layout_trees()
+  ```
+
+- **`auix_configurations/0`** — returns the full configuration map from which all LiveView code is generated. This is the "fat" intermediate representation: fields, metadata, module references, and resolved options. Useful when debugging unexpected rendering or when building tooling on top of Aurora UIX.
+
+  ```elixir
+  MyAppWeb.Products.Index.auix_configurations()
+  ```
+
 ### Recommended Project Structure
 
 Organize your application with metadata modules in the web layer, grouped by the **schema context** they represent, while views are grouped by **role/app context**:

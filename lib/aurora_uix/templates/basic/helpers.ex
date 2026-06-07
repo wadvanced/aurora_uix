@@ -26,6 +26,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   use Phoenix.Component
   use Phoenix.LiveComponent
+  use Aurora.Uix.Gettext
 
   import Aurora.Uix.Integration.Crud
   alias Aurora.Uix.Action
@@ -944,6 +945,36 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
+  A helper that transforms Ash errors into a list of messages.
+
+  ## Parameters
+  - `error` (Exception.t()) - The Ash error struct.
+
+  ## Returns
+  list() - List of formatted error messages.
+  """
+  @spec format_ash_error(Exception.t()) :: list()
+  def format_ash_error(%{errors: errors}) when is_list(errors) do
+    Enum.flat_map(errors, &format_ash_error/1)
+  end
+
+  def format_ash_error(%{field: field, message: message}) when is_nil(field) do
+    [message]
+  end
+
+  def format_ash_error(%{field: field, message: message}) do
+    ["#{field}: #{message}"]
+  end
+
+  def format_ash_error(%{message: message}) when is_binary(message) do
+    [message]
+  end
+
+  def format_ash_error(error) do
+    [Exception.message(error)]
+  end
+
+  @doc """
   Gets the value of an entity's primary key.
 
   ## Parameters
@@ -1092,7 +1123,204 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   def upload_fields(_auix), do: []
 
+  @doc """
+  Returns `true` when the field is an `embeds_many` field.
+
+  ## Parameters
+  - `field` (`Aurora.Uix.Field.t()`) - The field struct to inspect.
+
+  ## Returns
+  `boolean()` - `true` when `field.type` is `:embeds_many`, `false` otherwise.
+  """
+  @spec embeds_many_field?(Aurora.Uix.Field.t()) :: boolean()
+  def embeds_many_field?(%{type: :embeds_many}), do: true
+  def embeds_many_field?(_field), do: false
+
+  @doc """
+  Returns the list of `embeds_many` field structs for the current resource in an `auix` map.
+
+  Traverses `auix.configurations[auix.resource_name].resource_config.fields` and returns
+  only those fields whose type is `:embeds_many`.
+
+  ## Parameters
+  - `auix` (map()) - The Aurora UIX context map containing `configurations` and `resource_name`.
+
+  ## Returns
+  `list(Aurora.Uix.Field.t())` - Embeds_many fields, or `[]` when none are configured.
+  """
+  @spec embeds_many_fields(map()) :: list(Aurora.Uix.Field.t())
+  def embeds_many_fields(%{configurations: configurations, resource_name: resource_name}) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:resource_config, %{})
+    |> Map.get(:fields, %{})
+    |> Map.values()
+    |> Enum.filter(&embeds_many_field?/1)
+  end
+
+  def embeds_many_fields(_auix), do: []
+
+  @doc """
+  Precomputes the initial expanded state for every `embeds_many` field and stores it in
+  `auix.embeds_expanded` as a `%{field_key => boolean}` map.
+
+  Must be called in `auix_update/2` (form and show impls) where the rich assigns (form,
+  entity, actor) are available. The renderer reads the precomputed boolean so no
+  user-provided gate runs inside the pure render path.
+
+  A field's `:expanded` data option may be a boolean or a function of arity 1 that
+  receives the current assigns and returns a boolean. When absent, the default is `false`
+  (collapsed).
+
+  ## Parameters
+  - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
+
+  ## Returns
+  `Phoenix.LiveView.Socket.t()` - Socket with `auix.embeds_expanded` assigned.
+  """
+  @spec assign_embeds_expanded(Socket.t()) :: Socket.t()
+  def assign_embeds_expanded(%Socket{assigns: assigns} = socket) do
+    expanded_map =
+      socket.assigns.auix
+      |> embeds_many_fields()
+      |> Map.new(fn %{key: key, data: data} ->
+        {key, field_expanded?(assigns, Map.get(data, :expanded, false))}
+      end)
+
+    assign_auix(socket, :embeds_expanded, expanded_map)
+  end
+
+  def assign_embeds_expanded(socket), do: socket
+
+  @doc """
+  Precomputes the download-button visibility for every upload field and stores it in
+  `auix.upload_downloadable` as a `%{field_key => boolean}` map.
+
+  Must be called in `auix_update/2` after the entity is assigned. The renderer reads
+  the precomputed boolean so no user-provided code runs inside the pure function component.
+
+  A field's button is `false` (hidden) unless it has a `:download` producer function
+  configured — that is the opt-in master switch. When `:downloadable?` is absent, the
+  default gate is `not is_nil(value)`.
+
+  ## Parameters
+  - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
+
+  ## Returns
+  `Phoenix.LiveView.Socket.t()` - Socket with `auix.upload_downloadable` assigned.
+  """
+  @spec assign_upload_downloadable(Socket.t()) :: Socket.t()
+  def assign_upload_downloadable(%Socket{assigns: %{auix: auix}} = socket) do
+    entity = auix[:entity] || %{}
+
+    downloadable_map =
+      auix
+      |> upload_fields()
+      |> Map.new(fn %{key: key, data: %{upload: upload}} ->
+        {key, field_downloadable?(socket, upload, Map.get(entity, key), key)}
+      end)
+
+    assign_auix(socket, :upload_downloadable, downloadable_map)
+  end
+
+  def assign_upload_downloadable(socket), do: socket
+
+  @doc """
+  Handles the `auix_download_upload` event by dispatching to the field's `:download` callback.
+
+  Looks up the upload field by key, reads the stored value from the entity, and invokes
+  the `:download` producer with the same arity-dispatch pattern as `:consume`. On success,
+  pushes the `auix_download` event to the client. On `:no_download`, returns the socket
+  unchanged. On `{:error, reason}`, puts an error flash.
+
+  ## Parameters
+  - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
+  - `field_str` (`binary()`) - The stringified field key from the event params.
+
+  ## Returns
+  `Phoenix.LiveView.Socket.t()` - Updated socket.
+  """
+  @spec download_upload(Socket.t(), binary()) :: Socket.t()
+  def download_upload(%Socket{assigns: %{auix: auix}} = socket, field_str) do
+    key = String.to_existing_atom(field_str)
+    value = Map.get(auix[:entity] || %{}, key)
+    field = auix |> upload_fields() |> Enum.find(&(&1.key == key))
+    download_fn = get_in(field || %{}, [:data, :upload, :download])
+    do_download_upload(socket, download_fn, value, key)
+  end
+
+  def download_upload(socket, _field_str), do: socket
+
   ## PRIVATE
+
+  @spec invoke_upload_callback(function(), Socket.t(), term(), atom()) :: term()
+  defp invoke_upload_callback(fun, socket, value, key) do
+    case Function.info(fun)[:arity] do
+      1 -> fun.(value)
+      2 -> fun.(socket, value)
+      3 -> fun.(socket, value, key)
+      _ -> :no_download
+    end
+  end
+
+  @spec field_expanded?(map(), boolean() | function()) :: boolean()
+  defp field_expanded?(assigns, gate) when is_function(gate, 1), do: gate.(assigns) == true
+  defp field_expanded?(_assigns, gate) when is_boolean(gate), do: gate
+  defp field_expanded?(_assigns, _gate), do: false
+
+  @spec field_downloadable?(Socket.t(), map(), term(), atom()) :: boolean()
+  defp field_downloadable?(socket, upload, value, key) do
+    case upload[:downloadable?] do
+      gate when is_function(gate) ->
+        invoke_upload_callback(gate, socket, value, key) == true
+
+      state when is_boolean(state) ->
+        state
+
+      _ ->
+        false
+    end
+  end
+
+  @spec do_download_upload(Socket.t(), function() | nil, term(), atom()) :: Socket.t()
+  defp do_download_upload(socket, download_fn, _value, _key)
+       when not is_function(download_fn),
+       do: socket
+
+  defp do_download_upload(socket, _download_fn, nil, _key), do: socket
+
+  defp do_download_upload(socket, download_fn, value, key) do
+    case invoke_upload_callback(download_fn, socket, value, key) do
+      {:ok, result} ->
+        push_download_event(socket, result)
+
+      :no_download ->
+        socket
+
+      {:error, reason} ->
+        Phoenix.LiveView.put_flash(socket, :error, reason)
+    end
+  end
+
+  @spec push_download_event(Socket.t(), map()) :: Socket.t()
+
+  defp push_download_event(socket, %{name: name, content: content} = result) do
+    base = %{name: name, data: Base.encode64(content)}
+
+    payload =
+      case result[:content_type] do
+        nil -> base
+        ct -> Map.put(base, :content_type, ct)
+      end
+
+    Phoenix.LiveView.push_event(socket, "auix_download", payload)
+  end
+
+  defp push_download_event(socket, content) when is_binary(content) do
+    payload = %{name: dt("undefined"), data: Base.encode64(content)}
+
+    Phoenix.LiveView.push_event(socket, "auix_download", payload)
+  end
 
   # Reads the configured actor assign key from the first available connector in auix.
   # Returns nil for Ctx connectors (no actor_assign field) and when no connector is present.

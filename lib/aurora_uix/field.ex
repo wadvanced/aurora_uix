@@ -45,6 +45,37 @@ defmodule Aurora.Uix.Field do
 
           The socket is **never** returned by `:consume`; use `handle_event("save", …)` override
           for socket mutations on save.
+        - `:download` — **optional** producer callback invoked when the user clicks the Download
+          button. Its presence is the opt-in master switch: **no `:download` key means no button
+          is rendered.** Arity is detected the same way as `:consume`, with the stored field value
+          as the primary argument:
+
+          | Arity | Call shape                          | When to use                                  |
+          |-------|-------------------------------------|----------------------------------------------|
+          | 1     | `download.(value)`                  | Pure retrieval; no socket context needed.    |
+          | 2     | `download.(socket, value)`          | Needs socket assigns (e.g. `current_user`).  |
+          | 3     | `download.(socket, value, key)`     | One callback handles multiple upload fields. |
+
+          All arities must return one of:
+          - `{:ok, %{name: filename, content: binary}}` — triggers a client-side file download.
+            An optional `:content_type` key may be included in the map.
+          - `:no_download` — does nothing.
+          - `{:error, reason}` — `reason` is shown as an error flash.
+
+          Actor-based visibility should be enforced here (return `{:error, …}` or `:no_download`),
+          since the socket (and thus `current_user`) is available to arity-2 and arity-3 callbacks.
+        - `:downloadable?` — **optional** gate callback evaluated when the component mounts or
+          updates. Controls whether the Download button is visible. Only evaluated when `:download`
+          is also configured. Follows the same arity-dispatch pattern, with the stored field value
+          as the primary argument:
+
+          | Arity | Call shape                          |
+          |-------|-------------------------------------|
+          | 1     | `downloadable?.(value)`             |
+          | 2     | `downloadable?.(socket, value)`     |
+          | 3     | `downloadable?.(socket, value, key)`|
+
+          Must return a boolean. When absent, defaults to `not is_nil(value)`.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.

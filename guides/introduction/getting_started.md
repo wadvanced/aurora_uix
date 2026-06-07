@@ -98,7 +98,11 @@ Aurora UIX uses **Heroicons** for all UI icons. Heroicons provides multiple icon
 
 ### If You're Already Using Heroicons
 
-If your host application is already using Heroicons, **no additional setup is needed**. Aurora UIX will use your existing Heroicons installation.
+If your host application is already using Heroicons, add this single source line to your `app.css` so Tailwind includes only the icon classes Aurora UIX needs — without scanning the entire dependency tree:
+
+```css
+@source "../../deps/aurora_uix/priv/static/classes.js";
+```
 
 ### If You're Not Using Heroicons
 
@@ -120,6 +124,39 @@ In your `assets/css/app.css`, add an import statement at the top:
 
 > #### Using Custom Icons {: .info}
 > If you need to add your own icon classes or modify the generated ones, edit `assets/css/auix-icons.css` directly. Re-running `mix auix.gen.icons` will overwrite this file, so keep a backup of any custom changes.
+
+## JavaScript Setup
+
+Aurora UIX ships client-side hooks and event listeners in `assets/js/hooks.js`. Host applications
+must import this file in their own `assets/js/app.js` so the browser can receive events pushed by
+the server (e.g. file downloads from upload fields) and activate hooks (e.g. the theme switcher on
+index pages).
+
+Add the import and spread the hooks into your `LiveSocket` configuration:
+
+```js
+import {Socket} from "phoenix"
+import {LiveSocket} from "phoenix_live_view"
+import {Hooks as auroraHooks} from "../../deps/aurora_uix/assets/js/hooks.js"
+
+const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+const liveSocket = new LiveSocket("/live", Socket, {
+  params: {_csrf_token: csrfToken},
+  hooks: {...auroraHooks},   // spread alongside your own app hooks if any
+})
+```
+
+Rebuild your assets after adding the import:
+
+```shell
+mix assets.build
+```
+
+> #### What does this enable? {: .info}
+> - **`AuixThemeName` hook** — syncs the active theme on index pages.
+> - **`phx:auix_download` listener** — performs browser file downloads for upload fields configured
+>   with a `:download` callback. Without this import, clicking the Download button on a show or edit
+>   page will silently do nothing.
 
 ## Basic Usage
 

@@ -40,6 +40,8 @@ defmodule Aurora.Uix.Gettext do
   ```
   """
 
+  require Logger
+
   @gettext_domain Application.compile_env(:aurora_uix, :gettext_domain, nil)
 
   @doc false

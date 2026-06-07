@@ -130,6 +130,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
              |> put_flash(:error, format_changeset_errors(changeset))
              |> assign_auix(:form, BasicHelpers.to_named_form(changeset, auix.module))}
 
+          {:error, %{errors: _} = ash_error} ->
+            {:noreply,
+             socket
+             |> clear_flash()
+             |> put_flash(:error, format_ash_error(ash_error))}
+
           {:error, reason} ->
             {:noreply,
              socket
@@ -191,6 +197,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> FormActions.set_actions()
      |> maybe_allow_uploads(auix)
      |> then(fn s -> assign_auix(s, :uploads, s.assigns[:uploads] || %{}) end)
+     |> BasicHelpers.assign_upload_downloadable()
+     |> BasicHelpers.assign_embeds_expanded()
      |> render_with(&Renderer.render/1)}
   end
 
@@ -251,6 +259,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   def auix_handle_event("auix_cancel_upload", %{"field" => field, "ref" => ref}, socket) do
     key = String.to_existing_atom(field)
     {:noreply, Phoenix.LiveView.cancel_upload(socket, key, ref)}
+  end
+
+  def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
+    {:noreply, BasicHelpers.download_upload(socket, field)}
   end
 
   def auix_handle_event(event, params, _socket) do

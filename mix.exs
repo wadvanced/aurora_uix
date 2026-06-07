@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4-rc.9"
+  @version "0.1.4"
 
   def project do
     [
@@ -28,7 +28,8 @@ defmodule Aurora.Uix.MixProject do
         maintainers: ["Federico Alcántara"],
         licenses: ["MIT"],
         links: %{"GitHub" => @source_url},
-        files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib priv/static/css),
+        files:
+          ~w(.formatter.exs mix.exs README.md CHANGELOG.md assets/js lib priv/static/css priv/static/classes.js),
         exclude_patterns: [~r"/-local-.*", ~r"/aurora_uix_web*", ~r"/aurora_uix/guides/*"]
       ],
 
@@ -48,6 +49,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/layouts.md",
           "guides/core/liveview.md",
           "guides/core/styling.md",
+          "guides/core/internationalization.md",
           "guides/advanced/advanced_usage.md",
           "guides/advanced/troubleshooting.md",
           "guides/advanced/writing_a_style_bridge.md"
@@ -170,6 +172,7 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.RouteHelper
           ],
           "Mix Tasks": [
+            Mix.Tasks.Auix.Gen.TailwindClasses,
             Mix.Tasks.Uix.Gen.Icons,
             Mix.Tasks.Uix.Gen.Stylesheet
           ]
@@ -302,6 +305,7 @@ defmodule Aurora.Uix.MixProject do
       ],
       "assets.setup": ["esbuild.install --if-missing"],
       consistency: [
+        "auix.gen.tailwind_classes",
         "format",
         "compile --warnings-as-errors",
         "credo --strict",
