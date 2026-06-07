@@ -68,6 +68,21 @@ Requires:
   - Added `guides/advanced/writing_a_style_bridge.md` — a guide for authoring a custom bridge for any design system other than daisyUI.
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
 
+- **Updated Dependencies**
+  - `ash`: `3.16.0` → `3.27.8`
+  - `ash_phoenix`: `2.3.19` → `2.3.23` 
+  - `ash_postgres`: `2.6.31` → `2.9.1`
+  - `bandit`: `1.10.2` → `1.12.0`
+  - `credo`: `1.7.16` → `1.7.19`
+  - `doctor`: `0.22.0` → `0.23.0`
+  - `ecto_sql`: `3.13.4` → `3.14.0`
+  - `ex_doc`: `0.40.1` → `0.40.3`
+  - `image`: `0.63.0` → `0.68.0`
+  - `phoenix`: `1.8.3` → `1.8.7`
+  - `phoenix_live_view`: `1.1.22` → `1.1.31`
+  - `postgrex`: `0.22.0` → `0.22.2`
+
+
 ### Fixes
 
 - **`auix_resource/1` returned a map instead of a struct** — calling `auix_resource(:name)` on a metadata module previously returned a single-key map wrapping the resource. It now returns the `Aurora.Uix.Resource` struct directly.
