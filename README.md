@@ -14,6 +14,8 @@
 
 **Declarative, compile-time CRUD UI generation for Elixir's Phoenix LiveView.** Build feature-rich, responsive interfaces with minimal code using metadata-driven configuration and a powerful layout DSL.
 
+> 🚀 **New to Elixir or Phoenix?** Follow the **[Build Your First App tutorial](./guides/tutorial/build_your_first_app.md)** — a copy-paste walkthrough from nothing installed to a running CRUD app.
+
 ---
 ## 📖 Overview
 
@@ -187,6 +189,7 @@ end
 
 ### 📚 Next Steps
 
+- **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background, end-to-end tutorial: install the toolchain and build a complete app from scratch
 - **[Complete Getting Started Guide](./guides/introduction/getting_started.md)** — Detailed setup with a working example
 - **[Resource Metadata Guide](./guides/core/resource_metadata.md)** — Learn field configuration, validation, and associations
 - **[Layout System Guide](./guides/core/layouts.md)** — Master the layout DSL for complex UIs
@@ -217,6 +220,7 @@ Aurora UIX is **best suited** when:
 
 Complete documentation is available in the [guides](./guides/overview/overview.md) and on [HexDocs](https://hexdocs.pm/aurora_uix):
 
+- **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background tutorial: from nothing installed to a running CRUD app
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation

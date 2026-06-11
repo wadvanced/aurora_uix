@@ -42,6 +42,7 @@ defmodule Aurora.Uix.MixProject do
         extras: [
           "CONTRIBUTING.md",
           "CHANGELOG.md",
+          "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
           "guides/core/resource_metadata.md",
@@ -59,6 +60,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/advanced/troubleshooting.md"
         ],
         groups_for_extras: [
+          Tutorial: ~r{guides/tutorial/.*},
           Introduction: [~r{guides/overview/.*}, ~r{guides/introduction/.*}],
           "Core Concepts": ~r{guides/core/.*},
           "Customization & Extension": ~r{guides/customization/.*},

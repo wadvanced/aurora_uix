@@ -4,6 +4,12 @@ Welcome to **Aurora UIX**! This guide helps you add Aurora UIX to your Phoenix p
 
 Aurora UIX is a low-code framework for building dynamic, metadata-driven UIs in Phoenix LiveView applications. It lets you define schema metadata once and automatically generate complete CRUD interfaces.
 
+> #### New to Elixir or Phoenix? {: .tip}
+> This guide assumes you already have a Phoenix project. If you're starting from
+> scratch, follow the [Build Your First App](../tutorial/build_your_first_app.md)
+> tutorial first — it installs the toolchain and builds a complete app from
+> nothing, then sends you back here for the details.
+
 ## Installation
 
 Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.7+ (which includes LiveView support):

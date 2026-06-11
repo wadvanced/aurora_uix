@@ -41,8 +41,16 @@ Requires:
 
 - **Simplified `CoreComponentsImporter`** — removed the deprecated `core_components_module` option, now superseded by the new runtime component resolver
 
+### Fixes
+
+- **Many-to-one select on Ecto integer foreign keys** — `field_placeholder/2` crashed (`FunctionClauseError`) when a `belongs_to` pointed at an integer (`:id`) primary key,
+    because only UUID/`:binary_id` foreign keys had a clause. Added a fallback so default Phoenix schemas (integer ids) render the picker.
+- **Many-to-one select on Ash resources** — building dropdown options raised `Protocol.Enumerable not implemented for Aurora.Ctx.Pagination`. `get_select_options/1` 
+    now normalises the paginated Ash result (and the plain Ecto list) to a list of entries before mapping.
+
 ### Documentation
 
+- `guides/tutorial/build_your_first_app.md` — new **Tutorial** section: a zero-background, end-to-end walkthrough (install toolchain → Phoenix app → Ecto *or* Ash data layer → Aurora UIX → running CRUD app), linked prominently from the README and Getting Started.
 - `guides/customization/overriding_components.md` — full reference with per-override-key function tables and configuration examples
 - `guides/customization/customization.md` — hub page linking all customization mechanisms
 - `guides/customization/custom_actions.md` — comprehensive guide on adding, replacing, inserting, and removing UI action buttons
