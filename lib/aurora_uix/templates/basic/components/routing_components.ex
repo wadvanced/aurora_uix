@@ -7,9 +7,13 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   - Supports both standard and styled back navigation links.
   - Designed for use with Phoenix LiveView and Aurora UIX routing.
   - Accepts custom HTML attributes and content slots for flexible usage.
+
+  Components in this module can be overridden at runtime by configuring
+  `config :aurora_uix, :basic_routing_components, MyApp.MyRoutingComponents`.
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.ComponentsResolver, :basic_routing_components
   use Phoenix.Component
 
   alias Phoenix.LiveView.Rendered
@@ -32,10 +36,11 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   @spec auix_link(map()) :: Rendered.t()
   attr(:navigate, :string)
   attr(:patch, :string)
+  attr(:host_components, :any)
   attr(:rest, :global, include: ~w(class name download href lang referrer policy rel target type))
   slot(:inner_block, required: true)
 
-  def auix_link(%{navigate: to} = assigns) when is_binary(to) do
+  def auix_link(%{navigate: to, host_components: nil} = assigns) when is_binary(to) do
     ~H"""
     <a
       phx-click="auix_route_forward"
@@ -47,7 +52,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
     """
   end
 
-  def auix_link(%{patch: to} = assigns) when is_binary(to) do
+  def auix_link(%{patch: to, host_components: nil} = assigns) when is_binary(to) do
     ~H"""
     <a
       phx-click="auix_route_forward"
@@ -59,15 +64,17 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
     """
   end
 
-  def auix_link(assigns) do
+  def auix_link(%{host_components: nil} = assigns) do
     ~H"""
-    <a 
+    <a
       phx-no-format
       {@rest}>
       {render_slot(@inner_block)}
     </a>
     """
   end
+
+  resolve_component_for(:auix_link)
 
   @doc """
   Renders a simple back navigation link without styling.
@@ -81,10 +88,11 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   ## Returns
   Phoenix LiveView rendered content
   """
+  attr(:host_components, :any)
   attr(:rest, :global, include: ~w(download hreflang referrerpolicy rel target type))
   slot(:inner_block, required: true)
   @spec auix_link_back(map()) :: Rendered.t()
-  def auix_link_back(assigns) do
+  def auix_link_back(%{host_components: nil} = assigns) do
     ~H"""
     <a
       phx-click="auix_route_back"
@@ -94,6 +102,8 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
     </a>
     """
   end
+
+  resolve_component_for(:auix_link_back)
 
   @doc """
   Renders a styled back navigation link with an arrow icon.
@@ -107,10 +117,11 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   ## Returns
   Phoenix LiveView rendered content
   """
+  attr(:host_components, :any)
   attr(:rest, :global, include: ~w(download hreflang referrerpolicy rel target type))
   slot(:inner_block, required: true)
   @spec auix_back(map()) :: Rendered.t()
-  def auix_back(assigns) do
+  def auix_back(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-back-link-container">
       <a
@@ -125,4 +136,6 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
     </div>
     """
   end
+
+  resolve_component_for(:auix_back)
 end

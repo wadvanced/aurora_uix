@@ -10,13 +10,9 @@ defmodule Aurora.Uix.CoreComponentsImporter do
 
   ## Examples
   ```elixir
-  defmodule MyAppWeb.MyComponent do
-    use Aurora.Uix.CoreComponentsImporter
-  end
-
-  defmodule MyAppWeb.CustomComponent do
-    use Aurora.Uix.CoreComponentsImporter, core_components_module: MyAppWeb.CustomComponents
-  end
+    defmodule MyAppWeb.MyComponent do
+      use Aurora.Uix.CoreComponentsImporter
+    end
   ```
   """
   alias Aurora.Uix.Template
@@ -24,11 +20,10 @@ defmodule Aurora.Uix.CoreComponentsImporter do
   @doc false
   # Imports component and helper functions from the configured template.
   @spec __using__(keyword()) :: Macro.t()
-  defmacro __using__(opts) do
+  defmacro __using__(_opts) do
     template = Template.uix_template()
 
-    core_components_module =
-      opts[:core_components_module] || template.default_core_components_module()
+    core_components_module = template.default_core_components_module()
 
     quote do
       import Phoenix.Component

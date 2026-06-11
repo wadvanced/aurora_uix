@@ -1,25 +1,35 @@
 defmodule Aurora.Uix.Templates.Basic.Components do
   @moduledoc """
-  Provides the core set of reusable UI components for Aurora UIX, including modals, tables, forms, flash messages, and more.
+  Aurora UIX-specific UI components for the Basic template.
 
-  Most functions in this module are equivalent to those in the original Phoenix Framework's `core_components.ex`,
-  with some stylistic changes for Aurora UIX, but retaining 100% compatibility with the Phoenix API and usage patterns.
+  This module provides the higher-level components used by the Basic template's renderers,
+  complementing the lower-level Phoenix-compatible components in `Aurora.Uix.Templates.Basic.CoreComponents`.
 
-  ## Key Features
-  - Provides modal, table, form, flash, and input components for LiveView UIs.
-  - All components are built with CSS classes for customization via the theme system.
-  - Includes icon support via [Heroicons](https://heroicons.com). See `icon/1` for usage.
-  - Designed for extensibility and override in your own application.
-  - Well-documented with doc strings and declarative assigns for each component.
-  - All components are compatible with Phoenix LiveView and Phoenix.Component.
+  ## Components
 
-  > #### Note {: .info}
-  > This module may be injected as the core components module depending on the Aurora UIX template configuration.
-  > Dynamic selection and import of the core components module is handled via `use Aurora.Uix.CoreComponentsImporter`,
-  > which will import either this module or a custom one as configured in your application or template.
+  - `auix_simple_form/1` — form wrapper with Aurora UIX layout classes.
+  - `auix_items/1` — responsive table/card switcher for collection views.
+  - `auix_items_table/1` — desktop table view for collections.
+  - `auix_items_card/1` — mobile card view for collections.
+  - `pages_selection/1` — pagination bar with page numbers and selection counts.
+  - `record_navigator_bar/1` — previous/next record navigation for form/show views.
 
+  ## Overriding
+
+  All public components support runtime override. Configure a replacement module:
+
+  ```elixir
+  config :aurora_uix, :basic_components, MyApp.MyComponents
+  ```
+
+  The replacement module only needs to export the specific functions it overrides;
+  unimplemented functions fall back to the defaults here.
+
+  See `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` for
+  details on the override mechanism.
   """
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.ComponentsResolver, :basic_components
   use Aurora.Uix.Gettext
   use Phoenix.Component
 
@@ -41,6 +51,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   """
   attr(:for, :any, required: true, doc: "the data structure for the form")
   attr(:as, :any, default: nil, doc: "the server side parameter to collect all input under")
+  attr(:host_components, :any)
 
   attr(:rest, :global,
     include: ~w(autocomplete name rel action enctype method novalidate target multipart),
@@ -51,7 +62,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:actions, doc: "the slot for form actions, such as a submit button")
 
   @spec auix_simple_form(map) :: Rendered.t()
-  def auix_simple_form(assigns) do
+  def auix_simple_form(%{host_components: nil} = assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="auix-simple-form-content">
@@ -63,6 +74,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     </.form>
     """
   end
+
+  resolve_component_for(:auix_simple_form)
 
   @doc ~S"""
   Renders a table or card with generic styling.
@@ -97,6 +110,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:auix, :map, default: %{})
 
   attr(:first_column_not_checkbox?, :boolean, default: false)
+  attr(:host_components, :any)
 
   slot :col, required: true do
     attr(:label, :string)
@@ -112,7 +126,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items(map) :: Rendered.t()
-  def auix_items(assigns) do
+  def auix_items(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-items-desktop">
       {auix_items_table(assign_rows(assigns, @streams, @auix.source_key))}
@@ -126,6 +140,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     </div>
     """
   end
+
+  resolve_component_for(:auix_items)
 
   @doc ~S"""
   Renders a table with generic styling.
@@ -160,6 +176,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:auix, :map, default: %{})
 
   attr(:first_column_not_checkbox?, :boolean, default: false)
+  attr(:host_components, :any)
 
   slot :col, required: true do
     attr(:label, :string)
@@ -174,7 +191,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items_table(map()) :: Rendered.t()
-  def auix_items_table(assigns) do
+  def auix_items_table(%{host_components: nil} = assigns) do
     ~H"""
     <div name="auix-items-table" class="auix-items-table-container">
       <table class="auix-items-table">
@@ -226,6 +243,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  resolve_component_for(:auix_items_table)
+
   @doc ~S"""
   Renders a list of cards with generic styling.
 
@@ -259,6 +278,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:auix, :map, default: %{})
 
   attr(:first_column_not_checkbox?, :boolean, default: false)
+  attr(:host_components, :any)
 
   slot :col, required: true do
     attr(:label, :string)
@@ -273,7 +293,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
   @spec auix_items_card(map()) :: Rendered.t()
-  def auix_items_card(assigns) do
+  def auix_items_card(%{host_components: nil} = assigns) do
     ~H"""
     <div name="auix-items-card" class="auix-items-card-container">
       <div :if={Map.get(@auix, :filters_enabled?)}>
@@ -319,6 +339,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  resolve_component_for(:auix_items_card)
+
   @doc """
   Renders a pagination navigation bar with page numbers and selection counts.
 
@@ -343,8 +365,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:pagination, :map, required: true)
   attr(:pages_bar_range_offset, :integer, required: true)
   attr(:selected_in_page, :map, default: %{})
+  attr(:host_components, :any)
   @spec pages_selection(map()) :: Rendered.t()
-  def pages_selection(assigns) do
+  def pages_selection(%{host_components: nil} = assigns) do
     assigns =
       assigns
       |> page_calculate_indexes()
@@ -394,6 +417,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
+  resolve_component_for(:pages_selection)
+
   @doc """
   Renders a record navigation bar with previous/next controls and record counter.
 
@@ -413,8 +438,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         item_index={3}
       />
   """
+  attr(:pagination, :map, required: true)
+  attr(:item_index, :integer, required: true)
+  attr(:host_components, :any)
   @spec record_navigator_bar(map()) :: Rendered.t()
-  def record_navigator_bar(assigns) do
+  def record_navigator_bar(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-record-navigator-bar">
       <.render_previous_icon pagination={@pagination} item_index={@item_index} />
@@ -423,6 +451,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     </div>
     """
   end
+
+  resolve_component_for(:record_navigator_bar)
 
   @doc """
   Determines if record navigator should be displayed at the specified position.
