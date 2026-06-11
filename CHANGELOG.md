@@ -17,14 +17,14 @@ Requires:
 
 ### Added
 
-- **Runtime Component Override Mechanism**
+- **Runtime component override mechanism**
   - `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` — macro-based system enabling per-function component overrides resolved at call time
   - Each component module (`CoreComponents`, `Components`, `FilteringComponents`, `RoutingComponents`) registers with a unique `Application` env key
   - Hosts configure overrides via `config :aurora_uix, :core_components, MyApp.MyCoreComponents` (and analogous keys for the other component groups)
   - Partial overrides: missing functions fall back to Aurora UIX defaults automatically via `function_exported?/3` — override modules only need to define what they want to replace
   - See `guides/customization/overriding_components.md`
 
-- **New guides extracted from existing documentation**
+- **New guides supporting existing documentation**
   - `guides/customization/custom_actions.md` — UI action operations guide (extracted from `layouts.md`)
   - `guides/customization/theming.md` — registered theme module creation guide (extracted from `advanced_usage.md`)
 
