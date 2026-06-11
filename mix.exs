@@ -48,16 +48,20 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
-          "guides/core/styling.md",
           "guides/core/internationalization.md",
+          "guides/customization/customization.md",
+          "guides/customization/styling.md",
+          "guides/customization/theming.md",
+          "guides/customization/writing_a_style_bridge.md",
+          "guides/customization/overriding_components.md",
+          "guides/customization/custom_actions.md",
           "guides/advanced/advanced_usage.md",
-          "guides/advanced/overriding_components.md",
-          "guides/advanced/troubleshooting.md",
-          "guides/advanced/writing_a_style_bridge.md"
+          "guides/advanced/troubleshooting.md"
         ],
         groups_for_extras: [
-          Introduction: ~r{guides/introduction/.*},
-          Core: ~r{guides/core/.*},
+          Introduction: [~r{guides/overview/.*}, ~r{guides/introduction/.*}],
+          "Core Concepts": ~r{guides/core/.*},
+          "Customization & Extension": ~r{guides/customization/.*},
           Advanced: ~r{guides/advanced/.*},
           Developers: [~r"CONTRIBUTING.*", ~r"CHANGELOG.*"]
         ],

@@ -288,3 +288,10 @@ the assign is populated on the socket before the form mounts.
 - Review the [Advanced Usage Guide](./advanced_usage.md) for complex setups
 - Check the [Getting Started Guide](../introduction/getting_started.md) to verify setup steps
 - Open an issue on [GitHub](https://github.com/wadvanced/aurora_uix/issues) with details about your setup and error messages
+
+## Related guides
+
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
+- [Styling Aurora UIX in a Host Application](../customization/styling.md) — verifying variable overrides and cascade layers
+- [Creating Custom Registered Themes](../customization/theming.md) — theme configuration details
+- [Ash Integration](../core/ash_integration.md#authorization--policies) — policy/actor troubleshooting

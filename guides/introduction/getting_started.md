@@ -68,7 +68,7 @@ The stylesheets are bundled with your application CSS and served alongside your 
 > #### Regenerating After Theme Changes {: .info}
 > If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheets.
 >
-> **Note**: This command is also used when creating custom themes. See [Creating Custom Registered Themes](../advanced/advanced_usage.html#creating-custom-registered-themes) in the Advanced Guide for details on building your own themes.
+> **Note**: This command is also used when creating custom themes. See the [Creating Custom Registered Themes](../customization/theming.md) guide for details on building your own themes.
 
 ### Step 3 (optional): Inherit the host's daisyUI theme
 
@@ -90,7 +90,7 @@ Switching the daisyUI theme (or toggling dark mode) then automatically restyles 
 mix auix.gen.stylesheet --force
 ```
 
-If you use a design system other than daisyUI, see the [Writing a Style Bridge](../advanced/writing_a_style_bridge.html) guide to create your own mapping.
+If you use a design system other than daisyUI, see the [Writing a Style Bridge](../customization/writing_a_style_bridge.md) guide to create your own mapping.
 
 ## Icons Configuration
 
@@ -272,7 +272,8 @@ Now that you have Aurora UIX running, here are some recommended next steps:
 - **[Resource Metadata Guide](../core/resource_metadata.md)** - Deep dive into field configuration, associations, and custom renderers
 - **[Layouts Guide](../core/layouts.md)** - Master the layout DSL for customizing UI composition
 - **[LiveView Integration Guide](../core/liveview.md)** - Integrate Aurora UIX with your LiveView event handlers
-- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom components, themes, and extending Aurora UIX
+- **[Customizing & Extending Aurora UIX](../customization/customization.md)** - Make the generated UI look and behave like your app — styling, theming, component overrides, custom actions
+- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom templates and backends
 
 ### Common Tasks
 

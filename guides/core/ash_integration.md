@@ -25,7 +25,7 @@ If your application already uses Ash Framework, Aurora UIX provides:
 
 Before enabling Aurora UIX's Ash integration, ensure you have:
 
-1. **Aurora UIX** installed and working (see [Getting Started](getting_started.md))
+1. **Aurora UIX** installed and working (see [Getting Started](../introduction/getting_started.md))
 2. **Ash Framework** installed and configured in your Phoenix project
 3. **Ash Resources** with defined actions and attributes
 4. **An Ash Domain** (optional but recommended) organizing your resources
@@ -347,6 +347,11 @@ end
 Aurora UIX will automatically use this action for paginated index views.
 
 ### Custom Actions
+
+> **Note:** This section is about **Ash resource actions** (`:read`, `:create`, `:update`,
+> `:destroy`). It is unrelated to Aurora UIX's UI action buttons — for adding or replacing
+> buttons and links in generated views, see the [Custom Actions](../customization/custom_actions.md)
+> guide instead.
 
 You can override automatic action discovery by explicitly specifying custom actions or action names. When provided, these options bypass the automatic discovery process and use the specified action instead.
 
@@ -1079,14 +1084,13 @@ which is why dropdowns are policy-correct without further configuration.
   `authorize` posture (or the resource's policies) instead of trying to
   override Aurora UIX. There is intentionally no escape hatch here.
 
-## Next Steps
+## Related guides
 
-Now that you understand Aurora UIX's Ash integration, explore these Aurora UIX features:
-
+- [Customizing & Extending Aurora UIX](../customization/customization.md) - The central customization hub
 - [Resource Metadata](resource_metadata.md) - Configure fields, validations, and display options
 - [Layouts](layouts.md) - Build custom UI structures with Aurora UIX's layout DSL
 - [LiveView Integration](liveview.md) - Advanced customization and event handling
-- [Getting Started](getting_started.md) - Learn about Context-based integration
+- [Getting Started](../introduction/getting_started.md) - Learn about Context-based integration
 
 ## Additional Resources
 

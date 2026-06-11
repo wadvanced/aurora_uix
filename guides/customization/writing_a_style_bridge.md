@@ -1,6 +1,6 @@
 # Writing a Style Bridge
 
-*See also: [Styling Aurora UIX in a Host Application](../core/styling.md) — for token-level overrides without writing a full style bridge.*
+*See also: [Styling Aurora UIX in a Host Application](styling.md) — for token-level overrides without writing a full style bridge.*
 
 A **bridge** is a plain CSS file that maps your host application's design-system tokens onto Aurora UIX's `--auix-*` variables. The library ships one bridge for daisyUI (`auix-bridge-daisyui.css`); this guide explains how to write one for any other design system.
 
@@ -94,7 +94,8 @@ No mix task is needed. Drop the file anywhere that your bundler (esbuild) can re
 
 ## Tips
 
-- **Always wrap in `@layer auix.bridge { … }`.** Aurora UIX uses CSS cascade layers (`auix.variables → auix.bridge → auix.rules`). Without the layer wrapper, the bridge's plain `:root` selector (specificity 0,1,0) loses to the themes' `[data-theme-name="…"]` selectors (specificity 0,2,0), so your overrides are silently ignored. Anything written *outside* all layers (in your own `app.css`) still wins over everything, so host one-off tweaks work as expected.
+- **Wrap the bridge in `@layer auix.bridge { … }`.** Aurora UIX uses CSS cascade layers (`auix.variables → auix.bridge → auix.rules`). The wrapper slots the bridge above the library defaults and the themes' `[data-theme-name="…"]` declarations (layer order beats selector specificity) while keeping it below `auix.rules`, which must stay final. Anything written *outside* all layers (in your own `app.css` or a host-owned override file) wins over **all** layered CSS — including `auix.rules` — so unlayered `:root, :host` overrides are the more forceful escape hatch: use them for host one-off tweaks, or when a bundler or minifier mishandles layered custom properties.
+- **Minified builds merge same-layer rules.** Lightning CSS (the minifier behind Tailwind v4's `--minify`) merges `:root, :host` rules that share a layer — such as the bridge and `auix-custom.css`, which both sit in `auix.bridge` — into a single rule, deduplicating same-named custom properties and keeping the **last** declaration. The result is cascade-equivalent, but it makes import order load-bearing in release builds: keep override files imported *after* the bridge, as shown above.
 - **Bridge only what differs.** Fewer overrides mean less to maintain when either side updates its token names.
 - **Use `var(…, fallback)`.** If a host token might not always be defined, provide a sensible fallback: `var(--ds-radius-md, 0.5rem)`.
 - **Check dark mode.** If your design system uses attribute or class selectors for dark mode (e.g., `[data-theme="dark"]`, `.dark`), scope your dark overrides the same way your design system does inside the `@layer auix.bridge` block.
@@ -104,7 +105,14 @@ No mix task is needed. Drop the file anywhere that your bundler (esbuild) can re
 
 Hosts without a CSS preflight (plain CSS, vanilla Phoenix, Web Components)
 need an extra import and the opt-in `auix-baseline.css` scaffold. See the
-canonical [Hosts without Tailwind](../core/styling.md#hosts-without-tailwind)
+canonical [Hosts without Tailwind](styling.md#hosts-without-tailwind)
 section in the styling guide for the import order, the `--baseline` flag, and
 the rationale. The same guidance applies whether you use the daisyUI bridge, a
 custom bridge, or no bridge at all.
+
+## Related guides
+
+- [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
+- [Styling Aurora UIX in a Host Application](styling.md) — token-level overrides and the cascade-layer model
+- [Creating Custom Registered Themes](theming.md) — author a registered theme module
+- [Getting Started](../introduction/getting_started.md) — the daisyUI bridge setup walkthrough

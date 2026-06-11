@@ -202,16 +202,16 @@ Ready to build your first Aurora UIX interface? Follow these steps:
 
 ### Customization & Extension
 
-For details on advanced customization, see:
+To make the generated UI look and behave like your application, start at the central hub —
+it catalogs every customization mechanism (styling, theming, component overrides, custom
+actions, renderers, behavior hooks) with deep links:
 
-- **[Advanced Usage Guide](../advanced/advanced_usage.md)**
-- **[LiveView Integration](../core/liveview.md)**
+- **[Customizing & Extending Aurora UIX](../customization/customization.md)** — start here
+- **[Advanced Usage Guide](../advanced/advanced_usage.md)** — custom templates and backends
+- **[LiveView Integration](../core/liveview.md)** — behavior hooks and event handling
 
 ### Troubleshooting
 
 Guide for tackling known issues and corner cases:
 
 - **[Troubleshooting](../advanced/troubleshooting.md)**
-
-
-> See also: [Styling Aurora UIX in a Host Application](../core/styling.md).

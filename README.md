@@ -191,6 +191,7 @@ end
 - **[Resource Metadata Guide](./guides/core/resource_metadata.md)** — Learn field configuration, validation, and associations
 - **[Layout System Guide](./guides/core/layouts.md)** — Master the layout DSL for complex UIs
 - **[LiveView Integration](./guides/core/liveview.md)** — Handle events and business logic
+- **Make it look like your app** → [Customizing & Extending Aurora UIX](./guides/customization/customization.md) — styling, theming, component overrides, and custom actions in one place
 
 ---
 ## 💡 Use Cases
@@ -221,10 +222,11 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
-- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
-- **[Styling](./guides/core/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
+- **[Customizing & Extending](./guides/customization/customization.md)** — Central hub for styling, theming, component overrides, and custom actions
+- **[Styling](./guides/customization/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
 - **[Internationalization](./guides/core/internationalization.md)** — Configuring the Gettext backend, automatic POT generation, and translation workflow
-- **[CSS Bridges](./guides/advanced/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
+- **[CSS Bridges](./guides/customization/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
+- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom templates and backends
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---

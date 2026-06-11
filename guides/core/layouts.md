@@ -402,205 +402,13 @@ For complete field attributes reference, see the `Aurora.Uix.Field` module docum
 
 ## Actions: Customizing Buttons & Links
 
-Aurora UIX provides a comprehensive action system for customizing buttons and links across all layout types. Actions are function components that receive assigns and return rendered HTML.
+Aurora UIX provides a comprehensive action system for customizing the buttons and links rendered in headers, footers, rows, and selection bars of every layout type.
 
-### Understanding Actions
+> The full reference — action groups per layout type, the `add_`/`insert_`/`replace_`/`remove_`
+> operations, default action names you can target, and the `row_info` internals — lives in the
+> dedicated [Custom Actions](../customization/custom_actions.md) guide.
 
-Actions are defined as `Aurora.Uix.Action` structs with:
-- `:name` — unique identifier (atom or binary)
-- `:function_component` — a function that receives assigns and returns rendered output
-
-Actions are organized into **action groups** specific to each layout type. Each group represents a location where actions are rendered (headers, footers, rows, etc.). To customize a group you write an **operation key** as a layout option — the key tells Aurora UIX both which group to target and what to do (add, insert, replace, or remove). The same key name (e.g. `add_header_action`) targets a different internal group depending on which layout macro you are inside.
-
-### Index Layout Actions
-
-```
-┌───────────────────────────────────────────────────────────┐
-│  PAGE HEADER                                              │
-│  ┌─ :index_header_actions ─────────────────────────────┐  │
-│  │  [toggle_filters]  [clear]  [submit]  [new]         │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                           │
-│  ┌─ :index_selected_all_actions ───────────────────────┐  │
-│  │  [toggle_all_selected checkbox]                     │  │
-│  ├─ :index_selected_actions ───────────────────────────┤  │
-│  │  [uncheck_all]  [delete_all]  [check_all]           │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                           │
-│  ┌──────┬────────────────┬─────────────────────────────┐  │
-│  │  □   │  Col A  Col B  │  :index_row_actions         │  │
-│  │  □   │  ...           │  [show]  [edit]  [delete]   │  │
-│  │  □   │  ...           │  [show]  [edit]  [delete]   │  │
-│  └──────┴────────────────┴─────────────────────────────┘  │
-│                                                           │
-│  ┌─ :index_filters_actions ────────────────────────────┐  │
-│  │  (filters panel, shown when toggle_filters active)  │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                           │
-│  ┌─ :index_footer_actions ─────────────────────────────┐  │
-│  │  [← prev]  [1] [2] [3]  [next →]   (pagination)     │  │
-│  └─────────────────────────────────────────────────────┘  │
-└───────────────────────────────────────────────────────────┘
-```
-
-> The slot labels above (`:index_header_actions`, etc.) are internal names used in socket assigns. Use the operation key prefixes in the table below as your `index_columns` options.
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_clear`, `:default_submit`, `:default_new` |
-| `*_selected_all_action` | replace, remove *(no add / insert)* | `:default_toggle_all_selected` |
-| `*_selected_action` | add, insert, replace, remove | `:default_selected_uncheck_all`, `:default_selected_delete_all`, `:default_selected_check_all` |
-| `*_filters_action` | add, insert, replace, remove | *(none by default)* |
-| `*_row_action` | add, insert, replace, remove | `:default_row_show`, `:default_row_edit`, `:default_row_delete` |
-| `*_footer_action` | add, insert, replace, remove | `:default_pagination` |
-
-### Form Layout Actions
-
-```
-┌──────────────────────────────────────────┐
-│  ┌─ :form_header_actions ─────────────┐  │
-│  │  (empty by default)                │  │
-│  └────────────────────────────────────┘  │
-│                                          │
-│   field: value                           │
-│   field: value                           │
-│                                          │
-│  ┌─ :form_footer_actions ─────────────┐  │
-│  │  [Save]                            │  │
-│  └────────────────────────────────────┘  │
-└──────────────────────────────────────────┘
-```
-
-> Use the operation key prefixes below as your `edit_layout` options.
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | *(none by default)* |
-| `*_footer_action` | add, insert, replace, remove | `:default_save` |
-
-### Show Layout Actions
-
-```
-┌──────────────────────────────────────────┐
-│  ┌─ :show_header_actions ─────────────┐  │
-│  │  [Edit]                            │  │
-│  └────────────────────────────────────┘  │
-│                                          │
-│   field: value                           │
-│   field: value                           │
-│                                          │
-│  ┌─ :show_footer_actions ─────────────┐  │
-│  │  [← Back]                          │  │
-│  └────────────────────────────────────┘  │
-└──────────────────────────────────────────┘
-```
-
-> Use the operation key prefixes below as your `show_layout` options.
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | `:default_edit` |
-| `*_footer_action` | add, insert, replace, remove | `:default_back` |
-
-### One-to-Many & Embeds-Many Layout Actions
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  ┌─ :one_to_many_header_actions ──────────────────────┐  │
-│  │  (embeds_many: new entry button)                   │  │
-│  └────────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌──────────────────────┬─────────────────────────────┐  │
-│  │  field  field        │ :one_to_many_row_actions    │  │
-│  │  ...                 │ :embeds_many_row_actions    │  │
-│  └──────────────────────┴─────────────────────────────┘  │
-│                                                          │
-│  ┌─ :embeds_many_new_entry_actions ───────────────────┐  │
-│  │  (inline new-entry form controls)                  │  │
-│  └────────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌─ :embeds_many_existing_actions ────────────────────┐  │
-│  │  (per-row existing entry controls)                 │  │
-│  └────────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌─ :one_to_many_footer_actions ──────────────────────┐  │
-│  │  (empty by default)                                │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
-```
-
-> `one_to_many` and `embeds_many` share similar slot positions but differ in available operation keys — see both tables below.
-
-**one_to_many layout options:**
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | *(none by default)* |
-| `*_row_action` | add, insert, replace, remove | *(none by default)* |
-| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
-
-**embeds_many layout options:**
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | *(none by default)* |
-| `*_new_entry_action` | add, insert, replace, remove | *(none by default)* |
-| `*_existing_action` | add, insert, replace, remove | *(none by default)* |
-| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
-
-### Action Operations
-
-Aurora UIX provides four operations to customize actions in layout options. The operation key you write combines the operation (`add_`, `insert_`, `replace_`, `remove_`) with the slot suffix (`_header_action`, `_row_action`, etc.) — for example `add_header_action`, `replace_row_action`. Because the same suffix maps to different internal groups per layout type, `add_header_action` inside `index_columns` targets the index header, while the same key inside `edit_layout` targets the form header.
-
-**Add Action** — Appends an action to the end of the group:
-```elixir
-# Append a custom archive button after the default row actions
-add_row_action: {:archive, &MyViews.archive_action/1}
-
-# Append an Export CSV button after the default header actions (toggle_filters, clear, submit, new)
-add_header_action: {:export, &MyViews.export_action/1}
-
-# Append a "Save and Continue" button after the default Save button in a form
-add_footer_action: {:save_continue, &MyViews.save_and_continue_action/1}
-```
-
-**Insert Action** — Prepends an action to the beginning of the group:
-```elixir
-# Prepend an Approve button before the default row actions (show, edit, delete)
-insert_row_action: {:approve, &MyViews.approve_action/1}
-
-# Prepend a Help link before the default header actions
-insert_header_action: {:help, &MyViews.help_action/1}
-
-# Prepend a Cancel button before the default Save button in a form
-insert_footer_action: {:cancel, &MyViews.cancel_action/1}
-```
-
-**Replace Action** — Replaces an existing action by name:
-```elixir
-# Swap the default edit icon for a custom styled one in row actions
-replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1}
-
-# Swap the default New button for one that opens a slide-over instead of navigating
-replace_header_action: {:default_new, &MyViews.slide_over_new_action/1}
-
-# Swap the default Save button for one with a loading spinner
-replace_footer_action: {:default_save, &MyViews.spinner_save_action/1}
-```
-
-**Remove Action** — Removes an action by name:
-```elixir
-# Remove the Show icon from row actions (edit and delete remain)
-remove_row_action: :default_row_show
-
-# Remove the New button from the header (useful for read-only index views)
-remove_header_action: :default_new
-
-# Remove the Back link from a show page footer
-remove_footer_action: :default_back
-```
-
-All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name).
+The worked examples below show actions being customized inside layout definitions.
 
 ### Example: Customizing Index Actions
 
@@ -729,88 +537,12 @@ defmodule MyAppWeb.ProductViews do
 end
 ```
 
-### Important Implementation Notes
+### Going further
 
-**Action Function Signature:**
-- Actions must be functions with arity 1 that accept assigns
-- Must return rendered output (use `~H"""..."""` sigil)
-- Must be named functions (not anonymous functions)
+For the action function signature, the assigns available inside an action (`@auix`, `row_info`),
+primary-key helpers, styling conventions, and how actions are processed under the hood, see
+[Custom Actions](../customization/custom_actions.md).
 
-**Available Assigns in Actions:**
-- `@auix` — Contains all Aurora UIX context
-  - `.row_info` — Tuple of `{index, entity}` for row actions (see Row Info Structure below)
-  - `.entity` — Current entity for form/show actions
-  - `.module` — Resource module name
-  - `.name` — Resource display name
-  - `.primary_key` — Primary key field(s)
-  - `.uri_path` — Current URI path for navigation
-  - `.selection` — Selection state (index layouts only)
-  - `.pagination` — Pagination state (index layouts only)
-  - `.filters_enabled?` — Whether filters panel is open
-
-**Row Info Structure:**
-
-The `@auix.row_info` in row actions is a 2-tuple containing:
-1. **Index/ID** (first element) — The stream identifier or row ID from Phoenix LiveView streams
-2. **Entity** (second element) — The actual entity struct/map for the row
-
-```elixir
-# Example row_info tuple structure
-row_info = {"products-123", %Product{id: 123, name: "Widget", price: 29.99}}
-
-# Extracting components
-{stream_id, entity} = assigns.auix.row_info
-# stream_id = "products-123"
-# entity = %Product{id: 123, name: "Widget", price: 29.99}
-
-# Common patterns for accessing data:
-# 1. Get the primary key value
-id = row_info_id(assigns.auix)  # Using helper function
-
-# 2. Access entity fields directly
-{_id, product} = assigns.auix.row_info
-price = product.price
-
-# 3. Pattern match in function head
-def custom_action(%{auix: %{row_info: {_index, entity}}} = assigns) do
-  ~H"""
-  <button phx-click="process" phx-value-id={entity.id}>
-    Process {entity.name}
-  </button>
-  """
-end
-```
-
-**Helper for Extracting Primary Keys:**
-
-Aurora UIX provides a helper to safely extract primary key values from row_info:
-
-```elixir
-defp row_info_id(%{row_info: {_index, row_entity}, primary_key: primary_key}) do
-  Aurora.Uix.Templates.Basic.Helpers.primary_key_value(row_entity, primary_key)
-end
-```
-
-This helper handles both single and composite primary keys:
-- Single key: Returns the value directly (e.g., `123`)
-- Composite keys: Returns a list of values (e.g., `[123, 456]`)
-
-**Helper Functions:**
-- Use `Aurora.Uix.Templates.Basic.Helpers.primary_key_value/2` to extract entity IDs
-- Use `<.auix_link>` component for navigation with routing stack preservation
-- Use `<.auix_back>` component for back navigation
-- Use `Phoenix.LiveView.JS` for client-side interactions
-
-**Action Styling:**
-- Use `auix-*` CSS classes for consistent styling
-- Row action icons: `auix-icon-size-5` with context classes (`auix-icon-info`, `auix-icon-safe`, `auix-icon-danger`)
-- Buttons: `auix-button` (primary, default), `auix-button--alt` (secondary), `auix-index-all-action-button` (index-bar select-all). Pick exactly one — `<.button>` already supplies the structural base.
-
-### Action Modification Under the Hood
-
-Actions are stored in the socket's `assigns.auix` map under their respective action group keys. The modification functions (`add_auix_action`, `insert_auix_action`, `replace_auix_action`, `remove_auix_action`) from `Aurora.Uix.Templates.Basic.Helpers` manipulate these lists during layout setup.
-
-For a complete list of available action groups, call `Aurora.Uix.Action.action_groups()`.
 ## Advanced Patterns
 
 ### Nesting Fields and Blocks
@@ -917,10 +649,11 @@ end
 6. **Keep field order consistent** — Match order between index, edit, and show layouts when possible
 7. **Use field options judiciously** — Overriding too many field options makes maintenance harder; prefer metadata-level configuration
 
-## Next Steps
+## Related guides
 
-- Review [Resource Metadata](./resource_metadata.md) for field configuration options
-- Explore [LiveView Integration](./liveview.md) to handle custom events in your layouts
-- Check the [Troubleshooting Guide](../advanced/troubleshooting.md) for common layout issues
-
-> For styling generated layouts, see [Styling Aurora UIX in a Host Application](./styling.md).
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
+- [Resource Metadata](./resource_metadata.md) — field configuration options
+- [Custom Actions](../customization/custom_actions.md) — the full action system reference
+- [LiveView Integration](./liveview.md) — handle custom events in your layouts
+- [Styling Aurora UIX in a Host Application](../customization/styling.md) — styling generated layouts
+- [Troubleshooting](../advanced/troubleshooting.md) — common layout issues

@@ -174,8 +174,9 @@ defp put_locale(conn, _opts) do
 end
 ```
 
-## See also
+## Related guides
 
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
 - `Aurora.Uix.GettextBackend` — default backend with POT generation and warning control
 - `Aurora.Uix.Gettext` — `__using__` macro that wires the backend into any module
 - [Gettext documentation](https://hexdocs.pm/gettext)

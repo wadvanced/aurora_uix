@@ -121,3 +121,10 @@ Aurora UIX-specific components for collection views and record navigation.
 **not overridable** through this mechanism. To customise their behaviour, define custom
 actions using `Aurora.Uix.Templates.Basic.Actions` and supply your own LiveComponent
 module.
+
+## Related guides
+
+- [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
+- [Custom Actions](custom_actions.md) — add, replace, or remove action buttons instead of whole components
+- [Styling Aurora UIX in a Host Application](styling.md) — restyle the built-in components without replacing them
+- [Advanced Usage](../advanced/advanced_usage.md) — custom templates for deeper structural changes
