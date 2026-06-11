@@ -4,6 +4,12 @@ Welcome to **Aurora UIX**! This guide helps you add Aurora UIX to your Phoenix p
 
 Aurora UIX is a low-code framework for building dynamic, metadata-driven UIs in Phoenix LiveView applications. It lets you define schema metadata once and automatically generate complete CRUD interfaces.
 
+> #### New to Elixir or Phoenix? {: .tip}
+> This guide assumes you already have a Phoenix project. If you're starting from
+> scratch, follow the [Build Your First App](../tutorial/build_your_first_app.md)
+> tutorial first — it installs the toolchain and builds a complete app from
+> nothing, then sends you back here for the details.
+
 ## Installation
 
 Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.7+ (which includes LiveView support):
@@ -68,7 +74,7 @@ The stylesheets are bundled with your application CSS and served alongside your 
 > #### Regenerating After Theme Changes {: .info}
 > If you change your Aurora UIX theme configuration, re-run `mix auix.gen.stylesheet` to update the generated stylesheets.
 >
-> **Note**: This command is also used when creating custom themes. See [Creating Custom Registered Themes](../advanced/advanced_usage.html#creating-custom-registered-themes) in the Advanced Guide for details on building your own themes.
+> **Note**: This command is also used when creating custom themes. See the [Creating Custom Registered Themes](../customization/theming.md) guide for details on building your own themes.
 
 ### Step 3 (optional): Inherit the host's daisyUI theme
 
@@ -90,7 +96,7 @@ Switching the daisyUI theme (or toggling dark mode) then automatically restyles 
 mix auix.gen.stylesheet --force
 ```
 
-If you use a design system other than daisyUI, see the [Writing a Style Bridge](../advanced/writing_a_style_bridge.html) guide to create your own mapping.
+If you use a design system other than daisyUI, see the [Writing a Style Bridge](../customization/writing_a_style_bridge.md) guide to create your own mapping.
 
 ## Icons Configuration
 
@@ -272,7 +278,8 @@ Now that you have Aurora UIX running, here are some recommended next steps:
 - **[Resource Metadata Guide](../core/resource_metadata.md)** - Deep dive into field configuration, associations, and custom renderers
 - **[Layouts Guide](../core/layouts.md)** - Master the layout DSL for customizing UI composition
 - **[LiveView Integration Guide](../core/liveview.md)** - Integrate Aurora UIX with your LiveView event handlers
-- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom components, themes, and extending Aurora UIX
+- **[Customizing & Extending Aurora UIX](../customization/customization.md)** - Make the generated UI look and behave like your app — styling, theming, component overrides, custom actions
+- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom templates and backends
 
 ### Common Tasks
 

@@ -414,6 +414,11 @@ end
 
 The `html_type` option overrides the automatic HTML type inference. The `renderer` option allows providing a custom function or component for rendering the field.
 
+A renderer set here applies everywhere the field appears. To override rendering for a single
+layout only, use [field-level options in the layout DSL](layouts.md#field-level-options). For
+the full catalog of rendering customization points, see
+[Customizing & Extending Aurora UIX](../customization/customization.md#3-custom-field-rendering).
+
 ## Associations
 
 Aurora UIX supports four types of associations: **many_to_one** (`belongs_to`),  **one_to_many** (`has_many`), **embeds_one** and **embeds_many**. You can configure their behavior in the resource metadata.
@@ -505,6 +510,13 @@ auix_resource_metadata :product, schema: MyApp.Product do
     where: {:quantity, :between, 8, 16}
 end
 ```
+
+## Related guides
+
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub, including a [field options reference table](../customization/customization.md#6-field--resource-options-reference)
+- [Layout System](layouts.md) — arrange the configured fields in index, form, and show views
+- [Ash Integration](ash_integration.md) — Ash-specific metadata options and action resolution
+- [Advanced Usage](../advanced/advanced_usage.md) — separating metadata from UI modules
 
 
 

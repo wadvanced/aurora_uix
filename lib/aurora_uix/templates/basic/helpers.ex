@@ -1044,6 +1044,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> Map.get(:query_opts, [])
     |> Keyword.merge(socket_opts)
     |> then(&apply_list_function(list_function, &1))
+    |> select_option_entries()
     |> Enum.map(&get_many_to_one_select_option(assigns, &1))
     |> maybe_add_nil_option()
     |> then(&%{options: &1, multiple: false})
@@ -1063,6 +1064,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   # Not defined
   def get_select_options(_assigns), do: %{options: [], multiple: false}
+
+  # `apply_list_function/2` returns a plain list for the Ctx/Ecto backend but a
+  # paginated struct for Ash; normalise both to a list of entries.
+  @spec select_option_entries(term()) :: list()
+  defp select_option_entries(%{entries: entries}), do: entries
+  defp select_option_entries(results) when is_list(results), do: results
 
   @doc """
   Converts data to a named Phoenix.HTML.Form.

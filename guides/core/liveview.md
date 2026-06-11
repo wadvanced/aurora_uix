@@ -931,3 +931,10 @@ Visit `http://localhost:4000/dev/dashboard`
 6. **Test in isolation** - Test handlers independently from LiveView
 7. **Document custom events** - Document any custom event handlers for team clarity
 
+## Related guides
+
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub; behavior hooks are [section 5](../customization/customization.md#5-customizing-liveview-behavior)
+- [Custom Actions](../customization/custom_actions.md) — the buttons and links that fire the events you handle here
+- [Layout System](layouts.md) — where handler modules are attached via layout options
+- [Getting Started](../introduction/getting_started.md) — the required JavaScript hooks setup
+

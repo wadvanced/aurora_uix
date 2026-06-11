@@ -6,10 +6,14 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   - Automatically handles filterable? fields with consistent styling
   - Falls back to empty render for non-filterable? fields
   - Applies standardized focus styles and responsive sizing
+
+  Components in this module can be overridden at runtime by configuring
+  `config :aurora_uix, :basic_filtering_components, MyApp.MyFilteringComponents`.
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  import Phoenix.Component
+  use Aurora.Uix.ComponentsResolver, :basic_filtering_components
+  use Phoenix.Component
 
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -29,8 +33,13 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
 
   Only renders when `field.filterable?` is true, otherwise returns empty content.
   """
+  attr(:field, :map, required: true)
+  attr(:filter, :any, default: nil)
+  attr(:auix, :map, default: %{})
+  attr(:infix, :string, default: "")
+  attr(:host_components, :any)
   @spec filter_field(map()) :: Rendered.t()
-  def filter_field(%{field: %{filterable?: true}} = assigns) do
+  def filter_field(%{field: %{filterable?: true}, host_components: nil} = assigns) do
     ~H"""
     <div class="auix-filter-field">
       <div class="auix-filter-field-content">
@@ -42,11 +51,12 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
     """
   end
 
-  @spec filter_field(map()) :: Rendered.t()
-  def filter_field(assigns) do
+  def filter_field(%{host_components: nil} = assigns) do
     ~H"""
     """
   end
+
+  resolve_component_for(:filter_field)
 
   ## PRIVATE
   @spec render_filter_input(map()) :: Rendered.t()

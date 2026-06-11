@@ -38,7 +38,7 @@ this file — see [Hosts without Tailwind](#hosts-without-tailwind) below.
 **Bridge.** Add the daisyUI bridge (`auix-bridge-daisyui.css`) or write your own. The bridge
 maps your framework's semantic tokens onto `--auix-*` variables so every component follows
 theme changes (dark mode, brand tokens, etc.) automatically. See
-[Writing a Style Bridge](../advanced/writing_a_style_bridge.md) for authoring guidance.
+[Writing a Style Bridge](writing_a_style_bridge.md) for authoring guidance.
 
 **Recommended: style bridge + `auix-custom.css`.** For hosts that already use a style bridge but need a
 few additional per-project tweaks, an `auix-custom.css` file provides a safe override layer
@@ -80,7 +80,7 @@ Without `--custom`, the task never creates this file, so hosts that do not need 
 
 ### Wrapping pattern
 
-All overrides must live inside `@layer auix.bridge` to win over `auix.variables` but lose to
+Overrides normally live inside `@layer auix.bridge` to win over `auix.variables` but lose to
 `auix.rules` (which provides the final component rules):
 
 ```css
@@ -91,6 +91,16 @@ All overrides must live inside `@layer auix.bridge` to win over `auix.variables`
   }
 }
 ```
+
+Alternatively, the same `:root, :host` block may be placed *outside* all layers. Unlayered
+CSS wins over every layer — including `auix.rules` — so this is the more forceful variant:
+use it when an override must also beat component rules, or when a bundler or minifier
+mishandles layered custom properties. Two things to keep in mind either way: Lightning CSS
+(the minifier behind Tailwind v4's `--minify`) merges `:root, :host` rules that share a
+layer (the bridge and `auix-custom.css` both sit in `auix.bridge`) and keeps only the
+**last** declaration of each custom property, so the import order shown above is
+load-bearing in release builds; and unlayered overrides apply unconditionally, so theme
+switching in lower layers can no longer affect the overridden tokens.
 
 ### Worked example: rounder corners + custom focus color
 
@@ -481,3 +491,10 @@ Scope overrides to a specific host section to avoid leaking into unrelated compo
   for `@layer auix.baseline` rules in the DevTools Styles pane on `<html>` or
   `<body>`. If absent, link styling will fall back to browser defaults; if you
   never generated the file, re-run `mix auix.gen.stylesheet --baseline`.
+
+## Related guides
+
+- [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
+- [Writing a Style Bridge](writing_a_style_bridge.md) — map host design-system tokens onto `--auix-*` variables
+- [Creating Custom Registered Themes](theming.md) — author a registered theme module instead of overriding tokens
+- [Overriding Components](overriding_components.md) — replace component implementations at runtime

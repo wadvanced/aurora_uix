@@ -69,6 +69,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          AshMany2OneSelectTest.Post,
+          "ash-many2one-select-posts"
+        )
+
+        RoutesHelper.register_crud(
           AshEmbedsTest.Author,
           "ash-embeds-authors"
         )

@@ -14,6 +14,8 @@
 
 **Declarative, compile-time CRUD UI generation for Elixir's Phoenix LiveView.** Build feature-rich, responsive interfaces with minimal code using metadata-driven configuration and a powerful layout DSL.
 
+> 🚀 **New to Elixir or Phoenix?** Follow the **[Build Your First App tutorial](./guides/tutorial/build_your_first_app.md)** — a copy-paste walkthrough from nothing installed to a running CRUD app.
+
 ---
 ## 📖 Overview
 
@@ -187,10 +189,12 @@ end
 
 ### 📚 Next Steps
 
+- **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background, end-to-end tutorial: install the toolchain and build a complete app from scratch
 - **[Complete Getting Started Guide](./guides/introduction/getting_started.md)** — Detailed setup with a working example
 - **[Resource Metadata Guide](./guides/core/resource_metadata.md)** — Learn field configuration, validation, and associations
 - **[Layout System Guide](./guides/core/layouts.md)** — Master the layout DSL for complex UIs
 - **[LiveView Integration](./guides/core/liveview.md)** — Handle events and business logic
+- **Make it look like your app** → [Customizing & Extending Aurora UIX](./guides/customization/customization.md) — styling, theming, component overrides, and custom actions in one place
 
 ---
 ## 💡 Use Cases
@@ -216,15 +220,17 @@ Aurora UIX is **best suited** when:
 
 Complete documentation is available in the [guides](./guides/overview/overview.md) and on [HexDocs](https://hexdocs.pm/aurora_uix):
 
+- **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background tutorial: from nothing installed to a running CRUD app
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
-- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom components and themes
-- **[Styling](./guides/core/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
+- **[Customizing & Extending](./guides/customization/customization.md)** — Central hub for styling, theming, component overrides, and custom actions
+- **[Styling](./guides/customization/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
 - **[Internationalization](./guides/core/internationalization.md)** — Configuring the Gettext backend, automatic POT generation, and translation workflow
-- **[CSS Bridges](./guides/advanced/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
+- **[CSS Bridges](./guides/customization/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
+- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom templates and backends
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---

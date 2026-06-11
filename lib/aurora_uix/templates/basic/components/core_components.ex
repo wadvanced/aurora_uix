@@ -22,6 +22,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   use Aurora.Uix.Gettext
   use Phoenix.Component
 
+  use Aurora.Uix.ComponentsResolver, :core_components
+
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -47,10 +49,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:show, :boolean, default: false)
   attr(:on_cancel, JS, default: %JS{})
   attr(:auix, :map, default: %{})
+  attr(:host_components, :any)
   slot(:inner_block, required: true)
 
   @spec modal(map) :: Rendered.t()
-  def modal(assigns) do
+  def modal(%{host_components: nil} = assigns) do
     ~H"""
     <div
       id={@id}
@@ -101,6 +104,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:modal)
+
   @doc """
   Renders flash notices.
 
@@ -113,12 +118,13 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:flash, :map, default: %{}, doc: "the map of flash messages to display")
   attr(:title, :string, default: nil)
   attr(:kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup")
+  attr(:host_components, :any)
   attr(:rest, :global, doc: "the arbitrary HTML attributes to add to the flash container")
 
   slot(:inner_block, doc: "the optional inner block that renders the flash message")
 
   @spec flash(map) :: Rendered.t()
-  def flash(assigns) do
+  def flash(%{host_components: nil} = assigns) do
     assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
 
     ~H"""
@@ -144,6 +150,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:flash)
+
   @doc """
   Shows the flash group with standard titles and content.
 
@@ -153,9 +161,10 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   """
   attr(:flash, :map, required: true, doc: "the map of flash messages")
   attr(:id, :string, default: "flash-group", doc: "the optional id of flash container")
+  attr(:host_components, :any)
 
-  @spec flash_group(map) :: Rendered.t()
-  def flash_group(assigns) do
+  @spec flash_group(map()) :: Rendered.t()
+  def flash_group(%{host_components: nil} = assigns) do
     ~H"""
     <div id={@id}>
       <.flash kind={:info} title={dt("Success!")} flash={@flash} />
@@ -187,6 +196,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:flash_group)
+
   @doc """
   Renders a simple form.
 
@@ -202,6 +213,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   """
   attr(:for, :any, required: true, doc: "the data structure for the form")
   attr(:as, :any, default: nil, doc: "the server side parameter to collect all input under")
+  attr(:host_components, :any)
 
   attr(:rest, :global,
     include: ~w(autocomplete name rel action enctype method novalidate target multipart),
@@ -212,7 +224,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   slot(:actions, doc: "the slot for form actions, such as a submit button")
 
   @spec simple_form(map) :: Rendered.t()
-  def simple_form(assigns) do
+  def simple_form(%{host_components: nil} = assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="auix-simple-form-content">
@@ -225,6 +237,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:simple_form)
+
   @doc """
   Renders a button.
 
@@ -234,6 +248,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
   attr(:type, :string, default: nil)
+  attr(:host_components, :any)
 
   attr(:class, :string,
     default: "auix-button",
@@ -245,7 +260,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   slot(:inner_block, required: true)
 
   @spec button(map) :: Rendered.t()
-  def button(assigns) do
+  def button(%{host_components: nil} = assigns) do
     ~H"""
     <button
       type={@type}
@@ -256,6 +271,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     </button>
     """
   end
+
+  resolve_component_for(:button)
 
   @doc """
   Renders an input with label and error messages.
@@ -305,6 +322,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:input_class, :string, default: "", doc: "optional input class adendum")
   attr(:option_class, :string, default: "", doc: "optional option class adendum for select")
   attr(:omit_label?, :boolean, default: false, doc: "If true, label is not rendered at all")
+  attr(:host_components, :any)
 
   attr(:rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -312,18 +330,20 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   )
 
   @spec input(map) :: Rendered.t()
-  def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+  def input(%{field: %Phoenix.HTML.FormField{} = field, host_components: nil} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
-    assigns
-    |> assign(field: nil, id: assigns.id || field.id)
-    |> assign(:errors, Enum.map(errors, &translate_error(&1)))
-    |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
-    |> assign_new(:value, fn -> field.value end)
-    |> input()
+    assigns =
+      assigns
+      |> assign(field: nil, id: assigns.id || field.id)
+      |> assign(:errors, Enum.map(errors, &translate_error(&1)))
+      |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
+      |> assign_new(:value, fn -> field.value end)
+
+    input(assigns)
   end
 
-  def input(%{type: "checkbox"} = assigns) do
+  def input(%{type: "checkbox", host_components: nil} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
         Form.normalize_value("checkbox", assigns[:value])
@@ -351,7 +371,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
-  def input(%{type: "select"} = assigns) do
+  def input(%{type: "select", host_components: nil} = assigns) do
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={"auix-select-label " <> @label_class} for={@id}>{@label}</.label>
@@ -370,7 +390,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
-  def input(%{type: "textarea"} = assigns) do
+  def input(%{type: "textarea", host_components: nil} = assigns) do
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
@@ -389,7 +409,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   end
 
   # All other inputs text, datetime-local, url, password, etc. are handled here...
-  def input(assigns) do
+  def input(%{host_components: nil} = assigns) do
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
@@ -406,15 +426,18 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:input)
+
   @doc """
   Renders a label.
   """
   attr(:for, :string, default: nil)
+  attr(:host_components, :any)
   attr(:class, :string, default: nil, doc: "class override")
   slot(:inner_block, required: true)
 
   @spec label(map) :: Rendered.t()
-  def label(assigns) do
+  def label(%{host_components: nil} = assigns) do
     ~H"""
     <label for={@for} class={["auix-label", @class]}>
       {render_slot(@inner_block)}
@@ -422,13 +445,16 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:label)
+
   @doc """
   Generates a generic error message.
   """
+  attr(:host_components, :any)
   slot(:inner_block, required: true)
 
   @spec error(map) :: Rendered.t()
-  def error(assigns) do
+  def error(%{host_components: nil} = assigns) do
     ~H"""
     <p class="auix-error-message">
       <.icon name="hero-exclamation-circle-mini" class="auix-icon-size-5" />
@@ -437,9 +463,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:error)
+
   @doc """
   Renders a header with title.
   """
+  attr(:host_components, :any)
   attr(:class, :string, default: nil)
 
   slot(:inner_block, required: true)
@@ -447,7 +476,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   slot(:actions)
 
   @spec header(map) :: Rendered.t()
-  def header(assigns) do
+  def header(%{host_components: nil} = assigns) do
     ~H"""
     <header class={[(if @actions == [], do: "auix-header", else: "auix-header--top-actions"), @class]}>
       <div class="auix-header-title-container">
@@ -465,6 +494,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:header)
+
   @doc """
   Renders a data list.
 
@@ -475,12 +506,14 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         <:item title="Views"><%= @post.views %></:item>
       </.list>
   """
+  attr(:host_components, :any)
+
   slot :item, required: true do
     attr(:title, :string, required: true)
   end
 
   @spec list(map) :: Rendered.t()
-  def list(assigns) do
+  def list(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-list">
       <dl class="auix-list-container">
@@ -493,6 +526,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
+  resolve_component_for(:list)
+
   @doc """
   Renders a back navigation link.
 
@@ -501,10 +536,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       <.back navigate={~p"/posts"}>Back to posts</.back>
   """
   attr(:navigate, :any, required: true)
+  attr(:host_components, :any)
   slot(:inner_block, required: true)
 
   @spec back(map) :: Rendered.t()
-  def back(assigns) do
+  def back(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-back-link-container">
       <.link
@@ -517,6 +553,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     </div>
     """
   end
+
+  resolve_component_for(:back)
 
   @doc """
   Renders a [Heroicon](https://heroicons.com).
@@ -537,14 +575,17 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       <.icon name="hero-arrow-path" class="auix-icon-size-3 auix-animate-spin" />
   """
   attr(:name, :string, required: true)
+  attr(:host_components, :any)
   attr(:class, :string, default: nil)
 
   @spec icon(map) :: Rendered.t()
-  def icon(%{name: "hero-" <> _} = assigns) do
+  def icon(%{host_components: nil, name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
     """
   end
+
+  resolve_component_for(:icon)
 
   ## JS Commands
 

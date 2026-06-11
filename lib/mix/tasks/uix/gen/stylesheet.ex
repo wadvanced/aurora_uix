@@ -73,7 +73,7 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   ```
 
   For the full customization workflow, including the variable reference and recipe
-  table, see `guides/core/styling.md`.
+  table, see `guides/customization/styling.md`.
 
   ## Import order for non-Tailwind hosts (no customization)
 

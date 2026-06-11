@@ -88,7 +88,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
       %Pagination{entries: [...], page: 1, pages_count: 5, per_page: 20}
   """
   @impl true
-  @spec list(CrudSpec.t(), keyword()) :: Pagination.t()
+  @spec list(CrudSpec.t(), keyword()) :: Pagination.t() | list()
   def list(definition, opts \\ [])
 
   def list(

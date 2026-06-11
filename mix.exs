@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4"
+  @version "0.1.5-rc.1"
 
   def project do
     [
@@ -42,21 +42,28 @@ defmodule Aurora.Uix.MixProject do
         extras: [
           "CONTRIBUTING.md",
           "CHANGELOG.md",
+          "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
           "guides/core/resource_metadata.md",
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
-          "guides/core/styling.md",
           "guides/core/internationalization.md",
+          "guides/customization/customization.md",
+          "guides/customization/styling.md",
+          "guides/customization/theming.md",
+          "guides/customization/writing_a_style_bridge.md",
+          "guides/customization/overriding_components.md",
+          "guides/customization/custom_actions.md",
           "guides/advanced/advanced_usage.md",
-          "guides/advanced/troubleshooting.md",
-          "guides/advanced/writing_a_style_bridge.md"
+          "guides/advanced/troubleshooting.md"
         ],
         groups_for_extras: [
-          Introduction: ~r{guides/introduction/.*},
-          Core: ~r{guides/core/.*},
+          Tutorial: ~r{guides/tutorial/.*},
+          Introduction: [~r{guides/overview/.*}, ~r{guides/introduction/.*}],
+          "Core Concepts": ~r{guides/core/.*},
+          "Customization & Extension": ~r{guides/customization/.*},
           Advanced: ~r{guides/advanced/.*},
           Developers: [~r"CONTRIBUTING.*", ~r"CHANGELOG.*"]
         ],
@@ -165,6 +172,8 @@ defmodule Aurora.Uix.MixProject do
           ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
+            Aurora.Uix.ComponentsResolver,
+            Aurora.Uix.ComponentsResolverHelper,
             Aurora.Uix.CoreComponentsImporter,
             Aurora.Uix.Gettext,
             Aurora.Uix.GettextBackend,

@@ -1,5 +1,63 @@
 # Changelog for Aurora UIX
 
+## [0.1.5]
+
+**Runtime Component Overrides & Guide Reorganization**
+
+Aurora UIX has grown significantly across recent releases, and this version takes the opportunity to realign the documentation with the current feature set. 
+A dedicated **Customization & Extension** section has been introduced, consolidating related guides into a single, navigable reference area.
+
+This release also delivers a runtime mechanism for overriding individual UI components without requiring to fork the library.
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
+
+### Added
+
+- **Runtime component override mechanism**
+  - `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` — macro-based system enabling per-function component overrides resolved at call time
+  - Each component module (`CoreComponents`, `Components`, `FilteringComponents`, `RoutingComponents`) registers with a unique `Application` env key
+  - Hosts configure overrides via `config :aurora_uix, :core_components, MyApp.MyCoreComponents` (and analogous keys for the other component groups)
+  - Partial overrides: missing functions fall back to Aurora UIX defaults automatically via `function_exported?/3` — override modules only need to define what they want to replace
+  - See `guides/customization/overriding_components.md`
+
+- **New guides supporting existing documentation**
+  - `guides/customization/custom_actions.md` — UI action operations guide (extracted from `layouts.md`)
+  - `guides/customization/theming.md` — registered theme module creation guide (extracted from `advanced_usage.md`)
+
+- **Central customization hub** — `guides/customization/customization.md` with an at-a-glance decision table linking all seven customization mechanisms
+
+### Changed
+
+- **Guide reorganization moved styling content into a dedicated section**
+  - `guides/core/styling.md` → `guides/customization/styling.md`
+  - `guides/advanced/writing_a_style_bridge.md` → `guides/customization/writing_a_style_bridge.md`
+  - Updated all cross-references across guides, README, CONTRIBUTING, `mix.exs` extras configuration, and docstrings
+
+- **Updated `mix.exs` extras grouping** — added a new `"Customization & Extension"` section group; renamed the former `Core` group to `"Core Concepts"`; expanded the `Introduction` group to include `guides/overview/` entries
+
+- **Simplified `CoreComponentsImporter`** — removed the deprecated `core_components_module` option, now superseded by the new runtime component resolver
+
+### Fixes
+
+- **Many-to-one select on Ecto integer foreign keys** — `field_placeholder/2` crashed (`FunctionClauseError`) when a `belongs_to` pointed at an integer (`:id`) primary key,
+    because only UUID/`:binary_id` foreign keys had a clause. Added a fallback so default Phoenix schemas (integer ids) render the picker.
+- **Many-to-one select on Ash resources** — building dropdown options raised `Protocol.Enumerable not implemented for Aurora.Ctx.Pagination`. `get_select_options/1` 
+    now normalises the paginated Ash result (and the plain Ecto list) to a list of entries before mapping.
+
+### Documentation
+
+- `guides/tutorial/build_your_first_app.md` — new **Tutorial** section: a zero-background, end-to-end walkthrough (install toolchain → Phoenix app → Ecto *or* Ash data layer → Aurora UIX → running CRUD app), linked prominently from the README and Getting Started.
+- `guides/customization/overriding_components.md` — full reference with per-override-key function tables and configuration examples
+- `guides/customization/customization.md` — hub page linking all customization mechanisms
+- `guides/customization/custom_actions.md` — comprehensive guide on adding, replacing, inserting, and removing UI action buttons
+- `guides/customization/theming.md` — guide for authoring custom registered themes
+- Updated internal references across all existing core and advanced guides to point to the new customization paths
+
+
 ## [0.1.4] - 2026-06-07
 
 **Ash Framework improved support** - Changes in this release comes from the experience of adopting aurora_uix on real applications
