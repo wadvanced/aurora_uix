@@ -1,5 +1,7 @@
 %Doctor.Config{
   ignore_modules: [
+    Aurora.Uix.ComponentsResolver,
+    Aurora.Uix.ComponentsResolverHelper,
     Aurora.Uix.Guides.Accounts.User.Email,
     Aurora.Uix.Guides.Accounts.User.Profile,
     Aurora.Uix.Gettext,

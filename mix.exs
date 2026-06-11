@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.4"
+  @version "0.1.5-rc.1"
 
   def project do
     [
@@ -51,6 +51,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/styling.md",
           "guides/core/internationalization.md",
           "guides/advanced/advanced_usage.md",
+          "guides/advanced/overriding_components.md",
           "guides/advanced/troubleshooting.md",
           "guides/advanced/writing_a_style_bridge.md"
         ],
@@ -165,6 +166,8 @@ defmodule Aurora.Uix.MixProject do
           ],
           "General Helpers": [
             Aurora.Uix.BehaviourHelper,
+            Aurora.Uix.ComponentsResolver,
+            Aurora.Uix.ComponentsResolverHelper,
             Aurora.Uix.CoreComponentsImporter,
             Aurora.Uix.Gettext,
             Aurora.Uix.GettextBackend,
