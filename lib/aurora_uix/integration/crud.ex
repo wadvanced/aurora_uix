@@ -227,7 +227,7 @@ defmodule Aurora.Uix.Integration.Crud do
       iex> apply_list_function(connector, limit: 10)
       %Pagination{entries: [...]}
   """
-  @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t()
+  @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t() | list()
   def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts),
     do: get_crud_module(type).list(crud_spec, opts)
 

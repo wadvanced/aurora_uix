@@ -302,6 +302,11 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_placeholder(%{key: name}, %{ecto_type: ecto_type}),
     do: CommonFieldsParser.field_placeholder(name, ecto_type)
 
+  # Association foreign-key columns carry no field key; their owner-key type
+  # (e.g. an integer `:id` for default Phoenix schemas) has no meaningful
+  # placeholder because the field renders as a select.
+  defp field_placeholder(_attrs, %{ecto_type: _ecto_type}), do: ""
+
   # Determines the display length for a field based on its type.
   @spec field_length(map(), map()) :: integer()
   defp field_length(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
