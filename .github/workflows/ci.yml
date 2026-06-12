@@ -37,24 +37,24 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Elixir
       id: setup-beam
-      uses: erlef/setup-beam@5304e04ea2b355f03681464e683d92e3b2f18451 # v1.18.2
+      uses: erlef/setup-beam@v1.24.0
       with:
         elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
         otp-version: ${{ matrix.otp }}     # [Required] Define the Erlang/OTP version
 
     - name: 🚀 Setup Chrome and ChromeDriver
-      uses: browser-actions/setup-chrome@v1 # Use a community action to ensure compatibility
+      uses: browser-actions/setup-chrome@v2 # Use a community action to ensure compatibility
       with:
         chrome-version: 'stable' # or a specific version like '126.0.6478.126'
         # This action automatically downloads the correct chromedriver and sets the PATH.
 
     - name: Restore dependencies cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: |
           deps
