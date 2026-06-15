@@ -279,7 +279,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
        do: :string
 
   defp field_type(_attrs, %{type: type})
-       when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType],
+       when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType, Ash.Type.UUIDv7],
        do: :binary_id
 
   defp field_type(_attrs, %{type: type})
