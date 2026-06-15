@@ -60,6 +60,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           {@auix.layout_options.page_subtitle}
         </:subtitle>
       </.header>
+
+      <.flash kind={:error} flash={@flash} title={dt("Error!")} />
+      <.flash kind={:info} flash={@flash} title={dt("Info")} />
+      
       <div class="auix-index-actions">
         <div class="auix-index-select-actions" name="auix-index-select-actions">
           <%= for %{function_component: action} <- @auix.index_selected_actions do %>

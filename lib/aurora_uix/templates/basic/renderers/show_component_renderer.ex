@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
   use Phoenix.LiveView
 
   import Aurora.Uix.Templates.Basic.Components,
@@ -48,6 +49,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
             </div>
           </:actions>
         </.header>
+      
+        <.flash kind={:error} flash={@flash} title={dt("Error!")} />
+        <.flash kind={:info} flash={@flash} title={dt("Info!")} />
 
         <div class="auix-show-content" data-layout="#{name}">
           <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />
