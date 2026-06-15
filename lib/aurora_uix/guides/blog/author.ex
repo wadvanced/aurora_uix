@@ -48,4 +48,8 @@ defmodule Aurora.Uix.Guides.Blog.Author do
 
     read :read_all
   end
+
+  aggregates do
+    count :posts_count, :posts
+  end
 end

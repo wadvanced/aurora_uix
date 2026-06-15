@@ -158,4 +158,26 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
     assert Phoenix.LiveViewTest.render_component(&inputs_for/1, assigns) =~
              "post[comment]"
   end
+
+  test "Validate that summary calculation is a good resource" do
+    summary_resource =
+      :post
+      |> Aurora.UixWeb.Test.AshEmbedsTest.auix_resource()
+      |> get_in([:fields, :summary])
+
+    assert summary_resource.type == :string
+    assert summary_resource.html_type == :text
+    assert summary_resource.label == "Summary"
+  end
+
+  test "Validate that posts_count aggregation is a good resource" do
+    post_count_resource =
+      :author
+      |> Aurora.UixWeb.Test.AshEmbedsTest.auix_resource()
+      |> get_in([:fields, :posts_count])
+
+    assert post_count_resource.type == :integer
+    assert post_count_resource.html_type == :number
+    assert post_count_resource.label == "Posts Count"
+  end
 end
