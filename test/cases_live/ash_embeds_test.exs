@@ -10,6 +10,8 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   alias Aurora.Uix.Integration.Ash.CrudSpec, as: AshCrudSpec
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.UixWeb.Test.AshEmbedsTest
+
   auix_resource_metadata(:author, schema: Author, order_by: [:bio])
 
   auix_resource_metadata :post, schema: Post, order_by: [published_at: :desc] do
@@ -162,7 +164,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   test "Validate that summary calculation is a good resource" do
     summary_resource =
       :post
-      |> Aurora.UixWeb.Test.AshEmbedsTest.auix_resource()
+      |> AshEmbedsTest.auix_resource()
       |> get_in([:fields, :summary])
 
     assert summary_resource.type == :string
@@ -173,7 +175,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   test "Validate that posts_count aggregation is a good resource" do
     post_count_resource =
       :author
-      |> Aurora.UixWeb.Test.AshEmbedsTest.auix_resource()
+      |> AshEmbedsTest.auix_resource()
       |> get_in([:fields, :posts_count])
 
     assert post_count_resource.type == :integer
