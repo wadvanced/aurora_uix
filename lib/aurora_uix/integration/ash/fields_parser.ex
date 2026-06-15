@@ -257,9 +257,18 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     struct
     |> Map.from_struct()
     |> Map.put(:__struct__, struct.__struct__)
+    |> generated_types()
   end
 
   defp map_from_struct(map), do: map
+
+  @spec generated_types(map()) :: map()
+  defp generated_types(%{__struct__: struct_type} = map)
+       when struct_type in [Ash.Resource.Aggregate, Ash.Resource.Calculation] do
+    Map.put(map, :generated_type, struct_type)
+  end
+
+  defp generated_types(map), do: map
 
   # Converts an Ash type to its corresponding Ecto type.
   @spec field_type(map() | nil, map()) :: atom()
@@ -474,6 +483,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Checks if a field should be disabled by default
   @spec field_disabled(map(), map()) :: boolean()
+  defp field_disabled(_attrs, %{generated_type: _generated_type}), do: true
   defp field_disabled(%{key: key}, _attribute), do: CommonFieldsParser.field_disabled(key)
 
   # Checks if a field should be omitted from forms
