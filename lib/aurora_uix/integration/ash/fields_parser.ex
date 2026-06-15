@@ -56,9 +56,24 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> AshResourceInfo.attributes()
       |> Map.new(&{&1.name, &1})
 
-    attributes
+    calculations =
+      resource_schema
+      |> AshResourceInfo.calculations()
+      |> Map.new(&{&1.name, &1})
+
+    aggregates =
+      resource_schema
+      |> AshResourceInfo.aggregates()
+      |> Map.new(&{&1.name, &1})
+
+    all_elements =
+      attributes
+      |> Map.merge(calculations)
+      |> Map.merge(aggregates)
+
+    all_elements
     |> Map.keys()
-    |> Enum.map(&parse_field(resource_schema, resource_name, &1, attributes))
+    |> Enum.map(&parse_field(resource_schema, resource_name, &1, all_elements))
     |> List.flatten()
   end
 
@@ -102,7 +117,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     attribute =
       attributes
       |> Map.get(field_key, %Field{type: type})
-      |> Map.from_struct()
+      |> map_from_struct()
       |> Map.merge(%{
         resource_schema: resource_schema,
         embedded?: embedded?,
@@ -237,6 +252,24 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     [association_field | fields]
   end
 
+  @spec map_from_struct(map()) :: map()
+  defp map_from_struct(struct) when is_struct(struct) do
+    struct
+    |> Map.from_struct()
+    |> Map.put(:__struct__, struct.__struct__)
+    |> generated_types()
+  end
+
+  defp map_from_struct(map), do: map
+
+  @spec generated_types(map()) :: map()
+  defp generated_types(%{__struct__: struct_type} = map)
+       when struct_type in [Ash.Resource.Aggregate, Ash.Resource.Calculation] do
+    Map.put(map, :generated_type, struct_type)
+  end
+
+  defp generated_types(map), do: map
+
   # Converts an Ash type to its corresponding Ecto type.
   @spec field_type(map() | nil, map()) :: atom()
   defp field_type(_attrs, %{type: type})
@@ -255,7 +288,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
        do: :string
 
   defp field_type(_attrs, %{type: type})
-       when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType],
+       when type in [Ash.Type.UUID, Ash.Type.UUID.EctoType, Ash.Type.UUIDv7],
        do: :binary_id
 
   defp field_type(_attrs, %{type: type})
@@ -350,8 +383,20 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :many_to_one_association
   defp field_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :one_to_many_association
 
+  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :count}), do: :integer
+  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :exists}), do: :boolean
+
+  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: kind})
+       when kind in [:sum, :max, :min, :avg], do: :float
+
   # Direct type passthrough
-  defp field_type(_attrs, %{type: type}), do: type
+  defp field_type(_attrs, %{type: type} = element) do
+    Logger.error(
+      "This element could not be parsed by #{__MODULE__}: #{inspect(element, pretty: true)}"
+    )
+
+    type
+  end
 
   # Maps an Ash type to an HTML input type for form rendering.
   @spec field_html_type(map() | nil, map()) :: atom()
@@ -438,6 +483,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Checks if a field should be disabled by default
   @spec field_disabled(map(), map()) :: boolean()
+  defp field_disabled(_attrs, %{generated_type: _generated_type}), do: true
   defp field_disabled(%{key: key}, _attribute), do: CommonFieldsParser.field_disabled(key)
 
   # Checks if a field should be omitted from forms

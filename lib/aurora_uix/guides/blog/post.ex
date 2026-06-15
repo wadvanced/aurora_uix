@@ -19,7 +19,8 @@ defmodule Aurora.Uix.Guides.Blog.Post do
 
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,
-    domain: Aurora.Uix.Guides.Blog
+    domain: Aurora.Uix.Guides.Blog,
+    primary_read_warning?: false
 
   postgres do
     table("posts")
@@ -69,6 +70,16 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       :author_id
     ]
 
-    defaults [:create, :read, :destroy, :update]
+    defaults [:create, :destroy, :update]
+
+    read :read do
+      primary? true
+      pagination required?: false, offset?: true
+      prepare build(load: :summary)
+    end
+  end
+
+  calculations do
+    calculate :summary, :string, expr(title <> " is " <> status)
   end
 end

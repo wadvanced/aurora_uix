@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
 
   import Aurora.Uix.Templates.Basic.Components,
     only: [record_navigator_bar: 1, record_navigator?: 2]
@@ -48,7 +49,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
         </:actions>
       </.header>
 
-      <.flash kind={:error} flash={@flash} title="Error!" />
+      <.flash kind={:error} flash={@flash} title={dt("Error!")} />
+      <.flash kind={:info} flash={@flash} title={dt("Info")} />
 
       <.simple_form
         for={@auix.form}

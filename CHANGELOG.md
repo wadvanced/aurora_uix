@@ -17,6 +17,15 @@ Requires:
 
 ### Added
 
+- **Ash calculations and aggregates support in `FieldsParser`**
+  - `FieldsParser` now discovers and includes Ash calculations and aggregates alongside
+    attributes when building the field map for a resource, so computed and aggregated
+    fields are automatically available in generated UIs without manual configuration.
+  - `field_type/2` clauses added for all `Ash.Resource.Aggregate` kinds:
+    `count` → `:integer`, `exists` → `:boolean`, `sum / max / min / avg` → `:float`.
+  - Internal `map_from_struct/1` helper preserves the `__struct__` key so type-dispatch
+    pattern matches on aggregate/calculation structs remain accurate.
+
 - **Runtime component override mechanism**
   - `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` — macro-based system enabling per-function component overrides resolved at call time
   - Each component module (`CoreComponents`, `Components`, `FilteringComponents`, `RoutingComponents`) registers with a unique `Application` env key
