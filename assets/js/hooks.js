@@ -28,4 +28,28 @@ if (!window.__auixDownloadListenerBound) {
   })
 }
 
+Hooks.AuixCopyToClipboard = {
+  mounted() {
+    this.el.addEventListener("click", () => this.copy())
+  },
+  copy() {
+    const targetId = this.el.getAttribute("data-auix-copy-target")
+    const input = targetId && document.getElementById(targetId)
+    if (!input) return
+    const value = input.value ?? ""
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(() => this.flash())
+    } else {
+      input.focus()
+      input.select()
+      document.execCommand("copy")
+      this.flash()
+    }
+  },
+  flash() {
+    this.el.classList.add("auix-copyable-button--copied")
+    setTimeout(() => this.el.classList.remove("auix-copyable-button--copied"), 1000)
+  }
+}
+
 export { Hooks }

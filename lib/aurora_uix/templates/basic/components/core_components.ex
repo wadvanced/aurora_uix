@@ -322,6 +322,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:input_class, :string, default: "", doc: "optional input class adendum")
   attr(:option_class, :string, default: "", doc: "optional option class adendum for select")
   attr(:omit_label?, :boolean, default: false, doc: "If true, label is not rendered at all")
+
+  attr(:copyable, :boolean,
+    default: false,
+    doc: "If true, renders a copy-to-clipboard button next to the input"
+  )
+
   attr(:host_components, :any)
 
   attr(:rest, :global,
@@ -394,15 +400,28 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[(if @errors == [], do: "auix-textarea",
-            else: "auix-textarea--errors"),
-          @input_class
-        ]}
-        {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <div class={if @copyable, do: "auix-copyable-container auix-copyable-container--textarea", else: ""}>
+        <textarea
+          id={@id}
+          name={@name}
+          class={[(if @errors == [], do: "auix-textarea",
+              else: "auix-textarea--errors"),
+            @input_class
+          ]}
+          {@rest}
+        ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+        <button
+          :if={@copyable}
+          type="button"
+          id={"#{@id}-copy-button"}
+          phx-hook="AuixCopyToClipboard"
+          data-auix-copy-target={@id}
+          class="auix-copyable-button"
+          aria-label={dt("Copy to clipboard")}
+        >
+          <.icon name="hero-clipboard-document" class="auix-icon-size-4" />
+        </button>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
     """
@@ -413,14 +432,27 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[(if @errors == [], do: "auix-input", else: "auix-input--errors"), @input_class]}
-        {@rest}
-      />
+      <div class={if @copyable, do: "auix-copyable-container", else: ""}>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[(if @errors == [], do: "auix-input", else: "auix-input--errors"), @input_class]}
+          {@rest}
+        />
+        <button
+          :if={@copyable}
+          type="button"
+          id={"#{@id}-copy-button"}
+          phx-hook="AuixCopyToClipboard"
+          data-auix-copy-target={@id}
+          class="auix-copyable-button"
+          aria-label={dt("Copy to clipboard")}
+        >
+          <.icon name="hero-clipboard-document" class="auix-icon-size-4" />
+        </button>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
     """
