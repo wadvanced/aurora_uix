@@ -73,7 +73,8 @@ For Ash resources with declarative actions:
    - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
    - `has_many` → One-to-many relationships (rendered as nested lists)
    - Embedded resources → Nested Ash resources (rendered inline with `__` naming convention)
-5. **Action Resolution** - Discovers CRUD actions from Ash resource:
+5. **Calculations and Aggregates** - Discovers Ash calculations and aggregates and parses them into fields when they yield a predictable type (`count → :integer`, `exists → :boolean`, `sum/max/min/avg → :float`, scalar calculation types). Both are disabled in forms. Fields whose type can't be inferred can be overridden via the metadata block — see [Calculations and Aggregates](ash_integration.md#calculations-and-aggregates).
+6. **Action Resolution** - Discovers CRUD actions from Ash resource:
    - Prioritizes primary actions (`:read`, `:create`, `:update`, `:destroy`)
    - Falls back to first available action of the required type
    - Validates pagination support for list operations
