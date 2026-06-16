@@ -7,12 +7,10 @@ Create a pull request for the current branch. Run every step in order. If a step
 
 ## 1. Preconditions
 
-Run all three checks. Stop and report if any fails.
+Run both checks. Stop and report if any fails.
 
 - Current branch is not `main`:
   - `git rev-parse --abbrev-ref HEAD` must NOT print `main`.
-- Chromedriver is in headless mode:
-  - `grep -n "headless: true" config/test.exs` must succeed (exit 0).
 - All changes are committed:
   - `git status --porcelain` must print nothing.
 
