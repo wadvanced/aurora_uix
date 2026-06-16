@@ -13,12 +13,14 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   - Direct passthrough for native Ecto types
   - HTML5 input type mapping for form generation
   - Field metadata extraction for select/enum types
+  - Automatic discovery and type-mapping of Ash **calculations** (from declared return type) and **aggregates** (`count → :integer`, `exists → :boolean`, `sum/max/min/avg → :float`); both are disabled in generated forms
 
   ## Key Constraints
 
   - Only handles parameterized Ash types in tuple format `{:parameterized, {type, opts}}`
   - Unknown parameterized types default to `:string`
   - Requires Ash Framework type structure
+  - Calculations or aggregates whose type cannot be predictably mapped are logged as errors; configure those fields explicitly via `auix_resource_metadata` to override the parsed type
   """
 
   alias Ash.Resource.Info, as: AshResourceInfo
