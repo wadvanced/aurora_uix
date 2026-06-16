@@ -442,6 +442,38 @@ auix_resource_metadata :author, ash_resource: Author do
 end
 ```
 
+## Calculations and Aggregates
+
+Aurora UIX automatically parses Ash `calculations` and `aggregates` into fields — no manual configuration required — **as long as the element resolves to a predictable field type**. Both are rendered **read-only / disabled in forms** because they are computed values, not writable attributes.
+
+### Aggregate type mapping
+
+| Aggregate kind | Resolved type |
+|---|---|
+| `count` | `:integer` |
+| `exists` | `:boolean` |
+| `sum`, `max`, `min`, `avg` | `:float` |
+
+Other aggregate kinds (e.g. `first`, `list`, custom) are **not** auto-typed.
+
+### Calculations
+
+Calculations resolve from the calculation's declared return type. Simple scalar types (`:string`, `:integer`, `:decimal`, `:boolean`, `:utc_datetime`, etc.) map automatically.
+
+### When the type can't be inferred
+
+When the parser cannot predictably map an element it logs an error and the field may render with an unusable type. Declare the field explicitly in `auix_resource_metadata` to fix it:
+
+```elixir
+auix_resource_metadata :order, ash_resource: MyApp.Sales.Order do
+  # An aggregate/calculation the parser can't type predictably:
+  field :latest_status, type: :string, html_type: :text
+  field :total_amount, type: :decimal, html_type: :number, readonly: true
+end
+```
+
+Any `field/2` option overrides the parsed value, so `type:` and `html_type:` give full control for these computed fields. See [Field Properties / Custom Field Types](resource_metadata.md) for the full option list.
+
 ## Embedded Resources
 
 Ash supports embedded resources (similar to Ecto embeds). Aurora UIX renders these inline:
