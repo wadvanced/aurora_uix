@@ -39,6 +39,12 @@ Requires:
 
 - **Central customization hub** — `guides/customization/customization.md` with an at-a-glance decision table linking all seven customization mechanisms
 
+- **Copyable inputs**
+  - The `<.input>` component (text and textarea variants) now accepts a `copyable` attribute. When `true`, a copy-to-clipboard button is rendered next to the field via the `AuixCopyToClipboard` JS hook.
+  - Requires a valid, non-empty `id` (or a `field`); a `Logger.warning` is emitted at render time when missing, suppressible via `config :aurora_uix, :copyable_show_warnings?, false`.
+  - Custom `renderer:` functions must render through Aurora UIX core components (or `use Aurora.Uix.CoreComponentsImporter`) so the hook and markup are available.
+  - Copy confirmation surfaces as a toast notification.
+
 ### Changed
 
 - **Guide reorganization moved styling content into a dedicated section**
