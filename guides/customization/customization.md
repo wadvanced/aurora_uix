@@ -107,6 +107,16 @@ Three places to attach it:
 - **Layout DSL field options** (per-layout: `name: [renderer: ...]`) → [Layouts → Field-Level Options](../core/layouts.md#field-level-options)
 - **Template-level renderers** (whole-view generation) → [Advanced Usage](../advanced/advanced_usage.md#how-templates-work)
 
+> #### Copyable inputs in custom renderers {: .warning}
+> A custom `renderer:` function bypasses Aurora UIX's automatic field-id wiring. If your
+> renderer uses `<.input copyable>`, two things are required:
+>
+> 1. Render through Aurora UIX core components (or `use Aurora.Uix.CoreComponentsImporter`)
+>    so the `AuixCopyToClipboard` JS hook and markup are present.
+> 2. Pass a valid, non-empty `id` to the input — without it the copy button silently does
+>    nothing. A `Logger.warning` is logged at render time when `:copyable_show_warnings?`
+>    is enabled (the default). See `Aurora.Uix.Templates.Basic.CoreComponents.input/1`.
+
 ## 4. Customizing Actions
 
 **What it is:** actions are the buttons/links Aurora UIX renders in headers, footers, rows, and selection bars. Four operation verbs — `add_`, `insert_`, `replace_`, `remove_` — combined with a position suffix customize any group from layout options. (These are **UI actions**, not Ash resource actions.)
