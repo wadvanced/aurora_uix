@@ -711,6 +711,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     }
 
     .auix-copyable-button {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -721,8 +722,25 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border: none;
     }
 
-    .auix-copyable-button--copied {
-      color: var(--auix-color-info-ring);
+    .auix-copyable-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      padding: var(--auix-padding-small);
+      border-radius: var(--auix-border-radius-small);
+      font-size: var(--auix-font-size-small);
+      white-space: nowrap;
+      color: var(--auix-color-info-text);
+      background-color: var(--auix-color-bg-info);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease-in-out;
+    }
+
+    .auix-copyable-toast--visible {
+      opacity: 1;
     }
     """
   end

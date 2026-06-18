@@ -47,8 +47,23 @@ Hooks.AuixCopyToClipboard = {
     }
   },
   flash() {
-    this.el.classList.add("auix-copyable-button--copied")
-    setTimeout(() => this.el.classList.remove("auix-copyable-button--copied"), 1000)
+    const existing = document.querySelector(".auix-copyable-toast")
+    if (existing) existing.remove()
+
+    const message = this.el.getAttribute("data-auix-copied-message") || "Copied!"
+    const toast = document.createElement("div")
+    toast.className = "auix-copyable-toast"
+    toast.textContent = message
+    document.body.appendChild(toast)
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => toast.classList.add("auix-copyable-toast--visible"))
+    })
+
+    setTimeout(() => {
+      toast.classList.remove("auix-copyable-toast--visible")
+      toast.addEventListener("transitionend", () => toast.remove(), { once: true })
+    }, 2000)
   }
 }
 
