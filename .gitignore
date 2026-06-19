@@ -45,6 +45,7 @@ aurora_uix-*.tar
 
 # generated stuff
 /priv/**/*.gz
+/priv/static/classes-*.js
 /priv/static/images/aurora_ctx-transparent-icon-*.svg
 /priv/static/images/aurora_irix-transparent-icon-*.svg
 /priv/static/images/aurora_uix-transparent-icon-*.svg

@@ -28,6 +28,10 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
+  require Logger
+
+  @copyable_show_warnings? Application.compile_env(:aurora_uix, :copyable_show_warnings?, true)
+
   @doc """
   Renders a modal.
 
@@ -295,6 +299,20 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   for more information. Unsupported types, such as hidden and radio,
   are best written directly in your templates.
 
+  ## Copyable inputs
+
+  When `copyable` is set to `true`, a copy-to-clipboard button is rendered next to
+  the input. Two requirements must be met for this to work:
+
+    1. The input **must** have a valid, non-empty `id`. Without one the copy button
+       silently does nothing. A `Logger.warning` is emitted at render time when this
+       condition is not met (suppressible via `config :aurora_uix, :copyable_show_warnings?, false`).
+
+    2. When calling `<.input copyable>` outside the generated UI (e.g. from a custom
+       `renderer:` function), you must render through Aurora UIX core components or
+       import them via `use Aurora.Uix.CoreComponentsImporter`, so the
+       `AuixCopyToClipboard` JS hook and associated markup are available.
+
   ## Examples
 
       <.input field={@form[:email]} type="email" />
@@ -322,6 +340,13 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:input_class, :string, default: "", doc: "optional input class adendum")
   attr(:option_class, :string, default: "", doc: "optional option class adendum for select")
   attr(:omit_label?, :boolean, default: false, doc: "If true, label is not rendered at all")
+
+  attr(:copyable, :boolean,
+    default: false,
+    doc:
+      "If true, renders a copy-to-clipboard button next to the input. Requires a valid, non-empty `id`."
+  )
+
   attr(:host_components, :any)
 
   attr(:rest, :global,
@@ -391,18 +416,34 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   end
 
   def input(%{type: "textarea", host_components: nil} = assigns) do
+    maybe_log_copyable_warning(assigns)
+
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[(if @errors == [], do: "auix-textarea",
-            else: "auix-textarea--errors"),
-          @input_class
-        ]}
-        {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <div class={if @copyable, do: "auix-copyable-container auix-copyable-container--textarea", else: ""}>
+        <textarea
+          id={@id}
+          name={@name}
+          class={[(if @errors == [], do: "auix-textarea",
+              else: "auix-textarea--errors"),
+            @input_class
+          ]}
+          {@rest}
+        ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+        <button
+          :if={@copyable}
+          type="button"
+          id={"#{@id}-copy-button"}
+          phx-hook="AuixCopyToClipboard"
+          data-auix-copy-target={@id}
+          data-auix-copied-message={dt("Copied!")}
+          class="auix-copyable-button"
+          aria-label={dt("Copy to clipboard")}
+        >
+          <.icon name="hero-clipboard-document" class="auix-icon-size-4" />
+        </button>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
     """
@@ -410,17 +451,33 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(%{host_components: nil} = assigns) do
+    maybe_log_copyable_warning(assigns)
+
     ~H"""
     <fieldset class={["auix-fieldset", @fieldset_class]}>
       <.label :if={!@omit_label?} class={@label_class} for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[(if @errors == [], do: "auix-input", else: "auix-input--errors"), @input_class]}
-        {@rest}
-      />
+      <div class={if @copyable, do: "auix-copyable-container", else: ""}>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[(if @errors == [], do: "auix-input", else: "auix-input--errors"), @input_class]}
+          {@rest}
+        />
+        <button
+          :if={@copyable}
+          type="button"
+          id={"#{@id}-copy-button"}
+          phx-hook="AuixCopyToClipboard"
+          data-auix-copy-target={@id}
+          data-auix-copied-message={dt("Copied!")}
+          class="auix-copyable-button"
+          aria-label={dt("Copy to clipboard")}
+        >
+          <.icon name="hero-clipboard-document" class="auix-icon-size-4" />
+        </button>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
     """
@@ -722,4 +779,20 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     {inspect(@msg)}
     """
   end
+
+  @spec maybe_log_copyable_warning(map()) :: :ok
+  if @copyable_show_warnings? do
+    defp maybe_log_copyable_warning(%{copyable: true, id: id})
+         when is_nil(id) or id == "" do
+      Logger.warning(
+        "Aurora UIX: a copyable input was rendered without a valid `id`. " <>
+          "The copy-to-clipboard button will not work. " <>
+          "Pass an `id` attribute (or a `field`) to the `<.input>` component."
+      )
+
+      :ok
+    end
+  end
+
+  defp maybe_log_copyable_warning(_assigns), do: :ok
 end

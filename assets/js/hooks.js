@@ -28,4 +28,43 @@ if (!window.__auixDownloadListenerBound) {
   })
 }
 
+Hooks.AuixCopyToClipboard = {
+  mounted() {
+    this.el.addEventListener("click", () => this.copy())
+  },
+  copy() {
+    const targetId = this.el.getAttribute("data-auix-copy-target")
+    const input = targetId && document.getElementById(targetId)
+    if (!input) return
+    const value = input.value ?? ""
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(() => this.flash())
+    } else {
+      input.focus()
+      input.select()
+      document.execCommand("copy")
+      this.flash()
+    }
+  },
+  flash() {
+    const existing = document.querySelector(".auix-copyable-toast")
+    if (existing) existing.remove()
+
+    const message = this.el.getAttribute("data-auix-copied-message") || "Copied!"
+    const toast = document.createElement("div")
+    toast.className = "auix-copyable-toast"
+    toast.textContent = message
+    document.body.appendChild(toast)
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => toast.classList.add("auix-copyable-toast--visible"))
+    })
+
+    setTimeout(() => {
+      toast.classList.remove("auix-copyable-toast--visible")
+      toast.addEventListener("transitionend", () => toast.remove(), { once: true })
+    }, 2000)
+  }
+}
+
 export { Hooks }

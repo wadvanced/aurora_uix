@@ -691,6 +691,60 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_copyable_button) do
+    """
+    .auix-copyable-container {
+      display: flex;
+      align-items: center;
+      gap: var(--auix-gap-default);
+    }
+
+    .auix-copyable-container .auix-input,
+    .auix-copyable-container .auix-input--errors,
+    .auix-copyable-container .auix-textarea,
+    .auix-copyable-container .auix-textarea--errors {
+      flex: 1 1 auto;
+    }
+
+    .auix-copyable-container--textarea {
+      align-items: flex-start;
+    }
+
+    .auix-copyable-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--auix-padding-small);
+      cursor: pointer;
+      color: var(--auix-color-input-text);
+      background-color: transparent;
+      border: none;
+    }
+
+    .auix-copyable-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      padding: var(--auix-padding-small);
+      border-radius: var(--auix-border-radius-small);
+      font-size: var(--auix-font-size-small);
+      white-space: nowrap;
+      color: var(--auix-color-info-text);
+      background-color: var(--auix-color-bg-info);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease-in-out;
+    }
+
+    .auix-copyable-toast--visible {
+      opacity: 1;
+    }
+    """
+  end
+
   def rule(:auix_label) do
     """
     .auix-label {
