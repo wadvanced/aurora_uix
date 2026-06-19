@@ -22,7 +22,7 @@ Requires:
     attributes when building the field map for a resource, so computed and aggregated
     fields are automatically available in generated UIs without manual configuration.
   - `field_type/2` clauses added for all `Ash.Resource.Aggregate` kinds:
-    `count` → `:integer`, `exists` → `:boolean`, `sum / max / min / avg` → `:float`.
+    `count` -> `:integer`, `exists` -> `:boolean`, `sum / max / min / avg` -> `:float`.
   - Internal `map_from_struct/1` helper preserves the `__struct__` key so type-dispatch
     pattern matches on aggregate/calculation structs remain accurate.
 
@@ -48,13 +48,20 @@ Requires:
 ### Changed
 
 - **Guide reorganization moved styling content into a dedicated section**
-  - `guides/core/styling.md` → `guides/customization/styling.md`
-  - `guides/advanced/writing_a_style_bridge.md` → `guides/customization/writing_a_style_bridge.md`
+  - `guides/core/styling.md` -> `guides/customization/styling.md`
+  - `guides/advanced/writing_a_style_bridge.md` -> `guides/customization/writing_a_style_bridge.md`
   - Updated all cross-references across guides, README, CONTRIBUTING, `mix.exs` extras configuration, and docstrings
 
 - **Updated `mix.exs` extras grouping** — added a new `"Customization & Extension"` section group; renamed the former `Core` group to `"Core Concepts"`; expanded the `Introduction` group to include `guides/overview/` entries
 
 - **Simplified `CoreComponentsImporter`** — removed the deprecated `core_components_module` option, now superseded by the new runtime component resolver
+
+- **Updated Dependencies**
+  - ˋashˋ: ˋ3.27.8ˋ -> ˋ3.29.1ˋ
+  - ˋash_postgresˋ: ˋ2.9.1ˋ -> ˋ2.10.0ˋ
+  - `image`: `0.68.0` -> `0.69.0`
+  - ˋphoenixˋ: ˋ1.8.7ˋ -> ˋ1.8.8ˋ
+  - ˋphoenix_live_viewˋ: ˋ1.1.31ˋ -> ˋ1.2.3ˋ
 
 ### Fixes
 
@@ -65,7 +72,7 @@ Requires:
 
 ### Documentation
 
-- `guides/tutorial/build_your_first_app.md` — new **Tutorial** section: a zero-background, end-to-end walkthrough (install toolchain → Phoenix app → Ecto *or* Ash data layer → Aurora UIX → running CRUD app), linked prominently from the README and Getting Started.
+- `guides/tutorial/build_your_first_app.md` — new **Tutorial** section: a zero-background, end-to-end walkthrough (install toolchain -> Phoenix app -> Ecto *or* Ash data layer -> Aurora UIX -> running CRUD app), linked prominently from the README and Getting Started.
 - `guides/customization/overriding_components.md` — full reference with per-override-key function tables and configuration examples
 - `guides/customization/customization.md` — hub page linking all customization mechanisms
 - `guides/customization/custom_actions.md` — comprehensive guide on adding, replacing, inserting, and removing UI action buttons
@@ -142,18 +149,18 @@ Requires:
   - `ThemeHelper` gained two new public functions: `generate_variables_stylesheet/0` and `generate_rules_stylesheet/0`.
 
 - **Updated Dependencies**
-  - `ash`: `3.16.0` → `3.27.8`
-  - `ash_phoenix`: `2.3.19` → `2.3.23` 
-  - `ash_postgres`: `2.6.31` → `2.9.1`
-  - `bandit`: `1.10.2` → `1.12.0`
-  - `credo`: `1.7.16` → `1.7.19`
-  - `doctor`: `0.22.0` → `0.23.0`
-  - `ecto_sql`: `3.13.4` → `3.14.0`
-  - `ex_doc`: `0.40.1` → `0.40.3`
-  - `image`: `0.63.0` → `0.68.0`
-  - `phoenix`: `1.8.3` → `1.8.7`
-  - `phoenix_live_view`: `1.1.22` → `1.1.31`
-  - `postgrex`: `0.22.0` → `0.22.2`
+  - `ash`: `3.16.0` -> `3.27.8`
+  - `ash_phoenix`: `2.3.19` -> `2.3.23` 
+  - `ash_postgres`: `2.6.31` -> `2.9.1`
+  - `bandit`: `1.10.2` -> `1.12.0`
+  - `credo`: `1.7.16` -> `1.7.19`
+  - `doctor`: `0.22.0` -> `0.23.0`
+  - `ecto_sql`: `3.13.4` -> `3.14.0`
+  - `ex_doc`: `0.40.1` -> `0.40.3`
+  - `image`: `0.63.0` -> `0.68.0`
+  - `phoenix`: `1.8.3` -> `1.8.7`
+  - `phoenix_live_view`: `1.1.22` -> `1.1.31`
+  - `postgrex`: `0.22.0` -> `0.22.2`
 
 
 ### Fixes
@@ -224,13 +231,13 @@ Requires:
   - See `guides/core/liveview.md` for comprehensive callback documentation
   
 - **Updated Dependencies**
-  - `ash`: `3.12.0` → `3.16.0`
-  - `ash_postgres`: `2.6.27` → `2.6.31`
-  - `bandit`: `1.10.1` → `1.10.2`
-  - `credo`: `1.7.15` → `1.7.16`
-  - `ex_doc`: `0.39.3` → `0.40.1`
-  - `lazy_html`: `0.1.8` → `0.1.10`
-  - `phoenix_live_view`: `1.1.19` → `1.1.22`
+  - `ash`: `3.12.0` -> `3.16.0`
+  - `ash_postgres`: `2.6.27` -> `2.6.31`
+  - `bandit`: `1.10.1` -> `1.10.2`
+  - `credo`: `1.7.15` -> `1.7.16`
+  - `ex_doc`: `0.39.3` -> `0.40.1`
+  - `lazy_html`: `0.1.8` -> `0.1.10`
+  - `phoenix_live_view`: `1.1.19` -> `1.1.22`
 
 
 ### Fixed
@@ -304,8 +311,8 @@ Requires:
 ### Changed
 
 - **Routing architecture**: Show and show_edit actions now route to `.Index` module instead of `.Show` module
-  - `GET /path/:id/show` → `.Index` module with `:show` action (was `GET /path/:id` to `.Show` module)
-  - `GET /path/:id/show-edit` → `.Index` module with `:show_edit` action (was `GET /path/:id/show/edit` to `.Show` module with `:edit` action)
+  - `GET /path/:id/show` -> `.Index` module with `:show` action (was `GET /path/:id` to `.Show` module)
+  - `GET /path/:id/show-edit` -> `.Index` module with `:show_edit` action (was `GET /path/:id/show/edit` to `.Show` module with `:edit` action)
 - **Show implementation**: Replaced show LiveView module with ShowComponent (LiveComponent)
 - **Handler behavior**: Show handler now uses `ShowComponentImpl` instead of `ShowImpl`
 
