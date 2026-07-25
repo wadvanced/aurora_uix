@@ -149,7 +149,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       auix_resource_metadata(:product, context: Inventory, schema: Product)
 
       auix_create_ui do
-        index_columns :product, [:reference, name: [renderer: &upcase_text/1]]
+        index_columns :product, [:reference, name: [index_renderer: &upcase_text/1]]
         edit_layout :product do
           inline [id: [hidden: true], reference: [readonly: true, length: 30], description: [length: 255]]
         end
@@ -323,10 +323,14 @@ defmodule Aurora.Uix.Layout.Blueprint do
     Takes precedence over any order_by set in `auix_resource_metadata`.
     See `Aurora.Uix.Layout.ResourceMetadata.auix_resource_metadata/3` for details.
   - `:where` (keyword()) - Where clauses to use for filtering the items to show.
-  - Field-level options can be provided as keyword lists for each field (e.g., `[name: [renderer: &custom_renderer/1]]`).
+  - Field-level options can be provided as keyword lists for each field (e.g., `[name: [index_renderer: &custom_renderer/1]]`).
 
   ## Field-level Options
   Besides the metadata options, there are some field types that can accept specific options for changing the way they are rendered.
+
+  - `:index_renderer` (`function/1`) - Custom rendering function for this column in the index table.
+    Receives the field assigns (`@entity`, `@field`, `@auix`) and must return a
+    `Phoenix.LiveView.Rendered.t()`. Index columns do **not** fall back to `:renderer`.
 
   ### Fields representing **one-to-many** association.
   - `:order_by` (atom() | list() | keyword()) - `Order by` used for displaying the related items.
@@ -367,6 +371,9 @@ defmodule Aurora.Uix.Layout.Blueprint do
   index_columns :product, [:name, :price],
     page_title: "Products List",
     page_subtitle: "All available products"
+
+  # Custom per-column rendering in the index table
+  index_columns :product, [:reference, name: [index_renderer: &MyApp.Views.upcase_name/1]]
 
   # Add a custom row action and remove the default delete action
   defmodule MyApp.Actions do

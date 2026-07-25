@@ -129,6 +129,23 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   ## PRIVATE
+
+  # Folds each field TreePath's per-field :opts into :config so render-time get_field/3
+  # (which merges only :config) applies layout-DSL field options for index/form/show alike.
+  @spec fold_field_opts_into_config(map()) :: map()
+  defp fold_field_opts_into_config(%{tag: :field, inner_elements: inner} = element) do
+    opts = Map.get(element, :opts, [])
+
+    element
+    |> Map.update(:config, [], &Keyword.merge(opts, &1))
+    |> Map.put(:inner_elements, Enum.map(inner, &fold_field_opts_into_config/1))
+  end
+
+  defp fold_field_opts_into_config(%{inner_elements: inner} = element),
+    do: Map.put(element, :inner_elements, Enum.map(inner, &fold_field_opts_into_config/1))
+
+  defp fold_field_opts_into_config(element), do: element
+
   # Merges layout paths by their name and tag, combining inner elements and options.
   @spec merge_layout_trees(tuple()) :: list()
   defp merge_layout_trees({_, paths}) do
@@ -215,6 +232,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
           |> Map.get(tag)
           |> Blueprint.build_default_layout_paths(resource_config, opts, tag)
           |> Blueprint.parse_sections(tag)
+          |> fold_field_opts_into_config()
           |> then(&{tag, &1})
         end)
         |> Map.new()

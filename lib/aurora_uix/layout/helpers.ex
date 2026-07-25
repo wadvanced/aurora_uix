@@ -355,5 +355,13 @@ defmodule Aurora.Uix.Layout.Helpers do
     |> then(&{option_key, &1})
   end
 
+  defp process_field_tag_option({option_key, {:&, _, _} = function_capture}, env) do
+    env
+    |> Code.env_for_eval()
+    |> then(&Code.eval_quoted_with_env(function_capture, [], &1))
+    |> elem(0)
+    |> then(&{option_key, &1})
+  end
+
   defp process_field_tag_option(option, _env), do: option
 end

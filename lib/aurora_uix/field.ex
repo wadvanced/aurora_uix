@@ -8,7 +8,14 @@ defmodule Aurora.Uix.Field do
     - `type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
     - `html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `html_id` (`binary`) - A unique html id for the field.
-    - `renderer` (`function`) - A custom rendering function for the field.
+    - `renderer` (`function`) - A custom rendering function for the field, used for the form (edit)
+      and show layouts unless a more specific `edit_renderer`/`show_renderer` is provided.
+    - `index_renderer` (`function`) - A custom rendering function used only for the index layout.
+      Index columns do not fall back to `renderer`.
+    - `edit_renderer` (`function`) - A custom rendering function used only for the form (edit) layout.
+      Falls back to `renderer` when not set.
+    - `show_renderer` (`function`) - A custom rendering function used only for the show layout.
+      Falls back to `renderer` when not set.
     - `data` (`any`) - A general purpose field.
         Template parser expect specific format for this data, according to any of the field value.
         Refer to the template documentation to learn special fields data structure.
@@ -111,6 +118,9 @@ defmodule Aurora.Uix.Field do
     type: :string,
     html_type: :text,
     renderer: nil,
+    index_renderer: nil,
+    edit_renderer: nil,
+    show_renderer: nil,
     resource: nil,
     name: "",
     label: "",
@@ -134,6 +144,9 @@ defmodule Aurora.Uix.Field do
           html_type: atom() | binary() | nil,
           html_id: binary(),
           renderer: function() | nil,
+          index_renderer: function() | nil,
+          edit_renderer: function() | nil,
+          show_renderer: function() | nil,
           data: any() | nil,
           resource: module() | nil,
           name: binary(),
