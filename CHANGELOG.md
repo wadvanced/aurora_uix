@@ -79,6 +79,17 @@ Requires:
 - `guides/customization/theming.md` — guide for authoring custom registered themes
 - Updated internal references across all existing core and advanced guides to point to the new customization paths
 
+- **Ash generated fields (calculations/aggregates) auto-loaded in generated layouts**
+  - Fields tagged as generated (`field.data == %{generated: true}`, i.e. Ash calculations/aggregates) referenced in
+    index/form/show layouts are now automatically added to the resource's Ash `load` list, alongside association preloads.
+    Resources no longer need `prepare build(load: :summary)` (or similar) on their read action purely to display a
+    calculation/aggregate that is only referenced through a layout.
+  - `auix_preloads/0` now returns a mixed list per resource (bare atoms for generated fields, `{name, nested}` tuples
+    for associations), e.g. `%{post: [:summary, comment: [], author: [...]]}`.
+  - `Aurora.Uix.Templates.Basic.Helpers.extract_association_preload/1` updated to tolerate bare-atom preload entries.
+  - **Limitation**: only argument-less calculations/aggregates are auto-loaded (`[:summary]`). Calculations that take
+    arguments still require an explicit `prepare build(load: [summary: %{arg: ...}])` on the resource's read action —
+    this feature composes with (does not replace) that mechanism.
 
 ## [0.1.4] - 2026-06-07
 
