@@ -503,6 +503,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Extracts metadata for Ash field types
   @spec field_data(map(), map()) :: map()
+  defp field_data(_attrs, %{generated_type: _generated_type}), do: %{generated: true}
+
   defp field_data(
          _attrs,
          %{type: resource_type, constraints: constraints}

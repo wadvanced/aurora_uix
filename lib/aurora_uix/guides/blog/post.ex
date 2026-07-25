@@ -75,7 +75,6 @@ defmodule Aurora.Uix.Guides.Blog.Post do
     read :read do
       primary? true
       pagination required?: false, offset?: true
-      prepare build(load: :summary)
     end
   end
 

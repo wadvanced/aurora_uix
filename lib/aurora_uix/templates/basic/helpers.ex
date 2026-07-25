@@ -876,13 +876,19 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     parsed_opts
     |> Map.get(:preload)
     |> List.flatten()
-    |> Enum.map(&elem(&1, 0))
+    |> Enum.map(&preload_entry_name/1)
     |> Enum.uniq()
     |> Enum.map(&get_field(%{name: &1}, parsed_opts.configurations, parsed_opts.resource_name))
     |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
     |> Enum.map(&{&1.type, &1.key})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
   end
+
+  # Extracts the field name from a preload entry, which may be a bare atom
+  # (e.g. a generated field) or an `{name, related}` association tuple.
+  @spec preload_entry_name(atom() | tuple()) :: atom()
+  defp preload_entry_name(name) when is_atom(name), do: name
+  defp preload_entry_name({name, _related}), do: name
 
   @doc """
   Flattens a nested structure of elements into a list of paths.

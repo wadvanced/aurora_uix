@@ -24,7 +24,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
   auix_create_ui do
     edit_layout :author do
-      stacked([:name, :email, :posts])
+      stacked([:name, :email, :posts, :posts_count])
     end
 
     edit_layout :post,
@@ -33,6 +33,7 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
         inline([:status])
         stacked([:title, :content])
         stacked([:comment, :tags])
+        stacked([:summary])
       end
     end
   end
@@ -181,5 +182,33 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
     assert post_count_resource.type == :integer
     assert post_count_resource.html_type == :number
     assert post_count_resource.label == "Posts Count"
+  end
+
+  test "Generated fields referenced in layouts are added to auix_preloads" do
+    preloads = AshEmbedsTest.auix_preloads()
+
+    assert :summary in preloads.post
+    assert :posts_count in preloads.author
+  end
+
+  test "Show renders a calculation value without a manual read-action load", %{conn: conn} do
+    delete_all_blog_data()
+
+    author =
+      1
+      |> create_sample_authors()
+      |> List.first()
+
+    post =
+      1
+      |> create_sample_posts(%{author_id: author.id, comment: %{}})
+      |> List.first()
+
+    {:ok, view, _html} = live(conn, "/ash-embeds-posts/#{post.id}/show")
+
+    assert has_element?(
+             view,
+             "div.auix-show-container input[name='summary'][value='#{post.title} is #{post.status}'][disabled]"
+           )
   end
 end

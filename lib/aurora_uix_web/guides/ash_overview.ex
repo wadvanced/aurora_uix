@@ -52,7 +52,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
     index_columns(:post, [:title, :author, :status])
 
     show_layout :post do
-      stacked([:status, :title, :author, :comment])
+      stacked([:status, :title, :author, :comment, :summary])
     end
 
     edit_layout :post do
@@ -65,6 +65,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
           stacked([:status, :published_at])
         end
 
+        inline([:summary])
         inline([:tags])
       end
     end
