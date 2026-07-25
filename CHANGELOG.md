@@ -17,14 +17,22 @@ Requires:
 
 ### Added
 
+- **Per-layout custom field renderers**
+  - `Aurora.Uix.Field` gains three per-layout renderer options — `index_renderer`, `edit_renderer`,
+    and `show_renderer` — alongside the existing generic `renderer`.
+  - The form (edit) and show layouts use `edit_renderer`/`show_renderer` when set and otherwise fall
+    back to `renderer`, preserving existing behavior. Index columns, which previously had no custom
+    renderer, honor `index_renderer` with no fallback to `renderer`.
+  - Configurable via `field/2` options or index column keyword lists, e.g.
+    `index_columns :product, [name: [index_renderer: &upcase_name/1]]`.
+
 - **Ash calculations and aggregates support in `FieldsParser`**
   - `FieldsParser` now discovers and includes Ash calculations and aggregates alongside
     attributes when building the field map for a resource, so computed and aggregated
-    fields are automatically available in generated UIs without manual configuration.
+    fields are automatically available in generated UIs without manual configuration on
+    ash backend.
   - `field_type/2` clauses added for all `Ash.Resource.Aggregate` kinds:
     `count` -> `:integer`, `exists` -> `:boolean`, `sum / max / min / avg` -> `:float`.
-  - Internal `map_from_struct/1` helper preserves the `__struct__` key so type-dispatch
-    pattern matches on aggregate/calculation structs remain accurate.
 
 - **Runtime component override mechanism**
   - `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` — macro-based system enabling per-function component overrides resolved at call time
@@ -79,6 +87,17 @@ Requires:
 - `guides/customization/theming.md` — guide for authoring custom registered themes
 - Updated internal references across all existing core and advanced guides to point to the new customization paths
 
+- **Ash generated fields (calculations/aggregates) auto-loaded in generated layouts**
+  - Fields tagged as generated (`field.data == %{generated: true}`, i.e. Ash calculations/aggregates) referenced in
+    index/form/show layouts are now automatically added to the resource's Ash `load` list, alongside association preloads.
+    Resources no longer need `prepare build(load: :summary)` (or similar) on their read action purely to display a
+    calculation/aggregate that is only referenced through a layout.
+  - `auix_preloads/0` now returns a mixed list per resource (bare atoms for generated fields, `{name, nested}` tuples
+    for associations), e.g. `%{post: [:summary, comment: [], author: [...]]}`.
+  - `Aurora.Uix.Templates.Basic.Helpers.extract_association_preload/1` updated to tolerate bare-atom preload entries.
+  - **Limitation**: only argument-less calculations/aggregates are auto-loaded (`[:summary]`). Calculations that take
+    arguments still require an explicit `prepare build(load: [summary: %{arg: ...}])` on the resource's read action —
+    this feature composes with (does not replace) that mechanism.
 
 ## [0.1.4] - 2026-06-07
 

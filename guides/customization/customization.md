@@ -107,6 +107,10 @@ Three places to attach it:
 - **Layout DSL field options** (per-layout: `name: [renderer: ...]`) → [Layouts → Field-Level Options](../core/layouts.md#field-level-options)
 - **Template-level renderers** (whole-view generation) → [Advanced Usage](../advanced/advanced_usage.md#how-templates-work)
 
+The generic `renderer` covers the form (edit) and show layouts. For layout-specific control —
+including index columns, which `renderer` does not cover — use `index_renderer`, `edit_renderer`,
+and `show_renderer`. See [Per-layout renderers](../core/resource_metadata.md#per-layout-renderers).
+
 > #### Copyable inputs in custom renderers {: .warning}
 > A custom `renderer:` function bypasses Aurora UIX's automatic field-id wiring. If your
 > renderer uses `<.input copyable>`, two things are required:
@@ -163,7 +167,8 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `omitted` | Completely excluded from the UI | [Field Properties](../core/resource_metadata.md#presentation-state) |
 | `label` | Display label (auto-generated otherwise) | [Display and Interaction](../core/resource_metadata.md#display-and-interaction) |
 | `placeholder` | Input placeholder text | [Display and Interaction](../core/resource_metadata.md#display-and-interaction) |
-| `renderer` | Custom rendering function/component | [Custom Field Types](../core/resource_metadata.md#custom-field-types-and-rendering) |
+| `renderer` | Custom rendering function/component (form/edit + show) | [Custom Field Types](../core/resource_metadata.md#custom-field-types-and-rendering) |
+| `index_renderer` / `edit_renderer` / `show_renderer` | Per-layout custom rendering function/component | [Per-layout renderers](../core/resource_metadata.md#per-layout-renderers) |
 | `option_label` | Label source for select dropdowns (atom or function) | [Many-to-One](../core/resource_metadata.md#many-to-one-belongs_to) |
 | `order_by` | Sort order for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
 | `where` | Filter for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |

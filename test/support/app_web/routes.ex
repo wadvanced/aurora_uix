@@ -34,6 +34,21 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          CustomFieldRenderersTest.Product,
+          "custom-field-renderers-products"
+        )
+
+        RoutesHelper.register_crud(
+          CustomFieldRenderersIndexColumnsTest.Product,
+          "custom-field-renderers-index-columns-products"
+        )
+
+        RoutesHelper.register_crud(
+          InlineFieldOptsTest.Product,
+          "inline-field-opts-products"
+        )
+
+        RoutesHelper.register_crud(
           GroupUILayoutTest.Product,
           "group-ui-layout-products"
         )

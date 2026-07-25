@@ -194,6 +194,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     """
   end
 
+  defp field_value(%{field: %{index_renderer: custom_renderer}} = assigns)
+       when is_function(custom_renderer, 1), do: custom_renderer.(assigns)
+
   defp field_value(assigns) do
     ~H"""
     {Map.get(@entity, @field.key)}

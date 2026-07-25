@@ -286,7 +286,10 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `label` - Display label for the field (auto-generated from field name if not specified)
 - `placeholder` - Placeholder text for input fields
 - `html_id` - A unique HTML id for the field (auto-generated)
-- `renderer` - Optional custom rendering function or component
+- `renderer` - Optional custom rendering function or component, applied to the **form (edit)** and **show** layouts unless a more specific per-layout renderer is set
+- `index_renderer` - Optional custom rendering function or component, applied only to the **index** layout (does not fall back to `renderer`)
+- `edit_renderer` - Optional custom rendering function or component, applied only to the **form (edit)** layout (falls back to `renderer` when not set)
+- `show_renderer` - Optional custom rendering function or component, applied only to the **show** layout (falls back to `renderer` when not set)
 
 ### Validation and Constraints
 
@@ -415,9 +418,38 @@ end
 
 The `html_type` option overrides the automatic HTML type inference. The `renderer` option allows providing a custom function or component for rendering the field.
 
-A renderer set here applies everywhere the field appears. To override rendering for a single
-layout only, use [field-level options in the layout DSL](layouts.md#field-level-options). For
-the full catalog of rendering customization points, see
+### Per-layout renderers
+
+`renderer` applies to the **form (edit)** and **show** layouts. To render a field differently
+depending on the layout, use the per-layout renderer options — each is a 1-arity function (or
+component) that receives the render assigns and returns a `Phoenix.LiveView.Rendered.t()`:
+
+```elixir
+auix_resource_metadata :product, schema: MyApp.Product do
+  field :status,
+    index_renderer: &MyAppWeb.Helpers.status_badge/1,
+    edit_renderer: &MyAppWeb.Helpers.status_select/1,
+    show_renderer: &MyAppWeb.Helpers.status_label/1
+end
+```
+
+Precedence:
+
+- **index** layout — uses `index_renderer` if set, otherwise the default rendering. The index
+  layout never falls back to `renderer`.
+- **form (edit)** layout — uses `edit_renderer` if set, otherwise `renderer`, otherwise the
+  default rendering.
+- **show** layout — uses `show_renderer` if set, otherwise `renderer`, otherwise the default
+  rendering.
+
+The render assigns available to a renderer include `@field` (the `Aurora.Uix.Field` struct) and
+`@auix` (the render context, e.g. `@auix.entity` in show/index and `@auix.form` in the form
+layout); index renderers also receive the row `@entity`.
+
+A renderer set here applies wherever its layout renders the field. To override rendering for a
+single layout at the layout-definition site instead, use
+[field-level options in the layout DSL](layouts.md#field-level-options). For the full catalog of
+rendering customization points, see
 [Customizing & Extending Aurora UIX](../customization/customization.md#3-custom-field-rendering).
 
 ## Associations

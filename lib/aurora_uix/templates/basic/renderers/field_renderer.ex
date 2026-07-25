@@ -37,24 +37,32 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: auix} = assigns) do
-    field =
-      get_field_info(auix)
+    field = get_field_info(auix)
 
-    assigns = assign(assigns, :field, field)
-
-    case field do
-      %{omitted: true} ->
-        empty_render(assigns)
-
-      %{renderer: custom_renderer} when is_function(custom_renderer, 1) ->
-        custom_renderer.(assigns)
-
-      _field ->
-        default_render(assigns)
-    end
+    assigns
+    |> assign(:field, field)
+    |> do_render()
   end
 
   # PRIVATE
+
+  @spec do_render(map()) :: Phoenix.LiveView.Rendered.t()
+  defp do_render(%{field: %{omitted: true}} = assigns), do: empty_render(assigns)
+
+  defp do_render(
+         %{field: %{show_renderer: custom_renderer}, auix: %{layout_type: :show}} = assigns
+       )
+       when is_function(custom_renderer, 1), do: custom_renderer.(assigns)
+
+  defp do_render(
+         %{field: %{edit_renderer: custom_renderer}, auix: %{layout_type: :form}} = assigns
+       )
+       when is_function(custom_renderer, 1), do: custom_renderer.(assigns)
+
+  defp do_render(%{field: %{renderer: custom_renderer}} = assigns)
+       when is_function(custom_renderer, 1), do: custom_renderer.(assigns)
+
+  defp do_render(assigns), do: default_render(assigns)
 
   # Returns field info for rendering, handling tuple and atom names
   @spec get_field_info(map()) :: map()
