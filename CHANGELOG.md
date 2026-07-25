@@ -17,14 +17,22 @@ Requires:
 
 ### Added
 
+- **Per-layout custom field renderers**
+  - `Aurora.Uix.Field` gains three per-layout renderer options — `index_renderer`, `edit_renderer`,
+    and `show_renderer` — alongside the existing generic `renderer`.
+  - The form (edit) and show layouts use `edit_renderer`/`show_renderer` when set and otherwise fall
+    back to `renderer`, preserving existing behavior. Index columns, which previously had no custom
+    renderer, honor `index_renderer` with no fallback to `renderer`.
+  - Configurable via `field/2` options or index column keyword lists, e.g.
+    `index_columns :product, [name: [index_renderer: &upcase_name/1]]`.
+
 - **Ash calculations and aggregates support in `FieldsParser`**
   - `FieldsParser` now discovers and includes Ash calculations and aggregates alongside
     attributes when building the field map for a resource, so computed and aggregated
-    fields are automatically available in generated UIs without manual configuration.
+    fields are automatically available in generated UIs without manual configuration on
+    ash backend.
   - `field_type/2` clauses added for all `Ash.Resource.Aggregate` kinds:
     `count` -> `:integer`, `exists` -> `:boolean`, `sum / max / min / avg` -> `:float`.
-  - Internal `map_from_struct/1` helper preserves the `__struct__` key so type-dispatch
-    pattern matches on aggregate/calculation structs remain accurate.
 
 - **Runtime component override mechanism**
   - `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` — macro-based system enabling per-function component overrides resolved at call time

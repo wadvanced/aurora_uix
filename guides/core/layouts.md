@@ -388,10 +388,23 @@ end
 **Relevant Field Options:**
 - `:readonly` — Make field read-only
 - `:hidden` — Hide field from UI
-- `:renderer` — Custom rendering function
+- `:renderer` — Custom rendering function (form/edit and show layouts)
+- `:index_renderer` — Custom rendering function for the index layout only
+- `:edit_renderer` — Custom rendering function for the form (edit) layout only
+- `:show_renderer` — Custom rendering function for the show layout only
 - `:length` — Input field character width
 - `:placeholder` — Placeholder text
 - `:option_label` — For select/radio fields
+
+Per-layout renderers are especially useful for index columns, which the generic `:renderer`
+does not cover:
+
+```elixir
+index_columns :product, [
+  :reference,
+  name: [index_renderer: &MyAppWeb.Helpers.product_name_link/1]
+]
+```
 
 > **Note:** Some field options are resolved from the field's `data` map and must be set in
 > `auix_resource_metadata` rather than inline in a layout (layouts do not accept these rendering
