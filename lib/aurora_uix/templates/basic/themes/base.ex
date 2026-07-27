@@ -2358,6 +2358,171 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  # --- PREDEFINED RENDERERS --- #
+
+  def rule(:auix_toggle_pill) do
+    """
+    .auix-toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--auix-padding-small) var(--auix-padding-medium);
+      border-radius: var(--auix-border-radius-round);
+      font-size: var(--auix-font-size-small);
+      font-weight: var(--auix-font-weight-bold);
+      background-color: #e5e7eb;
+      color: #374151;
+    }
+    .auix-toggle-pill--on {
+      background-color: #16a34a;
+      color: #ffffff;
+    }
+    .auix-toggle-switch {
+      width: 2.25rem;
+      height: 1.25rem;
+      accent-color: #16a34a;
+    }
+    """
+  end
+
+  def rule(:auix_color) do
+    """
+    .auix-color {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--auix-gap-default);
+    }
+    .auix-color-swatch {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border-radius: var(--auix-border-radius-small);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+    .auix-color-label {
+      font-family: monospace;
+      font-size: var(--auix-font-size-small);
+    }
+    """
+  end
+
+  def rule(:auix_badge) do
+    """
+    .auix-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--auix-padding-small) var(--auix-padding-medium);
+      border-radius: var(--auix-border-radius-round);
+      font-size: var(--auix-font-size-small);
+      font-weight: var(--auix-font-weight-bold);
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    """
+  end
+
+  def rule(:auix_progress) do
+    """
+    .auix-progress {
+      position: relative;
+      height: 1rem;
+      width: 100%;
+      min-width: 6rem;
+      background-color: #e5e7eb;
+      border-radius: var(--auix-border-radius-round);
+      overflow: hidden;
+    }
+    .auix-progress-bar {
+      height: 100%;
+      background-color: #3b82f6;
+      border-radius: inherit;
+      transition: width 0.2s ease;
+    }
+    .auix-progress-label {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: var(--auix-font-size-small);
+      line-height: 1rem;
+    }
+    """
+  end
+
+  def rule(:auix_url) do
+    """
+    .auix-url {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    """
+  end
+
+  def rule(:auix_image) do
+    """
+    .auix-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--auix-border-radius-small);
+    }
+    .auix-image--thumb {
+      width: 3rem;
+      height: 3rem;
+      object-fit: cover;
+    }
+    """
+  end
+
+  def rule(:auix_rating) do
+    """
+    .auix-rating,
+    .auix-rating-stars {
+      display: inline-flex;
+      gap: 0.125rem;
+    }
+    .auix-rating-star {
+      color: #d1d5db;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+    .auix-rating-star--on {
+      color: #f59e0b;
+    }
+    .auix-rating-star-label {
+      cursor: pointer;
+    }
+    .auix-rating-radio {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+    }
+    """
+  end
+
+  def rule(:auix_canvas) do
+    """
+    .auix-canvas {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--auix-gap-default);
+    }
+    .auix-canvas-pad {
+      border: 1px solid #d1d5db;
+      border-radius: var(--auix-border-radius-small);
+      background-color: #ffffff;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .auix-canvas-image {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #d1d5db;
+      border-radius: var(--auix-border-radius-small);
+    }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE

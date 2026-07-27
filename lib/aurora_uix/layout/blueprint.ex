@@ -328,9 +328,10 @@ defmodule Aurora.Uix.Layout.Blueprint do
   ## Field-level Options
   Besides the metadata options, there are some field types that can accept specific options for changing the way they are rendered.
 
-  - `:index_renderer` (`function/1`) - Custom rendering function for this column in the index table.
-    Receives the field assigns (`@entity`, `@field`, `@auix`) and must return a
-    `Phoenix.LiveView.Rendered.t()`. Index columns do **not** fall back to `:renderer`.
+  - `:index_renderer` (`function/1` | `atom()`) - Renderer for this column in the index table.
+    An arity-1 function receiving the field assigns (`@entity`, `@field`, `@auix`) and returning a
+    `Phoenix.LiveView.Rendered.t()`, or an atom naming a predefined renderer (e.g. `:badge`; see
+    `Aurora.Uix.Renderer`). Index columns do **not** fall back to `:renderer`.
 
   ### Fields representing **one-to-many** association.
   - `:order_by` (atom() | list() | keyword()) - `Order by` used for displaying the related items.

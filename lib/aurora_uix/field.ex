@@ -8,14 +8,20 @@ defmodule Aurora.Uix.Field do
     - `type` (`atom`) - The type of the field, it is read from the source and SHOULDN'T be change.
     - `html_type` (`binary`) - The HTML type of the field (e.g., `:text`, `:number`, `:date`).
     - `html_id` (`binary`) - A unique html id for the field.
-    - `renderer` (`function`) - A custom rendering function for the field, used for the form (edit)
-      and show layouts unless a more specific `edit_renderer`/`show_renderer` is provided.
-    - `index_renderer` (`function`) - A custom rendering function used only for the index layout.
-      Index columns do not fall back to `renderer`.
-    - `edit_renderer` (`function`) - A custom rendering function used only for the form (edit) layout.
-      Falls back to `renderer` when not set.
-    - `show_renderer` (`function`) - A custom rendering function used only for the show layout.
-      Falls back to `renderer` when not set.
+    Each renderer slot is an arity-1 function `(assigns) -> rendered` **or** an atom naming a
+    predefined renderer (see `Aurora.Uix.Renderer`, e.g. `:toggle_switch`, `:color`). The
+    renderer to invoke is chosen by `Aurora.Uix.Renderers.resolve/2` per layout type:
+
+      * `:index` → `index_renderer` → default (index is independent — no `renderer` fallback)
+      * `:form`  → `edit_renderer` → `renderer` → default
+      * `:show`  → `show_renderer` → `renderer` → default
+
+    - `renderer` (`function` | `atom`) - Renderer for the form (edit) and show layouts unless a
+      more specific `edit_renderer`/`show_renderer` is set. Does **not** apply to the index
+      layout — use `index_renderer` for that.
+    - `index_renderer` (`function` | `atom`) - Renderer used only for the index layout.
+    - `edit_renderer` (`function` | `atom`) - Renderer used only for the form (edit) layout.
+    - `show_renderer` (`function` | `atom`) - Renderer used only for the show layout.
     - `data` (`any`) - A general purpose field.
         Template parser expect specific format for this data, according to any of the field value.
         Refer to the template documentation to learn special fields data structure.
@@ -143,10 +149,10 @@ defmodule Aurora.Uix.Field do
           type: atom() | nil,
           html_type: atom() | binary() | nil,
           html_id: binary(),
-          renderer: function() | nil,
-          index_renderer: function() | nil,
-          edit_renderer: function() | nil,
-          show_renderer: function() | nil,
+          renderer: function() | atom() | nil,
+          index_renderer: function() | atom() | nil,
+          edit_renderer: function() | atom() | nil,
+          show_renderer: function() | atom() | nil,
           data: any() | nil,
           resource: module() | nil,
           name: binary(),

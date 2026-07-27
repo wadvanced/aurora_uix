@@ -55,6 +55,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/customization/theming.md",
           "guides/customization/writing_a_style_bridge.md",
           "guides/customization/overriding_components.md",
+          "guides/customization/predefined_renderers.md",
           "guides/customization/custom_actions.md",
           "guides/advanced/advanced_usage.md",
           "guides/advanced/troubleshooting.md"
@@ -120,6 +121,21 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.CssSanitizer,
             Aurora.Uix.Templates.Theme,
             Aurora.Uix.Templates.ThemeHelper
+          ],
+          Renderers: [
+            Aurora.Uix.Renderer,
+            Aurora.Uix.RendererRegistrar,
+            Aurora.Uix.Renderers,
+            Aurora.Uix.Renderers.BuiltIn,
+            Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Color,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Badge,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.ProgressBar,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Url,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Image,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating,
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Canvas
           ],
           "Basic Template - Actions": [
             Aurora.Uix.Templates.Basic.Actions,

@@ -67,4 +67,76 @@ Hooks.AuixCopyToClipboard = {
   }
 }
 
+Hooks.AuixCanvas = {
+  mounted() {
+    const canvas = this.el
+    const input = document.getElementById(canvas.dataset.auixInputId)
+    const clearBtn = document.getElementById(canvas.dataset.auixClearId)
+    const ctx = canvas.getContext("2d")
+    let drawing = false
+
+    ctx.lineWidth = 2
+    ctx.lineJoin = "round"
+    ctx.lineCap = "round"
+
+    const point = e => {
+      const rect = canvas.getBoundingClientRect()
+      const src = e.touches ? e.touches[0] : e
+      return {
+        x: (src.clientX - rect.left) * (canvas.width / rect.width),
+        y: (src.clientY - rect.top) * (canvas.height / rect.height)
+      }
+    }
+
+    const persist = () => {
+      if (!input) return
+      input.value = canvas.toDataURL("image/png")
+      input.dispatchEvent(new Event("input", { bubbles: true }))
+    }
+
+    const start = e => {
+      drawing = true
+      const p = point(e)
+      ctx.beginPath()
+      ctx.moveTo(p.x, p.y)
+      e.preventDefault()
+    }
+    const move = e => {
+      if (!drawing) return
+      const p = point(e)
+      ctx.lineTo(p.x, p.y)
+      ctx.stroke()
+      e.preventDefault()
+    }
+    const end = () => {
+      if (!drawing) return
+      drawing = false
+      persist()
+    }
+
+    canvas.addEventListener("mousedown", start)
+    canvas.addEventListener("mousemove", move)
+    window.addEventListener("mouseup", end)
+    canvas.addEventListener("touchstart", start, { passive: false })
+    canvas.addEventListener("touchmove", move, { passive: false })
+    canvas.addEventListener("touchend", end)
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        if (input) {
+          input.value = ""
+          input.dispatchEvent(new Event("input", { bubbles: true }))
+        }
+      })
+    }
+
+    if (input && input.value) {
+      const img = new Image()
+      img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      img.src = input.value
+    }
+  }
+}
+
 export { Hooks }
