@@ -9,10 +9,10 @@ stop.
 
 ## Background
 
-The `precommit` alias in `mix.exs` is fail-fast and runs in this fixed order:
+The `consistency` alias in `mix.exs` is fail-fast and runs in this fixed order:
 
 ```
-deps.unlock --unused → format → compile --warnings-as-errors → docs → credo --strict → doctor → dialyzer
+auix.gen.tailwind_classes → format → compile --warnings-as-errors → credo --strict → dialyzer → doctor
 ```
 
 Only the FIRST failing stage is visible per run. Fix that stage, re-run, repeat.
@@ -40,7 +40,7 @@ If exit code is 0, print `STATUS: CLEAN` and return.
 
 Read the output and find the last stage that ran. It is one of:
 
-`deps.unlock --unused` · `format` · `compile --warnings-as-errors` · `docs` · `credo --strict` · `doctor` · `dialyzer`
+`auix.gen.tailwind_classes` · `format` · `compile --warnings-as-errors` · `credo --strict` · `dialyzer` · `doctor`
 
 ## 3. Stage-keyed action table
 
@@ -48,10 +48,9 @@ Apply the action for the failing stage. Then go back to step 1.
 
 | Failing stage | Mechanical action | Refactor-class fallback |
 |---|---|---|
-| `deps.unlock --unused` | Run `mix deps.unlock --unused`. | n/a |
+| `auix.gen.tailwind_classes` | A new `auix-*` class is not in the generated inventory. Add it to `lib/aurora_uix/templates/basic/themes/base.ex`, re-run the task, and commit the regenerated stylesheet. | If the class belongs to a theme that needs restructuring → record in Refactor Plan. |
 | `format` | Run `mix format`. | n/a |
 | `compile --warnings-as-errors` | If every warning is one of {unused variable, unused alias, unused import, unused module attribute} → fix mechanically (prefix unused vars with `_`, delete unused aliases/imports). | Any other warning → record in Refactor Plan; never modify logic to silence a warning. |
-| `docs` | For each file in the ex_doc warnings, invoke the `documentation` skill on that file. | If a file's docs require non-trivial restructuring beyond what `documentation` produces → record in Refactor Plan. |
 | `credo --strict` | Only act if `credo` exited non-zero (TODOs are non-failing — ignore). If every breaking issue is one of {trailing whitespace, large numbers without underscores, alias ordering, missing alias at the top, module attribute ordering, missing @spec} → fix mechanically. | Otherwise → record in Refactor Plan. |
 | `doctor` | For each module flagged with low coverage, invoke the `documentation` skill on that file. | If coverage gap requires API/behavior changes → record in Refactor Plan. |
 | `dialyzer` | n/a | All Dialyzer findings → record in Refactor Plan. Never invent or weaken `@spec` to silence Dialyzer. |

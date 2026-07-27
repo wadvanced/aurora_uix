@@ -106,8 +106,9 @@ large.
 | Signal | Source | Threshold |
 |---|---|---|
 | Affected files (outstanding only) | Affected Files / Modules section, filtered to outstanding ACs | 1 trivial · 2–4 standard · 5–8 complex · >8 oversized |
-| Layers touched | Router / LiveView / Ash domain / Ash resource / Migration / Oban / Mail / PubSub | 1 trivial · 2–3 standard · 4 complex · ≥5 oversized |
-| Cross-domain coupling | spec mentions ≥2 distinct Ash domains | yes → at least complex |
+| Layers touched | Parser (ash/ctx) / Layout-metadata / Renderer / Generator-handler / Theme-CSS / Guide-schema / Migration | 1 trivial · 2–3 standard · 4 complex · ≥5 oversized |
+| Backend coupling | spec requires both the Ash and Ecto (`ctx`) parsers | yes → at least standard |
+| New `%Field{}` type atom | spec adds a type atom (⇒ full downstream consumer audit) | yes → at least complex |
 | Migration required | Dependencies section | yes → at least standard |
 | New external dependency | Dependencies section | yes → at least standard |
 
@@ -151,8 +152,8 @@ Pick exactly one:
 
 Generate 2–3 mutually exclusive strategies derived from the spec. Pick from:
 
-- **By layer**: data-model + migration → resource actions + policies →
-  LiveView/UI → Oban/async.
+- **By layer**: parsers + metadata → downstream consumers → renderer →
+  guide schemas + migrations → LiveView tests.
 - **By acceptance-criterion grouping**: cluster ACs that share files; each
   cluster becomes a child.
 - **By happy-path vs edge cases**: ship the happy-path first; defer
@@ -210,10 +211,10 @@ condition does not hold):
 - **Outstanding ACs:** AC-2, AC-5, AC-7 (one verbatim line each)
 - **Outstanding review-gaps:** <copied from INCOMPLETE_TASKS / MISSING_COVERAGE if any, else "none">
 - **Files in play:** <deduped list, only files tied to outstanding ACs>
-- **Layers touched:** Router · LiveView · Ash resource · Migration · Oban (only those present)
+- **Layers touched:** Parser · Layout/metadata · Renderer · Generator/handler · Theme · Guide schema · Migration (only those present)
 - **Migration required:** yes/no — <name if known>
 - **New deps:** none / `<pkg> ~> x.y`
-- **Authorization work:** yes/no — <which roles/policies>
+- **Backends affected:** Ash / Ecto (ctx) / both
 
 ### Sizing signals — primary (file/spread-driven)
 | Signal | Observed | Tier contribution |

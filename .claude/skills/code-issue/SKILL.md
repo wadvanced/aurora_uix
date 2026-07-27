@@ -1,7 +1,8 @@
 ---
 name: code-issue
 description: >
-  Implement a GitHub issue in this Elixir/Phoenix/Ash codebase, following an
+  Implement a GitHub issue in aurora_uix, an Elixir/Phoenix low-code UI
+  generation library with Ash and Ecto backends, following an
   enriched spec produced by improve-issue. Use this skill when the user says
   "implement the issue", "code this up", "start coding", or provides an enriched
   spec from improve-issue. Also triggers on "fix the gaps", "address the review
@@ -91,11 +92,12 @@ Output a short **Implementation Plan** before touching any file:
 ### Implementation Plan
 
 **Order of operations:**
-1. Ash resource changes (attributes, relationships, actions, policies)
-2. Migration via `mix ash.codegen <name>` then `mix ash.migrate`
-3. Domain action implementations
-4. LiveView/Router/API endpoints
-5. Localization keys (gettext extract/merge)
+1. Parser / metadata layer (`lib/aurora_uix/integration/{ash,ctx}/`, `lib/aurora_uix/layout/`)
+2. Downstream consumers keyed off the changed metadata (renderers, generators, handlers)
+3. Renderer / component changes (`lib/aurora_uix/templates/basic/`)
+4. Theme classes (`templates/basic/themes/base.ex`) + `mix auix.gen.tailwind_classes`
+5. Guide schemas, migrations and test routes (`lib/aurora_uix/guides/`,
+   `priv/repo/migrations/`, `test/support/app_web/routes.ex`)
 6. Tests (alongside each step above)
 
 **Key design decisions:**
@@ -113,18 +115,47 @@ or a public API contract.
 
 ## Step 3 — Implement, AC by AC
 
-### Non-negotiables (CLAUDE.md)
+### Non-negotiables
 
-Every change in this codebase must respect these. Re-read before each AC:
+`aurora_uix` is a **low-code UI generation library**, not an application. It
+generates LiveView index/form/show UIs from resource metadata, over **two
+interchangeable backends**: Ash and Ecto (via `aurora_ctx`). Every change must
+respect these. Re-read before each AC:
 
+- **Backend abstraction boundary** (the single most important rule):
+  - `Ecto.Association.*` / `Ecto.Embedded` may be referenced **only** in
+    `lib/aurora_uix/integration/ctx/`.
+  - `Ash.Resource.*` may be referenced **only** in
+    `lib/aurora_uix/integration/ash/`.
+  - Both parsers normalize into a common `%Aurora.Uix.Field{}` shape
+    (`type`, `html_type`, `data`). Everything downstream — layout, renderers,
+    generators, handlers — consumes the normalized atoms and must stay
+    backend-agnostic.
+  - A feature is not complete until **both** parsers support it.
+- **Adding a new field type atom**: audit every downstream consumer that
+  pattern-matches on the existing atoms. Grep for a sibling atom (e.g.
+  `:one_to_many_association`) and decide add / do-NOT-add for each hit, with a
+  justification. Silent omission is the dominant failure mode here — a missing
+  entry in `filter_preloads/1` or `replace_related_field_data/2` fails far from
+  the change.
+- **Renderers**:
+  - Implement the `Aurora.Uix.Renderer` behaviour (`render/1`).
+  - Field renderers live in `templates/basic/renderers/fields/`. Note the
+    convention: the module is `…Renderers.OneToMany`, **not**
+    `…Renderers.Fields.OneToMany`, despite the path.
+  - Prefer swapping `auix` keys (`:layout_tree`, `:resource_name`, `:form`,
+    `:entity`) and delegating to `Renderer.render_inner_elements/1` over
+    hand-writing child markup — that keeps renderer overrides, sections and
+    groups working.
+  - Dispatch is added in `templates/basic/renderers/default_renderer.ex`.
+    Keep aliases alphabetical (credo enforces this).
+- **Styling**: no inline `class=`. New `auix-*` classes go in
+  `templates/basic/themes/base.ex`, then re-run `mix auix.gen.tailwind_classes`
+  and commit the regenerated CSS — it is the first stage of `mix consistency`
+  and fails on unknown classes.
 - **LiveView**:
-  - Templates start with `<Layouts.app flash={@flash} ...>`.
-  - No inline `class=` attrs in LiveView/LiveComponent templates — use or
-    extend function components in `core_components.ex` (or a domain
-    component file).
-  - Use `<.icon name="hero-...">`, `<.input>`, `<.button>`, `<.card>`,
-    `<.info_card>` etc. from `core_components.ex`. Never use `Heroicons`
-    modules directly.
+  - Use `<.icon name="hero-...">`, `<.input>` and the other components from
+    `templates/basic/core_components.ex`. Never use `Heroicons` directly.
   - Use streams for collections; track counts/empty-state in separate assigns
     (streams are not enumerable).
   - Avoid LiveComponents unless there is a specific, strong need.
@@ -132,20 +163,14 @@ Every change in this codebase must respect these. Re-read before each AC:
     (`:type={Phoenix.LiveView.ColocatedHook}`, name starts with `.`).
   - Use `<.link navigate>` / `push_navigate` — never deprecated
     `live_redirect`.
-  - Routes inside a `scope` block already have the alias — don't duplicate it.
-- **Ash**:
-  - Business logic lives in Ash resources/domains, not LiveView/controllers.
-  - Multi-step DB operations use `Ash.transaction/1`. No `Ecto.Multi` /
-    `Repo.transaction`.
-  - Errors are tagged tuples (`{:ok, _} | {:error, _}`). No bare `raise`
-    without a structured error.
-  - Authorization belongs in Ash policies, not in handlers.
-- **Data invariants**:
-  - Soft delete only (`is_deleted`, `deleted_at`). Never hard-delete.
-  - State-changing actions thread `process_id` and `parent_event_id`.
-- **Localization**: every user-visible string goes through gettext. Default
-  locale is `es_DO`; tests run in `en`.
-- **HTTP**: only `Req`. Never add `:httpoison`, `:tesla`, `:httpc`.
+- **Localization**: user-visible strings go through `dt/1`
+  (`use Aurora.Uix.Gettext`). Templates are extracted to `priv/gettext/*.pot`;
+  this project ships no per-locale translations.
+- **Documentation** (enforced by `doctor` in `mix consistency`):
+  - `@moduledoc` with `## Key Features` / `## Key Constraints` sections.
+  - `@doc` + `@spec` on public functions — on the **first clause only**.
+  - `@spec` on private functions too; this codebase specs them consistently.
+  - See the `documentation` skill for the full rule set.
 - **Elixir gotchas**:
   - Lists do **not** support `mylist[i]` — use `Enum.at/2` or pattern match.
   - Block expressions must rebind: `socket = if ... do ... end`.
@@ -153,12 +178,13 @@ Every change in this codebase must respect these. Re-read before each AC:
   - Never nest multiple modules in the same file.
   - Predicate functions end with `?`, not `is_` prefix.
 - **Tests**:
-  - Case modules: `DataCase` (business logic), `ConnCase` (HTTP/LiveView),
-    `FeatureCase` (Wallaby — last resort).
-  - Factories from `test/support/factory.ex` (`build/2`, `insert!/2`). Never
-    `Ash.create!` to seed test data.
-  - No mocks. Use real implementations and the test adapters configured in
-    `config/test.exs`.
+  - Case modules: `use Aurora.UixWeb.Test.UICase, :phoenix_case` and
+    `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. There is no
+    `FeatureCase` and no `test/support/factory.ex`.
+  - Test data comes from the guide schemas via helpers in
+    `test/support/helper.ex` (`create_sample_products/2`,
+    `delete_all_inventory_data/0`, …).
+  - No mocks. Use real implementations against the real repo.
   - No `Process.sleep/1`. Use `start_supervised!/1`,
     `_ = :sys.get_state(pid)`, or `Process.monitor/1` +
     `assert_receive {:DOWN, ...}`.
@@ -186,66 +212,72 @@ Defer `mix credo --strict` and `mix dialyzer` — they run as part of the single
 
 ### Reusable patterns
 
-**Ash resource — attributes, actions, policies**
+**Parser clause — normalize a backend construct into `%Field{}`**
+
+Both parsers map a native struct to a common atom + `data` map. Clause order
+matters: the specific clause must precede the catch-all, and in
+`ash/fields_parser.ex` several functions have **no** catch-all, so a missing
+clause raises `FunctionClauseError` at blueprint-compile time rather than
+degrading.
 
 ```elixir
-defmodule LogaMoney.Loans.Loan do
-  use Ash.Resource,
-    domain: LogaMoney.Loans,
-    data_layer: AshPostgres.DataLayer
+# lib/aurora_uix/integration/ctx/fields_parser.ex   (Ecto)
+defp field_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :one}}),
+  do: :one_to_one_association
 
-  attributes do
-    uuid_primary_key :id
-    attribute :amount, :decimal, allow_nil?: false
-    attribute :status, :atom,
-      constraints: [one_of: [:pending, :approved, :rejected, :disbursed]],
-      default: :pending,
-      allow_nil?: false
-    attribute :is_deleted, :boolean, default: false, allow_nil?: false
-    attribute :deleted_at, :utc_datetime_usec
-    timestamps()
-  end
+# lib/aurora_uix/integration/ash/fields_parser.ex   (Ash — fully qualified;
+# this file deliberately keeps no relationship aliases)
+defp field_type(nil, %Ash.Resource.Relationships.HasOne{}),
+  do: :one_to_one_association
 
-  actions do
-    create :request do
-      accept [:amount]
-      change set_attribute(:status, :pending)
-    end
-  end
-
-  policies do
-    policy action(:request) do
-      authorize_if actor_attribute_equals(:role, :borrower)
-    end
-  end
-end
+defp field_data(_attrs, %Ash.Resource.Relationships.HasOne{
+       destination_attribute: related_key,
+       destination: related_schema,
+       source_attribute: owner_key
+     }),
+     do: %{owner_key: owner_key, related: related_schema, related_key: related_key}
 ```
 
-**Multi-step domain action — `Ash.transaction`**
+**Field renderer — delegate to the engine, don't hand-write child markup**
 
 ```elixir
-def disburse(loan_id, actor) do
-  Ash.transaction(fn ->
-    with {:ok, loan} <- Ash.get(Loan, loan_id, actor: actor),
-         {:ok, loan} <- loan |> Ash.Changeset.for_update(:disburse) |> Ash.update(actor: actor),
-         {:ok, _event} <- emit_event(loan, :loan_disbursed, actor) do
-      {:ok, loan}
-    end
-  end)
+def render(%{field: %{data: %{resource: resource_name}} = field,
+             auix: %{layout_type: :form}} = assigns) do
+  assigns =
+    assigns
+    |> BasicHelpers.assign_auix(:layout_tree, BasicHelpers.get_layout(assigns, resource_name, :form))
+    |> BasicHelpers.assign_auix(:resource_name, resource_name)
+
+  ~H"""
+  <div class="auix-one-to-one-container">
+    <.inputs_for :let={child_form} field={@auix.form[@field.key]}>
+      <Renderer.render_inner_elements auix={Map.put(@auix, :form, child_form)} />
+    </.inputs_for>
+  </div>
+  """
 end
 ```
 
 **Migrations**
 
-Edit the Ash resource, then:
+Two separate paths, depending on which guide backend the schema belongs to.
+(`mix ash.codegen` does exist — the `ash` dep provides it — but it only covers
+the Ash resources; it is not the migration path for the Ecto guide schemas.)
 
 ```bash
-mix ash.codegen <name>   # generates migration into priv/repo/migrations
-mix ash.migrate          # runs it
+# Ecto guide schemas (lib/aurora_uix/guides/inventory/) — hand-written
+# migrations in priv/repo/migrations/
+mix ecto.gen.migration create_<name>_table
+
+# Ash guide resources (lib/aurora_uix/guides/blog/) — generated
+mix ash_postgres.generate_migrations --name <name>
+# commit BOTH the migration and the priv/resource_snapshots/ snapshot
 ```
 
-Never write migrations by hand or call `mix ash.generate` (does not exist in
-this project).
+`mix test` does **not** run migrations (`test_helper.exs` only starts ExUnit and
+the test app). CI runs `mix ecto.create && mix ecto.migrate` separately, so run
+`mix ecto.migrate` locally or DB-backed tests fail with a confusing
+`relation "…" does not exist`.
 
 ### Test patterns
 
@@ -253,50 +285,69 @@ this project).
 browser driver, and covers the vast majority of LiveView interactions. Use
 `has_element?/2` and `element/2` for assertions; never assert on raw HTML.
 
-```elixir
-# DataCase — Ash action
-describe "request/2" do
-  test "valid attrs creates loan in :pending" do
-    borrower = insert!(:user, role: :borrower)
-    assert {:ok, loan} = Loans.request(%{amount: Decimal.new("1000.00")}, actor: borrower)
-    assert loan.status == :pending
-  end
+Pick the layer that matches what you changed:
 
-  test "non-borrower is rejected by policy" do
-    investor = insert!(:user, role: :investor)
-    assert {:error, %Ash.Error.Forbidden{}} =
-             Loans.request(%{amount: Decimal.new("1000.00")}, actor: investor)
-  end
+| Directory | Covers | DB? |
+|---|---|---|
+| `test/cases/integration/{ash,ctx}/` | parser output for one backend | no |
+| `test/cases/integration/fields_parser_validations_test.exs` | shared golden `%Field{}` metadata | no |
+| `test/cases/` | resource metadata, layout/blueprint generation | no |
+| `test/cases_live/` | rendered LiveView behaviour (**the default for UI work**) | yes |
+| `test/browser_cases/` | Wallaby — last resort only | yes |
+| `test/doctests/` | doctests | no |
+
+Parser tests are pure compile-time introspection — run them first as the fast
+feedback loop.
+
+```elixir
+# test/cases/integration/ctx/fields_parser_test.exs — fixtures are schemas
+# declared inside the test module; no database involved.
+test "Validate association_parser" do
+  validations = Validations.get(:with_associations)
+
+  parsed_schema =
+    AllTypes
+    |> Ctx.FieldsParser.parse_fields(:all_types)
+    |> then(&Ctx.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
+    |> Map.new(&{&1.key, &1})
+
+  assert Validations.compare_maps(validations, parsed_schema) == []
 end
 
-# ConnCase — LiveView interaction
-test "borrower can submit loan request", %{conn: conn} do
-  borrower = insert!(:user, role: :borrower)
-  conn = log_in_user(conn, borrower)
+# test/cases_live/ — declare metadata + layout, then drive the generated UI.
+defmodule Aurora.UixWeb.Test.MyFeatureTest do
+  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
-  {:ok, lv, _html} = live(conn, ~p"/loans/new")
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
-  assert lv
-         |> form("#loan-form", loan: %{amount: "1000.00"})
-         |> render_submit() =~ "Loan requested"
+  auix_create_ui do
+    edit_layout :product do
+      stacked([:reference, :name])
+    end
+  end
 
-  assert has_element?(lv, "[data-role=loan-status]", "pending")
+  test "renders the field", %{conn: conn} do
+    delete_all_inventory_data()
+    {:ok, view, _html} = live(conn, "/my-feature/products/new")
+    assert has_element?(view, "input[name='product[reference]']")
+  end
 end
 ```
 
-**Wallaby (`FeatureCase`) is a last resort.** Only use it when LiveViewTest is
-genuinely insufficient — file downloads, native browser dialogs, or
-multi-tab scenarios. Document **why** in a comment above the test.
+**Every route used by a `test/cases_live/` test must be registered in
+`test/support/app_web/routes.ex`** via `RoutesHelper.register_crud/2` —
+otherwise the test 404s. Do **not** extend `register_product_crud/2`; it
+hardcodes three modules and is called from ~20 sites.
 
-```elixir
-# Documented exception: file download cannot be exercised via LiveViewTest.
-test "user can download statement PDF", %{session: session} do
-  session
-  |> visit(~p"/statements")
-  |> click(Query.link("Download"))
-  |> assert_has(Query.css(".alert", text: "Statement ready"))
-end
-```
+Assert on stable selectors — `input[name='parent[child][field]']`, container
+ids, `has_element?/2`. Never assert on raw HTML strings, and avoid
+`auix-field-*` ids: they embed a global counter and are not stable across test
+ordering.
+
+**Wallaby (`test/browser_cases/`) is a last resort.** Only when LiveViewTest is
+genuinely insufficient — file downloads, native dialogs, multi-tab. Document
+**why** in a comment above the test.
 
 ---
 
@@ -308,7 +359,9 @@ After all ACs are implemented, run the full project gate:
 mix consistency
 ```
 
-This runs `deps.unlock → format → compile → docs → credo → doctor → dialyzer`.
+This runs `auix.gen.tailwind_classes → format → compile --warnings-as-errors →
+credo --strict → dialyzer → doctor`. Then run `mix test` (CI runs them as
+separate steps; `mix consistency` does **not** include tests).
 Fix every warning and error before declaring this skill complete. If
 `mix consistency` fails, treat the failures as additional work to do in this
 same skill invocation — do not hand off red.
@@ -321,13 +374,13 @@ add the missing tests:
 ```
 - [ ] Happy path for each AC
 - [ ] At least one error/edge path per AC
-- [ ] Ash changeset / validation errors tested
-- [ ] Ash policy / authorization tested (if policies apply)
-- [ ] Database constraints tested (unique, FK)
-- [ ] LiveView events tested (if applicable)
-- [ ] Async/Oban paths tested (if applicable)
-- [ ] All new public domain functions have at least one test
-- [ ] Locale keys exist in en and es_DO
+- [ ] **Both backends covered** — Ash and Ecto (`ctx`) parser tests
+- [ ] Golden `%Field{}` metadata updated (`fields_parser_validations_test.exs`)
+- [ ] Rendered output tested in `test/cases_live/` for :index, :form and :show
+      as applicable
+- [ ] Every new route registered in `test/support/app_web/routes.ex`
+- [ ] Database constraints tested (unique, FK) if a migration was added
+- [ ] All new public functions have at least one test
 ```
 
 **Implementation-only mode (`Owner: parent:#<n>` / `sibling:#<n>`)** —
@@ -355,7 +408,7 @@ Emit a structured **Implementation Summary** in chat:
 
 **ACs addressed:** AC-1, AC-2, …
 **Files created/modified:**
-- `lib/loga_money/...` — <what changed>
+- `lib/aurora_uix/...` — <what changed>
 **Tests written:** <N> test cases across <M> describe blocks  ← in Full mode
 **Tests written:** none — owner is <Owner value>            ← in Implementation-only mode
 **Assumptions made:**

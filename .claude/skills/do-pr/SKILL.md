@@ -162,7 +162,7 @@ wrote above `GENERATED-DESCRIPTION:START` or below `GENERATED-DESCRIPTION:END`.
 - `git push --force` / `--force-with-lease`
 - `--no-verify` on any git command
 - Amending an already-pushed commit
-- Creating a PR while preconditions or precommit fail
+- Creating a PR while preconditions or `mix consistency` fail
 - Modifying the PR body when either `GENERATED-DESCRIPTION` marker is absent
 - Altering any content outside the `GENERATED-DESCRIPTION` markers, or the PR title
 - Creating or updating a PR description while local `HEAD` is ahead of
