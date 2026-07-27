@@ -2358,6 +2358,142 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  # --- PREDEFINED RENDERERS --- #
+
+  def rule(:auix_show_field) do
+    """
+    .auix-show-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--auix-gap-minimal);
+    }
+    """
+  end
+
+  def rule(:auix_toggle_pill) do
+    """
+    .auix-checkbox.auix-toggle-switch {
+      appearance: none;
+      -webkit-appearance: none;
+      align-self: flex-start;
+      width: 2.25rem;
+      height: 1.25rem;
+      margin: 0;
+      border: none;
+      border-radius: var(--auix-border-radius-round);
+      background-color: #e5e7eb;
+      background-image: radial-gradient(circle 0.45rem at 0.625rem 0.625rem, #ffffff 100%, transparent 0);
+      background-repeat: no-repeat;
+      box-shadow: var(--auix-shadow-small);
+      cursor: pointer;
+      transition: background-color 0.2s ease, background-position 0.2s ease;
+    }
+    .auix-checkbox.auix-toggle-switch:checked {
+      background-color: #16a34a;
+      background-position: 1rem 0;
+    }
+    .auix-checkbox.auix-toggle-switch:disabled {
+      opacity: var(--auix-opacity-100);
+      cursor: default;
+    }
+    """
+  end
+
+  def rule(:auix_color) do
+    """
+    .auix-color {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      padding: var(--auix-padding-small) var(--auix-padding-medium);
+      border-radius: var(--auix-border-radius-small);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      font-family: monospace;
+      font-size: var(--auix-font-size-small);
+    }
+    """
+  end
+
+  def rule(:auix_badge) do
+    """
+    .auix-badge {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      padding: var(--auix-padding-small) var(--auix-padding-medium);
+      border-radius: var(--auix-border-radius-round);
+      font-size: var(--auix-font-size-small);
+      font-weight: var(--auix-font-weight-bold);
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    """
+  end
+
+  def rule(:auix_progress) do
+    """
+    .auix-progress {
+      position: relative;
+      height: 1rem;
+      width: 100%;
+      min-width: 6rem;
+      background-color: #e5e7eb;
+      border-radius: var(--auix-border-radius-round);
+      overflow: hidden;
+    }
+    .auix-progress-bar {
+      height: 100%;
+      background-color: #3b82f6;
+      border-radius: inherit;
+      transition: width 0.2s ease;
+    }
+    .auix-progress-label {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: var(--auix-font-size-small);
+      line-height: 1rem;
+    }
+    """
+  end
+
+  def rule(:auix_url) do
+    """
+    .auix-url {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    """
+  end
+
+  def rule(:auix_rating) do
+    """
+    .auix-rating,
+    .auix-rating-stars {
+      display: inline-flex;
+      gap: 0.125rem;
+    }
+    .auix-rating-star {
+      color: #d1d5db;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+    .auix-rating-star--on {
+      color: #f59e0b;
+    }
+    .auix-rating-star-label {
+      cursor: pointer;
+    }
+    .auix-rating-radio {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+    }
+    """
+  end
+
   def rule(_), do: ""
 
   ## PRIVATE

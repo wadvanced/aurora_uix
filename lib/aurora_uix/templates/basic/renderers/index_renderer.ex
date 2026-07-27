@@ -19,6 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   import Aurora.Uix.Templates.Basic.Components
 
+  alias Aurora.Uix.Renderers
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
@@ -157,49 +158,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   defp entity_id(_auix), do: nil
 
+  # Resolves the field's renderer for the index layout and invokes it. `layout_type` is
+  # stamped onto `auix` so renderers can pattern-match it uniformly.
   @spec field_value(map()) :: Rendered.t()
-  defp field_value(%{field: %{html_type: :select, data: %{option_label: label_field}}} = assigns)
-       when is_atom(label_field) do
-    ~H"""
-      {Map.get(@entity, @field.data.option_label)}
-    """
-  end
-
-  defp field_value(%{field: %{html_type: :select, data: %{option_label: option_label}}} = assigns)
-       when is_function(option_label, 1) do
-    ~H"""
-    {@field.data.option_label.(@entity)}
-    """
-  end
-
-  defp field_value(%{field: %{html_type: :select, data: %{option_label: option_label}}} = assigns)
-       when is_function(option_label, 2) do
-    ~H"""
-      {@field.data.option_label.(assigns, @entity)}
-    """
-  end
-
-  defp field_value(%{field: %{key: :selected_check__}, entity: entity, auix: auix} = assigns) do
-    assigns =
-      Map.put(assigns, :selected_id, BasicHelpers.primary_key_value(entity, auix.primary_key))
-
-    ~H"""
-      <.input
-          name={"#{@field.key}#{@selected_id}"}
-          value={Map.get(@entity, @field.key)}
-          type={"#{@field.html_type}"}
-          label={dt(@field.label)}
-          disabled={@auix.selection.toggle_all_mode != :none}
-        />
-    """
-  end
-
-  defp field_value(%{field: %{index_renderer: custom_renderer}} = assigns)
-       when is_function(custom_renderer, 1), do: custom_renderer.(assigns)
-
-  defp field_value(assigns) do
-    ~H"""
-    {Map.get(@entity, @field.key)}
-    """
+  defp field_value(%{auix: auix, field: field} = assigns) do
+    assigns = %{assigns | auix: Map.put(auix, :layout_type, :index)}
+    Renderers.resolve(field, :index).(assigns)
   end
 end

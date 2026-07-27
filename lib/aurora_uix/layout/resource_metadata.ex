@@ -245,14 +245,15 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `:readonly` (`boolean()`) - Marks the field as read-only.
   - `:hidden` (`boolean()`) - Hides the field.
   - `:filterable?` (`boolean()`) - If true, allows the field to participate in UI filtering.
-  - `:renderer` (`function()`) - Custom rendering function/component, used for the form (edit) and
-    show layouts unless a more specific `:edit_renderer`/`:show_renderer` is provided.
-  - `:index_renderer` (`function()`) - Custom rendering function/component used only for the index
-    layout. Index columns do not fall back to `:renderer`.
-  - `:edit_renderer` (`function()`) - Custom rendering function/component used only for the form
-    (edit) layout. Falls back to `:renderer` when not set.
-  - `:show_renderer` (`function()`) - Custom rendering function/component used only for the show
-    layout. Falls back to `:renderer` when not set.
+  - `:renderer` (`function()` | `atom()`) - Renderer for the form (edit) and show layouts unless a
+    more specific `:edit_renderer`/`:show_renderer` is set. An arity-1 function, or an atom naming
+    a predefined renderer (e.g. `:toggle_switch`; see `Aurora.Uix.Renderer`). Does not apply to
+    the index layout — use `:index_renderer`.
+  - `:index_renderer` (`function()` | `atom()`) - Renderer used only for the index layout.
+  - `:edit_renderer` (`function()` | `atom()`) - Renderer used only for the form (edit) layout.
+    Falls back to `:renderer` when not set.
+  - `:show_renderer` (`function()` | `atom()`) - Renderer used only for the show layout. Falls
+    back to `:renderer` when not set.
   - `:required` (`boolean()`) - Marks the field as required.
   - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
   - `:omitted` (`boolean()`) - If true, the field will be entirely excluded from the UI and configuration.
