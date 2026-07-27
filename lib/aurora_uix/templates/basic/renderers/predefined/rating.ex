@@ -40,7 +40,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating do
     """
   end
 
-  def render(%{auix: %{layout_type: lt}} = assigns) when lt in [:index, :show] do
+  def render(%{auix: %{layout_type: :index}} = assigns) do
     assigns =
       assigns
       |> assign(:current, to_int(display_value(assigns)))
@@ -54,6 +54,26 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating do
         aria-hidden="true"
       >★</span>
     </span>
+    """
+  end
+
+  def render(%{auix: %{layout_type: :show}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:current, to_int(display_value(assigns)))
+      |> assign(:scale, scale(assigns.field))
+
+    ~H"""
+    <div class="auix-show-field">
+      <span class="auix-label">{dt(@field.label)}</span>
+      <span class="auix-rating" aria-label={"#{@current}/#{Enum.count(@scale)}"}>
+        <span
+          :for={i <- @scale}
+          class={["auix-rating-star", i <= @current and "auix-rating-star--on"]}
+          aria-hidden="true"
+        >★</span>
+      </span>
+    </div>
     """
   end
 

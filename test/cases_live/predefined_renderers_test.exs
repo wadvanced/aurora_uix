@@ -7,7 +7,7 @@
 #
 #   * http://localhost:4001/predefined-renderers-products              (toggle_switch, badge,
 #     …/new, …/:id/show, …/:id/edit                                     colour, progress_bar, url)
-#   * http://localhost:4001/predefined-renderers-interactive-products  (rating, canvas, image)
+#   * http://localhost:4001/predefined-renderers-interactive-products  (rating)
 #
 # Note: the index layout reads only the `index_renderer` slot, so each gallery field sets
 # the renderer atom in both `renderer:` (show + form) and `index_renderer:` (index) to
@@ -62,12 +62,13 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersTest do
 
       {:ok, view, _html} = live(conn, "/predefined-renderers-products")
 
-      assert has_element?(view, "span.auix-toggle-pill--on", "On")
+      assert has_element?(view, "input[type=checkbox][disabled][checked].auix-toggle-switch")
       assert has_element?(view, "span.auix-badge", "shipped")
-      assert has_element?(view, "span.auix-color .auix-color-swatch")
+      assert has_element?(view, "span.auix-color[style*='background-color']")
       assert has_element?(view, "div.auix-progress .auix-progress-bar")
       assert has_element?(view, "div.auix-progress .auix-progress-label", "50%")
-      assert has_element?(view, "a.auix-url")
+      # :url renders as plain text in :index — no clickable link competing with row navigation.
+      refute has_element?(view, "a.auix-url")
     end
   end
 
@@ -77,10 +78,13 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersTest do
 
       {:ok, view, _html} = live(conn, "/predefined-renderers-products/#{product_id}/show")
 
-      assert has_element?(view, "span.auix-toggle-pill", "Off")
+      assert has_element?(view, "input[type=checkbox][disabled].auix-toggle-switch")
+      refute has_element?(view, "input[type=checkbox][disabled][checked].auix-toggle-switch")
       assert has_element?(view, "span.auix-badge", "in_stock")
-      assert has_element?(view, "span.auix-color .auix-color-label", "item_test-1")
+      assert has_element?(view, "span.auix-color", "item_test-1")
+      assert has_element?(view, ".auix-show-field .auix-label", "Progress bar")
       assert has_element?(view, "div.auix-progress .auix-progress-label", "50%")
+      assert has_element?(view, ".auix-show-field .auix-label", "URL")
       assert has_element?(view, "a.auix-url")
     end
   end
@@ -113,8 +117,6 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersInteractiveTest do
 
   auix_resource_metadata :product, context: Inventory, schema: Product do
     field(:cost, renderer: :rating, index_renderer: :rating, data: %{max: 5}, label: "Rating")
-    field(:name, renderer: :canvas, index_renderer: :canvas, label: "Canvas / signature")
-    field(:reference, renderer: :image, index_renderer: :image, label: "Image")
   end
 
   auix_create_ui()
@@ -129,45 +131,36 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersInteractiveTest do
   end
 
   describe "index layout" do
-    test "renders rating, image and canvas read-only", %{conn: conn} do
+    test "renders rating read-only", %{conn: conn} do
       seed(%{cost: Decimal.new(3)})
 
       {:ok, view, _html} = live(conn, "/predefined-renderers-interactive-products")
 
       assert has_element?(view, "span.auix-rating .auix-rating-star--on")
-      assert has_element?(view, "img.auix-image--thumb")
-      assert has_element?(view, "img.auix-canvas-image")
     end
   end
 
   describe "show layout" do
-    test "renders rating, image and canvas read-only", %{conn: conn} do
+    test "renders rating read-only", %{conn: conn} do
       product_id = seed(%{cost: Decimal.new(3)})
 
       {:ok, view, _html} =
         live(conn, "/predefined-renderers-interactive-products/#{product_id}/show")
 
       assert has_element?(view, "span.auix-rating .auix-rating-star--on")
-      assert has_element?(view, "img.auix-image")
-      assert has_element?(view, "img.auix-canvas-image")
+      assert has_element?(view, ".auix-show-field .auix-label", "Rating")
     end
   end
 
   describe "form (edit) layout" do
-    test "renders the interactive widgets and falls back for the image renderer", %{conn: conn} do
+    test "renders the interactive rating widget", %{conn: conn} do
       product_id = seed(%{cost: Decimal.new(3)})
 
       {:ok, view, _html} =
         live(conn, "/predefined-renderers-interactive-products/#{product_id}/edit")
 
-      # Interactive renderers with an edit form.
       assert has_element?(view, "input[type=radio].auix-rating-radio[value='3']")
       assert has_element?(view, "input[type=radio].auix-rating-radio[value='3'][checked]")
-      assert has_element?(view, "canvas.auix-canvas-pad[phx-hook='AuixCanvas']")
-      assert has_element?(view, "input[type=hidden][name='product[name]']")
-
-      # :image delegates the form layout to the default input for the reference field.
-      assert has_element?(view, "[name='product[reference]']")
     end
   end
 end

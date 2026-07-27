@@ -2,8 +2,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch do
   @moduledoc """
   Predefined `:toggle_switch` renderer for boolean fields.
 
-  - `:index` / `:show` — a read-only pill showing the on/off state.
-  - `:form` — a checkbox styled as a toggle, bound to the form field.
+  - `:index` / `:show` — a read-only (disabled) sliding switch showing the on/off state.
+  - `:form` — the same sliding switch, interactive and bound to the form field.
   """
 
   use Aurora.Uix.Renderer
@@ -28,9 +28,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch do
     assigns = assign(assigns, :on, truthy?(display_value(assigns)))
 
     ~H"""
-    <span class={["auix-toggle-pill", @on and "auix-toggle-pill--on"]}>
-      {if @on, do: dt("On"), else: dt("Off")}
-    </span>
+    <input
+      type="checkbox"
+      checked={@on}
+      disabled
+      aria-label={if @on, do: dt("On"), else: dt("Off")}
+      class="auix-checkbox auix-toggle-switch"
+    />
     """
   end
 

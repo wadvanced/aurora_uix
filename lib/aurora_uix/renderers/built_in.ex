@@ -9,14 +9,12 @@ defmodule Aurora.Uix.Renderers.BuiltIn do
 
   | Atom | Layouts | Purpose |
   |------|---------|---------|
-  | `:toggle_switch` | index, show, form | Boolean as a toggle / read-only pill. |
+  | `:toggle_switch` | index, show, form | Boolean as a sliding switch. |
   | `:color` | index, show, form | Colour string as a swatch (+ native picker on form). |
   | `:badge` | index, show | Enum/status string as a coloured pill. |
   | `:progress_bar` | index, show | Numeric value as a progress bar. |
-  | `:url` | index, show | String as a clickable link. |
-  | `:image` | index, show | URL / data-URL string as an image thumbnail. |
+  | `:url` | show | String as a clickable link (plain text on index). |
   | `:rating` | index, show, form | Numeric value as stars (interactive on form). |
-  | `:canvas` | index, show, form | Base64 drawing / signature pad. |
   | `:default` | index, show, form | The default field rendering (fallback). |
   """
 
@@ -34,9 +32,7 @@ defmodule Aurora.Uix.Renderers.BuiltIn do
       badge: &Predefined.Badge.render/1,
       progress_bar: &Predefined.ProgressBar.render/1,
       url: &Predefined.Url.render/1,
-      image: &Predefined.Image.render/1,
       rating: &Predefined.Rating.render/1,
-      canvas: &Predefined.Canvas.render/1,
       default: &DefaultRenderer.render/1
     }
   end

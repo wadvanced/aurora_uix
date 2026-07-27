@@ -2360,26 +2360,41 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   # --- PREDEFINED RENDERERS --- #
 
+  def rule(:auix_show_field) do
+    """
+    .auix-show-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--auix-gap-minimal);
+    }
+    """
+  end
+
   def rule(:auix_toggle_pill) do
     """
-    .auix-toggle-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: var(--auix-padding-small) var(--auix-padding-medium);
-      border-radius: var(--auix-border-radius-round);
-      font-size: var(--auix-font-size-small);
-      font-weight: var(--auix-font-weight-bold);
-      background-color: #e5e7eb;
-      color: #374151;
-    }
-    .auix-toggle-pill--on {
-      background-color: #16a34a;
-      color: #ffffff;
-    }
-    .auix-toggle-switch {
+    .auix-checkbox.auix-toggle-switch {
+      appearance: none;
+      -webkit-appearance: none;
+      align-self: flex-start;
       width: 2.25rem;
       height: 1.25rem;
-      accent-color: #16a34a;
+      margin: 0;
+      border: none;
+      border-radius: var(--auix-border-radius-round);
+      background-color: #e5e7eb;
+      background-image: radial-gradient(circle 0.45rem at 0.625rem 0.625rem, #ffffff 100%, transparent 0);
+      background-repeat: no-repeat;
+      box-shadow: var(--auix-shadow-small);
+      cursor: pointer;
+      transition: background-color 0.2s ease, background-position 0.2s ease;
+    }
+    .auix-checkbox.auix-toggle-switch:checked {
+      background-color: #16a34a;
+      background-position: 1rem 0;
+    }
+    .auix-checkbox.auix-toggle-switch:disabled {
+      opacity: var(--auix-opacity-100);
+      cursor: default;
     }
     """
   end
@@ -2389,16 +2404,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-color {
       display: inline-flex;
       align-items: center;
-      gap: var(--auix-gap-default);
-    }
-    .auix-color-swatch {
-      display: inline-block;
-      width: 1rem;
-      height: 1rem;
+      align-self: flex-start;
+      padding: var(--auix-padding-small) var(--auix-padding-medium);
       border-radius: var(--auix-border-radius-small);
       border: 1px solid rgba(0, 0, 0, 0.2);
-    }
-    .auix-color-label {
       font-family: monospace;
       font-size: var(--auix-font-size-small);
     }
@@ -2410,6 +2419,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-badge {
       display: inline-flex;
       align-items: center;
+      align-self: flex-start;
       padding: var(--auix-padding-small) var(--auix-padding-medium);
       border-radius: var(--auix-border-radius-round);
       font-size: var(--auix-font-size-small);
@@ -2457,21 +2467,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
-  def rule(:auix_image) do
-    """
-    .auix-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: var(--auix-border-radius-small);
-    }
-    .auix-image--thumb {
-      width: 3rem;
-      height: 3rem;
-      object-fit: cover;
-    }
-    """
-  end
-
   def rule(:auix_rating) do
     """
     .auix-rating,
@@ -2495,30 +2490,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       width: 0;
       height: 0;
       opacity: 0;
-    }
-    """
-  end
-
-  def rule(:auix_canvas) do
-    """
-    .auix-canvas {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--auix-gap-default);
-    }
-    .auix-canvas-pad {
-      border: 1px solid #d1d5db;
-      border-radius: var(--auix-border-radius-small);
-      background-color: #ffffff;
-      touch-action: none;
-      cursor: crosshair;
-    }
-    .auix-canvas-image {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #d1d5db;
-      border-radius: var(--auix-border-radius-small);
     }
     """
   end

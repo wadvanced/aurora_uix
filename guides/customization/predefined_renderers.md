@@ -37,22 +37,12 @@ field just gets its normal input).
 
 | Atom | Value | index | show | form |
 |------|-------|:-----:|:----:|:----:|
-| `:toggle_switch` | boolean | pill | pill | toggle checkbox |
+| `:toggle_switch` | boolean | switch | switch | toggle switch |
 | `:color` | hex / rgb / named string | swatch | swatch | native colour picker |
 | `:badge` | enum / status string | pill | pill | default input |
 | `:progress_bar` | number (`data: %{max: n}`, default 100) | bar | bar | default input |
-| `:url` | string | link | link | default input |
-| `:image` | url / data-URL string | thumbnail | image | default input |
+| `:url` | string | text | link | default input |
 | `:rating` | number (`data: %{max: n}`, default 5) | stars | stars | interactive stars |
-| `:canvas` | base64 / data-URL string | image | image | drawing / signature pad |
-
-### The `:canvas` JS hook
-
-`:canvas` uses the `AuixCanvas` hook shipped in `AuroraUix.Hooks`. Hosts that already
-merge `AuroraUix.Hooks` into their `LiveSocket` (see the getting-started guide) need no
-extra wiring. The pad writes its drawing into a hidden input bound to the field, so the
-value is submitted with the form; a Clear button empties it. Size it per field with
-`data: %{width: 400, height: 200}`.
 
 ## Writing your own renderer
 
