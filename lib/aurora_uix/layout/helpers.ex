@@ -28,7 +28,9 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   require Logger
 
-  @one_to_many_action_names :one_to_many |> Action.available_actions() |> Map.keys()
+  # Every action option name, not just one group's: a field-level action option carries a function
+  # capture that has to be evaluated here, and missing a key sends raw AST to the renderer.
+  @field_action_names Action.action_option_names()
   @fields_parser_integration_modules :aurora_uix
                                      |> Application.compile_env(
                                        :fields_parser_integration_modules,
@@ -340,7 +342,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   # Processes field tag options, handling function components and quoted expressions.
   @spec process_field_tag_option({atom(), term()}, Macro.Env.t()) :: {atom(), term()}
   defp process_field_tag_option({action_name, {action_key, {:&, _, _} = function_component}}, env)
-       when action_name in @one_to_many_action_names do
+       when action_name in @field_action_names do
     env
     |> Code.env_for_eval()
     |> then(&Code.eval_quoted_with_env(function_component, [], &1))

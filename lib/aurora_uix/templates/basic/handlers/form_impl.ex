@@ -206,8 +206,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Handles form-related events such as validation, saving, and section switching.
 
   ## Parameters
-  - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section",
-    "auix_many_to_many_toggle_all").
+  - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
   - `params` (map()) - Parameters from the event.
   - `socket` (Socket.t()) - The current LiveView socket.
 
@@ -221,6 +220,32 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   #   entity_params = Map.get(params, auix.module)
   #   handle_event(event, params, entity_params, socket)
   # end
+
+  # The many-to-many toggle-all rides this same event rather than a `phx-click`: clicking a checkbox
+  # fires `click` and then `change`, and the trailing change would re-validate with the pre-click
+  # membership and undo the toggle. `_target` is what distinguishes it, exactly as the index layout
+  # distinguishes its row-selection checkboxes. Must precede the generic "validate" clause below.
+  #
+  # The leading blank reproduces the renderer's hidden sentinel, so the host's blank-rejection path
+  # runs exactly as it does for a browser submit.
+  def auix_handle_event(
+        "validate",
+        %{"_target" => ["auix_toggle_all__" <> field_key]} = params,
+        %{assigns: %{auix: auix}} = socket
+      ) do
+    values =
+      case Map.get(params, "auix_toggle_all__" <> field_key) do
+        "true" -> BasicHelpers.many_to_many_candidate_ids(socket.assigns, field_key)
+        _cleared -> []
+      end
+
+    # Retargeting is not cosmetic: it both stops this clause from matching its own recursive call
+    # and points `used_input?/1` at the field the user actually changed.
+    params
+    |> Map.update(auix.module, %{}, &Map.put(&1, field_key, ["" | values]))
+    |> Map.put("_target", [auix.module, field_key])
+    |> then(&auix_handle_event("validate", &1, socket))
+  end
 
   def auix_handle_event(
         "validate",
@@ -264,29 +289,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
     {:noreply, BasicHelpers.download_upload(socket, field)}
-  end
-
-  # Bulk-selects or clears a many-to-many membership. The new membership is merged into the form
-  # params -- rather than replacing them -- because a real `phx-change` submits every field while
-  # this synthetic event carries only one, and the user's unsaved edits to sibling fields must
-  # survive. The leading blank reproduces the renderer's hidden sentinel, so the host's
-  # blank-rejection path runs exactly as it does for a browser submit. Checking all costs one
-  # `list_function` call here plus the one the re-render performs.
-  def auix_handle_event(
-        "auix_many_to_many_toggle_all",
-        %{"field" => field_key, "state" => state},
-        %{assigns: %{auix: auix}} = socket
-      ) do
-    values =
-      case state do
-        "true" -> BasicHelpers.many_to_many_candidate_ids(socket.assigns, field_key)
-        "false" -> []
-      end
-
-    auix.form
-    |> Map.get(:params, %{})
-    |> Map.put(field_key, ["" | values])
-    |> then(&auix_handle_event("validate", %{auix.module => &1}, socket))
   end
 
   def auix_handle_event(event, params, _socket) do

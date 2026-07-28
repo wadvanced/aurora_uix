@@ -165,15 +165,15 @@ The action system works by:
 
 ### Many-to-Many Layout Actions
 
-A many-to-many field renders as a list of checkboxes over the candidate records, with a header
-strip beside the label and an empty footer strip below the list.
+A many-to-many field renders as a list of checkboxes over the candidate records. It has three
+action strips: one right of the label, one at the top right, and one below the list.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Label                 ┌─ :many_to_many_header_actions ┐ │
-│                        │  Check all   Uncheck all      │ │
-│                        └───────────────────────────────┘ │
-│                                                          │
+│  ┌─ :many_to_many_label_actions ─┐                       │
+│  │  Label  [-]                   │  ┌─ :..._header_actions ┐
+│  └───────────────────────────────┘  │  (empty by default) │
+│                                     └─────────────────────┘
 │  ┌────────────────────────────────────────────────────┐  │
 │  │  [x] Record A                                      │  │
 │  │  [ ] Record B                                      │  │
@@ -189,12 +189,15 @@ strip beside the label and an empty footer strip below the list.
 
 | Operation Key Prefix | Available Operations | Defaults You Can Target |
 |---|---|---|
-| `*_header_action` | add, insert, replace, remove | `:default_check_all`, `:default_uncheck_all` |
+| `*_label_action` | add, insert, replace, remove | `:default_toggle_all` |
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
 | `*_footer_action` | add, insert, replace, remove | *(none by default)* |
 
-The two defaults live in `Aurora.Uix.Templates.Basic.Actions.ManyToMany`. Both toggle the whole
-candidate list through a single server event, so the new membership lands in the form params and
-survives the next validation.
+`:default_toggle_all` (in `Aurora.Uix.Templates.Basic.Actions.ManyToMany`) is a tri-state checkbox:
+checked when every candidate is a member, unchecked when none is, and a dash when only some are.
+Clicking a checked toggle clears the membership; clicking it in either other state selects
+everything. It rides the parent form's change event, so the new membership lands in the form params
+and survives the next validation.
 
 ## Action Operations
 
@@ -431,10 +434,10 @@ auix_create_ui do
     stacked([
       :name,
       suppliers: [
-        # Drop one of the two bulk toggles and add your own control beside the other
-        remove_header_action: :default_uncheck_all,
+        # Swap the built-in tri-state toggle for your own control beside the label
+        replace_label_action: {:default_toggle_all, &__MODULE__.my_toggle/1},
+        # The header and footer groups ship empty and exist for exactly this
         add_header_action: {:invert, &__MODULE__.invert_selection/1},
-        # The footer group ships empty and exists for exactly this
         add_footer_action: {:manage, &__MODULE__.manage_suppliers_link/1}
       ]
     ])

@@ -25,9 +25,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   - Submits in the same POST as the parent, under `parent[field][]`.
   - Emits a hidden empty-value sentinel so that de-selecting everything still submits the key, which
     is what makes clearing the last membership possible at all.
-  - Ships `:default_check_all` / `:default_uncheck_all` header actions, registered through
-    `Aurora.Uix.Action`'s `:many_to_many` group, plus an empty footer group — so a host adds,
-    replaces or removes any of them from the layout DSL field options.
+  - Ships `:default_toggle_all`, a tri-state checkbox beside the label: checked when every candidate
+    is a member, unchecked when none is, and a dash when only some are. Clicking a checked toggle
+    clears the membership; clicking it in either other state selects everything.
+  - Registers three action groups through `Aurora.Uix.Action` — `label` (holding the toggle),
+    `header` and `footer`, the latter two empty — so a host adds, replaces or removes controls in
+    any of the three strips from the layout DSL field options.
   - Honours the `option_label:` field option through the shared
     `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`; when the host declares none, the
     label falls back to a conventional display column (`:name`, `:title`, …) of the related
@@ -49,10 +52,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
     record itself.
   - `html_type` stays `:select`: the field *is* a set of options, only the widget changed, and
     `get_select_options/1` dispatches on it.
-  - Checking or clearing everything is a server round trip
-    (`"auix_many_to_many_toggle_all"`, handled by `Aurora.Uix.Templates.Basic.Handlers.FormImpl`),
-    which costs one extra `list_function` call per click. It cannot be done client-side: the result
-    has to reach `auix.form.params` or the next `phx-change` would discard it.
+  - The toggle rides the parent form's `phx-change="validate"`, identified by `_target`, and costs
+    one extra `list_function` call per click. It must not use `phx-click`: a click on a checkbox
+    fires `click` and then `change`, and the trailing change would re-validate with the pre-click
+    membership and undo the toggle. Nor can it be resolved client-side — the result has to reach
+    `auix.form.params` or the next `phx-change` would discard it.
   - Requires the related resource to be registered, and the parent to be preloaded for `:show` and
     for editing a persisted record.
   """
@@ -108,6 +112,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
       |> assign_select(field)
       |> assign(:input_name, "#{auix.form[field.key].name}[]")
       |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
+      |> then(&put_in(&1, [:auix, :many_to_many_toggle_state], toggle_state(&1)))
       |> ManyToManyActions.set_actions()
 
     ~H"""
@@ -121,6 +126,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
         value={@selected}
         empty_message={dt("No records available")}
       >
+        <:label_actions>
+          <%= for %{function_component: action} <- @auix.many_to_many_label_actions do %>
+            {action.(%{auix: @auix, field: @field})}
+          <% end %>
+        </:label_actions>
         <:actions>
           <%= for %{function_component: action} <- @auix.many_to_many_header_actions do %>
             {action.(%{auix: @auix, field: @field})}
@@ -226,6 +236,25 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   # track and patch `checked`; without it, a second toggle-all click appears to do nothing.
   @spec options_id(map(), map()) :: binary()
   defp options_id(field, auix), do: "#{container_id(field, auix)}-options"
+
+  # How the toggle-all checkbox renders. Compared as strings because `@selected` holds native
+  # primary keys before the first change event and strings after it. An empty candidate list is
+  # `:none`, never `:all` -- a toggle claiming "everything is selected" over nothing is a lie.
+  @spec toggle_state(map()) :: :all | :none | :mixed
+  defp toggle_state(%{select_opts: %{options: []}}), do: :none
+
+  defp toggle_state(%{select_opts: %{options: options}, selected: selected}) do
+    selected = MapSet.new(selected, &to_string/1)
+
+    members =
+      Enum.count(options, fn {_label, value} -> MapSet.member?(selected, to_string(value)) end)
+
+    cond do
+      members == 0 -> :none
+      members == length(options) -> :all
+      true -> :mixed
+    end
+  end
 
   # Association fields carry no label of their own unless the host sets one; fall back to the
   # related resource's name rather than rendering an unlabelled select.

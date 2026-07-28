@@ -367,7 +367,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         label="Suppliers"
         options={[{"ACME", 1}, {"Globex", 2}]}
         value={[1]}
-      />
+      >
+        <:label_actions>{toggle_all}</:label_actions>
+      </.auix_checkbox_group>
   """
   attr(:id, :string,
     required: true,
@@ -391,7 +393,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:host_components, :any)
   attr(:rest, :global)
 
-  slot(:actions, doc: "actions rendered next to the label, e.g. check all / uncheck all")
+  slot(:label_actions, doc: "actions rendered immediately right of the label, e.g. a toggle-all")
+  slot(:actions, doc: "actions rendered at the top right of the group")
 
   @spec auix_checkbox_group(map()) :: Rendered.t()
   def auix_checkbox_group(%{host_components: nil} = assigns) do
@@ -402,8 +405,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     ~H"""
     <fieldset class="auix-fieldset">
       <div class="auix-checkbox-group-header">
-        <.label :if={!@omit_label?} class={"auix-checkbox-group-label " <> @label_class} for={@id}>{@label}</.label>
-        <div :if={@actions != []} class="auix-checkbox-group-actions">
+        <div class="auix-checkbox-group-label-container">
+          <.label :if={!@omit_label?} class={"auix-checkbox-group-label " <> @label_class} for={@id}>{@label}</.label>
+          <div class="auix-checkbox-group-label-actions">
+            {render_slot(@label_actions)}
+          </div>
+        </div>
+        <div class="auix-checkbox-group-actions">
           {render_slot(@actions)}
         </div>
       </div>

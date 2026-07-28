@@ -245,8 +245,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   Association fields take the same option keys on the field itself, targeting that field's own
   action groups rather than the layout's — see `Aurora.Uix.Templates.Basic.Actions.OneToMany`,
   `Aurora.Uix.Templates.Basic.Actions.EmbedsMany` and
-  `Aurora.Uix.Templates.Basic.Actions.ManyToMany` (which defaults to `:default_check_all` and
-  `:default_uncheck_all`), plus the [Custom Actions](custom_actions.html) guide.
+  `Aurora.Uix.Templates.Basic.Actions.ManyToMany` (whose `*_label_action` keys default to
+  `:default_toggle_all`), plus the [Custom Actions](custom_actions.html) guide.
 
   ## Behavior
   - Renders an editable form layout for the resource.

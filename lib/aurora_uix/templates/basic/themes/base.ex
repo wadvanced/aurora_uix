@@ -514,6 +514,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_checkbox__mixed) do
+    """
+    /* A partial selection: neither checked nor unchecked, drawn as a dash. The native
+       `indeterminate` state is a DOM property that only JavaScript can set, so the box opts out of
+       native rendering and paints the dash itself -- same data-URI technique as .auix-select. */
+    .auix-checkbox--mixed {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+
+      background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18' stroke='currentColor' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+    }
+    """
+  end
+
   def rule(:auix_confirm_button_container) do
     """
       .auix-confirm-button--container {
@@ -615,6 +633,37 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_checkbox_group_label_container) do
+    """
+      .auix-checkbox-group-label-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: var(--auix-gap-default);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_label_actions) do
+    """
+      .auix-checkbox-group-label-actions {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: var(--auix-gap-default);
+      }
+
+      /* The toggle-all renders through `.input`, which wraps every control in a fieldset. Strip
+         its block spacing so the checkbox sits on the label's baseline. */
+      .auix-checkbox-group-label-actions .auix-fieldset {
+        padding-block: 0;
+        margin: 0;
+      }
+    """
+  end
+
   def rule(:auix_checkbox_group_actions) do
     """
     /* auix-checkbox-group-actions */
@@ -622,6 +671,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     #{import_rule(:_auix_actions, :auix_checkbox_group_actions)}
     .auix-checkbox-group-actions {
       flex-direction: row;
+      flex-wrap: nowrap;
       justify-content: flex-end;
     }
     """
