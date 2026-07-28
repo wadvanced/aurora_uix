@@ -2177,6 +2177,38 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_one_to_one_container) do
+    """
+    .auix-one-to-one-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: stretch;
+
+      padding: var(--auix-padding-default);
+
+      border-width: var(--auix-border-width-default);
+      border-style: var(--auix-border-style-default);
+      border-radius: var(--auix-border-radius-default);
+      border-color: var(--auix-color-embeds-border);
+      background-color: var(--auix-color-embeds-bg);
+      box-shadow: var(--auix-shadow-default);
+    }
+    .auix-one-to-one-container > * {
+      flex: 1;
+    }
+    """
+  end
+
+  def rule(:auix_one_to_one_empty_msg) do
+    """
+    .auix-one-to-one-empty-msg {
+      font-size: var(--auix-font-size-small);
+      font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
   def rule(:auix_embeds_many_container) do
     """
     .auix-embeds-many-container {
