@@ -53,7 +53,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
     })
 
     # edit switching
-    |> click(Query.css("button.auix-sections-tab-button--inactive"))
+    |> click(Query.css("button.auix-sections-tab-button--inactive[data-button-tab-index='2']"))
     |> capture(:edit_section_switching, screen_size, target, %{
       desktop: [zoom: 0.90, center_crop_width: 640],
       mobile: [zoom: 0.75, center_crop_width: 420]
