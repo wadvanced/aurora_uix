@@ -23,7 +23,8 @@ defmodule Aurora.Uix.Guides.Inventory do
     Product,
     ProductBarcode,
     ProductLocation,
-    ProductTransaction
+    ProductTransaction,
+    Supplier
   }
 
   alias Aurora.Uix.Repo
@@ -117,4 +118,5 @@ defmodule Aurora.Uix.Guides.Inventory do
   ctx_register_schema(ProductTransaction, Repo)
   ctx_register_schema(ProductLocation, Repo)
   ctx_register_schema(ProductBarcode, Repo)
+  ctx_register_schema(Supplier, Repo)
 end

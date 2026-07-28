@@ -24,8 +24,16 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
 
-  alias Aurora.Uix.Guides.Inventory.{ProductBarcode, ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Guides.Inventory.{
+    ProductBarcode,
+    ProductLocation,
+    ProductTransaction,
+    Supplier
+  }
+
+  alias Aurora.Uix.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
@@ -57,7 +65,8 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil,
           product_transactions: list(ProductTransaction.t()) | Ecto.Association.NotLoaded.t(),
-          product_barcode: ProductBarcode.t() | Ecto.Association.NotLoaded.t() | nil
+          product_barcode: ProductBarcode.t() | Ecto.Association.NotLoaded.t() | nil,
+          suppliers: list(Supplier.t()) | Ecto.Association.NotLoaded.t()
         }
 
   schema "products" do
@@ -86,6 +95,9 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     has_many(:product_transactions, ProductTransaction)
     has_one(:product_barcode, ProductBarcode, on_replace: :update)
     belongs_to(:product_location, ProductLocation, type: :binary_id)
+
+    # `on_replace: :delete` deletes the JOIN rows, never the suppliers themselves.
+    many_to_many(:suppliers, Supplier, join_through: "product_suppliers", on_replace: :delete)
 
     timestamps()
   end
@@ -143,5 +155,40 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     |> validate_number(:height, greater_than_or_equal_to: 0)
     |> foreign_key_constraint(:product_location_id)
     |> cast_assoc(:product_barcode, with: &ProductBarcode.changeset/2)
+    |> put_suppliers(attrs)
   end
+
+  # Many-to-many membership arrives as a list of supplier ids, which `cast/3` cannot handle -- an
+  # association is not a field. The library only transports the list; resolving it to records and
+  # writing the join rows is the host's job, which is what this does.
+  #
+  # Only runs when the key is present, so changesets that do not touch membership leave it alone.
+  # The blank entry is the renderer's empty-list sentinel: without it, de-selecting every supplier
+  # would submit no key at all and membership could never be cleared.
+  @spec put_suppliers(Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  defp put_suppliers(changeset, attrs) do
+    case supplier_ids(attrs) do
+      :absent ->
+        changeset
+
+      ids ->
+        query = from(s in Supplier, where: s.id in ^ids)
+        suppliers = Repo.all(query)
+        put_assoc(changeset, :suppliers, suppliers)
+    end
+  end
+
+  # Accepts string keys (form params) and atom keys (test helpers and host code).
+  @spec supplier_ids(map()) :: list(binary()) | :absent
+  defp supplier_ids(attrs) do
+    cond do
+      Map.has_key?(attrs, "suppliers") -> reject_blanks(attrs["suppliers"])
+      Map.has_key?(attrs, :suppliers) -> reject_blanks(attrs[:suppliers])
+      true -> :absent
+    end
+  end
+
+  @spec reject_blanks(term()) :: list()
+  defp reject_blanks(ids) when is_list(ids), do: Enum.reject(ids, &(is_nil(&1) or &1 == ""))
+  defp reject_blanks(_ids), do: []
 end

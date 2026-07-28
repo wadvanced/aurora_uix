@@ -12,11 +12,14 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Guides.Blog.AuthorProfile
   alias Aurora.Uix.Guides.Blog.Category
   alias Aurora.Uix.Guides.Blog.Post
+  alias Aurora.Uix.Guides.Blog.PostTopic
+  alias Aurora.Uix.Guides.Blog.Topic
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductBarcode
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory.Supplier
 
   alias Aurora.Uix.Repo
 
@@ -135,6 +138,85 @@ defmodule Aurora.Uix.Test.Helper do
         |> Repo.insert()
         |> elem(1))
     )
+  end
+
+  @doc """
+  Creates suppliers and products, wiring each product to the given number of suppliers.
+
+  Goes through `Inventory.create_product/1` so the fixture exercises the host's `put_assoc` path —
+  the same write path the parent form uses.
+
+  ## Parameters
+  - `product_count` (integer()) - Number of products to create.
+  - `supplier_count` (integer()) - Number of suppliers to create and attach to every product.
+
+  ## Returns
+  {list(Product.t()), list(Supplier.t())} - The created products and suppliers.
+  """
+  @spec create_sample_products_with_suppliers(integer(), integer()) :: {list(), list()}
+  def create_sample_products_with_suppliers(product_count, supplier_count) do
+    suppliers =
+      Enum.map(1..supplier_count//1, fn index ->
+        %Supplier{name: "Supplier #{index}", country: "Country #{index}"}
+        |> Repo.insert()
+        |> elem(1)
+      end)
+
+    supplier_ids = Enum.map(suppliers, & &1.id)
+
+    products =
+      Enum.map(1..product_count//1, fn index ->
+        {:ok, product} =
+          Inventory.create_product(%{
+            reference: "supplied_#{index}",
+            name: "Supplied item #{index}",
+            status: "in_stock",
+            quantity_initial: index,
+            suppliers: supplier_ids
+          })
+
+        product
+      end)
+
+    {products, suppliers}
+  end
+
+  @doc """
+  Creates topics and posts, wiring each post to the given number of topics.
+
+  Passes the topic ids as an action argument, so Ash's `manage_relationship` writes the join rows —
+  the same write path the parent form uses.
+
+  ## Parameters
+  - `post_count` (integer()) - Number of posts to create.
+  - `topic_count` (integer()) - Number of topics to create and attach to every post.
+
+  ## Returns
+  {list(struct()), list(struct())} - The created posts and topics.
+  """
+  @spec create_sample_posts_with_topics(integer(), integer()) :: {list(), list()}
+  def create_sample_posts_with_topics(post_count, topic_count) do
+    topics =
+      Enum.map(1..topic_count//1, fn index ->
+        Topic
+        |> Ash.Changeset.for_create(:create, %{name: "Topic #{index}", slug: "topic-#{index}"})
+        |> Ash.create!()
+      end)
+
+    topic_ids = Enum.map(topics, & &1.id)
+
+    posts =
+      Enum.map(1..post_count//1, fn index ->
+        Post
+        |> Ash.Changeset.for_create(:create, %{
+          title: "Topical post #{index}",
+          content: "Content #{index}",
+          topics: topic_ids
+        })
+        |> Ash.create!()
+      end)
+
+    {posts, topics}
   end
 
   @doc """
@@ -324,6 +406,7 @@ defmodule Aurora.Uix.Test.Helper do
     Repo.delete_all(ProductTransaction)
     Repo.delete_all(ProductBarcode)
     Repo.delete_all(Product)
+    Repo.delete_all(Supplier)
     Repo.delete_all(ProductLocation)
   end
 
@@ -340,7 +423,9 @@ defmodule Aurora.Uix.Test.Helper do
   """
   @spec delete_all_blog_data() :: :ok
   def delete_all_blog_data do
+    Repo.delete_all(PostTopic)
     Repo.delete_all(Post)
+    Repo.delete_all(Topic)
     Repo.delete_all(AuthorProfile)
     Repo.delete_all(Author)
     Repo.delete_all(Category)
