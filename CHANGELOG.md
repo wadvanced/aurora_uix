@@ -105,6 +105,7 @@ Requires:
     because only UUID/`:binary_id` foreign keys had a clause. Added a fallback so default Phoenix schemas (integer ids) render the picker.
 - **Many-to-one select on Ash resources** — building dropdown options raised `Protocol.Enumerable not implemented for Aurora.Ctx.Pagination`. `get_select_options/1` 
     now normalises the paginated Ash result (and the plain Ecto list) to a list of entries before mapping.
+- **Update of index list upon creating/adding records** - After a record is created or updated, the index of records was not properly updated. Added missing tests to ensure no regressions.
 
 ### Documentation
 
