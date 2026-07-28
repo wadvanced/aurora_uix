@@ -88,12 +88,17 @@ Requires:
 - **Simplified `CoreComponentsImporter`** — removed the deprecated `core_components_module` option, now superseded by the new runtime component resolver
 
 - **Updated Dependencies**
-  - ˋashˋ: ˋ3.27.8ˋ -> ˋ3.29.1ˋ
-  - ˋash_postgresˋ: ˋ2.9.1ˋ -> ˋ2.10.0ˋ
-  - `image`: `0.68.0` -> `0.69.0`
-  - ˋphoenixˋ: ˋ1.8.7ˋ -> ˋ1.8.8ˋ
-  - ˋphoenix_live_viewˋ: ˋ1.1.31ˋ -> ˋ1.2.3ˋ
-
+  - ash: 3.27.8 -> 3.30.1
+  - ash_phoenix: 2.3.23 -> 2.3.24
+  - ash_postgres: 2.9.1 -> 2.11.0
+  - bandit: 1.12.0 -> 1.12.4
+  - image: 0.68.0 -> 0.72.0
+  - lazy_html: 0.1.11 -> 0.1.12
+  - phoenix: 1.8.7 -> 1.8.9
+  - phoenix_live_view: 1.1.31 -> 1.2.8
+  - postgrex: 0.22.2 -> 0.22.3
+  - wallaby: 0.30.12 -> 0.31.0
+  
 ### Fixes
 
 - **Many-to-one select on Ecto integer foreign keys** — `field_placeholder/2` crashed (`FunctionClauseError`) when a `belongs_to` pointed at an integer (`:id`) primary key,
