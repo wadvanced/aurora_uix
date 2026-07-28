@@ -41,8 +41,8 @@ Aurora UIX generates complete CRUD UIs out of the box — this hub catalogs ever
 ```elixir
 defmodule MyApp.Themes.Ocean do
   use Aurora.Uix.Templates.Theme, theme_name: :ocean
-  def rule(:root_colors), do: "..."             # your palette
-  def rule(rule), do: BaseVariables.rule(rule)  # inherit the rest
+  def rule(:root_colors), do: "..."          # your palette
+  def rule(rule), do: ThemeBase.rule(rule)   # inherit the rest
 end
 # config/config.exs
 config :aurora_uix, theme_name: :ocean

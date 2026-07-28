@@ -395,7 +395,7 @@ defmodule MyApp.ProductShowHandler do
      |> auix_route_back()}
   end
 
-  # Default to standard implementation for switch_section, auix_route_back, etc.
+  # Default to standard implementation for switch_section, auix_download_upload, etc.
   def auix_handle_event(event, params, socket) do
     super(event, params, socket)
   end
@@ -512,20 +512,26 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"filter-toggle"` - Toggle filters panel
 - `"filters-clear"` - Clear all filters
 - `"filters-submit"` - Apply filters
-- `"index-layout-change"` - Handle filter form changes
-- `"page-changed"` - Navigate to different page
-- `"select-toggle-all"` - Toggle all item selection
-- `"select-item"` - Toggle individual item selection
+- `"index-layout-change"` - Handles filter-form changes and row selection (matched via
+  the `_target` field, e.g. `"selected_check__"` / `"selected_in_page__"` prefixes)
+- `"selected-toggle_all"` - Select all matching rows across the whole result set (async)
+- `"selected-cancel_toggle_all"` - Cancel an in-progress "select all" operation
+- `"selected-delete_all"` - Delete all selected rows (async)
+- `"pagination_to_page"` - Navigate to a specific page
+- `"pagination_previous"` - Navigate to the previous page
+- `"pagination_next"` - Navigate to the next page
 
 **FormComponent (LiveComponent):**
 - `"validate"` - Form validation on field change
-- `"save"` - Save entity (create/update)
+- `"save"` - Save entity (create/update), handled specially outside `auix_handle_event/3`
 - `"switch_section"` - Switch between tabs/sections in forms
+- `"auix_route_back"` - Navigate back with routing stack
+- `"auix_cancel_upload"` - Cancel an in-progress file upload
+- `"auix_download_upload"` - Download a previously uploaded file
 
 **ShowComponent (LiveComponent):**
 - `"switch_section"` - Switch between tabs/sections in show view
-- `"auix_route_forward"` - Navigate forward
-- `"auix_route_back"` - Navigate back
+- `"auix_download_upload"` - Download a previously uploaded file
 
 #### Adding Custom Events
 
@@ -599,7 +605,7 @@ defmodule MyApp.ProductShowHandler do
     {:noreply, assign(socket, :print_mode, true)}
   end
 
-  # Let ShowComponentImpl handle standard events (switch_section, auix_route_back)
+  # Let ShowComponentImpl handle standard events (switch_section, auix_download_upload)
   def auix_handle_event(event, params, socket) do
     super(event, params, socket)
   end
@@ -726,11 +732,11 @@ Aurora UIX uses Phoenix LiveView streams for efficient list rendering. Streams a
 Aurora UIX creates multiple streams for different layout types:
 
 - **Primary stream** - Named after the resource key (e.g., `:products` for a product index)
-- **Alternate streams** - For different view types, named as `#{source_key}__#{suffix}`:
-  - `:products__index` - For table/list index view
-  - `:products__card` - For card-based index view
-  - `:products__calendar` - For calendar index view (if configured)
-  - Additional streams based on your layout configuration
+- **Alternate streams** - For different view types, named as `#{source_key}__#{suffix}`,
+  where each suffix comes from the `:alternate_streams_suffixes` layout option
+  (default: `["mobile"]`, e.g. `:products__mobile`). Suffixes are arbitrary,
+  host-defined strings, not built-in view types — configure additional ones
+  (e.g. `"card"`, `"calendar"`) to fit your own alternate layouts.
 
 The framework automatically manages these streams, inserting, updating, or deleting entries as needed.
 

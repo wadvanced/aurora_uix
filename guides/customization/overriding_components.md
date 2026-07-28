@@ -99,6 +99,8 @@ Aurora UIX-specific components for collection views and record navigation.
 | `auix_items_card/1` | Mobile card view for collections with filtering and actions |
 | `pages_selection/1` | Pagination bar with page numbers, ellipsis, and selected-item counts |
 | `record_navigator_bar/1` | Previous/next record navigation shown on form and show views |
+| `auix_checkbox_group/1` | Value-carrying checkbox group submitting under one array name (e.g. many-to-many form input) |
+| `auix_selected_list/1` | Read-only list of resolved display labels (e.g. many-to-many show view) |
 
 ### `:basic_filtering_components` — `Aurora.Uix.Templates.Basic.Components.FilteringComponents`
 

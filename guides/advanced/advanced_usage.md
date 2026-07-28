@@ -592,7 +592,9 @@ Consider creating a custom backend when:
 
 ### Step 1: Implement the CRUD Behaviour
 
-Create a module implementing `Aurora.Uix.Integration.Crud` with all 8 required callbacks:
+Create a module implementing `Aurora.Uix.Integration.Crud` with all 9 required callbacks
+(8 data callbacks plus `socket_opts/2` for per-call options resolved from
+`socket.assigns`):
 
 ```elixir
 defmodule MyApp.CustomBackend.Crud do
@@ -621,7 +623,7 @@ defmodule MyApp.CustomBackend.Crud do
   end
 
   @impl true
-  def to_page(crud_spec, pagination, page) do
+  def to_page(crud_spec, pagination, page, opts) do
     # Implement pagination navigation
     %{pagination | page: page}
   end
@@ -633,7 +635,7 @@ defmodule MyApp.CustomBackend.Crud do
   end
 
   @impl true
-  def change(crud_spec, entity, form_name, attrs) do
+  def change(crud_spec, entity, form_name, attrs, opts) do
     # Create a changeset or form for the entity
     # Return: changeset structure compatible with Phoenix forms
     crud_spec.resource_module.changeset(entity, attrs)
@@ -646,21 +648,28 @@ defmodule MyApp.CustomBackend.Crud do
   end
 
   @impl true
-  def create(crud_spec, params) do
+  def create(crud_spec, params, opts) do
     # Implement resource creation
     crud_spec.resource_module.insert(params)
   end
 
   @impl true
-  def update(crud_spec, entity, params) do
+  def update(crud_spec, entity, params, opts) do
     # Implement resource update
     crud_spec.resource_module.update(entity, params)
   end
 
   @impl true
-  def delete(crud_spec, entity) do
+  def delete(crud_spec, entity, opts) do
     # Implement resource deletion
     crud_spec.resource_module.delete(entity)
+  end
+
+  @impl true
+  def socket_opts(_crud_spec, _socket) do
+    # Resolve any per-call options from socket.assigns (e.g. an actor for
+    # policy-protected resources). Return [] if your backend needs nothing.
+    []
   end
 end
 ```

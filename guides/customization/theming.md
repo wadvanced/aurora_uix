@@ -4,7 +4,7 @@ Aurora UIX's theme system leverages Elixir's pattern matching and module composi
 
 ## Understanding the Theme Architecture
 
-Aurora UIX themes follow a three-layer pattern:
+Aurora UIX themes follow a four-layer delegation chain:
 
 **Layer 1: Color Palette**
 - Defines all color variables for a specific theme variant
@@ -12,16 +12,25 @@ Aurora UIX themes follow a three-layer pattern:
 - Implements both light and dark mode variants
 - Theme-specific and forms the foundation
 - Example: `VitreousMarble` theme with Slate/Cyan/Ruby colors
+- Delegates everything else to Layer 2 (`ThemeBase`)
 
-**Layer 2: Base Variables**
+**Layer 2: Color Aliases**
+- Defines `:root_color_aliases` - component-specific color variables (buttons, inputs,
+  tables, labels, …) that each default to a generic semantic var from Layer 1
+- Sits between the theme palette and the structural variables, so a single alias can be
+  overridden to restyle one component without touching its siblings
+- Shared across all themes - implemented once in `ThemeBase`
+- Delegates everything else to Layer 3 (`BaseVariables`)
+
+**Layer 3: Base Variables**
 - Defines all structural CSS variables (sizes, spacing, fonts, shadows)
 - Color-agnostic - contains only dimension and layout properties
 - Delegates to Base for additional rules
 - Example: `BaseVariables` defines `--auix-padding-default`, `--auix-border-radius-default`, etc.
 
-**Layer 3: Base Rules**
+**Layer 4: Base Rules**
 - Defines all CSS class rules (`.auix-button-default`, `.auix-button`, `.auix-input`, etc.)
-- Uses the color variables from Layer 1
+- Uses the color and alias variables from Layers 1-2
 - Shared across all themes
 - Delegated through pattern matching for composition
 
@@ -35,11 +44,11 @@ def rule(:root_colors) do
 end
 
 def rule(:root) do
-  # Returns CSS for structural variables (Layer 2)
+  # Returns CSS for structural variables (Layer 3)
 end
 
 def rule(:_auix_button_default) do
-  # Returns CSS for button styling (Layer 3)
+  # Returns CSS for button styling (Layer 4)
 end
 
 def rule(other_rule) do
@@ -58,7 +67,7 @@ Create your own theme by defining colors as the foundation:
 defmodule MyApp.Themes.CustomTheme do
   use Aurora.Uix.Templates.Theme, theme_name: :my_custom_theme
   
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   @impl true
   def rule(:root_colors) do
@@ -108,9 +117,9 @@ defmodule MyApp.Themes.CustomTheme do
     """
   end
 
-  # Delegate everything else to BaseVariables
+  # Delegate everything else to ThemeBase (Layer 2)
   @impl true
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end
 ```
 
@@ -157,7 +166,41 @@ Aurora UIX uses a **light-first approach** with dark mode as an optional variant
    ```
    No selector needed - this is the starting value
 
-## Layer 2: Base Variables
+## Layer 2: Color Aliases
+
+The `ThemeBase` module sits between a theme's own palette and the structural variables.
+It defines component-specific color aliases (buttons, inputs, tables, labels, …), each
+defaulting to a generic semantic var from Layer 1:
+
+```elixir
+defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
+  use Aurora.Uix.Templates.Theme
+
+  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+
+  @impl true
+  def rule(:root_color_aliases) do
+    """
+    :root, :host {
+      --auix-color-label-text: var(--auix-color-text-label);
+      --auix-color-input-text: var(--auix-color-text-primary);
+      --auix-color-button-bg: var(--auix-color-bg-default--reverted);
+      /* ... more component aliases ... */
+    }
+    """
+  end
+
+  # Delegate everything else to BaseVariables
+  @impl true
+  def rule(rule), do: BaseVariables.rule(rule)
+end
+```
+
+**Key concept**: overriding a single alias in your theme's `:root_colors` block (e.g.
+`--auix-color-button-bg`) restyles that one component without touching any of its
+siblings, since every other component keeps pulling from the shared alias defaults.
+
+## Layer 3: Base Variables
 
 The `BaseVariables` module defines all non-color CSS variables:
 
@@ -201,7 +244,7 @@ For a simple theme that only changes colors, you only need to define the color p
 defmodule MyApp.Themes.Ocean do
   use Aurora.Uix.Templates.Theme, theme_name: :ocean
   
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   @impl true
   def rule(:root_colors) do
@@ -252,7 +295,7 @@ defmodule MyApp.Themes.Ocean do
   end
 
   @impl true
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end
 ```
 
@@ -277,13 +320,13 @@ This creates a complete ocean-blue theme with light and dark modes. All dimensio
 
 ## Overriding Specific Rules
 
-You can override individual CSS rules in Layer 3 while keeping everything else:
+You can override individual CSS rules in Layer 4 while keeping everything else:
 
 ```elixir
 defmodule MyApp.Themes.CompactTheme do
   use Aurora.Uix.Templates.Theme, theme_name: :compact
   
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   # Because `<.button>` applies `.auix-button-default` as its structural base,
   # customising it here propagates to every button variant (primary, alt, index-bar)
@@ -317,7 +360,7 @@ defmodule MyApp.Themes.CompactTheme do
 
   # Delegate everything else
   @impl true
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end
 ```
 
@@ -402,7 +445,7 @@ The real power comes from Elixir's pattern matching and module composition:
 defmodule MyApp.Themes.Advanced do
   use Aurora.Uix.Templates.Theme, theme_name: :advanced
   
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
   # Custom rule for buttons
   def rule(:_auix_button_default), do: custom_button_styles()
@@ -414,7 +457,7 @@ defmodule MyApp.Themes.Advanced do
   def rule(:root_colors), do: custom_colors()
   
   # Everything else delegates
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 
   defp custom_button_styles do
     # Your button CSS
@@ -443,7 +486,7 @@ This approach provides:
 defmodule MyApp.Themes.BrandTheme do
   use Aurora.Uix.Templates.Theme, theme_name: :brand
   
-  alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
   
   # Only override what's specific to your brand
   @impl true
@@ -470,7 +513,7 @@ defmodule MyApp.Themes.BrandTheme do
   end
 
   @impl true
-  def rule(rule), do: BaseVariables.rule(rule)
+  def rule(rule), do: ThemeBase.rule(rule)
 end
 ```
 
@@ -490,8 +533,9 @@ Select one via `config :aurora_uix, theme_name: :white_charcoal` and re-run
 
 For complete examples, see:
 - `lib/aurora_uix/templates/basic/themes/vitreous_marble.ex` - Full theme implementation
+- `lib/aurora_uix/templates/basic/themes/theme_base.ex` - Color alias definitions (Layer 2)
 - `lib/aurora_uix/templates/basic/themes/base_variables.ex` - Base variables definition
-- `lib/aurora_uix/templates/basic/themes/base.ex` - Base CSS rules (2,296 lines of composition)
+- `lib/aurora_uix/templates/basic/themes/base.ex` - Base CSS rules (over 2.7k lines of composition)
 
 ## Related guides
 
