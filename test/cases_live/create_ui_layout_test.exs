@@ -95,6 +95,32 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
     assert new_html =~ "test-first"
   end
 
+  test "Test CREATE new updates the index list without remounting", %{conn: conn} do
+    delete_all_inventory_data()
+    {:ok, view, _html} = live(conn, "/create-ui-layout-products/new")
+
+    unique_reference = "test-#{System.system_time(:nanosecond)}"
+
+    view
+    |> form("#auix-product-form",
+      product: %{
+        reference: unique_reference,
+        name: "This is the second test",
+        quantity_initial: 11
+      }
+    )
+    |> render_submit()
+
+    # The parent index only refreshes once it processes the `:saved` handle_info message,
+    # which is queued after the "save" event's own reply. A follow-up render/1 call queues
+    # behind it in the same process mailbox, so it deterministically observes the refresh.
+    refreshed = render(view)
+    assert refreshed =~ unique_reference
+    refute refreshed =~ "No items to show"
+
+    assert has_element?(view, "td", unique_reference)
+  end
+
   test "Test index layout", %{conn: conn} do
     delete_all_inventory_data()
     create_sample_products(5, :test)

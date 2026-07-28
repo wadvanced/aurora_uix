@@ -247,4 +247,33 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
     assert updated_html =~ updated_name
     assert updated_html =~ updated_bio
   end
+
+  test "Test CREATE new author updates the index list without remounting", %{conn: conn} do
+    delete_all_blog_data()
+    {:ok, view, _html} = live(conn, "/ash-default-layout-authors/new")
+
+    unique_name = "Author-#{System.system_time(:nanosecond)}"
+    unique_email = "author-#{System.system_time(:nanosecond)}@test.com"
+    unique_bio = "Test bio #{System.system_time(:nanosecond)}"
+
+    view
+    |> form("#auix-author-form",
+      author: %{
+        name: unique_name,
+        email: unique_email,
+        bio: unique_bio
+      }
+    )
+    |> render_submit()
+
+    # The parent index only refreshes once it processes the `:saved` handle_info message,
+    # which is queued after the "save" event's own reply. A follow-up render/1 call queues
+    # behind it in the same process mailbox, so it deterministically observes the refresh.
+    refreshed_html = render(view)
+    assert refreshed_html =~ unique_name
+    assert refreshed_html =~ unique_email
+    refute refreshed_html =~ "No items to show"
+
+    assert has_element?(view, "td", unique_name)
+  end
 end
