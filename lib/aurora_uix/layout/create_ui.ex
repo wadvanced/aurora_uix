@@ -410,7 +410,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
        when type in [
               :one_to_many_association,
               :many_to_one_association,
-              :one_to_one_association
+              :one_to_one_association,
+              :many_to_many_association
             ],
        do: true
 

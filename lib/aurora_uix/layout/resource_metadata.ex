@@ -583,7 +583,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
        when type in [
               :many_to_one_association,
               :one_to_many_association,
-              :one_to_one_association
+              :one_to_one_association,
+              :many_to_many_association
             ],
        do: field
 
