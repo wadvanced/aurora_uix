@@ -123,48 +123,69 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
     end
   end
 
-  describe "check all / uncheck all" do
-    test "check all checks every candidate", %{conn: conn} do
+  describe "toggle all" do
+    test "an unchecked toggle selects every candidate", %{conn: conn} do
       delete_all_inventory_data()
       {_products, suppliers} = create_sample_products_with_suppliers(0, 3)
 
       {:ok, view, _html} = live(conn, "/association/many_to_many/layout/products/new")
 
-      view
-      |> element("button[name='auix-many-to-many-check_all-suppliers']")
-      |> render_click()
+      assert toggle_state(view) == :none
+
+      toggle_all(view, "true")
 
       assert view |> checked_ids() |> Enum.sort() ==
                suppliers |> Enum.map(& &1.id) |> Enum.sort()
+
+      assert toggle_state(view) == :all
     end
 
-    test "uncheck all clears a membership", %{conn: conn} do
+    test "a checked toggle clears the membership", %{conn: conn} do
       delete_all_inventory_data()
       {[product], _suppliers} = create_sample_products_with_suppliers(1, 3)
 
       {:ok, view, _html} =
         live(conn, "/association/many_to_many/layout/products/#{product.id}/edit")
 
-      assert view |> checked_ids() |> Enum.count() == 3
+      assert toggle_state(view) == :all
 
-      view
-      |> element("button[name='auix-many-to-many-uncheck_all-suppliers']")
-      |> render_click()
+      toggle_all(view, "false")
 
       assert checked_ids(view) == []
+      assert toggle_state(view) == :none
+    end
+
+    test "a partial membership renders the toggle mixed, and toggling it selects all", %{
+      conn: conn
+    } do
+      delete_all_inventory_data()
+      {[product], suppliers} = create_sample_products_with_suppliers(1, 3)
+      [first | _rest] = suppliers
+
+      {:ok, view, _html} =
+        live(conn, "/association/many_to_many/layout/products/#{product.id}/edit")
+
+      view
+      |> form("#auix-product-form", %{"product" => %{"suppliers" => [first.id]}})
+      |> render_change(%{"_target" => ["product", "suppliers"]})
+
+      assert toggle_state(view) == :mixed
+
+      toggle_all(view, "true")
+
+      assert view |> checked_ids() |> Enum.count() == 3
+      assert toggle_state(view) == :all
     end
 
     # The toggle has to reach `auix.form.params`, not just the DOM -- otherwise the submit would
     # persist the pre-toggle membership.
-    test "a checked-all membership survives submit", %{conn: conn} do
+    test "a toggled-all membership survives submit", %{conn: conn} do
       delete_all_inventory_data()
       create_sample_products_with_suppliers(0, 3)
 
       {:ok, view, _html} = live(conn, "/association/many_to_many/layout/products/new")
 
-      view
-      |> element("button[name='auix-many-to-many-check_all-suppliers']")
-      |> render_click()
+      toggle_all(view, "true")
 
       view
       |> form("#auix-product-form", %{
@@ -226,6 +247,30 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
     |> LazyHTML.from_document()
     |> LazyHTML.query(".auix-checkbox-group input[type='checkbox']")
     |> Enum.count()
+  end
+
+  # The toggle rides the form's own phx-change; `_target` is what tells the handler it was the one
+  # that moved, and `render_change/2` does not infer it.
+  @spec toggle_all(Phoenix.LiveViewTest.View.t(), binary()) :: binary()
+  defp toggle_all(view, state) do
+    view
+    |> form("#auix-product-form", %{"auix_toggle_all__suppliers" => state})
+    |> render_change(%{"_target" => ["auix_toggle_all__suppliers"]})
+  end
+
+  @spec toggle_state(Phoenix.LiveViewTest.View.t()) :: :all | :none | :mixed
+  defp toggle_state(view) do
+    toggle =
+      view
+      |> render()
+      |> LazyHTML.from_document()
+      |> LazyHTML.query("input#auix-many-to-many-toggle_all-suppliers")
+
+    cond do
+      LazyHTML.attribute(toggle, "checked") != [] -> :all
+      toggle |> LazyHTML.attribute("class") |> to_string() =~ "auix-checkbox--mixed" -> :mixed
+      true -> :none
+    end
   end
 
   # Asserting on the submitted values rather than the labels: the value is what the round trip

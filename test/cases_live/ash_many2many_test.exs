@@ -127,19 +127,19 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
     end
   end
 
-  # Only the submit round trip is covered here: resolving the candidates and merging them into the
-  # form params is backend-agnostic and is covered against Ctx. What is Ash-specific is that the
-  # toggled membership reaches `manage_relationship`.
-  describe "check all / uncheck all" do
-    test "a checked-all membership survives submit", %{conn: conn} do
+  # Only the submit round trip is covered here: the tri-state logic and the params merge are
+  # backend-agnostic and are covered against Ctx. What is Ash-specific is that the toggled
+  # membership reaches `manage_relationship`.
+  describe "toggle all" do
+    test "a toggled-all membership survives submit", %{conn: conn} do
       delete_all_blog_data()
       create_sample_posts_with_topics(0, 3)
 
       {:ok, view, _html} = live(conn, "/ash-many2many-posts/new")
 
       view
-      |> element("button[name='auix-many-to-many-check_all-topics']")
-      |> render_click()
+      |> form("#auix-post-form", %{"auix_toggle_all__topics" => "true"})
+      |> render_change(%{"_target" => ["auix_toggle_all__topics"]})
 
       view
       |> form("#auix-post-form", %{"post" => %{"title" => "All topics", "content" => "Body"}})

@@ -10,6 +10,13 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUIActionsTest do
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.Supplier
 
+  @spec custom_label_action(map()) :: Rendered.t()
+  def custom_label_action(assigns) do
+    ~H"""
+      <.button type="button" name={"auix-custom-label-#{@field.key}"}>Custom label</.button>
+    """
+  end
+
   @spec custom_header_action(map()) :: Rendered.t()
   def custom_header_action(assigns) do
     ~H"""
@@ -38,7 +45,8 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUIActionsTest do
         :reference,
         :name,
         suppliers: [
-          remove_header_action: :default_uncheck_all,
+          remove_label_action: :default_toggle_all,
+          add_label_action: {:custom_label, &__MODULE__.custom_label_action/1},
           add_header_action: {:custom_header, &__MODULE__.custom_header_action/1},
           add_footer_action: {:custom_footer, &__MODULE__.custom_footer_action/1}
         ]
@@ -46,17 +54,36 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUIActionsTest do
     end
   end
 
-  describe "header actions" do
-    test "removes a default action and appends a custom one", %{conn: conn} do
+  describe "label actions" do
+    test "removes the default toggle and appends a custom control beside the label", %{conn: conn} do
       delete_all_inventory_data()
       {[product], _suppliers} = create_sample_products_with_suppliers(1, 2)
 
       {:ok, view, _html} =
         live(conn, "/association/many_to_many/actions/products/#{product.id}/edit")
 
-      refute has_element?(view, "button[name='auix-many-to-many-uncheck_all-suppliers']")
-      assert has_element?(view, "button[name='auix-many-to-many-check_all-suppliers']")
-      assert has_element?(view, "button[name='auix-custom-header-suppliers']")
+      refute has_element?(view, "input#auix-many-to-many-toggle_all-suppliers")
+
+      assert has_element?(
+               view,
+               ".auix-checkbox-group-label-actions button[name='auix-custom-label-suppliers']"
+             )
+    end
+  end
+
+  describe "header actions" do
+    # The library ships no default header action; the group exists purely so a host can add one.
+    test "renders a host action in the otherwise empty header group", %{conn: conn} do
+      delete_all_inventory_data()
+      {[product], _suppliers} = create_sample_products_with_suppliers(1, 2)
+
+      {:ok, view, _html} =
+        live(conn, "/association/many_to_many/actions/products/#{product.id}/edit")
+
+      assert has_element?(
+               view,
+               ".auix-checkbox-group-actions button[name='auix-custom-header-suppliers']"
+             )
     end
   end
 
