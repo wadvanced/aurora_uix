@@ -56,6 +56,30 @@ defmodule HasOneRelationship do
   end
 end
 
+defmodule ManyToManyRelationship do
+  use Ash.Resource,
+    domain: nil
+
+  attributes do
+    uuid_primary_key :id
+    attribute :first_field, :integer
+    attribute :second_field, :string
+  end
+end
+
+defmodule ManyToManyJoinRelationship do
+  use Ash.Resource,
+    domain: nil
+
+  attributes do
+    uuid_primary_key :id
+    # AllTypes uses an integer primary key, ManyToManyRelationship a uuid one; the join attribute
+    # types must match their respective sides or Ash warns about incompatible foreign keys.
+    attribute :all_types_id, :integer
+    attribute :many_to_many_relationship_id, :uuid
+  end
+end
+
 defmodule AllTypes do
   use Ash.Resource,
     domain: nil
@@ -94,6 +118,12 @@ defmodule AllTypes do
     belongs_to :belongs_to_field, BelongsToRelationship
     has_many :has_many_field, HasManyRelationship
     has_one :has_one_field, HasOneRelationship
+
+    many_to_many :many_to_many_field, ManyToManyRelationship do
+      through ManyToManyJoinRelationship
+      source_attribute_on_join_resource :all_types_id
+      destination_attribute_on_join_resource :many_to_many_relationship_id
+    end
   end
 
   actions do
@@ -132,6 +162,8 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
       |> put_in([:field_naive_datetime_usec, :length], 17)
       |> put_in([:field_naive_datetime_usec, :data], %{})
       |> put_in([:field_bitstring, :type], :binary)
+      # Ecto names the join by table, Ash by join resource -- the one genuinely divergent key.
+      |> put_in([:many_to_many_field, :data, :join_through], ManyToManyJoinRelationship)
 
     parsed_schema =
       AllTypes

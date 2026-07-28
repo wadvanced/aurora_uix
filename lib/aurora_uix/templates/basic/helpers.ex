@@ -869,7 +869,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   map() - Map with association field types (`:one_to_many_association`, `:many_to_one_association`,
-  `:one_to_one_association`) as keys and lists of field names as values.
+  `:one_to_one_association`, `:many_to_many_association`) as keys and lists of field names as
+  values.
   """
   @spec extract_association_preload(map()) :: map()
   def extract_association_preload(parsed_opts) do
@@ -883,7 +884,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       &(&1.type in [
           :many_to_one_association,
           :one_to_many_association,
-          :one_to_one_association
+          :one_to_one_association,
+          :many_to_many_association
         ])
     )
     |> Enum.map(&{&1.type, &1.key})
@@ -1039,25 +1041,24 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       when is_nil(resource_name) or is_nil(related_key),
       do: %{options: [], multiple: false}
 
+  # Select options for Many to many. Must precede the many-to-one clause below, which also matches
+  # `%{html_type: :select, data: %{resource: _}}` and hardcodes `multiple: false`.
+  # No nil option: it is meaningless in a multi-select and would collide with the renderer's
+  # empty-list sentinel.
+  def get_select_options(
+        %{field: %{type: :many_to_many_association, html_type: :select}} = assigns
+      ) do
+    assigns
+    |> resource_select_options()
+    |> then(&%{options: &1, multiple: true})
+  end
+
   # Select options for Many to one
   def get_select_options(
-        %{
-          field: %{
-            html_type: :select,
-            data: %{resource: resource_name} = data
-          },
-          auix: %{configurations: configurations}
-        } = assigns
+        %{field: %{html_type: :select, data: %{resource: _resource_name}}} = assigns
       ) do
-    list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
-    socket_opts = backend_socket_opts(assigns, list_function)
-
-    data
-    |> Map.get(:query_opts, [])
-    |> Keyword.merge(socket_opts)
-    |> then(&apply_list_function(list_function, &1))
-    |> select_option_entries()
-    |> Enum.map(&get_many_to_one_select_option(assigns, &1))
+    assigns
+    |> resource_select_options()
     |> maybe_add_nil_option()
     |> then(&%{options: &1, multiple: false})
   end
@@ -1076,6 +1077,63 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   # Not defined
   def get_select_options(_assigns), do: %{options: [], multiple: false}
+
+  @doc """
+  Lists every candidate primary key for a many-to-many field, as strings.
+
+  Resolves the field from the resource configurations and reuses `get_select_options/1`, so the
+  candidate set is exactly the one the renderer shows — including any `query_opts` and, on Ash, any
+  policy filtering applied to the related resource's list action.
+
+  Pass the full `socket.assigns`: the configured actor is read from it, and a hand-built map would
+  silently drop it and resolve a different candidate set than the render did.
+
+  ## Parameters
+
+  - `assigns` (map()) - The socket assigns, containing `:auix` with `configurations` and
+    `resource_name`.
+  - `field_key` (binary()) - The many-to-many field name.
+
+  ## Returns
+
+  list(binary()) - The primary key of every candidate record.
+  """
+  @spec many_to_many_candidate_ids(map(), binary()) :: list(binary())
+  def many_to_many_candidate_ids(%{auix: auix} = assigns, field_key) do
+    field =
+      get_field(
+        %{name: String.to_existing_atom(field_key)},
+        auix.configurations,
+        auix.resource_name
+      )
+
+    assigns
+    |> Map.put(:field, field)
+    |> get_select_options()
+    |> Map.get(:options, [])
+    |> Enum.map(fn {_label, value} -> to_string(value) end)
+  end
+
+  # Lists the related resource and maps each record to a `{label, primary_key}` option. Shared by
+  # the many-to-one and many-to-many clauses, which differ only in the `:multiple` flag and whether
+  # a nil option is prepended.
+  @spec resource_select_options(map()) :: list()
+  defp resource_select_options(
+         %{
+           field: %{data: %{resource: resource_name} = data},
+           auix: %{configurations: configurations}
+         } = assigns
+       ) do
+    list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
+    socket_opts = backend_socket_opts(assigns, list_function)
+
+    data
+    |> Map.get(:query_opts, [])
+    |> Keyword.merge(socket_opts)
+    |> then(&apply_list_function(list_function, &1))
+    |> select_option_entries()
+    |> Enum.map(&get_many_to_one_select_option(assigns, &1))
+  end
 
   # `apply_list_function/2` returns a plain list for the Ctx/Ecto backend but a
   # paginated struct for Ash; normalise both to a list of entries.

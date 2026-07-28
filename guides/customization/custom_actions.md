@@ -118,6 +118,7 @@ The action system works by:
 
 ### One-to-Many & Embeds-Many Layout Actions
 
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  ┌─ :one_to_many_header_actions ──────────────────────┐  │
@@ -161,6 +162,42 @@ The action system works by:
 | `*_new_entry_action` | add, insert, replace, remove | *(none by default)* |
 | `*_existing_action` | add, insert, replace, remove | *(none by default)* |
 | `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+### Many-to-Many Layout Actions
+
+A many-to-many field renders as a list of checkboxes over the candidate records. It has three
+action strips: one right of the label, one at the top right, and one below the list.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ┌─ :many_to_many_label_actions ─┐                       │
+│  │  Label  [-]                   │  ┌─ :..._header_actions ┐
+│  └───────────────────────────────┘  │  (empty by default) │
+│                                     └─────────────────────┘
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  [x] Record A                                      │  │
+│  │  [ ] Record B                                      │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :many_to_many_footer_actions ─────────────────────┐  │
+│  │  (empty by default)                                │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+**many_to_many layout options:**
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_label_action` | add, insert, replace, remove | `:default_toggle_all` |
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+`:default_toggle_all` (in `Aurora.Uix.Templates.Basic.Actions.ManyToMany`) is a tri-state checkbox:
+checked when every candidate is a member, unchecked when none is, and a dash when only some are.
+Clicking a checked toggle clears the membership; clicking it in either other state selects
+everything. It rides the parent form's change event, so the new membership lands in the form params
+and survives the next validation.
 
 ## Action Operations
 
@@ -368,7 +405,7 @@ This helper handles both single and composite primary keys:
 
 ## Association Actions
 
-For one-to-many and embeds-many associations, actions are configured similarly within the field configuration:
+For one-to-many, embeds-many and many-to-many associations, actions are configured similarly within the field configuration:
 
 ```elixir
 auix_create_ui do
@@ -381,6 +418,27 @@ auix_create_ui do
         add_header_action: {:custom_new, &__MODULE__.custom_new_transaction/1},
         replace_row_action: {:default_row_edit, &__MODULE__.custom_edit_transaction/1},
         add_footer_action: {:import, &__MODULE__.import_handler/1}
+      ]
+    ])
+  end
+end
+```
+
+The same keys target the many-to-many checkbox list. Because the key names are resolved against the
+field they are declared on, `add_header_action` here means the checkbox group's header — not the
+enclosing `edit_layout`'s:
+
+```elixir
+auix_create_ui do
+  edit_layout :product do
+    stacked([
+      :name,
+      suppliers: [
+        # Swap the built-in tri-state toggle for your own control beside the label
+        replace_label_action: {:default_toggle_all, &__MODULE__.my_toggle/1},
+        # The header and footer groups ship empty and exist for exactly this
+        add_header_action: {:invert, &__MODULE__.invert_selection/1},
+        add_footer_action: {:manage, &__MODULE__.manage_suppliers_link/1}
       ]
     ])
   end

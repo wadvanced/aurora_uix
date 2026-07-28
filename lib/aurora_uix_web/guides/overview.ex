@@ -12,10 +12,13 @@ defmodule Aurora.UixWeb.Guides.Overview do
   alias Aurora.Uix.Guides.Inventory.ProductBarcode
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
+  alias Aurora.Uix.Guides.Inventory.Supplier
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
+
+  auix_resource_metadata(:supplier, context: Inventory, schema: Supplier)
 
   auix_resource_metadata(:product__product_barcode, context: Inventory, schema: ProductBarcode)
 
@@ -46,6 +49,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
         inline([:product_location])
         inline([:product_transactions])
+        inline([:suppliers])
       end
     end
 
@@ -70,6 +74,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
         stacked do
           inline([:product_location_id])
           inline([:product_transactions])
+          inline([:suppliers])
         end
       end
     end

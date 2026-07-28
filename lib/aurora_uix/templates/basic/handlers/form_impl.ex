@@ -221,6 +221,32 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   #   handle_event(event, params, entity_params, socket)
   # end
 
+  # The many-to-many toggle-all rides this same event rather than a `phx-click`: clicking a checkbox
+  # fires `click` and then `change`, and the trailing change would re-validate with the pre-click
+  # membership and undo the toggle. `_target` is what distinguishes it, exactly as the index layout
+  # distinguishes its row-selection checkboxes. Must precede the generic "validate" clause below.
+  #
+  # The leading blank reproduces the renderer's hidden sentinel, so the host's blank-rejection path
+  # runs exactly as it does for a browser submit.
+  def auix_handle_event(
+        "validate",
+        %{"_target" => ["auix_toggle_all__" <> field_key]} = params,
+        %{assigns: %{auix: auix}} = socket
+      ) do
+    values =
+      case Map.get(params, "auix_toggle_all__" <> field_key) do
+        "true" -> BasicHelpers.many_to_many_candidate_ids(socket.assigns, field_key)
+        _cleared -> []
+      end
+
+    # Retargeting is not cosmetic: it both stops this clause from matching its own recursive call
+    # and points `used_input?/1` at the field the user actually changed.
+    params
+    |> Map.update(auix.module, %{}, &Map.put(&1, field_key, ["" | values]))
+    |> Map.put("_target", [auix.module, field_key])
+    |> then(&auix_handle_event("validate", &1, socket))
+  end
+
   def auix_handle_event(
         "validate",
         params,

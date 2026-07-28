@@ -514,6 +514,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_checkbox__mixed) do
+    """
+    /* A partial selection: neither checked nor unchecked, drawn as a dash. The native
+       `indeterminate` state is a DOM property that only JavaScript can set, so the box opts out of
+       native rendering and paints the dash itself -- same data-URI technique as .auix-select. */
+    .auix-checkbox--mixed {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+
+      background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18' stroke='currentColor' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+    }
+    """
+  end
+
   def rule(:auix_confirm_button_container) do
     """
       .auix-confirm-button--container {
@@ -579,6 +597,150 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
         font-size: var(--auix-font-size-caption);
         color: var(--auix-color-checkbox-label-text);
       }
+    """
+  end
+
+  def rule(:auix_checkbox_group) do
+    """
+      .auix-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--auix-gap-default);
+
+        max-height: var(--auix-checkbox-group-max-height);
+        overflow-y: auto;
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_header) do
+    """
+      .auix-checkbox-group-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--auix-gap-default);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_label) do
+    """
+    .auix-checkbox-group-label {
+      content-visibility: visible;
+    }
+    """
+  end
+
+  def rule(:auix_checkbox_group_label_container) do
+    """
+      .auix-checkbox-group-label-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: var(--auix-gap-default);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_label_actions) do
+    """
+      .auix-checkbox-group-label-actions {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: var(--auix-gap-default);
+      }
+
+      /* The toggle-all renders through `.input`, which wraps every control in a fieldset. Strip
+         its block spacing so the checkbox sits on the label's baseline. */
+      .auix-checkbox-group-label-actions .auix-fieldset {
+        padding-block: 0;
+        margin: 0;
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_actions) do
+    """
+    /* auix-checkbox-group-actions */
+
+    #{import_rule(:_auix_actions, :auix_checkbox_group_actions)}
+    .auix-checkbox-group-actions {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+    }
+    """
+  end
+
+  def rule(:auix_checkbox_group_option_label) do
+    """
+      .auix-checkbox-group-option-label {
+        font-size: var(--auix-font-size-caption);
+        color: var(--auix-color-checkbox-label-text);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_empty_msg) do
+    """
+    .auix-checkbox-group-empty-msg {
+       font-size: var(--auix-font-size-small);
+       font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
+  def rule(:auix_selected_list) do
+    """
+      .auix-selected-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--auix-gap-default);
+
+        max-height: var(--auix-checkbox-group-max-height);
+        overflow-y: auto;
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_label) do
+    """
+    .auix-selected-list-label {
+      content-visibility: visible;
+    }
+    """
+  end
+
+  def rule(:auix_selected_list_items) do
+    """
+      .auix-selected-list-items {
+        list-style-type: disc;
+        padding-inline-start: var(--auix-gap-large);
+        margin: 0;
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_item) do
+    """
+      .auix-selected-list-item {
+        font-size: var(--auix-font-size-caption);
+        color: var(--auix-color-checkbox-label-text);
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_empty_msg) do
+    """
+    .auix-selected-list-empty-msg {
+       font-size: var(--auix-font-size-small);
+       font-style: var(--auix-font-style-mobile-viewmode);
+    }
     """
   end
 
@@ -2173,6 +2335,31 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-embeds-one-empty-msg {
        font-size: var(--auix-font-size-small); 
        font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
+  def rule(:auix_many_to_many_container) do
+    """
+    .auix-many-to-many-container {
+      display: flex;
+      flex-direction: column;
+      width: stretch;
+    }
+    .auix-many-to-many-container > * {
+      flex: 1;
+    }
+    """
+  end
+
+  def rule(:auix_many_to_many_footer_actions) do
+    """
+    /* auix-many-to-many-footer-actions */
+
+    #{import_rule(:_auix_actions, :auix_many_to_many_footer_actions)}
+    .auix-many-to-many-footer-actions {
+      flex-direction: row;
+      justify-content: flex-end;
     }
     """
   end

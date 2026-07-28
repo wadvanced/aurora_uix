@@ -30,6 +30,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   alias Ecto.Association.BelongsTo, as: AssociationBelongsTo
   alias Ecto.Association.Has, as: AssociationHas
+  alias Ecto.Association.ManyToMany, as: AssociationManyToMany
   alias Ecto.Embedded
 
   @doc """
@@ -245,6 +246,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_type(_attrs, %{ecto_type: %AssociationBelongsTo{cardinality: :one}} = _association),
     do: :many_to_one_association
 
+  defp field_type(_attrs, %{ecto_type: %AssociationManyToMany{}} = _association),
+    do: :many_to_many_association
+
   defp field_type(_attrs, %{ecto_type: :id}), do: :integer
 
   defp field_type(_attrs, %{ecto_type: ecto_type}), do: ecto_type
@@ -267,6 +271,11 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
          %{ecto_type: %AssociationBelongsTo{cardinality: :one}} = _association
        ),
        do: :unimplemented
+
+  # A many_to_many renders as a multi-select of the related records, so unlike the other
+  # associations it does have an HTML input type of its own.
+  defp field_html_type(_attrs, %{ecto_type: %AssociationManyToMany{}} = _association),
+    do: :select
 
   defp field_html_type(%{type: type}, _attribute)
        when type in [:string, :binary_id, :binary, :bitstring, :duration, Ecto.UUID],
@@ -370,6 +379,28 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
       related: embedded.related,
       owner: embedded.owner,
       resource: field_embedded_resource(resource_name, embedded)
+    }
+  end
+
+  # Must precede the generic association clause below: %Ecto.Association.ManyToMany{} has no
+  # :related_key field at all, so the dot access there raises KeyError. Both keys come out of
+  # :join_keys instead, which Ecto always builds as
+  # [{join_owner_key, owner_key}, {join_related_key, related_key}].
+  defp field_data(_attrs, %{
+         ecto_type:
+           %AssociationManyToMany{
+             join_keys: [{join_owner_key, owner_key}, {join_related_key, related_key}]
+           } = association
+       }) do
+    %{
+      related: association.related,
+      related_key: related_key,
+      owner_key: owner_key,
+      join_through: association.join_through,
+      join_keys: %{
+        owner: {join_owner_key, owner_key},
+        related: {join_related_key, related_key}
+      }
     }
   end
 

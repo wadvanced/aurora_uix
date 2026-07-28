@@ -1038,6 +1038,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           :one_to_many_association,
           :many_to_one_association,
           :one_to_one_association,
+          :many_to_many_association,
           :embeds_one,
           :embeds_many
         ])

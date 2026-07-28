@@ -99,6 +99,36 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          AshMany2ManyTest.Post,
+          "ash-many2many-posts"
+        )
+
+        RoutesHelper.register_crud(
+          AshMany2ManyTest.Topic,
+          "ash-many2many-topics"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationMany2ManyUILayoutTest.Product,
+          "association/many_to_many/layout/products"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationMany2ManyUILayoutTest.Supplier,
+          "association/many_to_many/layout/suppliers"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationMany2ManyUIActionsTest.Product,
+          "association/many_to_many/actions/products"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationMany2ManyUIActionsTest.Supplier,
+          "association/many_to_many/actions/suppliers"
+        )
+
+        RoutesHelper.register_crud(
           AshOne2OneTest.Author,
           "ash-one2one-authors"
         )

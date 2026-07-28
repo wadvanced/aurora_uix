@@ -49,6 +49,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
       --auix-input-height-default: 1rem;
       --auix-button-height-default: 2em;
 
+      /* Caps a checkbox group so a long candidate list scrolls instead of stretching the form */
+      --auix-checkbox-group-max-height: 12rem;
+
       --auix-hidden-element-size: 1px;
       --auix-focus-outline-width: 2px;
       

@@ -56,6 +56,12 @@ defmodule Aurora.Uix.Guides.Blog.Post do
   relationships do
     belongs_to(:author, Aurora.Uix.Guides.Blog.Author)
     belongs_to(:category, Aurora.Uix.Guides.Blog.Category)
+
+    many_to_many :topics, Aurora.Uix.Guides.Blog.Topic do
+      through Aurora.Uix.Guides.Blog.PostTopic
+      source_attribute_on_join_resource :post_id
+      destination_attribute_on_join_resource :topic_id
+    end
   end
 
   actions do
@@ -70,7 +76,23 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       :author_id
     ]
 
-    defaults [:create, :destroy, :update]
+    defaults [:destroy]
+
+    create :create do
+      primary? true
+      argument :topics, {:array, :uuid}, allow_nil?: true, constraints: [nil_items?: true]
+      change &__MODULE__.reject_blank_topics/2
+      change manage_relationship(:topics, :topics, type: :append_and_remove)
+    end
+
+    update :update do
+      primary? true
+      # manage_relationship cannot run on Ash's atomic update path.
+      require_atomic? false
+      argument :topics, {:array, :uuid}, allow_nil?: true, constraints: [nil_items?: true]
+      change &__MODULE__.reject_blank_topics/2
+      change manage_relationship(:topics, :topics, type: :append_and_remove)
+    end
 
     read :read do
       primary? true
@@ -80,5 +102,35 @@ defmodule Aurora.Uix.Guides.Blog.Post do
 
   calculations do
     calculate :summary, :string, expr(title <> " is " <> status)
+  end
+
+  @doc """
+  Drops the blank entry the many-to-many renderer always submits.
+
+  The renderer emits a hidden empty-value sentinel so that de-selecting every topic still submits
+  the key; without it membership could never be cleared. Ash casts that blank to `nil` (hence the
+  `nil_items?: true` constraint on the argument, which would otherwise reject the list outright), so
+  this strips the nils before `manage_relationship` tries to resolve them.
+
+  ## Parameters
+  - `changeset` (Ash.Changeset.t()) - The changeset being built.
+  - `context` (term()) - Change context, unused.
+
+  ## Returns
+  Ash.Changeset.t() - The changeset with a cleaned `:topics` argument.
+  """
+  @spec reject_blank_topics(Ash.Changeset.t(), term()) :: Ash.Changeset.t()
+  def reject_blank_topics(changeset, _context) do
+    case Ash.Changeset.fetch_argument(changeset, :topics) do
+      {:ok, topics} when is_list(topics) ->
+        Ash.Changeset.set_argument(
+          changeset,
+          :topics,
+          Enum.reject(topics, &(is_nil(&1) or &1 == ""))
+        )
+
+      _other ->
+        changeset
+    end
   end
 end

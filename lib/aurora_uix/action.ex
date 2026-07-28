@@ -80,6 +80,20 @@ defmodule Aurora.Uix.Action do
       replace_row_action: {:one_to_many_row_actions, :replace_auix_action},
       remove_row_action: {:one_to_many_row_actions, :remove_auix_action}
     },
+    many_to_many: %{
+      add_label_action: {:many_to_many_label_actions, :add_auix_action},
+      insert_label_action: {:many_to_many_label_actions, :insert_auix_action},
+      replace_label_action: {:many_to_many_label_actions, :replace_auix_action},
+      remove_label_action: {:many_to_many_label_actions, :remove_auix_action},
+      add_header_action: {:many_to_many_header_actions, :add_auix_action},
+      insert_header_action: {:many_to_many_header_actions, :insert_auix_action},
+      replace_header_action: {:many_to_many_header_actions, :replace_auix_action},
+      remove_header_action: {:many_to_many_header_actions, :remove_auix_action},
+      add_footer_action: {:many_to_many_footer_actions, :add_auix_action},
+      insert_footer_action: {:many_to_many_footer_actions, :insert_auix_action},
+      replace_footer_action: {:many_to_many_footer_actions, :replace_auix_action},
+      remove_footer_action: {:many_to_many_footer_actions, :remove_auix_action}
+    },
     embeds_many: %{
       add_header_action: {:embeds_many_header_actions, :add_auix_action},
       insert_header_action: {:embeds_many_header_actions, :insert_auix_action},
@@ -158,6 +172,25 @@ defmodule Aurora.Uix.Action do
     |> Enum.map(&Map.values/1)
     |> List.flatten()
     |> Keyword.keys()
+    |> Enum.uniq()
+  end
+
+  @doc """
+  Retrieves every host-facing action option name, across all groups.
+
+  These are the keys a host writes in the layout DSL (`add_header_action:`, `remove_row_action:`,
+  …). Deriving the list here rather than from one group keeps callers that must recognise an action
+  option — such as the layout DSL, which evaluates their function captures at compile time — correct
+  when a new group is registered.
+
+  ## Returns
+  A `list(atom())` with all the available action option names.
+  """
+  @spec action_option_names() :: list(atom())
+  def action_option_names do
+    @actions
+    |> Map.values()
+    |> Enum.flat_map(&Map.keys/1)
     |> Enum.uniq()
   end
 

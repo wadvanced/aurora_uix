@@ -386,6 +386,9 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :one_to_many_association
   defp field_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :one_to_one_association
 
+  defp field_type(nil, %Ash.Resource.Relationships.ManyToMany{}),
+    do: :many_to_many_association
+
   defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :count}), do: :integer
   defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :exists}), do: :boolean
 
@@ -424,6 +427,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_html_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :unimplemented
+
+  # A many_to_many renders as a multi-select of the related records, so unlike the other
+  # associations it does have an HTML input type of its own.
+  defp field_html_type(nil, %Ash.Resource.Relationships.ManyToMany{}), do: :select
 
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
     do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
@@ -473,6 +480,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_length(nil, %Ash.Resource.Relationships.BelongsTo{}), do: 0
   defp field_length(nil, %Ash.Resource.Relationships.HasMany{}), do: 0
   defp field_length(nil, %Ash.Resource.Relationships.HasOne{}), do: 0
+  defp field_length(nil, %Ash.Resource.Relationships.ManyToMany{}), do: 0
 
   defp field_length(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_length(ecto_type)
@@ -565,6 +573,28 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       owner_key: owner_key,
       related: related_schema,
       related_key: related_key
+    }
+  end
+
+  # The linkage lives on the join resource, so the owner/related keys are the primary keys on each
+  # side and the join attributes are carried separately.
+  defp field_data(_attrs, %Ash.Resource.Relationships.ManyToMany{
+         destination_attribute: related_key,
+         destination: related_schema,
+         source_attribute: owner_key,
+         through: join_through,
+         source_attribute_on_join_resource: join_owner_key,
+         destination_attribute_on_join_resource: join_related_key
+       }) do
+    %{
+      owner_key: owner_key,
+      related: related_schema,
+      related_key: related_key,
+      join_through: join_through,
+      join_keys: %{
+        owner: {join_owner_key, owner_key},
+        related: {join_related_key, related_key}
+      }
     }
   end
 

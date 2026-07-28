@@ -23,6 +23,8 @@ defmodule Aurora.Uix.Guides.Blog do
     resource Aurora.Uix.Guides.Blog.Post
     resource Aurora.Uix.Guides.Blog.Author
     resource Aurora.Uix.Guides.Blog.AuthorProfile
+    resource Aurora.Uix.Guides.Blog.Topic
+    resource Aurora.Uix.Guides.Blog.PostTopic
 
     resource Aurora.Uix.Guides.Blog.Category do
       define :list_categories, action: :read

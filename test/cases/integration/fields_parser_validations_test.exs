@@ -514,6 +514,33 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           related_key: :all_types_id
         }
       },
+      many_to_many_field: %{
+        key: :many_to_many_field,
+        type: :many_to_many_association,
+        html_type: :select,
+        renderer: nil,
+        resource: :all_types,
+        name: "many_to_many_field",
+        label: "",
+        placeholder: "",
+        length: 0,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: false,
+        data: %{
+          resource: nil,
+          owner_key: :id,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.ManyToManyRelationship,
+          related_key: :id,
+          join_through: "test_all_types_many_to_many",
+          join_keys: %{owner: {:all_types_id, :id}, related: {:many_to_many_relationship_id, :id}}
+        }
+      },
       has_one_field: %{
         key: :has_one_field,
         type: :one_to_one_association,
