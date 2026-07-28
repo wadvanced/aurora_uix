@@ -35,7 +35,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
     `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`; when the host declares none, the
     label falls back to a conventional display column (`:name`, `:title`, …) of the related
     resource's `:index` layout, instead of the record's raw primary key.
-  - `:show` renders the same checkbox list disabled.
+  - `:show` renders only the current membership as a plain, read-only list — no checkboxes, no
+    candidates that aren't members — with the same `dt("No items to show")` empty-state message
+    `one_to_many` uses for its own read-only list.
   - Renders nothing when the related schema is not a registered Aurora UIX resource.
 
   ## Key Constraints
@@ -147,18 +149,18 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   end
 
   def render(%{field: %{type: :many_to_many_association} = field} = assigns) do
-    assigns = assign_select(assigns, field)
+    assigns =
+      assigns
+      |> assign_select(field)
+      |> then(&assign(&1, :selected_labels, selected_labels(&1)))
 
     ~H"""
     <div id={container_id(@field, @auix)} class="auix-many-to-many-container">
-      <.auix_checkbox_group
+      <.auix_selected_list
         id={options_id(@field, @auix)}
-        name={@field.key}
         label={@select_label}
-        options={@select_opts[:options]}
-        value={@selected}
-        disabled={true}
-        empty_message={dt("No records available")}
+        items={@selected_labels}
+        empty_message={dt("No items to show")}
       />
     </div>
     """
@@ -254,6 +256,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
       members == length(options) -> :all
       true -> :mixed
     end
+  end
+
+  # The display labels of the current membership, in option order. Compared as strings for the
+  # same reason `toggle_state/1` is: `@selected` holds native primary keys before the first change
+  # event and strings after it.
+  @spec selected_labels(map()) :: list(binary())
+  defp selected_labels(%{select_opts: %{options: options}, selected: selected}) do
+    selected = MapSet.new(selected, &to_string/1)
+
+    for {label, value} <- options, MapSet.member?(selected, to_string(value)), do: label
   end
 
   # Association fields carry no label of their own unless the host sets one; fall back to the

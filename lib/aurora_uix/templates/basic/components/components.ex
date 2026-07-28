@@ -440,6 +440,52 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   resolve_component_for(:auix_checkbox_group)
 
+  @doc ~S"""
+  Renders a plain, read-only list of already-resolved display labels.
+
+  Used for read-only association membership (e.g. many-to-many in `:show`), where only the
+  selected records matter and no interaction — checking, unchecking, highlighting — is possible.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns. See the `attr` declarations below.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - The rendered list.
+
+  ## Examples
+
+      <.auix_selected_list
+        id="auix-many-to-many-suppliers-show-options"
+        label="Suppliers"
+        items={["ACME", "Globex"]}
+        empty_message="No items to show"
+      />
+  """
+  attr(:id, :string, required: true)
+  attr(:label, :string, default: nil)
+  attr(:omit_label?, :boolean, default: false, doc: "If true, label is not rendered at all")
+  attr(:items, :list, required: true, doc: "already-resolved display labels")
+  attr(:empty_message, :string, default: nil, doc: "shown when `items` is empty")
+  attr(:class, :string, default: "", doc: "optional class adendum for the list container")
+  attr(:host_components, :any)
+
+  @spec auix_selected_list(map()) :: Rendered.t()
+  def auix_selected_list(%{host_components: nil} = assigns) do
+    ~H"""
+    <fieldset class="auix-fieldset">
+      <.label :if={!@omit_label?} class="auix-selected-list-label" for={@id}>{@label}</.label>
+      <div id={@id} class={["auix-selected-list", @class]}>
+        <span :if={@items == []} class="auix-selected-list-empty-msg">{@empty_message}</span>
+        <ul :if={@items != []} class="auix-selected-list-items">
+          <li :for={item <- @items} class="auix-selected-list-item">{item}</li>
+        </ul>
+      </div>
+    </fieldset>
+    """
+  end
+
+  resolve_component_for(:auix_selected_list)
+
   @doc """
   Renders a pagination navigation bar with page numbers and selection counts.
 

@@ -695,6 +695,55 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_selected_list) do
+    """
+      .auix-selected-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--auix-gap-default);
+
+        max-height: var(--auix-checkbox-group-max-height);
+        overflow-y: auto;
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_label) do
+    """
+    .auix-selected-list-label {
+      content-visibility: visible;
+    }
+    """
+  end
+
+  def rule(:auix_selected_list_items) do
+    """
+      .auix-selected-list-items {
+        list-style-type: disc;
+        padding-inline-start: var(--auix-gap-large);
+        margin: 0;
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_item) do
+    """
+      .auix-selected-list-item {
+        font-size: var(--auix-font-size-caption);
+        color: var(--auix-color-checkbox-label-text);
+      }
+    """
+  end
+
+  def rule(:auix_selected_list_empty_msg) do
+    """
+    .auix-selected-list-empty-msg {
+       font-size: var(--auix-font-size-small);
+       font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
   def rule(:auix_select) do
     """
       .auix-select {
