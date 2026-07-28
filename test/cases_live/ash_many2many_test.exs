@@ -150,14 +150,34 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
   end
 
   describe "show rendering" do
-    test "renders the membership checkboxes disabled", %{conn: conn} do
+    test "renders only the current membership, as a plain read-only list", %{conn: conn} do
       delete_all_blog_data()
-      {[post], _topics} = create_sample_posts_with_topics(1, 2)
+      {[post], topics} = create_sample_posts_with_topics(1, 2)
 
       {:ok, view, _html} = live(conn, "/ash-many2many-posts/#{post.id}/show")
 
-      assert has_element?(view, "#auix-many-to-many-topics-show input[type='checkbox'][disabled]")
-      assert view |> checked_ids() |> Enum.count() == 2
+      refute has_element?(view, "#auix-many-to-many-topics-show input[type='checkbox']")
+
+      for topic <- topics do
+        assert has_element?(
+                 view,
+                 "#auix-many-to-many-topics-show-options .auix-selected-list-item",
+                 topic.name
+               )
+      end
+    end
+
+    test "shows the empty-state message when there is no membership", %{conn: conn} do
+      delete_all_blog_data()
+      {[post], _topics} = create_sample_posts_with_topics(1, 0)
+
+      {:ok, view, _html} = live(conn, "/ash-many2many-posts/#{post.id}/show")
+
+      assert has_element?(
+               view,
+               "#auix-many-to-many-topics-show-options .auix-selected-list-empty-msg",
+               "No items to show"
+             )
     end
   end
 
