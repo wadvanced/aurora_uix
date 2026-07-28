@@ -270,7 +270,9 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Returns
 
-  AshPhoenix.Form.t() - The form structure for the update operation.
+  AshPhoenix.Form.t() - The form structure for the update operation. Singular managed
+  relationships (`has_one` exposed through `manage_relationship`) always get a nested form, blank
+  when there is no child yet, so the child can be created through the parent form.
 
   ## Examples
 
@@ -292,7 +294,9 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
         actor_opt(opts)
       )
 
-    AshPhoenix.Form.for_update(entity, action_name, form_opts)
+    entity
+    |> AshPhoenix.Form.for_update(action_name, form_opts)
+    |> add_missing_single_relationship_forms()
   end
 
   @doc """
@@ -488,6 +492,26 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   end
 
   ## PRIVATE
+
+  # Materialises the blank nested form for every singular managed relationship that has no child
+  # yet, so a `has_one` renders its inputs on a new parent exactly as it does on an existing one.
+  # `AshPhoenix.Form.Auto` only builds a nested form when data is already there, which would
+  # otherwise make the child uncreatable through the parent form. Embedded attributes are skipped:
+  # they carry no `:managed_relationship` and already render from their own defaults.
+  @spec add_missing_single_relationship_forms(AshPhoenix.Form.t()) :: AshPhoenix.Form.t()
+  defp add_missing_single_relationship_forms(%AshPhoenix.Form{form_keys: form_keys} = form) do
+    form_keys
+    |> Enum.filter(&missing_single_relationship?(form, &1))
+    |> Enum.reduce(form, fn {key, _opts}, acc -> AshPhoenix.Form.add_form(acc, key) end)
+  end
+
+  # A singular managed relationship whose nested form was not built from existing data.
+  @spec missing_single_relationship?(AshPhoenix.Form.t(), {atom(), keyword()}) :: boolean()
+  defp missing_single_relationship?(%AshPhoenix.Form{forms: forms}, {key, opts}) do
+    Keyword.get(opts, :type) == :single and
+      Keyword.has_key?(opts, :managed_relationship) and
+      is_nil(Map.get(forms, key))
+  end
 
   # Builds `[actor: actor]` when present, otherwise `[]`. Centralised so every Ash call
   # site uses the same shape and the actor never leaks as `nil`.

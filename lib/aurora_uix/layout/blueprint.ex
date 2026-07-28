@@ -567,7 +567,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
       |> Enum.reject(
         &(get_in(resource_config, [:fields, &1, :type]) in [
             :many_to_one_association,
-            :one_to_many_association
+            :one_to_many_association,
+            :one_to_one_association
           ])
       )
       |> Enum.map(&%TreePath{tag: :field, name: &1, inner_elements: [], opts: []})

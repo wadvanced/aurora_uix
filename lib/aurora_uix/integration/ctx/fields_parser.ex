@@ -239,6 +239,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :many}} = _association),
     do: :one_to_many_association
 
+  defp field_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :one}} = _association),
+    do: :one_to_one_association
+
   defp field_type(_attrs, %{ecto_type: %AssociationBelongsTo{cardinality: :one}} = _association),
     do: :many_to_one_association
 
@@ -254,6 +257,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     do: :unimplemented
 
   defp field_html_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :many}} = _association),
+    do: :unimplemented
+
+  defp field_html_type(_attrs, %{ecto_type: %AssociationHas{cardinality: :one}} = _association),
     do: :unimplemented
 
   defp field_html_type(

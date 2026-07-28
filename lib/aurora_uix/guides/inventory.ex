@@ -19,7 +19,13 @@ defmodule Aurora.Uix.Guides.Inventory do
 
   use Aurora.Ctx
 
-  alias Aurora.Uix.Guides.Inventory.{Product, ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Guides.Inventory.{
+    Product,
+    ProductBarcode,
+    ProductLocation,
+    ProductTransaction
+  }
+
   alias Aurora.Uix.Repo
 
   @doc """
@@ -110,4 +116,5 @@ defmodule Aurora.Uix.Guides.Inventory do
   ctx_register_schema(Product, Repo)
   ctx_register_schema(ProductTransaction, Repo)
   ctx_register_schema(ProductLocation, Repo)
+  ctx_register_schema(ProductBarcode, Repo)
 end

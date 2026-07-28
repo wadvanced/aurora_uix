@@ -1,59 +1,64 @@
 # AGENTS.md
 
-Canonical guidance for any AI coding agent working in this repository (Claude Code, GitHub Copilot, opencode, qwen-code, Cursor, Aider, etc.). `CLAUDE.md` and `.github/copilot-instructions.md` are symlinks to this file.
+Canonical guidance for any AI coding agent working in this repository (Claude Code, GitHub Copilot, opencode, qwen-code, Cursor, Aider, etc.). `CLAUDE.md` includes this file via `@AGENTS.md`.
 
 ## Overview
 
-LogaMoney is a Phoenix/Elixir financial management application for loan management, targeting the Dominican Republic market. It handles loan lifecycle, payment processing, employer payroll deduction integration, user KYC, and multi-tenant role-based access (borrower, investor, employer).
+Aurora UIX (`aurora_uix`) is a **low-code UI generation library** for Phoenix — *not* an application. Host applications declare resource metadata and a layout, and the library generates the LiveView index / form / show UIs, including routing, CRUD wiring, filtering, pagination and theming.
+
+Its defining characteristic is that it works over **two interchangeable backends**:
+
+| Backend | Data access | Parser |
+|---|---|---|
+| **Ash** | `Ash.*` resources | `lib/aurora_uix/integration/ash/` |
+| **Ecto** | `aurora_ctx` generated contexts | `lib/aurora_uix/integration/ctx/` |
+
+Both are normalized into a common `%Aurora.Uix.Field{}` shape that everything downstream consumes. Keeping that boundary intact is the single most important rule in this codebase.
 
 ## Commands
 
 ```bash
-# Development
-mix setup                    # Install deps, create and migrate DB (first time)
-iex -S mix phx.server        # Start dev server with interactive shell (port 4000)
+# Setup
+mix deps.get
+mix ecto.create && mix ecto.migrate   # test/demo database
 
-# Testing
+# Testing  (migrations are NOT run by mix test — run ecto.migrate yourself)
 mix test                     # Run all tests
 mix test path/to/test.exs    # Run a specific test file
 mix test --failed            # Re-run previously failed tests
-mix test --cover             # Run with coverage report
 
-# Code quality (run before committing)
-mix precommit                # Full CI compliance check: format, compile, docs, credo, doctor, dialyzer
+# Quality gate (run before committing) — see "Quality Gate" below
+mix consistency              # tailwind classes, format, compile, credo, dialyzer, doctor
 mix format                   # Auto-format code
 mix credo --strict           # Lint
-mix dialyzer                 # Static analysis (first run ~10 minutes)
+mix dialyzer                 # Static analysis (first run is slow)
 
-# Database
-mix ecto.reset               # Drop, recreate, and migrate DB
-mix ecto.gen.migration NAME  # Create a new migration
-mix ecto.psql                # Open PostgreSQL console
+# Assets / generated artifacts
+mix auix.gen.stylesheet      # Regenerate the theme stylesheet
+mix auix.gen.icons           # Regenerate the icon set
+mix auix.gen.tailwind_classes # Regenerate the auix-* class inventory
+mix assets.build             # Full asset pipeline (icons + stylesheet + esbuild + digest)
 
-# Localization
-mix localise                 # Extract and merge gettext translations (en, es)
-
-# Assets
-mix assets.build             # Build Tailwind + esbuild
+# Demo server for the test app (routes come from test/support/app_web/routes.ex)
+iex -S mix run test/start_test_server.exs
 ```
-## Naming Conventions section near the top of CLAUDE.md
 
-When referencing UI components in documentation or code, use simple names (e.g., 'Phone', 'Email') not prefixed/namespaced names (e.g., 'EmbeddedPhone', 'EmbeddedEmail') unless explicitly asked.
+## Naming Conventions
 
-## Domain Glossary
+When referencing UI components in documentation or code, use simple names (e.g. 'Phone', 'Email') not prefixed/namespaced names (e.g. 'EmbeddedPhone', 'EmbeddedEmail') unless explicitly asked.
 
-Two terms are frequently confused in this codebase. Use them precisely:
+## Glossary
 
-| Term | Definition | Example correct usage |
-|---|---|---|
-| **Customer / User** | Any authenticated person on the platform. Every account holder is a customer the moment they sign up, regardless of which account types they hold. | "Contact Customer Support", "Unlock your potential as a Loga Money customer", KYC ("Know Your Customer") |
-| **Borrower** | The `:borrower` `account_type` value on an `Account`. One of three account types (`:borrower`, `:investor`, `:employer`). A single user may hold all three simultaneously. | `account_type: :borrower`, `BorrowerDetails`, `borrower_account_id`, `ValidateBorrowerRole` |
-
-**Key rule:** A user is a customer the moment they sign up. They become a borrower only when they hold an account with `account_type: :borrower`.
-
-**When to write "customer":** Generic product/marketing context where you mean any platform user, not a specific account type. Example: learn pages, support copy, onboarding headline text.
-
-**When to write "borrower":** Anywhere you are referring specifically to the borrower account type: Ash resource names, field names, route segments under the borrower flow, UI labels on the borrower account card.
+| Term | Meaning |
+|---|---|
+| **Resource** | A registered schema + its UIX metadata (`auix_resource_metadata/2`). Identified by an atom name such as `:product`. |
+| **Field** | `%Aurora.Uix.Field{}` — the normalized, backend-agnostic description of one schema field: `type`, `html_type`, `data`, plus presentation flags. |
+| **Layout tree** | The declarative `%TreePath{}` structure produced by `auix_create_ui`, describing what renders where for a given `layout_type`. |
+| **`layout_type`** | One of `:index`, `:form`, `:show`. Nearly every renderer branches on it. |
+| **Blueprint** | Compile-time expansion that turns resource metadata + layout declarations into the generated LiveView modules. |
+| **Backend / integration** | `:ash` or `:ctx`. Selected per resource; determines which parser and CRUD module are used. |
+| **Host application** | The app that depends on `aurora_uix`. Owns its schemas, changesets and Ash actions — the library never writes those. |
+| **Guides** | `lib/aurora_uix/guides/` — demo schemas shipped with the library, doubling as test fixtures. `blog/` is Ash, `inventory/` is Ecto. |
 
 ## Architecture
 
@@ -61,72 +66,83 @@ Two terms are frequently confused in this codebase. Use them precisely:
 
 ```
 lib/
-  loga_money/           # Business logic (Ash resources)
-    models/             # Domain models: accounts, core, settings
-    mail/               # Email system (Swoosh)
-    oban_jobs/          # Background jobs (Oban)
-    application.ex      # OTP supervision tree
-  loga_money_web/       # Web interface (Phoenix)
-    live/               # LiveView modules
-    controllers/        # HTTP controllers
-    components/         # Reusable UI components (core_components.ex)
+  aurora_uix/
+    integration/        # BACKEND-SPECIFIC — the only place backend structs may appear
+      ash/              #   Ash: fields_parser, crud, query_parser, context_parser_defaults
+      ctx/              #   Ecto/aurora_ctx: same set
+      crud.ex           #   backend-agnostic dispatcher
+    layout/             # blueprint.ex, create_ui.ex, resource_metadata.ex — metadata → layout trees
+    templates/basic/    # the default template: everything that renders
+      renderers/        #   default_renderer.ex (dispatch), fields/, predefined/
+      generators/       #   index/form/show module generation
+      handlers/         #   LiveView callbacks (index_impl, form_impl, show_component_impl)
+      actions/          #   row/header/footer action definitions
+      themes/           #   base.ex + theme variants (all auix-* CSS lives here)
+      components/       #   core_components.ex and friends
+    guides/             # demo schemas: blog/ (Ash), inventory/ (Ecto), accounts/
+    field.ex            # %Field{} — the normalized backend-agnostic field struct
+  mix/tasks/uix/gen/    # auix.gen.{icons,stylesheet,tailwind_classes}
 priv/
-  repo/migrations/      # Ecto migrations
-  gettext/              # Translation files (es_DO default, en supported)
-docs/                   # Comprehensive architecture documentation
+  repo/migrations/      # migrations for the demo/test schemas
+  resource_snapshots/   # AshPostgres snapshots (commit alongside generated migrations)
+  gettext/              # *.pot templates (no per-locale translations shipped)
+test/
+  cases/                # metadata + parser tests (no DB)
+  cases_live/           # LiveView tests — the default for UI work
+  browser_cases/        # Wallaby — last resort
+  doctests/
+  support/              # UICase, WebCase, helper.ex, app_web/routes.ex
+guides/                 # end-user documentation
 ```
 
 ### Key Patterns
 
-**Ash Framework**: Business logic is defined as declarative Ash resources (not plain Ecto schemas) — never raw Ecto queries. Ash automatically generates GraphQL from resources.
+**Backend abstraction boundary (STRICT)** — the rule that everything else depends on:
 
-**Domain code interfaces (STRICT)**: All data access goes through the **domain**. Outside a domain module, **never** call the `Ash.*` data API directly — this applies to LiveViews, controllers, components, Oban jobs, channels, plugs, and tests. Every read, write, and relationship load must be exposed either as a domain *code interface* (`define :name, action: :action` inside the domain's `resources` block) or as a plain public function on the domain module. The raw `Ash.*` API is used **only inside** domain modules and resource definitions.
-
-Forbidden outside domain modules:
-- Actions: `Ash.create/2`, `Ash.update/2`, `Ash.destroy/2`, `Ash.run_action/2`
-- Reads: `Ash.read/2`, `Ash.read_one/2`, `Ash.get/3`, `Ash.load/3`
-- Builders: `Ash.Changeset.for_*`, `Ash.Query.for_*` / `filter` / `sort` / `load`
+- `Ecto.Association.*` / `Ecto.Embedded` may appear **only** under `lib/aurora_uix/integration/ctx/`.
+- `Ash.Resource.*` may appear **only** under `lib/aurora_uix/integration/ash/`.
+- Everything downstream — `layout/`, `templates/`, generators, handlers — consumes the normalized `%Field{}` atoms and must stay backend-agnostic.
+- **A feature is not complete until both parsers support it.** Adding a capability to one backend only is a bug unless explicitly justified.
 
 ```elixir
-# ❌ Bad — direct Ash API in a LiveView
-Notification
-|> Ash.Query.for_read(:read_by_id, %{id: id})
-|> Ash.read_one!()
+# ❌ Bad — Ecto struct leaking into a renderer
+def render(%{field: %{data: %Ecto.Association.Has{}}} = assigns), do: ...
 
-# ✅ Good — define the interface once in the domain `resources` block
-resource Core.Notification do
-  define :notification_get_by_id, action: :read_by_id, args: [:id]
-end
-
-# ...then call the domain from the LiveView
-LogaMoney.Core.notification_get_by_id!(id)
+# ✅ Good — renderers match on the normalized atom
+def render(%{field: %{type: :one_to_many_association}} = assigns), do: ...
 ```
 
-If a call site needs custom filtering, loading, or sorting, encapsulate it in a resource read action (with arguments) or a domain function — never inline `Ash.Query`/`Ash.Changeset` in web/job/test code. Authorization options (`actor:`, `authorize?:`) pass straight through code interface functions.
+**Adding a new `%Field{}` type atom is the highest-risk change in this codebase.** Many modules pattern-match on the existing atoms. Grep for a sibling atom and make a deliberate *add / do-NOT-add* decision at every hit — silent omission (e.g. forgetting `filter_preloads/1`) fails far from the change and is the dominant failure mode here.
 
-**Role-based entity design**: One account entity maps to multiple functional roles. Role-based access is enforced via Ash policies.
+**The library is transport-only for writes.** It renders input names and forwards params untouched; it never builds a changeset. Persisting nested data is the **host's** responsibility — `cast_assoc`/`cast_embed` in an Ecto changeset, or `argument` + `change manage_relationship(...)` in an Ash action. The only `cast_*` calls in this repo are in `lib/aurora_uix/guides/`, which is demo host code.
 
-**Event-driven audit trail**: Every operation is threaded via `process_id` and `parent_event_id`, stored in the events table.
+**Renderers** implement the `Aurora.Uix.Renderer` behaviour (`render/1`) and are dispatched from `templates/basic/renderers/default_renderer.ex`. Prefer swapping `auix` keys (`:layout_tree`, `:resource_name`, `:form`, `:entity`) and delegating to `Renderer.render_inner_elements/1` over hand-writing child markup — that keeps renderer overrides, sections and groups working.
 
-**Soft deletes**: All records support `is_deleted` + `deleted_at` — never hard-delete business data.
+> Note the module-vs-path convention: field renderers live in `renderers/fields/` but are named `Aurora.Uix.Templates.Basic.Renderers.OneToMany`, **not** `…Renderers.Fields.OneToMany`.
 
-**Localization**: Default locale is `es_DO` (Dominican Spanish). Tests set locale to English for consistent assertions.
+**Localization**: user-visible strings go through `dt/1` (`use Aurora.Uix.Gettext`) and are extracted to `priv/gettext/*.pot`. This project ships no per-locale translations.
 
 ### Tech Stack
 
-- **Elixir 1.19.4 / OTP 28.3.2** (see `.tool-versions`)
+- **Elixir 1.19.4 / Erlang 28.2** (see `.tool-versions`; the package supports `~> 1.17`)
 - **Phoenix 1.8+** with **LiveView 1.1+** — no separate SPA framework
-- **Ash 3.0+** — declarative resource framework
-- **PostgreSQL 16+** via Ecto
-- **AuroraUIX** — low-code UI generation on top of Ash
-- **Oban** — background jobs (Postgres-backed)
-- **TailwindCSS v4** — uses `@import` syntax (no `tailwind.config.js`)
-- **GraphQL** via Absinthe (auto-generated from Ash resources)
-- HTTP client: **Req** (never use `:httpoison`, `:tesla`, or `:httpc`)
+- **Ash 3.0+** + `ash_phoenix` + `ash_postgres` — one of the two supported backends
+- **`aurora_ctx`** — generated Ecto contexts; the other supported backend
+- **PostgreSQL** via `ecto_sql` / `postgrex`
+- **TailwindCSS v4** — `@import` syntax, no `tailwind.config.js`; the stylesheet is *generated* by `mix auix.gen.stylesheet`
+- **esbuild** for JS, **bandit** as the test-app server
+- **Wallaby** for the few browser-level tests
+- Quality tooling: **credo**, **dialyxir**, **doctor**, **ex_doc**
+
+This is a **library**: it has no application of its own beyond a minimal test app. There is no Oban, no mail layer, no GraphQL, and no HTTP client dependency.
 
 ### Supervision Tree (application.ex)
 
-`LogaMoney.Repo` → `Cachex` → `Oban` → `Phoenix.PubSub` → `AshAuthentication.Supervisor` → `LogaMoneyWeb.Endpoint`
+`Aurora.Uix.Supervisor` (`:one_for_one`) is **conditional on the `:aurora_uix, :endpoint` config**. When an endpoint is configured (the test/demo app), it starts:
+
+`Aurora.UixWeb.Telemetry` → `Aurora.Uix.Repo` → `{Phoenix.PubSub, name: Aurora.Uix.PubSub}` → the configured endpoint
+
+When no endpoint is configured — the normal case for a host application depending on this library — it starts **no children at all**.
 
 ## Elixir Language Gotchas
 
@@ -209,14 +225,14 @@ end
 If a function takes more than ~4 arguments, group them into a struct, map, or keyword list.
 ```elixir
 # ❌ Bad
-def create_loan(amount, term, rate, borrower_id, employer_id, currency, start_date), do: ...
+def render_field(key, type, html_type, layout_type, resource_name, form, entity), do: ...
 
 # ✅ Good
-def create_loan(%LoanParams{} = params), do: ...
+def render_field(%Field{} = field, %{} = auix), do: ...
 ```
 
 #### 6. Do not trespass namespaces
-Every module this project defines must start with `LogaMoney.` or `LogaMoneyWeb.`. Never define modules under `Ecto.`, `Phoenix.`, `Ash.`, `Enum.`, etc.
+Every module this project defines must start with `Aurora.Uix.` (or `Aurora.UixWeb.` / `Mix.Tasks.Auix.`). Never define modules under `Ecto.`, `Phoenix.`, `Ash.`, `Enum.`, etc.
 
 #### 7. Do not use non-assertive map access
 For keys that **must** be present, use `map.key` (crashes on missing). Use `map[:key]` only for truly optional keys.
@@ -271,10 +287,10 @@ def find_user!(id), do: ...   # raises
 Use a single atom-valued field instead of overlapping boolean flags.
 ```elixir
 # ❌ Bad
-%User{is_admin: true, is_employer: false, is_borrower: false}
+%Field{is_association: true, is_embed: false, is_upload: false}
 
 # ✅ Good
-%User{role: :admin}
+%Field{type: :one_to_many_association}
 ```
 
 #### 13. Do not use exceptions for control flow
@@ -302,10 +318,10 @@ end
 Wrap domain values in structs/maps, not bare strings/integers/tuples.
 ```elixir
 # ❌ Bad
-def transfer({"DOP", 1500}, {"DOP", 0}), do: ...
+def render_field({:one_to_many_association, :form, "product"}), do: ...
 
 # ✅ Good
-def transfer(%Money{} = from, %Money{} = to), do: ...
+def render_field(%Field{} = field, %{layout_type: :form} = auix), do: ...
 ```
 
 #### 15. Do not group unrelated logic in one multi-clause function
@@ -354,27 +370,27 @@ Use functions unless you specifically need to manipulate AST or inject code at c
 Building module names via `String.to_atom/1` or `Module.concat/1` from runtime data hides dependencies from the compiler.
 ```elixir
 # ❌ Bad
-mod = String.to_atom("Elixir.LogaMoney.#{name}")
-mod.call()
+mod = String.to_atom("Elixir.Aurora.Uix.Templates.Basic.Renderers.#{name}")
+mod.render(assigns)
 
 # ✅ Good — explicit map
 case name do
-  "loan"    -> LogaMoney.Loan.call()
-  "payment" -> LogaMoney.Payment.call()
+  "one_to_many" -> Renderers.OneToMany.render(assigns)
+  "many_to_one" -> Renderers.ManyToOne.render(assigns)
 end
 ```
 
 ## Phoenix / LiveView Rules
 
-- LiveView templates **always** begin with `<Layouts.app flash={@flash} ...>`
-- **Never** call `<.flash_group>` outside of `layouts.ex`
+LiveView modules here are **generated**, not hand-written — the rules apply to the renderers and components that produce them.
+
 - Use `<.link navigate={href}>` / `push_navigate` (not deprecated `live_redirect`)
-- **Avoid LiveComponents** unless there is a specific, strong need
-- Use `<.icon name="hero-x-mark">` from `core_components.ex` — never use `Heroicons` modules directly
-- Use `<.input>` from `core_components.ex` for all form inputs
-- **Avoid inline `class` attrs in LiveView/LiveComponent templates.** Instead, create or improve reusable function components in `core_components.ex` (for general UI) or dedicated component files (for domain-specific logic). This keeps styling centralized and maintainable.
-- **Prefer custom function components over raw HTML tags for styled UI elements** (buttons, cards, alerts, inputs, etc.). Use `<.button>`, `<.card>`, `<.info_card>`, and equivalents from `core_components.ex` or domain component files instead of bare tags with inline classes. Structural tags (`div`, `span`) are exempt.
-- Routes within a `scope` block already have the module alias — don't duplicate it
+- **Avoid LiveComponents** unless there is a specific, strong need (state that must survive re-render, or self-targeted events). `embeds_many` is the existing precedent; `embeds_one` deliberately is not.
+- Use `<.icon name="hero-x-mark">` and `<.input>` from `templates/basic/components/core_components.ex` — never use `Heroicons` modules directly
+- **No inline `class` attrs.** All styling belongs to the theme (`templates/basic/themes/base.ex`) behind an `auix-*` class. Adding a class means editing the theme, re-running `mix auix.gen.tailwind_classes`, and committing the regenerated stylesheet.
+- **Prefer function components over raw HTML tags for styled elements**. Structural tags (`div`, `span`) are exempt.
+- Prefer swapping `auix` assigns and delegating to `Renderer.render_inner_elements/1` over emitting child markup directly
+- Every route used by a `test/cases_live/` test must be registered in `test/support/app_web/routes.ex`, or the test 404s
 
 ### LiveView Streams
 
@@ -397,15 +413,32 @@ Streams are **not enumerable** — to filter, refetch data and re-stream with `r
 
 ## CSS / Assets
 
-- TailwindCSS v4 uses `@import "tailwindcss" source(none)` syntax in `app.css`
+- TailwindCSS v4 uses `@import "tailwindcss" source(none)` syntax — there is no `tailwind.config.js`
+- **The stylesheet is generated.** Never hand-edit `priv/static/assets/css/app.css`; edit the theme module and run `mix auix.gen.stylesheet`
+- New `auix-*` classes go in `templates/basic/themes/base.ex`, then `mix auix.gen.tailwind_classes`. This task is the **first stage of `mix consistency`** and fails on classes it doesn't know about
 - **Never** use `@apply` in raw CSS
 - Only `app.js` and `app.css` bundles are supported — import all vendor deps into these files
 - **Never** write inline `<script>` tags in templates
 
 ## Testing
 
+### Test layers
+
+| Directory | Covers | DB? |
+|---|---|---|
+| `test/cases/integration/{ash,ctx}/` | parser output for one backend | no |
+| `test/cases/integration/fields_parser_validations_test.exs` | shared golden `%Field{}` metadata | no |
+| `test/cases/` | resource metadata, layout/blueprint generation | no |
+| `test/cases_live/` | rendered LiveView behaviour — **the default for UI work** | yes |
+| `test/browser_cases/` | Wallaby — last resort | yes |
+| `test/doctests/` | doctests | no |
+
+Parser and metadata tests are pure compile-time introspection — run them first as the fast feedback loop.
+
 ### Test Case Modules
-- Use `DataCase` (with DB sandbox) for business logic tests, `ConnCase` for HTTP/LiveView, `FeatureCase` for Wallaby browser tests
+- `use Aurora.UixWeb.Test.UICase, :phoenix_case` and `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. There is no `FeatureCase` and no `test/support/factory.ex`.
+- Test data comes from the guide schemas via `test/support/helper.ex` (`create_sample_products/2`, `delete_all_inventory_data/0`, …)
+- **Migrations are not run by `mix test`.** Run `mix ecto.migrate` yourself, or DB-backed tests fail with a confusing `relation "…" does not exist`
 - Use `start_supervised!/1` for processes — never `Process.sleep/1`
 - For async synchronization use `_ = :sys.get_state(pid)`, not sleep
 - Monitor processes with `Process.monitor/1` + `assert_receive {:DOWN, ...}`
@@ -417,20 +450,33 @@ Streams are **not enumerable** — to filter, refetch data and re-stream with `r
 
 ### No Mocks
 - **Never use mocks.** Test against real implementations with real database state.
-- Use `test/support/factory.ex` (`build/2`, `insert!/2`) to create test data via Ash actions.
-- For external services (email, SMS), rely on test adapters configured in `config/test.exs`, not mock modules.
+- Create test data through the guide schemas and `test/support/helper.ex`, not by hand-rolling structs.
+- Cover **both backends** when a change touches the parser layer — an Ash-only or Ecto-only test is an incomplete test.
 
 ### LiveView vs. Wallaby
 - **Prefer `Phoenix.LiveViewTest` for all UI tests.** It is faster, does not require a browser driver, and covers the vast majority of LiveView interactions.
 - Use `has_element?/2` and `element/2` for assertions — never assert on raw HTML strings.
-- **Only create Wallaby (`FeatureCase`) tests when a behavior is genuinely impossible to test with LiveView** (e.g., file downloads, native browser dialogs, or complex multi-tab scenarios). Document why LiveView was insufficient in a comment above the test.
+- Assert on **stable** selectors: `input[name='parent[child][field]']`, container ids, component names. Avoid `auix-field-*` ids — they embed a global counter and are not stable across test ordering.
+- **Only create Wallaby (`test/browser_cases/`) tests when a behavior is genuinely impossible to test with LiveView** (file downloads, native browser dialogs, multi-tab scenarios). Document why LiveView was insufficient in a comment above the test.
 
-## Pre-commit Workflow
+## Quality Gate
 
-Run `mix precommit` before pushing. It executes: `deps.unlock → format → compile → docs → credo → doctor → dialyzer`. 
+Run `mix consistency` then `mix test` before pushing. The `consistency` alias is fail-fast and executes, in order:
+
+```
+auix.gen.tailwind_classes → format → compile --warnings-as-errors → credo --strict → dialyzer → doctor
+```
+
+Only the **first failing stage** is visible per run — fix it, re-run, repeat. `mix consistency` does **not** run tests; CI runs them as a separate step after `mix ecto.create && mix ecto.migrate`.
+
+`doctor` enforces documentation coverage, which in this codebase means:
+- `@moduledoc` with `## Key Features` / `## Key Constraints` sections
+- `@doc` + `@spec` on public functions — on the **first clause only**
+- `@spec` on private functions too
+
 Fix all issues before committing. Use conventional commits to separate stages when all checks pass.
 
-## Workflow section in CLAUDE.md
+## Workflow
 
 When working on issues, always read the full issue description and linked issues before starting implementation. 
 If an issue involves multiple steps (docs, refactor, PR), outline the plan first and confirm before proceeding.

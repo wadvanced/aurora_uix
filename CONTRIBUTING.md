@@ -148,6 +148,9 @@ mix test
 
 # Run only unit/integration tests (skip Wallaby)
 mix test test/cases*
+
+# Run only browser base tests (Only Wallaby)
+mix test test/browser*
 ```
 
 > **Important**: CI runs all tests including Wallaby on every PR. We recommend setting up Wallaby locally.
@@ -158,7 +161,7 @@ Wallaby runs browser-based integration tests. Follow the [Wallaby setup guide](h
 
 ### Interactive Testing
 
-Start test servers to manually validate your changes:
+Start test servers to visually and manually validate your changes:
 
 #### Phoenix server with guides routes
 ```bash

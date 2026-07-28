@@ -79,8 +79,9 @@ Before any scoring, run the actual project checks. **Reviews based only on
 code inspection are unreliable; running the gate is the only way to know.**
 
 ```bash
-mix consistency   # format → compile → docs → credo → doctor → dialyzer
-mix test        # full suite (precommit does not run tests)
+mix consistency  # auix.gen.tailwind_classes → format → compile --warnings-as-errors
+                 # → credo --strict → dialyzer → doctor
+mix test         # full suite (mix consistency does not run tests)
 ```
 
 Capture exit codes and full failure output for each command.
@@ -120,7 +121,7 @@ Output (omit PASS rows):
 
 | AC | Description | Verdict | Evidence (file:line) |
 |---|---|---|---|
-| AC-2 | <text> | FAIL | no test in test/loga_money/foo_test.exs |
+| AC-2 | <text> | FAIL | no test in test/cases/integration/ash/fields_parser_test.exs |
 
 PASS: AC-1, AC-3, AC-4
 N/A:  (none)
@@ -169,12 +170,12 @@ genuinely does not apply (e.g. no LiveView in the diff → LiveView row is N/A).
 |---|---|---|
 | Happy path covered for every AC | PASS/FAIL/N/A | |
 | Error / edge path for every AC | PASS/FAIL/N/A | |
-| Ash changeset / validation errors asserted | PASS/FAIL/N/A | |
-| Ash policy / authorization asserted | PASS/FAIL/N/A | |
+| **Both backends** (Ash + Ecto/ctx) parser-tested | PASS/FAIL/N/A | |
+| Golden `%Field{}` metadata updated | PASS/FAIL/N/A | |
+| Rendered output asserted in `test/cases_live/` (:index/:form/:show) | PASS/FAIL/N/A | |
+| New routes registered in `test/support/app_web/routes.ex` | PASS/FAIL/N/A | |
 | Database constraints (unique, FK) asserted | PASS/FAIL/N/A | |
 | LiveView event coverage | PASS/FAIL/N/A | |
-| Async / Oban path coverage | PASS/FAIL/N/A | |
-| Locale keys present in en + es_DO | PASS/FAIL/N/A | |
 ```
 
 Every FAIL goes into `MISSING_COVERAGE`.
@@ -197,44 +198,78 @@ For each flag below, run the **exact grep** shown and cite `file:line`. If
 grep returns nothing, do not emit a flag for it. Restrict every grep to
 `$CHANGED` paths.
 
-**Ash / data (blocking):**
-- Missing Ash policy where the spec requires authorization — confirm
-  by reading the resource files in `$CHANGED`.
-- `Ecto.Multi` / `Repo.transaction` instead of `Ash.transaction`:
-  `rg -n 'Ecto\.Multi|Repo\.transaction' $CHANGED`
-- Hard delete of business data (no `is_deleted`/`deleted_at`):
-  `rg -n 'Repo\.delete\(|destroy:' $CHANGED`
-- Event-emitting actions missing `process_id` / `parent_event_id`:
-  `rg -n 'process_id|parent_event_id' $CHANGED` — confirm both threaded.
-- N+1: Ash queries the spec implies will load associations but lack `load:`.
+**First, define this helper and use it for every path-filtered grep:**
+
+```bash
+# Search only files in $CHANGED whose path MATCHES <path-regex> (default: all).
+#   scoped '<rg-pattern>' [path-regex]
+# Search only files in $CHANGED whose path does NOT match <path-regex>.
+#   scoped_not '<rg-pattern>' <path-regex>
+#
+# Both are safe when the filtered file list comes back empty. This matters:
+# plain `rg PATTERN` with no path arguments silently searches the entire
+# working directory, so a naive `rg PATTERN $(echo "$CHANGED" | rg -v …)`
+# reports hits in the very files it was meant to exclude.
+_scoped_run() {
+  local pattern="$1"; shift
+  [ "$#" -eq 0 ] && return 0
+  rg -n "$pattern" "$@" || true
+}
+scoped()     { local p="$1" f="${2:-.}"; _scoped_run "$p" $(printf '%s\n' $CHANGED | rg    "$f" || true); }
+scoped_not() { local p="$1" f="$2";      _scoped_run "$p" $(printf '%s\n' $CHANGED | rg -v "$f" || true); }
+```
+
+Note `rg` has no look-around without `--pcre2`; use `scoped_not` for exclusions
+rather than a negative lookahead. Where a filter appears below as
+`$(echo "$CHANGED" | rg …)`, read it as the `scoped` / `scoped_not` equivalent.
+
+**Backend abstraction boundary (blocking):**
+- Ecto structs leaking outside `integration/ctx/`:
+  `scoped_not 'Ecto\.Association\.|Ecto\.Embedded' 'integration/ctx/'`
+- Ash structs leaking outside `integration/ash/`:
+  `scoped_not 'Ash\.Resource\.(Relationships|Attribute|Aggregate)' 'integration/ash/'`
+- A parser clause added to only one backend — if `$CHANGED` touches
+  `integration/ash/fields_parser.ex` **xor** `integration/ctx/fields_parser.ex`,
+  confirm the spec says why.
+
+**New field type atom (blocking — the dominant failure mode):**
+- If a new `:*_association` / type atom appears in `$CHANGED`, grep the whole
+  `lib/` for a sibling atom and confirm every hit was consciously handled:
+  `rg -n ':one_to_many_association' lib/`
+  Each site needs an add / do-NOT-add decision matching the spec. Silent
+  omission in `filter_preloads/1` or `replace_related_field_data/2` fails far
+  from the change.
+
+**Writes (blocking):**
+- Library taking over changeset construction — it is transport-only:
+  `scoped_not 'cast_assoc|cast_embed|put_assoc|manage_relationship' 'aurora_uix/guides/'`
+  Hits outside `guides/` (which is demo host code) are a scope violation.
 
 **LiveView / UI (blocking):**
-- Inline `class=` on LiveView templates:
-  `rg -n 'class="' $(echo "$CHANGED" | rg 'lib/.*_web/.*\.(heex|ex)$')`
-- Bare `<button>` / `<div class="card">` instead of function components:
-  `rg -n '<button|<div class="card' $CHANGED`
-- `<.flash_group>` outside `layouts.ex`:
-  `rg -n '<\.flash_group' $CHANGED`
-- LiveView template missing `<Layouts.app>`:
-  for each `*_live.ex` in `$CHANGED`, grep `Layouts.app`.
-- Raw `<script>` in HEEx: `rg -n '<script' $CHANGED`
-- `phx-hook` without unique `id`: `rg -n 'phx-hook' $CHANGED`
-- `Heroicons.*` direct use: `rg -n 'Heroicons\.' $CHANGED`
-- `live_redirect` / `push_redirect`: `rg -n 'live_redirect|push_redirect' $CHANGED`
+- Inline `class=` outside the theme:
+  `scoped_not 'class="' 'themes/'` — restricted to `templates/basic/` files
+- New `auix-*` class not registered in the theme — for each new class in
+  `$CHANGED`, grep `lib/aurora_uix/templates/basic/themes/base.ex`.
+- Raw `<script>` in HEEx: `scoped '<script'`
+- `phx-hook` without unique `id`: `scoped 'phx-hook'`
+- `Heroicons.*` direct use: `scoped 'Heroicons\.'`
+- `live_redirect` / `push_redirect`: `scoped 'live_redirect|push_redirect'`
 
 **Tests (blocking):**
-- Mock library: `rg -n 'Mox|Mock|:meck' $CHANGED`
-- `Process.sleep/1`: `rg -n 'Process\.sleep' $CHANGED`
-- `Ash.create!` for test seeding instead of factories:
-  `rg -n 'Ash\.create!' $(echo "$CHANGED" | rg '^test/')`
+- Mock library: `scoped 'Mox|Mock|:meck'`
+- `Process.sleep/1`: `scoped 'Process\.sleep'`
 - Assertions on raw HTML strings:
-  `rg -n 'assert.*=~.*<' $(echo "$CHANGED" | rg '^test/')`
-- Wallaby/`FeatureCase` where LiveViewTest would suffice (**non-blocking**).
+  `scoped 'assert.*=~.*<' '^test/'`
+- Assertions on counter-based ids (unstable across test ordering):
+  `scoped 'auix-field-[a-z_]+-[a-z_]+-[0-9]' '^test/'`
+- A `test/cases_live/` test whose route is missing from
+  `test/support/app_web/routes.ex`.
+- Wallaby (`test/browser_cases/`) where LiveViewTest would suffice
+  (**non-blocking**).
 
 **i18n (blocking):**
-- User-visible string not wrapped in gettext (manual scan of new strings).
-- New `msgid` present in `priv/gettext/en/**/*.po` but missing from
-  `priv/gettext/es_DO/**/*.po` (or vice versa) — diff the `.po` files.
+- User-visible string not wrapped in `dt/1`: manual scan of new strings in
+  renderers/components.
 
 Output (omit categories with no findings):
 
@@ -254,12 +289,14 @@ Binary PASS / FAIL. Every FAIL is **blocking**.
 | Check | Verdict | Evidence |
 |---|---|---|
 | Spec drift: every AC addressed in the diff, no scope creep beyond AC | | |
-| Authorization: each role-restricted action has an Ash policy in `$CHANGED` AND a test asserting `{:error, %Ash.Error.Forbidden{}}` for the wrong actor | | |
-| Multi-tenancy: tenant-scoped queries pass `actor:` (no raw `Ash.read` without actor) | | |
-| Migration safety: new migrations have a working `down/0` (or are documented irreversible), add indexes for new FKs, do not drop columns referenced in `$CHANGED` | | |
-| Audit trail: actions emitting events thread `process_id` and `parent_event_id` end-to-end | | |
+| Backend parity: the change works for **both** Ash and Ecto, or the spec states why only one applies | | |
+| Consumer audit: every site keyed off the affected type atoms has a decision matching the spec's add / do-NOT-add verdicts | | |
+| Clause ordering: new parser clauses precede their catch-all — and where a function has **no** catch-all (`ash/fields_parser.ex`), the clause exists at all | | |
+| Transport-only: no changeset construction added outside `lib/aurora_uix/guides/` | | |
+| Migration safety: new migrations add indexes for new FKs (and a UNIQUE index where 1:1 is intended); Ash changes committed the `priv/resource_snapshots/` snapshot too | | |
+| Docs: new/changed public modules carry `@moduledoc` with Key Features / Key Constraints, `@doc` + `@spec`; private functions have `@spec` | | |
+| CSS: new `auix-*` classes added to `themes/base.ex` **and** the regenerated stylesheet committed | | |
 | PR scope discipline: diff does not touch files unrelated to the spec (refactors, dep bumps, formatting churn elsewhere) — **flag only, non-blocking** | | |
-| i18n parity: every new `msgid` appears in both `en` and `es_DO` `.po` files | | |
 
 ---
 
@@ -278,13 +315,14 @@ exit-code captures from Step 0 verbatim where relevant.
 ```
 ### INCOMPLETE_TASKS
 
-1. AC-2: changeset error for duplicate email is returned but not tested.
-   Required: in `test/loga_money/accounts_test.exs`, add a test that
-   asserts `{:error, %Ash.Error.Invalid{}}` with `field: :email` on a
-   second `create_user/1` call with the same email.
+1. AC-2: the Ash parser clause was added but is unreachable — it sits below
+   the catch-all at `lib/aurora_uix/integration/ash/fields_parser.ex:395`.
+   Required: move the `%Ash.Resource.Relationships.HasOne{}` clause above it
+   and add a test in `test/cases/integration/ash/fields_parser_test.exs`
+   asserting `type: :one_to_one_association`.
 
-2. mix consistency failure (credo): `lib/loga_money/loans/loan.ex:42` —
-   "Function `disburse/2` is too complex (cyclomatic > 9)". Refactor.
+2. mix consistency failure (credo): `lib/aurora_uix/templates/basic/renderers/
+   fields/one_to_one.ex:42` — alias order. Move `OneToOne` after `OneToMany`.
 
 3. <next item>
 
@@ -292,10 +330,10 @@ exit-code captures from Step 0 verbatim where relevant.
 (or)
 ### MISSING_HINTS      ← Lite mode header
 
-1. (Full mode) Error path coverage for `request/2`: no test covers the policy
-   rejection for non-borrower actors. Add a test in
-   `test/loga_money/loans_test.exs` that passes an investor actor and
-   asserts `{:error, %Ash.Error.Forbidden{}}`.
+1. (Full mode) Backend parity gap: the Ecto (`ctx`) parser is tested but the
+   Ash one is not. Add the mirrored fixture and assertion in
+   `test/cases/integration/ash/fields_parser_test.exs`, and the golden entry
+   in `test/cases/integration/fields_parser_validations_test.exs`.
 
 1. (Lite mode) AC-3 missing from test-hints comment on owner #<owner>.
    Required: re-run /skill code-issue <n> so the Test Hints comment lists

@@ -407,7 +407,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   @spec filter_preloads(map()) :: boolean()
   defp filter_preloads(%{tag: :field, type: type})
-       when type in [:one_to_many_association, :many_to_one_association], do: true
+       when type in [
+              :one_to_many_association,
+              :many_to_one_association,
+              :one_to_one_association
+            ],
+       do: true
 
   defp filter_preloads(%{tag: :field, generated: true}), do: true
   defp filter_preloads(_field), do: false

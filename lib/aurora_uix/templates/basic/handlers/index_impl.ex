@@ -1034,7 +1034,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> Enum.filter(&(&1.tag == :field))
     |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
     |> Enum.reject(
-      &(&1.type in [:one_to_many_association, :many_to_one_association, :embeds_one, :embeds_many])
+      &(&1.type in [
+          :one_to_many_association,
+          :many_to_one_association,
+          :one_to_one_association,
+          :embeds_one,
+          :embeds_many
+        ])
     )
     |> then(&[select_field | &1])
     |> then(&assign_auix(socket, :index_fields, &1))

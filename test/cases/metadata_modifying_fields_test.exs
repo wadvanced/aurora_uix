@@ -79,6 +79,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
       :inactive,
       :product_location_id,
       :product_transactions,
+      :product_barcode,
       :product_location,
       :data_virtual
     ])

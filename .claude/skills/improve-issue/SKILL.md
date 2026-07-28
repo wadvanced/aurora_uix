@@ -59,25 +59,44 @@ Work through these dimensions silently, then write them up.
 
 ### 2a. Domain understanding
 - What feature/bug/refactor is this really about?
-- Which Phoenix/Ash layer(s) does it touch? (Router, LiveView, Ash domain,
-  Ash resource, migration via `mix ash.codegen`, Oban job, PubSub, mail, etc.)
-- Does it affect the data model? List affected Ash resources.
+- Which layer(s) of the library does it touch?
+  - **Parsers** — `lib/aurora_uix/integration/{ash,ctx}/fields_parser.ex`
+    (backend-specific; a feature is incomplete until **both** support it)
+  - **Layout / metadata** — `lib/aurora_uix/layout/`
+    (`blueprint.ex`, `create_ui.ex`, `resource_metadata.ex`)
+  - **Renderers** — `lib/aurora_uix/templates/basic/renderers/`
+  - **Generators / handlers** — `templates/basic/{generators,handlers}/`
+  - **Theme / CSS** — `templates/basic/themes/base.ex`
+  - **Guide schemas** — `lib/aurora_uix/guides/{blog,inventory}/` (Ash / Ecto)
+- Does it change the normalized `%Aurora.Uix.Field{}` shape or add a new
+  `type` atom? If so, **every downstream consumer that pattern-matches on the
+  existing atoms must be audited** — that list belongs in the spec.
 
 ### 2b. Acceptance criteria extraction
-Turn every vague requirement into a concrete, testable statement.
+Turn every vague requirement into a concrete, testable statement. Prefer
+observable rendered output or parsed metadata over prose.
 
 ```
-Bad:  "Borrowers should be able to request a loan more easily"
-Good: "Given an authenticated borrower with completed KYC, submitting the
-       loan-request LiveView form with valid amount and term creates a
-       Loan resource in :pending status and emits a `loan.requested` event
-       with `process_id` set to the originating request id."
+Bad:  "has_one associations should work"
+Good: "Given an Ecto schema with `has_one :spec, Child`, Ctx.FieldsParser
+       produces a %Field{} with type: :one_to_one_association,
+       html_type: :unimplemented, and data: %{related: Child,
+       related_key: :parent_id, owner_key: :id}."
+Good: "On /…/new the rendered form contains an input named
+       parent[child_key][child_field] for each field in the child's :form
+       layout, even though no child record exists."
 ```
 
 ### 2c. Edge cases & error paths
-List at least 3 non-happy-path scenarios. For each: what triggers it, what is
-the expected behaviour (`{:error, %Ash.Error{...}}` shape, HTTP status, flash
-message). Include at least one authorization failure path when policies apply.
+List at least 3 non-happy-path scenarios. For each: what triggers it and the
+expected behaviour. For this library the recurring ones are:
+- an unregistered related resource (`field.data.resource == nil`)
+- an unloaded association (`%Ecto.Association.NotLoaded{}` / `%Ash.NotLoaded{}`)
+  and whether the missing preload should raise or degrade
+- a parser clause reached in the **wrong order** relative to a catch-all —
+  note that several `ash/fields_parser.ex` functions have **no** catch-all, so
+  a missing clause raises `FunctionClauseError` at blueprint-compile time
+- host misconfiguration that must surface loudly rather than be swallowed
 
 Phrasing depends on ownership (see 2g):
 
@@ -91,42 +110,60 @@ Phrasing depends on ownership (see 2g):
 State explicitly what this issue does NOT include, to prevent scope creep.
 
 ### 2e. Dependencies
-- Migrations needed? (generated via `mix ash.codegen <name>` then
-  `mix ash.migrate`)
-- New Hex packages required? (justify each — note that this project uses `Req`
-  for HTTP, never add `:httpoison` / `:tesla` / `:httpc`)
-- External services / APIs?
-- Feature flags?
-- Localization keys required (gettext, default `es_DO`, also `en`)?
+- Migrations needed? Two distinct paths, split by guide backend (note
+  `mix ash.codegen` exists via the `ash` dep but covers only the Ash side):
+  Ecto guide schemas use hand-written migrations in `priv/repo/migrations/`;
+  Ash guide resources use `mix ash_postgres.generate_migrations` and also
+  produce a `priv/resource_snapshots/` snapshot that must be committed.
+  Note `mix test` does **not** run migrations — CI runs `mix ecto.create &&
+  mix ecto.migrate` separately.
+- New Hex packages required? (justify each — `ash`, `ash_phoenix`,
+  `ash_postgres`, `ecto_sql`, `phoenix_ecto` and `aurora_ctx` are already
+  hard deps)
+- New test routes required in `test/support/app_web/routes.ex`?
+- New `auix-*` CSS classes (⇒ `themes/base.ex` +
+  `mix auix.gen.tailwind_classes` + regenerated CSS committed)?
+- Localization: user-visible strings go through `dt/1`
+  (`use Aurora.Uix.Gettext`), extracted to `priv/gettext/*.pot`. This project
+  ships no per-locale translations.
 
-### 2f. Elixir/Phoenix/Ash project notes
+### 2f. Project notes
 
-Keep these in mind when expanding the spec — they shape what the AC must cover:
+`aurora_uix` is a **low-code UI generation library**, not an application. It
+generates LiveView index/form/show UIs from resource metadata over **two
+interchangeable backends**: Ash and Ecto (via `aurora_ctx`). Keep these in mind
+when expanding the spec — they shape what the AC must cover:
 
-- **Ash, not bare Ecto**: business logic lives in Ash resources/domains.
-  Multi-step DB ops use `Ash.transaction/1`, not `Ecto.Multi` or
-  `Repo.transaction`.
-- **Ash policies**: authorization is declared on the resource, not enforced
-  in LiveView/controllers. AC must specify which roles are allowed.
-- **Soft delete only**: business records use `is_deleted` + `deleted_at`.
-  Never spec a hard delete.
-- **Event audit trail**: any state-changing operation must thread
-  `process_id` and `parent_event_id`. Spec must mention which events are
-  emitted.
-- **Localization**: every user-visible string must go through gettext.
-  Default locale is `es_DO`; `en` is the test/dev locale.
-- **LiveView (Phoenix 1.8)**:
-  - Templates start with `<Layouts.app flash={@flash} ...>`
-  - Use `<.icon>`, `<.input>`, function components from `core_components.ex`;
-    no inline `class=` on LiveView templates
-  - Use streams for collections
-  - Avoid LiveComponents unless there is a specific, strong need
-  - No raw `<script>` tags; colocated hooks only
-  - Use `<.link navigate>` / `push_navigate` (not deprecated `live_redirect`)
-- **Tests**: `DataCase` (business logic), `ConnCase` (HTTP/LiveView),
-  `FeatureCase` (Wallaby — only when LiveViewTest is genuinely insufficient).
-  Factories live in `test/support/factory.ex` (`build/2`, `insert!/2`).
-  No mocks; no `Process.sleep/1`.
+- **Backend abstraction boundary**: `Ecto.Association.*` appears only in
+  `integration/ctx/`, `Ash.Resource.*` only in `integration/ash/`. Everything
+  downstream consumes the normalized `%Field{}` atoms and must stay
+  backend-agnostic. Spec both backends or say explicitly why only one.
+- **New field type atoms** are the highest-risk change in this codebase. The
+  spec must enumerate every consumer site keyed off the existing atoms with an
+  explicit **add / do-NOT-add verdict and justification**. Silent omission
+  fails far from the change.
+- **Renderers** implement the `Aurora.Uix.Renderer` behaviour (`render/1`) and
+  are dispatched from `templates/basic/renderers/default_renderer.ex`. Prefer
+  swapping `auix` keys and delegating to `Renderer.render_inner_elements/1`
+  over hand-written child markup.
+- **The library is transport-only for writes.** It renders input names and
+  forwards params untouched; it never builds a changeset. Host applications
+  declare `cast_assoc`/`cast_embed` (Ecto) or `manage_relationship` (Ash).
+  Do not spec library-owned changeset construction without flagging it as a
+  significant scope expansion.
+- **Documentation is gated** by `doctor`: `@moduledoc` with
+  `## Key Features` / `## Key Constraints`, `@doc` + `@spec` on public
+  functions (first clause only), `@spec` on private functions too.
+- **Tests**: `use Aurora.UixWeb.Test.UICase, :phoenix_case` +
+  `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. Layers:
+  `test/cases/integration/` (parser, no DB), `test/cases/` (metadata/layout,
+  no DB), `test/cases_live/` (LiveView — the default for UI work),
+  `test/browser_cases/` (Wallaby, last resort), `test/doctests/`.
+  There is no `FeatureCase` and no `test/support/factory.ex`; sample data comes
+  from `test/support/helper.ex`. No mocks; no `Process.sleep/1`.
+- **Gate**: `mix consistency` (`auix.gen.tailwind_classes → format →
+  compile --warnings-as-errors → credo --strict → dialyzer → doctor`) then
+  `mix test`. There is no `mix precommit`.
 
 ### 2g. Test ownership
 
@@ -177,11 +214,15 @@ Rationale: <one line — why this issue holds / delegates tests>
 (minimum 3, maximum 10)
 
 ### Affected Files / Modules (estimated)
-- `lib/loga_money/<domain>/<resource>.ex` — <reason>
-- `lib/loga_money_web/live/<context>/<page>_live.ex` — <reason>
-- `priv/repo/migrations/YYYYMMDDHHMMSS_<name>.exs` — generated via `mix ash.codegen`
-- `test/loga_money/<domain>/<resource>_test.exs` — <test file>  ← omit when Owner != this-issue; replace with one line: `→ Tests owned by <owner>`
-- `priv/gettext/{en,es_DO}/LC_MESSAGES/...` — <locale keys, if user-visible strings change>
+- `lib/aurora_uix/integration/{ash,ctx}/fields_parser.ex` — <clause added, and why order matters>
+- `lib/aurora_uix/layout/<module>.ex` — <consumer verdict: add / do-NOT-add + why>
+- `lib/aurora_uix/templates/basic/renderers/<renderer>.ex` — <reason>
+- `lib/aurora_uix/templates/basic/themes/base.ex` — <new auix-* classes, if any>
+- `lib/aurora_uix/guides/{blog,inventory}/<schema>.ex` — <demo schema, if any>
+- `priv/repo/migrations/YYYYMMDDHHMMSS_<name>.exs` — hand-written (Ecto) or via `mix ash_postgres.generate_migrations` (Ash, + snapshot)
+- `test/support/app_web/routes.ex` — <route registration, if a cases_live test is added>
+- `test/cases/integration/{ash,ctx}/fields_parser_test.exs` — <test file>  ← omit when Owner != this-issue; replace with one line: `→ Tests owned by <owner>`
+- `test/cases_live/<feature>_test.exs` — <test file>  ← same rule
 
 ### Edge Cases & Error Handling
 | Scenario | Expected behaviour |
@@ -192,16 +233,18 @@ Rationale: <one line — why this issue holds / delegates tests>
 - ...
 
 ### Dependencies
-- Migrations: yes/no — <details>
+- Migrations: yes/no — <Ecto hand-written and/or Ash generated + snapshot>
 - New packages: none / `<package> ~> x.y` — <justification>
-- External services: none / <name>
-- Feature flags: none / <name>
-- Localization keys: yes/no
+- Test routes: none / <routes.ex registrations needed>
+- New `auix-*` CSS classes: yes/no — <requires themes/base.ex + regenerated CSS>
+- Localization: yes/no — <new `dt/1` strings>
 
 ### Project Conventions Touched
-<list of CLAUDE.md rules this issue must respect, e.g. "soft-delete only",
-"event audit fields", "gettext for new strings", "Ash.transaction wraps
-multi-step actions">
+<list of conventions this issue must respect, e.g. "backend abstraction
+boundary — Ecto structs stay in integration/ctx", "both parsers must support
+it", "renderer dispatch via default_renderer.ex", "library stays transport-only
+for writes", "doctor doc coverage: @moduledoc Key Features/Key Constraints,
+@spec on private functions", "auix-* classes regenerated">
 
 ### Open Questions
 <remaining ambiguities with assumed defaults; leave empty if none>
@@ -231,7 +274,7 @@ gh issue view <n> --json body --jq '.body' > "$TMP_BODY"
 if grep -q '<!-- enriched-spec:start v1 -->' "$TMP_BODY"; then
   awk -v spec_file="$TMP_SPEC" '
     BEGIN { while ((getline line < spec_file) > 0) spec = spec line ORS }
-    /<!-- enriched-spec:start v1 -->/ { print spec; skip=1; next }
+    /<!-- enriched-spec:start v1 -->/ { printf "%s", spec; skip=1; next }
     /<!-- enriched-spec:end -->/ { skip=0; next }
     !skip { print }
   ' "$TMP_BODY" > "$TMP_BODY.new" && mv "$TMP_BODY.new" "$TMP_BODY"
@@ -256,14 +299,20 @@ Before pushing the spec, silently ask yourself:
    (input → output / state change / event) so the owner can assert it
    directly. If Owner is `this-issue`, can every AC also be turned into an
    ExUnit test from this issue's diff alone? If not, rewrite.
-2. Is there at least one error-path AC and at least one authorization-path AC
-   (when policies apply)? If not, add them.
+2. Is there at least one error-path AC? If not, add one.
 3. Are the affected files specific enough that a developer won't have to guess
-   between `lib/loga_money/...` and `lib/loga_money_web/...`? If not, add detail.
-4. Does the spec mention every CLAUDE.md convention this change must respect
-   (Ash, soft delete, events, gettext, LiveView rules)? If not, expand 2f.
-5. Would a mid-level Elixir/Ash developer be unblocked by this spec alone?
-   If not, expand.
+   between `lib/aurora_uix/integration/…`, `lib/aurora_uix/layout/…` and
+   `lib/aurora_uix/templates/basic/…`? If not, add detail.
+4. If a new `%Field{}` type atom is introduced, does the spec give an explicit
+   **add / do-NOT-add verdict with justification for every consumer site**?
+   A bare list of files is not enough — omission is the dominant failure mode.
+5. Are **both backends** (Ash and Ecto/`ctx`) covered, or is it stated
+   explicitly why only one applies?
+6. Does the spec mention every convention this change must respect (backend
+   abstraction boundary, transport-only writes, doctor doc coverage, `auix-*`
+   class regeneration, test routes)? If not, expand 2f.
+7. Would a mid-level Elixir developer unfamiliar with this library be unblocked
+   by this spec alone? If not, expand.
 
 ---
 

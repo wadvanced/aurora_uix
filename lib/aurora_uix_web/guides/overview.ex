@@ -9,12 +9,15 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductBarcode
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
+
+  auix_resource_metadata(:product__product_barcode, context: Inventory, schema: ProductBarcode)
 
   auix_resource_metadata(:product, context: Inventory, schema: Product) do
     field(:product_location_id, option_label: :name)
@@ -36,7 +39,13 @@ defmodule Aurora.UixWeb.Guides.Overview do
       stacked do
         inline([:reference, :name])
         inline([:description])
-        inline([:product_location, :product_transactions])
+
+        group "Barcode details" do
+          inline([:product_barcode])
+        end
+
+        inline([:product_location])
+        inline([:product_transactions])
       end
     end
 
@@ -51,6 +60,10 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
           section "Quantities" do
             stacked([:quantity_initial, :quantity_entries, :quantities_exits])
+          end
+
+          section "Identities" do
+            stacked([:product_barcode])
           end
         end
 

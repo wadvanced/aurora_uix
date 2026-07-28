@@ -26,6 +26,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
+  alias Aurora.Uix.Templates.Basic.Renderers.OneToOne
   alias Aurora.Uix.Templates.Basic.Renderers.UploadRenderer
 
   alias Phoenix.HTML.Form
@@ -41,6 +42,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
 
   def render(%{field: %{type: :many_to_one_association}} = assigns),
     do: ManyToOne.render(assigns)
+
+  def render(%{field: %{type: :one_to_one_association}} = assigns),
+    do: OneToOne.render(assigns)
 
   def render(%{field: %{type: :embeds_one}} = assigns),
     do: EmbedsOneRenderer.render(assigns)

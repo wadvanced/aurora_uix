@@ -384,6 +384,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :many_to_one_association
   defp field_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :one_to_many_association
+  defp field_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :one_to_one_association
 
   defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :count}), do: :integer
   defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :exists}), do: :boolean
@@ -422,6 +423,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :unimplemented
+  defp field_html_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :unimplemented
 
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
     do: CommonFieldsParser.field_html_type(ecto_type, association_or_embed)
@@ -470,6 +472,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_length(nil, %Ash.Resource.Relationships.BelongsTo{}), do: 0
   defp field_length(nil, %Ash.Resource.Relationships.HasMany{}), do: 0
+  defp field_length(nil, %Ash.Resource.Relationships.HasOne{}), do: 0
 
   defp field_length(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_length(ecto_type)
@@ -542,6 +545,18 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   defp field_data(_attrs, %Ash.Resource.Relationships.HasMany{
+         destination_attribute: related_key,
+         destination: related_schema,
+         source_attribute: owner_key
+       }) do
+    %{
+      owner_key: owner_key,
+      related: related_schema,
+      related_key: related_key
+    }
+  end
+
+  defp field_data(_attrs, %Ash.Resource.Relationships.HasOne{
          destination_attribute: related_key,
          destination: related_schema,
          source_attribute: owner_key
