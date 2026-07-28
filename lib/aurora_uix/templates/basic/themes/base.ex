@@ -2177,6 +2177,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_many_to_many_container) do
+    """
+    .auix-many-to-many-container {
+      display: flex;
+      flex-direction: column;
+      width: stretch;
+    }
+    .auix-many-to-many-container > * {
+      flex: 1;
+    }
+    """
+  end
+
   def rule(:auix_one_to_one_container) do
     """
     .auix-one-to-one-container {

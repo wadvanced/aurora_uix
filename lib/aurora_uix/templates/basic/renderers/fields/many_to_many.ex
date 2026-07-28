@@ -1,0 +1,189 @@
+defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
+  @moduledoc """
+  Renders many-to-many association fields as a multi-select of the related records.
+
+  Membership is a *set of existing records*, not a child the parent owns, so neither of the other
+  association renderers fits: there is no local foreign key for `ManyToOne`'s single select to bind
+  to, and `OneToMany`'s "create a new child" flow is the wrong verb — the user picks from records
+  that already exist. A `<select multiple>` expresses exactly the available operations: the selected
+  set *is* the membership, so adding and removing are the same gesture.
+
+  Reads come from the preloaded association (`filter_preloads/1` puts the field in
+  `parsed_opts.preload`), and the candidate list comes from the related resource's own
+  `list_function`. No join-aware query is involved: both backends resolve the join table during
+  preload.
+
+  ## Key Features
+
+  - `:form` renders every candidate record as an option, with current members pre-selected.
+  - Submits in the same POST as the parent, under `parent[field][]`.
+  - Emits a hidden empty-value sentinel so that de-selecting everything still submits the key, which
+    is what makes clearing the last membership possible at all.
+  - Honours the `option_label:` field option through the shared
+    `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`.
+  - `:show` renders the same select disabled.
+  - Renders nothing when the related schema is not a registered Aurora UIX resource.
+
+  ## Key Constraints
+
+  - The library is **transport-only** for writes: it renders the input name and forwards the
+    submitted list of primary keys untouched, and never builds a changeset. Persisting membership is
+    the host's responsibility — `put_assoc/4` in an Ecto changeset, or `argument` +
+    `change manage_relationship(..., type: :append_and_remove)` in an Ash action.
+  - Because of the sentinel, the submitted list **always** carries one blank entry. The host must
+    reject it. On Ash the argument also needs `constraints: [nil_items?: true]`, since Ash casts a
+    blank to `nil` and otherwise rejects the list with "no nil values" before any `change` runs.
+  - An Ecto host must declare `on_replace: :delete` on the association, or `put_assoc/4` raises.
+    That option is also what deletes the join rows — removing a member must never delete the related
+    record itself.
+  - Requires the related resource to be registered, and the parent to be preloaded for `:show` and
+    for editing a persisted record.
+  """
+
+  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.Gettext
+
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+
+  @doc """
+  Renders a many-to-many association field.
+
+  ## Parameters
+  - `assigns` (map()) - LiveView assigns containing:
+    * `:field` (map()) - Field definition with association details in `:data`.
+    * `:auix` (map()) - Aurora UIX context with form, entity and layout configuration.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - Rendered many-to-many association component.
+  """
+  @spec render(map()) :: Phoenix.LiveView.Rendered.t()
+  def render(%{field: %{type: :many_to_many_association, data: %{resource: nil}}} = assigns) do
+    ~H"""
+    """
+  end
+
+  def render(
+        %{field: %{type: :many_to_many_association} = field, auix: %{layout_type: :form} = auix} =
+          assigns
+      ) do
+    assigns =
+      assigns
+      |> assign_select(field)
+      |> assign(:input_name, "#{auix.form[field.key].name}[]")
+
+    ~H"""
+    <div id={container_id(@field, @auix)} class="auix-many-to-many-container">
+      <input type="hidden" name={@input_name} value="" />
+      <.input
+        id={"#{container_id(@field, @auix)}-select"}
+        name={@input_name}
+        value={@selected}
+        type="select"
+        multiple={true}
+        label={@select_label}
+        options={@select_opts[:options]}
+        class="auix-form-field-input"
+      />
+    </div>
+    """
+  end
+
+  def render(%{field: %{type: :many_to_many_association} = field} = assigns) do
+    assigns = assign_select(assigns, field)
+
+    ~H"""
+    <div id={container_id(@field, @auix)} class="auix-many-to-many-container">
+      <.input
+        id={"#{container_id(@field, @auix)}-select"}
+        name={@field.key}
+        value={@selected}
+        type="select"
+        multiple={true}
+        disabled={true}
+        label={@select_label}
+        options={@select_opts[:options]}
+        class="auix-form-field-input"
+      />
+    </div>
+    """
+  end
+
+  ## PRIVATE ##
+
+  # Computes the option list, the selected primary keys and the label, shared by both layout types.
+  @spec assign_select(map(), map()) :: map()
+  defp assign_select(assigns, field) do
+    assigns
+    |> assign(:select_opts, BasicHelpers.get_select_options(assigns))
+    |> assign(:selected, selected_ids(assigns))
+    |> assign(:select_label, select_label(assigns, field))
+  end
+
+  # Stable id: html_ids embed a global counter and are not stable across test ordering.
+  @spec container_id(map(), map()) :: binary()
+  defp container_id(%{key: key}, %{layout_type: layout_type}),
+    do: "auix-many-to-many-#{key}-#{layout_type}"
+
+  # Association fields carry no label of their own unless the host sets one; fall back to the
+  # related resource's name rather than rendering an unlabelled select.
+  @spec select_label(map(), map()) :: binary()
+  defp select_label(%{auix: %{configurations: configurations}}, %{label: label, data: data}) do
+    if label in [nil, ""] do
+      configurations
+      |> get_in([data.resource, :parsed_opts, :name])
+      |> Kernel.||("")
+      |> dt()
+    else
+      dt(label)
+    end
+  end
+
+  # The primary keys that must render as selected.
+  @spec selected_ids(map()) :: list()
+  defp selected_ids(%{
+         field: %{key: key, data: %{related: related, related_key: related_key}},
+         auix: auix
+       }) do
+    auix
+    |> membership(key)
+    |> to_ids(related, related_key)
+  end
+
+  # Submitted params win when present, so an in-flight edit survives re-render. `form[key].value` is
+  # deliberately not used: for Ecto it may hold changesets after `put_assoc`, and for Ash the field
+  # is an action argument that is still nil on the first `:edit` render.
+  @spec membership(map(), atom()) :: term()
+  defp membership(%{form: %{params: params}} = auix, key) do
+    case Map.get(params, to_string(key)) do
+      nil -> entity_membership(auix, key)
+      submitted -> submitted
+    end
+  end
+
+  defp membership(auix, key), do: entity_membership(auix, key)
+
+  @spec entity_membership(map(), atom()) :: term()
+  defp entity_membership(auix, key),
+    do: auix |> Map.get(:entity) |> Kernel.||(%{}) |> Map.get(key)
+
+  # Anything that is not a list -- nil, or a backend's not-loaded struct -- means "nothing selected".
+  @spec to_ids(term(), module(), atom()) :: list()
+  defp to_ids(values, related, related_key) when is_list(values) do
+    values
+    |> Enum.map(&entry_id(&1, related, related_key))
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+  end
+
+  defp to_ids(_values, _related, _related_key), do: []
+
+  # Matching the related schema rather than a backend's not-loaded struct keeps this
+  # backend-agnostic: `Ecto.Association.*` may only appear under `integration/ctx/`.
+  @spec entry_id(term(), module(), atom()) :: term() | nil
+  defp entry_id(entry, related, related_key) when is_struct(entry, related),
+    do: Map.get(entry, related_key)
+
+  defp entry_id(entry, _related, _related_key) when is_binary(entry) or is_integer(entry),
+    do: entry
+
+  defp entry_id(_entry, _related, _related_key), do: nil
+end
