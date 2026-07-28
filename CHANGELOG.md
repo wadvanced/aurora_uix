@@ -17,6 +17,29 @@ Requires:
 
 ### Added
 
+- **`has_one` association support** [#311](https://github.com/wadvanced/aurora_uix/pull/311)
+  - Both parsers now normalize `has_one` to the `:one_to_one_association` field type, reusing the
+    existing one-to-one machinery instead of adding a new atom. Ecto's `has_one` and Ash's `has_one`
+    previously fell through to no matching clause and raised `FunctionClauseError`.
+  - New `Aurora.Uix.Templates.Basic.Renderers.OneToOne` renders the association as an inline nested
+    form: `:form` uses `inputs_for` so the child submits in the same POST as the parent (the library
+    stays transport-only — the host's `cast_assoc`/`manage_relationship` still owns persistence);
+    `:show` renders the child's fields read-only, or an empty-state message when the association is
+    unloaded/nil.
+  - Guide schemas added for both backends: `Product has_one ProductBarcode` (Ecto) and
+    `Author has_one AuthorProfile` (Ash).
+
+- **`many_to_many` association support**
+  - Both parsers now parse `many_to_many` as `:many_to_many_association` on the Ash and Ecto
+    backends, and the layout layer routes the new type through the existing association consumers
+    (preloads, layout defaults).
+  - `:form` renders the related records as checkboxes for toggling membership, with bulk actions
+    (a tri-state toggle-all/none control, replacing an earlier separate check-all/uncheck-all pair)
+    and an action-group label.
+  - `:show` renders only the current membership as a plain read-only list, with an empty state when
+    no related records are attached.
+  - Guide schemas added for both backends to exercise many-to-many membership end-to-end.
+
 - **Per-layout custom field renderers**
   - `Aurora.Uix.Field` gains three per-layout renderer options — `index_renderer`, `edit_renderer`,
     and `show_renderer` — alongside the existing generic `renderer`.
