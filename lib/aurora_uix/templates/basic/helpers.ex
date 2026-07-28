@@ -1078,6 +1078,42 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   # Not defined
   def get_select_options(_assigns), do: %{options: [], multiple: false}
 
+  @doc """
+  Lists every candidate primary key for a many-to-many field, as strings.
+
+  Resolves the field from the resource configurations and reuses `get_select_options/1`, so the
+  candidate set is exactly the one the renderer shows — including any `query_opts` and, on Ash, any
+  policy filtering applied to the related resource's list action.
+
+  Pass the full `socket.assigns`: the configured actor is read from it, and a hand-built map would
+  silently drop it and resolve a different candidate set than the render did.
+
+  ## Parameters
+
+  - `assigns` (map()) - The socket assigns, containing `:auix` with `configurations` and
+    `resource_name`.
+  - `field_key` (binary()) - The many-to-many field name.
+
+  ## Returns
+
+  list(binary()) - The primary key of every candidate record.
+  """
+  @spec many_to_many_candidate_ids(map(), binary()) :: list(binary())
+  def many_to_many_candidate_ids(%{auix: auix} = assigns, field_key) do
+    field =
+      get_field(
+        %{name: String.to_existing_atom(field_key)},
+        auix.configurations,
+        auix.resource_name
+      )
+
+    assigns
+    |> Map.put(:field, field)
+    |> get_select_options()
+    |> Map.get(:options, [])
+    |> Enum.map(fn {_label, value} -> to_string(value) end)
+  end
+
   # Lists the related resource and maps each record to a `{label, primary_key}` option. Shared by
   # the many-to-one and many-to-many clauses, which differ only in the `:multiple` flag and whether
   # a nil option is prepended.

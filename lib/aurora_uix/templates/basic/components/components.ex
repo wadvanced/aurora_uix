@@ -341,6 +341,97 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   resolve_component_for(:auix_items_card)
 
+  @doc ~S"""
+  Renders a list of value-carrying checkboxes that all submit under a single array name.
+
+  Unlike `Aurora.Uix.Templates.Basic.CoreComponents.input/1` with `type="checkbox"`, which renders a
+  single boolean and emits a `"false"` companion input, every checkbox here carries an option value
+  and shares one `name`. The browser therefore submits exactly the checked values — the same wire
+  format a `<select multiple>` produces — which is what lets a multi-select be swapped for this
+  without touching the receiving side.
+
+  The `<input type="checkbox">` is written as a raw tag on purpose: this *is* the function
+  component, and there is no lower-level styled primitive to delegate to.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns. See the `attr` declarations below.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - The rendered checkbox group.
+
+  ## Examples
+
+      <.auix_checkbox_group
+        id="auix-many-to-many-suppliers-form-options"
+        name="product[suppliers][]"
+        label="Suppliers"
+        options={[{"ACME", 1}, {"Globex", 2}]}
+        value={[1]}
+      />
+  """
+  attr(:id, :string,
+    required: true,
+    doc: ~S|base id; each checkbox gets `#{id}-option-#{value}`|
+  )
+
+  attr(:name, :string,
+    required: true,
+    doc: ~S|shared array input name, e.g. `product[suppliers][]`|
+  )
+
+  attr(:label, :string, default: nil)
+  attr(:options, :list, required: true, doc: "list of `{label, value}` tuples")
+  attr(:value, :list, default: [], doc: "the checked option values")
+  attr(:disabled, :boolean, default: false)
+  attr(:omit_label?, :boolean, default: false, doc: "If true, label is not rendered at all")
+  attr(:empty_message, :string, default: nil, doc: "shown when `options` is empty")
+  attr(:class, :string, default: "", doc: "optional class adendum for the options container")
+  attr(:label_class, :string, default: "", doc: "optional label class adendum")
+  attr(:input_class, :string, default: "", doc: "optional class adendum for each checkbox")
+  attr(:host_components, :any)
+  attr(:rest, :global)
+
+  slot(:actions, doc: "actions rendered next to the label, e.g. check all / uncheck all")
+
+  @spec auix_checkbox_group(map()) :: Rendered.t()
+  def auix_checkbox_group(%{host_components: nil} = assigns) do
+    # `@value` carries native primary keys before the first change event and strings after it, so
+    # both sides of the membership test are normalised or everything silently unchecks.
+    assigns = assign(assigns, :checked_values, Enum.map(assigns.value, &to_string/1))
+
+    ~H"""
+    <fieldset class="auix-fieldset">
+      <div class="auix-checkbox-group-header">
+        <.label :if={!@omit_label?} class={"auix-checkbox-group-label " <> @label_class} for={@id}>{@label}</.label>
+        <div :if={@actions != []} class="auix-checkbox-group-actions">
+          {render_slot(@actions)}
+        </div>
+      </div>
+      <div id={@id} class={["auix-checkbox-group", @class]} {@rest}>
+        <span :if={@options == []} class="auix-checkbox-group-empty-msg">{@empty_message}</span>
+        <label
+          :for={{option_label, option_value} <- @options}
+          class="auix-checkbox-label"
+          for={"#{@id}-option-#{option_value}"}
+        >
+          <input
+            type="checkbox"
+            id={"#{@id}-option-#{option_value}"}
+            name={@name}
+            value={to_string(option_value)}
+            checked={to_string(option_value) in @checked_values}
+            disabled={@disabled}
+            class={["auix-checkbox", @input_class]}
+          />
+          <span class="auix-checkbox-group-option-label">{option_label}</span>
+        </label>
+      </div>
+    </fieldset>
+    """
+  end
+
+  resolve_component_for(:auix_checkbox_group)
+
   @doc """
   Renders a pagination navigation bar with page numbers and selection counts.
 

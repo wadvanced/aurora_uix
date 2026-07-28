@@ -1,12 +1,18 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   @moduledoc """
-  Renders many-to-many association fields as a multi-select of the related records.
+  Renders many-to-many association fields as a list of checkboxes over the related records.
 
   Membership is a *set of existing records*, not a child the parent owns, so neither of the other
   association renderers fits: there is no local foreign key for `ManyToOne`'s single select to bind
   to, and `OneToMany`'s "create a new child" flow is the wrong verb — the user picks from records
-  that already exist. A `<select multiple>` expresses exactly the available operations: the selected
-  set *is* the membership, so adding and removing are the same gesture.
+  that already exist. A checkbox list expresses exactly the available operations: the checked set
+  *is* the membership, so adding and removing are the same gesture.
+
+  Checkboxes rather than a `<select multiple>`: multi-select needs a modifier-key gesture that is
+  undiscoverable and unusable on touch, conveys state only through a background colour, and has
+  nowhere to host bulk controls. The wire format is identical — every box shares the
+  `parent[field][]` name, so only checked values are submitted, exactly as only selected options
+  are — which is why the sentinel below and the host's persistence contract are unchanged.
 
   Reads come from the preloaded association (`filter_preloads/1` puts the field in
   `parsed_opts.preload`), and the candidate list comes from the related resource's own
@@ -15,15 +21,18 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
 
   ## Key Features
 
-  - `:form` renders every candidate record as an option, with current members pre-selected.
+  - `:form` renders one checkbox per candidate record; the checked boxes are the current membership.
   - Submits in the same POST as the parent, under `parent[field][]`.
   - Emits a hidden empty-value sentinel so that de-selecting everything still submits the key, which
     is what makes clearing the last membership possible at all.
+  - Ships `:default_check_all` / `:default_uncheck_all` header actions, registered through
+    `Aurora.Uix.Action`'s `:many_to_many` group, plus an empty footer group — so a host adds,
+    replaces or removes any of them from the layout DSL field options.
   - Honours the `option_label:` field option through the shared
     `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`; when the host declares none, the
     label falls back to a conventional display column (`:name`, `:title`, …) of the related
     resource's `:index` layout, instead of the record's raw primary key.
-  - `:show` renders the same select disabled.
+  - `:show` renders the same checkbox list disabled.
   - Renders nothing when the related schema is not a registered Aurora UIX resource.
 
   ## Key Constraints
@@ -38,6 +47,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   - An Ecto host must declare `on_replace: :delete` on the association, or `put_assoc/4` raises.
     That option is also what deletes the join rows — removing a member must never delete the related
     record itself.
+  - `html_type` stays `:select`: the field *is* a set of options, only the widget changed, and
+    `get_select_options/1` dispatches on it.
+  - Checking or clearing everything is a server round trip
+    (`"auix_many_to_many_toggle_all"`, handled by `Aurora.Uix.Templates.Basic.Handlers.FormImpl`),
+    which costs one extra `list_function` call per click. It cannot be done client-side: the result
+    has to reach `auix.form.params` or the next `phx-change` would discard it.
   - Requires the related resource to be registered, and the parent to be preloaded for `:show` and
     for editing a persisted record.
   """
@@ -45,6 +60,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.Gettext
 
+  import Aurora.Uix.Templates.Basic.Components
+
+  alias Aurora.Uix.Templates.Basic.Actions.ManyToMany, as: ManyToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
   # An association or embed renders as a nested UI, never as a one-line option label.
@@ -80,27 +98,40 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   end
 
   def render(
-        %{field: %{type: :many_to_many_association} = field, auix: %{layout_type: :form} = auix} =
-          assigns
+        %{
+          field: %{type: :many_to_many_association} = field,
+          auix: %{layout_type: :form, layout_tree: layout_tree} = auix
+        } = assigns
       ) do
     assigns =
       assigns
       |> assign_select(field)
       |> assign(:input_name, "#{auix.form[field.key].name}[]")
+      |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
+      |> ManyToManyActions.set_actions()
 
     ~H"""
     <div id={container_id(@field, @auix)} class="auix-many-to-many-container">
       <input type="hidden" name={@input_name} value="" />
-      <.input
-        id={"#{container_id(@field, @auix)}-select"}
+      <.auix_checkbox_group
+        id={options_id(@field, @auix)}
         name={@input_name}
-        value={@selected}
-        type="select"
-        multiple={true}
         label={@select_label}
         options={@select_opts[:options]}
-        class="auix-form-field-input"
-      />
+        value={@selected}
+        empty_message={dt("No records available")}
+      >
+        <:actions>
+          <%= for %{function_component: action} <- @auix.many_to_many_header_actions do %>
+            {action.(%{auix: @auix, field: @field})}
+          <% end %>
+        </:actions>
+      </.auix_checkbox_group>
+      <div class="auix-many-to-many-footer-actions" name={"auix-many-to-many-footer-actions-#{@field.key}"}>
+        <%= for %{function_component: action} <- @auix.many_to_many_footer_actions do %>
+          {action.(%{auix: @auix, field: @field})}
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -110,16 +141,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
 
     ~H"""
     <div id={container_id(@field, @auix)} class="auix-many-to-many-container">
-      <.input
-        id={"#{container_id(@field, @auix)}-select"}
+      <.auix_checkbox_group
+        id={options_id(@field, @auix)}
         name={@field.key}
-        value={@selected}
-        type="select"
-        multiple={true}
-        disabled={true}
         label={@select_label}
         options={@select_opts[:options]}
-        class="auix-form-field-input"
+        value={@selected}
+        disabled={true}
+        empty_message={dt("No records available")}
       />
     </div>
     """
@@ -192,6 +221,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   @spec container_id(map(), map()) :: binary()
   defp container_id(%{key: key}, %{layout_type: layout_type}),
     do: "auix-many-to-many-#{key}-#{layout_type}"
+
+  # Each checkbox derives its own id from this one. A stable per-input id is what lets LiveView
+  # track and patch `checked`; without it, a second toggle-all click appears to do nothing.
+  @spec options_id(map(), map()) :: binary()
+  defp options_id(field, auix), do: "#{container_id(field, auix)}-options"
 
   # Association fields carry no label of their own unless the host sets one; fall back to the
   # related resource's name rather than rendering an unlabelled select.

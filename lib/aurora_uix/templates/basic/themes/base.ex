@@ -582,6 +582,69 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_checkbox_group) do
+    """
+      .auix-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--auix-gap-default);
+
+        max-height: var(--auix-checkbox-group-max-height);
+        overflow-y: auto;
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_header) do
+    """
+      .auix-checkbox-group-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--auix-gap-default);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_label) do
+    """
+    .auix-checkbox-group-label {
+      content-visibility: visible;
+    }
+    """
+  end
+
+  def rule(:auix_checkbox_group_actions) do
+    """
+    /* auix-checkbox-group-actions */
+
+    #{import_rule(:_auix_actions, :auix_checkbox_group_actions)}
+    .auix-checkbox-group-actions {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+    """
+  end
+
+  def rule(:auix_checkbox_group_option_label) do
+    """
+      .auix-checkbox-group-option-label {
+        font-size: var(--auix-font-size-caption);
+        color: var(--auix-color-checkbox-label-text);
+      }
+    """
+  end
+
+  def rule(:auix_checkbox_group_empty_msg) do
+    """
+    .auix-checkbox-group-empty-msg {
+       font-size: var(--auix-font-size-small);
+       font-style: var(--auix-font-style-mobile-viewmode);
+    }
+    """
+  end
+
   def rule(:auix_select) do
     """
       .auix-select {
@@ -2186,6 +2249,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     }
     .auix-many-to-many-container > * {
       flex: 1;
+    }
+    """
+  end
+
+  def rule(:auix_many_to_many_footer_actions) do
+    """
+    /* auix-many-to-many-footer-actions */
+
+    #{import_rule(:_auix_actions, :auix_many_to_many_footer_actions)}
+    .auix-many-to-many-footer-actions {
+      flex-direction: row;
+      justify-content: flex-end;
     }
     """
   end
