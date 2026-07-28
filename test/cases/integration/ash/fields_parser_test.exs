@@ -44,6 +44,18 @@ defmodule HasManyRelationship do
   end
 end
 
+defmodule HasOneRelationship do
+  use Ash.Resource,
+    domain: nil
+
+  attributes do
+    uuid_primary_key :id
+    attribute :first_field, :integer
+    attribute :second_field, :string
+    attribute :all_types_id, :integer
+  end
+end
+
 defmodule AllTypes do
   use Ash.Resource,
     domain: nil
@@ -81,6 +93,7 @@ defmodule AllTypes do
   relationships do
     belongs_to :belongs_to_field, BelongsToRelationship
     has_many :has_many_field, HasManyRelationship
+    has_one :has_one_field, HasOneRelationship
   end
 
   actions do

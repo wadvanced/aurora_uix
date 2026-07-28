@@ -514,6 +514,31 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           related_key: :all_types_id
         }
       },
+      has_one_field: %{
+        key: :has_one_field,
+        type: :one_to_one_association,
+        html_type: :unimplemented,
+        renderer: nil,
+        resource: :all_types,
+        name: "has_one_field",
+        label: "",
+        placeholder: "",
+        length: 0,
+        precision: 0,
+        scale: 0,
+        hidden: false,
+        readonly: false,
+        required: false,
+        disabled: false,
+        omitted: false,
+        filterable?: false,
+        data: %{
+          resource: nil,
+          owner_key: :id,
+          related: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.HasOneRelationship,
+          related_key: :all_types_id
+        }
+      },
       belongs_to_field: %{
         key: :belongs_to_field,
         type: :many_to_one_association,

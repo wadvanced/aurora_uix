@@ -26,6 +26,16 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
     end
   end
 
+  defmodule HasOneRelationship do
+    use Ecto.Schema
+    @primary_key {:id, :binary_id, []}
+
+    schema "test_has_one" do
+      field :first_field, :integer
+      field :second_field, :string
+    end
+  end
+
   defmodule AllTypes do
     use Ecto.Schema
 
@@ -59,6 +69,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
 
       belongs_to :belongs_to_field, BelongsToRelationship
       has_many :has_many_field, HasManyRelationship
+      has_one :has_one_field, HasOneRelationship
     end
   end
 
