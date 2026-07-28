@@ -8,9 +8,9 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
 
   # Routes for both resources are registered in test/support/app_web/routes.ex as
   # "ash-many2many-posts" and "ash-many2many-topics".
-  auix_resource_metadata :post, schema: Post do
-    field(:topics, option_label: :name)
-  end
+  # No `option_label:` on purpose: this module covers the label the renderer resolves from the
+  # related resource's own `:index` layout. The Ctx counterpart declares one explicitly.
+  auix_resource_metadata(:post, schema: Post)
 
   auix_resource_metadata(:topic, schema: Topic)
 
@@ -36,6 +36,18 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
 
       assert options_count(view) == 3
       assert selected_labels(view) == []
+    end
+
+    test "labels each option from the related resource when no option_label is declared", %{
+      conn: conn
+    } do
+      delete_all_blog_data()
+      {_posts, topics} = create_sample_posts_with_topics(0, 3)
+
+      {:ok, view, _html} = live(conn, "/ash-many2many-posts/new")
+
+      assert view |> option_labels() |> Enum.sort() ==
+               topics |> Enum.map(& &1.name) |> Enum.sort()
     end
 
     test "pre-selects exactly the current members on edit", %{conn: conn} do
@@ -147,6 +159,15 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
     |> LazyHTML.from_document()
     |> LazyHTML.query("select[multiple] option")
     |> Enum.count()
+  end
+
+  @spec option_labels(Phoenix.LiveViewTest.View.t()) :: list(binary())
+  defp option_labels(view) do
+    view
+    |> render()
+    |> LazyHTML.from_document()
+    |> LazyHTML.query("select[multiple] option")
+    |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
   end
 
   @spec selected_labels(Phoenix.LiveViewTest.View.t()) :: list(binary())
