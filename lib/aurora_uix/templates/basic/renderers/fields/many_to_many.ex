@@ -20,7 +20,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   - Emits a hidden empty-value sentinel so that de-selecting everything still submits the key, which
     is what makes clearing the last membership possible at all.
   - Honours the `option_label:` field option through the shared
-    `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`.
+    `Aurora.Uix.Templates.Basic.Helpers.get_select_options/1`; when the host declares none, the
+    label falls back to a conventional display column (`:name`, `:title`, …) of the related
+    resource's `:index` layout, instead of the record's raw primary key.
   - `:show` renders the same select disabled.
   - Renders nothing when the related schema is not a registered Aurora UIX resource.
 
@@ -44,6 +46,21 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   use Aurora.Uix.Gettext
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+
+  # An association or embed renders as a nested UI, never as a one-line option label.
+  @non_label_types [
+    :many_to_one_association,
+    :one_to_many_association,
+    :one_to_one_association,
+    :many_to_many_association,
+    :embeds_one,
+    :embeds_many
+  ]
+
+  # Column order is not comparable across backends -- Ctx keeps the schema's declaration order,
+  # Ash does not -- so the default label is chosen by name precedence rather than by position,
+  # and only falls back to position when a resource names none of these.
+  @preferred_label_names [:name, :title, :label, :reference, :code, :description, :slug]
 
   @doc """
   Renders a many-to-many association field.
@@ -111,12 +128,64 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   ## PRIVATE ##
 
   # Computes the option list, the selected primary keys and the label, shared by both layout types.
+  # The option list is resolved by `get_select_options/1` rather than built here, so the resolved
+  # `option_label` is injected into the field *before* the call.
   @spec assign_select(map(), map()) :: map()
   defp assign_select(assigns, field) do
     assigns
-    |> assign(:select_opts, BasicHelpers.get_select_options(assigns))
+    |> assign(:field, with_option_label(field, assigns.auix))
+    |> then(&assign(&1, :select_opts, BasicHelpers.get_select_options(&1)))
     |> assign(:selected, selected_ids(assigns))
     |> assign(:select_label, select_label(assigns, field))
+  end
+
+  # Without an `option_label:`, `get_select_options/1` labels every option with the record's own
+  # primary key, so the select renders a list of ids. The related resource already declares how it
+  # presents a record -- its `:index` layout -- so resolve a label from there and let the shared
+  # helper build the options exactly as it does for a host-declared `option_label:`.
+  @spec with_option_label(map(), map()) :: map()
+  defp with_option_label(%{data: %{option_label: _option_label}} = field, _auix), do: field
+
+  defp with_option_label(%{data: data} = field, %{configurations: configurations}) do
+    case default_option_label(configurations, data) do
+      nil -> field
+      option_label -> %{field | data: Map.put(data, :option_label, option_label)}
+    end
+  end
+
+  # Best `:index` column of the related resource to stand in for the record.
+  @spec default_option_label(map(), map()) :: atom() | nil
+  defp default_option_label(configurations, %{resource: resource}) do
+    candidates = label_candidates(configurations, resource)
+
+    Enum.find(@preferred_label_names, &(&1 in candidates)) || List.first(candidates)
+  end
+
+  # The `:index` columns that can stand in for the record: not part of the primary key, and not
+  # themselves an association or embed.
+  @spec label_candidates(map(), atom()) :: list(atom())
+  defp label_candidates(configurations, resource) do
+    primary_key =
+      configurations |> get_in([resource, :parsed_opts, :primary_key]) |> Kernel.||([])
+
+    configurations
+    |> get_in([resource, :layout_trees, :index, :inner_elements])
+    |> Kernel.||([])
+    |> Enum.flat_map(&column_name/1)
+    |> Enum.reject(&(&1 in primary_key))
+    |> Enum.filter(&label_candidate?(configurations, resource, &1))
+  end
+
+  # Nested layout tags carry a tuple name (or none); only plain columns can label an option.
+  @spec column_name(map()) :: list(atom())
+  defp column_name(%{tag: :field, name: name}) when is_atom(name), do: [name]
+  defp column_name(_layout_tree), do: []
+
+  @spec label_candidate?(map(), atom(), atom()) :: boolean()
+  defp label_candidate?(configurations, resource, name) do
+    %{name: name}
+    |> BasicHelpers.get_field(configurations, resource)
+    |> then(&(&1.type not in @non_label_types))
   end
 
   # Stable id: html_ids embed a global counter and are not stable across test ordering.
