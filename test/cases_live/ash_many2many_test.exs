@@ -31,11 +31,11 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
 
       {:ok, view, _html} = live(conn, "/ash-many2many-posts/new")
 
-      assert has_element?(view, "select[name='post[topics][]'][multiple]")
+      assert has_element?(view, "input[type='checkbox'][name='post[topics][]']")
       assert has_element?(view, "input[type='hidden'][name='post[topics][]']")
 
       assert options_count(view) == 3
-      assert selected_labels(view) == []
+      assert checked_ids(view) == []
     end
 
     test "labels each option from the related resource when no option_label is declared", %{
@@ -64,10 +64,13 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
       {:ok, view, _html} = live(conn, "/ash-many2many-posts/#{post.id}/edit")
 
       assert options_count(view) == 3
-      assert selected_labels(view) == [first.name]
+      assert checked_ids(view) == [first.id]
     end
   end
 
+  # These submit through the same `post[topics][]` key a `<select multiple>` used, and are
+  # deliberately untouched by the switch to checkboxes: their survival is the proof that the wire
+  # format did not change, and therefore that no host has to adapt.
   describe "writing membership through the parent form" do
     test "adds the selected topics as join rows", %{conn: conn} do
       delete_all_blog_data()
@@ -124,15 +127,37 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
     end
   end
 
+  # Only the submit round trip is covered here: resolving the candidates and merging them into the
+  # form params is backend-agnostic and is covered against Ctx. What is Ash-specific is that the
+  # toggled membership reaches `manage_relationship`.
+  describe "check all / uncheck all" do
+    test "a checked-all membership survives submit", %{conn: conn} do
+      delete_all_blog_data()
+      create_sample_posts_with_topics(0, 3)
+
+      {:ok, view, _html} = live(conn, "/ash-many2many-posts/new")
+
+      view
+      |> element("button[name='auix-many-to-many-check_all-topics']")
+      |> render_click()
+
+      view
+      |> form("#auix-post-form", %{"post" => %{"title" => "All topics", "content" => "Body"}})
+      |> render_submit()
+
+      assert count(PostTopic) == 3
+    end
+  end
+
   describe "show rendering" do
-    test "renders the membership select disabled", %{conn: conn} do
+    test "renders the membership checkboxes disabled", %{conn: conn} do
       delete_all_blog_data()
       {[post], _topics} = create_sample_posts_with_topics(1, 2)
 
       {:ok, view, _html} = live(conn, "/ash-many2many-posts/#{post.id}/show")
 
-      assert has_element?(view, "#auix-many-to-many-topics-show select[disabled][multiple]")
-      assert view |> selected_labels() |> Enum.count() == 2
+      assert has_element?(view, "#auix-many-to-many-topics-show input[type='checkbox'][disabled]")
+      assert view |> checked_ids() |> Enum.count() == 2
     end
   end
 
@@ -157,7 +182,7 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
     view
     |> render()
     |> LazyHTML.from_document()
-    |> LazyHTML.query("select[multiple] option")
+    |> LazyHTML.query(".auix-checkbox-group input[type='checkbox']")
     |> Enum.count()
   end
 
@@ -166,16 +191,18 @@ defmodule Aurora.UixWeb.Test.AshMany2ManyTest do
     view
     |> render()
     |> LazyHTML.from_document()
-    |> LazyHTML.query("select[multiple] option")
+    |> LazyHTML.query(".auix-checkbox-group-option-label")
     |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
   end
 
-  @spec selected_labels(Phoenix.LiveViewTest.View.t()) :: list(binary())
-  defp selected_labels(view) do
+  # Asserting on the submitted values rather than the labels: the value is what the round trip
+  # actually preserves.
+  @spec checked_ids(Phoenix.LiveViewTest.View.t()) :: list(binary())
+  defp checked_ids(view) do
     view
     |> render()
     |> LazyHTML.from_document()
-    |> LazyHTML.query("select[multiple] option[selected]")
-    |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
+    |> LazyHTML.query(".auix-checkbox-group input[type='checkbox'][checked]")
+    |> Enum.map(&(&1 |> LazyHTML.attribute("value") |> List.first()))
   end
 end

@@ -32,11 +32,11 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
 
       {:ok, view, _html} = live(conn, "/association/many_to_many/layout/products/new")
 
-      assert has_element?(view, "select[name='product[suppliers][]'][multiple]")
+      assert has_element?(view, "input[type='checkbox'][name='product[suppliers][]']")
       assert has_element?(view, "input[type='hidden'][name='product[suppliers][]']")
 
       assert options_count(view) == 3
-      assert selected_labels(view) == []
+      assert checked_ids(view) == []
     end
 
     test "pre-selects exactly the current members on edit", %{conn: conn} do
@@ -53,10 +53,13 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
         live(conn, "/association/many_to_many/layout/products/#{product.id}/edit")
 
       assert options_count(view) == 3
-      assert selected_labels(view) == [first.name]
+      assert checked_ids(view) == [first.id]
     end
   end
 
+  # These submit through the same `product[suppliers][]` key a `<select multiple>` used, and are
+  # deliberately untouched by the switch to checkboxes: their survival is the proof that the wire
+  # format did not change, and therefore that no host has to adapt.
   describe "writing membership through the parent form" do
     test "adds the selected suppliers as join rows", %{conn: conn} do
       delete_all_inventory_data()
@@ -120,16 +123,77 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
     end
   end
 
+  describe "check all / uncheck all" do
+    test "check all checks every candidate", %{conn: conn} do
+      delete_all_inventory_data()
+      {_products, suppliers} = create_sample_products_with_suppliers(0, 3)
+
+      {:ok, view, _html} = live(conn, "/association/many_to_many/layout/products/new")
+
+      view
+      |> element("button[name='auix-many-to-many-check_all-suppliers']")
+      |> render_click()
+
+      assert view |> checked_ids() |> Enum.sort() ==
+               suppliers |> Enum.map(& &1.id) |> Enum.sort()
+    end
+
+    test "uncheck all clears a membership", %{conn: conn} do
+      delete_all_inventory_data()
+      {[product], _suppliers} = create_sample_products_with_suppliers(1, 3)
+
+      {:ok, view, _html} =
+        live(conn, "/association/many_to_many/layout/products/#{product.id}/edit")
+
+      assert view |> checked_ids() |> Enum.count() == 3
+
+      view
+      |> element("button[name='auix-many-to-many-uncheck_all-suppliers']")
+      |> render_click()
+
+      assert checked_ids(view) == []
+    end
+
+    # The toggle has to reach `auix.form.params`, not just the DOM -- otherwise the submit would
+    # persist the pre-toggle membership.
+    test "a checked-all membership survives submit", %{conn: conn} do
+      delete_all_inventory_data()
+      create_sample_products_with_suppliers(0, 3)
+
+      {:ok, view, _html} = live(conn, "/association/many_to_many/layout/products/new")
+
+      view
+      |> element("button[name='auix-many-to-many-check_all-suppliers']")
+      |> render_click()
+
+      view
+      |> form("#auix-product-form", %{
+        "product" => %{
+          "reference" => "m2m_all",
+          "name" => "All suppliers",
+          "quantity_initial" => "5"
+        }
+      })
+      |> render_submit()
+
+      assert join_row_count() == 3
+    end
+  end
+
   describe "show rendering" do
-    test "renders the membership select disabled", %{conn: conn} do
+    test "renders the membership checkboxes disabled", %{conn: conn} do
       delete_all_inventory_data()
       {[product], _suppliers} = create_sample_products_with_suppliers(1, 2)
 
       {:ok, view, _html} =
         live(conn, "/association/many_to_many/layout/products/#{product.id}/show")
 
-      assert has_element?(view, "#auix-many-to-many-suppliers-show select[disabled][multiple]")
-      assert view |> selected_labels() |> Enum.count() == 2
+      assert has_element?(
+               view,
+               "#auix-many-to-many-suppliers-show input[type='checkbox'][disabled]"
+             )
+
+      assert view |> checked_ids() |> Enum.count() == 2
     end
   end
 
@@ -160,16 +224,18 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
     view
     |> render()
     |> LazyHTML.from_document()
-    |> LazyHTML.query("select[multiple] option")
+    |> LazyHTML.query(".auix-checkbox-group input[type='checkbox']")
     |> Enum.count()
   end
 
-  @spec selected_labels(Phoenix.LiveViewTest.View.t()) :: list(binary())
-  defp selected_labels(view) do
+  # Asserting on the submitted values rather than the labels: the value is what the round trip
+  # actually preserves.
+  @spec checked_ids(Phoenix.LiveViewTest.View.t()) :: list(binary())
+  defp checked_ids(view) do
     view
     |> render()
     |> LazyHTML.from_document()
-    |> LazyHTML.query("select[multiple] option[selected]")
-    |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
+    |> LazyHTML.query(".auix-checkbox-group input[type='checkbox'][checked]")
+    |> Enum.map(&(&1 |> LazyHTML.attribute("value") |> List.first()))
   end
 end
