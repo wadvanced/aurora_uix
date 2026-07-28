@@ -99,6 +99,26 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          AshOne2OneTest.Author,
+          "ash-one2one-authors"
+        )
+
+        RoutesHelper.register_crud(
+          AshOne2OneTest.AuthorProfile,
+          "ash-one2one-author-profiles"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationOne2OneUILayoutTest.Product,
+          "association/one_to_one/layout/products"
+        )
+
+        RoutesHelper.register_crud(
+          AssociationOne2OneUILayoutTest.ProductBarcode,
+          "association/one_to_one/layout/product_barcodes"
+        )
+
+        RoutesHelper.register_crud(
           AshEmbedsTest.Author,
           "ash-embeds-authors"
         )

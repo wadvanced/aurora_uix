@@ -25,7 +25,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Aurora.Uix.Guides.Inventory.{ProductLocation, ProductTransaction}
+  alias Aurora.Uix.Guides.Inventory.{ProductBarcode, ProductLocation, ProductTransaction}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
@@ -56,7 +56,8 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil,
-          product_transactions: list(ProductTransaction.t()) | Ecto.Association.NotLoaded.t()
+          product_transactions: list(ProductTransaction.t()) | Ecto.Association.NotLoaded.t(),
+          product_barcode: ProductBarcode.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
   schema "products" do
@@ -83,6 +84,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     field(:inactive, :boolean, default: false)
 
     has_many(:product_transactions, ProductTransaction)
+    has_one(:product_barcode, ProductBarcode, on_replace: :update)
     belongs_to(:product_location, ProductLocation, type: :binary_id)
 
     timestamps()
@@ -140,5 +142,6 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     |> validate_number(:width, greater_than_or_equal_to: 0)
     |> validate_number(:height, greater_than_or_equal_to: 0)
     |> foreign_key_constraint(:product_location_id)
+    |> cast_assoc(:product_barcode, with: &ProductBarcode.changeset/2)
   end
 end

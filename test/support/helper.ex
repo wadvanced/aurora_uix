@@ -9,10 +9,12 @@ defmodule Aurora.Uix.Test.Helper do
 
   alias Aurora.Uix.Guides.Accounts.User
   alias Aurora.Uix.Guides.Blog.Author
+  alias Aurora.Uix.Guides.Blog.AuthorProfile
   alias Aurora.Uix.Guides.Blog.Category
   alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
+  alias Aurora.Uix.Guides.Inventory.ProductBarcode
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
@@ -133,6 +135,68 @@ defmodule Aurora.Uix.Test.Helper do
         |> Repo.insert()
         |> elem(1))
     )
+  end
+
+  @doc """
+  Creates sample products, each with its single barcode.
+
+  Goes through `Inventory.create_product/1` rather than inserting directly, so the nested child is
+  built by the host's `cast_assoc` — the same write path the parent form exercises.
+
+  ## Parameters
+  - `count` (integer()) - Number of products to create.
+
+  ## Returns
+  list(Product.t()) - The created products.
+  """
+  @spec create_sample_products_with_barcodes(integer()) :: list(Product.t())
+  def create_sample_products_with_barcodes(count) do
+    Enum.map(1..count, fn index ->
+      {:ok, product} =
+        Inventory.create_product(%{
+          reference: "barcoded_#{index}",
+          name: "Barcoded item #{index}",
+          status: "in_stock",
+          quantity_initial: index,
+          product_barcode: %{
+            code: "400638133#{String.pad_leading(to_string(index), 4, "0")}",
+            symbology: "EAN-13",
+            registered_at: Date.add(~D[2026-01-01], index)
+          }
+        })
+
+      product
+    end)
+  end
+
+  @doc """
+  Creates sample authors, each with its single profile.
+
+  Passes the nested profile as an action argument, so Ash's `manage_relationship` builds the child —
+  the same write path the parent form exercises.
+
+  ## Parameters
+  - `count` (integer()) - Number of authors to create.
+
+  ## Returns
+  list(struct()) - The created authors.
+  """
+  @spec create_sample_authors_with_profiles(integer()) :: list(struct())
+  def create_sample_authors_with_profiles(count) do
+    Enum.map(1..count, fn index ->
+      Author
+      |> Ash.Changeset.for_create(:create, %{
+        name: "Profiled author #{index}",
+        email: "profiled#{index}@test.com",
+        bio: "Bio for profiled author #{index}",
+        author_profile: %{
+          website: "https://author-#{index}.test",
+          twitter_handle: "@author_#{index}",
+          years_active: index
+        }
+      })
+      |> Ash.create!()
+    end)
   end
 
   @doc """
@@ -258,6 +322,7 @@ defmodule Aurora.Uix.Test.Helper do
   @spec delete_all_inventory_data() :: :ok
   def delete_all_inventory_data do
     Repo.delete_all(ProductTransaction)
+    Repo.delete_all(ProductBarcode)
     Repo.delete_all(Product)
     Repo.delete_all(ProductLocation)
   end
@@ -276,6 +341,7 @@ defmodule Aurora.Uix.Test.Helper do
   @spec delete_all_blog_data() :: :ok
   def delete_all_blog_data do
     Repo.delete_all(Post)
+    Repo.delete_all(AuthorProfile)
     Repo.delete_all(Author)
     Repo.delete_all(Category)
   end

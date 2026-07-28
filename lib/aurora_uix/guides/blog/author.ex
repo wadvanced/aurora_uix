@@ -5,6 +5,7 @@ defmodule Aurora.Uix.Guides.Blog.Author do
   ## Key Features
 
   - Has many posts relationship
+  - Has one author profile, managed inline through the create and update actions
   - Email and bio fields
   - Standard CRUD actions
   - Custom non-paginated read action
@@ -35,15 +36,26 @@ defmodule Aurora.Uix.Guides.Blog.Author do
 
   relationships do
     has_many :posts, Aurora.Uix.Guides.Blog.Post
+    has_one :author_profile, Aurora.Uix.Guides.Blog.AuthorProfile
   end
 
   actions do
     default_accept [:name, :email, :bio]
 
-    defaults [:read, :destroy, :update]
+    defaults [:read, :destroy]
 
     create :create do
       accept [:name, :email, :bio]
+      argument :author_profile, :map, allow_nil?: true
+      change manage_relationship(:author_profile, :author_profile, type: :direct_control)
+    end
+
+    update :update do
+      accept [:name, :email, :bio]
+      # manage_relationship cannot run on Ash's atomic update path.
+      require_atomic? false
+      argument :author_profile, :map, allow_nil?: true
+      change manage_relationship(:author_profile, :author_profile, type: :direct_control)
     end
 
     read :read_all
