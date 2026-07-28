@@ -5,14 +5,22 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.4
+## Current Status: v0.1.5
 
-Aurora UIX v0.1.4 improves Ash Framework integration, allowing seamless CRUD UI generation for Ash resources alongside Ecto schemas.
+Aurora UIX v0.1.5 adds `has_one` and `many_to_many` association support, a runtime component override mechanism, per-layout custom field renderers, and Ash calculations/aggregates support, alongside a documentation reorganization.
 
-** Recent Changes (v0.1.4)**:
+**Recent Changes (v0.1.5)**:
+- `has_one` and `many_to_many` association support (both backends)
+- Runtime component override mechanism (`Aurora.Uix.ComponentsResolver`)
+- Per-layout custom field renderers (`index_renderer`, `edit_renderer`, `show_renderer`)
+- Ash calculations and aggregates auto-discovered and auto-loaded
+- Copyable inputs (copy-to-clipboard for text/textarea fields)
+- Guide reorganization into a dedicated Customization & Extension section
+
+**Previous Release (v0.1.4)**:
 - Improved Ash framework compatibility
 
-**Previous Release (v0.1.3)**:
+**Earlier Release (v0.1.3)**:
 - Ash Framework integration with full CRUD support
 - Automatic adapter detection for Ash resources
 - Support for Ash actions and changesets
@@ -142,7 +150,6 @@ Aurora UIX v0.1.4 improves Ash Framework integration, allowing seamless CRUD UI 
 **Objective**: Deeper support for complex relationship workflows.
 
 **Ideas**:
-- Many-to-many through-join tables (has_many :through)
 - Polymorphic associations
 - Association cascades (add/delete multiple related records)
 - Batch association updates
