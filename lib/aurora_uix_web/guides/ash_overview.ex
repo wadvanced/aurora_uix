@@ -21,10 +21,13 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
   use Aurora.Uix
 
   alias Aurora.Uix.Guides.Blog.Author
+  alias Aurora.Uix.Guides.Blog.AuthorProfile
   alias Aurora.Uix.Guides.Blog.Category
   alias Aurora.Uix.Guides.Blog.Comment
   alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Blog.Tag
+
+  auix_resource_metadata(:author__author_profile, ash_resource: AuthorProfile)
 
   auix_resource_metadata(:author, ash_resource: Author) do
     field :bio, html_type: :textarea
@@ -43,10 +46,18 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
   auix_create_ui do
     show_layout :author do
       stacked([:name, :email, :bio])
+
+      group "Author profile" do
+        inline([:author_profile])
+      end
     end
 
     edit_layout :author do
       inline([:name, :email, :bio])
+
+      group "Author profile" do
+        inline([:author_profile])
+      end
     end
 
     index_columns(:post, [:title, :author, :status])
