@@ -239,7 +239,7 @@ All the images are generated with proper data and format. This is the simplest w
 If you need to add or modify an image, do it in the "test/guides/capture_image.exs"
 
 ```bash
-MIX_ENV=test mix documentation
+mix test test/guides/capture_*.exs
 ```
 
 - Manually

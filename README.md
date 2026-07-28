@@ -33,10 +33,11 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Declarative Resource Metadata** — Define fields, validation, labels, and associations in a single, maintainable place.
 - **Flexible Layout DSL** — Compose complex UIs using `inline`, `stacked`, and `section` layout primitives.
 - **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
-- **Association Support** — First-class support for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`.
+- **Association Support** — First-class support for `belongs_to`, `has_many`, `has_one`, `many_to_many`, `embeds_one`, and `embeds_many`.
 - **Responsive Design** — Mobile-first layouts that work seamlessly on all devices.
 - **i18n Support** — Built-in internationalization via a configurable Gettext backend. Missing translations are automatically written to `.pot` files at runtime so translators always have up-to-date templates. Opt-in `Logger` warnings surface gaps during development. See the [Internationalization guide](./guides/core/internationalization.md).
 - **Customizable Themes** — Besides the included themes, you can create your own or override partially the existing ones.
+- **Runtime Component Overrides** — Replace individual core, filtering, or routing components at runtime via `Application` config, without forking the library. See [Customizing & Extending](./guides/customization/customization.md).
 
 **Technology Stack:**
 - Elixir `1.17+`
@@ -120,7 +121,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.4"}
+    {:aurora_uix, "~> 0.1.5"}
   ]
 end
 ```
