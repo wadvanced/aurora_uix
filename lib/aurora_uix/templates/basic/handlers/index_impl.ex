@@ -592,21 +592,22 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @doc """
   Handles info messages for the LiveView.
 
-  Processes save notifications by inserting entities into the stream, ignores other messages.
+  Processes save notifications by refreshing the current page from the data source, ignores
+  other messages.
 
   ## Parameters
   - `event_info` (term()) - Info message, typically `{component, {:saved, entity}}`.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with entity inserted into stream or unchanged.
+  `{:noreply, Socket.t()}` - Updated socket with the current page refreshed or unchanged.
   """
   @spec auix_handle_info(term(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_info(
-        {_component, {:saved, entity}},
-        %{assigns: %{auix: auix, streams: _streams}} = socket
+        {_component, {:saved, _entity}},
+        %{assigns: %{auix: _auix, streams: _streams}} = socket
       ) do
-    {:noreply, stream_insert(socket, auix.source_key, entity)}
+    {:noreply, refresh_current_page(socket)}
   end
 
   def auix_handle_info(_input, socket) do
