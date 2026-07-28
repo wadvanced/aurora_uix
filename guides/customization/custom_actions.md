@@ -118,6 +118,7 @@ The action system works by:
 
 ### One-to-Many & Embeds-Many Layout Actions
 
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  ┌─ :one_to_many_header_actions ──────────────────────┐  │
@@ -161,6 +162,39 @@ The action system works by:
 | `*_new_entry_action` | add, insert, replace, remove | *(none by default)* |
 | `*_existing_action` | add, insert, replace, remove | *(none by default)* |
 | `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+### Many-to-Many Layout Actions
+
+A many-to-many field renders as a list of checkboxes over the candidate records, with a header
+strip beside the label and an empty footer strip below the list.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Label                 ┌─ :many_to_many_header_actions ┐ │
+│                        │  Check all   Uncheck all      │ │
+│                        └───────────────────────────────┘ │
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  [x] Record A                                      │  │
+│  │  [ ] Record B                                      │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :many_to_many_footer_actions ─────────────────────┐  │
+│  │  (empty by default)                                │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+**many_to_many layout options:**
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | `:default_check_all`, `:default_uncheck_all` |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+The two defaults live in `Aurora.Uix.Templates.Basic.Actions.ManyToMany`. Both toggle the whole
+candidate list through a single server event, so the new membership lands in the form params and
+survives the next validation.
 
 ## Action Operations
 
@@ -368,7 +402,7 @@ This helper handles both single and composite primary keys:
 
 ## Association Actions
 
-For one-to-many and embeds-many associations, actions are configured similarly within the field configuration:
+For one-to-many, embeds-many and many-to-many associations, actions are configured similarly within the field configuration:
 
 ```elixir
 auix_create_ui do
@@ -381,6 +415,27 @@ auix_create_ui do
         add_header_action: {:custom_new, &__MODULE__.custom_new_transaction/1},
         replace_row_action: {:default_row_edit, &__MODULE__.custom_edit_transaction/1},
         add_footer_action: {:import, &__MODULE__.import_handler/1}
+      ]
+    ])
+  end
+end
+```
+
+The same keys target the many-to-many checkbox list. Because the key names are resolved against the
+field they are declared on, `add_header_action` here means the checkbox group's header — not the
+enclosing `edit_layout`'s:
+
+```elixir
+auix_create_ui do
+  edit_layout :product do
+    stacked([
+      :name,
+      suppliers: [
+        # Drop one of the two bulk toggles and add your own control beside the other
+        remove_header_action: :default_uncheck_all,
+        add_header_action: {:invert, &__MODULE__.invert_selection/1},
+        # The footer group ships empty and exists for exactly this
+        add_footer_action: {:manage, &__MODULE__.manage_suppliers_link/1}
       ]
     ])
   end

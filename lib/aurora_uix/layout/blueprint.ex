@@ -242,6 +242,12 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `replace_header_action: {name, &fun/1}`: Replaces a header action by name.
   - `remove_header_action: name`: Removes a header action by name (e.g., `:default_new`).
 
+  Association fields take the same option keys on the field itself, targeting that field's own
+  action groups rather than the layout's — see `Aurora.Uix.Templates.Basic.Actions.OneToMany`,
+  `Aurora.Uix.Templates.Basic.Actions.EmbedsMany` and
+  `Aurora.Uix.Templates.Basic.Actions.ManyToMany` (which defaults to `:default_check_all` and
+  `:default_uncheck_all`), plus the [Custom Actions](custom_actions.html) guide.
+
   ## Behavior
   - Renders an editable form layout for the resource.
   - Options allow customization of form titles, subtitles, and field arrangement.
