@@ -868,8 +868,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   ## Returns
 
-  map() - Map with association field types (`:one_to_many`, `:many_to_one`) as keys and lists of
-  field names as values.
+  map() - Map with association field types (`:one_to_many_association`, `:many_to_one_association`,
+  `:one_to_one_association`) as keys and lists of field names as values.
   """
   @spec extract_association_preload(map()) :: map()
   def extract_association_preload(parsed_opts) do
@@ -879,7 +879,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> Enum.map(&preload_entry_name/1)
     |> Enum.uniq()
     |> Enum.map(&get_field(%{name: &1}, parsed_opts.configurations, parsed_opts.resource_name))
-    |> Enum.filter(&(&1.type in [:many_to_one_association, :one_to_many_association]))
+    |> Enum.filter(
+      &(&1.type in [
+          :many_to_one_association,
+          :one_to_many_association,
+          :one_to_one_association
+        ])
+    )
     |> Enum.map(&{&1.type, &1.key})
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
   end

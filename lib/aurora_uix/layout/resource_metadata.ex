@@ -580,7 +580,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
   defp replace_related_field_data(%{type: type} = field, _related_changes)
-       when type in [:many_to_one_association, :one_to_many_association],
+       when type in [
+              :many_to_one_association,
+              :one_to_many_association,
+              :one_to_one_association
+            ],
        do: field
 
   defp replace_related_field_data(
