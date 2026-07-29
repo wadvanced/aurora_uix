@@ -1,5 +1,61 @@
 # Changelog for Aurora UIX
 
+## [0.1.6]
+
+**Multi-Value Selects & Read-Only Array Fields**
+
+This release closes a gap in array attribute handling: multi-value enums (atom or `Ecto.Enum`
+arrays with a fixed option set) are now recognized as multi-selects on both backends, and scalar
+arrays that carry no option set render as a read-only list instead of leaking a raw `{:array, _}`
+type into the UI. Ash enum modules and `NewType`-wrapped `one_of` constraints are now also detected
+as selects.
+
+Requires:
+- Elixir `1.17+`
+- Phoenix `1.8+`
+- Phoenix LiveView `1.1+`
+- Ecto `3.13+`
+
+### Fixes
+
+- **Multi-value atom and enum attributes not detected as multiple selects**
+  - An Ash `{:array, :atom}` with an `items: [one_of: ...]` constraint, and its Ecto counterpart
+    `{:array, Ecto.Enum}`, described a set of options the user picks from, but neither parser
+    recognized the array wrapper: the field never became a select and the raw type tuple leaked
+    into `type` and `html_type`.
+  - Cardinality travels in `data.select.multiple`, which the render layer already honored — no new
+    `%Field{}` type atom was needed.
+  - Multi-value selects are excluded from filtering: the filter strip renders a single-value input
+    and comparing it against an array column is a query-time error.
+  - The index cell now joins option labels for a multi-value select instead of raising, since
+    `Phoenix.HTML.Safe` does not accept a list of atoms.
+  - Guide schemas updated on both backends (`Blog.Post`, `Inventory.Product`) so a real multi-value
+    enum can be exercised end-to-end in tests.
+
+### Added
+
+- **Read-only rendering for scalar arrays**
+  - A scalar array attribute with no option set (no `one_of`, no enum) has no single-value input
+    that could round-trip it. Both parsers now normalize it to its item type instead of leaking
+    `{:array, _}` into `html_type`, and it renders as a read-only list — the same shape a
+    `many_to_many` uses for its `:show` membership — rather than a lying `<input
+    type="unimplemented">`.
+  - Index cells join list values for display instead of crashing on `Phoenix.HTML.Safe`.
+
+- **Ash enum modules and `NewType`-wrapped constraints detected as selects**
+  - A module implementing `use Ash.Type.Enum` keeps its values on the module rather than in the
+    attribute's constraints; it is now recognized by its `values/0` behaviour and rendered as a
+    select using `AshPhoenix.AshEnum.options_for_select/1`.
+  - A `NewType` narrowing an `Ash.Type.Atom`/`Ash.Type.Enum` subtype now resolves through to the
+    subtype's `one_of` (or the subtype's own enum module), instead of falling through to a text
+    input.
+
+### Changed
+
+- **Updated Dependencies**
+  - ash: 3.30.1 -> 3.31.0
+  - phoenix_live_reload: 1.6.2 -> 1.7.0
+
 ## [0.1.5] - 2026-07-28
 
 **Runtime Component Overrides & Guide Reorganization**
