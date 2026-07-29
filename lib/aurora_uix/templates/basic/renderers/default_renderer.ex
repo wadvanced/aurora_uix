@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToMany
   alias Aurora.Uix.Templates.Basic.Renderers.ManyToOne
+  alias Aurora.Uix.Templates.Basic.Renderers.MultiSelect
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
   alias Aurora.Uix.Templates.Basic.Renderers.OneToOne
   alias Aurora.Uix.Templates.Basic.Renderers.UploadRenderer
@@ -61,6 +62,15 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   def render(%{field: %{data: %{upload: upload_data}}} = assigns)
       when is_map(upload_data),
       do: UploadRenderer.render(assigns)
+
+  # A multi-value select renders as a checkbox group, for the reasons `MultiSelect` documents.
+  # Hidden fields stay on the generic clause below, which renders them as a single
+  # `<input type="hidden">` rather than a list of boxes nobody can see.
+  def render(
+        %{field: %{hidden: false, html_type: :select, data: %{select: %{multiple: true}}}} =
+          assigns
+      ),
+      do: MultiSelect.render(assigns)
 
   # Standard :show / :form field.
   def render(assigns) do

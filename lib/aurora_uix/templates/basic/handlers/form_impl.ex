@@ -221,10 +221,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   #   handle_event(event, params, entity_params, socket)
   # end
 
-  # The many-to-many toggle-all rides this same event rather than a `phx-click`: clicking a checkbox
-  # fires `click` and then `change`, and the trailing change would re-validate with the pre-click
-  # membership and undo the toggle. `_target` is what distinguishes it, exactly as the index layout
-  # distinguishes its row-selection checkboxes. Must precede the generic "validate" clause below.
+  # The many-to-many and multi-value select toggle-alls ride this same event rather than a
+  # `phx-click`: clicking a checkbox fires `click` and then `change`, and the trailing change would
+  # re-validate with the pre-click selection and undo the toggle. `_target` is what distinguishes
+  # it, exactly as the index layout distinguishes its row-selection checkboxes. Must precede the
+  # generic "validate" clause below.
   #
   # The leading blank reproduces the renderer's hidden sentinel, so the host's blank-rejection path
   # runs exactly as it does for a browser submit.
@@ -235,7 +236,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       ) do
     values =
       case Map.get(params, "auix_toggle_all__" <> field_key) do
-        "true" -> BasicHelpers.many_to_many_candidate_ids(socket.assigns, field_key)
+        "true" -> BasicHelpers.select_candidate_ids(socket.assigns, field_key)
         _cleared -> []
       end
 

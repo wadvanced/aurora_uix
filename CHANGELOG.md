@@ -34,6 +34,21 @@ Requires:
 
 ### Added
 
+- **Multi-value selects render as a checkbox group**
+  - A multi-value select no longer renders as a `<select multiple>`, which needs an undiscoverable
+    modifier-key gesture, is unusable on touch and has nowhere to host bulk controls. `:form` now
+    renders one checkbox per option through the shared `auix_checkbox_group` component, and `:show`
+    renders only the selected options as a read-only list with a `No options to show` empty state —
+    the same treatment `many_to_many` already had. Index cells are unchanged.
+  - Ships `:default_toggle_all`, a tri-state checkbox beside the label that selects or clears every
+    option, plus label / header / footer action strips registered under the new `:multi_select`
+    action group, so hosts add, replace or remove controls from the layout DSL field options.
+  - **Host contract:** like `many_to_many`, the group emits a hidden empty-value sentinel so that
+    unchecking the last box still submits the key and the field can be cleared. The host must reject
+    that blank — see `Blog.Post.reject_blank_labels/2` (Ash, which also needs
+    `constraints: [nil_items?: true]` on the attribute) and `Inventory.Product` (Ecto) for the two
+    reference implementations.
+
 - **Read-only rendering for scalar arrays**
   - A scalar array attribute with no option set (no `one_of`, no enum) has no single-value input
     that could round-trip it. Both parsers now normalize it to its item type instead of leaking
@@ -51,6 +66,10 @@ Requires:
     input.
 
 ### Changed
+
+- **`Templates.Basic.Helpers.many_to_many_candidate_ids/2` renamed to `select_candidate_ids/2`**
+  - It now resolves the candidate set of any multi-value select, not only a many-to-many membership.
+    The implementation is unchanged; only the name and docs are.
 
 - **Updated Dependencies**
   - ash: 3.30.1 -> 3.31.0

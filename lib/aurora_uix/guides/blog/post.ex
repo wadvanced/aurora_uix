@@ -43,8 +43,11 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
+    # `nil_items?: true` is the multi-value select's empty-list sentinel showing through: the
+    # renderer always submits one blank, Ash casts it to `nil`, and without this the whole list is
+    # rejected with "no nil values" before any change can strip it. `reject_blank_labels/2` does.
     attribute :labels, {:array, :atom} do
-      constraints items: [one_of: [:featured, :sponsored, :opinion]]
+      constraints nil_items?: true, items: [one_of: [:featured, :sponsored, :opinion]]
       public? true
     end
 
@@ -89,6 +92,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       primary? true
       argument :topics, {:array, :uuid}, allow_nil?: true, constraints: [nil_items?: true]
       change &__MODULE__.reject_blank_topics/2
+      change &__MODULE__.reject_blank_labels/2
       change manage_relationship(:topics, :topics, type: :append_and_remove)
     end
 
@@ -98,6 +102,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       require_atomic? false
       argument :topics, {:array, :uuid}, allow_nil?: true, constraints: [nil_items?: true]
       change &__MODULE__.reject_blank_topics/2
+      change &__MODULE__.reject_blank_labels/2
       change manage_relationship(:topics, :topics, type: :append_and_remove)
     end
 
@@ -134,6 +139,35 @@ defmodule Aurora.Uix.Guides.Blog.Post do
           changeset,
           :topics,
           Enum.reject(topics, &(is_nil(&1) or &1 == ""))
+        )
+
+      _other ->
+        changeset
+    end
+  end
+
+  @doc """
+  Drops the blank entry the multi-value select renderer always submits.
+
+  Same sentinel as `reject_blank_topics/2`, one layer down: `:labels` is a plain attribute rather
+  than a relationship argument, so the blank arrives already cast to `nil` (hence `nil_items?: true`
+  on the attribute) and is stripped here before the row is written.
+
+  ## Parameters
+  - `changeset` (Ash.Changeset.t()) - The changeset being built.
+  - `context` (term()) - Change context, unused.
+
+  ## Returns
+  Ash.Changeset.t() - The changeset with a cleaned `:labels` attribute.
+  """
+  @spec reject_blank_labels(Ash.Changeset.t(), term()) :: Ash.Changeset.t()
+  def reject_blank_labels(changeset, _context) do
+    case Ash.Changeset.fetch_change(changeset, :labels) do
+      {:ok, labels} when is_list(labels) ->
+        Ash.Changeset.force_change_attribute(
+          changeset,
+          :labels,
+          Enum.reject(labels, &(is_nil(&1) or &1 == ""))
         )
 
       _other ->

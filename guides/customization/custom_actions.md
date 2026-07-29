@@ -199,6 +199,41 @@ Clicking a checked toggle clears the membership; clicking it in either other sta
 everything. It rides the parent form's change event, so the new membership lands in the form params
 and survives the next validation.
 
+### Multi-Select Layout Actions
+
+A multi-value select — an array attribute whose values are constrained to a fixed set, such as an
+`{:array, Ecto.Enum}` field or an Ash array attribute with an `items: [one_of: …]` constraint —
+renders as the same checkbox list, over its declared options rather than over related records. It
+has the same three action strips.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ┌─ :multi_select_label_actions ─┐                       │
+│  │  Label  [-]                   │  ┌─ :..._header_actions ┐
+│  └───────────────────────────────┘  │  (empty by default) │
+│                                     └─────────────────────┘
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  [x] Fragile                                       │  │
+│  │  [ ] Perishable                                    │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :multi_select_footer_actions ─────────────────────┐  │
+│  │  (empty by default)                                │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+**multi_select layout options:**
+
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_label_action` | add, insert, replace, remove | `:default_toggle_all` |
+| `*_header_action` | add, insert, replace, remove | *(none by default)* |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+
+`:default_toggle_all` here lives in `Aurora.Uix.Templates.Basic.Actions.MultiSelect` and behaves
+exactly as the many-to-many one, over the option list instead of the candidate records.
+
 ## Action Operations
 
 Aurora UIX provides four operations to customize actions in layout options. The operation key you write combines the operation (`add_`, `insert_`, `replace_`, `remove_`) with the slot suffix (`_header_action`, `_row_action`, etc.) — for example `add_header_action`, `replace_row_action`. Because the same suffix maps to different internal groups per layout type, `add_header_action` inside `index_columns` targets the index header, while the same key inside `edit_layout` targets the form header.
@@ -424,9 +459,9 @@ auix_create_ui do
 end
 ```
 
-The same keys target the many-to-many checkbox list. Because the key names are resolved against the
-field they are declared on, `add_header_action` here means the checkbox group's header — not the
-enclosing `edit_layout`'s:
+The same keys target the many-to-many checkbox list — and, unchanged, a multi-value select's. Because
+the key names are resolved against the field they are declared on, `add_header_action` here means the
+checkbox group's header — not the enclosing `edit_layout`'s:
 
 ```elixir
 auix_create_ui do

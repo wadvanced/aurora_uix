@@ -43,8 +43,8 @@ defmodule Aurora.UixWeb.Guides.Overview do
         inline([:reference, :name])
         inline([:description])
 
-        group "Barcode details" do
-          inline([:product_barcode])
+        group "Details" do
+          stacked([:product_barcode, :labels])
         end
 
         inline([:product_location])
@@ -67,7 +67,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
           end
 
           section "Identities" do
-            stacked([:product_barcode])
+            stacked([:product_barcode, :labels])
           end
         end
 

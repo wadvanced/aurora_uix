@@ -1079,7 +1079,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   def get_select_options(_assigns), do: %{options: [], multiple: false}
 
   @doc """
-  Lists every candidate primary key for a many-to-many field, as strings.
+  Lists every candidate value of a multi-value select field, as strings.
+
+  Serves both widgets that render one: a many-to-many membership, whose candidates are the related
+  records' primary keys, and a plain multi-value select, whose candidates are its declared options.
 
   Resolves the field from the resource configurations and reuses `get_select_options/1`, so the
   candidate set is exactly the one the renderer shows — including any `query_opts` and, on Ash, any
@@ -1092,14 +1095,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   - `assigns` (map()) - The socket assigns, containing `:auix` with `configurations` and
     `resource_name`.
-  - `field_key` (binary()) - The many-to-many field name.
+  - `field_key` (binary()) - The field name.
 
   ## Returns
 
-  list(binary()) - The primary key of every candidate record.
+  list(binary()) - Every candidate value of the field.
   """
-  @spec many_to_many_candidate_ids(map(), binary()) :: list(binary())
-  def many_to_many_candidate_ids(%{auix: auix} = assigns, field_key) do
+  @spec select_candidate_ids(map(), binary()) :: list(binary())
+  def select_candidate_ids(%{auix: auix} = assigns, field_key) do
     field =
       get_field(
         %{name: String.to_existing_atom(field_key)},

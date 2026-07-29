@@ -84,6 +84,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          MultiSelectUIActionsTest.Product,
+          "multi-select-actions-products"
+        )
+
+        RoutesHelper.register_crud(
           AshMultiSelectTest.Post,
           "ash-multi-select-posts"
         )
