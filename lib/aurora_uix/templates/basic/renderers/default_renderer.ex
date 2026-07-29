@@ -111,6 +111,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
     """
   end
 
+  # A multi-value select holds a list, and `Phoenix.HTML.Safe` raises on a list of atoms, so the
+  # generic clause below cannot render one. Labels are joined the same way the form shows them.
+  defp index_value(%{field: %{html_type: :select, data: %{select: %{multiple: true}}}} = assigns) do
+    assigns = Map.put(assigns, :multi_select_labels, multi_select_labels(assigns))
+
+    ~H"""
+      {@multi_select_labels}
+    """
+  end
+
   defp index_value(%{field: %{key: :selected_check__}, entity: entity, auix: auix} = assigns) do
     assigns =
       Map.put(assigns, :selected_id, BasicHelpers.primary_key_value(entity, auix.primary_key))
@@ -130,6 +140,18 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
     ~H"""
     {Map.get(@entity, @field.key)}
     """
+  end
+
+  # Maps every selected value of a multi-value select to its option label, falling back to the raw
+  # value when the entity holds something the options no longer offer.
+  @spec multi_select_labels(map()) :: binary()
+  defp multi_select_labels(%{field: %{key: key, data: %{select: %{opts: opts}}}, entity: entity}) do
+    labels = Map.new(opts, fn {label, value} -> {to_string(value), label} end)
+
+    entity
+    |> Map.get(key)
+    |> List.wrap()
+    |> Enum.map_join(", ", &Map.get(labels, to_string(&1), to_string(&1)))
   end
 
   # --- show / form inputs ---
