@@ -260,6 +260,11 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp field_type(_attrs, %{ecto_type: :id}), do: :integer
 
+  # A scalar array that is not a select carries the item's type: the alternative is leaking the
+  # `{:array, _}` tuple, which crashes every renderer that interpolates `html_type`.
+  defp field_type(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_type(attrs, %{attribute | ecto_type: item_type})
+
   defp field_type(_attrs, %{ecto_type: ecto_type}), do: ecto_type
 
   # Maps an Elixir type to an HTML input type for form rendering.
@@ -288,6 +293,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   # associations it does have an HTML input type of its own.
   defp field_html_type(_attrs, %{ecto_type: %AssociationManyToMany{}} = _association),
     do: :select
+
+  # A scalar array has no single-value input that could round-trip it, so it renders read-only.
+  defp field_html_type(_attrs, %{ecto_type: {:array, _item_type}}), do: :unimplemented
 
   defp field_html_type(%{type: type}, _attribute)
        when type in [:string, :binary_id, :binary, :bitstring, :duration, Ecto.UUID],
@@ -322,6 +330,10 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the default placeholder text for a field based on its type.
   @spec field_placeholder(map(), map()) :: binary()
+  # An array's presentation follows its item type, exactly as `field_type/2` does.
+  defp field_placeholder(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_placeholder(attrs, %{attribute | ecto_type: item_type})
+
   defp field_placeholder(_name, %{ecto_type: ecto_type})
        when ecto_type in [Ecto.UUID, :binary_id],
        do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
@@ -336,11 +348,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the display length for a field based on its type.
   @spec field_length(map(), map()) :: integer()
-  defp field_length(
-         attrs,
-         %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{}}} = enum_type}} = attribute
-       ),
-       do: field_length(attrs, %{attribute | ecto_type: enum_type})
+  defp field_length(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_length(attrs, %{attribute | ecto_type: item_type})
 
   defp field_length(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
     opts
@@ -382,8 +391,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   # A multi-value select is excluded: the filter strip renders a single-value input, and comparing it
   # against an array column is a query-time error rather than an empty result.
   @spec field_filterable(map(), map()) :: boolean()
-  defp field_filterable(_attrs, %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{}}}}}),
-    do: false
+  # Same reasoning for a scalar array, which has no filter input of its own either.
+  defp field_filterable(_attrs, %{ecto_type: {:array, _item_type}}), do: false
 
   defp field_filterable(_attrs, %{ecto_type: ecto_type}),
     do: CommonFieldsParser.field_filterable(ecto_type)

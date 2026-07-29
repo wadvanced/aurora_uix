@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   """
 
   alias Ash.Resource.Info, as: AshResourceInfo
+  alias Ash.Type.NewType, as: AshNewType
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
@@ -35,14 +36,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   @atom_types [Ash.Type.Atom, Ash.Type.Atom.EctoType]
   @multiple_atom_types [{:array, Ash.Type.Atom}, {:array, Ash.Type.Atom.EctoType}]
   @selectable_atom_types @atom_types ++ @multiple_atom_types
-
-  @one_of_types @selectable_atom_types ++
-                  [
-                    Ash.Type.String,
-                    Ash.Type.String.EctoType,
-                    Ash.Type.Enum,
-                    Ash.Type.Enum.EctoType
-                  ]
 
   @doc """
   Parses all attributes from an Ash resource into Field structs.
@@ -142,7 +135,12 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       resource_schema |> to_string() |> String.replace_leading("Elixir\.", "")
 
     attrs =
-      %{resource_schema: resource_schema_string, resource: resource_name, key: field_key}
+      %{
+        resource_schema: resource_schema_string,
+        resource: resource_name,
+        key: field_key,
+        select: select_options(attribute)
+      }
       |> set(&field_type/2, :type, attribute)
       |> set(&field_html_type/2, :html_type, attribute)
       |> set(&field_label/2, :label, attribute)
@@ -157,7 +155,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> set(&field_data/2, :data, attribute)
 
     attrs
-    |> Map.delete(:resource_schema)
+    |> Map.drop([:resource_schema, :select])
     |> Field.new()
   end
 
@@ -286,9 +284,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Converts an Ash type to its corresponding Ecto type.
   @spec field_type(map() | nil, map()) :: atom()
-  # A multi-value atom (`{:array, :atom}` with `one_of`) is a list of the same strings a single-value
-  # atom holds; it stays `:string` so nothing downstream needs a new type atom, and its cardinality
+  # Every enum flavour -- `:atom` + `one_of`, a module enum, a NewType, and their array forms --
+  # stores strings, so it stays `:string` and nothing downstream needs a new type atom. Cardinality
   # travels in `data.select.multiple` instead.
+  defp field_type(%{select: {_opts, _multiple?}}, _attribute), do: :string
+
   defp field_type(_attrs, %{type: type})
        when type in [
               Ash.Type.Atom,
@@ -298,10 +298,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
               Ash.Type.CiString,
               Ash.Type.CiString.EctoType,
               Ash.Type.DurationName,
-              Ash.Type.DurationName.EctoType,
-              Ash.Type.Enum,
-              Ash.Type.Enum.EctoType
-            ] or type in @multiple_atom_types,
+              Ash.Type.DurationName.EctoType
+            ],
        do: :string
 
   defp field_type(_attrs, %{type: type})
@@ -397,6 +395,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_type(_attrs, %{embedded?: true}), do: :embeds_one
 
+  # A scalar array that is not a select carries the item's type: the alternative is leaking the
+  # `{:array, _}` tuple, which crashes every renderer that interpolates `html_type`.
+  defp field_type(attrs, %{type: {:array, item_type}} = attribute),
+    do: field_type(attrs, %{attribute | type: item_type})
+
   defp field_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :many_to_one_association
   defp field_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :one_to_many_association
   defp field_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :one_to_one_association
@@ -421,21 +424,24 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Maps an Ash type to an HTML input type for form rendering.
   @spec field_html_type(map() | nil, map()) :: atom()
-  defp field_html_type(attrs, %{type: resource_type} = attribute)
-       when resource_type in @selectable_atom_types do
-    if one_of(attribute) do
-      :select
-    else
-      Logger.warning("""
-              Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it makes sense to be used in conjuntion of ':one_of' constraint.
-              Setting values of NON existant atoms will raise an error on the host runtime. 
-      """)
+  defp field_html_type(%{select: {_opts, _multiple?}}, _attribute), do: :select
 
-      :text
-    end
+  # An atom without any of the enum markers has no option list to render, so it degrades to a text
+  # input -- and warns, because the host will raise at runtime on a value that is not a known atom.
+  defp field_html_type(attrs, %{type: resource_type})
+       when resource_type in @selectable_atom_types do
+    Logger.warning("""
+            Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it makes sense to be used in conjuntion of ':one_of' constraint.
+            Setting values of NON existant atoms will raise an error on the host runtime.
+    """)
+
+    :text
   end
 
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
+
+  # A scalar array has no single-value input that could round-trip it, so it renders read-only.
+  defp field_html_type(_attrs, %{type: {:array, _item_type}}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :unimplemented
@@ -469,17 +475,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Determines the display length for an Ash field based on its type.
   @spec field_length(map() | nil, map()) :: integer()
-  defp field_length(%{type: ecto_type}, %{type: resource_type} = attribute)
-       when resource_type in @one_of_types do
-    case one_of(attribute) do
-      nil ->
-        CommonFieldsParser.field_length(ecto_type)
-
-      values ->
-        values
-        |> Enum.map(&(&1 |> to_string() |> String.length()))
-        |> Enum.max()
-    end
+  defp field_length(%{select: {opts, _multiple?}}, _attribute) do
+    opts
+    |> Enum.map(fn {_label, value} -> value |> to_string() |> String.length() end)
+    |> Enum.max()
   end
 
   defp field_length(%{type: :binary_id}, _attribute), do: 36
@@ -518,9 +517,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   # A multi-value select is excluded: the filter strip renders a single-value input, and comparing it
   # against an array column is a query-time error rather than an empty result.
   @spec field_filterable(map(), map()) :: boolean()
-  defp field_filterable(_attrs, %{type: resource_type})
-       when resource_type in @multiple_atom_types,
-       do: false
+  defp field_filterable(%{select: {_opts, true}}, _attribute), do: false
+
+  # Same reasoning for a scalar array, which has no filter input of its own either.
+  defp field_filterable(_attrs, %{type: {:array, _item_type}, embedded?: false}), do: false
 
   defp field_filterable(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_filterable(ecto_type)
@@ -529,18 +529,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   @spec field_data(map(), map()) :: map()
   defp field_data(_attrs, %{generated_type: _generated_type}), do: %{generated: true}
 
-  defp field_data(_attrs, %{type: resource_type} = attribute)
-       when resource_type in @one_of_types do
-    case one_of(attribute) do
-      nil ->
-        %{}
-
-      values ->
-        values
-        |> Enum.map(&{CommonHelpers.capitalize(&1), &1})
-        |> then(&%{select: %{opts: &1, multiple: match?({:array, _type}, resource_type)}})
-    end
-  end
+  defp field_data(%{select: {opts, multiple?}}, _attribute),
+    do: %{select: %{opts: opts, multiple: multiple?}}
 
   defp field_data(attrs, %{type: {:array, related_schema}, embedded?: true} = attribute),
     do: field_data(attrs, Map.put(attribute, :type, related_schema))
@@ -638,16 +628,52 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
            ecto_type
          )
 
-  # Lists the values a `one_of` constrained attribute accepts, or nil when it has no such constraint.
-  # Ash nests an array's element constraints under `:items`, so a `{:array, :atom}` keeps its
-  # `one_of` one level deeper than a plain `:atom` does.
-  @spec one_of(map()) :: list() | nil
-  defp one_of(%{type: {:array, _type}, constraints: constraints}),
-    do: constraints |> Keyword.get(:items, []) |> Keyword.get(:one_of)
+  # Describes an attribute as a select -- `{options, multiple?}` -- or nil when it is not one.
+  #
+  # This is the single place that knows the three shapes an Ash enum can take, and it is resolved
+  # once per field in `parse_field/4` because none of them can be expressed in a guard: a module
+  # enum is an arbitrary host module, identified only by the behaviour it implements.
+  #
+  # Order matters. A module enum carries empty constraints, so the behaviour is checked first; and a
+  # NewType may narrow the values of the subtype it wraps, so its own `one_of` wins over the unwrap.
+  @spec select_options(map()) :: {list(), boolean()} | nil
+  defp select_options(%{type: {:array, item_type}, constraints: constraints} = attribute)
+       when is_list(constraints) do
+    item_attribute =
+      Map.merge(attribute, %{type: item_type, constraints: Keyword.get(constraints, :items, [])})
 
-  defp one_of(%{constraints: constraints}), do: Keyword.get(constraints, :one_of)
+    case select_options(item_attribute) do
+      {opts, _multiple?} -> {opts, true}
+      nil -> nil
+    end
+  end
 
-  defp one_of(_attribute), do: nil
+  defp select_options(%{type: type, constraints: constraints} = attribute)
+       when is_list(constraints) do
+    cond do
+      enum_module?(type) ->
+        {AshPhoenix.AshEnum.options_for_select(type), false}
+
+      Keyword.has_key?(constraints, :one_of) ->
+        {Enum.map(constraints[:one_of], &{CommonHelpers.capitalize(&1), &1}), false}
+
+      AshNewType.new_type?(type) ->
+        select_options(%{attribute | type: AshNewType.subtype_of(type)})
+
+      true ->
+        nil
+    end
+  end
+
+  defp select_options(_attribute), do: nil
+
+  # `use Ash.Type.Enum` keeps its values on the module rather than in the attribute's constraints,
+  # which is why an enum module has to be recognised by its behaviour.
+  @spec enum_module?(term()) :: boolean()
+  defp enum_module?(type) when is_atom(type) and not is_nil(type),
+    do: Code.ensure_loaded?(type) and function_exported?(type, :values, 0)
+
+  defp enum_module?(_type), do: false
 
   # Generates a unique resource identifier for embedded fields
   @spec field_embedded_resource(atom(), map() | atom()) :: atom()

@@ -20,6 +20,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.Gettext
 
+  import Aurora.Uix.Templates.Basic.Components
+
   alias Aurora.Uix.Counter
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer
@@ -137,9 +139,21 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   end
 
   defp index_value(assigns) do
+    assigns = Map.put(assigns, :value, index_cell_value(assigns))
+
     ~H"""
-    {Map.get(@entity, @field.key)}
+    {@value}
     """
+  end
+
+  # `Phoenix.HTML.Safe` accepts only bytes, binaries and lists, so any other list -- a scalar array
+  # attribute, for instance -- has to be joined before it reaches the template.
+  @spec index_cell_value(map()) :: term()
+  defp index_cell_value(%{entity: entity, field: %{key: key}}) do
+    case Map.get(entity, key) do
+      values when is_list(values) -> Enum.map_join(values, ", ", &to_string/1)
+      value -> value
+    end
   end
 
   # Maps every selected value of a multi-value select to its option label, falling back to the raw
@@ -157,6 +171,24 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   # --- show / form inputs ---
 
   @spec default_render_input(map()) :: Phoenix.LiveView.Rendered.t()
+  # There is no single-value input that could round-trip a scalar array, and `<input
+  # type="unimplemented">` would be a lie the browser silently renders as a text box. The value is
+  # displayed read-only instead -- the same shape a many_to_many uses for its `:show` membership.
+  defp default_render_input(%{field: %{html_type: :unimplemented}} = assigns) do
+    assigns = Map.put(assigns, :items, read_only_items(assigns))
+
+    ~H"""
+      <div class="auix-form-field-container">
+        <.auix_selected_list
+          id={"#{@field.html_id}-#{@auix.layout_type}"}
+          label={dt(@field.label)}
+          items={@items}
+          empty_message={dt("No items to show")}
+        />
+      </div>
+    """
+  end
+
   defp default_render_input(%{auix: %{layout_type: :form, primary_key: primary_key}} = assigns) do
     primary_key = if is_list(primary_key), do: List.first(primary_key), else: primary_key
 
@@ -205,6 +237,15 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
       </div>
     """
   end
+
+  # Reads the value from wherever the current layout keeps it -- the form on `:form`, the entity on
+  # `:show` -- and normalises it to the list the read-only display expects.
+  @spec read_only_items(map()) :: list()
+  defp read_only_items(%{auix: %{layout_type: :form, form: form}, field: %{key: key}}),
+    do: form[key].value |> List.wrap() |> Enum.map(&to_string/1)
+
+  defp read_only_items(%{auix: %{entity: entity}, field: %{key: key}}),
+    do: entity |> Map.get(key) |> List.wrap() |> Enum.map(&to_string/1)
 
   @spec maybe_set_one_to_many_relation_to_readonly(map(), nil | atom()) :: map()
   defp maybe_set_one_to_many_relation_to_readonly(
