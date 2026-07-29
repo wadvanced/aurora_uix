@@ -221,6 +221,15 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Maps an Elixir type to a field type, handling associations and embeds.
   @spec field_type(map(), map()) :: atom()
+  # Ecto wraps the array *outside* the parameterized enum, so a multi-value enum matches none of the
+  # single-value clauses below unless it is unwrapped first. It stays `:string` — nothing downstream
+  # needs a new type atom, the cardinality travels in `data.select.multiple`.
+  defp field_type(
+         attrs,
+         %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{}}} = enum_type}} = attribute
+       ),
+       do: field_type(attrs, %{attribute | ecto_type: enum_type})
+
   defp field_type(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{}}}}), do: :string
 
   defp field_type(
@@ -251,10 +260,18 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp field_type(_attrs, %{ecto_type: :id}), do: :integer
 
+  # A scalar array that is not a select carries the item's type: the alternative is leaking the
+  # `{:array, _}` tuple, which crashes every renderer that interpolates `html_type`.
+  defp field_type(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_type(attrs, %{attribute | ecto_type: item_type})
+
   defp field_type(_attrs, %{ecto_type: ecto_type}), do: ecto_type
 
   # Maps an Elixir type to an HTML input type for form rendering.
   @spec field_html_type(map(), map()) :: atom()
+  defp field_html_type(_attrs, %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{}}}}}),
+    do: :select
+
   defp field_html_type(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{}}}}), do: :select
 
   defp field_html_type(%{type: type}, _attribute) when type in [:embeds_one, :embeds_many],
@@ -276,6 +293,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   # associations it does have an HTML input type of its own.
   defp field_html_type(_attrs, %{ecto_type: %AssociationManyToMany{}} = _association),
     do: :select
+
+  # A scalar array has no single-value input that could round-trip it, so it renders read-only.
+  defp field_html_type(_attrs, %{ecto_type: {:array, _item_type}}), do: :unimplemented
 
   defp field_html_type(%{type: type}, _attribute)
        when type in [:string, :binary_id, :binary, :bitstring, :duration, Ecto.UUID],
@@ -310,6 +330,10 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the default placeholder text for a field based on its type.
   @spec field_placeholder(map(), map()) :: binary()
+  # An array's presentation follows its item type, exactly as `field_type/2` does.
+  defp field_placeholder(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_placeholder(attrs, %{attribute | ecto_type: item_type})
+
   defp field_placeholder(_name, %{ecto_type: ecto_type})
        when ecto_type in [Ecto.UUID, :binary_id],
        do: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
@@ -324,6 +348,9 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the display length for a field based on its type.
   @spec field_length(map(), map()) :: integer()
+  defp field_length(attrs, %{ecto_type: {:array, item_type}} = attribute),
+    do: field_length(attrs, %{attribute | ecto_type: item_type})
+
   defp field_length(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
     opts
     |> Enum.map(fn {_key, text} -> String.length(text) end)
@@ -361,16 +388,22 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_hidden(%{key: key}, _attribute), do: CommonFieldsParser.field_hidden(key)
 
   # Determines if a field should be filterable in queries
+  # A multi-value select is excluded: the filter strip renders a single-value input, and comparing it
+  # against an array column is a query-time error rather than an empty result.
   @spec field_filterable(map(), map()) :: boolean()
+  # Same reasoning for a scalar array, which has no filter input of its own either.
+  defp field_filterable(_attrs, %{ecto_type: {:array, _item_type}}), do: false
+
   defp field_filterable(_attrs, %{ecto_type: ecto_type}),
     do: CommonFieldsParser.field_filterable(ecto_type)
 
   # Extracts metadata for association fields including type-specific configuration.
   @spec field_data(map(), map()) :: map()
-  defp field_data(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}) do
-    opts = Enum.map(opts, fn {key, text} -> {field_label(%{key: text}, %{}), key} end)
-    %{select: %{opts: opts, multiple: false}}
-  end
+  defp field_data(_attrs, %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{mappings: opts}}}}}),
+       do: %{select: %{opts: select_opts(opts), multiple: true}}
+
+  defp field_data(_attrs, %{ecto_type: {:parameterized, {Ecto.Enum, %{mappings: opts}}}}),
+    do: %{select: %{opts: select_opts(opts), multiple: false}}
 
   defp field_data(%{resource: resource_name}, %{
          ecto_type: {:parameterized, {Ecto.Embedded, %Ecto.Embedded{} = embedded}}
@@ -415,6 +448,11 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
        when type in [:time_usec, :naive_datetime_usec, :utc_datetime_usec], do: %{step: 1}
 
   defp field_data(_attrs, _attribute), do: %{}
+
+  # Turns an `Ecto.Enum` mapping into the `{label, value}` pairs a select renders.
+  @spec select_opts(keyword()) :: list()
+  defp select_opts(mappings),
+    do: Enum.map(mappings, fn {key, text} -> {field_label(%{key: text}, %{}), key} end)
 
   # Generates a unique resource identifier for embedded fields
   @spec field_embedded_resource(atom(), map() | atom()) :: atom()

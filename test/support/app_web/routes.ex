@@ -79,6 +79,26 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          MultiSelectUITest.Product,
+          "multi-select-ui-products"
+        )
+
+        RoutesHelper.register_crud(
+          MultiSelectUIActionsTest.Product,
+          "multi-select-actions-products"
+        )
+
+        RoutesHelper.register_crud(
+          AshMultiSelectTest.Post,
+          "ash-multi-select-posts"
+        )
+
+        RoutesHelper.register_crud(
+          UnimplementedFieldUITest.Product,
+          "unimplemented-field-products"
+        )
+
+        RoutesHelper.register_crud(
           SeparatedSingleResourceUITest.Product,
           "separated-single-resource-products"
         )

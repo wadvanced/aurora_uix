@@ -69,9 +69,10 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
   test "Check field, stacked order", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/create-ui-default-layout-products/new")
 
-    __MODULE__
-    |> resource_configs()
-    |> get_in([Access.key!(:product), Access.key!(:fields_order)])
+    config = __MODULE__ |> resource_configs() |> get_in([Access.key!(:product)])
+
+    config.fields_order
+    |> reject_select_fields(config.fields)
     |> assert_stacked_order(html)
   end
 
@@ -99,6 +100,25 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
              "Use this form to manage <strong>Products</strong> records in your database"
   end
 
+  # A single-value select renders as `<select>` and a multi-value one as a group of checkboxes;
+  # neither contributes exactly one positional `<input>`, so both would shift the comparison.
+  # `scalar_field_name/1` drops them from the other side.
+  @spec reject_select_fields(list, map) :: list
+  defp reject_select_fields(fields_order, fields),
+    do: Enum.reject(fields_order, &(get_in(fields, [&1, Access.key!(:html_type)]) == :select))
+
+  # Keeps only the `product[key]` inputs: a multi-value select renders `product[key][]` boxes plus a
+  # toggle named outside the resource scope, and neither has a place in a positional comparison.
+  @spec scalar_field_name(LazyHTML.t()) :: list(binary())
+  defp scalar_field_name(input) do
+    with "product[" <> rest <- input |> LazyHTML.attribute("name") |> List.first(),
+         [key, ""] <- String.split(rest, "]") do
+      [key]
+    else
+      _other -> []
+    end
+  end
+
   @spec assert_stacked_order(list, binary) :: :ok
   defp assert_stacked_order(fields, html) do
     inputs =
@@ -107,13 +127,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
       |> LazyHTML.query(
         "form#auix-product-form div.auix-form-container>div.auix-stacked-container input:not([type='hidden'])"
       )
-      |> Enum.map(fn input ->
-        input
-        |> LazyHTML.attribute("name")
-        |> List.first()
-        |> String.replace("product[", "")
-        |> String.replace("]", "")
-      end)
+      |> Enum.flat_map(&scalar_field_name/1)
 
     fields_as_string = Enum.map(fields, &to_string/1)
     assert_values_order(fields_as_string, inputs)

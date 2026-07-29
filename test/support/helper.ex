@@ -346,7 +346,9 @@ defmodule Aurora.Uix.Test.Helper do
         }
         |> struct(attrs)
         |> Map.from_struct()
-        |> Enum.filter(&(elem(&1, 0) in [:title, :content, :status, :author_id, :tags, :comment]))
+        |> Enum.filter(
+          &(elem(&1, 0) in [:title, :content, :status, :labels, :author_id, :tags, :comment])
+        )
 
       Post
       |> Ash.Changeset.for_create(:create, change)

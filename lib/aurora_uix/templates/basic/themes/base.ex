@@ -2364,6 +2364,31 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_multi_select_container) do
+    """
+    .auix-multi-select-container {
+      display: flex;
+      flex-direction: column;
+      width: stretch;
+    }
+    .auix-multi-select-container > * {
+      flex: 1;
+    }
+    """
+  end
+
+  def rule(:auix_multi_select_footer_actions) do
+    """
+    /* auix-multi-select-footer-actions */
+
+    #{import_rule(:_auix_actions, :auix_multi_select_footer_actions)}
+    .auix-multi-select-footer-actions {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+    """
+  end
+
   def rule(:auix_one_to_one_container) do
     """
     .auix-one-to-one-container {

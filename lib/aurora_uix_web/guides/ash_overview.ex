@@ -65,14 +65,14 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
       end
     end
 
-    index_columns(:post, [:title, :author, :status])
+    index_columns(:post, [:title, :author, :status, :labels])
 
     show_layout :post do
       stacked([:status, :title, :author, :comment, :summary])
 
       group "markers" do
         inline([:tags])
-        inline([:topics])
+        inline([:topics, :labels])
       end
     end
 
@@ -89,6 +89,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
         group "markers" do
           inline([:tags])
           inline([:topics])
+          inline([:labels])
         end
 
         inline([:summary])

@@ -412,6 +412,57 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
             }
           }
         },
+        field_multi_status: %{
+          key: :field_multi_status,
+          type: :string,
+          html_type: :select,
+          renderer: nil,
+          resource: :all_types,
+          name: "field_multi_status",
+          label: "Field Multi Status",
+          placeholder: "",
+          length: 9,
+          precision: 0,
+          scale: 0,
+          hidden: false,
+          readonly: false,
+          required: false,
+          disabled: false,
+          omitted: false,
+          filterable?: false,
+          data: %{
+            select: %{
+              opts: [
+                {"Draft", :draft},
+                {"Published", :published},
+                {"Archived", :archived}
+              ],
+              multiple: true
+            }
+          }
+        },
+        # A scalar array has no editor, but it must still carry the item's type rather than leak the
+        # `{:array, _}` tuple that would crash every renderer interpolating `html_type`.
+        field_string_array: %{
+          key: :field_string_array,
+          type: :string,
+          html_type: :unimplemented,
+          renderer: nil,
+          resource: :all_types,
+          name: "field_string_array",
+          label: "Field String Array",
+          placeholder: "Field String Array",
+          length: 255,
+          precision: 0,
+          scale: 0,
+          hidden: false,
+          readonly: false,
+          required: false,
+          disabled: false,
+          omitted: false,
+          filterable?: false,
+          data: %{}
+        },
         embeds_many: %{
           key: :embeds_many,
           type: :embeds_many,

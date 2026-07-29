@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   - Has many product transactions relationship
   - Belongs to product location
   - Status tracking with deleted and inactive flags
+  - Multi-value labels (fragile, perishable, hazardous)
   - Binary image and thumbnail storage
 
   ## Key Constraints
@@ -60,6 +61,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
           image: binary() | nil,
           thumbnail: binary() | nil,
           status: binary() | nil,
+          labels: list(atom()) | nil,
           deleted: boolean() | nil,
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,
@@ -89,6 +91,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     field(:image, :binary)
     field(:thumbnail, :binary)
     field(:status, :string, default: "in_stock")
+    field(:labels, {:array, Ecto.Enum}, values: [:fragile, :perishable, :hazardous])
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
@@ -114,6 +117,8 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   """
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(product, attrs) do
+    attrs = reject_blank_labels(attrs)
+
     product
     |> cast(attrs, [
       :reference,
@@ -121,6 +126,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
       :description,
       :product_location_id,
       :status,
+      :labels,
       :quantity_at_hand,
       :quantity_initial,
       :quantity_entries,
@@ -157,6 +163,18 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     |> cast_assoc(:product_barcode, with: &ProductBarcode.changeset/2)
     |> put_suppliers(attrs)
   end
+
+  # The multi-value select renders an empty-value sentinel so that de-selecting every label still
+  # submits the key; without it the field could never be cleared. `{:array, Ecto.Enum}` has no member
+  # for a blank, so it is dropped before `cast/3` sees the list.
+  @spec reject_blank_labels(map()) :: map()
+  defp reject_blank_labels(%{"labels" => labels} = attrs) when is_list(labels),
+    do: %{attrs | "labels" => reject_blanks(labels)}
+
+  defp reject_blank_labels(%{labels: labels} = attrs) when is_list(labels),
+    do: %{attrs | labels: reject_blanks(labels)}
+
+  defp reject_blank_labels(attrs), do: attrs
 
   # Many-to-many membership arrives as a list of supplier ids, which `cast/3` cannot handle -- an
   # association is not a field. The library only transports the list; resolving it to records and

@@ -94,6 +94,20 @@ defmodule Aurora.Uix.Action do
       replace_footer_action: {:many_to_many_footer_actions, :replace_auix_action},
       remove_footer_action: {:many_to_many_footer_actions, :remove_auix_action}
     },
+    multi_select: %{
+      add_label_action: {:multi_select_label_actions, :add_auix_action},
+      insert_label_action: {:multi_select_label_actions, :insert_auix_action},
+      replace_label_action: {:multi_select_label_actions, :replace_auix_action},
+      remove_label_action: {:multi_select_label_actions, :remove_auix_action},
+      add_header_action: {:multi_select_header_actions, :add_auix_action},
+      insert_header_action: {:multi_select_header_actions, :insert_auix_action},
+      replace_header_action: {:multi_select_header_actions, :replace_auix_action},
+      remove_header_action: {:multi_select_header_actions, :remove_auix_action},
+      add_footer_action: {:multi_select_footer_actions, :add_auix_action},
+      insert_footer_action: {:multi_select_footer_actions, :insert_auix_action},
+      replace_footer_action: {:multi_select_footer_actions, :replace_auix_action},
+      remove_footer_action: {:multi_select_footer_actions, :remove_auix_action}
+    },
     embeds_many: %{
       add_header_action: {:embeds_many_header_actions, :add_auix_action},
       insert_header_action: {:embeds_many_header_actions, :insert_auix_action},

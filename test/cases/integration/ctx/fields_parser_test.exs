@@ -68,6 +68,10 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
       field :field_duration, :duration
       field :field_status, Ecto.Enum, values: [:draft, :published, :archived]
 
+      field :field_multi_status, {:array, Ecto.Enum}, values: [:draft, :published, :archived]
+
+      field :field_string_array, {:array, :string}
+
       embeds_many :embeds_many, EmbedsMany, on_replace: :delete do
         field(:name, :string)
       end
