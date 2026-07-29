@@ -412,6 +412,35 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
             }
           }
         },
+        field_multi_status: %{
+          key: :field_multi_status,
+          type: :string,
+          html_type: :select,
+          renderer: nil,
+          resource: :all_types,
+          name: "field_multi_status",
+          label: "Field Multi Status",
+          placeholder: "",
+          length: 9,
+          precision: 0,
+          scale: 0,
+          hidden: false,
+          readonly: false,
+          required: false,
+          disabled: false,
+          omitted: false,
+          filterable?: false,
+          data: %{
+            select: %{
+              opts: [
+                {"Draft", :draft},
+                {"Published", :published},
+                {"Archived", :archived}
+              ],
+              multiple: true
+            }
+          }
+        },
         embeds_many: %{
           key: :embeds_many,
           type: :embeds_many,

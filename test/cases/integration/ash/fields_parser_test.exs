@@ -110,6 +110,10 @@ defmodule AllTypes do
       default :draft
     end
 
+    attribute :field_multi_status, {:array, :atom} do
+      constraints items: [one_of: [:draft, :published, :archived]]
+    end
+
     attribute :embeds_many, {:array, EmbedsMany}
     attribute :embeds_one, EmbedsOne
   end

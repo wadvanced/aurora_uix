@@ -75,6 +75,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
       :image,
       :thumbnail,
       :status,
+      :labels,
       :deleted,
       :inactive,
       :product_location_id,

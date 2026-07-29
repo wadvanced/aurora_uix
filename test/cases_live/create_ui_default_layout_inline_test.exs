@@ -14,11 +14,18 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutInlineTest do
   test "Check field, inline order", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/create-ui-default-layout-inline-products/new")
 
-    __MODULE__
-    |> resource_configs()
-    |> get_in([Access.key!(:product), Access.key!(:fields_order)])
+    config = __MODULE__ |> resource_configs() |> get_in([Access.key!(:product)])
+
+    config.fields_order
+    |> reject_select_fields(config.fields)
     |> assert_inline_order(html)
   end
+
+  # A select renders as `<select>`, so it never appears among the queried inputs and would shift the
+  # whole comparison by one.
+  @spec reject_select_fields(list, map) :: list
+  defp reject_select_fields(fields_order, fields),
+    do: Enum.reject(fields_order, &(get_in(fields, [&1, Access.key!(:html_type)]) == :select))
 
   @spec assert_inline_order(list, binary) :: :ok
   defp assert_inline_order(fields, html) do
