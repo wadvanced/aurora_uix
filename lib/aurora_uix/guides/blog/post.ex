@@ -6,6 +6,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
 
   - Belongs to author and category
   - Status tracking (draft, published, archived)
+  - Multi-value labels (featured, sponsored, opinion)
   - Publication timestamp support
   - Embedded tags array for categorization
 
@@ -42,6 +43,11 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       default :draft
     end
 
+    attribute :labels, {:array, :atom} do
+      constraints items: [one_of: [:featured, :sponsored, :opinion]]
+      public? true
+    end
+
     attribute :tags, {:array, Tag}, public?: true
 
     attribute :comment, Comment do
@@ -69,6 +75,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
       :title,
       :content,
       :status,
+      :labels,
       :tags,
       :comment,
       :published_at,

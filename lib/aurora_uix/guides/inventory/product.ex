@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
   - Has many product transactions relationship
   - Belongs to product location
   - Status tracking with deleted and inactive flags
+  - Multi-value labels (fragile, perishable, hazardous)
   - Binary image and thumbnail storage
 
   ## Key Constraints
@@ -60,6 +61,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
           image: binary() | nil,
           thumbnail: binary() | nil,
           status: binary() | nil,
+          labels: list(atom()) | nil,
           deleted: boolean() | nil,
           inactive: boolean() | nil,
           inserted_at: DateTime.t() | nil,
@@ -89,6 +91,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
     field(:image, :binary)
     field(:thumbnail, :binary)
     field(:status, :string, default: "in_stock")
+    field(:labels, {:array, Ecto.Enum}, values: [:fragile, :perishable, :hazardous])
     field(:deleted, :boolean, default: false)
     field(:inactive, :boolean, default: false)
 
@@ -121,6 +124,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
       :description,
       :product_location_id,
       :status,
+      :labels,
       :quantity_at_hand,
       :quantity_initial,
       :quantity_entries,
