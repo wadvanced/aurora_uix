@@ -89,6 +89,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          UnimplementedFieldUITest.Product,
+          "unimplemented-field-products"
+        )
+
+        RoutesHelper.register_crud(
           SeparatedSingleResourceUITest.Product,
           "separated-single-resource-products"
         )

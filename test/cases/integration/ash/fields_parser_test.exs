@@ -1,5 +1,13 @@
 Code.require_file("test/cases/integration/fields_parser_validations_test.exs")
 
+defmodule ModuleEnum do
+  use Ash.Type.Enum, values: [:draft, published: [label: "Live"], archived: nil]
+end
+
+defmodule NewTypeEnum do
+  use Ash.Type.NewType, subtype_of: :atom, constraints: [one_of: [:draft, :published, :archived]]
+end
+
 defmodule EmbedsMany do
   use Ash.Resource,
     data_layer: :embedded,
@@ -114,6 +122,12 @@ defmodule AllTypes do
       constraints items: [one_of: [:draft, :published, :archived]]
     end
 
+    attribute :field_string_array, {:array, :string}
+    attribute :field_module_enum, ModuleEnum
+    attribute :field_multi_module_enum, {:array, ModuleEnum}
+    attribute :field_new_type_enum, NewTypeEnum
+    attribute :field_multi_new_type_enum, {:array, NewTypeEnum}
+
     attribute :embeds_many, {:array, EmbedsMany}
     attribute :embeds_one, EmbedsOne
   end
@@ -176,5 +190,55 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
       |> Map.new(&{&1.key, &1})
 
     assert Validations.compare_maps(validations, parsed_schema) == []
+  end
+
+  # Ash-only: neither shape has an Ecto counterpart, so they stay out of the shared golden map.
+  describe "enum flavours without a `one_of` constraint" do
+    test "a module enum takes its options -- and their labels -- from the module" do
+      field = parsed_field(:field_module_enum)
+
+      assert field.type == :string
+      assert field.html_type == :select
+      assert field.filterable?
+      assert field.length == 9
+
+      # `:published` declares a label, the other two fall back to Ash's humanized default.
+      assert field.data == %{
+               select: %{
+                 opts: [{"Draft", :draft}, {"Live", :published}, {"Archived", :archived}],
+                 multiple: false
+               }
+             }
+    end
+
+    test "a NewType is unwrapped to the constraints its subtype carries" do
+      field = parsed_field(:field_new_type_enum)
+
+      assert field.html_type == :select
+
+      assert field.data == %{
+               select: %{
+                 opts: [{"Draft", :draft}, {"Published", :published}, {"Archived", :archived}],
+                 multiple: false
+               }
+             }
+    end
+
+    test "the array form of either is a multiple select, and is not filterable" do
+      for key <- [:field_multi_module_enum, :field_multi_new_type_enum] do
+        field = parsed_field(key)
+
+        assert field.html_type == :select
+        assert field.data.select.multiple
+        refute field.filterable?
+      end
+    end
+  end
+
+  @spec parsed_field(atom()) :: Aurora.Uix.Field.t()
+  defp parsed_field(key) do
+    AllTypes
+    |> Ash.FieldsParser.parse_fields(:all_types)
+    |> Enum.find(&(&1.key == key))
   end
 end

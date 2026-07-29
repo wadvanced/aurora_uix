@@ -441,6 +441,28 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
             }
           }
         },
+        # A scalar array has no editor, but it must still carry the item's type rather than leak the
+        # `{:array, _}` tuple that would crash every renderer interpolating `html_type`.
+        field_string_array: %{
+          key: :field_string_array,
+          type: :string,
+          html_type: :unimplemented,
+          renderer: nil,
+          resource: :all_types,
+          name: "field_string_array",
+          label: "Field String Array",
+          placeholder: "Field String Array",
+          length: 255,
+          precision: 0,
+          scale: 0,
+          hidden: false,
+          readonly: false,
+          required: false,
+          disabled: false,
+          omitted: false,
+          filterable?: false,
+          data: %{}
+        },
         embeds_many: %{
           key: :embeds_many,
           type: :embeds_many,
