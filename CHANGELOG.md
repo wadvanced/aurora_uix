@@ -27,6 +27,12 @@ Requires:
     as any other string option.
   - The index subtitle `<:subtitle>` slot is now only rendered `:if` `page_subtitle` is set, instead
     of always being present with an empty-string default that rendered a blank line.
+  - The `:edit_subtitle` and `:new_subtitle` form defaults previously embedded `<strong>…</strong>`
+    markup around the resource name, relying on the removed `render_binary/2` raw-HTML wrapping to
+    render it unescaped. Since these are plain strings now, the markup is dropped in favor of a
+    plain `'…'` quoting (`"Creates a new 'Product' record in your database"`); the now-dead
+    `Aurora.Uix.Layout.Options.render_binary/2` helper is removed. Also fixes `edit_subtitle` never
+    being routed through `dt/1`/Gettext, unlike its `new_subtitle`/`edit_title`/`new_title` siblings.
 
 - **Multi-value atom and enum attributes not detected as multiple selects**
   - An Ash `{:array, :atom}` with an `items: [one_of: ...]` constraint, and its Ecto counterpart
