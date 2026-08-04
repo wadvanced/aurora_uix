@@ -82,8 +82,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
       /* containers */
       --auix-color-show-content-bg: var(--auix-color-bg-default);
       --auix-color-form-container-bg: var(--auix-color-bg-default);
-      --auix-color-group-container-border: var(--auix-color-border-primary);
-      --auix-color-group-container-bg: var(--auix-color-bg-light);
+      /* Flat by default — a group always sits inside a container that already
+         paints a card, so painting one here nests two identical surfaces */
+      --auix-color-group-container-border: transparent;
+      --auix-color-group-container-bg: transparent;
       --auix-color-one-to-many-text: var(--auix-color-text-primary);
       --auix-color-one-to-many-border: var(--auix-color-border-primary);
       --auix-color-form-field-input-border: var(--auix-color-border-primary);
