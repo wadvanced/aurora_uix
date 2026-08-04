@@ -44,7 +44,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.MultiSelect do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components
 

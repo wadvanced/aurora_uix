@@ -34,13 +34,13 @@ defmodule Aurora.Uix.GettextBackend do
   ## Replacing this backend
 
   Pass a different module via the `:gettext_backend` application key or via the `:backend` option
-  on `use Aurora.Uix.Gettext`:
+  on `use Aurora.Uix.GettextResolver`:
 
   ```elixir
   config :aurora_uix, gettext_backend: MyApp.CustomGettextBackend
   ```
 
-  See `Aurora.Uix.Gettext` for the backend resolution order.
+  See `Aurora.Uix.GettextResolver` for the backend resolution order.
   """
   use Gettext.Backend, otp_app: :aurora_uix
 

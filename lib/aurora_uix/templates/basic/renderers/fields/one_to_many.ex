@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Integration.Crud
 

@@ -29,7 +29,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ManyToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Phoenix.Component, only: [sigil_H: 2]
 

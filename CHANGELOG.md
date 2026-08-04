@@ -18,6 +18,22 @@ Requires:
 
 ### Fixes
 
+- **Title/subtitle layout options no longer run through dynamic-template rendering**
+  - `edit_title`, `edit_subtitle`, `new_title`, `new_subtitle`, index `page_title`, and show
+    `page_title`/`page_subtitle` defaults are plain interpolated strings, but
+    `LayoutOptions.get_option/3` special-cased every binary title/subtitle option through
+    `LayoutOptions.render_binary/2` (dynamic template evaluation) regardless. That special-case,
+    and the `@title_options` list backing it, are removed — these options are returned as-is, same
+    as any other string option.
+  - The index subtitle `<:subtitle>` slot is now only rendered `:if` `page_subtitle` is set, instead
+    of always being present with an empty-string default that rendered a blank line.
+  - The `:edit_subtitle` and `:new_subtitle` form defaults previously embedded `<strong>…</strong>`
+    markup around the resource name, relying on the removed `render_binary/2` raw-HTML wrapping to
+    render it unescaped. Since these are plain strings now, the markup is dropped in favor of a
+    plain `'…'` quoting (`"Creates a new 'Product' record in your database"`); the now-dead
+    `Aurora.Uix.Layout.Options.render_binary/2` helper is removed. Also fixes `edit_subtitle` never
+    being routed through `dt/1`/Gettext, unlike its `new_subtitle`/`edit_title`/`new_title` siblings.
+
 - **Multi-value atom and enum attributes not detected as multiple selects**
   - An Ash `{:array, :atom}` with an `items: [one_of: ...]` constraint, and its Ecto counterpart
     `{:array, Ecto.Enum}`, described a set of options the user picks from, but neither parser
@@ -33,6 +49,13 @@ Requires:
     enum can be exercised end-to-end in tests.
 
 ### Added
+
+- **Separate font-size variables for group titles and index empty states**
+  - `--auix-font-size-title` drove the page title, group headings and the index empty-state message
+    at once, so a host that wanted a larger page title had to override `.auix-group-title` by class
+    to stop group headings growing with it. `--auix-font-size-group-title` and
+    `--auix-font-size-empty-state` now cover those two roles and default to
+    `var(--auix-font-size-title)`, so nothing changes until one of them is set.
 
 - **Multi-value selects render as a checkbox group**
   - A multi-value select no longer renders as a `<select multiple>`, which needs an undiscoverable
@@ -76,6 +99,30 @@ Requires:
     `assigns`-receiving functions already supported by per-layout title/subtitle options.
 
 ### Changed
+
+- **`Aurora.Uix.Gettext` renamed to `Aurora.Uix.GettextResolver`**
+  - The old name shadowed the `Gettext` library module, so code generated inside the macro's own
+    `__using__/1` block could not call `Gettext.*` directly without the ambiguity. Every internal
+    `use Aurora.Uix.Gettext` call site is updated; host apps using this macro must update the same.
+  - The macro's injected `backend/0` helper is now private (`gettext_backend/0`) — it is only ever
+    called from code generated in the same module, and being public caused it to be pulled in by
+    `import Aurora.Uix.Templates.Basic.Helpers`, conflicting with an identically-named local
+    function there.
+
+- **Group containers are now flat by default** (visual change)
+  - `.auix-group-container` painted a full card — background, border, radius — but a group is
+    always rendered inside a container that already paints one (`.auix-show-content`,
+    `.auix-form-container` or `.auix-sections-content`), so any `group`-based layout produced
+    card-inside-card. `--auix-color-group-container-bg` and `--auix-color-group-container-border`
+    now default to `transparent`; padding and border width are unchanged, so spacing and vertical
+    rhythm stay identical.
+  - To keep the previous look, restore the two variables in your own stylesheet:
+    ```css
+    :root {
+      --auix-color-group-container-bg: var(--auix-color-bg-light);
+      --auix-color-group-container-border: var(--auix-color-border-primary);
+    }
+    ```
 
 - **`Templates.Basic.Helpers.many_to_many_candidate_ids/2` renamed to `select_candidate_ids/2`**
   - It now resolves the candidate set of any multi-value select, not only a many-to-many membership.

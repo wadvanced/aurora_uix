@@ -83,7 +83,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component
-        use Aurora.Uix.Gettext
+        use Aurora.Uix.GettextResolver
         alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         unquote(extract_function)

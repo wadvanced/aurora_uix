@@ -52,15 +52,6 @@ defmodule Aurora.Uix.Layout.Options do
                               ShowOptions,
                               FormOptions
                             ]
-  @title_options Application.compile_env(:aurora_uix, :layout_title_options, []) ++
-                   [
-                     :edit_title,
-                     :edit_subtitle,
-                     :new_title,
-                     :new_subtitle,
-                     :page_title,
-                     :page_subtitle
-                   ]
 
   @doc """
   Retrieves the list of available options for the layout.
@@ -230,46 +221,7 @@ defmodule Aurora.Uix.Layout.Options do
       when is_function(value, 1),
       do: {:ok, value.(assigns)}
 
-  def get_option(assigns, value, option)
-      when is_binary(value) and option in @title_options,
-      do: {:ok, LayoutOptions.render_binary(assigns, value)}
-
   def get_option(_assigns, value, _option), do: {:ok, value}
-
-  @doc """
-  Renders a given value as a binary within a HEEx template.
-
-  This helper function is used to safely render a value by embedding it into an assigns map
-  and then rendering it with a `~H` sigil. The value is first passed through `raw/1` to
-  prevent HTML escaping.
-
-  ## Parameters
-
-  - `assigns` (map()) - The assigns map for the template.
-  - `value` (term()) - The value to be rendered.
-
-  ## Returns
-
-  - `Phoenix.LiveView.Rendered.t()` - The rendered HEEx content containing the value.
-
-  ## Examples
-
-  ```elixir
-  iex> assigns = %{}
-  iex> rendered = Aurora.Uix.Layout.Options.render_binary(assigns, "Hello, World!")
-  iex> Phoenix.HTML.safe_to_string(rendered)
-  "Hello, World!"
-  ```
-  """
-  @spec render_binary(map(), term()) :: Phoenix.LiveView.Rendered.t()
-  def render_binary(assigns, value) do
-    assigns =
-      value
-      |> raw()
-      |> then(&Map.put(assigns, :auix_option_value, &1))
-
-    ~H"{@auix_option_value}"
-  end
 
   @doc """
   Normalizes a value into a display binary.

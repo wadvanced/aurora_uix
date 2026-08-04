@@ -22,7 +22,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   use Phoenix.Component
 
   import Aurora.Uix.Templates.Basic.Components

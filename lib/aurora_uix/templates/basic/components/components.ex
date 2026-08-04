@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   """
   use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.ComponentsResolver, :basic_components
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS

@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   * `:edit_subtitle` - The subtitle for the edit form.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
-    - Default: `"Use this form to manage <strong>{title}</strong> records in your database"`, where `{title}` is the resource title.
+    - Default: `"Use this form to manage '{title}' records in your database"`, where `{title}` is the resource title.
 
   * `:new_title` - The title for the new resource form.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   * `:new_subtitle` - The subtitle for the new resource form.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
-    - Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the resource name.
+    - Default: `"Creates a new '{name}' record in your database"`, where `{name}` is the resource name.
 
   * `:save_action_label` - The text to show for the save action button.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
@@ -42,27 +42,19 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{auix: %{name: name}} = assigns, :edit_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "Edit #{LayoutOptions.parse_value(name)}")}
+  defp get_default(%{auix: %{name: name}}, :edit_title),
+    do: {:ok, "Edit #{LayoutOptions.parse_value(name)}"}
 
-  defp get_default(%{auix: %{title: title}} = assigns, :edit_subtitle),
+  defp get_default(%{auix: %{title: title}}, :edit_subtitle),
     do:
       {:ok,
-       LayoutOptions.render_binary(
-         assigns,
-         "Use this form to manage <strong>#{LayoutOptions.parse_value(title)}</strong> records in your database"
-       )}
+       "Use this form to manage '#{LayoutOptions.parse_value(title)}' records in your database"}
 
-  defp get_default(%{auix: %{name: name}} = assigns, :new_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "New #{LayoutOptions.parse_value(name)}")}
+  defp get_default(%{auix: %{name: name}}, :new_title),
+    do: {:ok, "New #{LayoutOptions.parse_value(name)}"}
 
-  defp get_default(%{auix: %{name: name}} = assigns, :new_subtitle),
-    do:
-      {:ok,
-       LayoutOptions.render_binary(
-         assigns,
-         "Creates a new <strong>#{LayoutOptions.parse_value(name)}</strong> record in your database"
-       )}
+  defp get_default(%{auix: %{name: name}}, :new_subtitle),
+    do: {:ok, "Creates a new '#{LayoutOptions.parse_value(name)}' record in your database"}
 
   defp get_default(%{auix: %{name: name}}, :save_action_label),
     do: {:ok, "Save #{LayoutOptions.parse_value(name)}"}

@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   > which will import either this module or a custom one as configured in your application or template.
 
   """
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   use Phoenix.Component
 
   use Aurora.Uix.ComponentsResolver, :core_components
@@ -744,9 +744,9 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(backend(), "errors", msg, msg, count, opts)
+      Gettext.dngettext(gettext_backend(), "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(backend(), "errors", msg, opts)
+      Gettext.dgettext(gettext_backend(), "errors", msg, opts)
     end
   end
 

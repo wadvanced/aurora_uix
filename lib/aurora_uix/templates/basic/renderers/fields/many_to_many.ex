@@ -64,7 +64,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components
 

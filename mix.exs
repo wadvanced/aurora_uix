@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.6-rc.2"
+  @version "0.1.6-rc.3"
 
   def project do
     [
@@ -191,7 +191,7 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.ComponentsResolver,
             Aurora.Uix.ComponentsResolverHelper,
             Aurora.Uix.CoreComponentsImporter,
-            Aurora.Uix.Gettext,
+            Aurora.Uix.GettextResolver,
             Aurora.Uix.GettextBackend,
             Aurora.Uix.Helpers.Common,
             Aurora.Uix.RouteHelper

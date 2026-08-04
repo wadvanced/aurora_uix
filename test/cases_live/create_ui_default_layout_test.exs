@@ -46,7 +46,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
 
     assert view
            |> element("div#auix-product-new-modal header")
-           |> render() =~ "Creates a new <strong>Product</strong> record in your database"
+           |> render() =~ "Creates a new &#39;Product&#39; record in your database"
 
     assert view
            |> form("#auix-product-form",
@@ -97,7 +97,7 @@ defmodule Aurora.UixWeb.Test.CreateUIDefaultLayoutTest do
     assert view
            |> element("div#auix-product-edit-modal header")
            |> render() =~
-             "Use this form to manage <strong>Products</strong> records in your database"
+             "Use this form to manage &#39;Products&#39; records in your database"
   end
 
   # A single-value select renders as `<select>` and a multi-value one as a group of checkboxes;

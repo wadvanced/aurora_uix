@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   - Layout must be available for the embedded resource.
   """
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer

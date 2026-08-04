@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   use Phoenix.LiveComponent
 
   import Aurora.Uix.Integration.Crud

@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   use Phoenix.LiveView
 
   import Aurora.Uix.Templates.Basic.Components
@@ -57,7 +57,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <div id={"auix-table-#{@auix.uri_path_id}-index-title"}>
           {dt(@auix.layout_options.page_title)}
         </div>
-        <:subtitle>
+        <:subtitle :if={! is_nil(@auix.layout_options.page_subtitle)}>
           {dt(@auix.layout_options.page_subtitle)}
         </:subtitle>
       </.header>

@@ -1374,7 +1374,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     .auix-items-table-empty {
       width: 100%;
       text-align: center;
-      font-size: var(--auix-font-size-title);
+      font-size: var(--auix-font-size-empty-state);
       font-weight: var(--auix-font-weight-bold);
     }
     """
@@ -2158,8 +2158,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
     .auix-group-title {
       margin: 0;
-      font-weight: var(--auix-font-weight-bold);     
-      font-size: var(--auix-font-size-title);
+      font-weight: var(--auix-font-weight-bold);
+      font-size: var(--auix-font-size-group-title);
     }
     """
   end

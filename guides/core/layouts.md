@@ -324,9 +324,9 @@ end
 
 **Options:**
 - `:edit_title` — Title for edit form (default: `"Edit {name}"`)
-- `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage <strong>{title}</strong> records in your database"`)
+- `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage '{title}' records in your database"`)
 - `:new_title` — Title for create form (default: `"New {name}"`)
-- `:new_subtitle` — Subtitle for create form (default: `"Creates a new <strong>{name}</strong> record in your database"`)
+- `:new_subtitle` — Subtitle for create form (default: `"Creates a new '{name}' record in your database"`)
 - `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
 
 #### Show Layout Options
