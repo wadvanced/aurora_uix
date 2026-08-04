@@ -61,7 +61,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   def edit_header_action(assigns) do
     ~H"""
       <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show-edit"} name={"auix-edit-#{@auix.module}"}>
-        <.button>{dt("Edit")} {@auix.name}</.button>
+        <.button>{dt(@auix.layout_options.edit_action_label)}</.button>
       </.auix_link>
     """
   end
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   def back_footer_action(assigns) do
     ~H"""
       <div name="auix-show-navigate-back">
-        <.auix_back>Back to {@auix.title}</.auix_back>
+        <.auix_back>{dt(@auix.layout_options.back_action_label)}</.auix_back>
       </div>
     """
   end

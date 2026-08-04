@@ -22,6 +22,18 @@ defmodule Aurora.Uix.Layout.Options do
     end
   end
   ```
+
+  ## Function-valued options
+
+  Two distinct function mechanisms are supported, and they are not interchangeable:
+
+  - **Layout options** (e.g. `:page_title`, `:edit_title`, `:new_action_label`) accept an
+    arity-1 function that receives `assigns` and returns a `Phoenix.LiveView.Rendered.t()`.
+    See `get_option/3`.
+  - **Resource `name`/`title` metadata** (set via `auix_resource_metadata/3`, consumed as
+    `assigns.auix.name` / `assigns.auix.title`) additionally accepts a **0-arity** function
+    returning a `binary()`, resolved through `parse_value/1`. This is what every title,
+    subtitle and action-label default interpolates when building its display string.
   """
 
   import Phoenix.Component, only: [sigil_H: 2]
@@ -258,6 +270,49 @@ defmodule Aurora.Uix.Layout.Options do
 
     ~H"{@auix_option_value}"
   end
+
+  @doc """
+  Normalizes a value into a display binary.
+
+  Used to resolve resource `name`/`title` metadata (and similar values) into the binary
+  ultimately interpolated into title, subtitle and action-label defaults. Unlike the
+  arity-1 functions accepted by `get_option/3` (which receive `assigns`), this accepts a
+  **0-arity** function, letting `name`/`title` be computed independently of the render
+  context.
+
+  ## Parameters
+
+  - `value` (`nil | binary() | function()`) - The raw value to normalize:
+    - `nil` resolves to `""`.
+    - A `binary()` is returned as-is.
+    - A 0-arity function is called and its result returned.
+    - Any other value is converted with `to_string/1`.
+
+  ## Returns
+
+  - `binary()` - The resolved display value.
+
+  ## Examples
+
+  ```elixir
+  iex> Aurora.Uix.Layout.Options.parse_value(nil)
+  ""
+
+  iex> Aurora.Uix.Layout.Options.parse_value("Product")
+  "Product"
+
+  iex> Aurora.Uix.Layout.Options.parse_value(fn -> "Product" end)
+  "Product"
+  ```
+  """
+  @spec parse_value(nil | binary() | function()) :: binary()
+  def parse_value(nil), do: ""
+
+  def parse_value(name) when is_binary(name), do: name
+
+  def parse_value(name_fun) when is_function(name_fun, 0), do: name_fun.()
+
+  def parse_value(name), do: to_string(name)
 
   ## PRIVATE
 

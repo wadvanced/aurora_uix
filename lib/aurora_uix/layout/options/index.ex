@@ -26,6 +26,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:page_subtitle` - The subtitle for the index list.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
     - Default: `""`.
+  * `:new_action_label` - The label used in the "new" action button.
+    - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
+      `Aurora.Uix.Layout.Options.parse_value/1`).
+    - Default: `"New {name}"`, where `{name}` is the resource name.
   * `:get_streams` - Function for extracting row data from assigns
   * `:row_id` - Function for extracting row identifiers
   """
@@ -118,7 +122,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
     do: {:ok, false}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}} = assigns, :page_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{title}")}
+    do: {:ok, LayoutOptions.render_binary(assigns, "Listing #{LayoutOptions.parse_value(title)}")}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :page_subtitle),
     do: {:ok, ""}
@@ -137,6 +141,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
     do: {:ok, @default_items_per_page}
+
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}, name: name}}, :new_action_label),
+    do: {:ok, "New #{LayoutOptions.parse_value(name)}"}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :alternate_streams_suffixes),
     do: {:ok, ["mobile"]}

@@ -15,6 +15,16 @@ defmodule Aurora.Uix.Layout.Options.Show do
     - Accepts a `binary()` or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
     - Default: `"Detail"`
 
+  * `:edit_action_label` - The edit text that will appear in the action button.
+    - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
+      `Aurora.Uix.Layout.Options.parse_value/1`).
+    - Default: `"Edit {name}"`, where `{name}` is the resource name.
+
+  * `:back_action_label` - The text for the back action.
+    - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
+      `Aurora.Uix.Layout.Options.parse_value/1`).
+    - Default: `"Back to {title}"`, where `{title}` is the resource title.
+
   * `:record_navigator` - Controls the display position of the record navigation bar.
     - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
     - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
@@ -28,10 +38,22 @@ defmodule Aurora.Uix.Layout.Options.Show do
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{layout_tree: %{tag: :show}, name: name}} = assigns, :page_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "#{name}")}
+    do: {:ok, LayoutOptions.render_binary(assigns, "#{LayoutOptions.parse_value(name)}")}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :show}}} = assigns, :page_subtitle),
     do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
+
+  defp get_default(
+         %{auix: %{layout_tree: %{tag: :show}, name: name}},
+         :edit_action_label
+       ),
+       do: {:ok, "Edit #{LayoutOptions.parse_value(name)}"}
+
+  defp get_default(
+         %{auix: %{layout_tree: %{tag: :show}, title: title}},
+         :back_action_label
+       ),
+       do: {:ok, "Back to #{LayoutOptions.parse_value(title)}"}
 
   defp get_default(_assigns, :record_navigator),
     do: {:ok, [:top, :bottom]}

@@ -59,7 +59,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   @spec save_action(map()) :: Rendered.t()
   def save_action(assigns) do
     ~H"""
-    <.button phx-disable-with={dt("Saving...")} name={"auix-save-#{@auix.module}"}>{dt("Save")} {@auix.name}</.button>
+    <.button phx-disable-with={dt("Saving...")} name={"auix-save-#{@auix.module}"}>{dt(@auix.layout_options.save_action_label)}</.button>
     """
   end
 
