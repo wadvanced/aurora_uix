@@ -52,15 +52,6 @@ defmodule Aurora.Uix.Layout.Options do
                               ShowOptions,
                               FormOptions
                             ]
-  @title_options Application.compile_env(:aurora_uix, :layout_title_options, []) ++
-                   [
-                     :edit_title,
-                     :edit_subtitle,
-                     :new_title,
-                     :new_subtitle,
-                     :page_title,
-                     :page_subtitle
-                   ]
 
   @doc """
   Retrieves the list of available options for the layout.
@@ -229,10 +220,6 @@ defmodule Aurora.Uix.Layout.Options do
   def get_option(assigns, value, _option)
       when is_function(value, 1),
       do: {:ok, value.(assigns)}
-
-  def get_option(assigns, value, option)
-      when is_binary(value) and option in @title_options,
-      do: {:ok, LayoutOptions.render_binary(assigns, value)}
 
   def get_option(_assigns, value, _option), do: {:ok, value}
 

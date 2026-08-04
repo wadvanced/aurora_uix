@@ -37,11 +37,11 @@ defmodule Aurora.Uix.Layout.Options.Show do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{auix: %{layout_tree: %{tag: :show}, name: name}} = assigns, :page_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "#{LayoutOptions.parse_value(name)}")}
+  defp get_default(%{auix: %{layout_tree: %{tag: :show}, name: name}}, :page_title),
+    do: {:ok, "#{LayoutOptions.parse_value(name)}"}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :show}}} = assigns, :page_subtitle),
-    do: {:ok, LayoutOptions.render_binary(assigns, "Details")}
+  defp get_default(%{auix: %{layout_tree: %{tag: :show}}}, :page_subtitle),
+    do: {:ok, "Details"}
 
   defp get_default(
          %{auix: %{layout_tree: %{tag: :show}, name: name}},
