@@ -191,7 +191,7 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.ComponentsResolver,
             Aurora.Uix.ComponentsResolverHelper,
             Aurora.Uix.CoreComponentsImporter,
-            Aurora.Uix.Gettext,
+            Aurora.Uix.GettextResolver,
             Aurora.Uix.GettextBackend,
             Aurora.Uix.Helpers.Common,
             Aurora.Uix.RouteHelper

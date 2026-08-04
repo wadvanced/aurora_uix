@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
   alias Aurora.Uix.Templates.Basic.Renderer
 
   @doc """

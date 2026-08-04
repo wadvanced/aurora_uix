@@ -96,7 +96,7 @@ defmodule Aurora.Uix.Renderer do
       @behaviour Aurora.Uix.Renderer
 
       use Aurora.Uix.CoreComponentsImporter
-      use Aurora.Uix.Gettext
+      use Aurora.Uix.GettextResolver
 
       import Aurora.Uix.Renderer, only: [display_value: 1, form_field: 1]
     end

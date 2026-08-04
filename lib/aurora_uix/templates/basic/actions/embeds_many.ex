@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Phoenix.Component, only: [sigil_H: 2, live_component: 1]
 

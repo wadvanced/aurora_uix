@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   use Phoenix.Component
   use Phoenix.LiveComponent
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Integration.Crud
   alias Aurora.Uix.Action

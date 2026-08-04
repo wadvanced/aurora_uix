@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.)
   - Requires resource modules to implement CRUD operations via Aurora.Uix.Integration.Crud
   """
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers

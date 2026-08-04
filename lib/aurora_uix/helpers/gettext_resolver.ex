@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Gettext do
+defmodule Aurora.Uix.GettextResolver do
   @moduledoc """
   Injects Gettext functionality with configurable backend support.
 
@@ -17,16 +17,16 @@ defmodule Aurora.Uix.Gettext do
   ## Examples
   ```elixir
   defmodule MyApp.Gettext do
-    use Aurora.Uix.Gettext
+    use Aurora.Uix.GettextResolver
   end
 
   defmodule MyApp.Gettext do
-    use Aurora.Uix.Gettext, backend: MyCustomBackend
+    use Aurora.Uix.GettextResolver, backend: MyCustomBackend
   end
 
   # Usage in modules
   defmodule MyApp.Web do
-    use Aurora.Uix.Gettext
+    use Aurora.Uix.GettextResolver
   end
 
   # Then use standard Gettext functions
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Gettext do
 
   require Logger
 
-  @gettext_domain Application.compile_env(:aurora_uix, :gettext_domain, nil)
+  @gettext_domain Application.compile_env(:aurora_uix, :gettext_domain, "default")
 
   @doc false
   @spec __using__(keyword()) :: Macro.t()
@@ -52,14 +52,7 @@ defmodule Aurora.Uix.Gettext do
     backend_module =
       Application.get_env(:aurora_uix, :gettext_backend, default_backend)
 
-    gettext_domain = @gettext_domain
-
-    dt_implementation =
-      if gettext_domain do
-        domain_dt_implementation(gettext_domain)
-      else
-        default_dt_implementation()
-      end
+    dt_implementation = domain_dt_implementation(@gettext_domain)
 
     # For deprecated implementation
     gettext_module = Application.get_env(:aurora_uix, :gettext)
@@ -77,11 +70,11 @@ defmodule Aurora.Uix.Gettext do
 
     quote do
       unquote(implementation)
-      @gettext_domain unquote(gettext_domain)
+      @gettext_domain unquote(@gettext_domain)
       unquote(dt_implementation)
 
-      @doc false
-      def backend do
+      @spec gettext_backend() :: module()
+      defp gettext_backend do
         unquote(backend_module)
       end
     end
@@ -95,33 +88,12 @@ defmodule Aurora.Uix.Gettext do
 
         case msgid do
           binary when is_binary(binary) ->
-            quote do: dgettext(unquote(domain), unquote(binary))
+            quote do: Gettext.dgettext(gettext_backend(), unquote(domain), unquote(binary))
 
           _dynamic ->
             quote do
               if is_binary(unquote(msgid)) do
-                Gettext.dgettext(backend(), unquote(domain), unquote(msgid))
-              else
-                unquote(msgid)
-              end
-            end
-        end
-      end
-    end
-  end
-
-  @spec default_dt_implementation() :: Macro.t()
-  defp default_dt_implementation do
-    quote do
-      defmacrop dt(msgid) do
-        case msgid do
-          binary when is_binary(binary) ->
-            quote do: gettext(unquote(binary))
-
-          _dynamic ->
-            quote do
-              if is_binary(unquote(msgid)) do
-                Gettext.gettext(backend(), unquote(msgid))
+                Gettext.dgettext(gettext_backend(), unquote(domain), unquote(msgid))
               else
                 unquote(msgid)
               end

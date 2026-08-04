@@ -1,6 +1,6 @@
-defmodule Aurora.Uix.Helpers.GettextTest do
+defmodule Aurora.Uix.Helpers.GettextResolverTest do
   use ExUnit.Case, async: true
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   @spec test_translation() :: binary()
   def test_translation, do: dt("Save")
@@ -11,13 +11,13 @@ defmodule Aurora.Uix.Helpers.GettextTest do
   @spec passthrough(term()) :: term()
   def passthrough(value), do: dt(value)
 
-  describe "Aurora.Uix.Gettext" do
-    test "dt/1 is available after use Aurora.Uix.Gettext" do
+  describe "Aurora.Uix.GettextResolver" do
+    test "dt/1 is available after use Aurora.Uix.GettextResolver" do
       assert test_translation() == "Save"
     end
 
     test "@gettext_domain module attribute is set" do
-      assert gettext_domain() == nil
+      assert gettext_domain() == "default"
     end
 
     test "dt/1 leaves non-binary dynamic values unchanged" do

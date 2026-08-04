@@ -4,7 +4,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   @doc """
   Renders a file upload field.

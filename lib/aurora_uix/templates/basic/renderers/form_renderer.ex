@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components,
     only: [record_navigator_bar: 1, record_navigator?: 2]

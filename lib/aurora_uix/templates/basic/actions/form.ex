@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
   """
 
   use Aurora.Uix.CoreComponentsImporter
-  use Aurora.Uix.Gettext
+  use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Templates.Basic.Actions

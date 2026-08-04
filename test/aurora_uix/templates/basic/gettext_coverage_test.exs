@@ -53,19 +53,19 @@ defmodule Aurora.Uix.Templates.Basic.GettextCoverageTest do
       refute core_components =~ "gettext(\"close\")"
       refute core_components =~ "gettext(\"Success!\")"
       assert core_components =~ "dt(\"close\")"
-      assert core_components =~ "Gettext.dngettext(backend(), \"errors\""
-      assert core_components =~ "Gettext.dgettext(backend(), \"errors\""
+      assert core_components =~ "Gettext.dngettext(gettext_backend(), \"errors\""
+      assert core_components =~ "Gettext.dgettext(gettext_backend(), \"errors\""
     end
   end
 
   describe "form generator gettext extraction" do
-    test "generated modules always use Aurora.Uix.Gettext" do
+    test "generated modules always use Aurora.Uix.GettextResolver" do
       generated =
         sample_parsed_opts()
         |> FormGenerator.generate_module()
         |> Macro.to_string()
 
-      assert generated =~ "use Aurora.Uix.Gettext"
+      assert generated =~ "use Aurora.Uix.GettextResolver"
       refute generated =~ "_aurora_uix_extract"
     end
 
@@ -94,7 +94,7 @@ defmodule Aurora.Uix.Templates.Basic.GettextCoverageTest do
           |> compiled_module.generate_module()
           |> Macro.to_string()
 
-        assert generated =~ "use Aurora.Uix.Gettext"
+        assert generated =~ "use Aurora.Uix.GettextResolver"
         assert generated =~ "defp _aurora_uix_extract do"
         assert generated =~ "dgettext(\"forms\", \"Reference\")"
         assert length(Regex.scan(~r/dgettext\("forms", "Name"\)/, generated)) == 1
