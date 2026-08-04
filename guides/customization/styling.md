@@ -212,7 +212,9 @@ rules-level overrides win over it.
 | `--auix-font-sans` | `ui-sans-serif, system-ui, sans-serif, …` | Sans-serif font stack |
 | `--auix-font-mono` | `ui-monospace, SFMono-Regular, Menlo, …` | Monospace font stack |
 | `--auix-font-family-default` | `var(--auix-font-sans)` | Default font family for all components |
-| `--auix-font-size-title` | `1.125rem` | Section and page titles |
+| `--auix-font-size-title` | `1.125rem` | Page title (`.auix-header-title`) |
+| `--auix-font-size-group-title` | `var(--auix-font-size-title)` | Group headings (`.auix-group-title`) |
+| `--auix-font-size-empty-state` | `var(--auix-font-size-title)` | Index empty-state message (table and card) |
 | `--auix-font-size-subtitle` | `1rem` | Subtitles and secondary headings |
 | `--auix-font-size-caption` | `0.875rem` | Labels, inputs, table cells |
 | `--auix-font-size-small` | `0.750rem` | Badges and helper text |
@@ -346,8 +348,8 @@ rules-level overrides win over it.
 | `--auix-color-horizontal-divider` | `var(--auix-color-border-primary)` | Horizontal rule color |
 | `--auix-color-flash-close-text` | `var(--auix-color-text-secondary)` | Flash close-button icon |
 | `--auix-color-form-container-bg` | `var(--auix-color-bg-default)` | Form container background |
-| `--auix-color-group-container-bg` | `var(--auix-color-bg-light)` | Group/card container background |
-| `--auix-color-group-container-border` | `var(--auix-color-border-primary)` | Group/card container border |
+| `--auix-color-group-container-bg` | `transparent` | Group container background (flat by default) |
+| `--auix-color-group-container-border` | `transparent` | Group container border (flat by default) |
 | `--auix-color-show-content-bg` | `var(--auix-color-bg-default)` | Show-view content background |
 | `--auix-color-header-title-text` | `var(--auix-color-text-label)` | Page/section header title |
 | `--auix-color-header-subtitle-text` | `var(--auix-color-text-secondary)` | Page/section header subtitle |
@@ -396,6 +398,8 @@ Common visual adjustments and the minimal set of variables to override:
 | Brand primary color | `--auix-color-button-bg`, `--auix-color-button-text`, `--auix-color-bg-default--reverted` |
 | Dark backgrounds | `--auix-color-bg-default`, `--auix-color-bg-light`, `--auix-color-bg-hover` |
 | Tighter list rows | `--auix-gap-minimal`, `--auix-padding-minimal`, `--auix-margin-default` |
+| Larger page title only | `--auix-font-size-title` (group headings and empty states stay put) |
+| Card-style groups (pre-0.1.6 look) | `--auix-color-group-container-bg`, `--auix-color-group-container-border` |
 | Bolder labels | `--auix-font-weight-bold`, `--auix-color-text-label` |
 
 ## Rule: one color class per element
