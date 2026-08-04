@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.6-rc.2"
+  @version "0.1.6-rc.3"
 
   def project do
     [
