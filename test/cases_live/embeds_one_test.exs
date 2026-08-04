@@ -43,7 +43,7 @@ defmodule Aurora.UixWeb.Test.EmbedsOneTest do
 
     {:ok, view, html} = live(conn, "/embeds-one-users/new")
     assert html =~ "Embeds one"
-    assert html =~ "Creates a new <strong>User</strong> record in your database"
+    assert html =~ "Creates a new &#39;User&#39; record in your database"
 
     view
     |> form(

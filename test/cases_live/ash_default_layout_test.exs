@@ -164,7 +164,7 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
 
     assert view
            |> element("div#auix-author-new-modal header")
-           |> render() =~ "Creates a new <strong>Author</strong> record in your database"
+           |> render() =~ "Creates a new &#39;Author&#39; record in your database"
 
     # Create unique test data
     unique_name = "Author-#{System.system_time(:nanosecond)}"
@@ -207,7 +207,7 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
     assert view
            |> element("div#auix-author-edit-modal header")
            |> render() =~
-             "Use this form to manage <strong>Authors</strong> records in your database"
+             "Use this form to manage &#39;Authors&#39; records in your database"
 
     # Verify form fields are populated with existing values
     html = render(view)
