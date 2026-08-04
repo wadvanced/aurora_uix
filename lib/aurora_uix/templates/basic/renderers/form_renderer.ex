@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
       <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
       <.header>
         {if @action in [:edit, :show_edit], do: dt(@auix.layout_options.edit_title), else: dt(@auix.layout_options.new_title)}
-        <:subtitle>{if @action in [:edit, :show_edit], do: @auix.layout_options.edit_subtitle, else: dt(@auix.layout_options.new_subtitle)}</:subtitle>
+        <:subtitle>{if @action in [:edit, :show_edit], do: dt(@auix.layout_options.edit_subtitle), else: dt(@auix.layout_options.new_subtitle)}</:subtitle>
         <:actions>
           <div name="auix-form-header-actions">
             <%= for %{function_component: action} <- @auix.form_header_actions do %>
