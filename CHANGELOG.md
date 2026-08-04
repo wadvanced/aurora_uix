@@ -65,6 +65,16 @@ Requires:
     subtype's `one_of` (or the subtype's own enum module), instead of falling through to a text
     input.
 
+- **New action-label layout options and arity-0 name/title functions**
+  - `:new_action_label` (`:index`), `:save_action_label` (`:form`), and `:edit_action_label` /
+    `:back_action_label` (`:show`) — configurable labels for the corresponding action buttons,
+    alongside the existing title/subtitle options.
+  - A resource's `:name`/`:title` metadata (set via `auix_resource_metadata/3`) can now also be a
+    captured 0-arity function returning a binary, resolved via the new
+    `Aurora.Uix.Layout.Options.parse_value/1`, wherever these values are interpolated into title,
+    subtitle and action-label defaults. This is separate from the existing arity-1,
+    `assigns`-receiving functions already supported by per-layout title/subtitle options.
+
 ### Changed
 
 - **`Templates.Basic.Helpers.many_to_many_candidate_ids/2` renamed to `select_candidate_ids/2`**

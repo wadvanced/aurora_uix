@@ -39,8 +39,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
       <div class="auix-show-container">
         <.record_navigator_bar :if={record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
         <.header>
-          {@auix.layout_options.page_title}
-          <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{@auix.layout_options.page_subtitle}</:subtitle>
+          {dt(@auix.layout_options.page_title)}
+          <:subtitle :if={@auix.layout_options.page_subtitle != nil}>{dt(@auix.layout_options.page_subtitle)}</:subtitle>
           <:actions>
             <div name="auix-show-header-actions">
               <%= for %{function_component: action} <- @auix.show_header_actions do %>

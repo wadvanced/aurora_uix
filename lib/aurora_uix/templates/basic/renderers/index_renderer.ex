@@ -55,10 +55,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     <div class="auix-index-container">
       <.header>
         <div id={"auix-table-#{@auix.uri_path_id}-index-title"}>
-          {@auix.layout_options.page_title}
+          {dt(@auix.layout_options.page_title)}
         </div>
         <:subtitle>
-          {@auix.layout_options.page_subtitle}
+          {dt(@auix.layout_options.page_subtitle)}
         </:subtitle>
       </.header>
 

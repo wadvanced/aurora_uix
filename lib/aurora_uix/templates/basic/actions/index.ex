@@ -324,7 +324,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def new_header_action(assigns) do
     ~H"""
     <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"} role="button">
-      <.button>{dt("New")} {@auix.name}</.button>
+      <.button>{dt(@auix.layout_options.new_action_label)}</.button>
     </.auix_link>
     """
   end

@@ -23,6 +23,11 @@ defmodule Aurora.Uix.Layout.Options.Form do
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
     - Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the resource name.
 
+  * `:save_action_label` - The text to show for the save action button.
+    - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
+      `Aurora.Uix.Layout.Options.parse_value/1`).
+    - Default: `"Save {name}"`, where `{name}` is the resource name.
+
   * `:record_navigator` - Controls the display position of the record navigation bar.
     - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
     - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
@@ -38,26 +43,29 @@ defmodule Aurora.Uix.Layout.Options.Form do
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{name: name}} = assigns, :edit_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "Edit #{name}")}
+    do: {:ok, LayoutOptions.render_binary(assigns, "Edit #{LayoutOptions.parse_value(name)}")}
 
   defp get_default(%{auix: %{title: title}} = assigns, :edit_subtitle),
     do:
       {:ok,
        LayoutOptions.render_binary(
          assigns,
-         "Use this form to manage <strong>#{title}</strong> records in your database"
+         "Use this form to manage <strong>#{LayoutOptions.parse_value(title)}</strong> records in your database"
        )}
 
   defp get_default(%{auix: %{name: name}} = assigns, :new_title),
-    do: {:ok, LayoutOptions.render_binary(assigns, "New #{name}")}
+    do: {:ok, LayoutOptions.render_binary(assigns, "New #{LayoutOptions.parse_value(name)}")}
 
   defp get_default(%{auix: %{name: name}} = assigns, :new_subtitle),
     do:
       {:ok,
        LayoutOptions.render_binary(
          assigns,
-         "Creates a new <strong>#{name}</strong> record in your database"
+         "Creates a new <strong>#{LayoutOptions.parse_value(name)}</strong> record in your database"
        )}
+
+  defp get_default(%{auix: %{name: name}}, :save_action_label),
+    do: {:ok, "Save #{LayoutOptions.parse_value(name)}"}
 
   defp get_default(_assigns, :record_navigator),
     do: {:ok, [:top, :bottom]}

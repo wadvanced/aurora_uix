@@ -303,6 +303,7 @@ index_columns :product, [:reference, :name, :price],
 - `:page_subtitle` — Subtitle (default: empty)
 - `:pagination_items_per_page` — Rows per page (default: 40)
 - `:pagination_disabled?` — Disable pagination (default: `false`)
+- `:new_action_label` — Label for the "new" action button (default: `"New {name}"`)
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax
 - `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax
 
@@ -326,6 +327,7 @@ end
 - `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage <strong>{title}</strong> records in your database"`)
 - `:new_title` — Title for create form (default: `"New {name}"`)
 - `:new_subtitle` — Subtitle for create form (default: `"Creates a new <strong>{name}</strong> record in your database"`)
+- `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
 
 #### Show Layout Options
 
@@ -343,6 +345,8 @@ end
 **Options:**
 - `:page_title` — Main title (default: `"{name}"` - the resource name)
 - `:page_subtitle` — Subtitle (default: `"Details"`)
+- `:edit_action_label` — Label for the edit action button (default: `"Edit {name}"`)
+- `:back_action_label` — Label for the back action (default: `"Back to {title}"`)
 
 ### Dynamic Titles & Subtitles
 
@@ -370,6 +374,13 @@ end
 ```
 
 The function receives `assigns` and should return rendered HTML (using sigil `~H`).
+
+> **Note:** This is separate from the resource's own `name`/`title` metadata (set via
+> `auix_resource_metadata/3`), which many of the defaults above interpolate (e.g. `"New
+> {name}"`, `"Back to {title}"`). Those accept a plain `binary()` or a captured **0-arity**
+> function returning a `binary()` — a different signature from the arity-1, `assigns`-receiving
+> functions documented here. See [Resource Metadata → Display Name and
+> Title](resource_metadata.md#display-name-and-title).
 
 ### Field-Level Options
 

@@ -132,6 +132,33 @@ For Ash Framework resources:
 
 When using Ash resources, you can also use `:schema` as an alias for `:ash_resource` 
 
+### Display Name and Title
+
+Both backends accept two optional presentation options, independent of the resource's
+identifier (the macro's first positional `name` argument):
+
+- `:name` (`binary()` or 0-arity `function()`) - Optional. The resource's display name, used
+  to build default titles and action labels (e.g. `"New {name}"`, `"Edit {name}"`). Defaults
+  to the capitalized schema module name (e.g. `MyApp.Product` → `"Product"`).
+- `:title` (`binary()` or 0-arity `function()`) - Optional. The resource's display title, used
+  in other title/subtitle defaults (e.g. `"Listing {title}"`, `"Back to {title}"`). Defaults
+  to the capitalized schema source/table name (e.g. `"products"` → `"Products"`).
+
+In addition to a plain `binary()`, both options accept a captured 0-arity function returning a
+`binary()`, evaluated wherever the default is built:
+
+```elixir
+auix_resource_metadata :product,
+  schema: MyApp.Inventory.Product,
+  context: MyApp.Inventory,
+  name: "Product",
+  title: &MyApp.Inventory.Product.display_title/0
+```
+
+This is a different mechanism from the arity-1, `assigns`-receiving functions accepted by
+per-layout title/subtitle options (`:page_title`, `:edit_title`, and similar) — see
+[Layout System → Dynamic Titles & Subtitles](layouts.md#dynamic-titles--subtitles) for that.
+
 Let's see examples for both approaches:
 
 ### Example Schema
