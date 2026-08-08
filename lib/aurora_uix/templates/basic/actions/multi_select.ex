@@ -95,6 +95,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.MultiSelect do
       label=""
       value={@checked?}
       input_class={@mixed_class}
+      disabled={@field.disabled or @field.readonly}
       title={dt("Select or clear every option")}
     />
     """
