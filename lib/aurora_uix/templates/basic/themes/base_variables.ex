@@ -71,10 +71,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
       --auix-font-size-subtitle: 1rem;
       --auix-font-size-caption: 0.875rem;
       --auix-font-size-small: 0.750rem;
-
-      /* Literal on purpose, NOT var(--auix-font-size-title): var() resolves against the
-         winning cascaded value at point of use, so an alias would re-couple these to any
-         host override of the page title. Alias them yourself to opt into that coupling. */
       --auix-font-size-group-title: 1.125rem;
       --auix-font-size-empty-state: 1.125rem;
 
