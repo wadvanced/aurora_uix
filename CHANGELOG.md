@@ -158,6 +158,7 @@ Requires:
 - **Updated Dependencies**
   - ash: 3.30.1 -> 3.31.0
   - phoenix_live_reload: 1.6.2 -> 1.7.0
+  - postgrex: 0.22.3 -> 0.22.4
 
 ## [0.1.5] - 2026-07-28
 
