@@ -23,6 +23,15 @@ The library regenerates `auix-variables.css` and `auix-rules.css` on every
 the task copies or creates them on first run (each behind its own opt-in flag where
 applicable) and skips them on subsequent runs unless `--force` is passed.
 
+> #### Re-run the generator after every upgrade {: .warning}
+>
+> `auix-variables.css` and `auix-rules.css` are build artifacts pinned to the Aurora UIX
+> version that generated them — they are **not** read from the library at runtime. Run
+> `mix auix.gen.stylesheet` again after every `aurora_uix` upgrade. Skipping it leaves any
+> `.auix-*` rule or `--auix-*` variable added by the new version absent from your CSS, which
+> shows up as a component silently losing styling the theme does define (a list rendering
+> without its bullets, a label without its color) rather than as a build error.
+
 ## Choosing an integration path
 
 **Variables + rules only.** Import `auix-variables.css` and `auix-rules.css` directly (or the
