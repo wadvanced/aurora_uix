@@ -609,6 +609,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         max-height: var(--auix-checkbox-group-max-height);
         overflow-y: auto;
+        overflow-x: auto;
       }
     """
   end
@@ -682,6 +683,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-checkbox-group-option-label {
         font-size: var(--auix-font-size-caption);
         color: var(--auix-color-checkbox-label-text);
+        white-space: nowrap;
       }
     """
   end
@@ -704,6 +706,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
         max-height: var(--auix-checkbox-group-max-height);
         overflow-y: auto;
+        overflow-x: auto;
       }
     """
   end
@@ -731,6 +734,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-selected-list-item {
         font-size: var(--auix-font-size-caption);
         color: var(--auix-color-checkbox-label-text);
+        white-space: nowrap;
       }
     """
   end

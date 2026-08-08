@@ -28,6 +28,13 @@ defmodule Aurora.Uix.Templates.ThemeHelperTest do
 
       assert combined == split
     end
+
+    test "checkbox-group and selected-list labels keep their nowrap declaration" do
+      css = normalize(ThemeHelper.generate_rules_stylesheet())
+
+      assert css =~ ~r/\.auix-checkbox-group-option-label \{[^}]*white-space: nowrap;/
+      assert css =~ ~r/\.auix-selected-list-item \{[^}]*white-space: nowrap;/
+    end
   end
 
   describe "daisyUI bridge file" do
