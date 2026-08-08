@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
 
   - Belongs to author and category
   - Status tracking (draft, published, archived)
-  - Multi-value labels (featured, sponsored, opinion)
+  - Multi-value labels (featured, sponsored, opinion, full_review)
   - Publication timestamp support
   - Embedded tags array for categorization
 
