@@ -18,6 +18,11 @@ Requires:
 
 ### Fixes
 
+- **The multi-select toggle-all checkbox stayed clickable on a disabled or read-only field**
+  - `auix_toggle_all` didn't forward the field's `disabled`/`readonly` state to its checkbox, so a
+    field the host had disabled could still have every option checked or cleared in one click through
+    the select-all control, bypassing the per-option checkboxes' own disabled state.
+
 - **Every `--auix-opacity-*` variable was undeclared, so nothing dimmed**
   - The four declarations were missing their terminating semicolons, which merged the whole run into
     a single custom property: `--auix-opacity-20` absorbed the rest as its value and `-40`, `-75`
