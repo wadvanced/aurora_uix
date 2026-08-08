@@ -222,14 +222,27 @@ rules-level overrides win over it.
 | `--auix-font-mono` | `ui-monospace, SFMono-Regular, Menlo, …` | Monospace font stack |
 | `--auix-font-family-default` | `var(--auix-font-sans)` | Default font family for all components |
 | `--auix-font-size-title` | `1.125rem` | Page title (`.auix-header-title`) |
-| `--auix-font-size-group-title` | `var(--auix-font-size-title)` | Group headings (`.auix-group-title`) |
-| `--auix-font-size-empty-state` | `var(--auix-font-size-title)` | Index empty-state message (table and card) |
+| `--auix-font-size-group-title` | `1.125rem` | Group headings (`.auix-group-title`) |
+| `--auix-font-size-empty-state` | `1.125rem` | Index empty-state message (table and card) |
 | `--auix-font-size-subtitle` | `1rem` | Subtitles and secondary headings |
 | `--auix-font-size-caption` | `0.875rem` | Labels, inputs, table cells |
 | `--auix-font-size-small` | `0.750rem` | Badges and helper text |
 | `--auix-font-weight-bold` | `600` | Primary bold weight |
 | `--auix-font-weight-bold-semi` | `400` | Secondary / semi-bold weight |
 | `--auix-font-style-mobile-viewmode` | `italic` | View-mode field value style on mobile |
+
+`--auix-font-size-group-title` and `--auix-font-size-empty-state` carry their own literal
+defaults rather than aliasing `--auix-font-size-title`, so resizing the page title leaves
+group headings and empty states alone. To make them track the page title instead, alias
+them yourself:
+
+```css
+:root {
+  --auix-font-size-title: 2.5rem;
+  --auix-font-size-group-title: var(--auix-font-size-title);
+  --auix-font-size-empty-state: var(--auix-font-size-title);
+}
+```
 
 ### Opacity
 

@@ -18,6 +18,24 @@ Requires:
 
 ### Fixes
 
+- **Every `--auix-opacity-*` variable was undeclared, so nothing dimmed**
+  - The four declarations were missing their terminating semicolons, which merged the whole run into
+    a single custom property: `--auix-opacity-20` absorbed the rest as its value and `-40`, `-75`
+    and `-100` were never declared at all. Each `var(--auix-opacity-*)` reference was therefore
+    invalid at computed-value time and, because `opacity` is not inherited, fell back to the initial
+    value `1`.
+  - Visible effect of the fix: the modal close button renders at 20% (40% on hover) instead of fully
+    opaque, and loading / disabled states dim again. 12 rules across `themes/base.ex` and
+    `themes/baseline.ex` were affected.
+
+- **Multi-word checkbox-group and selected-list labels broke mid-word**
+  - Option labels are flex items, whose default `min-width: auto` lets them shrink past their
+    natural text width down to the longest unbreakable word. Once several checkbox-group fields
+    shared one `inline([...])` row, labels such as `Employer Manager` split across two lines.
+  - Both the interactive option label and the read-only selected-list item are pinned to a single
+    line, and their containers scroll horizontally so a long label overflows into a scroll region
+    rather than breaking the row.
+
 - **Title/subtitle layout options no longer run through dynamic-template rendering**
   - `edit_title`, `edit_subtitle`, `new_title`, `new_subtitle`, index `page_title`, and show
     `page_title`/`page_subtitle` defaults are plain interpolated strings, but
@@ -54,8 +72,12 @@ Requires:
   - `--auix-font-size-title` drove the page title, group headings and the index empty-state message
     at once, so a host that wanted a larger page title had to override `.auix-group-title` by class
     to stop group headings growing with it. `--auix-font-size-group-title` and
-    `--auix-font-size-empty-state` now cover those two roles and default to
-    `var(--auix-font-size-title)`, so nothing changes until one of them is set.
+    `--auix-font-size-empty-state` now cover those two roles.
+  - Both carry a literal `1.125rem` default rather than aliasing `--auix-font-size-title`. An alias
+    would not have decoupled them: `var()` resolves against the winning cascaded value at point of
+    use, across layers, so any host override of `--auix-font-size-title` would still have propagated
+    through. Default rendering is unchanged; a host that wants them to track the page title can
+    alias them explicitly.
 
 - **Multi-value selects render as a checkbox group**
   - A multi-value select no longer renders as a `<select multiple>`, which needs an undiscoverable
