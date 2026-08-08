@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Guides.Blog.Post do
 
   - Belongs to author and category
   - Status tracking (draft, published, archived)
-  - Multi-value labels (featured, sponsored, opinion)
+  - Multi-value labels (featured, sponsored, opinion, full_review)
   - Publication timestamp support
   - Embedded tags array for categorization
 
@@ -47,7 +47,9 @@ defmodule Aurora.Uix.Guides.Blog.Post do
     # renderer always submits one blank, Ash casts it to `nil`, and without this the whole list is
     # rejected with "no nil values" before any change can strip it. `reject_blank_labels/2` does.
     attribute :labels, {:array, :atom} do
-      constraints nil_items?: true, items: [one_of: [:featured, :sponsored, :opinion]]
+      constraints nil_items?: true,
+                  items: [one_of: [:featured, :sponsored, :opinion, :full_review]]
+
       public? true
     end
 

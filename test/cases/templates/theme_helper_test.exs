@@ -28,6 +28,32 @@ defmodule Aurora.Uix.Templates.ThemeHelperTest do
 
       assert combined == split
     end
+
+    test "checkbox-group and selected-list labels keep their nowrap declaration" do
+      css = normalize(ThemeHelper.generate_rules_stylesheet())
+
+      assert css =~ ~r/\.auix-checkbox-group-option-label \{[^}]*white-space: nowrap;/
+      assert css =~ ~r/\.auix-selected-list-item \{[^}]*white-space: nowrap;/
+    end
+
+    test "group-title and empty-state sizes do not resolve through the page title" do
+      css = ThemeHelper.generate_variables_stylesheet()
+
+      assert css =~ "--auix-font-size-group-title: 1.125rem;"
+      assert css =~ "--auix-font-size-empty-state: 1.125rem;"
+      refute css =~ ~r/--auix-font-size-(?:group-title|empty-state):\s*var\(/
+    end
+
+    # Each must be its own terminated declaration: a missing semicolon silently merges the
+    # whole run into one custom property, leaving the rest undeclared and every consumer
+    # falling back to full opacity.
+    test "every opacity variable is a separately terminated numeric declaration" do
+      css = ThemeHelper.generate_variables_stylesheet()
+
+      for level <- ["20", "40", "75", "100"] do
+        assert css =~ ~r/--auix-opacity-#{level}:\s*[0-9.]+;/
+      end
+    end
   end
 
   describe "daisyUI bridge file" do

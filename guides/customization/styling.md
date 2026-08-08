@@ -23,6 +23,15 @@ The library regenerates `auix-variables.css` and `auix-rules.css` on every
 the task copies or creates them on first run (each behind its own opt-in flag where
 applicable) and skips them on subsequent runs unless `--force` is passed.
 
+> #### Re-run the generator after every upgrade {: .warning}
+>
+> `auix-variables.css` and `auix-rules.css` are build artifacts pinned to the Aurora UIX
+> version that generated them — they are **not** read from the library at runtime. Run
+> `mix auix.gen.stylesheet` again after every `aurora_uix` upgrade. Skipping it leaves any
+> `.auix-*` rule or `--auix-*` variable added by the new version absent from your CSS, which
+> shows up as a component silently losing styling the theme does define (a list rendering
+> without its bullets, a label without its color) rather than as a build error.
+
 ## Choosing an integration path
 
 **Variables + rules only.** Import `auix-variables.css` and `auix-rules.css` directly (or the
@@ -213,14 +222,27 @@ rules-level overrides win over it.
 | `--auix-font-mono` | `ui-monospace, SFMono-Regular, Menlo, …` | Monospace font stack |
 | `--auix-font-family-default` | `var(--auix-font-sans)` | Default font family for all components |
 | `--auix-font-size-title` | `1.125rem` | Page title (`.auix-header-title`) |
-| `--auix-font-size-group-title` | `var(--auix-font-size-title)` | Group headings (`.auix-group-title`) |
-| `--auix-font-size-empty-state` | `var(--auix-font-size-title)` | Index empty-state message (table and card) |
+| `--auix-font-size-group-title` | `1.125rem` | Group headings (`.auix-group-title`) |
+| `--auix-font-size-empty-state` | `1.125rem` | Index empty-state message (table and card) |
 | `--auix-font-size-subtitle` | `1rem` | Subtitles and secondary headings |
 | `--auix-font-size-caption` | `0.875rem` | Labels, inputs, table cells |
 | `--auix-font-size-small` | `0.750rem` | Badges and helper text |
 | `--auix-font-weight-bold` | `600` | Primary bold weight |
 | `--auix-font-weight-bold-semi` | `400` | Secondary / semi-bold weight |
 | `--auix-font-style-mobile-viewmode` | `italic` | View-mode field value style on mobile |
+
+`--auix-font-size-group-title` and `--auix-font-size-empty-state` carry their own literal
+defaults rather than aliasing `--auix-font-size-title`, so resizing the page title leaves
+group headings and empty states alone. To make them track the page title instead, alias
+them yourself:
+
+```css
+:root {
+  --auix-font-size-title: 2.5rem;
+  --auix-font-size-group-title: var(--auix-font-size-title);
+  --auix-font-size-empty-state: var(--auix-font-size-title);
+}
+```
 
 ### Opacity
 

@@ -36,7 +36,7 @@ mix dialyzer                 # Static analysis (first run is slow)
 # Assets / generated artifacts
 mix auix.gen.stylesheet      # Regenerate the theme stylesheet
 mix auix.gen.icons           # Regenerate the icon set
-mix auix.gen.tailwind_classes # Regenerate the auix-* class inventory
+mix auix.gen.tailwind_classes # Regenerate the hero-* icon class inventory (priv/static/classes.js)
 mix assets.build             # Full asset pipeline (icons + stylesheet + esbuild + digest)
 
 # Demo server for the test app (routes come from test/support/app_web/routes.ex)
@@ -415,7 +415,9 @@ Streams are **not enumerable** — to filter, refetch data and re-stream with `r
 
 - TailwindCSS v4 uses `@import "tailwindcss" source(none)` syntax — there is no `tailwind.config.js`
 - **The stylesheet is generated.** Never hand-edit `priv/static/assets/css/app.css`; edit the theme module and run `mix auix.gen.stylesheet`
-- New `auix-*` classes go in `templates/basic/themes/base.ex`, then `mix auix.gen.tailwind_classes`. This task is the **first stage of `mix consistency`** and fails on classes it doesn't know about
+- New `auix-*` classes go in `templates/basic/themes/base.ex` as a `rule/1` clause, then `mix auix.gen.stylesheet` to regenerate `assets/css/auix-*.css`. Emission is compile-time reflective over the `rule/1` clause heads (`templates/theme.ex` `__before_compile__` → `rule_names/0`), so every defined rule ships whether or not any template references it; nothing is discovered by scanning markup
+- The generated `assets/css/auix-*.css` files are gitignored (`.gitignore`) and rebuilt by the `assets.*` aliases; `mix consistency` does **not** regenerate them. In a *host* app the same files are generated once into its own assets directory and persist until it re-runs the task, so a rule added here is silently absent downstream until the host regenerates — hence the upgrade warning in `guides/customization/styling.md`
+- `mix auix.gen.tailwind_classes` is the first stage of `mix consistency`, but it only scans `lib/` for `hero-*` Heroicon names and has nothing to do with `auix-*` classes
 - **Never** use `@apply` in raw CSS
 - Only `app.js` and `app.css` bundles are supported — import all vendor deps into these files
 - **Never** write inline `<script>` tags in templates

@@ -71,21 +71,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
       --auix-font-size-subtitle: 1rem;
       --auix-font-size-caption: 0.875rem;
       --auix-font-size-small: 0.750rem;
-
-      /* Alias the title size so a host can resize the page title alone */
-      --auix-font-size-group-title: var(--auix-font-size-title);
-      --auix-font-size-empty-state: var(--auix-font-size-title);
+      --auix-font-size-group-title: 1.125rem;
+      --auix-font-size-empty-state: 1.125rem;
 
       --auix-font-weight-bold: 600;
       --auix-font-weight-bold-semi: 400;
       --auix-font-style-mobile-viewmode: italic;
 
 
-      /* OPACITIES
-      --auix-opacity-20: 0.20 /* Opacity 20% */
-      --auix-opacity-40: 0.40 /* Opacity 40% */
-      --auix-opacity-75: 0.75 /* Opacity 75% */
-      --auix-opacity-100: 1 /* Opacity 100% */
+      /* OPACITIES */
+      --auix-opacity-20: 0.20;
+      --auix-opacity-40: 0.40;
+      --auix-opacity-75: 0.75;
+      --auix-opacity-100: 1;
 
       /* SHADOWS & RINGS */
 

@@ -28,7 +28,7 @@ defmodule Aurora.UixWeb.Test.AshMultiSelectTest do
       assert has_element?(view, "input[type='hidden'][name='post[labels][]']")
       refute has_element?(view, "select[multiple][name='post[labels][]']")
 
-      for value <- ~w(featured sponsored opinion) do
+      for value <- ~w(featured sponsored opinion full_review) do
         assert has_element?(
                  view,
                  "input[type='checkbox'][name='post[labels][]'][value='#{value}']"
@@ -57,7 +57,7 @@ defmodule Aurora.UixWeb.Test.AshMultiSelectTest do
 
       toggle_all(view, "true")
 
-      assert checked_values(view) == ["featured", "sponsored", "opinion"]
+      assert checked_values(view) == ["featured", "sponsored", "opinion", "full_review"]
       assert toggle_state(view) == :all
 
       toggle_all(view, "false")
