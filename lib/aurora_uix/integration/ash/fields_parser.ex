@@ -13,14 +13,16 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   - Direct passthrough for native Ecto types
   - HTML5 input type mapping for form generation
   - Field metadata extraction for select/enum types
-  - Automatic discovery and type-mapping of Ash **calculations** (from declared return type) and **aggregates** (`count → :integer`, `exists → :boolean`, `sum/max/min/avg → :float`); both are disabled in generated forms
+  - Automatic discovery and type-mapping of Ash **calculations** (from their declared return type) and **aggregates** (all nine kinds, via `Ash.Resource.Info.aggregate_type/2`); both are disabled in generated forms
 
   ## Key Constraints
 
   - Only handles parameterized Ash types in tuple format `{:parameterized, {type, opts}}`
   - Unknown parameterized types default to `:string`
   - Requires Ash Framework type structure
-  - Calculations or aggregates whose type cannot be predictably mapped are logged as errors; configure those fields explicitly via `auix_resource_metadata` to override the parsed type
+  - Calculations whose type cannot be predictably mapped are logged as errors; configure those fields explicitly via `auix_resource_metadata` to override the parsed type
+  - Aggregates whose type cannot be resolved are logged as errors and degrade to `:string`
+  - A `:list` aggregate carries its item's type and renders read-only (`html_type: :unimplemented`)
   """
 
   alias Ash.Resource.Info, as: AshResourceInfo
@@ -221,21 +223,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   ## PRIVATE
 
   # Converts a resource relationship into a Field struct.
-  #
-  # Extracts relationship metadata from the schema and creates a field configuration
-  # with proper association type and relationship information.
-  #
-  # ## Parameters
-  #
-  # - `schema` (module()) - The schema module containing the relationship.
-  # - `resource_name` (atom()) - The name of the resource.
-  # - `resources` (list(Resource.t())) - List of available resources for reference lookup.
-  # - `association` (struct()) - The relationship struct to be processed.
-  # - `fields` (list(Field.t())) - Existing fields list to prepend to.
-  #
-  # ## Returns
-  #
-  # list(Field.t()) - Updated list with the relationship field added.
   @spec parse_association(module(), atom(), list(Resource.t()), struct(), list(Field.t())) ::
           list(Field.t())
   defp parse_association(
@@ -284,9 +271,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # Converts an Ash type to its corresponding Ecto type.
   @spec field_type(map() | nil, map()) :: atom()
-  # Every enum flavour -- `:atom` + `one_of`, a module enum, a NewType, and their array forms --
-  # stores strings, so it stays `:string` and nothing downstream needs a new type atom. Cardinality
-  # travels in `data.select.multiple` instead.
+  # Every enum flavour stores strings; cardinality travels in `data.select.multiple`.
   defp field_type(%{select: {_opts, _multiple?}}, _attribute), do: :string
 
   defp field_type(_attrs, %{type: type})
@@ -395,8 +380,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_type(_attrs, %{embedded?: true}), do: :embeds_one
 
-  # A scalar array that is not a select carries the item's type: the alternative is leaking the
-  # `{:array, _}` tuple, which crashes every renderer that interpolates `html_type`.
+  # A scalar array carries its item's type; the `{:array, _}` tuple must not leak downstream.
   defp field_type(attrs, %{type: {:array, item_type}} = attribute),
     do: field_type(attrs, %{attribute | type: item_type})
 
@@ -407,11 +391,20 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_type(nil, %Ash.Resource.Relationships.ManyToMany{}),
     do: :many_to_many_association
 
-  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :count}), do: :integer
-  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :exists}), do: :boolean
+  # Aggregate types come from Ash. Must precede the `%{type: type}` catch-all.
+  defp field_type(attrs, %{__struct__: Ash.Resource.Aggregate} = aggregate) do
+    case aggregate_type(aggregate) do
+      nil ->
+        Logger.error(
+          "Aggregate ':#{aggregate.name}' of '#{inspect(aggregate.resource_schema)}' has no type Ash can resolve, defaulting to ':string'"
+        )
 
-  defp field_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: kind})
-       when kind in [:sum, :max, :min, :avg], do: :float
+        :string
+
+      type ->
+        field_type(attrs, %{type: resolve_generated_type(type)})
+    end
+  end
 
   # Direct type passthrough
   defp field_type(_attrs, %{type: type} = element) do
@@ -426,8 +419,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   @spec field_html_type(map() | nil, map()) :: atom()
   defp field_html_type(%{select: {_opts, _multiple?}}, _attribute), do: :select
 
-  # An atom without any of the enum markers has no option list to render, so it degrades to a text
-  # input -- and warns, because the host will raise at runtime on a value that is not a known atom.
+  # An atom without enum markers has no option list to render, so it degrades to a text input.
   defp field_html_type(attrs, %{type: resource_type})
        when resource_type in @selectable_atom_types do
     Logger.warning("""
@@ -442,12 +434,17 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   # A scalar array has no single-value input that could round-trip it, so it renders read-only.
   defp field_html_type(_attrs, %{type: {:array, _item_type}}), do: :unimplemented
+
+  # A `:list` aggregate is list-valued, so it renders read-only like any scalar array. The clause
+  # above cannot match it: the aggregate itself carries `type: nil`.
+  defp field_html_type(_attrs, %{__struct__: Ash.Resource.Aggregate, kind: :list}),
+    do: :unimplemented
+
   defp field_html_type(nil, %Ash.Resource.Relationships.BelongsTo{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasMany{}), do: :unimplemented
   defp field_html_type(nil, %Ash.Resource.Relationships.HasOne{}), do: :unimplemented
 
-  # A many_to_many renders as a multi-select of the related records, so unlike the other
-  # associations it does have an HTML input type of its own.
+  # A many_to_many renders as a multi-select of the related records.
   defp field_html_type(nil, %Ash.Resource.Relationships.ManyToMany{}), do: :select
 
   defp field_html_type(%{type: ecto_type}, %{association_or_embed: association_or_embed}),
@@ -513,13 +510,12 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   @spec field_hidden(map(), map()) :: boolean()
   defp field_hidden(%{key: key}, _attribute), do: CommonFieldsParser.field_hidden(key)
 
-  # Determines if a field should be filterable in queries
-  # A multi-value select is excluded: the filter strip renders a single-value input, and comparing it
-  # against an array column is a query-time error rather than an empty result.
+  # Determines if a field should be filterable in queries.
+  # Multi-value selects and scalar arrays are excluded: the filter strip renders a single-value
+  # input, which is a query-time error against an array column.
   @spec field_filterable(map(), map()) :: boolean()
   defp field_filterable(%{select: {_opts, true}}, _attribute), do: false
 
-  # Same reasoning for a scalar array, which has no filter input of its own either.
   defp field_filterable(_attrs, %{type: {:array, _item_type}, embedded?: false}), do: false
 
   defp field_filterable(%{type: ecto_type}, _attribute),
@@ -571,8 +567,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     }
   end
 
-  # The linkage lives on the join resource, so the owner/related keys are the primary keys on each
-  # side and the join attributes are carried separately.
+  # The linkage lives on the join resource, so the join attributes are carried separately.
   defp field_data(_attrs, %Ash.Resource.Relationships.ManyToMany{
          destination_attribute: related_key,
          destination: related_schema,
@@ -606,8 +601,6 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     }
   end
 
-  # resource_schema: schema, key: association.name
-
   defp field_data(
          %{
            key: field_key,
@@ -629,13 +622,8 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
          )
 
   # Describes an attribute as a select -- `{options, multiple?}` -- or nil when it is not one.
-  #
-  # This is the single place that knows the three shapes an Ash enum can take, and it is resolved
-  # once per field in `parse_field/4` because none of them can be expressed in a guard: a module
-  # enum is an arbitrary host module, identified only by the behaviour it implements.
-  #
-  # Order matters. A module enum carries empty constraints, so the behaviour is checked first; and a
-  # NewType may narrow the values of the subtype it wraps, so its own `one_of` wins over the unwrap.
+  # Order matters: a module enum carries empty constraints, so its behaviour is checked first, and a
+  # NewType's own `one_of` wins over the subtype it wraps.
   @spec select_options(map()) :: {list(), boolean()} | nil
   defp select_options(%{type: {:array, item_type}, constraints: constraints} = attribute)
        when is_list(constraints) do
@@ -667,8 +655,34 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp select_options(_attribute), do: nil
 
-  # `use Ash.Type.Enum` keeps its values on the module rather than in the attribute's constraints,
-  # which is why an enum module has to be recognised by its behaviour.
+  # Resolves an aggregate's type through Ash, falling back to the type declared on the entity --
+  # a `:custom` aggregate carries its own and makes `aggregate_type/2` fail. Returns nil when
+  # neither source knows, which is the caller's cue to degrade.
+  @spec aggregate_type(map()) :: term()
+  defp aggregate_type(%{name: name, type: declared_type, resource_schema: resource_schema}) do
+    case AshResourceInfo.aggregate_type(resource_schema, name) do
+      {:ok, type} -> type || declared_type
+      _error -> declared_type
+    end
+  end
+
+  # Normalizes a generated field's type into one the `field_type/2` clauses match: Ash short names
+  # (`:avg` yields `:float`) to modules, and enums/NewTypes to their stored scalar.
+  @spec resolve_generated_type(term()) :: term()
+  defp resolve_generated_type({:array, item_type}),
+    do: {:array, resolve_generated_type(item_type)}
+
+  defp resolve_generated_type(type) do
+    type = Ash.Type.get_type(type)
+
+    cond do
+      enum_module?(type) -> Ash.Type.String
+      AshNewType.new_type?(type) -> resolve_generated_type(AshNewType.subtype_of(type))
+      true -> type
+    end
+  end
+
+  # `use Ash.Type.Enum` keeps its values on the module, so it is recognised by its behaviour.
   @spec enum_module?(term()) :: boolean()
   defp enum_module?(type) when is_atom(type) and not is_nil(type),
     do: Code.ensure_loaded?(type) and function_exported?(type, :values, 0)
@@ -742,21 +756,21 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   end
 
   # Removes ".EctoType" suffix from Ash module names.
-  @spec remove_ecto_type(module() | {atom(), module()}) :: module()
+  @spec remove_ecto_type(atom() | {atom(), module()}) :: atom()
   defp remove_ecto_type({:array, resource_schema}), do: remove_ecto_type(resource_schema)
 
   defp remove_ecto_type(resource_schema) do
-    case Code.ensure_loaded(resource_schema) do
-      {:error, _} ->
-        resource_schema
-
-      {:module, _} ->
-        resource_schema
-        |> Module.split()
-        |> Enum.reverse()
-        |> maybe_remove_ecto_type()
-        |> Enum.reverse()
-        |> Module.concat()
+    # An Ash short name such as `:string` loads as an Erlang module but has no Elixir path to split.
+    with {:module, _} <- Code.ensure_loaded(resource_schema),
+         "Elixir." <> _ <- to_string(resource_schema) do
+      resource_schema
+      |> Module.split()
+      |> Enum.reverse()
+      |> maybe_remove_ecto_type()
+      |> Enum.reverse()
+      |> Module.concat()
+    else
+      _not_an_elixir_module -> resource_schema
     end
   end
 
