@@ -149,8 +149,76 @@ defmodule AllTypes do
   end
 end
 
+# Aggregates are only accepted by a data layer that can compute them -- Ash's
+# `ValidateAggregatesSupported` verifier rejects them outright on the bare resources the rest of
+# this file uses. No database is touched: parsing is pure DSL introspection.
+defmodule AggregatedRelationship do
+  use Ash.Resource,
+    domain: nil,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "aggregated_relationships"
+    repo(Aurora.Uix.Repo)
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :body, :string
+    attribute :score, :decimal
+    attribute :published_on, :date
+    attribute :status, ModuleEnum
+    attribute :aggregates_id, :uuid
+  end
+end
+
+defmodule CustomAggregateImplementation do
+  @moduledoc false
+  use Ash.Resource.Aggregate.CustomAggregate
+end
+
+defmodule Aggregates do
+  use Ash.Resource,
+    domain: nil,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "aggregates"
+    repo(Aurora.Uix.Repo)
+  end
+
+  attributes do
+    uuid_primary_key :id
+  end
+
+  relationships do
+    has_many :entries, AggregatedRelationship
+  end
+
+  aggregates do
+    count :entries_count, :entries
+    exists :any_entry, :entries
+    avg :average_score, :entries, :score
+    sum :total_score, :entries, :score
+    min :first_published_on, :entries, :published_on
+    max :last_published_on, :entries, :published_on
+    first :first_body, :entries, :body
+    list :bodies, :entries, :body
+
+    custom :joined_bodies, :entries, :string do
+      implementation {CustomAggregateImplementation, []}
+    end
+
+    first :latest_status, :entries, :status
+  end
+end
+
 defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
   use ExUnit.Case
+
+  import ExUnit.CaptureLog
+
+  alias Ash.Resource.Info, as: AshResourceInfo
   alias Aurora.Uix.Integration.Ash
 
   alias Aurora.Uix.Test.Cases.Integration.FieldsParserValidations, as: Validations
@@ -233,6 +301,61 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
         refute field.filterable?
       end
     end
+  end
+
+  # Ash-only: aggregates have no `aurora_ctx`/Ecto counterpart, so they stay out of the shared
+  # golden map.
+  describe "aggregates" do
+    test "the kinds Ash derives from the aggregated attribute carry that attribute's own type" do
+      assert %{type: :string, html_type: :text} = aggregate_field(:first_body)
+      assert %{type: :decimal} = aggregate_field(:total_score)
+      assert %{type: :date} = aggregate_field(:first_published_on)
+      assert %{type: :date} = aggregate_field(:last_published_on)
+    end
+
+    test "the kinds whose type does not depend on the aggregated attribute keep it" do
+      assert %{type: :integer, html_type: :number} = aggregate_field(:entries_count)
+      assert %{type: :boolean} = aggregate_field(:any_entry)
+      assert %{type: :float} = aggregate_field(:average_score)
+    end
+
+    test "a list aggregate carries its item's type and renders read-only" do
+      assert %{type: :string, html_type: :unimplemented} = aggregate_field(:bodies)
+    end
+
+    # The error path: Ash resolves a `:custom` aggregate's type only from a built query, so asking
+    # the resource for it fails and the type declared on the entity is the only source left.
+    test "a custom aggregate takes the type declared on the entity, which Ash itself cannot resolve" do
+      assert {:error, _reason} =
+               AshResourceInfo.aggregate_type(Aggregates, :joined_bodies)
+
+      assert %{type: :string, html_type: :text} = aggregate_field(:joined_bodies)
+    end
+
+    test "an aggregate is a generated field: disabled, and preloaded rather than written" do
+      assert %{disabled: true, data: %{generated: true}} = aggregate_field(:first_body)
+    end
+
+    # A module enum's options live on the module, not in constraints the aggregate carries, so
+    # the field degrades to the stored scalar rather than a select -- `:text`, not `:select`, is
+    # the intended behaviour here, not a gap to close.
+    test "an aggregate over a module enum degrades to the stored scalar rather than the enum module" do
+      assert %{type: :string, html_type: :text} = aggregate_field(:latest_status)
+    end
+
+    test "no aggregate reaches the catch-all that used to hand back `type: nil`" do
+      {fields, log} = with_log(fn -> Ash.FieldsParser.parse_fields(Aggregates, :aggregates) end)
+
+      refute log =~ "could not be parsed"
+      refute Enum.any?(fields, &is_nil(&1.type))
+    end
+  end
+
+  @spec aggregate_field(atom()) :: Aurora.Uix.Field.t()
+  defp aggregate_field(key) do
+    Aggregates
+    |> Ash.FieldsParser.parse_fields(:aggregates)
+    |> Enum.find(&(&1.key == key))
   end
 
   @spec parsed_field(atom()) :: Aurora.Uix.Field.t()

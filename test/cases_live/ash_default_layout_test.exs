@@ -272,7 +272,9 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
     refreshed_html = render(view)
     assert refreshed_html =~ unique_name
     assert refreshed_html =~ unique_email
-    refute refreshed_html =~ "No items to show"
+    # Scoped to the index's own empty state: "No items to show" is also the empty message of any
+    # list-valued field rendered in the open form.
+    refute has_element?(view, "div.auix-items-table-empty")
 
     assert has_element?(view, "td", unique_name)
   end
