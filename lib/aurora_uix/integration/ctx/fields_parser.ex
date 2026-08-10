@@ -179,21 +179,6 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   ## PRIVATE
 
   # Converts a schema association into a Field struct.
-  #
-  # Extracts association metadata from the schema and creates a field configuration
-  # with proper association type and relationship information.
-  #
-  # ## Parameters
-  #
-  # - `schema` (module()) - The schema module containing the association.
-  # - `resource_name` (atom()) - The name of the resource.
-  # - `resources` (list(Resource.t())) - List of available resources for reference lookup.
-  # - `association_field_key` (atom()) - The association field identifier.
-  # - `fields` (list(Field.t())) - Existing fields list to prepend to.
-  #
-  # ## Returns
-  #
-  # list(Field.t()) - Updated list with the association field added.
   @spec parse_association(module(), atom(), list(Resource.t()), atom(), list(Field.t())) ::
           list(Field.t())
   defp parse_association(
@@ -221,9 +206,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Maps an Elixir type to a field type, handling associations and embeds.
   @spec field_type(map(), map()) :: atom()
-  # Ecto wraps the array *outside* the parameterized enum, so a multi-value enum matches none of the
-  # single-value clauses below unless it is unwrapped first. It stays `:string` — nothing downstream
-  # needs a new type atom, the cardinality travels in `data.select.multiple`.
+  # Ecto wraps the array outside the parameterized enum, so a multi-value enum must be unwrapped
+  # first. Cardinality travels in `data.select.multiple`.
   defp field_type(
          attrs,
          %{ecto_type: {:array, {:parameterized, {Ecto.Enum, %{}}} = enum_type}} = attribute
@@ -260,8 +244,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp field_type(_attrs, %{ecto_type: :id}), do: :integer
 
-  # A scalar array that is not a select carries the item's type: the alternative is leaking the
-  # `{:array, _}` tuple, which crashes every renderer that interpolates `html_type`.
+  # A scalar array carries its item's type; the `{:array, _}` tuple must not leak downstream.
   defp field_type(attrs, %{ecto_type: {:array, item_type}} = attribute),
     do: field_type(attrs, %{attribute | ecto_type: item_type})
 
@@ -289,8 +272,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
        ),
        do: :unimplemented
 
-  # A many_to_many renders as a multi-select of the related records, so unlike the other
-  # associations it does have an HTML input type of its own.
+  # A many_to_many renders as a multi-select of the related records.
   defp field_html_type(_attrs, %{ecto_type: %AssociationManyToMany{}} = _association),
     do: :select
 
@@ -330,7 +312,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   # Determines the default placeholder text for a field based on its type.
   @spec field_placeholder(map(), map()) :: binary()
-  # An array's presentation follows its item type, exactly as `field_type/2` does.
+  # An array's presentation follows its item type.
   defp field_placeholder(attrs, %{ecto_type: {:array, item_type}} = attribute),
     do: field_placeholder(attrs, %{attribute | ecto_type: item_type})
 
@@ -341,9 +323,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   defp field_placeholder(%{key: name}, %{ecto_type: ecto_type}),
     do: CommonFieldsParser.field_placeholder(name, ecto_type)
 
-  # Association foreign-key columns carry no field key; their owner-key type
-  # (e.g. an integer `:id` for default Phoenix schemas) has no meaningful
-  # placeholder because the field renders as a select.
+  # Association foreign-key columns carry no field key and render as a select.
   defp field_placeholder(_attrs, %{ecto_type: _ecto_type}), do: ""
 
   # Determines the display length for a field based on its type.
@@ -387,11 +367,10 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   @spec field_hidden(map(), map()) :: boolean()
   defp field_hidden(%{key: key}, _attribute), do: CommonFieldsParser.field_hidden(key)
 
-  # Determines if a field should be filterable in queries
-  # A multi-value select is excluded: the filter strip renders a single-value input, and comparing it
-  # against an array column is a query-time error rather than an empty result.
+  # Determines if a field should be filterable in queries.
+  # Arrays are excluded: the filter strip renders a single-value input, which is a query-time error
+  # against an array column.
   @spec field_filterable(map(), map()) :: boolean()
-  # Same reasoning for a scalar array, which has no filter input of its own either.
   defp field_filterable(_attrs, %{ecto_type: {:array, _item_type}}), do: false
 
   defp field_filterable(_attrs, %{ecto_type: ecto_type}),
@@ -415,10 +394,8 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     }
   end
 
-  # Must precede the generic association clause below: %Ecto.Association.ManyToMany{} has no
-  # :related_key field at all, so the dot access there raises KeyError. Both keys come out of
-  # :join_keys instead, which Ecto always builds as
-  # [{join_owner_key, owner_key}, {join_related_key, related_key}].
+  # Must precede the generic association clause: %Ecto.Association.ManyToMany{} has no :related_key,
+  # so both keys come out of :join_keys instead.
   defp field_data(_attrs, %{
          ecto_type:
            %AssociationManyToMany{
