@@ -186,8 +186,10 @@ Requires:
     The implementation is unchanged; only the name and docs are.
 
 - **Updated Dependencies**
-  - ash: 3.30.1 -> 3.31.0
+  - ash: 3.30.1 -> 3.31.2
+  - phoenix: 1.8.9 -> 1.8.10
   - phoenix_live_reload: 1.6.2 -> 1.7.0
+  - phoenix_live_view: 1.2.8 -> 1.2.9
   - postgrex: 0.22.3 -> 0.22.4
 
 ## [0.1.5] - 2026-07-28
