@@ -211,11 +211,13 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
       author = 1 |> create_sample_authors() |> List.first()
       _posts = create_sample_posts(1, %{author_id: author.id, title: "Aggregated title"})
 
-      # Listing it as a column is what used to be impossible: an untyped field cannot be rendered.
-      # The cell itself stays empty because the index list query applies no preload for generated
-      # fields -- that gap predates aggregate typing and hits `:count` the same way.
       {:ok, index_view, _html} = live(conn, "/ash-embeds-authors")
       assert has_element?(index_view, "th", "Latest Post Title")
+      assert has_element?(index_view, "td", "Aggregated title")
+
+      # `:count` was blank in the index for the same reason -- the list query applied no preload --
+      # so it guards the fix too.
+      assert has_element?(index_view, "td", "1")
 
       {:ok, show_view, _html} = live(conn, "/ash-embeds-authors/#{author.id}/show")
 

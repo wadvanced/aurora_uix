@@ -834,6 +834,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Keyword.merge(layout_opts)
       |> Keyword.put_new(:order_by, [])
       |> Keyword.put_new(:where, [])
+      |> merge_preload(auix.preload)
 
     load_items_options = Enum.map(opts, &merge_extra_option(&1, extra_options))
 
@@ -868,14 +869,32 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     merged_opts =
       Keyword.merge(load_items_options, opts, fn _key, existing, acc -> [existing | acc] end)
 
-    query_options =
-      [
-        order_by: Keyword.get(merged_opts, :order_by),
-        where: Keyword.get(merged_opts, :where)
-      ]
+    base_options = [
+      order_by: Keyword.get(merged_opts, :order_by),
+      where: Keyword.get(merged_opts, :where)
+    ]
+
+    query_options = maybe_put_preload(base_options, Keyword.get(merged_opts, :preload))
 
     assign_auix(socket, :query_options, query_options)
   end
+
+  # Associations and generated fields are only populated when the query asks for them, so the index
+  # list needs the same preload the `:show` and `:edit` paths already apply.
+  @spec merge_preload(keyword(), list() | nil) :: keyword()
+  defp merge_preload(opts, preload) when preload in [nil, []], do: opts
+
+  defp merge_preload(opts, preload) do
+    Keyword.update(opts, :preload, preload, &Enum.uniq(List.wrap(&1) ++ preload))
+  end
+
+  # Kept out of the query entirely when there is nothing to load, so resources without preloads
+  # issue the same query as before.
+  @spec maybe_put_preload(keyword(), list() | nil) :: keyword()
+  defp maybe_put_preload(query_options, preload) when preload in [nil, []], do: query_options
+
+  defp maybe_put_preload(query_options, preload),
+    do: Keyword.put(query_options, :preload, preload)
 
   # Read the items.
   # Uses the previously store :query_options, accepts new options.
