@@ -23,8 +23,10 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
   def always_expanded(_assigns), do: true
 
   auix_create_ui do
+    index_columns(:author, [:name, :posts_count, :latest_post_title, :last_published_at])
+
     edit_layout :author do
-      stacked([:name, :email, :posts, :posts_count])
+      stacked([:name, :email, :posts, :posts_count, :latest_post_title, :post_titles])
     end
 
     edit_layout :post,
@@ -189,6 +191,41 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
     assert :summary in preloads.post
     assert :posts_count in preloads.author
+    assert :latest_post_title in preloads.author
+    assert :post_titles in preloads.author
+  end
+
+  describe "aggregate kinds beyond :count" do
+    test "each kind is a usable resource, typed from the aggregated attribute" do
+      fields = get_in(AshEmbedsTest.auix_resource(:author), [:fields])
+
+      assert %{type: :string, html_type: :text} = fields.latest_post_title
+      assert %{type: :utc_datetime} = fields.last_published_at
+      # A `:list` carries its item's type, and renders read-only like any other array.
+      assert %{type: :string, html_type: :unimplemented} = fields.post_titles
+    end
+
+    test "a :first aggregate is usable as an index column and renders its value", %{conn: conn} do
+      delete_all_blog_data()
+
+      author = 1 |> create_sample_authors() |> List.first()
+      _posts = create_sample_posts(1, %{author_id: author.id, title: "Aggregated title"})
+
+      {:ok, index_view, _html} = live(conn, "/ash-embeds-authors")
+      assert has_element?(index_view, "th", "Latest Post Title")
+      assert has_element?(index_view, "td", "Aggregated title")
+
+      # `:count` was blank in the index for the same reason -- the list query applied no preload --
+      # so it guards the fix too.
+      assert has_element?(index_view, "td", "1")
+
+      {:ok, show_view, _html} = live(conn, "/ash-embeds-authors/#{author.id}/show")
+
+      assert has_element?(
+               show_view,
+               "input[name='latest_post_title'][value='Aggregated title'][disabled]"
+             )
+    end
   end
 
   test "Show renders a calculation value without a manual read-action load", %{conn: conn} do

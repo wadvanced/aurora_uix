@@ -12,7 +12,7 @@ Aurora UIX is a low-code framework for building dynamic, metadata-driven UIs in 
 
 ## Installation
 
-Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.7+ (which includes LiveView support):
+Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.8+ and Phoenix LiveView 1.2+:
 
 ```elixir
 def deps do

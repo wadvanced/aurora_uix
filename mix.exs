@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.6-rc.4"
+  @version "0.1.6-rc.5"
 
   def project do
     [
@@ -222,14 +222,14 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.0"},
+      {:ash, "~> 3.31"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.0"},
+      {:ash_postgres, "~> 2.11"},
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
-      {:bandit, "~> 1.5"},
+      {:bandit, "~> 1.12"},
       {:css_parser, "~> 0.1"},
-      {:ecto_sql, "~> 3.10"},
+      {:ecto_sql, "~> 3.14"},
       {:gettext, "~> 1.0"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
@@ -241,16 +241,16 @@ defmodule Aurora.Uix.MixProject do
        only: :dev,
        runtime: false},
       {:phoenix, "~> 1.8"},
-      {:phoenix_ecto, "~> 4.6"},
-      {:phoenix_html, "~> 4.1"},
+      {:phoenix_ecto, "~> 4.7"},
+      {:phoenix_html, "~> 4.3"},
       {:phoenix_live_dashboard, "~> 0.8"},
-      {:phoenix_live_view, "~> 1.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix_live_view, "~> 1.2"},
+      {:phoenix_live_reload, "~> 1.7", only: :dev},
       {:postgrex, ">= 0.0.0"},
       {:simple_sat, "~> 0.1"},
       {:struct_inspect, "~> 0.1"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
+      {:telemetry_metrics, "~> 1.1"},
+      {:telemetry_poller, "~> 1.3"},
 
       ## Dev dependencies
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
@@ -258,11 +258,11 @@ defmodule Aurora.Uix.MixProject do
       ## Test dependencies
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-      {:doctor, "~> 0.22", only: :dev, runtime: false},
+      {:doctor, "~> 0.23", only: :dev, runtime: false},
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
-      {:image, "~> 0.37", only: :test},
+      {:image, "~> 0.72", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
-      {:wallaby, "~> 0.30", only: :test, runtime: false}
+      {:wallaby, "~> 0.31", only: :test, runtime: false}
     ]
   end
 

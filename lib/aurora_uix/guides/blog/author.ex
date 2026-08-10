@@ -63,5 +63,13 @@ defmodule Aurora.Uix.Guides.Blog.Author do
 
   aggregates do
     count :posts_count, :posts
+
+    first :latest_post_title, :posts, :title do
+      sort inserted_at: :desc
+    end
+
+    list :post_titles, :posts, :title
+
+    max :last_published_at, :posts, :published_at
   end
 end
