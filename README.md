@@ -42,8 +42,8 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 **Technology Stack:**
 - Elixir `1.17+`
 - Phoenix `1.8+`
-- Phoenix LiveView `1.1+`
-- Ecto `3.13+`
+- Phoenix LiveView `1.2+`
+- Ecto `3.14+`
 
 ---
 ## ⚡ Quick Example

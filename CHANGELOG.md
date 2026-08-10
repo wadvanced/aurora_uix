@@ -13,8 +13,8 @@ as selects.
 Requires:
 - Elixir `1.17+`
 - Phoenix `1.8+`
-- Phoenix LiveView `1.1+`
-- Ecto `3.13+`
+- Phoenix LiveView `1.2+`
+- Ecto `3.14+`
 
 ### Fixes
 
