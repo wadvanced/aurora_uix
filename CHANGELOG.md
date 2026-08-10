@@ -18,6 +18,36 @@ Requires:
 
 ### Fixes
 
+- **Ash aggregates of kind `:first`, `:list` and `:custom` had no type, and `sum`/`max`/`min` were always `:float`**
+  - The Ash parser re-derived Ash's own kind → type mapping and covered only six of the nine kinds.
+    The other three fell through to the catch-all, which logged a parse error and returned the
+    `Ash.Resource.Aggregate` struct's `:type` — always `nil`. The field ended up with `type: nil`
+    and `html_type: nil`, could not be rendered or placed in `index_columns`, and logged on every
+    compile of the host application even when no layout referenced it.
+  - `sum`, `max` and `min` were pinned to `:float`, although Ash types them as the aggregated
+    attribute's own type: a `sum` over a `:decimal` money column parsed as `:float`, and a `max`
+    over a `:date` lost its type. They were only accidentally right when the aggregated attribute
+    was already a float.
+  - The mapping now delegates to `Ash.Resource.Info.aggregate_type/2` and so covers all nine kinds.
+    A `:list` aggregate carries its item's type and renders read-only, like any other scalar array.
+  - Two failures on the same path are fixed with it: a `custom` aggregate that declares its type by
+    short name (`custom :joined, :rel, :string`) crashed the parser with
+    `ArgumentError: expected an Elixir module, got: :string`, because `:string` is also an Erlang
+    module and has no Elixir module path to take apart; and an aggregate over a `use Ash.Type.Enum`
+    attribute yielded the enum module itself as its type instead of the scalar the enum stores.
+  - Aggregates are an Ash-only concept, so the Ecto/`aurora_ctx` parser is unaffected.
+
+- **Aggregate, calculation and association columns rendered an empty cell in the index**
+  - Generated fields and associations referenced by a layout are collected into the resource's
+    preload, and the `:show`, `:edit` and `:new` reads apply it — the index list query never did.
+    `prepare_query_options/2` rebuilt the query from `order_by` and `where` alone and discarded
+    everything else, including the `:preload` that `@allowed_query_options` had listed as allowed
+    since it was introduced.
+  - A `count :posts_count` aggregate therefore rendered its value on `:show` but a blank cell in an
+    index listing the same field.
+  - Both backends already accepted `:preload` on their list functions, so the option is simply no
+    longer dropped. Resources with nothing to preload issue the same query as before.
+
 - **The multi-select toggle-all checkbox stayed clickable on a disabled or read-only field**
   - `auix_toggle_all` didn't forward the field's `disabled`/`readonly` state to its checkbox, so a
     field the host had disabled could still have every option checked or cleared in one click through
