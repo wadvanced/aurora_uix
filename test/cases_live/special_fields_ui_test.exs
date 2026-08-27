@@ -32,7 +32,17 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui do
-    index_columns(:product, [:id, :reference, :name, :product_location_id, :status, :inactive],
+    index_columns(
+      :product,
+      [
+        :id,
+        :reference,
+        :name,
+        :product_location_id,
+        :status,
+        :inactive,
+        :quantity_at_hand
+      ],
       order_by: :reference
     )
 
@@ -174,6 +184,62 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
            |> Enum.count() == 7
   end
 
+  test "Test filters contains matches a substring, case-insensitively", %{conn: conn} do
+    {view, _locations} = prepare_filters_test(conn)
+
+    view
+    |> set_filter_change(:filter_condition, :reference, :contains)
+    |> set_filter_change(:filter_from, :reference, "3d-")
+
+    assert submitted_row_count(view) == 4
+
+    set_filter_change(view, :filter_from, :reference, "3D-")
+
+    assert submitted_row_count(view) == 4
+  end
+
+  test "Test filters contains escapes the ilike wildcards", %{conn: conn} do
+    {view, _locations} = prepare_filters_test(conn)
+
+    set_filter_change(view, :filter_condition, :reference, :contains)
+
+    # References look like "item_group_1a-1". Unescaped, `%` matches every row and the `_`
+    # in "a_1" wildcard-matches the `-` in "...a-1"; escaped, neither occurs literally.
+    for wildcard_value <- ["%", "a_1"] do
+      set_filter_change(view, :filter_from, :reference, wildcard_value)
+
+      assert submitted_row_count(view) == 0
+    end
+  end
+
+  test "Test filters contains ignores `to` and a blank value", %{conn: conn} do
+    {view, _locations} = prepare_filters_test(conn)
+
+    view
+    |> set_filter_change(:filter_condition, :reference, :contains)
+    |> set_filter_change(:filter_from, :reference, "")
+
+    assert view
+           |> element("[name='filter_to__reference'][readonly][disabled]")
+           |> has_element?()
+
+    assert submitted_row_count(view) == 27
+  end
+
+  test "Test filters condition select offers no contains option for non-text fields",
+       %{conn: conn} do
+    {view, _locations} = prepare_filters_test(conn)
+
+    for field <- [:quantity_at_hand, :inactive] do
+      refute view
+             |> element("[name='filter_condition__#{field}']")
+             |> render()
+             |> LazyHTML.from_fragment()
+             |> LazyHTML.query("option[value='contains']")
+             |> Enum.any?()
+    end
+  end
+
   ## PRIVATE
 
   @spec assert_option_exists(View.t(), atom, integer, binary) :: any
@@ -249,6 +315,19 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
     |> render_click()
 
     {view, locations}
+  end
+
+  @spec submitted_row_count(View.t()) :: non_neg_integer()
+  defp submitted_row_count(view) do
+    view
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']")
+    |> render_click()
+
+    view
+    |> render()
+    |> LazyHTML.from_document()
+    |> LazyHTML.query("tbody tr")
+    |> Enum.count()
   end
 
   @spec set_filter_change(View.t(), atom(), atom(), atom() | binary()) :: View.t()

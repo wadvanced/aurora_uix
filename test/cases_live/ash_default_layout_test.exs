@@ -278,4 +278,44 @@ defmodule Aurora.UixWeb.Test.AshDefaultLayoutTest do
 
     assert has_element?(view, "td", unique_name)
   end
+
+  # Ash counterpart to the `contains` filter coverage in
+  # test/cases_live/special_fields_ui_test.exs — both backends must agree for the same data.
+  # The fragment is upper-cased on purpose: it also pins that the Ash query parser passes
+  # `:ilike` through instead of collapsing it to `:eq`, which would match no row at all.
+  test "Test filters contains matches a substring, case-insensitively", %{conn: conn} do
+    delete_all_blog_data()
+    create_sample_authors(5)
+
+    {:ok, view, _html} = live(conn, "/ash-default-layout-authors")
+
+    view
+    |> element("[name='auix-filter_toggle_open']")
+    |> render_click()
+
+    set_filter_change(view, :filter_condition, :name, :contains)
+    set_filter_change(view, :filter_from, :name, "TEST-2")
+
+    view
+    |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-author']")
+    |> render_click()
+
+    assert view
+           |> render()
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("tbody tr")
+           |> Enum.count() == 1
+  end
+
+  ## PRIVATE
+
+  @spec set_filter_change(Phoenix.LiveViewTest.View.t(), atom(), atom(), atom() | binary()) :: :ok
+  defp set_filter_change(view, element, field, value) do
+    render_change(view, "index-layout-change", %{
+      "_target" => ["#{element}__#{field}"],
+      "#{element}__#{field}" => "#{value}"
+    })
+
+    :ok
+  end
 end

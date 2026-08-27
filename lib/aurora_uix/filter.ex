@@ -21,6 +21,7 @@ defmodule Aurora.Uix.Filter do
   | `≤` | `:le` | Less than or equal |
   | `b` | `:between` | Between two values |
   | `i` | `:in` | In a set of values |
+  | `∋` | `:contains` | Case-insensitive substring match (text fields only) |
 
   ## Examples
 
@@ -60,6 +61,19 @@ defmodule Aurora.Uix.Filter do
     {"between (<o>)", :between},
     {"in list ([o])", :in}
   ]
+
+  @text_conditions [
+    {"contains (∋)", :contains},
+    {"equals (=)", :eq},
+    {"greater than (>)", :gt},
+    {"less than (<)", :lt},
+    {"greater equal than (≥)", :ge},
+    {"less equal than (≤)", :le},
+    {"between (<o>)", :between},
+    {"in list ([o])", :in}
+  ]
+
+  @text_types [:string, :binary, :bitstring]
 
   @boolean_conditions [
     {"-", nil},
@@ -171,5 +185,35 @@ defmodule Aurora.Uix.Filter do
   @spec conditions(map()) :: list({binary(), atom()})
   def conditions(field \\ %{})
   def conditions(%{type: :boolean}), do: @boolean_conditions
+  def conditions(%{type: type}) when type in @text_types, do: @text_conditions
   def conditions(_field), do: @conditions
+
+  @doc """
+  Returns the default condition for a field, based on its type.
+
+  Text-typed fields (`:string`, `:binary`, `:bitstring`) default to `:contains`;
+  every other field defaults to `:eq`.
+
+  ## Parameters
+
+  - `field` (map()) - Field metadata containing a `:type` key
+
+  ## Returns
+
+  - `atom()` - Default condition atom
+
+  ## Examples
+
+  ```elixir
+  Aurora.Uix.Filter.default_condition(%{type: :string})
+  :contains
+
+  Aurora.Uix.Filter.default_condition(%{type: :integer})
+  :eq
+  ```
+  """
+  @spec default_condition(map()) :: atom()
+  def default_condition(field \\ %{})
+  def default_condition(%{type: type}) when type in @text_types, do: :contains
+  def default_condition(_field), do: :eq
 end

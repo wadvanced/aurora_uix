@@ -1137,7 +1137,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     filters =
       index_fields
       |> Enum.filter(& &1.filterable?)
-      |> Map.new(&{to_string(&1.key), Filter.new(&1.key)})
+      |> Map.new(
+        &{to_string(&1.key), Filter.new(%{key: &1.key, condition: Filter.default_condition(&1)})}
+      )
 
     socket
     |> assign_auix(:filters, filters)
@@ -1186,6 +1188,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       {_key, %{condition: :between} = filter} ->
         is_nil(filter.from) or is_nil(filter.to)
 
+      {_key, %{condition: :contains} = filter} ->
+        is_nil(filter.from) or filter.from == ""
+
       {_key, %{condition: condition}} when condition in [false, true] ->
         false
 
@@ -1199,12 +1204,25 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       {_key, %{condition: :between} = filter} ->
         {filter.key, filter.condition, filter.from, filter.to}
 
+      {_key, %{condition: :contains} = filter} ->
+        {filter.key, :ilike, "%" <> escape(filter.from) <> "%"}
+
       {_key, %{condition: condition} = filter} when condition in [false, true] ->
         {filter.key, condition}
 
       {_key, filter} ->
         {filter.key, filter.condition, filter.from}
     end)
+  end
+
+  # Escapes ilike wildcard characters (`\`, `%`, `_`) so a `contains` filter value matches
+  # literally instead of being interpreted as a pattern.
+  @spec escape(binary()) :: binary()
+  defp escape(value) do
+    value
+    |> String.replace("\\", "\\\\")
+    |> String.replace("%", "\\%")
+    |> String.replace("_", "\\_")
   end
 
   @spec previous_page(map()) :: integer()

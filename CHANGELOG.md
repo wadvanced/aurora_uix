@@ -18,6 +18,15 @@ Requires:
 
 ### Fixes
 
+- **Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**
+  - `Aurora.Uix.Integration.Ash.QueryParser.translate_operation/1` mapped both pattern-matching
+    operators onto `:eq`, so a substring search on an Ash resource returned only exact matches
+    instead of erroring or matching correctly. Both operators are now passed through to
+    `Ash.Query.filter/2` and resolve via `AshPostgres.Functions.ILike`.
+  - This is an AshPostgres data-layer function: on a non-Postgres Ash data layer the filter now
+    raises rather than silently matching the wrong rows. Documented in the module's
+    `## Key Constraints`.
+
 - **Ash aggregates of kind `:first`, `:list` and `:custom` had no type, and `sum`/`max`/`min` were always `:float`**
   - The Ash parser re-derived Ash's own kind → type mapping and covered only six of the nine kinds.
     The other three fell through to the catch-all, which logged a parse error and returned the
@@ -102,6 +111,19 @@ Requires:
     enum can be exercised end-to-end in tests.
 
 ### Added
+
+- **`contains` filter condition for text fields**
+  - The index filter bar offered only `:eq`, `:gt`, `:lt`, `:ge`, `:le`, `:between` and `:in`, so
+    there was no way to search for a substring. `Aurora.Uix.Filter.conditions/1` now offers an
+    eighth condition, `contains (∋)`, for fields whose type is `:string`, `:binary` or
+    `:bitstring`. Non-text and boolean fields are unchanged, so the UI can never produce a pattern
+    match against a non-string column.
+  - The backend-agnostic layer translates the condition once, into the `:ilike` comparator both
+    backends understand, and builds the `%value%` pattern in a single place. Backslash, `%` and `_`
+    in the user's value are escaped so they match literally instead of acting as wildcards.
+  - A blank value drops the filter entirely rather than degrading to `ilike '%%'`, which would match
+    every row. `to` is unused — the second input stays disabled, as it does for every non-`:between`
+    condition.
 
 - **Separate font-size variables for group titles and index empty states**
   - `--auix-font-size-title` drove the page title, group headings and the index empty-state message
