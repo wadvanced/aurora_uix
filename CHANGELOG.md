@@ -208,11 +208,15 @@ Requires:
     The implementation is unchanged; only the name and docs are.
 
 - **Updated Dependencies**
-  - ash: 3.30.1 -> 3.31.2
-  - phoenix: 1.8.9 -> 1.8.10
+  - ash: 3.30.1 -> 3.32.1
+  - ash_postgres: 2.11.0 -> 2.12.0
+  - bandit: 1.12.4 -> 1.12.5
+  - phoenix: 1.8.9 -> 1.8.13
+  - phoenix_live_dashboard: 0.8.7 -> 0.9.0
   - phoenix_live_reload: 1.6.2 -> 1.7.0
-  - phoenix_live_view: 1.2.8 -> 1.2.9
+  - phoenix_live_view: 1.2.8 -> 1.2.11
   - postgrex: 0.22.3 -> 0.22.4
+  - telemetry_metrics: 1.1.0 -> 1.2.0
 
 ## [0.1.5] - 2026-07-28
 
