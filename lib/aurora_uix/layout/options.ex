@@ -36,9 +36,6 @@ defmodule Aurora.Uix.Layout.Options do
     subtitle and action-label default interpolates when building its display string.
   """
 
-  import Phoenix.Component, only: [sigil_H: 2]
-  import Phoenix.HTML, only: [raw: 1]
-
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Layout.Options.Form, as: FormOptions
   alias Aurora.Uix.Layout.Options.Index, as: IndexOptions

@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.6-rc.5"
+  @version "0.1.6-rc.6"
 
   def project do
     [
@@ -222,9 +222,9 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.31"},
+      {:ash, "~> 3.32"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.11"},
+      {:ash_postgres, "~> 2.12"},
       {:aurora_ctx, "~> 0.1"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.12"},
@@ -243,13 +243,13 @@ defmodule Aurora.Uix.MixProject do
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.7"},
       {:phoenix_html, "~> 4.3"},
-      {:phoenix_live_dashboard, "~> 0.8"},
+      {:phoenix_live_dashboard, "~> 0.9"},
       {:phoenix_live_view, "~> 1.2"},
       {:phoenix_live_reload, "~> 1.7", only: :dev},
       {:postgrex, ">= 0.0.0"},
       {:simple_sat, "~> 0.1"},
       {:struct_inspect, "~> 0.1"},
-      {:telemetry_metrics, "~> 1.1"},
+      {:telemetry_metrics, "~> 1.2"},
       {:telemetry_poller, "~> 1.3"},
 
       ## Dev dependencies

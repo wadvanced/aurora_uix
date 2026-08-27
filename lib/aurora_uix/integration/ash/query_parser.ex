@@ -21,6 +21,9 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
     ignored
   - The `:in` operator expects either a list or comma-separated string
   - The `:between` operator requires start and end values
+  - `:ilike` (and `:like`) are passed through as-is to `Ash.Query.filter/2`, resolved via
+    `AshPostgres.Functions.ILike`. This is an AshPostgres data-layer function: on a
+    non-Postgres Ash data layer the filter raises rather than silently matching wrong rows
   """
   require Ash.Query
 
@@ -119,7 +122,5 @@ defmodule Aurora.Uix.Integration.Ash.QueryParser do
   defp translate_operation(operation) when operation in [:ge, :greater_equal_than], do: :gte
   defp translate_operation(operation) when operation in [:le, :less_equal_than], do: :lte
   defp translate_operation(:equal_to), do: :eq
-  defp translate_operation(:like), do: :eq
-  defp translate_operation(:ilike), do: :eq
   defp translate_operation(operation), do: operation
 end
