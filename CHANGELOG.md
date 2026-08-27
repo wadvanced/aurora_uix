@@ -19,7 +19,7 @@ Requires:
 ### Fixes
 
 - **Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**
-  - `Aurora.Uix.Integration.Ash.QueryParser.translate_operation/1` mapped both pattern-matching
+  - `Aurora.Uix.Integration.Ash.QueryParser`'s `translate_operation/1` (since removed) mapped both pattern-matching
     operators onto `:eq`, so a substring search on an Ash resource returned only exact matches
     instead of erroring or matching correctly. Both operators are now passed through to
     `Ash.Query.filter/2` and resolve via `AshPostgres.Functions.ILike`.
@@ -93,7 +93,7 @@ Requires:
     markup around the resource name, relying on the removed `render_binary/2` raw-HTML wrapping to
     render it unescaped. Since these are plain strings now, the markup is dropped in favor of a
     plain `'…'` quoting (`"Creates a new 'Product' record in your database"`); the now-dead
-    `Aurora.Uix.Layout.Options.render_binary/2` helper is removed. Also fixes `edit_subtitle` never
+    `Aurora.Uix.Layout.Options`'s `render_binary/2` helper is removed. Also fixes `edit_subtitle` never
     being routed through `dt/1`/Gettext, unlike its `new_subtitle`/`edit_title`/`new_title` siblings.
 
 - **Multi-value atom and enum attributes not detected as multiple selects**
@@ -115,7 +115,7 @@ Requires:
 - **`contains` filter condition for text fields**
   - The index filter bar offered only `:eq`, `:gt`, `:lt`, `:ge`, `:le`, `:between` and `:in`, so
     there was no way to search for a substring. `Aurora.Uix.Filter.conditions/1` now offers an
-    eighth condition, `contains (∋)`, for fields whose type is `:string`, `:binary` or
+    eighth condition, `contains (~)`, for fields whose type is `:string`, `:binary` or
     `:bitstring`. Non-text and boolean fields are unchanged, so the UI can never produce a pattern
     match against a non-string column.
   - The backend-agnostic layer translates the condition once, into the `:ilike` comparator both
