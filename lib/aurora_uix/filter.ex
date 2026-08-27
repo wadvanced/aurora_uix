@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Filter do
 
   | Symbol | Atom | Description |
   |--------|------|-------------|
+  | `~` | `:contains` | Case-insensitive substring match (text fields only) |
   | `=` | `:eq` | Equal to |
   | `>` | `:gt` | Greater than |
   | `<` | `:lt` | Less than |
@@ -21,7 +22,6 @@ defmodule Aurora.Uix.Filter do
   | `≤` | `:le` | Less than or equal |
   | `b` | `:between` | Between two values |
   | `i` | `:in` | In a set of values |
-  | `∋` | `:contains` | Case-insensitive substring match (text fields only) |
 
   ## Examples
 
@@ -63,7 +63,7 @@ defmodule Aurora.Uix.Filter do
   ]
 
   @text_conditions [
-    {"contains (∋)", :contains},
+    {"contains (~)", :contains},
     {"equals (=)", :eq},
     {"greater than (>)", :gt},
     {"less than (<)", :lt},
