@@ -32,13 +32,18 @@ test_database_socket =
 # The main checkout keeps 4001; a linked worktree (its `.git` is a file) derives
 # its port from its own path, so concurrent suites never bind the same port.
 # Wallaby's base_url follows the same port. PORT always wins.
+linked_worktree? = checkout_root |> Path.join(".git") |> File.regular?()
+
 default_port =
-  if File.regular?(Path.join(checkout_root, ".git")),
+  if linked_worktree?,
     do: 40_000 + :erlang.phash2(checkout_root, 10_000),
     else: 4001
 
 test_port =
-  "PORT" |> System.get_env() |> Kernel.||(Integer.to_string(default_port)) |> String.to_integer()
+  case System.get_env("PORT") do
+    nil -> default_port
+    port -> String.to_integer(port)
+  end
 
 # Configure your database
 #
