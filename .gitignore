@@ -65,3 +65,13 @@ aurora_uix-*.tar
 /**/-local-*.*
 
 /**/.expert/
+
+# epic-orchestrator section worktrees — local only, never committed.
+# Also covered by .git/info/exclude, but that file is per-clone: without this
+# entry another checkout would sweep whole worktrees, _build included, into
+# the gate-receipt tree hash.
+/.claude/worktrees/
+
+# epic-orchestrator run ledger and gate receipt — local only, never committed
+/.orchestrator-state.json
+/.test-receipt.json

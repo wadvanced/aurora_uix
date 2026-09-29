@@ -39,6 +39,10 @@ mix auix.gen.icons           # Regenerate the icon set
 mix auix.gen.tailwind_classes # Regenerate the hero-* icon class inventory (priv/static/classes.js)
 mix assets.build             # Full asset pipeline (icons + stylesheet + esbuild + digest)
 
+# Per-checkout test database (skipped on CI)
+scripts/test_pg.sh status    # private PostgreSQL for this checkout; `ensure` starts it, `sweep` retires stale ones
+AURORA_UIX_TEST_PG=shared mix test   # opt out: use the shared aurora_uix_test database
+
 # Demo server for the test app (routes come from test/support/app_web/routes.ex)
 iex -S mix run test/start_test_server.exs
 ```
@@ -440,6 +444,7 @@ Parser and metadata tests are pure compile-time introspection — run them first
 ### Test Case Modules
 - `use Aurora.UixWeb.Test.UICase, :phoenix_case` and `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. There is no `FeatureCase` and no `test/support/factory.ex`.
 - Test data comes from the guide schemas via `test/support/helper.ex` (`create_sample_products/2`, `delete_all_inventory_data/0`, …)
+- **Each checkout has its own test PostgreSQL instance and endpoint port** (`scripts/test_pg.sh`, wired in `test/config/test.exs`; linked worktrees derive a port from their path, `PORT` overrides). A fresh checkout or worktree starts with an empty database: run `MIX_ENV=test mix ecto.create && mix ecto.migrate` first. On CI (`CI` set) the shared service database is used.
 - **Migrations are not run by `mix test`.** Run `mix ecto.migrate` yourself, or DB-backed tests fail with a confusing `relation "…" does not exist`
 - Use `start_supervised!/1` for processes — never `Process.sleep/1`
 - For async synchronization use `_ = :sys.get_state(pid)`, not sleep
@@ -479,6 +484,8 @@ Only the **first failing stage** is visible per run — fix it, re-run, repeat. 
 Fix all issues before committing. Use conventional commits to separate stages when all checks pass.
 
 ## Workflow
+
+The issue → PR pipeline lives in `.claude/skills/` (see `.claude/skills/README.md`): `improve-issue` → `code-issue` → `review-issue` → `pr-from-issue` → `merge-pr`, driven end to end by `orchestrate-issue` and the `epic-orchestrator` agent. Specs are stored as `specs/issue-<n>-enriched-spec.md` through a spec PR; **never commit to `main` directly**. Long gates run through `.claude/scripts/gate.sh` / `suite.sh` (a hook rejects backgrounded gates and poll loops).
 
 When working on issues, always read the full issue description and linked issues before starting implementation. 
 If an issue involves multiple steps (docs, refactor, PR), outline the plan first and confirm before proceeding.
