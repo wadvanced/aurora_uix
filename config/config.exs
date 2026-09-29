@@ -30,6 +30,9 @@ config :aurora_uix, Aurora.UixWeb.Endpoint,
 # Configure Ash domains
 config :aurora_uix, ash_domains: [Aurora.Uix.Guides.Blog]
 
+# Required since Ash 3.33: SQL data layers count string length in codepoints
+config :ash, default_string_length_count: :codepoints
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

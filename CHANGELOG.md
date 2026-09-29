@@ -207,14 +207,23 @@ Requires:
   - It now resolves the candidate set of any multi-value select, not only a many-to-many membership.
     The implementation is unchanged; only the name and docs are.
 
+- **Ash 3.33 requires an explicit string-length counting mode**
+  - The library's own config now sets `config :ash, default_string_length_count: :codepoints`,
+    which Ash 3.33 demands at compile time for resources with string constraints. Host
+    applications on Ash 3.33+ must set it too.
+
 - **Updated Dependencies**
-  - ash: 3.30.1 -> 3.32.1
-  - ash_postgres: 2.11.0 -> 2.12.0
+  - ash: 3.30.1 -> 3.33.11
+  - ash_phoenix: 2.3.24 -> 2.3.25
+  - ash_postgres: 2.11.0 -> 2.13.1
   - bandit: 1.12.4 -> 1.12.5
-  - phoenix: 1.8.9 -> 1.8.13
-  - phoenix_live_dashboard: 0.8.7 -> 0.9.0
+  - dialyxir: 1.4.7 -> 1.4.8
+  - ex_doc: 0.40.3 -> 0.40.4
+  - lazy_html: 0.1.12 -> 0.1.13
+  - phoenix: 1.8.9 -> 1.8.15
+  - phoenix_live_dashboard: 0.8.7 -> 0.9.1
   - phoenix_live_reload: 1.6.2 -> 1.7.0
-  - phoenix_live_view: 1.2.8 -> 1.2.11
+  - phoenix_live_view: 1.2.8 -> 1.2.12
   - postgrex: 0.22.3 -> 0.22.4
   - telemetry_metrics: 1.1.0 -> 1.2.0
 
