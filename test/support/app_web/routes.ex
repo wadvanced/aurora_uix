@@ -377,6 +377,16 @@ defmodule Aurora.UixWeb.Test.Routes do
           AshActorPolicyTest.PublicItem,
           "ash-actor-public-items"
         )
+
+        RoutesHelper.register_crud(
+          CheckboxCheckedTest.Product,
+          "checkbox-checked-products"
+        )
+
+        RoutesHelper.register_crud(
+          AshCheckboxCheckedTest.Item,
+          "ash-checkbox-checked-items"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

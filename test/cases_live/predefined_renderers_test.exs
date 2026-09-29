@@ -96,7 +96,7 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersTest do
       {:ok, view, _html} = live(conn, "/predefined-renderers-products/#{product_id}/edit")
 
       # Interactive renderers with an edit form.
-      assert has_element?(view, "input[type=checkbox].auix-toggle-switch")
+      assert has_element?(view, "input[type=checkbox][checked].auix-toggle-switch")
       assert has_element?(view, "input[type=color]")
 
       # Read-only renderers (:badge, :progress_bar, :url) delegate the form layout to the
