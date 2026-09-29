@@ -29,17 +29,17 @@ Layout types covered: `:form` only (reached through the `:edit` and `:show_edit`
 No file under `lib/` changes. Every file this section writes is under `test/`.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an Ecto `Product` with `inactive: true`, visiting `/checkbox-checked-products/<id>/edit`, then `#auix-product-form input[type=checkbox][name='product[inactive]'][checked]` exists.
-- [ ] AC-2: Given an Ecto `Product` with `deleted: true` and metadata `field(:deleted, disabled: true)`, visiting `/checkbox-checked-products/<id>/edit`, then `#auix-product-form input[type=checkbox][name='product[deleted]'][disabled][checked]` exists.
-- [ ] AC-3: Given an Ecto `Product` with `inactive: true, deleted: true`, visiting `/checkbox-checked-products` and clicking the row's edit link, then both the AC-1 and the AC-2 checkboxes carry `[checked]`.
-- [ ] AC-4: Given an Ecto `Product` with `inactive: true, deleted: true`, visiting `/checkbox-checked-products/<id>/show` and clicking the show edit link, then both the AC-1 and the AC-2 checkboxes carry `[checked]`.
-- [ ] AC-5 (degraded path): Given an Ecto `Product` with `inactive: false, deleted: false`, visiting `/checkbox-checked-products/<id>/edit`, then both checkboxes exist and neither carries `[checked]`.
-- [ ] AC-6: Given an Ash `CheckboxItem` with `active?: true`, visiting `/ash-checkbox-checked-items/<id>/edit`, then `#auix-checkbox_item-form input[type=checkbox][name='checkbox_item[active?]'][checked]` exists.
-- [ ] AC-7: Given an Ash `CheckboxItem` with `is_deleted: true` and metadata `field(:is_deleted, disabled: true)`, visiting `/ash-checkbox-checked-items/<id>/edit`, then `#auix-checkbox_item-form input[type=checkbox][name='checkbox_item[is_deleted]'][disabled][checked]` exists.
-- [ ] AC-8: Given an Ash `CheckboxItem` with `active?: true, is_deleted: true`, visiting `/ash-checkbox-checked-items` and clicking the row's edit link, then both the AC-6 and the AC-7 checkboxes carry `[checked]`.
-- [ ] AC-9: Given an Ash `CheckboxItem` with `active?: true, is_deleted: true`, visiting `/ash-checkbox-checked-items/<id>/show` and clicking the show edit link, then both the AC-6 and the AC-7 checkboxes carry `[checked]`.
-- [ ] AC-10 (degraded path): Given an Ash `CheckboxItem` with `active?: false, is_deleted: false`, visiting `/ash-checkbox-checked-items/<id>/edit`, then both checkboxes exist and neither carries `[checked]`.
-- [ ] AC-11: Given the existing `PredefinedRenderersTest` product seeded with `inactive: true`, visiting `/predefined-renderers-products/<id>/edit`, then `input[type=checkbox][checked].auix-toggle-switch` exists.
+- [x] AC-1: Given an Ecto `Product` with `inactive: true`, visiting `/checkbox-checked-products/<id>/edit`, then `#auix-product-form input[type=checkbox][name='product[inactive]'][checked]` exists.
+- [x] AC-2: Given an Ecto `Product` with `deleted: true` and metadata `field(:deleted, disabled: true)`, visiting `/checkbox-checked-products/<id>/edit`, then `#auix-product-form input[type=checkbox][name='product[deleted]'][disabled][checked]` exists.
+- [x] AC-3: Given an Ecto `Product` with `inactive: true, deleted: true`, visiting `/checkbox-checked-products` and clicking the row's edit link, then both the AC-1 and the AC-2 checkboxes carry `[checked]`.
+- [x] AC-4: Given an Ecto `Product` with `inactive: true, deleted: true`, visiting `/checkbox-checked-products/<id>/show` and clicking the show edit link, then both the AC-1 and the AC-2 checkboxes carry `[checked]`.
+- [x] AC-5 (degraded path): Given an Ecto `Product` with `inactive: false, deleted: false`, visiting `/checkbox-checked-products/<id>/edit`, then both checkboxes exist and neither carries `[checked]`.
+- [x] AC-6: Given an Ash `CheckboxItem` with `active?: true`, visiting `/ash-checkbox-checked-items/<id>/edit`, then `#auix-checkbox_item-form input[type=checkbox][name='checkbox_item[active?]'][checked]` exists.
+- [x] AC-7: Given an Ash `CheckboxItem` with `is_deleted: true` and metadata `field(:is_deleted, disabled: true)`, visiting `/ash-checkbox-checked-items/<id>/edit`, then `#auix-checkbox_item-form input[type=checkbox][name='checkbox_item[is_deleted]'][disabled][checked]` exists.
+- [x] AC-8: Given an Ash `CheckboxItem` with `active?: true, is_deleted: true`, visiting `/ash-checkbox-checked-items` and clicking the row's edit link, then both the AC-6 and the AC-7 checkboxes carry `[checked]`.
+- [x] AC-9: Given an Ash `CheckboxItem` with `active?: true, is_deleted: true`, visiting `/ash-checkbox-checked-items/<id>/show` and clicking the show edit link, then both the AC-6 and the AC-7 checkboxes carry `[checked]`.
+- [x] AC-10 (degraded path): Given an Ash `CheckboxItem` with `active?: false, is_deleted: false`, visiting `/ash-checkbox-checked-items/<id>/edit`, then both checkboxes exist and neither carries `[checked]`.
+- [x] AC-11: Given the existing `PredefinedRenderersTest` product seeded with `inactive: true`, visiting `/predefined-renderers-products/<id>/edit`, then `input[type=checkbox][checked].auix-toggle-switch` exists.
 
 ##### Test ports
 - Route `"checkbox-checked-products"` registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud(CheckboxCheckedTest.Product, "checkbox-checked-products")` · layout types `:form` · observable: `has_element?/2` on `#auix-product-form input[type=checkbox][name='product[<field>]']`.
