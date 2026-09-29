@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   build:
@@ -39,14 +40,33 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Detect non-doc changes
+      id: changes
+      uses: dorny/paths-filter@v4
+      with:
+        predicate-quantifier: 'every'
+        filters: |
+          code:
+            - '**'
+            - '!**/*.md'
+            - '!LICENSE'
+            - '!**/*.png'
+            - '!**/*.jpg'
+            - '!**/*.jpeg'
+            - '!**/*.gif'
+            - '!**/*.svg'
+            - '!specs/**'
+
     - name: Set up Elixir
       id: setup-beam
+      if: steps.changes.outputs.code == 'true'
       uses: erlef/setup-beam@v1.24.0
       with:
         elixir-version: ${{ matrix.elixir }} # [Required] Define the Elixir version
         otp-version: ${{ matrix.otp }}     # [Required] Define the Erlang/OTP version
 
     - name: 🚀 Setup Chrome and ChromeDriver
+      if: steps.changes.outputs.code == 'true'
       uses: browser-actions/setup-chrome@v2 # Use a community action to ensure compatibility
       with:
         chrome-version: 'stable' # or a specific version like '126.0.6478.126'
@@ -54,6 +74,7 @@ jobs:
 
     - name: Restore dependencies cache
       id: cache-deps
+      if: steps.changes.outputs.code == 'true'
       uses: actions/cache@v5
       with:
         path: |
@@ -62,30 +83,35 @@ jobs:
         key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
         restore-keys: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
 
-    - if: ${{steps.cache-deps.outputs.cache-hit != 'true' }}
+    - if: ${{ steps.cache-deps.outputs.cache-hit != 'true' && steps.changes.outputs.code == 'true' }}
       name: Install dependencies
       run: |
         mix deps.get
         mix deps.compile
     
     - name: Setup assets
+      if: steps.changes.outputs.code == 'true'
       run: |
         mix auix.gen.stylesheet --baseline  
         mix assets.setup
         mix assets.build    
 
     - name: Compile app
+      if: steps.changes.outputs.code == 'true'
       run: mix compile --force
       
     - name: Check consistency
+      if: steps.changes.outputs.code == 'true'
       run: mix consistency
 
     - name: create db and migration
+      if: steps.changes.outputs.code == 'true'
       run: |
         mix ecto.create
         mix ecto.migrate
 
     - name: Run tests
+      if: steps.changes.outputs.code == 'true'
       run: mix test
       env:
         WALLABY_DRIVER: chrome

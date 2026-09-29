@@ -54,6 +54,8 @@ Do NOT commit changes. The caller decides when to commit.
 
 Place `@doc` only on the FIRST function in an arity-matched group. Do not repeat for additional clauses or arities of the same name.
 
+- Return types in `## Returns` must be within backticks.
+
 Use this skeleton:
 
 ```elixir
@@ -66,7 +68,7 @@ Short description ending with a dot.
   * `:option` (type()) - Description.
 
 ## Returns
-type() - Description ending with a dot.
+`type()` - Description ending with a dot.
 
 ## Raises
 ExceptionType - Reason.
