@@ -245,6 +245,34 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_discard_confirm) do
+    """
+    .auix-discard-confirm {
+      display: flex;
+      flex-direction: column;
+      gap: var(--auix-gap-default);
+    }
+    """
+  end
+
+  def rule(:auix_discard_confirm_message) do
+    """
+    .auix-discard-confirm-message {
+      font-size: var(--auix-font-size-caption);
+    }
+    """
+  end
+
+  def rule(:auix_discard_confirm_actions) do
+    """
+    .auix-discard-confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--auix-gap-default);
+    }
+    """
+  end
+
   def rule(:auix_modal_close_button) do
     """
       .auix-modal-close-button {

@@ -32,6 +32,10 @@ defmodule Aurora.Uix.Layout.Options.Form do
     - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
     - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
 
+  * `:unsaved_changes_guard_disabled?` - Disables the unsaved-changes guard on the form modal.
+    - Accepts a `boolean()`.
+    - Default: `false` - Closing the modal with unsaved changes asks the user to confirm.
+
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
 
@@ -61,6 +65,9 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   defp get_default(_assigns, :record_navigator),
     do: {:ok, [:top, :bottom]}
+
+  defp get_default(_assigns, :unsaved_changes_guard_disabled?),
+    do: {:ok, false}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

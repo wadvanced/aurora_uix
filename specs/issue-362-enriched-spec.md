@@ -282,17 +282,17 @@ Both are reset whenever the parent re-renders the component: `FormGenerator.gene
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: Given the default guard, on `/form-discard-guard-products/:id/edit` the modal root `#auix-product-edit-modal` carries a `data-cancel` that pushes `auix_request_close` and never runs `phx-remove`; on `/form-discard-guard-products/:id/show` the modal `#auix-product-show-modal` keeps a `data-cancel` that pushes `auix_route_back`
-- [ ] AC-2: Given an edit form without changes, `auix_request_close` closes the modal (`#auix-product-edit-modal` gone) and no discard dialog appears
-- [ ] AC-3: Given an edit form after a `"validate"` change, `auix_request_close` keeps `#auix-product-edit-modal` open and shows `#auix-product-discard-confirm-modal` with `button[name='auix-keep-editing']` and `button[name='auix-discard-changes']`
-- [ ] AC-4: Clicking `button[name='auix-keep-editing']` removes the dialog, keeps the edit modal open, and the changed value stays in `input[name='product[name]']`
-- [ ] AC-5: Clicking `button[name='auix-discard-changes']` closes the edit modal and the stored product keeps its original name
-- [ ] AC-6 (degraded path — `Esc` while the dialog is shown): `auix_request_close` with the dialog open removes the dialog and keeps the edit modal open
-- [ ] AC-7: Given the `:new` route with a `"validate"` change, `auix_request_close` shows `#auix-product-discard-confirm-modal`
-- [ ] AC-8: Given an Ash resource (`Aurora.Uix.Guides.Blog.Author`) on `/ash-form-discard-guard-authors/:id/edit`, a clean form closes on `auix_request_close`; a changed form shows `#auix-author-discard-confirm-modal`, and `auix-discard-changes` closes the modal leaving the stored author's name unchanged
-- [ ] AC-9: Given `edit_layout :product, unsaved_changes_guard_disabled?: true`, a changed form closes on `auix_request_close` without showing the dialog
-- [ ] AC-10: The three `auix-discard-confirm*` rules are emitted by the stylesheet generator (mechanical — no red test; verified by `mix auix.gen.stylesheet && grep -c -E '\.auix-discard-confirm(-message|-actions)? *\{' assets/css/auix-rules.css` printing `3`)
-- [ ] AC-11: The X button, `Esc` and click-away still close a clean form modal in a real browser (manual — no red test; verified by the existing Wallaby features `"Test new fallback "`, `"Test show-edit fallback "` and `"Test edit fallback "` in `test/browser_cases/create_ui_default_layout_test.exs`, which click `.auix-modal-close-button` on a clean form and must stay green unmodified)
+- [x] AC-1: Given the default guard, on `/form-discard-guard-products/:id/edit` the modal root `#auix-product-edit-modal` carries a `data-cancel` that pushes `auix_request_close` and never runs `phx-remove`; on `/form-discard-guard-products/:id/show` the modal `#auix-product-show-modal` keeps a `data-cancel` that pushes `auix_route_back`
+- [x] AC-2: Given an edit form without changes, `auix_request_close` closes the modal (`#auix-product-edit-modal` gone) and no discard dialog appears
+- [x] AC-3: Given an edit form after a `"validate"` change, `auix_request_close` keeps `#auix-product-edit-modal` open and shows `#auix-product-discard-confirm-modal` with `button[name='auix-keep-editing']` and `button[name='auix-discard-changes']`
+- [x] AC-4: Clicking `button[name='auix-keep-editing']` removes the dialog, keeps the edit modal open, and the changed value stays in `input[name='product[name]']`
+- [x] AC-5: Clicking `button[name='auix-discard-changes']` closes the edit modal and the stored product keeps its original name
+- [x] AC-6 (degraded path — `Esc` while the dialog is shown): `auix_request_close` with the dialog open removes the dialog and keeps the edit modal open
+- [x] AC-7: Given the `:new` route with a `"validate"` change, `auix_request_close` shows `#auix-product-discard-confirm-modal`
+- [x] AC-8: Given an Ash resource (`Aurora.Uix.Guides.Blog.Author`) on `/ash-form-discard-guard-authors/:id/edit`, a clean form closes on `auix_request_close`; a changed form shows `#auix-author-discard-confirm-modal`, and `auix-discard-changes` closes the modal leaving the stored author's name unchanged
+- [x] AC-9: Given `edit_layout :product, unsaved_changes_guard_disabled?: true`, a changed form closes on `auix_request_close` without showing the dialog
+- [x] AC-10: The three `auix-discard-confirm*` rules are emitted by the stylesheet generator (mechanical — no red test; verified by `mix auix.gen.stylesheet && grep -c -E '\.auix-discard-confirm(-message|-actions)? *\{' assets/css/auix-rules.css` printing `3`)
+- [x] AC-11: The X button, `Esc` and click-away still close a clean form modal in a real browser (manual — no red test; verified by the existing Wallaby features `"Test new fallback "`, `"Test show-edit fallback "` and `"Test edit fallback "` in `test/browser_cases/create_ui_default_layout_test.exs`, which click `.auix-modal-close-button` on a clean form and must stay green unmodified)
 
 ##### Test ports
 - Route `"/form-discard-guard-products"` registered in `routes.ex` via `register_crud/2` (step 8) · layout types `:form`, `:show` · observable: `has_element?/2` on `#auix-product-edit-modal`, `#auix-product-discard-confirm-modal`, `button[name='auix-keep-editing']`, `button[name='auix-discard-changes']`, `input[name='product[name]']`

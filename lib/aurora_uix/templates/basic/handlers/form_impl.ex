@@ -191,6 +191,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      socket
      |> assign_auix_new(:form, form)
      |> assign_auix_new(:_sections, %{})
+     |> assign_auix_new(:_form_dirty?, false)
+     |> assign_auix_new(:_discard_confirm_open?, false)
      |> assign_auix(:_myself, socket.assigns.myself)
      |> assign_auix(:routing_stack, routing_stack || Stack.new())
      |> assign_layout_options()
@@ -206,7 +208,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Handles form-related events such as validation, saving, and section switching.
 
   ## Parameters
-  - `event` (binary()) - The event name (e.g., "validate", "save", "switch_section").
+  - `event` (binary()) - The event name (e.g., "validate", "switch_section", "auix_request_close",
+    "auix_keep_editing", "auix_discard_changes").
   - `params` (map()) - Parameters from the event.
   - `socket` (Socket.t()) - The current LiveView socket.
 
@@ -268,7 +271,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       )
       |> to_named_form(auix.module, action: :validate)
 
-    {:noreply, assign_auix(socket, :form, form)}
+    {:noreply,
+     socket
+     |> assign_auix(:form, form)
+     |> assign_auix(:_form_dirty?, true)}
   end
 
   def auix_handle_event("switch_section", %{"tab-id" => sections_tab_id}, socket) do
@@ -290,6 +296,22 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   def auix_handle_event("auix_download_upload", %{"field" => field}, socket) do
     {:noreply, BasicHelpers.download_upload(socket, field)}
+  end
+
+  def auix_handle_event("auix_request_close", _params, %{assigns: %{auix: auix}} = socket) do
+    {:noreply, request_close(socket, auix)}
+  end
+
+  def auix_handle_event("auix_keep_editing", _params, socket) do
+    {:noreply, assign_auix(socket, :_discard_confirm_open?, false)}
+  end
+
+  def auix_handle_event("auix_discard_changes", _params, socket) do
+    {:noreply,
+     socket
+     |> assign_auix(:_discard_confirm_open?, false)
+     |> assign_auix(:_form_dirty?, false)
+     |> route_back_from_close()}
   end
 
   def auix_handle_event(event, params, _socket) do
@@ -448,6 +470,28 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   end
 
   defp do_consume_uploads(_socket, _field, _binaries), do: :no_change
+
+  # An open dialog means the request came from `Esc` while it was shown: treat it as "keep editing".
+  @spec request_close(Socket.t(), map()) :: Socket.t()
+  defp request_close(socket, %{_discard_confirm_open?: true}),
+    do: assign_auix(socket, :_discard_confirm_open?, false)
+
+  defp request_close(
+         socket,
+         %{_form_dirty?: true, layout_options: %{unsaved_changes_guard_disabled?: false}}
+       ),
+       do: assign_auix(socket, :_discard_confirm_open?, true)
+
+  defp request_close(socket, _auix), do: route_back_from_close(socket)
+
+  # The component auix deliberately carries no `_current_path` (its presence changes save routing);
+  # the close path is supplied separately and applied only for this back navigation.
+  @spec route_back_from_close(Socket.t()) :: Socket.t()
+  defp route_back_from_close(%{assigns: %{auix: auix}} = socket) do
+    socket
+    |> assign_auix(:_current_path, Map.get(auix, :_close_path, ""))
+    |> auix_route_back()
+  end
 
   @spec maybe_allow_uploads(Socket.t(), map()) :: Socket.t()
   defp maybe_allow_uploads(socket, auix) do

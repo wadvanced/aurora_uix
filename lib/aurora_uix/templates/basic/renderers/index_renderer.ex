@@ -128,7 +128,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         <% end %>
       </div>
 
-      <.modal :if={@live_action in [:new, :edit, :show, :show_edit]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show on_cancel={JS.push("auix_route_back")}>
+      <.modal :if={@live_action in [:new, :edit, :show, :show_edit]} id={"auix-#{@auix.module}-#{@live_action}-modal"} show hide_on_cancel?={@live_action == :show} on_cancel={modal_on_cancel(@live_action, @auix)}>
         <div>
           <.live_component
             module={@auix.live_component}
@@ -139,6 +139,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               %{entity: @auix.entity,
                 routing_stack: @auix.routing_stack,
                 uri_path: @auix.uri_path,
+                _close_path: @auix[:_current_path],
                 one_to_many_related_key: @auix[:one_to_many_related_key],
                 pagination: @auix.pagination,
                 item_index: @auix.item_index}
@@ -151,6 +152,12 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   end
 
   # PRIVATE
+
+  @spec modal_on_cancel(atom(), map()) :: JS.t()
+  defp modal_on_cancel(:show, _auix), do: JS.push("auix_route_back")
+
+  defp modal_on_cancel(_live_action, auix),
+    do: JS.push("auix_request_close", target: "#auix-#{auix.module}-form")
 
   @spec entity_id(map()) :: term() | list() | nil
   defp entity_id(%{entity: entity, primary_key: primary_key}),

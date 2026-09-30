@@ -48,10 +48,19 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
         This is another modal.
       </.modal>
 
+  Set `hide_on_cancel?={false}` when `on_cancel` lets the server decide whether the modal
+  closes: the modal then stays visible until the server removes it.
+
   """
   attr(:id, :string, required: true)
   attr(:show, :boolean, default: false)
   attr(:on_cancel, JS, default: %JS{})
+
+  attr(:hide_on_cancel?, :boolean,
+    default: true,
+    doc: "when false, a cancel runs only `on_cancel` and the modal stays visible until removed"
+  )
+
   attr(:auix, :map, default: %{})
   attr(:host_components, :any)
   slot(:inner_block, required: true)
@@ -63,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       id={@id}
       phx-mounted={@show && show_modal(@id)}
       phx-remove={hide_modal(@id)}
-      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      data-cancel={if @hide_on_cancel?, do: JS.exec(@on_cancel, "phx-remove"), else: @on_cancel}
       class="auix-modal"
     >
       <div id={"#{@id}-bg"} class="auix-modal-background" aria-hidden="true" />
