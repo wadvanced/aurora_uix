@@ -74,16 +74,16 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-362-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md § Form Layout Options` lists `:unsaved_changes_guard_disabled?` directly after `:save_action_label` (mechanical — no red test; verified by `grep -n -A1 'save_action_label' guides/core/layouts.md | grep unsaved_changes_guard_disabled`)
-- [ ] AC-4: `guides/core/liveview.md § Built-in Events` lists the three new FormComponent events (mechanical — no red test; verified by `grep -c -E '"auix_(request_close|keep_editing|discard_changes)"' guides/core/liveview.md` printing `3`)
-- [ ] AC-5: `guides/customization/styling.md § Class reference` carries the three `.auix-discard-confirm*` rows (mechanical — no red test; verified by `grep -c 'auix-discard-confirm' guides/customization/styling.md` printing `3`)
+- [x] AC-3: `guides/core/layouts.md § Form Layout Options` lists `:unsaved_changes_guard_disabled?` directly after `:save_action_label` (mechanical — no red test; verified by `grep -n -A1 'save_action_label' guides/core/layouts.md | grep unsaved_changes_guard_disabled`)
+- [x] AC-4: `guides/core/liveview.md § Built-in Events` lists the three new FormComponent events (mechanical — no red test; verified by `grep -c -E '"auix_(request_close|keep_editing|discard_changes)"' guides/core/liveview.md` printing `3`)
+- [x] AC-5: `guides/customization/styling.md § Class reference` carries the three `.auix-discard-confirm*` rows (mechanical — no red test; verified by `grep -c 'auix-discard-confirm' guides/customization/styling.md` printing `3`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green

@@ -328,6 +328,7 @@ end
 - `:new_title` — Title for create form (default: `"New {name}"`)
 - `:new_subtitle` — Subtitle for create form (default: `"Creates a new '{name}' record in your database"`)
 - `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
+- `:unsaved_changes_guard_disabled?` — When `true`, closing the form modal with unsaved changes closes it without asking for confirmation (default: `false`, the guard is on)
 
 #### Show Layout Options
 

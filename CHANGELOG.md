@@ -112,6 +112,24 @@ Requires:
 
 ### Added
 
+- **Unsaved-changes guard on the form modal**
+  - Closing the new/edit form modal (the × button, `Esc`, a click outside it) threw away whatever
+    the user had typed. The form component now records whether a `"validate"` event has changed
+    the form since it was opened; when it has, every close path opens a confirmation dialog
+    ("Keep editing" / "Discard changes") instead of closing. A form without changes closes exactly
+    as before. The show modal is unchanged.
+  - The form modal's close paths now push `"auix_request_close"` to the form component, which
+    decides server-side; the dialog's buttons push `"auix_keep_editing"` and
+    `"auix_discard_changes"`. The guard lives in the backend-agnostic form handler, so Ash and Ecto
+    resources behave the same.
+  - Opt out per resource with the new `edit_layout` option
+    `unsaved_changes_guard_disabled?: true`.
+  - `modal/1` gains a `hide_on_cancel?` attribute (default `true`). The form modal sets it to
+    `false` so it stays visible while the server decides. A host override of `modal/1` must honour
+    it, otherwise the modal hides before the dialog appears.
+  - New theme classes `auix-discard-confirm`, `auix-discard-confirm-message` and
+    `auix-discard-confirm-actions`: re-run `mix auix.gen.stylesheet` after upgrading.
+
 - **`contains` filter condition for text fields**
   - The index filter bar offered only `:eq`, `:gt`, `:lt`, `:ge`, `:le`, `:between` and `:in`, so
     there was no way to search for a substring. `Aurora.Uix.Filter.conditions/1` now offers an

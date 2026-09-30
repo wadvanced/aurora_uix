@@ -528,6 +528,9 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"auix_route_back"` - Navigate back with routing stack
 - `"auix_cancel_upload"` - Cancel an in-progress file upload
 - `"auix_download_upload"` - Download a previously uploaded file
+- `"auix_request_close"` - Close request from the form modal (× button, `Esc`, click outside); closes the modal, or opens the discard-changes dialog when the form has unsaved changes
+- `"auix_keep_editing"` - Close the discard-changes dialog and keep the form open
+- `"auix_discard_changes"` - Drop the unsaved changes and close the form modal
 
 **ShowComponent (LiveComponent):**
 - `"switch_section"` - Switch between tabs/sections in show view
