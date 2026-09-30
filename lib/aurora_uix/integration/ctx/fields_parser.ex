@@ -114,6 +114,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
       |> set(&field_omitted/2, :omitted, attribute)
       |> set(&field_hidden/2, :hidden, attribute)
       |> set(&field_filterable/2, :filterable?, attribute)
+      |> set(&field_sortable/2, :sortable?, attribute)
       |> set(&field_data/2, :data, attribute)
 
     Field.new(attrs)
@@ -192,7 +193,13 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     attribute = %{ecto_type: association}
 
     association_field =
-      %{resource: resource_name, key: association_field_key, length: 0, filterable?: false}
+      %{
+        resource: resource_name,
+        key: association_field_key,
+        length: 0,
+        filterable?: false,
+        sortable?: false
+      }
       |> set(&field_type/2, :type, attribute)
       |> set(&field_html_type/2, :html_type, attribute)
       |> set(&field_data/2, :data, attribute)
@@ -375,6 +382,16 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
 
   defp field_filterable(_attrs, %{ecto_type: ecto_type}),
     do: CommonFieldsParser.field_filterable(ecto_type)
+
+  # Determines if the index column header may sort by the field.
+  # Associations, embeds, arrays and maps have no single orderable column value.
+  @spec field_sortable(map(), map()) :: boolean()
+  defp field_sortable(_attrs, %{association_or_embed: %{}}), do: false
+
+  defp field_sortable(_attrs, %{ecto_type: {:array, _item_type}}), do: false
+  defp field_sortable(_attrs, %{ecto_type: {:map, _value_type}}), do: false
+  defp field_sortable(_attrs, %{ecto_type: ecto_type}) when ecto_type in [nil, :map], do: false
+  defp field_sortable(_attrs, _attribute), do: true
 
   # Extracts metadata for association fields including type-specific configuration.
   @spec field_data(map(), map()) :: map()
