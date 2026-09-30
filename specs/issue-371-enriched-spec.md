@@ -178,11 +178,11 @@ Mirrored by `PAR-2` (ash). This section adds the `%Field{}` key; `PAR-2` adds th
 `sortable?` is a boolean key, not a type atom: no type-atom audit applies.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `Ctx.FieldsParserTest.AllTypes`, when `Ctx.FieldsParser.parse_fields/2` parses it, then `:id`, `:field_integer`, `:field_string`, `:field_utc_datetime`, `:field_duration` and `:field_status` have `sortable?: true`.
-- [ ] AC-2: Given the same schema, then `:field_multi_status`, `:field_string_array`, `:embeds_many` and `:embeds_one` have `sortable?: false`.
-- [ ] AC-3: Given the same schema, when `Ctx.FieldsParser.parse_associations/4` runs over the parsed fields, then `:belongs_to_field_id` has `sortable?: true` and `:belongs_to_field`, `:has_many_field`, `:has_one_field` and `:many_to_many_field` have `sortable?: false`.
-- [ ] AC-4 (degraded path): Given a `:map` column (`field :field_map, :map`, added to `AllTypes`), then `:field_map` has `sortable?: false`.
-- [ ] AC-5: Given `auix_resource_metadata(:product, context: Inventory, schema: Product)` with `field(:name, sortable?: false)`, then the resource's `:name` field has `sortable?: false`, `:reference` keeps `sortable?: true`, and `:data_virtual` (absent from the schema, added by the metadata block) has `sortable?: false`.
+- [x] AC-1: Given `Ctx.FieldsParserTest.AllTypes`, when `Ctx.FieldsParser.parse_fields/2` parses it, then `:id`, `:field_integer`, `:field_string`, `:field_utc_datetime`, `:field_duration` and `:field_status` have `sortable?: true`.
+- [x] AC-2: Given the same schema, then `:field_multi_status`, `:field_string_array`, `:embeds_many` and `:embeds_one` have `sortable?: false`.
+- [x] AC-3: Given the same schema, when `Ctx.FieldsParser.parse_associations/4` runs over the parsed fields, then `:belongs_to_field_id` has `sortable?: true` and `:belongs_to_field`, `:has_many_field`, `:has_one_field` and `:many_to_many_field` have `sortable?: false`.
+- [x] AC-4 (degraded path): Given a `:map` column (`field :field_map, :map`, added to `AllTypes`), then `:field_map` has `sortable?: false`.
+- [x] AC-5: Given `auix_resource_metadata(:product, context: Inventory, schema: Product)` with `field(:name, sortable?: false)`, then the resource's `:name` field has `sortable?: false`, `:reference` keeps `sortable?: true`, and `:data_virtual` (absent from the schema, added by the metadata block) has `sortable?: false`.
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ctx.FieldsParser.parse_fields/2` · in: `AllTypes` · out: `list(%Field{})` carrying `sortable?` · existing (`lib/aurora_uix/integration/ctx/fields_parser.ex`, `parse_fields/2`)

@@ -71,6 +71,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
       field :field_multi_status, {:array, Ecto.Enum}, values: [:draft, :published, :archived]
 
       field :field_string_array, {:array, :string}
+      field :field_map, :map
 
       embeds_many :embeds_many, EmbedsMany, on_replace: :delete do
         field(:name, :string)
@@ -113,5 +114,50 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
       |> Map.new(&{&1.key, &1})
 
     assert Validations.compare_maps(validations, parsed_schema) == []
+  end
+
+  describe "sortable?" do
+    setup do
+      fields =
+        AllTypes
+        |> Ctx.FieldsParser.parse_fields(:all_types)
+        |> Map.new(&{&1.key, &1})
+
+      %{fields: fields}
+    end
+
+    test "scalar columns are sortable", %{fields: fields} do
+      for key <- [
+            :id,
+            :field_integer,
+            :field_string,
+            :field_utc_datetime,
+            :field_duration,
+            :field_status
+          ],
+          do: assert(fields[key].sortable?)
+    end
+
+    test "arrays and embeds are not sortable", %{fields: fields} do
+      for key <- [:field_multi_status, :field_string_array, :embeds_many, :embeds_one],
+          do: refute(fields[key].sortable?)
+    end
+
+    test "a map column is not sortable", %{fields: fields} do
+      refute fields[:field_map].sortable?
+    end
+
+    test "only the foreign-key column of an association is sortable" do
+      fields =
+        AllTypes
+        |> Ctx.FieldsParser.parse_fields(:all_types)
+        |> then(&Ctx.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
+        |> Map.new(&{&1.key, &1})
+
+      assert fields[:belongs_to_field_id].sortable?
+
+      for key <- [:belongs_to_field, :has_many_field, :has_one_field, :many_to_many_field],
+          do: refute(fields[key].sortable?)
+    end
   end
 end
