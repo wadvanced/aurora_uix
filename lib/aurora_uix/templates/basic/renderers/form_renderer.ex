@@ -8,6 +8,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   - Handles validation and submission
   - Integrates with Aurora UIX context and helpers
   - Supports customizable form layouts and actions
+  - Renders the discard-changes dialog when a form with unsaved changes is closed
 
   This module handles the rendering of form components, including the form container,
   header, validation, and submission handling.
@@ -20,6 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
     only: [record_navigator_bar: 1, record_navigator?: 2]
 
   alias Aurora.Uix.Templates.Basic.Renderer
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a form view for creating or editing entities.
@@ -76,6 +78,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
       </.simple_form>
 
       <div id="portal-target"> </div>
+
+      <.modal :if={@auix._discard_confirm_open?} id={"auix-#{@auix.module}-discard-confirm-modal"} show on_cancel={JS.push("auix_keep_editing", target: @myself)}>
+        <div class="auix-discard-confirm">
+          <div class="auix-discard-confirm-message">{dt("You have unsaved changes. Discard them and close the form?")}</div>
+          <div class="auix-discard-confirm-actions">
+            <.button type="button" class="auix-button--alt" name="auix-keep-editing" phx-click="auix_keep_editing" phx-target={@myself}>{dt("Keep editing")}</.button>
+            <.button type="button" name="auix-discard-changes" phx-click="auix_discard_changes" phx-target={@myself}>{dt("Discard changes")}</.button>
+          </div>
+        </div>
+      </.modal>
     </div>
     """
   end

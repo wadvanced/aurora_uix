@@ -230,6 +230,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:edit_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the edit form. Default: `"Use this form to manage <strong>{title}</strong> records in your database"`, where `{title}` is the capitalized table name.
   - `:new_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The title for the new resource form. Default: `"New {name}"`, where `{name}` is the capitalized schema name.
   - `:new_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the new resource form. Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the capitalized schema name.
+  - `:unsaved_changes_guard_disabled?` (boolean()): When `true`, closing the form modal with unsaved changes closes it without asking for confirmation. Default: `false`.
 
   ## Actions
   The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
