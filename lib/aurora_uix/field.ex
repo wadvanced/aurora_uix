@@ -103,6 +103,8 @@ defmodule Aurora.Uix.Field do
     - `omitted` (`boolean`) - If true, the field won't be display nor interact with.
        It is equivalent to not having the field at all.
     - `filterable?` (`boolean`) - If true, it is expected that the field can be filterable by the UI.
+    - `sortable?` (`boolean`) - If true, the index column header offers sorting. Parsers set it from the
+      column type; it defaults to `false` for fields no parser produced.
 
   ## Key Features
   - Encapsulates field properties for UI rendering and configuration.
@@ -141,6 +143,7 @@ defmodule Aurora.Uix.Field do
     disabled: false,
     omitted: false,
     filterable?: true,
+    sortable?: false,
     data: %{}
   ]
 
@@ -166,7 +169,8 @@ defmodule Aurora.Uix.Field do
           required: boolean(),
           disabled: boolean(),
           omitted: boolean(),
-          filterable?: boolean()
+          filterable?: boolean(),
+          sortable?: boolean()
         }
 
   @doc """
