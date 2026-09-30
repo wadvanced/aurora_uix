@@ -480,6 +480,9 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-modal-box` | Modal positioning container | Structural only |
 | `.auix-modal-focus-wrap` | Modal visible panel | `--auix-border-radius-large`, `--auix-color-bg-default`, `--auix-padding-xl`, `--auix-shadow-lg`, `--auix-shadow-secondary`, `--auix-ring-offset-shadow`, `--auix-ring-secondary`, `--auix-border-width-default` |
 | `.auix-modal-close-button` | Modal close (×) button | `--auix-border-width-default`, `--auix-border-radius-small`, `--auix-opacity-20`, `--auix-opacity-40` |
+| `.auix-discard-confirm` | Discard-changes dialog body inside the form modal | `--auix-gap-default` |
+| `.auix-discard-confirm-message` | Discard-changes dialog message | `--auix-font-size-caption` |
+| `.auix-discard-confirm-actions` | Discard-changes dialog button row | `--auix-gap-default` |
 | `.auix-flash` | Flash notification container | `--auix-margin-default`, `--auix-gap-minimal`, `--auix-border-radius-default`, `--auix-padding-default` |
 | `.auix-flash--info` | Info-variant flash | `--auix-color-bg-info`, `--auix-color-info-text`, `--auix-color-icon-fill`, `--auix-ring-info`, `--auix-shadow-primary` |
 | `.auix-flash--error` | Error-variant flash | `--auix-color-error-bg`, `--auix-color-error-text`, `--auix-color-error-ring`, `--auix-shadow-md` |
