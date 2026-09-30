@@ -349,6 +349,57 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
       refute log =~ "could not be parsed"
       refute Enum.any?(fields, &is_nil(&1.type))
     end
+
+    test "a count aggregate is sortable" do
+      assert %{sortable?: true} = aggregate_field(:entries_count)
+    end
+  end
+
+  describe "sortable?" do
+    setup do
+      fields =
+        AllTypes
+        |> Ash.FieldsParser.parse_fields(:all_types)
+        |> Map.new(&{&1.key, &1})
+
+      %{fields: fields}
+    end
+
+    test "scalar attributes are sortable", %{fields: fields} do
+      for key <- [
+            :id,
+            :field_integer,
+            :field_string,
+            :field_utc_datetime,
+            :field_duration,
+            :field_status
+          ],
+          do: assert(fields[key].sortable?)
+    end
+
+    test "arrays and embedded resources are not sortable", %{fields: fields} do
+      for key <- [:field_multi_status, :field_string_array, :embeds_many, :embeds_one],
+          do: refute(fields[key].sortable?)
+    end
+
+    test "only the source attribute of a relationship is sortable" do
+      fields =
+        AllTypes
+        |> Ash.FieldsParser.parse_fields(:all_types)
+        |> then(&Ash.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
+        |> Map.new(&{&1.key, &1})
+
+      assert fields[:belongs_to_field_id].sortable?
+
+      for key <- [:belongs_to_field, :has_many_field, :has_one_field, :many_to_many_field],
+          do: refute(fields[key].sortable?)
+    end
+
+    test "a key the resource does not define is not sortable" do
+      field = Ash.FieldsParser.parse_field(AllTypes, :all_types, {:selected_check__, :boolean})
+
+      refute field.sortable?
+    end
   end
 
   @spec aggregate_field(atom()) :: Aurora.Uix.Field.t()
