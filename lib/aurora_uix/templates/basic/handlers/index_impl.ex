@@ -235,6 +235,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:form_component, form_component)
       |> assign_auix(:show_component, show_component)
       |> assign_auix(:filters_enabled?, false)
+      |> assign_auix(:filters_where, [])
       |> assign_auix(:selection, Selection.new())
       |> assign_auix(:enable_viewport?, true)
       |> assign_auix(:list_function_selected, auix.list_function_paginated)
@@ -398,7 +399,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply,
      socket
      |> assign_filters_selected_count()
-     |> prepare_query_options(where: filters)
+     |> assign_auix(:filters_where, filters)
+     |> prepare_query_options()
      |> refresh_current_page()}
   end
 
@@ -857,27 +859,39 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> update_streams()
   end
 
-  # Prepare the query.
-  # Ensure the options set are acceptable and combines with optional new options.
+  # Builds the list query from the layout and metadata options plus the submitted filters.
+  # The layout `where` and the filters are concatenated into one flat condition list: both
+  # `Aurora.Ctx.QueryBuilder` and the Ash query parser expect a flat list.
   # The resulting query is stored in :query_options assigns key.
-  # It is not recommended to send pagination query to this function.
-  @spec prepare_query_options(Socket.t(), keyword()) :: Socket.t()
+  @spec prepare_query_options(Socket.t()) :: Socket.t()
   defp prepare_query_options(
-         %{assigns: %{auix: %{load_items_options: load_items_options}}} = socket,
-         opts \\ []
+         %{
+           assigns: %{
+             auix: %{load_items_options: load_items_options, filters_where: filters_where}
+           }
+         } = socket
        ) do
-    merged_opts =
-      Keyword.merge(load_items_options, opts, fn _key, existing, acc -> [existing | acc] end)
+    where =
+      load_items_options
+      |> Keyword.get(:where)
+      |> where_conditions()
+      |> Kernel.++(filters_where)
 
-    base_options = [
-      order_by: Keyword.get(merged_opts, :order_by),
-      where: Keyword.get(merged_opts, :where)
-    ]
-
-    query_options = maybe_put_preload(base_options, Keyword.get(merged_opts, :preload))
+    base_options = [order_by: Keyword.get(load_items_options, :order_by), where: where]
+    query_options = maybe_put_preload(base_options, Keyword.get(load_items_options, :preload))
 
     assign_auix(socket, :query_options, query_options)
   end
+
+  # A `where` may be a list, a map of equalities, a single condition or a dynamic expression.
+  @spec where_conditions(term()) :: list()
+  defp where_conditions(nil), do: []
+  defp where_conditions(conditions) when is_list(conditions), do: conditions
+
+  defp where_conditions(conditions) when is_non_struct_map(conditions),
+    do: Map.to_list(conditions)
+
+  defp where_conditions(condition), do: [condition]
 
   # Associations and generated fields are only populated when the query asks for them, so the index
   # list needs the same preload the `:show` and `:edit` paths already apply.
@@ -1194,6 +1208,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       {_key, %{condition: condition}} when condition in [false, true] ->
         false
 
+      {_key, %{condition: :in} = filter} ->
+        is_nil(filter.from) or filter.from == ""
+
       {_key, filter} ->
         is_nil(filter.from)
     end)
@@ -1210,9 +1227,21 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       {_key, %{condition: condition} = filter} when condition in [false, true] ->
         {filter.key, condition}
 
+      {_key, %{condition: :in} = filter} ->
+        {filter.key, :in, in_values(filter.from)}
+
       {_key, filter} ->
         {filter.key, filter.condition, filter.from}
     end)
+  end
+
+  # The "in list" input is free text; both backends take `:in` values as a list only.
+  @spec in_values(binary()) :: list(binary())
+  defp in_values(text) do
+    text
+    |> String.split(",")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
   end
 
   # Escapes ilike wildcard characters (`\`, `%`, `_`) so a `contains` filter value matches
