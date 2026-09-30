@@ -306,13 +306,13 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
 Until `UI-1` merges, the Ash filter bar's "in list" condition hands this parser the typed text unchanged and gets an invalid query; `UI-1` splits the text in the handler. No test drives that path (`rg -n "filter_condition.*:in\b" test` returns nothing), so the suite stays green in between.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `Ash.Query.new(Aurora.Uix.Guides.Blog.Post)`, when `QueryParser.parse/2` gets `order_by: [desc: :title]`, then `query.sort == [title: :desc]` and `query.valid?` is `true`.
-- [ ] AC-2: Given the same query, `order_by: [desc_nulls_last: :title, asc: :content]` yields `query.sort == [title: :desc_nils_last, content: :asc]`.
-- [ ] AC-3: Given the same query, the Ash form `order_by: [title: :desc]`, the atom `order_by: :title` and the single tuple `order_by: {:desc, :title}` yield `[title: :desc]`, `[title: :asc]` and `[title: :desc]`.
-- [ ] AC-4: Given the same query, `where: {:title, :eq, "x"}` yields the same `query.filter` as `where: [{:title, :eq, "x"}]`.
-- [ ] AC-5 (error path): Given the same query, an unsupported direction `order_by: [title: :sideways]` is passed to Ash unchanged and surfaces as an invalid query: `query.valid?` is `false`.
-- [ ] AC-6: Given the same query, `where: [{:title, :in, ["a", "b"]}]` yields a valid query whose filter inspects as `#Ash.Filter<title in ["a", "b"]>`.
-- [ ] AC-7 (error path): Given the same query, `where: [{:title, :in, "a,b"}]` is no longer split: `query.valid?` is `false`.
+- [x] AC-1: Given `Ash.Query.new(Aurora.Uix.Guides.Blog.Post)`, when `QueryParser.parse/2` gets `order_by: [desc: :title]`, then `query.sort == [title: :desc]` and `query.valid?` is `true`.
+- [x] AC-2: Given the same query, `order_by: [desc_nulls_last: :title, asc: :content]` yields `query.sort == [title: :desc_nils_last, content: :asc]`.
+- [x] AC-3: Given the same query, the Ash form `order_by: [title: :desc]`, the atom `order_by: :title` and the single tuple `order_by: {:desc, :title}` yield `[title: :desc]`, `[title: :asc]` and `[title: :desc]`.
+- [x] AC-4: Given the same query, `where: {:title, :eq, "x"}` yields the same `query.filter` as `where: [{:title, :eq, "x"}]`.
+- [x] AC-5 (error path): Given the same query, an unsupported direction `order_by: [title: :sideways]` is passed to Ash unchanged and surfaces as an invalid query: `query.valid?` is `false`.
+- [x] AC-6: Given the same query, `where: [{:title, :in, ["a", "b"]}]` yields a valid query whose filter inspects as `#Ash.Filter<title in ["a", "b"]>`.
+- [x] AC-7 (error path): Given the same query, `where: [{:title, :in, "a,b"}]` is no longer split: `query.valid?` is `false`.
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ash.QueryParser.parse/2` · in: `Ash.Query.t()`, keyword opts · out: `Ash.Query.t()` with `sort` / `filter` · existing (`lib/aurora_uix/integration/ash/query_parser.ex`, `parse/2`)
