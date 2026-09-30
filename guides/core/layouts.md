@@ -629,7 +629,7 @@ index_columns :product, [:reference, :name, :price],
 - `:like` - Pattern matching (SQL LIKE with `%` and `_`)
 - `:ilike` - Case-insensitive pattern matching
 - `:between` - Range query (requires start and end values)
-- `:in` - Membership in a list (`{:status, :in, [:active, :pending]}`) or in a comma-separated string (`{:status, :in, "active,pending"}`)
+- `:in` - Membership in a list of values (`{:status, :in, [:active, :pending]}`); the value is always a list
 
 **Range Filtering with Between:**
 
@@ -652,7 +652,7 @@ This enables:
 - Pattern matching with LIKE/ILIKE operators
 - Range queries with BETWEEN operator
 
-`dynamic/2` expressions apply to Ecto resources only; the Ash query parser accepts the tuple forms above. On Ecto resources a condition `Aurora.Ctx.QueryBuilder` does not support raises `ArgumentError` instead of being ignored.
+`dynamic/2` expressions apply to Ecto resources only; the Ash query parser accepts the tuple forms above. On Ecto resources a condition `Aurora.Ctx.QueryBuilder` does not support raises `ArgumentError` instead of being ignored. A comma-separated string is not a list: `{:status, :in, "active,pending"}` raises on Ecto and yields an invalid query on Ash. The filter bar's "in list" condition splits the typed text on commas and passes a list.
 
 ### Conditional Field Visibility
 

@@ -145,19 +145,19 @@ Every entry below is one bold title and one sub-bullet of at most three lines. N
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-371-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md` carries the three `§ QueryBuilder for Advanced Filtering` edits, the `:sortable?` bullet and the corrected Index Layout Options sample (mechanical — no red test; verified by `grep -c -e "order_by: \[asc: :name\]" -e ":sortable?" -e "Membership in a list of values" -e "Aurora.Uix.Integration.Ash.QueryParser" -e "apply to Ecto resources only" guides/core/layouts.md` returning 5)
-- [ ] AC-4: `guides/core/liveview.md` documents `"index-sort"` and the header-driven sort (mechanical — no red test; verified by `grep -c '"index-sort"\|clicks a sortable column header' guides/core/liveview.md` returning 2)
-- [ ] AC-5: `guides/core/resource_metadata.md` documents `sortable?` (mechanical — no red test; verified by `grep -c "^- .sortable?. - If true, the index column header" guides/core/resource_metadata.md` returning 1)
-- [ ] AC-6: `guides/customization/styling.md` lists `.auix-items-table-header-sort` (mechanical — no red test; verified by `grep -c "auix-items-table-header-sort" guides/customization/styling.md` returning 1)
-- [ ] AC-7: the six CHANGELOG entries added under `### Added`, `### Fixes` and `### Changed` carry one sub-bullet each (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -cE '^\+  - '` returning 7: six entry sub-bullets plus the `aurora_ctx` line under `**Updated Dependencies**`)
-- [ ] AC-8: no `:in` example in the documentation set uses a string as the accepted value (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md guides | grep -cE '^\+.*:in, "' ` returning 2: the `{:status, :in, "a,b"}` counter-example of the `### Changed` entry and the `{:status, :in, "active,pending"}` counter-example of `guides/core/layouts.md` § QueryBuilder for Advanced Filtering, and nothing else)
+- [x] AC-3: `guides/core/layouts.md` carries the three `§ QueryBuilder for Advanced Filtering` edits, the `:sortable?` bullet and the corrected Index Layout Options sample (mechanical — no red test; verified by `grep -c -e "order_by: \[asc: :name\]" -e ":sortable?" -e "Membership in a list of values" -e "Aurora.Uix.Integration.Ash.QueryParser" -e "apply to Ecto resources only" guides/core/layouts.md` returning 5)
+- [x] AC-4: `guides/core/liveview.md` documents `"index-sort"` and the header-driven sort (mechanical — no red test; verified by `grep -c '"index-sort"\|clicks a sortable column header' guides/core/liveview.md` returning 2)
+- [x] AC-5: `guides/core/resource_metadata.md` documents `sortable?` (mechanical — no red test; verified by `grep -c "^- .sortable?. - If true, the index column header" guides/core/resource_metadata.md` returning 1)
+- [x] AC-6: `guides/customization/styling.md` lists `.auix-items-table-header-sort` (mechanical — no red test; verified by `grep -c "auix-items-table-header-sort" guides/customization/styling.md` returning 1)
+- [x] AC-7: the six CHANGELOG entries added under `### Added`, `### Fixes` and `### Changed` carry one sub-bullet each (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -cE '^\+  - '` returning 7: six entry sub-bullets plus the `aurora_ctx` line under `**Updated Dependencies**`)
+- [x] AC-8: no `:in` example in the documentation set uses a string as the accepted value (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md guides | grep -cE '^\+.*:in, "' ` returning 2: the `{:status, :in, "a,b"}` counter-example of the `### Changed` entry and the `{:status, :in, "active,pending"}` counter-example of `guides/core/layouts.md` § QueryBuilder for Advanced Filtering, and nothing else)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
