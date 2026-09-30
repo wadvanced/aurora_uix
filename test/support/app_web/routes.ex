@@ -402,6 +402,16 @@ defmodule Aurora.UixWeb.Test.Routes do
           FormDiscardGuardDisabledTest.Product,
           "form-discard-guard-disabled-products"
         )
+
+        RoutesHelper.register_crud(
+          WhereFilterLayoutTest.Product,
+          "where-filter-layout-products"
+        )
+
+        RoutesHelper.register_crud(
+          AshWhereFilterLayoutTest.Post,
+          "ash-where-filter-layout-posts"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

@@ -38,7 +38,7 @@ defmodule Aurora.UixWeb.Test.WhereOne2ManyTest do
     expected_result =
       [
         order_by: [desc: :quantity],
-        where: [[product_id: product_id], {:quantity, :between, 8, 16}]
+        where: [{:product_id, product_id}, {:quantity, :between, 8, 16}]
       ]
       |> Inventory.list_product_transactions()
       |> Enum.map(&(&1 |> Map.get(:quantity) |> to_string()))
