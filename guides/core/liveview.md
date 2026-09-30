@@ -512,6 +512,7 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"filter-toggle"` - Toggle filters panel
 - `"filters-clear"` - Clear all filters
 - `"filters-submit"` - Apply filters
+- `"index-sort"` - Sort the index by the column named in the `"key"` value; a second click on the same column reverses the direction
 - `"index-layout-change"` - Handles filter-form changes and row selection (matched via
   the `_target` field, e.g. `"selected_check__"` / `"selected_in_page__"` prefixes)
 - `"selected-toggle_all"` - Select all matching rows across the whole result set (async)
@@ -826,7 +827,7 @@ The `order_by` option:
 - Can be a single field atom (`:name`)
 - Determines the default sort column when the index loads
 - Is applied through the query layer to the database
-- Can be dynamically changed by the user via column headers (if enabled)
+- Is replaced when the user clicks a sortable column header; a second click reverses the direction. A column opts out with the field option `sortable?: false`
 
 ### Example: Default Sort Configuration
 

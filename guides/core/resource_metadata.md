@@ -325,6 +325,7 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `scale` - Number of digits to the right of decimal separator for numeric fields
 - `required` - If true, the field should not be empty
 - `filterable?` - If true, the field can participate in filtering UI interfaces
+- `sortable?` - If true, the index column header offers sorting. The parser sets it from the column type; fields no parser produced default to `false`
 
 ### Presentation State
 

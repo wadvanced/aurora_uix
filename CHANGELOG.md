@@ -18,6 +18,33 @@ Requires:
 
 ### Fixes
 
+- **A layout `where` was lost as soon as the filter bar was submitted**
+  - The index merged the layout `where` and the submitted filters into a nested list. On Ecto,
+    `Aurora.Ctx.QueryBuilder` skipped the nested list, so the layout `where` stopped applying; on
+    Ash, the query parser raised `FunctionClauseError`. Both backends now receive one flat list
+    of conditions.
+  - Submitted filters now also survive closing a show or form modal. They were dropped from the
+    query while the filter bar kept showing them.
+
+- **The filter bar's "in list" condition was ignored on Ecto resources**
+  - `Aurora.Ctx.QueryBuilder` had no `:in` clause and silently dropped the condition, so the
+    filter matched every row. `aurora_ctx` 0.1.11 adds `:in` (a list, or a comma-separated
+    string) and raises `ArgumentError` for a condition it does not support instead of dropping it.
+
+- **Ash rejected the documented direction-first `order_by`**
+  - `order_by: [desc: :published_at]` is `Aurora.Ctx.QueryBuilder` syntax, which the guides
+    document for both backends, but Ash reads keyword sorts field-first and failed with an
+    invalid sort order. The Ash query parser now translates `{direction, field}` entries,
+    including the `*_nulls_first` and `*_nulls_last` directions, and still accepts Ash's own
+    `field: direction` form.
+  - A single-tuple `where` (`where: {:quantity, :between, 8, 16}`) is now accepted on Ash, as on
+    Ecto.
+
+- **Ash one-to-many tables rendered no rows**
+  - The Ash list function returns a paginated struct, which the one-to-many renderer took for a
+    stream map, so the related records never showed. The renderer now lists its entries, as it
+    already did for the plain list the Ecto list function returns.
+
 - **Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**
   - `Aurora.Uix.Integration.Ash.QueryParser`'s `translate_operation/1` (since removed) mapped both pattern-matching
     operators onto `:eq`, so a substring search on an Ash resource returned only exact matches
@@ -111,6 +138,20 @@ Requires:
     enum can be exercised end-to-end in tests.
 
 ### Added
+
+- **Sortable index column headers**
+  - Clicking a column header in the index table sorts the rows by that column; a second click
+    reverses the direction. The header shows the active direction with an arrow and carries
+    `aria-sort`. The chosen sort replaces the layout or metadata `order_by` and survives filter
+    submits, page changes and closing a modal. Ash and Ecto resources behave the same.
+  - Every parsed column is sortable unless its type cannot be ordered: associations, embeds,
+    arrays and maps on both backends, plus whatever `Ash.Resource.Info.sortable?/3` rejects on
+    Ash. The decision is carried by the new `%Aurora.Uix.Field{}` key `sortable?`. Fields no
+    parser produced (manual resources, fields absent from the schema) default to not sortable.
+  - Opt a column out with `field :name, sortable?: false` in `auix_resource_metadata`, or with
+    `index_columns :product, [:reference, name: [sortable?: false]]` in a layout.
+  - New theme class `auix-items-table-header-sort`: re-run `mix auix.gen.stylesheet` after
+    upgrading.
 
 - **Unsaved-changes guard on the form modal**
   - Closing the new/edit form modal (the × button, `Esc`, a click outside it) threw away whatever
@@ -234,6 +275,7 @@ Requires:
   - ash: 3.30.1 -> 3.33.11
   - ash_phoenix: 2.3.24 -> 2.3.25
   - ash_postgres: 2.11.0 -> 2.13.1
+  - aurora_ctx: 0.1.10 -> 0.1.11
   - bandit: 1.12.4 -> 1.12.5
   - dialyxir: 1.4.7 -> 1.4.8
   - ex_doc: 0.40.3 -> 0.40.4
