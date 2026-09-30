@@ -4,7 +4,7 @@
 **Complexity:** high
 
 ### Overview
-Issue #371 gives the index `where`, `order_by` and filter bar the same behaviour and the same LiveView coverage on the Ash and Ecto backends, fixes every divergence the parity tests expose, and adds sortable column headers with a `sortable?` flag parsed on both backends. Ecto (`ctx`) and Ash each get their own Parser sections; the UI sections are backend-agnostic and tested on both backends. External prerequisite: `UI-1` MUST NOT start until wadvanced/aurora_ctx#42 is closed and `aurora_ctx` 0.1.11 is published on Hex; `UI-2` and `UI-3` inherit it through their dependency on `UI-1`.
+Issue #371 gives the index `where`, `order_by` and filter bar the same behaviour and the same LiveView coverage on the Ash and Ecto backends, fixes every divergence the parity tests expose, makes the `:in` condition list-only on both backends (the filter bar splits its "in list" text before any backend sees it), and adds sortable column headers with a `sortable?` flag parsed on both backends. Ecto (`ctx`) and Ash each get their own Parser sections; the UI sections are backend-agnostic and tested on both backends. External prerequisite: `UI-1` MUST NOT start until wadvanced/aurora_ctx#42 is closed and `aurora_ctx` 0.1.11 is published on Hex; `UI-2` and `UI-3` inherit it through their dependency on `UI-1`.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
@@ -12,8 +12,8 @@ Issue #371 gives the index `where`, `order_by` and filter bar the same behaviour
 | DOC-1 | Documentation | CHANGELOG.md § [0.1.6] › Added, Fixes, Changed · guides/core/layouts.md § Index Layout Options, § Field-Level Options, § QueryBuilder for Advanced Filtering · guides/core/liveview.md § Built-in Events, § How Sorting Works · guides/core/resource_metadata.md § Validation and Constraints · guides/customization/styling.md § Class reference | none | federico/371-doc-1-query-parity-and-sorting | docs: document index query parity and sortable columns (#371 · DOC-1) |
 | PAR-1 | Parser | ctx · `sortable?` on `%Field{}` | DOC-1 | federico/371-par-1-ctx-sortable | feat: parse a sortable? flag for Ecto fields (#371 · PAR-1) |
 | PAR-2 | Parser | ash · `sortable?` on `%Field{}` + shared golden metadata | PAR-1 | federico/371-par-2-ash-sortable | feat: parse a sortable? flag for Ash fields (#371 · PAR-2) |
-| PAR-3 | Parser | ash · QueryParser accepts direction-first `order_by` and a single-tuple `where` | DOC-1 | federico/371-par-3-ash-query-parser | fix: accept QueryBuilder order_by and where forms on Ash (#371 · PAR-3) |
-| UI-1 | UI | handler · layout `where` + filter merge, applied filters kept, `aurora_ctx` 0.1.11 bump (MUST: wadvanced/aurora_ctx#42 released) | DOC-1 | federico/371-ui-1-where-filter-merge | fix: keep the layout where when the filter bar is submitted (#371 · UI-1) |
+| PAR-3 | Parser | ash · QueryParser accepts direction-first `order_by` and a single-tuple `where`; `:in` takes a list only | DOC-1 | federico/371-par-3-ash-query-parser | fix: accept QueryBuilder order_by and where forms on Ash (#371 · PAR-3) |
+| UI-1 | UI | handler · layout `where` + filter merge, "in list" text split into a list, applied filters kept, `aurora_ctx` 0.1.11 bump (MUST: wadvanced/aurora_ctx#42 released list-only) | DOC-1 | federico/371-ui-1-where-filter-merge | fix: keep the layout where when the filter bar is submitted (#371 · UI-1) |
 | UI-2 | UI | test parity · Ash index where, order_by, filter bar, association where/order_by + Ash one-to-many rows | UI-1, PAR-3 | federico/371-ui-2-ash-query-parity | test: cover index and association queries on the Ash backend (#371 · UI-2) |
 | UI-3 | UI | components + handler + theme · sortable index column headers | PAR-2, PAR-3, UI-2 | federico/371-ui-3-sortable-columns | feat: sortable index column headers (#371 · UI-3) |
 
@@ -37,52 +37,39 @@ Depends on: none
 #### Implementation details
 
 ##### CHANGELOG.md
+Every entry below is one bold title and one sub-bullet of at most three lines. No entry gains a second sub-bullet.
 1. § `## [0.1.6]` › `### Added` — insert verbatim as the first entry under the heading, above the `**Unsaved-changes guard on the form modal**` entry, followed by one blank line:
    ```
    - **Sortable index column headers**
-     - Clicking a column header in the index table sorts the rows by that column; a second click
-       reverses the direction. The header shows the active direction with an arrow and carries
-       `aria-sort`. The chosen sort replaces the layout or metadata `order_by` and survives filter
-       submits, page changes and closing a modal. Ash and Ecto resources behave the same.
-     - Every parsed column is sortable unless its type cannot be ordered: associations, embeds,
-       arrays and maps on both backends, plus whatever `Ash.Resource.Info.sortable?/3` rejects on
-       Ash. The decision is carried by the new `%Aurora.Uix.Field{}` key `sortable?`. Fields no
-       parser produced (manual resources, fields absent from the schema) default to not sortable.
-     - Opt a column out with `field :name, sortable?: false` in `auix_resource_metadata`, or with
-       `index_columns :product, [:reference, name: [sortable?: false]]` in a layout.
-     - New theme class `auix-items-table-header-sort`: re-run `mix auix.gen.stylesheet` after
-       upgrading.
+     - Click a column header to sort the index by it; click again to reverse. The sort replaces the
+       layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps)
+       are skipped; opt any other out with `sortable?: false`. New class `auix-items-table-header-sort`.
    ```
 2. § `## [0.1.6]` › `### Fixes` — insert verbatim as the first entries under the heading, above the `**Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**` entry, followed by one blank line:
    ```
    - **A layout `where` was lost as soon as the filter bar was submitted**
-     - The index merged the layout `where` and the submitted filters into a nested list. On Ecto,
-       `Aurora.Ctx.QueryBuilder` skipped the nested list, so the layout `where` stopped applying; on
-       Ash, the query parser raised `FunctionClauseError`. Both backends now receive one flat list
-       of conditions.
-     - Submitted filters now also survive closing a show or form modal. They were dropped from the
-       query while the filter bar kept showing them.
+     - Layout `where` and submitted filters were merged into a nested list that Ecto skipped and Ash
+       rejected. Both now receive one flat list, and submitted filters survive closing a modal.
 
    - **The filter bar's "in list" condition was ignored on Ecto resources**
-     - `Aurora.Ctx.QueryBuilder` had no `:in` clause and silently dropped the condition, so the
-       filter matched every row. `aurora_ctx` 0.1.11 adds `:in` (a list, or a comma-separated
-       string) and raises `ArgumentError` for a condition it does not support instead of dropping it.
+     - `aurora_ctx` 0.1.11 adds the `:in` operator for a list of values and raises `ArgumentError`
+       for an unsupported condition instead of matching every row. The filter bar splits the typed
+       comma-separated text into that list before either backend sees it.
 
-   - **Ash rejected the documented direction-first `order_by`**
-     - `order_by: [desc: :published_at]` is `Aurora.Ctx.QueryBuilder` syntax, which the guides
-       document for both backends, but Ash reads keyword sorts field-first and failed with an
-       invalid sort order. The Ash query parser now translates `{direction, field}` entries,
-       including the `*_nulls_first` and `*_nulls_last` directions, and still accepts Ash's own
-       `field: direction` form.
-     - A single-tuple `where` (`where: {:quantity, :between, 8, 16}`) is now accepted on Ash, as on
-       Ecto.
+   - **Ash rejected the direction-first `order_by`**
+     - `order_by: [desc: :published_at]` now works on Ash, including the `*_nulls_first` and
+       `*_nulls_last` directions, as does a single-tuple `where`.
 
    - **Ash one-to-many tables rendered no rows**
-     - The Ash list function returns a paginated struct, which the one-to-many renderer took for a
-       stream map, so the related records never showed. The renderer now lists its entries, as it
-       already did for the plain list the Ecto list function returns.
+     - The renderer took Ash's paginated result for a stream map; it now lists its entries.
    ```
-3. § `## [0.1.6]` › `### Changed` › `- **Updated Dependencies**` — insert this line directly after the line `  - ash_postgres: 2.11.0 -> 2.13.1`:
+3. § `## [0.1.6]` › `### Changed` — insert verbatim as the first entry under the heading, above the `**`Aurora.Uix.Gettext` renamed to `Aurora.Uix.GettextResolver`**` entry, followed by one blank line:
+   ```
+   - **`:in` conditions take a list of values only**
+     - The Ash query parser no longer splits a comma-separated string: `{:status, :in, "a,b"}` now
+       yields an invalid query on Ash and raises `ArgumentError` on Ecto. Write `{:status, :in, ["a", "b"]}`.
+   ```
+4. § `## [0.1.6]` › `### Changed` › `- **Updated Dependencies**` — insert this line directly after the line `  - ash_postgres: 2.11.0 -> 2.13.1`:
    ```
      - aurora_ctx: 0.1.10 -> 0.1.11
    ```
@@ -123,12 +110,12 @@ Depends on: none
    ```
 5. § QueryBuilder for Advanced Filtering — in the `**Supported Comparison Operators:**` list, insert this bullet directly after the `:between` bullet:
    ```
-   - `:in` - Membership in a list (`{:status, :in, [:active, :pending]}`) or in a comma-separated string (`{:status, :in, "active,pending"}`)
+   - `:in` - Membership in a list of values (`{:status, :in, [:active, :pending]}`); the value is always a list
    ```
 6. § QueryBuilder for Advanced Filtering — append this paragraph after the last bullet of the `This enables:` list:
    ```
 
-   `dynamic/2` expressions apply to Ecto resources only; the Ash query parser accepts the tuple forms above. On Ecto resources a condition `Aurora.Ctx.QueryBuilder` does not support raises `ArgumentError` instead of being ignored.
+   `dynamic/2` expressions apply to Ecto resources only; the Ash query parser accepts the tuple forms above. On Ecto resources a condition `Aurora.Ctx.QueryBuilder` does not support raises `ArgumentError` instead of being ignored. A comma-separated string is not a list: `{:status, :in, "active,pending"}` raises on Ecto and yields an invalid query on Ash. The filter bar's "in list" condition splits the typed text on commas and passes a list.
    ```
 
 ##### guides/core/liveview.md
@@ -158,17 +145,19 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-371-enriched-spec.md`)
-- [x] AC-3: `guides/core/layouts.md` carries the three `§ QueryBuilder for Advanced Filtering` edits, the `:sortable?` bullet and the corrected Index Layout Options sample (mechanical — no red test; verified by `grep -c -e "order_by: \[asc: :name\]" -e ":sortable?" -e "in a comma-separated string" -e "Aurora.Uix.Integration.Ash.QueryParser" -e "apply to Ecto resources only" guides/core/layouts.md` returning 5)
-- [x] AC-4: `guides/core/liveview.md` documents `"index-sort"` and the header-driven sort (mechanical — no red test; verified by `grep -c '"index-sort"\|clicks a sortable column header' guides/core/liveview.md` returning 2)
-- [x] AC-5: `guides/core/resource_metadata.md` documents `sortable?` (mechanical — no red test; verified by `grep -c "^- .sortable?. - If true, the index column header" guides/core/resource_metadata.md` returning 1)
-- [x] AC-6: `guides/customization/styling.md` lists `.auix-items-table-header-sort` (mechanical — no red test; verified by `grep -c "auix-items-table-header-sort" guides/customization/styling.md` returning 1)
+- [ ] AC-3: `guides/core/layouts.md` carries the three `§ QueryBuilder for Advanced Filtering` edits, the `:sortable?` bullet and the corrected Index Layout Options sample (mechanical — no red test; verified by `grep -c -e "order_by: \[asc: :name\]" -e ":sortable?" -e "Membership in a list of values" -e "Aurora.Uix.Integration.Ash.QueryParser" -e "apply to Ecto resources only" guides/core/layouts.md` returning 5)
+- [ ] AC-4: `guides/core/liveview.md` documents `"index-sort"` and the header-driven sort (mechanical — no red test; verified by `grep -c '"index-sort"\|clicks a sortable column header' guides/core/liveview.md` returning 2)
+- [ ] AC-5: `guides/core/resource_metadata.md` documents `sortable?` (mechanical — no red test; verified by `grep -c "^- .sortable?. - If true, the index column header" guides/core/resource_metadata.md` returning 1)
+- [ ] AC-6: `guides/customization/styling.md` lists `.auix-items-table-header-sort` (mechanical — no red test; verified by `grep -c "auix-items-table-header-sort" guides/customization/styling.md` returning 1)
+- [ ] AC-7: the six CHANGELOG entries added under `### Added`, `### Fixes` and `### Changed` carry one sub-bullet each (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -cE '^\+  - '` returning 7: six entry sub-bullets plus the `aurora_ctx` line under `**Updated Dependencies**`)
+- [ ] AC-8: no `:in` example in the documentation set uses a string as the accepted value (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md guides | grep -cE '^\+.*:in, "' ` returning 2: the `{:status, :in, "a,b"}` counter-example of the `### Changed` entry and the `{:status, :in, "active,pending"}` counter-example of `guides/core/layouts.md` § QueryBuilder for Advanced Filtering, and nothing else)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
@@ -300,18 +289,21 @@ Mirror of `PAR-1` (ctx). The Ash decision delegates to `Ash.Resource.Info.sortab
 <!-- section:PAR-2:end -->
 
 <!-- section:PAR-3:start -->
-### PAR-3 — Parser · ash · QueryParser accepts direction-first `order_by` and a single-tuple `where`
+### PAR-3 — Parser · ash · QueryParser accepts direction-first `order_by` and a single-tuple `where`; `:in` takes a list only
 Depends on: DOC-1
 
 #### Documentation references
 - `guides/core/layouts.md` § QueryBuilder for Advanced Filtering — `order_by: [asc: :category, desc: :price, asc: :name]` (QueryBuilder form).
 - `guides/core/ash_integration.md` § With Domain and Ordering — `order_by: [desc: :published_at]` on an Ash resource.
 - `guides/core/resource_metadata.md` § Query Options for Many-to-One — `order_by: [desc: :reference]`.
+- `guides/core/layouts.md` § QueryBuilder for Advanced Filtering — `:in` takes a list of values; a comma-separated string yields an invalid query on Ash (DOC-1).
 
 #### Implementation details
 Ecto side: `Aurora.Ctx.QueryBuilder` (`deps/aurora_ctx/lib/aurora/ctx/query_builder.ex` `option/2`) already accepts `order_by` as an atom, a `{direction, field}` tuple or a list of `{direction, field}` / atoms, and `where` as a single condition. Only Ash diverges, so there is no ctx counterpart: `### Out of Scope` records it.
 
-Current Ash behaviour: `process_option({:order_by, values}, query)` passes `values` to `Ash.Query.sort/2` unchanged. Ash's `Ash.Sort.parse_sort/4` reads `{:desc, :title}` as field `:desc` with direction `:title` and records an `InvalidSortOrder` error. `process_option({:where, values}, query)` runs `Enum.reduce/3` over `values`, which raises `Protocol.UndefinedError` for a single tuple.
+Current Ash behaviour: `process_option({:order_by, values}, query)` passes `values` to `Ash.Query.sort/2` unchanged. Ash's `Ash.Sort.parse_sort/4` reads `{:desc, :title}` as field `:desc` with direction `:title` and records an `InvalidSortOrder` error. `process_option({:where, values}, query)` runs `Enum.reduce/3` over `values`, which raises `Protocol.UndefinedError` for a single tuple. `process_where_clause({field, :in, value}, query)` (the clause after the `when is_list(values)` one) splits a binary on `","`; this section deletes it, so `:in` accepts a list only and every other value falls through to the standard `{field, operation, value}` clause, where `Ash.Query.filter/2` records a type error and the query becomes invalid. Ecto: `aurora_ctx` 0.1.11 (`UI-1`'s prerequisite) is list-only as well.
+
+Until `UI-1` merges, the Ash filter bar's "in list" condition hands this parser the typed text unchanged and gets an invalid query; `UI-1` splits the text in the handler. No test drives that path (`rg -n "filter_condition.*:in\b" test` returns nothing), so the suite stays green in between.
 
 ##### Acceptance criteria
 - [ ] AC-1: Given `Ash.Query.new(Aurora.Uix.Guides.Blog.Post)`, when `QueryParser.parse/2` gets `order_by: [desc: :title]`, then `query.sort == [title: :desc]` and `query.valid?` is `true`.
@@ -319,6 +311,8 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
 - [ ] AC-3: Given the same query, the Ash form `order_by: [title: :desc]`, the atom `order_by: :title` and the single tuple `order_by: {:desc, :title}` yield `[title: :desc]`, `[title: :asc]` and `[title: :desc]`.
 - [ ] AC-4: Given the same query, `where: {:title, :eq, "x"}` yields the same `query.filter` as `where: [{:title, :eq, "x"}]`.
 - [ ] AC-5 (error path): Given the same query, an unsupported direction `order_by: [title: :sideways]` is passed to Ash unchanged and surfaces as an invalid query: `query.valid?` is `false`.
+- [ ] AC-6: Given the same query, `where: [{:title, :in, ["a", "b"]}]` yields a valid query whose filter inspects as `#Ash.Filter<title in ["a", "b"]>`.
+- [ ] AC-7 (error path): Given the same query, `where: [{:title, :in, "a,b"}]` is no longer split: `query.valid?` is `false`.
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ash.QueryParser.parse/2` · in: `Ash.Query.t()`, keyword opts · out: `Ash.Query.t()` with `sort` / `filter` · existing (`lib/aurora_uix/integration/ash/query_parser.ex`, `parse/2`)
@@ -331,6 +325,8 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
 | AC-3 | add to the same file | same | same | "Ash sorts, atoms and a single tuple keep working" | `assert QueryParser.parse(query, order_by: [title: :desc]).sort == [title: :desc]`; `assert QueryParser.parse(query, order_by: :title).sort == [title: :asc]`; `assert QueryParser.parse(query, order_by: {:desc, :title}).sort == [title: :desc]` |
 | AC-4 | add to the same file | same | same | "a single-tuple where equals its one-element list" | `assert QueryParser.parse(query, where: {:title, :eq, "x"}).filter == QueryParser.parse(query, where: [{:title, :eq, "x"}]).filter` |
 | AC-5 | add to the same file | same | same | "an unsupported sort direction surfaces as an invalid query" | `refute QueryParser.parse(query, order_by: [title: :sideways]).valid?` |
+| AC-6 | add to the same file | same | same | "an in condition takes a list" | `parsed = QueryParser.parse(query, where: [{:title, :in, ["a", "b"]}])`; `assert parsed.valid?`; `assert inspect(parsed.filter) == ~s(#Ash.Filter<title in ["a", "b"]>)` |
+| AC-7 | add to the same file | same | same | "a comma-separated in value is not split" | `refute QueryParser.parse(query, where: [{:title, :in, "a,b"}]).valid?` |
 
 ##### Parser changes
 1. `lib/aurora_uix/integration/ash/query_parser.ex` — add module attributes directly after `require Ash.Query`:
@@ -361,7 +357,16 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
    |> then(&Ash.Query.sort(query, &1))
    ```
 3. Same file, clause `defp process_option({:where, values}, query) do` — replace `Enum.reduce(values, query, &process_where_clause/2)` with `values |> List.wrap() |> Enum.reduce(query, &process_where_clause/2)`.
-4. Same file — new private functions, placed directly before `translate_operation/1`:
+4. Same file — delete the clause and its comment:
+   ```elixir
+   # Handles :in operator with comma-separated string values.
+   defp process_where_clause({field, :in, value}, query) do
+     values = String.split(value, ",")
+     Ash.Query.filter(query, {^field, {:in, ^values}})
+   end
+   ```
+   The clause `defp process_where_clause({field, :in, values}, query) when is_list(values),` directly above it stays. `process_where_clause/2` keeps its catch-all `defp process_where_clause({field, operation, value}, query) do`, which a non-list `:in` value now reaches.
+5. Same file — new private functions, placed directly before `translate_operation/1`:
    ```elixir
    # `Aurora.Ctx.QueryBuilder` sorts are direction-first (`desc: :title`); Ash's are field-first
    # (`title: :desc`). An entry whose second element is an Ash direction is already Ash-shaped.
@@ -380,8 +385,8 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
    defp ash_sort_direction(:desc_nulls_last), do: :desc_nils_last
    defp ash_sort_direction(direction), do: direction
    ```
-5. Same file `@moduledoc` — in `## Key Features` replace `- Supports \`:order_by\` for sorting` with `- Supports \`:order_by\` in both the \`Aurora.Ctx.QueryBuilder\` direction-first form (\`[desc: :title]\`, \`*_nulls_first\` / \`*_nulls_last\`) and Ash's field-first form (\`[title: :desc]\`)`; in `## Key Constraints` append the bullet `- \`:where\` accepts a single condition tuple as well as a list; \`dynamic/2\` expressions are Ecto-only and are not supported`.
-6. `@doc` of `parse/2` — replace `* \`:order_by\` (term()) - Sorting specification passed to \`Ash.Query.sort/2\`.` with `* \`:order_by\` (term()) - Sorting specification; direction-first entries are translated before \`Ash.Query.sort/2\`.`
+6. Same file `@moduledoc` — in `## Key Features` replace `- Supports \`:order_by\` for sorting` with `- Supports \`:order_by\` in both the \`Aurora.Ctx.QueryBuilder\` direction-first form (\`[desc: :title]\`, \`*_nulls_first\` / \`*_nulls_last\`) and Ash's field-first form (\`[title: :desc]\`)`; delete the bullet `- Comma-separated string parsing for \`:in\` operations`; in `## Key Constraints` replace `- The \`:in\` operator expects either a list or comma-separated string` with `- The \`:in\` operator accepts a list of values only; any other value makes the query invalid` and append the bullet `- \`:where\` accepts a single condition tuple as well as a list; \`dynamic/2\` expressions are Ecto-only and are not supported`.
+7. `@doc` of `parse/2` — replace `* \`:order_by\` (term()) - Sorting specification passed to \`Ash.Query.sort/2\`.` with `* \`:order_by\` (term()) - Sorting specification; direction-first entries are translated before \`Ash.Query.sort/2\`.`; in `## Examples` replace `iex> parse(query, where: [{:category, :in, "electronics,books"}])` with `iex> parse(query, where: [{:category, :in, ["electronics", "books"]}])`. These examples are not doctested (`rg -n "QueryParser" test` returns nothing).
 
 ##### Green tests
 1. The red tests above pass, unmodified (code-issue runs these, targeted)
@@ -391,29 +396,31 @@ Current Ash behaviour: `process_option({:order_by, values}, query)` passes `valu
 <!-- section:PAR-3:end -->
 
 <!-- section:UI-1:start -->
-### UI-1 — UI · handler · layout `where` + filter merge, applied filters kept, `aurora_ctx` 0.1.11
+### UI-1 — UI · handler · layout `where` + filter merge, "in list" text split into a list, applied filters kept, `aurora_ctx` 0.1.11
 Depends on: DOC-1
 
-**Prerequisite (MUST be completed before this section starts):** wadvanced/aurora_ctx#42 ("QueryBuilder: support :in in where/or_where and stop silently dropping unknown conditions") is closed and `aurora_ctx` 0.1.11 is published on Hex. Check with `mix hex.info aurora_ctx` listing `0.1.11`. When it is not published, stop and report `STATUS: BLOCKED — aurora_ctx-0.1.11-unpublished`.
+**Prerequisite (MUST be completed before this section starts):** wadvanced/aurora_ctx#42 ("QueryBuilder: support :in in where/or_where and stop silently dropping unknown conditions") is reworded to a list-only `:in` — `{field, :in, values}` with `values` a list; no comma-separated binary clause; every other value raises `ArgumentError` — then closed, and `aurora_ctx` 0.1.11 is published on Hex with that behaviour. The issue body in the aurora_ctx repository still reads "and for a comma-separated binary (split on \",\")"; its owner edits it there before the release. Check with `mix hex.info aurora_ctx` listing `0.1.11`. When it is not published, stop and report `STATUS: BLOCKED — aurora_ctx-0.1.11-unpublished`.
 
 #### Documentation references
 - `guides/core/layouts.md` § Index Layout Options — `:where` "Conditions submitted from the filter bar are added to it" (DOC-1).
-- `guides/core/layouts.md` § QueryBuilder for Advanced Filtering — `:in` operator (DOC-1).
+- `guides/core/layouts.md` § QueryBuilder for Advanced Filtering — `:in` takes a list of values; the filter bar's "in list" condition splits the typed text on commas and passes a list (DOC-1).
 
 #### Implementation details
 Layout types covered: `:index`. `:form` and `:show` are left alone.
 
-Current behaviour (`lib/aurora_uix/templates/basic/handlers/index_impl.ex`): `prepare_query_options/2` merges with `Keyword.merge(load_items_options, opts, fn _key, existing, acc -> [existing | acc] end)`. For `where: filters` it yields `[layout_where | filters]`, a nested list. Ecto's `Aurora.Ctx.QueryBuilder` `where_condition/2` drops the nested list in its catch-all; Ash's `QueryParser.process_where_clause/2` has no clause for a non-empty list and raises `FunctionClauseError`. `auix_handle_event("auix_route_back", …)` calls `load_items/2`, which rebuilds the query options without the submitted filters.
+Current behaviour (`lib/aurora_uix/templates/basic/handlers/index_impl.ex`): `prepare_query_options/2` merges with `Keyword.merge(load_items_options, opts, fn _key, existing, acc -> [existing | acc] end)`. For `where: filters` it yields `[layout_where | filters]`, a nested list. Ecto's `Aurora.Ctx.QueryBuilder` `where_condition/2` drops the nested list in its catch-all; Ash's `QueryParser.process_where_clause/2` has no clause for a non-empty list and raises `FunctionClauseError`. `auix_handle_event("auix_route_back", …)` calls `load_items/2`, which rebuilds the query options without the submitted filters. `get_selected_filters/1` maps an "in list" filter through its catch-all `{_key, filter} -> {filter.key, filter.condition, filter.from}`, so the backend receives the typed text (`{:reference, :in, "a,b"}`); both backends take `:in` values as a list only (`PAR-3` for Ash, `aurora_ctx` 0.1.11 for Ecto), so the split happens here, in the backend-agnostic handler.
 
 The `aurora_ctx` bump sits in this section, not in a Parser section: 0.1.11 raises `ArgumentError` on the nested `[[] | filters]` list the unfixed merge produces on every filter submit, so the bump is safe only together with the merge fix.
 
 ##### Acceptance criteria
 - [ ] AC-1: Given `WhereFilterLayoutTest` (Ecto `Product`, layout `where: [{:reference, :between, "item_group_2b", "item_group_3d"}]`) and the 11-product fixture, with the filter bar open, setting `reference` to `ge` `"item_group_1a-2"` and submitting, then the table holds 5 rows (the layout `where` still applies).
-- [ ] AC-2: Given the same page, setting `reference` to `in` `"item_group_1a-1,item_group_2b-1,item_group_3c-2"` and submitting, then the table holds 2 rows.
+- [ ] AC-2: Given the same page, setting `reference` to `in` and typing `"item_group_1a-1,item_group_2b-1,item_group_3c-2"`, then submitting, then the backend receives `{:reference, :in, ["item_group_1a-1", "item_group_2b-1", "item_group_3c-2"]}` and the table holds 2 rows (`aurora_ctx` 0.1.11 raises `ArgumentError` on the unsplit string, so the row count proves the list).
 - [ ] AC-3 (degraded path): Given the same page, submitting with no filter value set, then the table holds 5 rows.
 - [ ] AC-4: Given the same page, setting `reference` to `ge` `"item_group_3c-1"`, submitting, then pushing `"auix_route_back"`, then the table still holds 2 rows.
 - [ ] AC-5 to AC-8: the same four cases on Ash — `AshWhereFilterLayoutTest` (Ash `Post`, layout `where: [{:title, :between, "post_group_2b", "post_group_3d"}]`, the 11-post fixture, filter on `title`) — with the same counts: 5, 2, 5, 2.
 - [ ] AC-9: `test/cases_live/where_one2many_test.exs` "Test where" passes on `aurora_ctx` 0.1.11 with a flat expected-result `where`.
+- [ ] AC-10 (degraded path): Given `WhereFilterLayoutTest`, setting `reference` to `in` and typing `" item_group_2b-1 ,item_group_3c-1,"` (surrounding spaces, trailing comma), then submitting, then the table holds 2 rows: entries are trimmed and empty entries dropped.
+- [ ] AC-11 (degraded path): the same on Ash — `AshWhereFilterLayoutTest`, `title` set to `in` and typed `" post_group_2b-1 ,post_group_3c-1,"` — 2 rows.
 
 ##### Test ports
 - Route `"where-filter-layout-products"` registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud(WhereFilterLayoutTest.Product, "where-filter-layout-products")` · layout types `:index` · observable: row count of `#auix-table-where-filter-layout-products-index tr`.
@@ -423,11 +430,13 @@ The `aurora_ctx` bump sits in this section, not in a Parser section: 0.1.11 rais
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
 | AC-1 | new file (`rg -n "WhereFilterLayout\|where-filter-layout\|where_filter_layout" test lib` returns nothing) | `view = prepare_filters_test(conn)`; `set_filter_change(view, :filter_condition, :reference, :ge)`; `set_filter_change(view, :filter_from, :reference, "item_group_1a-2")` | test/cases_live/where_filter_layout_test.exs | "a submitted filter narrows the layout where instead of replacing it" | `assert submitted_row_count(view) == 5` |
-| AC-2 | add to the same file | `prepare_filters_test(conn)`; condition `:in`, from `"item_group_1a-1,item_group_2b-1,item_group_3c-2"` | same | "the in-list condition filters on Ecto" | `assert submitted_row_count(view) == 2` |
+| AC-2 | add to the same file | `prepare_filters_test(conn)`; condition `:in`, from `"item_group_1a-1,item_group_2b-1,item_group_3c-2"` (the text a user types; the handler hands the backend the three-element list) | same | "the in-list condition passes a list to Ecto" | `assert submitted_row_count(view) == 2` |
 | AC-3 | add to the same file | `prepare_filters_test(conn)`; no filter change | same | "submitting without a filter keeps the layout where" | `assert submitted_row_count(view) == 5` |
 | AC-4 | add to the same file | `prepare_filters_test(conn)`; condition `:ge`, from `"item_group_3c-1"`; `assert submitted_row_count(view) == 2`; then `render_click(view, "auix_route_back", %{})` | same | "submitted filters survive auix_route_back" | `assert row_count(view) == 2` |
 | AC-5 … AC-8 | new file (`rg -n "AshWhereFilterLayout\|ash-where-filter-layout\|ash_where_filter_layout" test lib` returns nothing) | the same four tests, filtering `:title` with the `post_group_…` values (`"post_group_1a-2"`; `"post_group_1a-1,post_group_2b-1,post_group_3c-2"`; none; `"post_group_3c-1"`) | test/cases_live/ash_where_filter_layout_test.exs | the same four test names | the same four counts: 5, 2, 5, 2 |
 | AC-9 | amend `test/cases_live/where_one2many_test.exs` "Test where" | replace `where: [[product_id: product_id], {:quantity, :between, 8, 16}]` in the `expected_result` query with `where: [{:product_id, product_id}, {:quantity, :between, 8, 16}]` | test/cases_live/where_one2many_test.exs | "Test where" | assertion unchanged |
+| AC-10 | add to `test/cases_live/where_filter_layout_test.exs` | `prepare_filters_test(conn)`; condition `:in`, from `" item_group_2b-1 ,item_group_3c-1,"` | same | "in-list entries are trimmed and empty entries dropped" | `assert submitted_row_count(view) == 2` |
+| AC-11 | add to `test/cases_live/ash_where_filter_layout_test.exs` | `prepare_filters_test(conn)`; condition `:in`, from `" post_group_2b-1 ,post_group_3c-1,"` | same | the AC-10 test name | `assert submitted_row_count(view) == 2` |
 
 ##### Modules & components
 1. `mix.exs` `deps/0` — replace `{:aurora_ctx, "~> 0.1"}` with `{:aurora_ctx, "~> 0.1.11"}`; run `mix deps.update aurora_ctx`; commit `mix.exs` and `mix.lock` (`aurora_ctx` 0.1.10 → 0.1.11).
@@ -481,7 +490,31 @@ The `aurora_ctx` bump sits in this section, not in a Parser section: 0.1.11 rais
    defp where_conditions(condition), do: [condition]
    ```
    Current callers and their new call: `load_items/2` (`|> prepare_query_options()`, unchanged text); the `"filters-submit"` clause (step 3). No other caller: `rg -n "prepare_query_options" lib` lists these two call sites plus the function's own `@spec` and head.
-5. `test/support/app_web/routes.ex` `load_test_routes/0` — append, inside the same `quote`, directly after the `RoutesHelper.register_crud(FormDiscardGuardDisabledTest.Product, "form-discard-guard-disabled-products")` call:
+5. Same file `get_selected_filters/1` — the function has two anonymous functions, each ending in a catch-all clause `{_key, filter} ->`. Insert one clause directly before each catch-all:
+   - in the `Enum.reject/2` function, directly after the `{_key, %{condition: condition}} when condition in [false, true] -> false` clause:
+     ```elixir
+           {_key, %{condition: :in} = filter} ->
+             is_nil(filter.from) or filter.from == ""
+     ```
+   - in the `Enum.map/2` function, directly after the `{_key, %{condition: condition} = filter} when condition in [false, true] -> {filter.key, condition}` clause:
+     ```elixir
+           {_key, %{condition: :in} = filter} ->
+             {filter.key, :in, in_values(filter.from)}
+     ```
+   `filter.from` is the `"filter_from__<key>"` param, a binary (`update_filter/3` stores `params[from_key]`).
+6. Same file — new private function, placed directly after `get_selected_filters/1` and before `escape/1`:
+   ```elixir
+   # The "in list" input is free text; both backends take `:in` values as a list only.
+   @spec in_values(binary()) :: list(binary())
+   defp in_values(text) do
+     text
+     |> String.split(",")
+     |> Enum.map(&String.trim/1)
+     |> Enum.reject(&(&1 == ""))
+   end
+   ```
+   `assign_filters_selected_count/1` also calls `get_selected_filters/1`: an "in list" filter with an empty text no longer counts as selected, which matches `:contains`.
+7. `test/support/app_web/routes.ex` `load_test_routes/0` — append, inside the same `quote`, directly after the `RoutesHelper.register_crud(FormDiscardGuardDisabledTest.Product, "form-discard-guard-disabled-products")` call:
    ```elixir
    RoutesHelper.register_crud(
      WhereFilterLayoutTest.Product,
@@ -493,7 +526,7 @@ The `aurora_ctx` bump sits in this section, not in a Parser section: 0.1.11 rais
      "ash-where-filter-layout-posts"
    )
    ```
-6. `Aurora.UixWeb.Test.WhereFilterLayoutTest` at `test/cases_live/where_filter_layout_test.exs` — new:
+8. `Aurora.UixWeb.Test.WhereFilterLayoutTest` at `test/cases_live/where_filter_layout_test.exs` — new:
    1. `use Aurora.UixWeb.Test.UICase, :phoenix_case` and `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`; `alias Aurora.Uix.Guides.Inventory`, `alias Aurora.Uix.Guides.Inventory.Product`, `alias Phoenix.LiveViewTest.View`.
    2. Metadata: `auix_resource_metadata(:product, context: Inventory, schema: Product, order_by: :reference)`.
    3. Layout: `auix_create_ui do index_columns(:product, [:reference, :name], where: [{:reference, :between, "item_group_2b", "item_group_3d"}]) end`.
@@ -501,15 +534,15 @@ The `aurora_ctx` bump sits in this section, not in a Parser section: 0.1.11 rais
    5. `@spec set_filter_change(View.t(), atom(), atom(), atom() | binary()) :: View.t()` — copy verbatim from `test/cases_live/special_fields_ui_test.exs`.
    6. `@spec row_count(View.t()) :: non_neg_integer()` private: `view |> render() |> LazyHTML.from_document() |> LazyHTML.query("#auix-table-where-filter-layout-products-index tr") |> Enum.count()`.
    7. `@spec submitted_row_count(View.t()) :: non_neg_integer()` private: `view |> element("[name='auix-index-header-actions'] [name='auix-filters_submit-product']") |> render_click()`, then `row_count(view)`.
-7. `Aurora.UixWeb.Test.AshWhereFilterLayoutTest` at `test/cases_live/ash_where_filter_layout_test.exs` — new. Same shape as item 6, with these differences:
+9. `Aurora.UixWeb.Test.AshWhereFilterLayoutTest` at `test/cases_live/ash_where_filter_layout_test.exs` — new. Same shape as item 8, with these differences:
    1. `alias Aurora.Uix.Guides.Blog.Post`.
    2. Metadata: `auix_resource_metadata(:post, ash_resource: Post, order_by: :title)`.
    3. Layout: `auix_create_ui do index_columns(:post, [:title, :content], where: [{:title, :between, "post_group_2b", "post_group_3d"}]) end`.
    4. `prepare_filters_test/1`: `delete_all_blog_data()`; one `create_sample_posts(1, %{title: title})` call per title of `post_group_1a-1`, `post_group_1a-2`, `post_group_2b-1`, `post_group_2b-2`, `post_group_2b-3`, `post_group_3c-1`, `post_group_3c-2`, `post_group_3d-1`, `post_group_3d-2`, `post_group_3d-3`, `post_group_3d-4`; route `"/ash-where-filter-layout-posts"`. `create_sample_posts/2` keeps the `:title` key of `attrs`; `Post` `belongs_to :author` allows nil.
    5. `row_count/1` queries `#auix-table-ash-where-filter-layout-posts-index tr`; `submitted_row_count/1` clicks `[name='auix-index-header-actions'] [name='auix-filters_submit-post']`.
-8. Selectors relied on, verified at their definition: tbody id `"auix-table-#{@auix.uri_path_id}-index"` (`index_renderer.ex` `render/1`); `auix-filter_toggle_open` and `"auix-filters_submit-#{@auix.module}"` (`lib/aurora_uix/templates/basic/actions/index.ex`); the `"auix_route_back"` clause of `auix_handle_event/3` calls `load_items/2`.
-9. Components: none new. Theme: none. `dt/1` strings: none.
-10. Standing rules touched: the change is in the backend-agnostic handler; it hands both backends the same flat list. No changeset is built.
+10. Selectors relied on, verified at their definition: tbody id `"auix-table-#{@auix.uri_path_id}-index"` (`index_renderer.ex` `render/1`); `auix-filter_toggle_open` and `"auix-filters_submit-#{@auix.module}"` (`lib/aurora_uix/templates/basic/actions/index.ex`); the `"auix_route_back"` clause of `auix_handle_event/3` calls `load_items/2`.
+11. Components: none new. Theme: none. `dt/1` strings: none.
+12. Standing rules touched: the change is in the backend-agnostic handler; it hands both backends the same flat list, with every `:in` value a list. No changeset is built.
 
 ##### Green tests
 1. The red tests above pass, unmodified (code-issue runs these, targeted)
@@ -843,7 +876,8 @@ Markup-change sweep (`rg -n "auix-column-label\|thead" test/`): `test/cases_live
 ---
 
 ### Out of Scope
-- A ctx Parser section for `order_by` / single-tuple `where`: `Aurora.Ctx.QueryBuilder` `option/2` already accepts every form `PAR-3` adds to Ash. The ctx `:in` support is wadvanced/aurora_ctx#42, a prerequisite of `UI-1`, not code in this repository.
+- A ctx Parser section for `order_by` / single-tuple `where`: `Aurora.Ctx.QueryBuilder` `option/2` already accepts every form `PAR-3` adds to Ash. The ctx `:in` support (list-only) is wadvanced/aurora_ctx#42, a prerequisite of `UI-1`, not code in this repository.
+- A comma-separated string as an `:in` value, on either backend: `PAR-3` deletes the Ash split, `aurora_ctx` 0.1.11 never has one, and the filter bar's "in list" text is split once, in the handler (`UI-1`).
 - `dynamic/2` `where` expressions on Ash: they are an Ecto construct; `DOC-1` documents them as Ecto-only.
 - Index query options `:or_where` and `:select`: `IndexImpl` lists them in `@allowed_query_options`, yet `prepare_query_options/1` forwards only `:order_by`, `:where` and `:preload`, so a layout or metadata `or_where` / `select` never reaches either backend. Tracked in wadvanced/aurora_uix#374.
 - Sort control for the mobile card list: the index card view (`auix_items_card/1`) has no header row, so `UI-3`'s sort control is desktop-only. Tracked in wadvanced/aurora_uix#375, which depends on `UI-3` of this issue.
