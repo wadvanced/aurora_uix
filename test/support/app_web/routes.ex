@@ -387,6 +387,21 @@ defmodule Aurora.UixWeb.Test.Routes do
           AshCheckboxCheckedTest.Item,
           "ash-checkbox-checked-items"
         )
+
+        RoutesHelper.register_crud(
+          FormDiscardGuardTest.Product,
+          "form-discard-guard-products"
+        )
+
+        RoutesHelper.register_crud(
+          AshFormDiscardGuardTest.Author,
+          "ash-form-discard-guard-authors"
+        )
+
+        RoutesHelper.register_crud(
+          FormDiscardGuardDisabledTest.Product,
+          "form-discard-guard-disabled-products"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
