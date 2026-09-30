@@ -493,6 +493,7 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-actions` | Generic action bar | `--auix-gap-default` |
 | `.auix-horizontal-divider` | Horizontal rule separator | `--auix-border-width-default`, `--auix-color-horizontal-divider`, `--auix-margin-default` |
 | `.auix-sections-tab-button` | Section/tab navigation button | `--auix-padding-minimal`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-border-width-thick`, `--auix-border-radius-default` |
+| `.auix-items-table-header-sort` | Sortable index column header button (label + direction arrow) | `--auix-gap-minimal` |
 
 ### Scoping example
 

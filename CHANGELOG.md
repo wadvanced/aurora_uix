@@ -18,6 +18,22 @@ Requires:
 
 ### Fixes
 
+- **A layout `where` was lost as soon as the filter bar was submitted**
+  - Layout `where` and submitted filters were merged into a nested list that Ecto skipped and Ash
+    rejected. Both now receive one flat list, and submitted filters survive closing a modal.
+
+- **The filter bar's "in list" condition was ignored on Ecto resources**
+  - `aurora_ctx` 0.1.11 adds the `:in` operator for a list of values and raises `ArgumentError`
+    for an unsupported condition instead of matching every row. The filter bar splits the typed
+    comma-separated text into that list before either backend sees it.
+
+- **Ash rejected the direction-first `order_by`**
+  - `order_by: [desc: :published_at]` now works on Ash, including the `*_nulls_first` and
+    `*_nulls_last` directions, as does a single-tuple `where`.
+
+- **Ash one-to-many tables rendered no rows**
+  - The renderer took Ash's paginated result for a stream map; it now lists its entries.
+
 - **Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**
   - `Aurora.Uix.Integration.Ash.QueryParser`'s `translate_operation/1` (since removed) mapped both pattern-matching
     operators onto `:eq`, so a substring search on an Ash resource returned only exact matches
@@ -112,6 +128,11 @@ Requires:
 
 ### Added
 
+- **Sortable index column headers**
+  - Click a column header to sort the index by it; click again to reverse. The sort replaces the
+    layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps)
+    are skipped; opt any other out with `sortable?: false`. New class `auix-items-table-header-sort`.
+
 - **Unsaved-changes guard on the form modal**
   - Closing the new/edit form modal (the × button, `Esc`, a click outside it) threw away whatever
     the user had typed. The form component now records whether a `"validate"` event has changed
@@ -197,6 +218,10 @@ Requires:
 
 ### Changed
 
+- **`:in` conditions take a list of values only**
+  - The Ash query parser no longer splits a comma-separated string: `{:status, :in, "a,b"}` now
+    yields an invalid query on Ash and raises `ArgumentError` on Ecto. Write `{:status, :in, ["a", "b"]}`.
+
 - **`Aurora.Uix.Gettext` renamed to `Aurora.Uix.GettextResolver`**
   - The old name shadowed the `Gettext` library module, so code generated inside the macro's own
     `__using__/1` block could not call `Gettext.*` directly without the ambiguity. Every internal
@@ -234,6 +259,7 @@ Requires:
   - ash: 3.30.1 -> 3.33.11
   - ash_phoenix: 2.3.24 -> 2.3.25
   - ash_postgres: 2.11.0 -> 2.13.1
+  - aurora_ctx: 0.1.10 -> 0.1.11
   - bandit: 1.12.4 -> 1.12.5
   - dialyxir: 1.4.7 -> 1.4.8
   - ex_doc: 0.40.3 -> 0.40.4

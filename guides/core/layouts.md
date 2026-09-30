@@ -294,8 +294,8 @@ index_columns :product, [:reference, :name, :price],
   page_subtitle: "Manage your inventory",
   pagination_items_per_page: 20,
   pagination_disabled?: false,
-  order_by: [{:name, :asc}],
-  where: dynamic([p], p.active == true)
+  order_by: [asc: :name],
+  where: [{:active, true}]
 ```
 
 **Options:**
@@ -304,8 +304,8 @@ index_columns :product, [:reference, :name, :price],
 - `:pagination_items_per_page` — Rows per page (default: 40)
 - `:pagination_disabled?` — Disable pagination (default: `false`)
 - `:new_action_label` — Label for the "new" action button (default: `"New {name}"`)
-- `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax
-- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax
+- `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
+- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it
 
 #### Form Layout Options
 
@@ -406,6 +406,7 @@ end
 - `:show_renderer` — Custom rendering function for the show layout only
 - `:length` — Input field character width
 - `:placeholder` — Placeholder text
+- `:sortable?` — Set to `false` to remove the sort control from this column's index header
 - `:option_label` — For select/radio fields
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`
@@ -595,7 +596,7 @@ end
 
 ### QueryBuilder for Advanced Filtering
 
-Aurora UIX index layouts support advanced filtering and sorting. The `:where` and `:order_by` options are passed to `Aurora.Ctx.QueryBuilder.options/2` for query construction.
+Aurora UIX index layouts support advanced filtering and sorting. The `:where` and `:order_by` options are passed to `Aurora.Ctx.QueryBuilder.options/2` on Ecto resources and translated by `Aurora.Uix.Integration.Ash.QueryParser` on Ash resources; both accept the syntax below.
 
 **Basic Filtering with Tuples:**
 
@@ -628,6 +629,7 @@ index_columns :product, [:reference, :name, :price],
 - `:like` - Pattern matching (SQL LIKE with `%` and `_`)
 - `:ilike` - Case-insensitive pattern matching
 - `:between` - Range query (requires start and end values)
+- `:in` - Membership in a list of values (`{:status, :in, [:active, :pending]}`); the value is always a list
 
 **Range Filtering with Between:**
 
@@ -649,6 +651,8 @@ This enables:
 - Multi-field sorting with customizable directions
 - Pattern matching with LIKE/ILIKE operators
 - Range queries with BETWEEN operator
+
+`dynamic/2` expressions apply to Ecto resources only; the Ash query parser accepts the tuple forms above. On Ecto resources a condition `Aurora.Ctx.QueryBuilder` does not support raises `ArgumentError` instead of being ignored. A comma-separated string is not a list: `{:status, :in, "active,pending"}` raises on Ecto and yields an invalid query on Ash. The filter bar's "in list" condition splits the typed text on commas and passes a list.
 
 ### Conditional Field Visibility
 
