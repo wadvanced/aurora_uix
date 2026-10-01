@@ -195,6 +195,14 @@ Requires:
   - postgrex: 0.22.3 -> 0.22.4
   - telemetry_metrics: 1.1.0 -> 1.2.0
 
+### Documentation
+
+- **Bulk actions on selected rows**
+  - `guides/customization/custom_actions.md` gains a worked recipe for a host's own action over
+    the rows selected in the index: the control in the selected-actions strip, the
+    `add_selected_action` option, and the handler clause that reads the selection, writes the
+    records and refreshes the index.
+
 ## [0.1.5] - 2026-07-28
 
 **Runtime Component Overrides & Guide Reorganization**
