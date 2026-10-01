@@ -429,6 +429,12 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(AshWhereMany2OneTest.Post, "ash-where-many_to_one-posts")
+        RoutesHelper.register_crud(SortableColumnsTest.Product, "sortable-columns-products")
+
+        RoutesHelper.register_crud(
+          AshSortableColumnsTest.Author,
+          "ash-sortable-columns-authors"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
