@@ -111,6 +111,33 @@ defmodule Aurora.Uix.Selection do
   end
 
   @doc """
+  Removes the given item ids from the selection, on every page.
+
+  ## Parameters
+
+  - `selection` (`t()`) - The selection struct.
+  - `item_ids` (`list()`) - The ids to remove.
+
+  ## Returns
+
+  `t()` - The selection without those ids. Call `update_states/2` to refresh the counts.
+  """
+  @spec unselect(__MODULE__.t(), list()) :: __MODULE__.t()
+  def unselect(%__MODULE__{} = selection, item_ids) do
+    removed = MapSet.new(item_ids)
+
+    selected_in_page =
+      Map.new(selection.selected_in_page, fn {page, ids} ->
+        {page, MapSet.difference(ids, removed)}
+      end)
+
+    struct(selection, %{
+      selected: MapSet.difference(selection.selected, removed),
+      selected_in_page: selected_in_page
+    })
+  end
+
+  @doc """
   Adds selection state to an item map for UI rendering.
 
   Takes an item map and adds a `:selected_check__` field indicating whether

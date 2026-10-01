@@ -24,6 +24,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView
 
+  alias Aurora.Uix.Events
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Stack
   alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
@@ -104,6 +105,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         with {:ok, consumed_params} <- FormImpl.auix_consume_uploads(socket, entity_params),
              {:ok, entity} <- save_entity(socket, consumed_params) do
           FormImpl.notify_parent({:saved, entity})
+          FormImpl.publish_saved(action, entity)
 
           get_opts =
             socket
@@ -417,6 +419,20 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  @doc """
+  Publishes the saved record on its schema's topic, skipping the calling LiveView.
+
+  ## Parameters
+  - `action` (atom()) - The form action: `:new`, `:edit` or `:show_edit`.
+  - `entity` (struct()) - The record returned by `save_entity/2`.
+
+  ## Returns
+  `:ok | {:error, term()}`
+  """
+  @spec publish_saved(atom(), struct()) :: :ok | {:error, term()}
+  def publish_saved(:new, entity), do: Events.created(entity, from: self())
+  def publish_saved(_action, entity), do: Events.updated(entity, from: self())
 
   @doc """
   Consumes all uploaded entries for upload fields and merges the results into entity params.

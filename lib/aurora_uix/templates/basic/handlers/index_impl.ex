@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - Supports streaming, patching, and navigation for index resources
   - Handles pagination, filtering, column-header sorting, and item selection for large datasets
   - Provides async operations for bulk actions (select all, delete all)
+  - Subscribes to its schema's `Aurora.Uix.Events` topic when connected, publishes its own deletes, and answers the `refresh` and `reset_selection` commands
 
   ## Key Constraints
 
@@ -20,6 +21,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - Designed for use with Phoenix LiveView and Aurora UIX context modules
   - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.)
   - Requires resource modules to implement CRUD operations via Aurora.Uix.Integration.Crud
+  - Built-in publishers use `broadcast_from`, so the view that made a change refreshes locally and never receives its own event
   """
   use Aurora.Uix.GettextResolver
 
@@ -29,6 +31,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   import Phoenix.Component
 
   alias Aurora.Ctx.Pagination
+  alias Aurora.Uix.Event
+  alias Aurora.Uix.Events
   alias Aurora.Uix.Filter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
@@ -232,6 +236,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {
       :ok,
       socket
+      |> subscribe_to_changes()
       |> assign_auix(:form_component, form_component)
       |> assign_auix(:show_component, show_component)
       |> assign_auix(:filters_enabled?, false)
@@ -318,6 +323,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     socket =
       with %{} = entity <- apply_get_function(get_function, id, get_opts),
            {:ok, _changeset} <- apply_delete_function(delete_function, entity, delete_opts) do
+        publish_child_deleted(entity)
+
         socket
         |> put_flash(:info, dt("Item deleted successfully"))
         |> push_patch(to: socket.assigns.auix[:_current_path])
@@ -337,6 +344,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     delete_opts = backend_socket_opts(socket, auix.delete_function)
     entity = apply_get_function(auix.get_function, id, get_opts)
     {:ok, _} = apply_delete_function(auix.delete_function, entity, delete_opts)
+    publish_deleted(auix, [BasicHelpers.primary_key_value(entity, auix.primary_key)])
 
     {:noreply,
      socket
@@ -607,13 +615,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   @doc """
-  Handles info messages for the LiveView.
-
-  Processes save notifications by refreshing the current page from the data source, ignores
-  other messages.
+  Handles info messages for the LiveView. Re-reads the current page after a save notification, an
+  `%Aurora.Uix.Event{}` on the schema's topic (dropping deleted ids from the selection first),
+  or the `refresh` command; the `reset_selection` command clears the selection, then re-reads.
+  Other messages are ignored.
 
   ## Parameters
-  - `event_info` (term()) - Info message, typically `{component, {:saved, entity}}`.
+  - `event_info` (term()) - Info message: `{component, {:saved, entity}}`, an
+    `%Aurora.Uix.Event{}`, or an `Aurora.Uix.Events` command.
   - `socket` (Socket.t()) - LiveView socket.
 
   ## Returns
@@ -625,6 +634,24 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{assigns: %{auix: _auix, streams: _streams}} = socket
       ) do
     {:noreply, refresh_current_page(socket)}
+  end
+
+  def auix_handle_info(%Event{} = event, socket) do
+    {:noreply,
+     socket
+     |> unselect_deleted(event)
+     |> assign_selected_states()
+     |> refresh_current_page()}
+  end
+
+  def auix_handle_info({Events, :refresh}, socket), do: {:noreply, refresh_current_page(socket)}
+
+  def auix_handle_info({Events, :reset_selection}, socket) do
+    {:noreply,
+     socket
+     |> assign_auix(:selection, Selection.new())
+     |> assign_selected_states()
+     |> refresh_current_page()}
   end
 
   def auix_handle_info(_input, socket) do
@@ -666,11 +693,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def auix_handle_async(
         :auix_selection_delete_all,
         result,
-        %{assigns: %{auix: %{selection: current_selection}}} = socket
+        %{assigns: %{auix: %{selection: current_selection} = auix}} = socket
       ) do
     new_selection =
       case result do
-        {:ok, _} ->
+        {:ok, deleted_ids} ->
+          publish_deleted(auix, deleted_ids)
           Selection.new()
 
         _error ->
@@ -773,6 +801,57 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   ## PRIVATE
+  @spec resource_schema(map()) :: module()
+  defp resource_schema(%{configurations: configurations, resource_name: resource_name}) do
+    get_in(configurations, [
+      Access.key!(resource_name),
+      Access.key!(:resource_config),
+      Access.key!(:schema)
+    ])
+  end
+
+  @spec subscribe_to_changes(Socket.t()) :: Socket.t()
+  defp subscribe_to_changes(%{assigns: %{auix: auix}} = socket) do
+    if connected?(socket), do: :ok = auix |> resource_schema() |> Events.subscribe()
+    socket
+  end
+
+  @spec publish_deleted(map(), list()) :: :ok | {:error, term()}
+  defp publish_deleted(_auix, []), do: :ok
+
+  defp publish_deleted(auix, ids),
+    do: auix |> resource_schema() |> Events.deleted(ids, from: self())
+
+  @spec publish_child_deleted(struct()) :: :ok | {:error, term()}
+  defp publish_child_deleted(%schema{} = entity) do
+    ids = [BasicHelpers.primary_key_value(entity, schema.__schema__(:primary_key))]
+    Events.deleted(schema, ids, from: self())
+  end
+
+  # A row checkbox stores its id as the DOM string (`"selected_check__" <> id`); "select
+  # all" stores the native value. Integer keys are dropped in both forms.
+  @spec unselect_deleted(Socket.t(), Event.t()) :: Socket.t()
+  defp unselect_deleted(
+         %{assigns: %{auix: %{selection: selection}}} = socket,
+         %Event{action: :deleted, ids: ids}
+       ) do
+    dom_ids = for id <- ids, is_integer(id), do: Integer.to_string(id)
+    assign_auix(socket, :selection, Selection.unselect(selection, ids ++ dom_ids))
+  end
+
+  defp unselect_deleted(socket, _event), do: socket
+
+  @spec delete_selected(struct() | nil, Aurora.Uix.Integration.Connector.t(), keyword(), list()) ::
+          list()
+  defp delete_selected(nil, _delete_function, _delete_opts, _primary_key), do: []
+
+  defp delete_selected(entity, delete_function, delete_opts, primary_key) do
+    case apply_delete_function(delete_function, entity, delete_opts) do
+      {:ok, _} -> [BasicHelpers.primary_key_value(entity, primary_key)]
+      _error -> []
+    end
+  end
+
   @spec prepare_initial_pagination(Socket.t(), map()) :: Socket.t()
   defp prepare_initial_pagination(%{assigns: %{auix: auix}} = socket, params) do
     initial_page =
@@ -1076,12 +1155,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> get_in([Access.key!(resource_name), Access.key!(:resource_config), Access.key!(:type)])
       |> LayoutHelpers.get_fields_parser_module()
 
-    resource_schema =
-      get_in(configurations, [
-        Access.key!(resource_name),
-        Access.key!(:resource_config),
-        Access.key!(:schema)
-      ])
+    resource_schema = resource_schema(auix)
 
     select_toggle_function =
       auix
@@ -1173,11 +1247,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     get_opts = backend_socket_opts(socket, auix.get_function)
     delete_opts = backend_socket_opts(socket, auix.delete_function)
 
+    get_function = auix.get_function
+    delete_function = auix.delete_function
+    primary_key = auix.primary_key
+
     function =
       fn ->
         selection.selected
-        |> Enum.map(&apply_get_function(auix.get_function, &1, get_opts))
-        |> Enum.each(&apply_delete_function(auix.delete_function, &1, delete_opts))
+        |> Enum.map(&apply_get_function(get_function, &1, get_opts))
+        |> Enum.flat_map(&delete_selected(&1, delete_function, delete_opts, primary_key))
       end
 
     start_async(socket, :auix_selection_delete_all, function)
