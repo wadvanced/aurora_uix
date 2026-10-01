@@ -1157,22 +1157,22 @@ show-edit modals, and the generated FormComponent's `update/2`). `:index` list b
 UI-2's and stays unchanged. The ShowComponent generator is untouched.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an open show of record X, an `:updated` event for X re-reads X: the show
+- [x] AC-1: Given an open show of record X, an `:updated` event for X re-reads X: the show
       displays the new value.
-- [ ] AC-2: Given an open show of record X, a `:deleted` event for X closes the show (patch to
+- [x] AC-2: Given an open show of record X, a `:deleted` event for X closes the show (patch to
       the index path) with the flash "Item deleted successfully".
-- [ ] AC-3: Given an open edit form of record X with typed, unsaved input, an `:updated` event for
+- [x] AC-3: Given an open edit form of record X with typed, unsaved input, an `:updated` event for
       X keeps the typed input, keeps the form dirty (closing it opens the discard dialog), and
       shows the flash "Product updated successfully".
-- [ ] AC-4: Given an open edit form of record X, a `:deleted` event for X keeps the form open and
+- [x] AC-4: Given an open edit form of record X, a `:deleted` event for X keeps the form open and
       shows the flash "Item deleted successfully".
-- [ ] AC-5: Given an open edit form of record X with typed input, reopening the form for record Y
+- [x] AC-5: Given an open edit form of record X with typed input, reopening the form for record Y
       starts clean: Y's stored values, and closing it opens no discard dialog.
-- [ ] AC-6 (empty path): An event for a different record leaves the open show and form untouched
+- [x] AC-6 (empty path): An event for a different record leaves the open show and form untouched
       and shows no flash.
-- [ ] AC-7 (degraded path): An `:updated` event for X after X is gone (the re-read returns
+- [x] AC-7 (degraded path): An `:updated` event for X after X is gone (the re-read returns
       `nil`) keeps the show open with the values it already displays.
-- [ ] AC-8: AC-1, AC-2 and AC-3 hold on the Ash `blog` `Author` UI, with the flash
+- [x] AC-8: AC-1, AC-2 and AC-3 hold on the Ash `blog` `Author` UI, with the flash
       "Author updated successfully".
 
 ##### Test ports

@@ -95,6 +95,61 @@ defmodule Aurora.UixWeb.Test.AshEventsTest do
     assert has_element?(view_b, @badge, "1")
   end
 
+  describe "an open show" do
+    test "re-reads its record on :updated", %{conn: conn} do
+      delete_all_blog_data()
+      [author] = create_sample_authors(1)
+      {:ok, view, _} = live(conn, "/ash-events-authors/#{author.id}/show")
+
+      renamed =
+        author |> Ash.Changeset.for_update(:update, %{name: "Renamed author"}) |> Ash.update!()
+
+      Events.updated(renamed)
+
+      assert has_element?(view, "#auix-author-show-modal input[value='Renamed author']")
+    end
+
+    test "closes on :deleted", %{conn: conn} do
+      delete_all_blog_data()
+      [author] = create_sample_authors(1)
+      {:ok, view, _} = live(conn, "/ash-events-authors/#{author.id}/show")
+      Ash.destroy!(author)
+
+      Events.deleted(Author, [author.id])
+
+      assert_patch(view, "/ash-events-authors")
+      refute has_element?(view, "#auix-author-show-modal")
+      assert has_element?(view, "#flash-info", "Item deleted successfully")
+    end
+  end
+
+  describe "an open form" do
+    test "keeps typed input and reports an update", %{conn: conn} do
+      delete_all_blog_data()
+      [author] = create_sample_authors(1)
+      {:ok, view, _} = live(conn, "/ash-events-authors/#{author.id}/edit")
+
+      view
+      |> form("#auix-author-form", author: %{name: "Typed name"})
+      |> render_change()
+
+      Events.updated(author)
+
+      assert has_element?(
+               view,
+               "#auix-author-edit-modal input[name='author[name]'][value='Typed name']"
+             )
+
+      assert has_element?(view, "#flash-info", "Author updated successfully")
+
+      view
+      |> with_target("#auix-author-edit-modal [data-phx-component]")
+      |> render_click("auix_request_close", %{})
+
+      assert has_element?(view, "#auix-author-discard-confirm-modal")
+    end
+  end
+
   @spec select_row(term(), term()) :: binary()
   defp select_row(view, id),
     do: render_change(view, "index-layout-change", %{"_target" => ["selected_check__#{id}"]})
