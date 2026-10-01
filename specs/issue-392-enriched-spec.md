@@ -453,7 +453,7 @@ Depends on: none
       listing the three headings in that order, and
       `grep -c 'config :aurora_uix, pubsub_server: MyApp.PubSub' guides/introduction/getting_started.md`
       printing `1`)
-- [ ] AC-6: `CHANGELOG.md` § `## [0.1.6]` reads as prescribed: 28 entries, 195 lines, and none of
+- [x] AC-6: `CHANGELOG.md` § `## [0.1.6]` reads as prescribed: 28 entries, 195 lines, and none of
       the removed implementation names (mechanical — no red test; verified by
       `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | grep -c '^- \*\*'` printing `28`,
       `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | wc -l` printing `195`, and
