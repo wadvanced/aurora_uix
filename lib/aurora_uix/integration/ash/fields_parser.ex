@@ -154,6 +154,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       |> set(&field_omitted/2, :omitted, attribute)
       |> set(&field_hidden/2, :hidden, attribute)
       |> set(&field_filterable/2, :filterable?, attribute)
+      |> set(&field_sortable/2, :sortable?, attribute)
       |> set(&field_data/2, :data, attribute)
 
     attrs
@@ -239,6 +240,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
         html_type: field_html_type(nil, association),
         length: 0,
         filterable?: false,
+        sortable?: false,
         data:
           Map.put(
             field_data(%{resource_schema: schema}, association),
@@ -520,6 +522,14 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_filterable(%{type: ecto_type}, _attribute),
     do: CommonFieldsParser.field_filterable(ecto_type)
+
+  # Determines if the index column header may sort by the field. An embedded resource is checked
+  # first: `Ash.Resource.Info.sortable?/3` treats a single embedded type as sortable.
+  @spec field_sortable(map(), map()) :: boolean()
+  defp field_sortable(_attrs, %{embedded?: true}), do: false
+
+  defp field_sortable(%{key: key}, %{resource_schema: resource_schema}),
+    do: AshResourceInfo.sortable?(resource_schema, key)
 
   # Extracts metadata for Ash field types
   @spec field_data(map(), map()) :: map()

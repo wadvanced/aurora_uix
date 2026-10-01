@@ -244,12 +244,12 @@ Depends on: PAR-1
 Mirror of `PAR-1` (ctx). The Ash decision delegates to `Ash.Resource.Info.sortable?/3` (`deps/ash/lib/ash/resource/info.ex`), which already returns `false` for arrays, `Ash.Type.Map`, relationships, non-expression calculations and unknown names. It returns `true` for an embedded single resource (its type is a module), so an `embedded?: true` clause runs first.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `AllTypes` (`test/cases/integration/ash/fields_parser_test.exs`), when `Ash.FieldsParser.parse_fields/2` parses it, then `:id`, `:field_integer`, `:field_string`, `:field_utc_datetime`, `:field_duration` and `:field_status` have `sortable?: true`.
-- [ ] AC-2 (edge path): Given the same resource, then `:field_multi_status`, `:field_string_array`, `:embeds_many` and `:embeds_one` have `sortable?: false` — `:embeds_one` included, although `Ash.Resource.Info.sortable?/3` alone answers `true` for it.
-- [ ] AC-3: Given the same resource, when `Ash.FieldsParser.parse_associations/4` runs over the parsed fields, then `:belongs_to_field_id` has `sortable?: true` and `:belongs_to_field`, `:has_many_field`, `:has_one_field` and `:many_to_many_field` have `sortable?: false`.
-- [ ] AC-4: Given the `Aggregates` resource, then the `:entries_count` aggregate has `sortable?: true`.
-- [ ] AC-5 (error path): Given `Ash.FieldsParser.parse_field(AllTypes, :all_types, {:selected_check__, :boolean})` — a key the resource does not define — then the field has `sortable?: false`.
-- [ ] AC-6: The shared golden metadata (`Validations.get(:all_types)` and `get(:with_associations)`) carries `sortable?` on every entry, and both backends' golden tests pass against it.
+- [x] AC-1: Given `AllTypes` (`test/cases/integration/ash/fields_parser_test.exs`), when `Ash.FieldsParser.parse_fields/2` parses it, then `:id`, `:field_integer`, `:field_string`, `:field_utc_datetime`, `:field_duration` and `:field_status` have `sortable?: true`.
+- [x] AC-2 (edge path): Given the same resource, then `:field_multi_status`, `:field_string_array`, `:embeds_many` and `:embeds_one` have `sortable?: false` — `:embeds_one` included, although `Ash.Resource.Info.sortable?/3` alone answers `true` for it.
+- [x] AC-3: Given the same resource, when `Ash.FieldsParser.parse_associations/4` runs over the parsed fields, then `:belongs_to_field_id` has `sortable?: true` and `:belongs_to_field`, `:has_many_field`, `:has_one_field` and `:many_to_many_field` have `sortable?: false`.
+- [x] AC-4: Given the `Aggregates` resource, then the `:entries_count` aggregate has `sortable?: true`.
+- [x] AC-5 (error path): Given `Ash.FieldsParser.parse_field(AllTypes, :all_types, {:selected_check__, :boolean})` — a key the resource does not define — then the field has `sortable?: false`.
+- [x] AC-6: The shared golden metadata (`Validations.get(:all_types)` and `get(:with_associations)`) carries `sortable?` on every entry, and both backends' golden tests pass against it.
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ash.FieldsParser.parse_fields/2`, `parse_associations/4`, `parse_field/4` · in: `AllTypes` / `Aggregates` · out: `%Field{}` carrying `sortable?` · existing (`lib/aurora_uix/integration/ash/fields_parser.ex`)

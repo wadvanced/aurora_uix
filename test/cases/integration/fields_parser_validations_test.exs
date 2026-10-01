@@ -59,6 +59,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "0",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :number,
           omitted: false,
           renderer: nil
@@ -79,6 +80,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :text,
           omitted: false,
           renderer: nil
@@ -99,6 +101,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "0",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :number,
           omitted: false,
           renderer: nil
@@ -119,6 +122,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "0",
           scale: 2,
           filterable?: true,
+          sortable?: true,
           html_type: :number,
           omitted: false,
           renderer: nil
@@ -139,6 +143,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :checkbox,
           omitted: false,
           renderer: nil
@@ -159,6 +164,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "Field String",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :text,
           omitted: false,
           renderer: nil
@@ -179,6 +185,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "Field Binary",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :text,
           omitted: false,
           renderer: nil
@@ -199,6 +206,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "Field Bitstring",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :text,
           omitted: false,
           renderer: nil
@@ -219,6 +227,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "0",
           scale: 2,
           filterable?: true,
+          sortable?: true,
           html_type: :number,
           omitted: false,
           renderer: nil
@@ -239,6 +248,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :date,
           omitted: false,
           renderer: nil
@@ -259,6 +269,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :time,
           omitted: false,
           renderer: nil
@@ -279,6 +290,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :time,
           omitted: false,
           renderer: nil
@@ -299,6 +311,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :"datetime-local",
           omitted: false,
           renderer: nil
@@ -319,6 +332,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :"datetime-local",
           omitted: false,
           renderer: nil
@@ -339,6 +353,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :"datetime-local",
           omitted: false,
           renderer: nil
@@ -359,6 +374,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :"datetime-local",
           omitted: false,
           renderer: nil
@@ -379,6 +395,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           placeholder: "",
           scale: 0,
           filterable?: true,
+          sortable?: true,
           html_type: :text,
           omitted: false,
           renderer: nil
@@ -401,6 +418,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           disabled: false,
           omitted: false,
           filterable?: true,
+          sortable?: true,
           data: %{
             select: %{
               opts: [
@@ -430,6 +448,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           disabled: false,
           omitted: false,
           filterable?: false,
+          sortable?: false,
           data: %{
             select: %{
               opts: [
@@ -461,6 +480,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           disabled: false,
           omitted: false,
           filterable?: false,
+          sortable?: false,
           data: %{}
         },
         embeds_many: %{
@@ -481,6 +501,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           disabled: false,
           omitted: false,
           filterable?: true,
+          sortable?: false,
           data: %{
             owner: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes,
             resource: :all_types__embeds_many,
@@ -505,6 +526,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
           disabled: false,
           omitted: false,
           filterable?: true,
+          sortable?: false,
           data: %{
             owner: Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest.AllTypes,
             resource: :all_types__embeds_one,
@@ -538,6 +560,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         disabled: false,
         omitted: false,
         filterable?: true,
+        sortable?: true,
         data: %{}
       },
       has_many_field: %{
@@ -558,6 +581,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         disabled: false,
         omitted: false,
         filterable?: false,
+        sortable?: false,
         data: %{
           resource: nil,
           owner_key: :id,
@@ -583,6 +607,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         disabled: false,
         omitted: false,
         filterable?: false,
+        sortable?: false,
         data: %{
           resource: nil,
           owner_key: :id,
@@ -610,6 +635,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         disabled: false,
         omitted: false,
         filterable?: false,
+        sortable?: false,
         data: %{
           resource: nil,
           owner_key: :id,
@@ -635,6 +661,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.FieldsParserValidations do
         disabled: false,
         omitted: false,
         filterable?: false,
+        sortable?: false,
         data: %{
           resource: nil,
           owner_key: :belongs_to_field_id,
