@@ -477,24 +477,24 @@ Layout types: none. This section adds two backend-agnostic modules and one confi
 renderer, generator or handler changes. Nothing calls the new API until UI-2.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `pubsub_server: Aurora.Uix.PubSub`, `Aurora.Uix.Events.topic(Aurora.Uix.Guides.Inventory.Product)`
+- [x] AC-1: Given `pubsub_server: Aurora.Uix.PubSub`, `Aurora.Uix.Events.topic(Aurora.Uix.Guides.Inventory.Product)`
       returns `"auix:Aurora.Uix.Guides.Inventory.Product"`, and the same holds for the Ash resource
       `Aurora.Uix.Guides.Blog.Author`.
-- [ ] AC-2: Given a process subscribed with `Events.subscribe(Product)`, `Events.created(%Product{id: "p-1"})`
+- [x] AC-2: Given a process subscribed with `Events.subscribe(Product)`, `Events.created(%Product{id: "p-1"})`
       delivers `%Aurora.Uix.Event{schema: Product, action: :created, ids: ["p-1"], entities: [%Product{id: "p-1"}]}`;
       `Events.updated/1` delivers the same shape with `action: :updated`; the same holds for an
       `%Author{}` record (Ash).
-- [ ] AC-3: `Events.deleted(Product, ["p-1", "p-2"])` delivers `%Event{schema: Product, action: :deleted, ids: ["p-1", "p-2"], entities: []}`;
+- [x] AC-3: `Events.deleted(Product, ["p-1", "p-2"])` delivers `%Event{schema: Product, action: :deleted, ids: ["p-1", "p-2"], entities: []}`;
       `Events.changed(Product)` delivers `%Event{schema: Product, action: :changed, ids: [], entities: []}`.
-- [ ] AC-4: A publisher called with `from: pid` does not deliver to `pid` and does deliver to
+- [x] AC-4: A publisher called with `from: pid` does not deliver to `pid` and does deliver to
       every other subscriber.
-- [ ] AC-5: After `Events.unsubscribe(Product)`, the process receives no further event on that topic.
-- [ ] AC-6: `Events.refresh()` sends `{Aurora.Uix.Events, :refresh}` to the caller and
+- [x] AC-5: After `Events.unsubscribe(Product)`, the process receives no further event on that topic.
+- [x] AC-6: `Events.refresh()` sends `{Aurora.Uix.Events, :refresh}` to the caller and
       `Events.reset_selection(pid)` sends `{Aurora.Uix.Events, :reset_selection}` to `pid`; both
       return `:ok`.
-- [ ] AC-7 (empty path): With `:pubsub_server` unset, `subscribe/1` returns `:ok` and registers
+- [x] AC-7 (empty path): With `:pubsub_server` unset, `subscribe/1` returns `:ok` and registers
       nothing on the topic, and every publisher returns `:ok` and broadcasts nothing.
-- [ ] AC-8 (error path): With `:pubsub_server` set to a server that is not started,
+- [x] AC-8 (error path): With `:pubsub_server` set to a server that is not started,
       `Events.subscribe(Product)` raises `ArgumentError` (host misconfiguration surfaces loudly).
 
 ##### Test ports

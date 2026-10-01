@@ -13,7 +13,8 @@ config :aurora_uix,
 
 # Configure modules
 config :aurora_uix,
-  endpoint: Aurora.UixWeb.Endpoint
+  endpoint: Aurora.UixWeb.Endpoint,
+  pubsub_server: Aurora.Uix.PubSub
 
 # Configures the endpoint
 config :aurora_uix, Aurora.UixWeb.Endpoint,
