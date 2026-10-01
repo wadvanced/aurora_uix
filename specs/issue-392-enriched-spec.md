@@ -32,33 +32,187 @@ Depends on: none
 #### Implementation details
 
 ##### CHANGELOG.md
-1. § `## [0.1.6]` › `### Added` — insert verbatim as the first entry, directly under the `### Added` heading and before `- **Sortable index column headers**`:
-   ~~~
+1. § `## [0.1.6]` — replace every line from the `### Fixes` heading through the line directly above the `## [0.1.5] - 2026-07-28` heading with the text below, verbatim, followed by one blank line. The lines above `### Fixes` (the `## [0.1.6]` heading, the release summary, the `Requires:` list) stay unchanged.
+   ~~~~
+   ### Fixes
+
+   - **A layout `where` was lost as soon as the filter bar was submitted**
+     - A layout `where` now stays in force when the filter bar is submitted, on both backends, and
+       submitted filters survive closing a modal.
+
+   - **The filter bar's "in list" condition was ignored on Ecto resources**
+     - The comma-separated values typed into the filter bar now filter Ecto resources too. On Ecto,
+       an unsupported condition now raises `ArgumentError` instead of matching every row.
+
+   - **Ash rejected the direction-first `order_by`**
+     - `order_by: [desc: :published_at]` now works on Ash, including the `*_nulls_first` and
+       `*_nulls_last` directions, as does a single-tuple `where`.
+
+   - **Ash one-to-many tables rendered no rows**
+     - A one-to-many table over an Ash resource now lists its rows.
+
+   - **Ash silently collapsed `:like` and `:ilike` where-clauses into `:eq`**
+     - A `:like` or `:ilike` condition on an Ash resource now matches by pattern instead of returning
+       only exact matches.
+     - Both operators need AshPostgres: on another Ash data layer the filter raises.
+
+   - **Ash aggregates of kind `:first`, `:list` and `:custom` had no type, and `sum`/`max`/`min` were always `:float`**
+     - Every Ash aggregate kind now gets a type, so the field renders and can be placed in
+       `index_columns`. `sum`, `max` and `min` take the type of the aggregated attribute, and a
+       `:list` aggregate renders read-only, like any other scalar array.
+     - A `custom` aggregate that declares its type by short name (`custom :joined, :rel, :string`) no
+       longer raises `ArgumentError`, and an aggregate over an Ash enum attribute takes the type the
+       enum stores.
+
+   - **Aggregate, calculation and association columns rendered an empty cell in the index**
+     - The index now loads the aggregates, calculations and associations its columns show, as show
+       and form already did.
+
+   - **The multi-select toggle-all checkbox stayed clickable on a disabled or read-only field**
+     - The toggle-all checkbox now follows its field's disabled and read-only state.
+
+   - **Every `--auix-opacity-*` variable was undeclared, so nothing dimmed**
+     - The modal close button renders at 20% opacity (40% on hover) instead of fully opaque, and
+       loading and disabled states dim again.
+
+   - **Multi-word checkbox-group and selected-list labels broke mid-word**
+     - An option label and a read-only selected-list item now stay on one line; a long label scrolls
+       horizontally instead of breaking the row.
+
+   - **Title and subtitle layout options are plain strings**
+     - A binary `edit_title`, `edit_subtitle`, `new_title`, `new_subtitle`, `page_title` or
+       `page_subtitle` is used as written, like any other string option, instead of being evaluated
+       as a template.
+     - The index renders no blank subtitle line when `page_subtitle` is not set.
+     - The default form subtitles quote the resource name
+       (`"Creates a new 'Product' record in your database"`) instead of wrapping it in `<strong>`,
+       and the `edit_subtitle` default is now translated through Gettext.
+
+   - **Multi-value atom and enum attributes not detected as multiple selects**
+     - An Ash `{:array, :atom}` with an `items: [one_of: ...]` constraint and an Ecto
+       `{:array, Ecto.Enum}` now render as multi-value selects.
+     - Multi-value selects are excluded from filtering.
+     - An index cell shows the selected option labels joined, instead of raising.
+
+   ### Added
+
    - **Live updates across sessions through Phoenix PubSub**
-     - With `config :aurora_uix, pubsub_server: MyApp.PubSub`, every save and delete made in a
-       generated UI is published as an `%Aurora.Uix.Event{}` on the topic
-       `"auix:" <> inspect(schema)`, and every open index over that schema re-reads its current
-       page. An open show re-reads its record, or closes when the record is deleted; an open form
-       keeps what the user typed and shows a notice. Ash and Ecto resources behave the same.
-     - New public module `Aurora.Uix.Events`: `subscribe/1`, `unsubscribe/1` and `topic/1`; the
-       publishers `created/1`, `updated/1`, `deleted/2` and `changed/1` for host code; and the
-       index commands `refresh/1` and `reset_selection/1`. The LiveView guide examples now call
-       this API instead of the private `refresh_current_page/1`.
-     - "Delete selected" publishes only the records whose delete succeeded.
-     - An open form no longer loses its typed input when the index behind it re-reads its list.
+     - With `config :aurora_uix, pubsub_server: MyApp.PubSub`, a save or delete made in one session
+       updates every open index over the same data, on Ash and Ecto alike. An open show follows the
+       change, and an open form keeps what the user typed and shows a notice.
+     - Host code publishes its own changes and refreshes an index through the new
+       `Aurora.Uix.Events` module.
 
-   ~~~
-2. § `## [0.1.6]` › `### Changed` — insert verbatim as the first entry, directly under the `### Changed` heading and before `- **`:in` conditions take a list of values only**`:
-   ~~~
+   - **Sortable index column headers**
+     - Click a column header to sort the index by it; click again to reverse. The sort replaces the
+       layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps,
+       uploads) are skipped; opt any other out with `sortable?: false`. New class `auix-items-table-header-sort`.
+
+   - **Unsaved-changes guard on the form modal**
+     - Closing the new/edit form modal (the × button, `Esc`, a click outside it) with unsaved changes
+       now opens a confirmation dialog ("Keep editing" / "Discard changes") instead of discarding
+       them. A form without changes closes as before, and the show modal is unchanged. Ash and Ecto
+       resources behave the same.
+     - Opt out per resource with the new `edit_layout` option
+       `unsaved_changes_guard_disabled?: true`.
+     - `modal/1` gains a `hide_on_cancel?` attribute (default `true`). A host override of `modal/1`
+       must honour it, otherwise the modal hides before the dialog appears.
+     - New theme classes `auix-discard-confirm`, `auix-discard-confirm-message` and
+       `auix-discard-confirm-actions`: re-run `mix auix.gen.stylesheet` after upgrading.
+
+   - **`contains` filter condition for text fields**
+     - The index filter bar offers a new condition, `contains (~)`, on text fields: a
+       case-insensitive substring search on both backends.
+     - Backslash, `%` and `_` in the typed value match literally, and a blank value applies no filter.
+
+   - **Separate font-size variables for group titles and index empty states**
+     - `--auix-font-size-group-title` and `--auix-font-size-empty-state` now size group headings and
+       the index empty-state message, which `--auix-font-size-title` used to size together with the
+       page title. Both default to `1.125rem`, so default rendering is unchanged, and an override of
+       `--auix-font-size-title` no longer changes them.
+
+   - **Multi-value selects render as a checkbox group**
+     - A form renders one checkbox per option instead of a `<select multiple>`, and a show renders
+       the selected options as a read-only list with a `No options to show` empty state. Index cells
+       are unchanged.
+     - The `:default_toggle_all` action, a tri-state checkbox beside the label, selects or clears
+       every option. Label, header and footer actions are registered under the new `:multi_select`
+       action group, so hosts add, replace or remove them from the layout DSL field options.
+     - **Host contract:** the group submits a blank value so that unchecking the last box clears the
+       field. The host must reject that blank — see `Blog.Post.reject_blank_labels/2` (Ash, which
+       also needs `constraints: [nil_items?: true]` on the attribute) and `Inventory.Product` (Ecto)
+       for the two reference implementations.
+
+   - **Read-only rendering for scalar arrays**
+     - A scalar array attribute with no option set (no `one_of`, no enum) renders as a read-only list
+       on both backends, and an index cell shows its values joined.
+
+   - **Ash enum modules and `NewType`-wrapped constraints detected as selects**
+     - An attribute typed by a `use Ash.Type.Enum` module renders as a select.
+     - A `NewType` over `Ash.Type.Atom` or over an `Ash.Type.Enum` module renders as a select with
+       the subtype's options, instead of a text input.
+
+   - **New action-label layout options and arity-0 name/title functions**
+     - `:new_action_label` (`:index`), `:save_action_label` (`:form`), and `:edit_action_label` /
+       `:back_action_label` (`:show`) set the labels of the corresponding action buttons.
+     - A resource's `:name` and `:title` (set via `auix_resource_metadata/3`) can be a captured
+       0-arity function returning a binary. It is called wherever the name or title appears in a
+       default title, subtitle or action label.
+
+   ### Changed
+
    - **A save or delete updates every open index over the same schema** (behaviour change)
-     - Before, only the session that made the change refreshed. With `pubsub_server` configured,
-       every connected index over that schema re-reads its current page. Without the key nothing
+     - With `pubsub_server` configured, every connected index over that schema re-reads its current
+       page; before, only the session that made the change refreshed. Without the key nothing
        changes.
-     - The async "Delete selected" task now returns the list of deleted primary keys, so an
-       `auix_handle_async(:auix_selection_delete_all, {:ok, result}, socket)` override receives
-       that list instead of `:ok`.
 
-   ~~~
+   - **`:in` conditions take a list of values only**
+     - A comma-separated string is no longer split: `{:status, :in, "a,b"}` now yields an invalid
+       query on Ash and raises `ArgumentError` on Ecto. Write `{:status, :in, ["a", "b"]}`.
+
+   - **`Aurora.Uix.Gettext` renamed to `Aurora.Uix.GettextResolver`**
+     - The old name shadowed the `Gettext` library module. Host apps that `use Aurora.Uix.Gettext`
+       must update to the new name.
+     - The helper the macro injects is now the private `gettext_backend/0`, no longer the public
+       `backend/0`.
+
+   - **Group containers are now flat by default** (visual change)
+     - A group no longer paints a card inside the card of its container:
+       `--auix-color-group-container-bg` and `--auix-color-group-container-border` now default to
+       `transparent`. Spacing is unchanged.
+     - To keep the previous look, restore the two variables in your own stylesheet:
+       ```css
+       :root {
+         --auix-color-group-container-bg: var(--auix-color-bg-light);
+         --auix-color-group-container-border: var(--auix-color-border-primary);
+       }
+       ```
+
+   - **`Templates.Basic.Helpers.many_to_many_candidate_ids/2` renamed to `select_candidate_ids/2`**
+     - It now serves any multi-value select, not only a many-to-many membership. Its behaviour is
+       unchanged.
+
+   - **Ash 3.33 requires an explicit string-length counting mode**
+     - Host applications on Ash 3.33+ must set
+       `config :ash, default_string_length_count: :codepoints`, which Ash demands at compile time for
+       resources with string constraints.
+
+   - **Updated Dependencies**
+     - ash: 3.30.1 -> 3.33.11
+     - ash_phoenix: 2.3.24 -> 2.3.25
+     - ash_postgres: 2.11.0 -> 2.13.1
+     - aurora_ctx: 0.1.10 -> 0.1.11
+     - bandit: 1.12.4 -> 1.12.5
+     - dialyxir: 1.4.7 -> 1.4.8
+     - ex_doc: 0.40.3 -> 0.40.4
+     - lazy_html: 0.1.12 -> 0.1.13
+     - phoenix: 1.8.9 -> 1.8.15
+     - phoenix_live_dashboard: 0.8.7 -> 0.9.1
+     - phoenix_live_reload: 1.6.2 -> 1.7.0
+     - phoenix_live_view: 1.2.8 -> 1.2.12
+     - postgrex: 0.22.3 -> 0.22.4
+     - telemetry_metrics: 1.1.0 -> 1.2.0
+   ~~~~
 
 ##### guides/core/liveview.md
 1. § Index Handler Hook (LiveView) — in the example under `**Example - Override `auix_handle_event/3`:**`, replace this block verbatim:
@@ -299,6 +453,11 @@ Depends on: none
       listing the three headings in that order, and
       `grep -c 'config :aurora_uix, pubsub_server: MyApp.PubSub' guides/introduction/getting_started.md`
       printing `1`)
+- [ ] AC-6: `CHANGELOG.md` § `## [0.1.6]` reads as prescribed: 28 entries, 195 lines, and none of
+      the removed implementation names (mechanical — no red test; verified by
+      `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | grep -c '^- \*\*'` printing `28`,
+      `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | wc -l` printing `195`, and
+      `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | grep -c 'translate_operation\|prepare_query_options\|render_binary\|parse_value\|auix_request_close\|refresh_current_page\|auix_handle_async\|Aurora\.Uix\.Event{'` printing `0`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
@@ -873,8 +1032,7 @@ returns the list of authors).
         Selection.new()
       ```
       Contract change: the async result changes from `{:ok, :ok}` to `{:ok, [id]}`. Callers:
-      `rg -n "auix_selection_delete_all" lib test guides` lists only `index_impl.ex`; the CHANGELOG
-      `### Changed` entry (DOC-1) tells host overrides.
+      `rg -n "auix_selection_delete_all" lib test guides` lists only `index_impl.ex`.
    8. `auix_handle_info/2` — insert three clauses after the `{_component, {:saved, _entity}}`
       clause and before the catch-all `auix_handle_info(_input, socket)`:
       ```elixir
