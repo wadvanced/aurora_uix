@@ -435,6 +435,10 @@ defmodule Aurora.UixWeb.Test.Routes do
           AshSortableColumnsTest.Author,
           "ash-sortable-columns-authors"
         )
+
+        RoutesHelper.register_crud(EventsTest.Product, "events-products")
+        RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
+        RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
