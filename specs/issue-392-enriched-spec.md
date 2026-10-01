@@ -430,30 +430,30 @@ Depends on: none
    ~~~~
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-392-enriched-spec.md`)
-- [ ] AC-3: `guides/core/liveview.md` no longer calls `refresh_current_page`, both examples call
+- [x] AC-3: `guides/core/liveview.md` no longer calls `refresh_current_page`, both examples call
       `Aurora.Uix.Events`, and § Reacting to Data Changes precedes § Callback Reference
       (mechanical — no red test; verified by `grep -c refresh_current_page guides/core/liveview.md`
       printing `0`, `grep -c 'Aurora.Uix.Events.changed(MyApp.Inventory.Product)\|Aurora.Uix.Events.updated(published)' guides/core/liveview.md`
       printing `2`, and `grep -n '^## Reacting to Data Changes\|^## Callback Reference' guides/core/liveview.md`
       listing the first heading on the lower line number)
-- [ ] AC-4: `guides/customization/custom_actions.md` § Refreshing the Index from a Custom Action
+- [x] AC-4: `guides/customization/custom_actions.md` § Refreshing the Index from a Custom Action
       precedes § Association Actions (mechanical — no red test; verified by
       `grep -n '^## Refreshing the Index from a Custom Action\|^## Association Actions' guides/customization/custom_actions.md`
       listing the first heading on the lower line number)
-- [ ] AC-5: `guides/introduction/getting_started.md` § Live Updates (optional) sits between
+- [x] AC-5: `guides/introduction/getting_started.md` § Live Updates (optional) sits between
       § Installation and § CSS Configuration and names the `pubsub_server` key (mechanical — no
       red test; verified by `grep -n '^## Installation\|^## Live Updates (optional)\|^## CSS Configuration' guides/introduction/getting_started.md`
       listing the three headings in that order, and
       `grep -c 'config :aurora_uix, pubsub_server: MyApp.PubSub' guides/introduction/getting_started.md`
       printing `1`)
-- [ ] AC-6: `CHANGELOG.md` § `## [0.1.6]` reads as prescribed: 28 entries, 195 lines, and none of
+- [x] AC-6: `CHANGELOG.md` § `## [0.1.6]` reads as prescribed: 28 entries, 195 lines, and none of
       the removed implementation names (mechanical — no red test; verified by
       `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | grep -c '^- \*\*'` printing `28`,
       `awk '/^## \[0\.1\.6\]/{f=1} /^## \[0\.1\.5\]/{f=0} f' CHANGELOG.md | wc -l` printing `195`, and

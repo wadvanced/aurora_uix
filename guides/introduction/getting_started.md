@@ -28,6 +28,21 @@ Then fetch the dependencies:
 mix deps.get
 ```
 
+## Live Updates (optional)
+
+Name your application's PubSub server so every generated index updates when data changes in
+another session:
+
+```elixir
+# config/config.exs
+config :aurora_uix, pubsub_server: MyApp.PubSub
+```
+
+Use the server your Phoenix application already starts (`{Phoenix.PubSub, name: MyApp.PubSub}`
+in `application.ex`). Without this key the generated views work as before, and only the
+session that made a change refreshes. See
+[LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes).
+
 ## CSS Configuration
 
 Aurora UIX renders UI with pre-built CSS themes. A `basic` template with `light` and `dark` themes are included by default.

@@ -438,6 +438,45 @@ This helper handles both single and composite primary keys:
 - Row action icons: `auix-icon-size-5` with context classes (`auix-icon-info`, `auix-icon-safe`, `auix-icon-danger`)
 - Buttons: `auix-button` (primary, default), `auix-button--alt` (secondary), `auix-index-all-action-button` (index-bar select-all). Pick exactly one — `<.button>` already supplies the structural base.
 
+## Refreshing the Index from a Custom Action
+
+A custom action that changes data tells the index through `Aurora.Uix.Events`. Handle the
+action's event in an index handler module (see
+[LiveView Integration › Index Handler Hook](../core/liveview.md#index-handler-hook-liveview)):
+
+```elixir
+defmodule MyApp.ProductIndexHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+
+  alias Aurora.Uix.Events
+  alias MyApp.Inventory.Product
+
+  @impl IndexImpl
+  def auix_handle_event("archive_selected", _params, socket) do
+    Enum.each(socket.assigns.auix.selection.selected, &MyApp.Inventory.archive_product/1)
+
+    Events.changed(Product)
+    Events.reset_selection()
+
+    {:noreply, put_flash(socket, :info, "Products archived")}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
+end
+```
+
+- `Events.changed(Product)` makes every open index over `Product` re-read its current page,
+  this one included. Publish `Events.created/1`, `Events.updated/1` or `Events.deleted/2`
+  instead when the action knows which records it wrote.
+- `Events.reset_selection()` clears this view's selection only; other users keep theirs.
+- With `pubsub_server` unset, publishing does nothing. Call `Events.refresh()` to re-read this
+  view's page.
+- `refresh/1` and `reset_selection/1` take the index LiveView's pid. A handler running inside
+  the view calls them with no argument; a task or job that holds the pid passes it.
+
+See [LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes)
+for the event shape and how an open index reacts.
+
 ## Association Actions
 
 For one-to-many, embeds-many and many-to-many associations, actions are configured similarly within the field configuration:
