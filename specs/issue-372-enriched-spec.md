@@ -115,10 +115,10 @@ Setting `sortable?: false` on upload fields inside `assign_index_fields/1` there
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an Ecto resource whose `:image` field carries `data: %{upload: …}` and `sortable?: true`, listed in `index_columns`, visiting `/sortable-columns-products`, then no `button[name='auix-sort-image']` renders, while `button[name='auix-sort-reference']` and `button[name='auix-sort-name']` still render under `th[aria-sort='none']`
-- [ ] AC-2: Given an Ash resource whose `:email` field carries `data: %{upload: …}` and `sortable?: true`, listed in `index_columns`, visiting `/ash-sortable-columns-authors`, then no `button[name='auix-sort-email']` renders, while `button[name='auix-sort-name']` still renders under `th[aria-sort='none']`
-- [ ] AC-3: Given the AC-1 resource, an `"index-sort"` event with `"key" => "image"` leaves the row order unchanged and sets no `th[aria-sort='ascending']` (degraded path)
-- [ ] AC-4: Given the AC-2 resource, an `"index-sort"` event with `"key" => "email"` leaves the row order unchanged and sets no `th[aria-sort='ascending']` (degraded path)
+- [x] AC-1: Given an Ecto resource whose `:image` field carries `data: %{upload: …}` and `sortable?: true`, listed in `index_columns`, visiting `/sortable-columns-products`, then no `button[name='auix-sort-image']` renders, while `button[name='auix-sort-reference']` and `button[name='auix-sort-name']` still render under `th[aria-sort='none']`
+- [x] AC-2: Given an Ash resource whose `:email` field carries `data: %{upload: …}` and `sortable?: true`, listed in `index_columns`, visiting `/ash-sortable-columns-authors`, then no `button[name='auix-sort-email']` renders, while `button[name='auix-sort-name']` still renders under `th[aria-sort='none']`
+- [x] AC-3: Given the AC-1 resource, an `"index-sort"` event with `"key" => "image"` leaves the row order unchanged and sets no `th[aria-sort='ascending']` (degraded path)
+- [x] AC-4: Given the AC-2 resource, an `"index-sort"` event with `"key" => "email"` leaves the row order unchanged and sets no `th[aria-sort='ascending']` (degraded path)
 
 ##### Test ports
 - Route `"/sortable-columns-products"` — already registered in `test/support/app_web/routes.ex` as `RoutesHelper.register_crud(SortableColumnsTest.Product, "sortable-columns-products")` · layout type `:index` · observable: `has_element?/2` on `button[name='auix-sort-<key>']` and `th[aria-sort='<value>']`

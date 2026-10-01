@@ -1107,8 +1107,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           :embeds_many
         ])
     )
+    |> Enum.map(&drop_upload_sort/1)
     |> then(&[select_field | &1])
     |> then(&assign_auix(socket, :index_fields, &1))
+  end
+
+  # An upload column holds an opaque file reference, so it never offers a sort control.
+  @spec drop_upload_sort(Aurora.Uix.Field.t()) :: Aurora.Uix.Field.t()
+  defp drop_upload_sort(field) do
+    if BasicHelpers.upload_field?(field), do: struct(field, %{sortable?: false}), else: field
   end
 
   @spec assign_selected_states(Socket.t()) :: Socket.t()

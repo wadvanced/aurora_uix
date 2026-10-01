@@ -8,12 +8,17 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
 
   auix_resource_metadata :product, context: Inventory, schema: Product, order_by: :reference do
     field(:cost, sortable?: false)
+
+    field(:image,
+      sortable?: true,
+      data: %{upload: %{allow: [accept: ~w(.png)], consume: &Function.identity/1}}
+    )
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui do
-    index_columns(:product, [:reference, :name, :cost, description: [sortable?: false]])
+    index_columns(:product, [:reference, :name, :cost, :image, description: [sortable?: false]])
   end
 
   test "sortable columns carry a sort button, opted-out columns do not", %{conn: conn} do
@@ -22,7 +27,7 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
     for key <- [:reference, :name],
         do: assert(has_element?(view, "th[aria-sort='none'] button[name='auix-sort-#{key}']"))
 
-    for key <- [:cost, :description, :selected_check__],
+    for key <- [:cost, :description, :image, :selected_check__],
         do: refute(has_element?(view, "button[name='auix-sort-#{key}']"))
   end
 
@@ -74,6 +79,7 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
     view = prepare_sort_test(conn)
 
     render_click(view, "index-sort", %{"key" => "cost"})
+    render_click(view, "index-sort", %{"key" => "image"})
     render_click(view, "index-sort", %{"key" => "not_a_column"})
 
     assert name_cells(view) == ["Charlie", "Alpha", "Bravo"]

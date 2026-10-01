@@ -7,12 +7,17 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
 
   auix_resource_metadata :author, ash_resource: Author, order_by: :email do
     field(:bio, sortable?: false)
+
+    field(:email,
+      sortable?: true,
+      data: %{upload: %{allow: [accept: ~w(.png)], consume: &Function.identity/1}}
+    )
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui do
-    index_columns(:author, [:name, :bio, email: [sortable?: false]])
+    index_columns(:author, [:name, :bio, :email])
   end
 
   test "sortable columns carry a sort button, opted-out columns do not", %{conn: conn} do
@@ -40,6 +45,7 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     view = prepare_sort_test(conn)
 
     render_click(view, "index-sort", %{"key" => "bio"})
+    render_click(view, "index-sort", %{"key" => "email"})
     render_click(view, "index-sort", %{"key" => "not_a_column"})
 
     assert name_cells(view) == ["Charlie", "Alpha", "Bravo"]
