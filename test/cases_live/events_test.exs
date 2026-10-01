@@ -236,9 +236,124 @@ defmodule Aurora.UixWeb.Test.EventsTest do
     refute has_element?(view, "#products-#{id}")
   end
 
+  describe "an open show" do
+    test "re-reads its record on :updated", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => product} = create_sample_products(1, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{product.id}/show")
+
+      {:ok, renamed} =
+        Inventory.update_product(product, %{name: "Renamed item", quantity_initial: 5})
+
+      Events.updated(renamed)
+
+      assert has_element?(view, "#auix-product-show-modal input[value='Renamed item']")
+    end
+
+    test "closes on :deleted", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => product} = create_sample_products(1, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{product.id}/show")
+      Inventory.delete_product(product)
+
+      Events.deleted(Product, [product.id])
+
+      assert_patch(view, "/events-products")
+      refute has_element?(view, "#auix-product-show-modal")
+      assert has_element?(view, "#flash-info", "Item deleted successfully")
+    end
+
+    test "keeps its record when the re-read finds nothing", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => product} = create_sample_products(1, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{product.id}/show")
+      Inventory.delete_product(product)
+
+      Events.updated(product)
+
+      assert has_element?(view, "#auix-product-show-modal input[value='Item test-1']")
+    end
+  end
+
+  describe "an open form" do
+    test "keeps typed input and reports an update", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => product} = create_sample_products(1, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{product.id}/edit")
+      type_name(view, "Typed name")
+
+      Events.updated(product)
+
+      assert has_element?(
+               view,
+               "#auix-product-edit-modal input[name='product[name]'][value='Typed name']"
+             )
+
+      assert has_element?(view, "#flash-info", "Product updated successfully")
+
+      request_close(view)
+
+      assert has_element?(view, "#auix-product-discard-confirm-modal")
+    end
+
+    test "stays open and reports a delete", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => product} = create_sample_products(1, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{product.id}/edit")
+
+      Events.deleted(Product, [product.id])
+
+      assert has_element?(view, "#auix-product-edit-modal")
+      assert has_element?(view, "#flash-info", "Item deleted successfully")
+    end
+
+    test "reopened on another record starts clean", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => first, "id_test-2" => second} = create_sample_products(2, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{first.id}/edit")
+      type_name(view, "Typed name")
+
+      render_patch(view, "/events-products/#{second.id}/edit")
+
+      assert has_element?(
+               view,
+               "#auix-product-edit-modal input[name='product[name]'][value='Item test-2']"
+             )
+
+      refute has_element?(view, "input[name='product[name]'][value='Typed name']")
+
+      request_close(view)
+
+      refute has_element?(view, "#auix-product-discard-confirm-modal")
+    end
+
+    test "ignores an event for another record", %{conn: conn} do
+      delete_all_inventory_data()
+      %{"id_test-1" => first, "id_test-2" => second} = create_sample_products(2, :test)
+      {:ok, view, _} = live(conn, "/events-products/#{first.id}/edit")
+      type_name(view, "Typed name")
+
+      Events.updated(second)
+
+      refute has_element?(view, "#flash-info")
+      assert has_element?(view, "input[name='product[name]'][value='Typed name']")
+    end
+  end
+
   @spec select_row(term(), term()) :: binary()
   defp select_row(view, id),
     do: render_change(view, "index-layout-change", %{"_target" => ["selected_check__#{id}"]})
+
+  @spec type_name(term(), binary()) :: binary()
+  defp type_name(view, name),
+    do: view |> form("#auix-product-form", product: %{name: name}) |> render_change()
+
+  @spec request_close(term()) :: binary()
+  defp request_close(view) do
+    view
+    |> with_target("#auix-product-edit-modal [data-phx-component]")
+    |> render_click("auix_request_close", %{})
+  end
 end
 
 defmodule Aurora.UixWeb.EventsProbeIndexHandler do
