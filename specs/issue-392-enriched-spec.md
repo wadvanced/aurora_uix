@@ -793,26 +793,26 @@ Layout types: `:index` (the Index LiveView, `IndexImpl`) and `:form` (the `"save
 `FormImpl.__using__/1`). `:show` is untouched here. No renderer, theme or markup changes.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given the Ecto `EventsTest` product UI, a connected index at `/events-products` is
+- [x] AC-1: Given the Ecto `EventsTest` product UI, a connected index at `/events-products` is
       subscribed to `Events.topic(Product)`, and an index at `/events-product-locations` is not.
-- [ ] AC-2: A form save (edit) in one view re-reads a second connected index over the same
+- [x] AC-2: A form save (edit) in one view re-reads a second connected index over the same
       schema: the renamed row appears there.
-- [ ] AC-3: A form save of a new record publishes `:created` with the new record's id.
-- [ ] AC-4: A row delete in one view removes the row from a second connected index.
-- [ ] AC-5: The view that made a built-in change does not receive its own event; the second view does.
-- [ ] AC-6: A one-to-many child row delete publishes `:deleted` on the child's schema
+- [x] AC-3: A form save of a new record publishes `:created` with the new record's id.
+- [x] AC-4: A row delete in one view removes the row from a second connected index.
+- [x] AC-5: The view that made a built-in change does not receive its own event; the second view does.
+- [x] AC-6: A one-to-many child row delete publishes `:deleted` on the child's schema
       (`ProductTransaction`) with the child's id.
-- [ ] AC-7: "Delete selected" publishes one `:deleted` listing exactly the records it deleted; a
+- [x] AC-7: "Delete selected" publishes one `:deleted` listing exactly the records it deleted; a
       selected record already deleted elsewhere is not listed; the second view loses the deleted rows.
-- [ ] AC-8 (empty path): "Delete selected" over records that were all already deleted publishes nothing.
-- [ ] AC-9: A `:deleted` event drops the deleted ids from the receiving view's selection.
-- [ ] AC-10: An event published from a non-LiveView process re-reads a subscribed index.
-- [ ] AC-11: `Events.reset_selection(pid)` clears only that view's selection; `Events.refresh(pid)`
+- [x] AC-8 (empty path): "Delete selected" over records that were all already deleted publishes nothing.
+- [x] AC-9: A `:deleted` event drops the deleted ids from the receiving view's selection.
+- [x] AC-10: An event published from a non-LiveView process re-reads a subscribed index.
+- [x] AC-11: `Events.reset_selection(pid)` clears only that view's selection; `Events.refresh(pid)`
       re-reads that view's page; `Events.refresh()` called from a host `auix_handle_event/3`
       re-reads the calling view.
-- [ ] AC-12 (degraded path): With `:pubsub_server` unset, a connected index is not subscribed, a
+- [x] AC-12 (degraded path): With `:pubsub_server` unset, a connected index is not subscribed, a
       row delete broadcasts nothing, and the row still leaves the originating view.
-- [ ] AC-13: AC-1, AC-2, AC-4, AC-7 and AC-9 hold on the Ash `blog` `Author` UI.
+- [x] AC-13: AC-1, AC-2, AC-4, AC-7 and AC-9 hold on the Ash `blog` `Author` UI.
 
 ##### Test ports
 - Route `"/events-products"` and `"/events-product-locations"` registered in `routes.ex` via
