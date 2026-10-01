@@ -616,8 +616,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @doc """
   Handles info messages for the LiveView. Re-reads the current page after a save notification, an
-  `%Aurora.Uix.Event{}` on the schema's topic (dropping deleted ids from the selection first),
-  or the `refresh` command; the `reset_selection` command clears the selection, then re-reads.
+  `%Aurora.Uix.Event{}` on the schema's topic (dropping deleted ids from the selection first;
+  an open show of an affected record re-reads it on `:updated` and closes on `:deleted`, and an
+  open form on an affected record shows a flash), or the `refresh` command; the `reset_selection`
+  command clears the selection, then re-reads.
   Other messages are ignored.
 
   ## Parameters
@@ -641,7 +643,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      socket
      |> unselect_deleted(event)
      |> assign_selected_states()
-     |> refresh_current_page()}
+     |> refresh_current_page()
+     |> react_to_open_entity(event)}
   end
 
   def auix_handle_info({Events, :refresh}, socket), do: {:noreply, refresh_current_page(socket)}
@@ -840,6 +843,46 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   defp unselect_deleted(socket, _event), do: socket
+
+  @spec react_to_open_entity(Socket.t(), Event.t()) :: Socket.t()
+  defp react_to_open_entity(
+         %{assigns: %{live_action: live_action, auix: auix}} = socket,
+         %Event{action: action, ids: ids}
+       )
+       when live_action in [:show, :edit, :show_edit] and action in [:updated, :deleted] do
+    entity_id = BasicHelpers.primary_key_value(auix.entity, auix.primary_key)
+
+    if not is_nil(entity_id) and entity_id in ids,
+      do: react_to_change(socket, live_action, action, entity_id),
+      else: socket
+  end
+
+  defp react_to_open_entity(socket, _event), do: socket
+
+  @spec react_to_change(Socket.t(), atom(), Event.action(), term()) :: Socket.t()
+  defp react_to_change(%{assigns: %{auix: auix}} = socket, :show, :updated, entity_id) do
+    get_opts =
+      socket
+      |> backend_socket_opts(auix.get_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    case apply_get_function(auix.get_function, entity_id, get_opts) do
+      nil -> socket
+      entity -> assign_auix(socket, :entity, entity)
+    end
+  end
+
+  defp react_to_change(%{assigns: %{auix: auix}} = socket, :show, :deleted, _entity_id) do
+    socket
+    |> put_flash(:info, dt("Item deleted successfully"))
+    |> push_patch(to: "/#{auix.uri_path}")
+  end
+
+  defp react_to_change(%{assigns: %{auix: auix}} = socket, _form_action, :updated, _entity_id),
+    do: put_flash(socket, :info, "#{auix.name} updated successfully")
+
+  defp react_to_change(socket, _form_action, :deleted, _entity_id),
+    do: put_flash(socket, :info, dt("Item deleted successfully"))
 
   @spec delete_selected(struct() | nil, Aurora.Uix.Integration.Connector.t(), keyword(), list()) ::
           list()

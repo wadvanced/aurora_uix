@@ -89,9 +89,15 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
         unquote(extract_function)
 
         @impl true
-        def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do
+        def update(
+              %{auix: %{entity: _entity, routing_stack: _routing_stack} = incoming_auix} =
+                assigns,
+              socket
+            ) do
+          merged_auix = socket.assigns |> Map.get(:auix, %{}) |> Map.merge(incoming_auix)
+
           socket
-          |> assign(assigns)
+          |> assign(Map.put(assigns, :auix, merged_auix))
           |> BasicHelpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
           |> BasicHelpers.assign_actor_to_auix()
           |> then(&unquote(handler_module).update(assigns, &1))
