@@ -225,7 +225,7 @@ defmodule Aurora.Uix.MixProject do
       {:ash, "~> 3.33"},
       {:ash_phoenix, "~> 2.3"},
       {:ash_postgres, "~> 2.13"},
-      {:aurora_ctx, "~> 0.1"},
+      {:aurora_ctx, "~> 0.1.11"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.12"},
       {:css_parser, "~> 0.1"},
