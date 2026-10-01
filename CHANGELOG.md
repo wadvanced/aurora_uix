@@ -130,8 +130,8 @@ Requires:
 
 - **Sortable index column headers**
   - Click a column header to sort the index by it; click again to reverse. The sort replaces the
-    layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps)
-    are skipped; opt any other out with `sortable?: false`. New class `auix-items-table-header-sort`.
+    layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps,
+    uploads) are skipped; opt any other out with `sortable?: false`. New class `auix-items-table-header-sort`.
 
 - **Unsaved-changes guard on the form modal**
   - Closing the new/edit form modal (the × button, `Esc`, a click outside it) threw away whatever
