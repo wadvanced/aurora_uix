@@ -406,7 +406,7 @@ end
 - `:show_renderer` — Custom rendering function for the show layout only
 - `:length` — Input field character width
 - `:placeholder` — Placeholder text
-- `:sortable?` — Set to `false` to remove the sort control from this column's index header
+- `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (`data: %{upload: …}`) never offers one, even with `sortable?: true`
 - `:option_label` — For select/radio fields
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`
