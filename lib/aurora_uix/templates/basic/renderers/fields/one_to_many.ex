@@ -5,7 +5,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   ## Key Features
 
   - Displays and manages collections of associated records
-  - Provides list display with sortable columns
+  - Lists the related records in a table, honouring the field's `order_by` and `where` options
   - Supports actions for each record (show, edit, delete)
   - Links to create new associated records
   - Enables filtering and relationship management
@@ -174,6 +174,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           [{:where, &1} | query_opts] ++ socket_opts
         )
       )
+      |> BasicHelpers.list_entries()
       |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end
   end
