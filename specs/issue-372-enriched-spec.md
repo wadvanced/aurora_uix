@@ -53,17 +53,17 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-372-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md § Field-Level Options` reads as prescribed (mechanical — no red
+- [x] AC-3: `guides/core/layouts.md § Field-Level Options` reads as prescribed (mechanical — no red
       test; verified by `grep -n 'An upload field (`data: %{upload: …}`) never offers one' guides/core/layouts.md`
       returning one line)
-- [ ] AC-4: the `**Sortable index column headers**` entry names uploads among the skipped columns
+- [x] AC-4: the `**Sortable index column headers**` entry names uploads among the skipped columns
       (mechanical — no red test; verified by `grep -n 'uploads) are skipped' CHANGELOG.md` returning one line)
 
 ##### Green checks
