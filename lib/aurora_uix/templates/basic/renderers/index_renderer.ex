@@ -4,7 +4,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   ## Key Features
 
-  - Table view with sortable columns
+  - Table view whose sortable column headers re-sort the rows
   - New entity creation button
   - Show/Edit/Delete actions per row
   - Modal forms for entity operations
@@ -89,6 +89,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               layout_options: @auix.layout_options,
               source_key: @auix.source_key,
               empty_list?: @auix.empty_list?,
+              sort: @auix.sort,
               enable_viewport?: @auix[:enable_viewport?]
               }}
           streams={@auix.layout_options.get_streams.(assigns)}
