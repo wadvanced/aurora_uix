@@ -128,6 +128,19 @@ Requires:
 
 ### Added
 
+- **Live updates across sessions through Phoenix PubSub**
+  - With `config :aurora_uix, pubsub_server: MyApp.PubSub`, every save and delete made in a
+    generated UI is published as an `%Aurora.Uix.Event{}` on the topic
+    `"auix:" <> inspect(schema)`, and every open index over that schema re-reads its current
+    page. An open show re-reads its record, or closes when the record is deleted; an open form
+    keeps what the user typed and shows a notice. Ash and Ecto resources behave the same.
+  - New public module `Aurora.Uix.Events`: `subscribe/1`, `unsubscribe/1` and `topic/1`; the
+    publishers `created/1`, `updated/1`, `deleted/2` and `changed/1` for host code; and the
+    index commands `refresh/1` and `reset_selection/1`. The LiveView guide examples now call
+    this API instead of the private `refresh_current_page/1`.
+  - "Delete selected" publishes only the records whose delete succeeded.
+  - An open form no longer loses its typed input when the index behind it re-reads its list.
+
 - **Sortable index column headers**
   - Click a column header to sort the index by it; click again to reverse. The sort replaces the
     layout `order_by` on both backends. Unorderable columns (associations, embeds, arrays, maps,
@@ -217,6 +230,14 @@ Requires:
     `assigns`-receiving functions already supported by per-layout title/subtitle options.
 
 ### Changed
+
+- **A save or delete updates every open index over the same schema** (behaviour change)
+  - Before, only the session that made the change refreshed. With `pubsub_server` configured,
+    every connected index over that schema re-reads its current page. Without the key nothing
+    changes.
+  - The async "Delete selected" task now returns the list of deleted primary keys, so an
+    `auix_handle_async(:auix_selection_delete_all, {:ok, result}, socket)` override receives
+    that list instead of `:ok`.
 
 - **`:in` conditions take a list of values only**
   - The Ash query parser no longer splits a comma-separated string: `{:status, :in, "a,b"}` now
