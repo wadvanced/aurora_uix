@@ -245,7 +245,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `:readonly` (`boolean()`) - Marks the field as read-only.
   - `:hidden` (`boolean()`) - Hides the field.
   - `:filterable?` (`boolean()`) - If true, allows the field to participate in UI filtering.
-  - `:sortable?` (`boolean()`) - If false, the index column header offers no sorting. Parsed from the column type when omitted.
+  - `:sortable?` (`boolean()`) - If false, the index column header offers no sorting. Parsed from the column type when omitted. An upload field (`:data` with an `:upload` map) never offers sorting.
   - `:renderer` (`function()` | `atom()`) - Renderer for the form (edit) and show layouts unless a
     more specific `:edit_renderer`/`:show_renderer` is set. An arity-1 function, or an atom naming
     a predefined renderer (e.g. `:toggle_switch`; see `Aurora.Uix.Renderer`). Does not apply to
