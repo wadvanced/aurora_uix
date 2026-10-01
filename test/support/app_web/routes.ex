@@ -412,6 +412,23 @@ defmodule Aurora.UixWeb.Test.Routes do
           AshWhereFilterLayoutTest.Post,
           "ash-where-filter-layout-posts"
         )
+
+        RoutesHelper.register_crud(AshWhereLayoutTest.Author, "ash-where-layout-authors")
+        RoutesHelper.register_crud(AshOrderByLayoutTest.Author, "ash-order-by-layout-authors")
+
+        RoutesHelper.register_crud(
+          AshOrderByMetadataTest.Author,
+          "ash-order-by-metadata-authors"
+        )
+
+        RoutesHelper.register_crud(AshFilterBarTest.Post, "ash-filter-bar-posts")
+
+        RoutesHelper.register_crud(
+          AshWhereOne2ManyTest.Author,
+          "ash-where-one_to_many-authors"
+        )
+
+        RoutesHelper.register_crud(AshWhereMany2OneTest.Post, "ash-where-many_to_one-posts")
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
