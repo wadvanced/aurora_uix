@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - Supplies a macro to inject default implementations and imports for LiveView modules
   - Integrates with Aurora UIX context and module generators for dynamic entity management
   - Supports streaming, patching, and navigation for index resources
-  - Handles pagination, filtering, and item selection for large datasets
+  - Handles pagination, filtering, column-header sorting, and item selection for large datasets
   - Provides async operations for bulk actions (select all, delete all)
 
   ## Key Constraints
@@ -236,6 +236,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:show_component, show_component)
       |> assign_auix(:filters_enabled?, false)
       |> assign_auix(:filters_where, [])
+      |> assign_auix(:sort, nil)
       |> assign_auix(:selection, Selection.new())
       |> assign_auix(:enable_viewport?, true)
       |> assign_auix(:list_function_selected, auix.list_function_paginated)
@@ -402,6 +403,20 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix(:filters_where, filters)
      |> prepare_query_options()
      |> refresh_current_page()}
+  end
+
+  def auix_handle_event("index-sort", %{"key" => key}, %{assigns: %{auix: auix}} = socket) do
+    case Enum.find(auix.index_fields, &(&1.sortable? and to_string(&1.key) == key)) do
+      nil ->
+        {:noreply, socket}
+
+      %{key: field_key} ->
+        {:noreply,
+         socket
+         |> assign_auix(:sort, next_sort(auix.sort, field_key))
+         |> prepare_query_options()
+         |> refresh_current_page()}
+    end
   end
 
   def auix_handle_event(
@@ -867,7 +882,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp prepare_query_options(
          %{
            assigns: %{
-             auix: %{load_items_options: load_items_options, filters_where: filters_where}
+             auix: %{load_items_options: load_items_options, filters_where: filters_where} = auix
            }
          } = socket
        ) do
@@ -878,7 +893,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> Kernel.++(filters_where)
 
     base_options = [order_by: Keyword.get(load_items_options, :order_by), where: where]
-    query_options = maybe_put_preload(base_options, Keyword.get(load_items_options, :preload))
+
+    query_options =
+      base_options
+      |> maybe_put_preload(Keyword.get(load_items_options, :preload))
+      |> maybe_put_sort(auix.sort)
 
     assign_auix(socket, :query_options, query_options)
   end
@@ -909,6 +928,17 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   defp maybe_put_preload(query_options, preload),
     do: Keyword.put(query_options, :preload, preload)
+
+  # A header sort replaces the layout and metadata order_by.
+  @spec maybe_put_sort(keyword(), map() | nil) :: keyword()
+  defp maybe_put_sort(query_options, nil), do: query_options
+
+  defp maybe_put_sort(query_options, %{key: key, direction: direction}),
+    do: Keyword.put(query_options, :order_by, [{direction, key}])
+
+  @spec next_sort(map() | nil, atom()) :: map()
+  defp next_sort(%{key: key, direction: :asc}, key), do: %{key: key, direction: :desc}
+  defp next_sort(_sort, key), do: %{key: key, direction: :asc}
 
   # Read the items.
   # Uses the previously store :query_options, accepts new options.
@@ -1062,7 +1092,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     select_field =
       resource_schema
       |> fields_parser.parse_field(resource_name, {:selected_check__, :boolean})
-      |> struct(%{label: select_toggle_function, filterable?: false})
+      |> struct(%{label: select_toggle_function, filterable?: false, sortable?: false})
 
     layout_tree.inner_elements
     |> Enum.filter(&(&1.tag == :field))

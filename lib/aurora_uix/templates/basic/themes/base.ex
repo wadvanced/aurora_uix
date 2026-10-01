@@ -1372,6 +1372,22 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_items_table_header_sort) do
+    """
+    .auix-items-table-header-sort {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--auix-gap-minimal);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+    """
+  end
+
   def rule(:auix_items_table_body) do
     """
     .auix-items-table-body {

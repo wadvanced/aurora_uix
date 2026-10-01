@@ -152,6 +152,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
+
+  A `:col` whose `field` has `sortable?: true` renders its label as a button that emits `"index-sort"` with the field key; the header carries `aria-sort` from `auix.sort`.
   """
   attr(:id, :string, required: true)
   attr(:rows, :list, required: true)
@@ -202,10 +204,12 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             </th>
           </tr>
           <tr class="auix-items-table-header-row">
-            <th :for={{col, i} <- Enum.with_index(@col)} 
+            <th :for={{col, i} <- Enum.with_index(@col)}
                 class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}
-                name="auix-column-label"> 
-              <.table_column_label auix={@auix} label={col.label} />
+                name="auix-column-label"
+                aria-sort={column_aria_sort(@auix, col)}>
+              <.table_column_sort :if={sortable_column?(col)} auix={@auix} col={col} />
+              <.table_column_label :if={!sortable_column?(col)} auix={@auix} label={col.label} />
             </th>
           </tr>
           <tr class="auix-items-table-header-row">
@@ -648,6 +652,50 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     {dt(@label)}
     """
   end
+
+  # Renders a sortable column label as a button that emits "index-sort"
+  attr(:auix, :map, required: true)
+  attr(:col, :map, required: true)
+  @spec table_column_sort(map()) :: Rendered.t()
+  defp table_column_sort(%{auix: auix, col: %{field: field}} = assigns) do
+    assigns = assign(assigns, :icon, auix |> column_sort_direction(field.key) |> sort_icon())
+
+    ~H"""
+    <button type="button" class="auix-items-table-header-sort" name={"auix-sort-#{@col.field.key}"}
+      phx-click="index-sort" phx-value-key={@col.field.key}>
+      <.table_column_label auix={@auix} label={@col.label} />
+      <.icon name={@icon} class="auix-icon-size-4" />
+    </button>
+    """
+  end
+
+  @spec sortable_column?(map()) :: boolean()
+  defp sortable_column?(%{field: %{sortable?: true}}), do: true
+  defp sortable_column?(_col), do: false
+
+  @spec column_aria_sort(map(), map()) :: binary() | nil
+  defp column_aria_sort(auix, %{field: %{sortable?: true, key: key}}),
+    do: auix |> column_sort_direction(key) |> aria_sort()
+
+  defp column_aria_sort(_auix, _col), do: nil
+
+  @spec column_sort_direction(map(), atom()) :: :asc | :desc | nil
+  defp column_sort_direction(auix, key) do
+    case Map.get(auix, :sort) do
+      %{key: ^key, direction: direction} -> direction
+      _sort -> nil
+    end
+  end
+
+  @spec aria_sort(:asc | :desc | nil) :: binary()
+  defp aria_sort(:asc), do: "ascending"
+  defp aria_sort(:desc), do: "descending"
+  defp aria_sort(nil), do: "none"
+
+  @spec sort_icon(:asc | :desc | nil) :: binary()
+  defp sort_icon(:asc), do: "hero-chevron-up"
+  defp sort_icon(:desc), do: "hero-chevron-down"
+  defp sort_icon(nil), do: "hero-chevron-up-down"
 
   # Renders the count of selected items for a page range or specific page
   attr(:selected_in_page, :map, default: %{})
