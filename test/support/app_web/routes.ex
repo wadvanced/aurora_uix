@@ -439,6 +439,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_crud(EventsTest.Product, "events-products")
         RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
         RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")
+
+        RoutesHelper.register_crud(
+          SelectedBulkActionTest.Product,
+          "selected-bulk-action-products"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs
