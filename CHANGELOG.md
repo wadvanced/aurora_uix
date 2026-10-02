@@ -141,6 +141,28 @@ Requires:
     0-arity function returning a binary. It is called wherever the name or title appears in a
     default title, subtitle or action label.
 
+- **Predefined field renderers**
+  - A field renderer slot (`renderer`, `index_renderer`, `edit_renderer`, `show_renderer`)
+    accepts an atom naming a ready-made widget: `:toggle_switch`, `:color`, `:badge`,
+    `:progress_bar`, `:url` and `:rating`.
+  - Hosts add their own atoms, or replace a built-in, through a registrar module configured with
+    `config :aurora_uix, :renderers, MyApp.Renderers` (see `Aurora.Uix.RendererRegistrar`).
+  - The widgets bring new theme classes: re-run `mix auix.gen.stylesheet` after upgrading.
+
+- **Renderers by HTML type**
+  - A `renderers:` map from `html_type` to renderer (`%{checkbox: :toggle_switch}`) sets the
+    renderer of every field of that HTML type. It is accepted by the application config
+    (`config :aurora_uix, :html_type_renderers, %{...}`), `use Aurora.Uix`,
+    `auix_resource_metadata`, `auix_create_ui`, and the `index_columns`, `edit_layout` and
+    `show_layout` macros, and applies to Ash and Ecto resources alike.
+  - Precedence, highest first: the field's own renderer slot, the layout macro,
+    `auix_create_ui`, `auix_resource_metadata`, `use Aurora.Uix`, the application config, the
+    default rendering.
+  - Association, embed, upload and hidden fields keep their own rendering.
+  - New named defaults `:default_checkbox`, `:default_date`, `:default_datetime_local`,
+    `:default_number`, `:default_select`, `:default_text`, `:default_textarea` and
+    `:default_time` restore the default rendering of one HTML type over a lower level's entry.
+
 ### Changed
 
 - **A save or delete updates every open index over the same schema** (behaviour change)
