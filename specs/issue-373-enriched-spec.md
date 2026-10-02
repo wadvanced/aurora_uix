@@ -205,14 +205,14 @@ Existing behaviour the test relies on, verified at its definition:
   `{:error, changeset}` and nothing is written.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given the recipe's `add_selected_action` control and handler on `:product`, visiting
+- [x] AC-1: Given the recipe's `add_selected_action` control and handler on `:product`, visiting
       `/selected-bulk-action-products` with no row selected, then
       `button[name='auix-selected-deactivate-product']` is absent.
-- [ ] AC-2: Given three products, ticking two rows and clicking
+- [x] AC-2: Given three products, ticking two rows and clicking
       `button[name='auix-selected-deactivate-product']` sets `inactive: true` on exactly those two,
       leaves the third `inactive: false`, shows the flash `Products deactivated`, and the control
       disappears because the selection is cleared.
-- [ ] AC-3: Given three products, clicking Check all (`button[name='auix-selected_check_all-product']`),
+- [x] AC-3: Given three products, clicking Check all (`button[name='auix-selected_check_all-product']`),
       waiting for it with `render_async/1`, then clicking the control sets `inactive: true` on all
       three.
 
