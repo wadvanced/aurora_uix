@@ -1,14 +1,15 @@
 # Changelog for Aurora UIX
 
-## [0.1.6]
+## [0.1.6] - 2026-10-02
 
-**Multi-Value Selects & Read-Only Array Fields**
+**Sortable Columns, Named Renderers & Live Updates**
 
-This release closes a gap in array attribute handling: multi-value enums (atom or `Ecto.Enum`
-arrays with a fixed option set) are now recognized as multi-selects on both backends, and scalar
-arrays that carry no option set render as a read-only list instead of leaking a raw `{:array, _}`
-type into the UI. Ash enum modules and `NewType`-wrapped `one_of` constraints are now also detected
-as selects.
+This release adds click-to-sort index headers, predefined and per-HTML-type field renderers, live
+updates across sessions through Phoenix PubSub, an unsaved-changes guard on the form modal, and a
+`contains` filter. Multi-value enums (atom or `Ecto.Enum` arrays with a fixed option set) are now
+multi-selects on both backends, scalar arrays without an option set render as a read-only list, and
+Ash enum modules and `NewType`-wrapped `one_of` constraints are detected as selects. It also fixes
+several Ash and filter-bar defects and documents bulk actions on selected rows.
 
 Requires:
 - Elixir `1.17+`

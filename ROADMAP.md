@@ -5,19 +5,27 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.5
+## Current Status: v0.1.6
 
-Aurora UIX v0.1.5 adds `has_one` and `many_to_many` association support, a runtime component override mechanism, per-layout custom field renderers, and Ash calculations/aggregates support, alongside a documentation reorganization.
+Aurora UIX v0.1.6 adds click-to-sort index headers, predefined field renderers (and renderers by HTML type), live updates across sessions through Phoenix PubSub, an unsaved-changes guard on the form modal, a `contains` filter, and multi-value select support on both backends.
 
-**Recent Changes (v0.1.5)**:
+**Recent Changes (v0.1.6)**:
+- Sortable index column headers
+- Predefined field renderers (`:toggle_switch`, `:color`, `:badge`, `:progress_bar`, `:url`, `:rating`) and a `renderers:` map by HTML type
+- Live updates across sessions through Phoenix PubSub (`Aurora.Uix.Events`)
+- Unsaved-changes guard on the form modal
+- `contains` filter condition for text fields
+- Multi-value selects as checkbox groups; read-only scalar arrays
+- Guide recipe for custom bulk actions on selected rows
+
+**Previous Release (v0.1.5)**:
 - `has_one` and `many_to_many` association support (both backends)
 - Runtime component override mechanism (`Aurora.Uix.ComponentsResolver`)
 - Per-layout custom field renderers (`index_renderer`, `edit_renderer`, `show_renderer`)
 - Ash calculations and aggregates auto-discovered and auto-loaded
 - Copyable inputs (copy-to-clipboard for text/textarea fields)
-- Guide reorganization into a dedicated Customization & Extension section
 
-**Previous Release (v0.1.4)**:
+**Earlier Release (v0.1.4)**:
 - Improved Ash framework compatibility
 
 **Earlier Release (v0.1.3)**:

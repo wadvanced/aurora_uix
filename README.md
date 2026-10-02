@@ -121,7 +121,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.5"}
+    {:aurora_uix, "~> 0.1.6"}
   ]
 end
 ```
