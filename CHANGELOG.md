@@ -221,9 +221,10 @@ Requires:
 ### Documentation
 
 - **What's New guide**
-  - `guides/introduction/whats_new.md`, right after Getting Started, walks through the headline
-    changes of the current release with copy-pasteable examples and an upgrade checklist. It is
-    rewritten for every release; the CHANGELOG stays the complete history.
+  - `guides/whats_new/0.1.6.md`, right after Getting Started, walks through the headline
+    changes of the release with copy-pasteable examples and an upgrade checklist. Each release
+    adds its own file and `mix.exs` points to the current one, so earlier pages are preserved;
+    the CHANGELOG stays the complete history.
 
 - **Bulk actions on selected rows**
   - `guides/customization/custom_actions.md` gains a worked recipe for a host's own action over
