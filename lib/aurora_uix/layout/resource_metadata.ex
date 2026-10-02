@@ -137,6 +137,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     * keyword() - Direction-annotated fields (e.g., `[desc: :created_at]`)
     See [Ecto.Query.order_by/3](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3)
     for details about the supported directions.
+  - `:renderers` (map()) - `html_type => renderer` table for every field of this resource
+    (e.g. `%{checkbox: :toggle_switch}`). Beats `use Aurora.Uix`; `auix_create_ui`, a layout
+    macro's `renderers:` and a field slot beat it. See `Aurora.Uix.Renderers`.
 
   ### Context-based Integration (`:ctx` type)
 

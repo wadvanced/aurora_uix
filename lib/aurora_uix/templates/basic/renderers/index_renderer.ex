@@ -171,6 +171,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   @spec field_value(map()) :: Rendered.t()
   defp field_value(%{auix: auix, field: field} = assigns) do
     assigns = %{assigns | auix: Map.put(auix, :layout_type, :index)}
-    Renderers.resolve(field, :index).(assigns)
+    Renderers.resolve(field, :index, BasicHelpers.html_type_renderers(auix, :index)).(assigns)
   end
 end

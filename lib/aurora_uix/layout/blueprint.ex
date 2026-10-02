@@ -231,6 +231,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:new_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The title for the new resource form. Default: `"New {name}"`, where `{name}` is the capitalized schema name.
   - `:new_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The subtitle for the new resource form. Default: `"Creates a new <strong>{name}</strong> record in your database"`, where `{name}` is the capitalized schema name.
   - `:unsaved_changes_guard_disabled?` (boolean()): When `true`, closing the form modal with unsaved changes closes it without asking for confirmation. Default: `false`.
+  - `:renderers` (map()): `html_type => renderer` table for the form layout. Beats
+    `auix_create_ui`; a field slot beats it. With no `show_layout`, the show layout reuses it.
 
   ## Actions
   The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
@@ -278,6 +280,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   See `Aurora.Uix.Layout.Options.Page` for all supported options and behaviors.
   - `:page_title` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page title for the show layout. Default: `"{name}"`.
   - `:page_subtitle` (binary() | (map() -> Phoenix.LiveView.Rendered.t())): The page subtitle for the show layout. Default: `"Details"`.
+  - `:renderers` (map()): `html_type => renderer` table for the show layout. Beats
+    `auix_create_ui`; a field slot beats it.
 
   ## Actions
   The following actions are available (see `Aurora.Uix.Templates.Basic.Actions.Index` for details and usage):
@@ -330,6 +334,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
     Takes precedence over any order_by set in `auix_resource_metadata`.
     See `Aurora.Uix.Layout.ResourceMetadata.auix_resource_metadata/3` for details.
   - `:where` (keyword()) - Where clauses to use for filtering the items to show.
+  - `:renderers` (map()) - `html_type => renderer` table for the index layout. Beats
+    `auix_create_ui`; a field's `:index_renderer` beats it.
   - Field-level options can be provided as keyword lists for each field (e.g., `[name: [index_renderer: &custom_renderer/1]]`).
 
   ## Field-level Options
