@@ -316,7 +316,7 @@ defmodule Aurora.Uix.MixProject do
         "compile",
         "phx.digest.clean --all",
         "auix.gen.icons",
-        "auix.gen.stylesheet --force",
+        "auix.gen.stylesheet --baseline --force",
         "esbuild aurora_uix",
         "phx.digest"
       ],
@@ -324,7 +324,7 @@ defmodule Aurora.Uix.MixProject do
         "compile",
         "phx.digest.clean --all",
         "auix.gen.icons",
-        "auix.gen.stylesheet --force",
+        "auix.gen.stylesheet --baseline --force",
         "esbuild aurora_uix",
         "phx.digest"
       ],
