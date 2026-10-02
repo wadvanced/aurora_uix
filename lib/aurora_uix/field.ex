@@ -10,11 +10,11 @@ defmodule Aurora.Uix.Field do
     - `html_id` (`binary`) - A unique html id for the field.
     Each renderer slot is an arity-1 function `(assigns) -> rendered` **or** an atom naming a
     predefined renderer (see `Aurora.Uix.Renderer`, e.g. `:toggle_switch`, `:color`). The
-    renderer to invoke is chosen by `Aurora.Uix.Renderers.resolve/2` per layout type:
+    renderer to invoke is chosen by `Aurora.Uix.Renderers.resolve/3` per layout type:
 
-      * `:index` → `index_renderer` → default (index is independent — no `renderer` fallback)
-      * `:form`  → `edit_renderer` → `renderer` → default
-      * `:show`  → `show_renderer` → `renderer` → default
+      * `:index` → `index_renderer` → HTML-type tables → default (index is independent — no `renderer` fallback)
+      * `:form`  → `edit_renderer` → `renderer` → HTML-type tables → default
+      * `:show`  → `show_renderer` → `renderer` → HTML-type tables → default
 
     - `renderer` (`function` | `atom`) - Renderer for the form (edit) and show layouts unless a
       more specific `edit_renderer`/`show_renderer` is set. Does **not** apply to the index

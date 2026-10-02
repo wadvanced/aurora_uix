@@ -54,6 +54,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          HtmlTypeRenderersAppConfigTest.Product,
+          "html-type-renderers-app-config-products"
+        )
+
+        RoutesHelper.register_crud(
           InlineFieldOptsTest.Product,
           "inline-field-opts-products"
         )

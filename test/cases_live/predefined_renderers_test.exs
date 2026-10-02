@@ -195,6 +195,7 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersResolverTest do
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Renderers
+  alias Aurora.Uix.Renderers.BuiltIn
   alias Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.Predefined
   alias Aurora.UixWeb.Test.PredefinedRenderers.HostRegistrar
@@ -229,5 +230,85 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersResolverTest do
 
     assert Renderers.resolve(%Field{renderer: :toggle_switch}, :show) == (&HostToggle.render/1)
     assert Renderers.resolve(%Field{renderer: :badge}, :show) == (&Predefined.Badge.render/1)
+  end
+
+  test "an html_type table entry applies on every layout type" do
+    field = %Field{html_type: :checkbox}
+
+    for layout_type <- [:index, :show, :form] do
+      assert Renderers.resolve(field, layout_type, [%{checkbox: :toggle_switch}]) ==
+               (&Predefined.ToggleSwitch.render/1)
+    end
+  end
+
+  test "a field slot beats an html_type table" do
+    field = %Field{html_type: :checkbox, renderer: :badge}
+    tables = [%{checkbox: :toggle_switch}]
+
+    assert Renderers.resolve(field, :show, tables) == (&Predefined.Badge.render/1)
+    assert Renderers.resolve(field, :index, tables) == (&Predefined.ToggleSwitch.render/1)
+  end
+
+  test "tables are consulted in order and an unknown atom falls through" do
+    field = %Field{html_type: :checkbox}
+
+    assert Renderers.resolve(field, :show, [%{checkbox: :badge}, %{checkbox: :toggle_switch}]) ==
+             (&Predefined.Badge.render/1)
+
+    assert Renderers.resolve(field, :show, [
+             %{checkbox: :not_a_renderer},
+             %{checkbox: :toggle_switch}
+           ]) == (&Predefined.ToggleSwitch.render/1)
+  end
+
+  test "the application config is the lowest table" do
+    Application.put_env(:aurora_uix, :html_type_renderers, %{checkbox: :toggle_switch})
+    on_exit(fn -> Application.delete_env(:aurora_uix, :html_type_renderers) end)
+    field = %Field{html_type: :checkbox}
+
+    assert Renderers.resolve(field, :show, []) == (&Predefined.ToggleSwitch.render/1)
+
+    assert Renderers.resolve(field, :show, [%{checkbox: :badge}]) ==
+             (&Predefined.Badge.render/1)
+  end
+
+  test "a renderers table that is not a map raises" do
+    Application.put_env(:aurora_uix, :html_type_renderers, :oops)
+    on_exit(fn -> Application.delete_env(:aurora_uix, :html_type_renderers) end)
+
+    assert_raise ArgumentError, ~r/config :aurora_uix, :html_type_renderers expected a map/, fn ->
+      Renderers.resolve(%Field{html_type: :checkbox}, :show, [])
+    end
+
+    assert_raise ArgumentError, ~r/auix_create_ui renderers: expected a map/, fn ->
+      Renderers.validate_table!("auix_create_ui renderers:", :oops)
+    end
+
+    assert Renderers.validate_table!("x", %{a: :b}) == %{a: :b}
+  end
+
+  test "hidden, upload and association fields skip html_type tables" do
+    for {field, tables} <- [
+          {%Field{html_type: :checkbox, hidden: true}, [%{checkbox: :toggle_switch}]},
+          {%Field{html_type: :text, data: %{upload: %{}}}, [%{text: :badge}]},
+          {%Field{html_type: :select, type: :many_to_many_association}, [%{select: :badge}]}
+        ] do
+      assert Renderers.resolve(field, :show, tables) == (&DefaultRenderer.render/1)
+    end
+  end
+
+  test "named per-type defaults resolve to the default renderer" do
+    for name <- [
+          :default_checkbox,
+          :default_date,
+          :default_datetime_local,
+          :default_number,
+          :default_select,
+          :default_text,
+          :default_textarea,
+          :default_time
+        ] do
+      assert Map.fetch!(BuiltIn.renderers(), name) == (&Renderers.default/1)
+    end
   end
 end
