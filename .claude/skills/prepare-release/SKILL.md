@@ -60,6 +60,9 @@ the `-rc.N` suffix removed. Call it `<ver>` below; `<today>` is today's date
 - `ROADMAP.md`: "Current Status" → `v<ver>` with a one-paragraph summary and a
   "Recent Changes" list; the former current release becomes "Previous Release",
   the one before "Earlier Release".
+- `guides/introduction/whats_new.md`: rewrite it for this version (title "What's New in <ver>"):
+  headline items only, an "Upgrading from <previous>" checklist first, and a copy-pasteable
+  example per item. No screenshots. Check every snippet against current code and guides.
 - `CONTRIBUTING.md`: version mentions, if any.
 - Every `guides/**/*.md` must be in `docs.extras` of `mix.exs`:
   `for f in $(find guides -name '*.md'); do grep -q "\"$f\"" mix.exs || echo "NOT IN EXTRAS: $f"; done`
