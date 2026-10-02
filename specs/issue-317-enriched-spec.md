@@ -139,17 +139,17 @@ Depends on: none
    ````
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-317-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md` § `## [0.1.6]` › `### Added` carries both entries (mechanical — no red
+- [x] AC-3: `CHANGELOG.md` § `## [0.1.6]` › `### Added` carries both entries (mechanical — no red
       test; verified by `grep -nE '^- \*\*(Predefined field renderers|Renderers by HTML type)\*\*' CHANGELOG.md`
       returning two lines, both between the `### Added` and `### Changed` lines of `## [0.1.6]`)
-- [ ] AC-4: `guides/customization/predefined_renderers.md` reads as prescribed (mechanical — no red
+- [x] AC-4: `guides/customization/predefined_renderers.md` reads as prescribed (mechanical — no red
       test; verified by `grep -c 'resolve/2' guides/customization/predefined_renderers.md` returning
       `0`, and `grep -n '^## Renderers by HTML type' guides/customization/predefined_renderers.md`
       returning a line above `^## Writing your own renderer`)
