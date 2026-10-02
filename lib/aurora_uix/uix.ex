@@ -25,6 +25,12 @@ defmodule Aurora.Uix do
   - Allows customization of layout and interaction logic.
   - Integrates seamlessly with Phoenix LiveView.
 
+  ### 3. Renderers by HTML type (`renderers:`)
+  - `use Aurora.Uix, renderers: %{checkbox: :toggle_switch}` sets the renderer of every field of
+    an HTML type for every resource of the module.
+  - `auix_resource_metadata`, `auix_create_ui`, `index_columns`, `edit_layout` and `show_layout`
+    accept the same option; see `Aurora.Uix.Renderers` for the precedence.
+
   ## Getting Started
 
   To use `Aurora.Uix`, simply `use` it in your module:
@@ -96,8 +102,9 @@ defmodule Aurora.Uix do
   require Logger
 
   @doc false
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     quote do
+      @auix_html_type_renderers unquote(Keyword.get(opts, :renderers, Macro.escape(%{})))
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
       Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)

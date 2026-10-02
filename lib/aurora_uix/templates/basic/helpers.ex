@@ -812,6 +812,21 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     do: Map.get(configurations, resource_name, %{})
 
   @doc """
+  Returns the `renderers:` tables, highest precedence first, that apply to the current resource in
+  `layout_type`. A resource absent from the configurations yields `[]`.
+  """
+  @spec html_type_renderers(map(), Aurora.Uix.Renderer.layout_type()) :: [map()]
+  def html_type_renderers(
+        %{configurations: configurations, resource_name: resource_name},
+        layout_type
+      ) do
+    configurations
+    |> Map.get(resource_name, %{})
+    |> Map.get(:html_type_renderers, %{})
+    |> Map.get(layout_type, [])
+  end
+
+  @doc """
   Retrieves a specific resource configuration key from the assigns or auix map.
 
   ## Parameters

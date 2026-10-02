@@ -10,6 +10,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
+  alias Aurora.Uix.Renderers
   alias Aurora.Uix.Template
 
   @doc false
@@ -97,6 +98,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   ## Options
   - `:for` (atom()) - The target resource name to generate the UI for.
+  - `:renderers` (map()) - `html_type => renderer` table for every layout this call generates.
+    Beats `auix_resource_metadata` and `use Aurora.Uix`; a layout macro's `renderers:` and a
+    field slot beat it. See `Aurora.Uix.Renderers`.
 
   ## Returns
   Macro.t() - A quoted expression that sets up the UI configuration.
@@ -237,6 +241,29 @@ defmodule Aurora.Uix.Layout.CreateUI do
         end)
         |> Map.new()
 
+      html_type_renderers =
+        Map.new(layout_trees, fn {tag, layout_tree} ->
+          {tag,
+           [
+             Renderers.validate_table!(
+               "#{tag} layout renderers:",
+               Keyword.get(layout_tree.opts, :renderers, %{})
+             ),
+             Renderers.validate_table!(
+               "auix_create_ui renderers:",
+               Keyword.get(opts, :renderers, %{})
+             ),
+             Renderers.validate_table!(
+               "auix_resource_metadata renderers:",
+               Keyword.get(resource_config.opts, :renderers, %{})
+             ),
+             Renderers.validate_table!(
+               "use Aurora.Uix, renderers:",
+               Module.get_attribute(caller, :auix_html_type_renderers)
+             )
+           ]}
+        end)
+
       {resource_config_name,
        %{
          resource_config_name: resource_config_name,
@@ -244,7 +271,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
          layout_tags: layout_tags,
          parsed_opts: parsed_opts,
          layout_trees: layout_trees,
-         template: template
+         template: template,
+         html_type_renderers: html_type_renderers
        }}
     end
   end

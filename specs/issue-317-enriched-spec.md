@@ -477,12 +477,12 @@ Layout types covered: `:index`, `:form`, `:show`. No markup changes.
     `renderers:` applies to show too.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `use Aurora.Uix, renderers: %{checkbox: :toggle_switch}` and a Product resource with no slots, visiting `/html-type-renderers-module-products` renders `input.auix-toggle-switch` and the row-selection input `input[type=checkbox][name='selected_check__<id>']`.
-- [ ] AC-2: Same module, `/…/<id>/show` renders `input[type=checkbox][disabled].auix-toggle-switch`, and `/…/<id>/edit` renders `input[type=checkbox][name='product[inactive]'].auix-toggle-switch`.
-- [ ] AC-3: Given the precedence module below, `/html-type-renderers-precedence-products/<id>/show` renders `input[type=checkbox][disabled].auix-toggle-switch` (the `auix_create_ui` checkbox entry applies), `input[type=checkbox][name='deleted']` (slot beats `auix_create_ui`), `span.auix-rating` and no `div.auix-progress` (the unknown `auix_create_ui` atom falls through to the resource, which beats the module), and no `span.auix-badge` (`auix_create_ui` beats the resource).
-- [ ] AC-4: Same module, `/html-type-renderers-precedence-products` renders no `.auix-toggle-switch` (the `index_columns` table beats `auix_create_ui`) and renders `span.auix-rating`.
-- [ ] AC-5 (error path): a `renderers:` value that is not a map at the module, resource, UI and layout levels raises `ArgumentError` at compile time with the level label (mechanical — no red test; verified by the UI-1 AC-5 test of `validate_table!/2` and by reading the four `validate_table!/2` calls in `create_ui.ex` `build_configurations/4`).
-- [ ] AC-6 (degraded path): a resource absent from `auix.configurations` resolves with no tables — `BasicHelpers.html_type_renderers(%{configurations: %{}, resource_name: :missing}, :show)` returns `[]`.
+- [x] AC-1: Given `use Aurora.Uix, renderers: %{checkbox: :toggle_switch}` and a Product resource with no slots, visiting `/html-type-renderers-module-products` renders `input.auix-toggle-switch` and the row-selection input `input[type=checkbox][name='selected_check__<id>']`.
+- [x] AC-2: Same module, `/…/<id>/show` renders `input[type=checkbox][disabled].auix-toggle-switch`, and `/…/<id>/edit` renders `input[type=checkbox][name='product[inactive]'].auix-toggle-switch`.
+- [x] AC-3: Given the precedence module below, `/html-type-renderers-precedence-products/<id>/show` renders `input[type=checkbox][disabled].auix-toggle-switch` (the `auix_create_ui` checkbox entry applies), `input[type=checkbox][name='deleted']` (slot beats `auix_create_ui`), `span.auix-rating` and no `div.auix-progress` (the unknown `auix_create_ui` atom falls through to the resource, which beats the module), and no `span.auix-badge` (`auix_create_ui` beats the resource).
+- [x] AC-4: Same module, `/html-type-renderers-precedence-products` renders no `.auix-toggle-switch` (the `index_columns` table beats `auix_create_ui`) and renders `span.auix-rating`.
+- [x] AC-5 (error path): a `renderers:` value that is not a map at the module, resource, UI and layout levels raises `ArgumentError` at compile time with the level label (mechanical — no red test; verified by the UI-1 AC-5 test of `validate_table!/2` and by reading the four `validate_table!/2` calls in `create_ui.ex` `build_configurations/4`).
+- [x] AC-6 (degraded path): a resource absent from `auix.configurations` resolves with no tables — `BasicHelpers.html_type_renderers(%{configurations: %{}, resource_name: :missing}, :show)` returns `[]`.
 
 ##### Test ports
 - Route `"html-type-renderers-module-products"` registered in `routes.ex` via `register_crud/2` · layout types `:index`, `:show`, `:form` · observable: `has_element?/2` on the AC-1 / AC-2 selectors.

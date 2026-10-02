@@ -2,7 +2,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
   Renders a show/form field by resolving its renderer and invoking it.
 
-  The renderer to call is chosen by `Aurora.Uix.Renderers.resolve/2` from the field's
+  The renderer to call is chosen by `Aurora.Uix.Renderers.resolve/3` from the field's
   slots and the current layout type; the default rendering (standard input, plus
   association / embed / upload delegation) lives in
   `Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer`.
@@ -37,8 +37,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @spec do_render(map()) :: Phoenix.LiveView.Rendered.t()
   defp do_render(%{field: %{omitted: true}} = assigns), do: ~H""
 
-  defp do_render(%{auix: %{layout_type: layout_type}, field: field} = assigns),
-    do: Renderers.resolve(field, layout_type).(assigns)
+  defp do_render(%{auix: %{layout_type: layout_type} = auix, field: field} = assigns) do
+    tables = BasicHelpers.html_type_renderers(auix, layout_type)
+    Renderers.resolve(field, layout_type, tables).(assigns)
+  end
 
   # Returns field info for rendering, handling tuple and atom names
   @spec get_field_info(map()) :: map()
