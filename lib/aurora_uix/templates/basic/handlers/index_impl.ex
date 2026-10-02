@@ -1209,7 +1209,12 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     select_field =
       resource_schema
       |> fields_parser.parse_field(resource_name, {:selected_check__, :boolean})
-      |> struct(%{label: select_toggle_function, filterable?: false, sortable?: false})
+      |> struct(%{
+        label: select_toggle_function,
+        filterable?: false,
+        sortable?: false,
+        index_renderer: :default
+      })
 
     layout_tree.inner_elements
     |> Enum.filter(&(&1.tag == :field))

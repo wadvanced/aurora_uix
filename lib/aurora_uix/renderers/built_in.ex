@@ -15,11 +15,13 @@ defmodule Aurora.Uix.Renderers.BuiltIn do
   | `:progress_bar` | index, show | Numeric value as a progress bar. |
   | `:url` | show | String as a clickable link (plain text on index). |
   | `:rating` | index, show, form | Numeric value as stars (interactive on form). |
+  | `:default_checkbox`, `:default_date`, `:default_datetime_local`, `:default_number`, `:default_select`, `:default_text`, `:default_textarea`, `:default_time` | index, show, form | The default rendering, named per HTML type for `renderers:` tables. |
   | `:default` | index, show, form | The default field rendering (fallback). |
   """
 
   @behaviour Aurora.Uix.RendererRegistrar
 
+  alias Aurora.Uix.Renderers
   alias Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.Predefined
 
@@ -33,6 +35,14 @@ defmodule Aurora.Uix.Renderers.BuiltIn do
       progress_bar: &Predefined.ProgressBar.render/1,
       url: &Predefined.Url.render/1,
       rating: &Predefined.Rating.render/1,
+      default_checkbox: &Renderers.default/1,
+      default_date: &Renderers.default/1,
+      default_datetime_local: &Renderers.default/1,
+      default_number: &Renderers.default/1,
+      default_select: &Renderers.default/1,
+      default_text: &Renderers.default/1,
+      default_textarea: &Renderers.default/1,
+      default_time: &Renderers.default/1,
       default: &DefaultRenderer.render/1
     }
   end
