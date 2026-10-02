@@ -45,7 +45,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
-          "guides/introduction/whats_new.md",
+          "guides/whats_new/0.1.6.md",
           "guides/core/resource_metadata.md",
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
@@ -63,7 +63,11 @@ defmodule Aurora.Uix.MixProject do
         ],
         groups_for_extras: [
           Tutorial: ~r{guides/tutorial/.*},
-          Introduction: [~r{guides/overview/.*}, ~r{guides/introduction/.*}],
+          Introduction: [
+            ~r{guides/overview/.*},
+            ~r{guides/introduction/.*},
+            ~r{guides/whats_new/.*}
+          ],
           "Core Concepts": ~r{guides/core/.*},
           "Customization & Extension": ~r{guides/customization/.*},
           Advanced: ~r{guides/advanced/.*},
