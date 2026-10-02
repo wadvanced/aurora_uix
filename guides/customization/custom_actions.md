@@ -438,6 +438,99 @@ This helper handles both single and composite primary keys:
 - Row action icons: `auix-icon-size-5` with context classes (`auix-icon-info`, `auix-icon-safe`, `auix-icon-danger`)
 - Buttons: `auix-button` (primary, default), `auix-button--alt` (secondary), `auix-index-all-action-button` (index-bar select-all). Pick exactly one — `<.button>` already supplies the structural base.
 
+## Bulk Actions on Selected Rows
+
+A bulk action runs over the rows the user ticked in the index. It takes three pieces: a control
+in the selected-actions strip, a layout option that places it there, and a handler clause that
+does the work. This recipe adds a **Deactivate selected** button that sets `inactive` on every
+selected product.
+
+**1. The control.** The selected-actions strip calls each action with `%{auix: auix}`.
+`auix.selection` is an `Aurora.Uix.Selection` struct:
+
+| Field | Content |
+|---|---|
+| `selected` | a `MapSet` of the selected rows' ids, across every page |
+| `selected_count` | the number of selected rows |
+| `toggle_all_mode` | `:none`, or `:check` / `:uncheck` while **Check all** / **Uncheck all** is still collecting ids — `selected` is incomplete until it returns to `:none` |
+
+Render the control only when rows are selected and no toggle-all is running, as the built-in
+**Delete selected** does:
+
+```elixir
+defmodule MyAppWeb.ProductActions do
+  use Aurora.Uix.CoreComponentsImporter
+
+  def deactivate_selected(
+        %{auix: %{selection: %{selected_count: count, toggle_all_mode: :none}}} = assigns
+      )
+      when count > 0 do
+    ~H"""
+    <.button
+      type="button"
+      class="auix-index-all-action-button"
+      phx-click="deactivate_selected"
+      name={"auix-selected-deactivate-#{@auix.module}"}
+    >
+      Deactivate selected
+    </.button>
+    """
+  end
+
+  def deactivate_selected(assigns), do: ~H""
+end
+```
+
+**2. The layout option.** `add_selected_action` appends the control after the built-in ones;
+`handler_module` names the module that receives its event:
+
+```elixir
+auix_create_ui do
+  index_columns(:product, [:reference, :name, :inactive],
+    handler_module: MyAppWeb.ProductIndexHandler,
+    add_selected_action: {:deactivate_selected, &MyAppWeb.ProductActions.deactivate_selected/1}
+  )
+end
+```
+
+**3. The handler.** The control's `phx-click` reaches the index LiveView, which passes it to
+`auix_handle_event/3`. The event carries no ids; read them from
+`socket.assigns.auix.selection.selected`:
+
+```elixir
+defmodule MyAppWeb.ProductIndexHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+
+  alias Aurora.Uix.Events
+  alias MyApp.Inventory
+  alias MyApp.Inventory.Product
+
+  @impl IndexImpl
+  def auix_handle_event("deactivate_selected", _params, socket) do
+    Enum.each(socket.assigns.auix.selection.selected, fn id ->
+      id |> Inventory.get_product!() |> Inventory.update_product(%{inactive: true})
+    end)
+
+    Events.changed(Product)
+    Events.reset_selection()
+
+    {:noreply, put_flash(socket, :info, "Products deactivated")}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
+end
+```
+
+- Keep the last clause. Overriding `auix_handle_event/3` replaces the default, and every
+  built-in index event — selection, filters, sorting, pagination, **Delete selected** — arrives
+  through it.
+- Aurora UIX never writes the records. The handler calls the host's own context function or Ash
+  action; validation and its errors are the host's. This sketch ignores an
+  `{:error, changeset}` result; report it in a real application.
+- `Events.changed(Product)` re-reads the page so the new values show, and
+  `Events.reset_selection()` clears the selection, which hides the control again. See
+  [Refreshing the Index from a Custom Action](#refreshing-the-index-from-a-custom-action).
+
 ## Refreshing the Index from a Custom Action
 
 A custom action that changes data tells the index through `Aurora.Uix.Events`. Handle the

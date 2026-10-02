@@ -147,17 +147,17 @@ Depends on: none
    ````
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-373-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md` § `## [0.1.6]` has a `### Documentation` subsection carrying the
+- [x] AC-3: `CHANGELOG.md` § `## [0.1.6]` has a `### Documentation` subsection carrying the
       **Bulk actions on selected rows** entry, before `## [0.1.5]` (mechanical — no red test;
       verified by `awk '/^## \[0.1.6\]/{f=1} /^## \[0.1.5\]/{f=0} f' CHANGELOG.md | grep -n -e '^### Documentation' -e 'Bulk actions on selected rows'` printing both lines)
-- [ ] AC-4: `guides/customization/custom_actions.md` § Bulk Actions on Selected Rows reads as
+- [x] AC-4: `guides/customization/custom_actions.md` § Bulk Actions on Selected Rows reads as
       prescribed and sits immediately before § Refreshing the Index from a Custom Action
       (mechanical — no red test; verified by
       `grep -n -e '^## Bulk Actions on Selected Rows' -e '^## Refreshing the Index from a Custom Action' -e 'add_selected_action: {:deactivate_selected' -e 'def auix_handle_event("deactivate_selected"' guides/customization/custom_actions.md`
