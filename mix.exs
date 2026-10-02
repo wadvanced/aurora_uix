@@ -45,6 +45,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
+          "guides/introduction/whats_new.md",
           "guides/core/resource_metadata.md",
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",
