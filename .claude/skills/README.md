@@ -54,6 +54,7 @@ suite stays green.
 | `gate-fix` | Runs `mix consistency` and fixes mechanical issues; emits a Refactor Plan for refactor-class issues |
 | `gate-commit` | Groups the working tree into conventional commits; refuses unless `mix consistency` is clean |
 | `documentation` | Elixir documentation rules |
+| `prepare-release` | Prepares a release up to the opened PR: version bump, CHANGELOG, docs, `mix assets.build`, regenerated and reviewed guide screenshots, gate, Hex package check. Never merges, tags or publishes |
 | `bump-dependencies` | Bumps outdated Hex dependencies, updates `CHANGELOG.md` and closes the `bump`-labelled issues it resolves |
 
 `.claude/agents/epic-orchestrator.md` is the agent `orchestrate-issue` spawns to

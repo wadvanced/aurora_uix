@@ -238,9 +238,14 @@ To capture screenshots:
 All the images are generated with proper data and format. This is the simplest way.
 If you need to add or modify an image, do it in the "test/guides/capture_image.exs"
 
+Run `mix assets.build` first, so the images show the current UI.
+
 ```bash
+mix assets.build
 mix test test/guides/capture_*.exs
 ```
+
+The `prepare-release` skill (`.claude/skills/prepare-release/`) runs this as part of release preparation.
 
 - Manually
 Start the [test server](#server-under-test-environment)
