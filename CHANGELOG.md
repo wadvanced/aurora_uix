@@ -220,6 +220,11 @@ Requires:
 
 ### Documentation
 
+- **What's New guide**
+  - `guides/introduction/whats_new.md`, right after Getting Started, walks through the headline
+    changes of the current release with copy-pasteable examples and an upgrade checklist. It is
+    rewritten for every release; the CHANGELOG stays the complete history.
+
 - **Bulk actions on selected rows**
   - `guides/customization/custom_actions.md` gains a worked recipe for a host's own action over
     the rows selected in the index: the control in the selected-actions strip, the

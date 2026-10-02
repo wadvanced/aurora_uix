@@ -224,6 +224,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background tutorial: from nothing installed to a running CRUD app
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
+- **[What's New](./guides/introduction/whats_new.md)** — The headline changes of the current release, with examples
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
