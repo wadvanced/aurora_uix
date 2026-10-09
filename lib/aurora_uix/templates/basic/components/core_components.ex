@@ -88,15 +88,15 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
           <div class="auix-modal-box">
             <.focus_wrap
               id={"#{@id}-container"}
-              phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+              phx-window-keydown={JS.exec("data-cancel", to: uix_id_selector(@id))}
               phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              phx-click-away={JS.exec("data-cancel", to: uix_id_selector(@id))}
               class="auix-modal-focus-wrap"
             >
               <div class="auix-modal-box-content">
                 <div class="auix-modal-close-button-container">
                   <button
-                    phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                    phx-click={JS.exec("data-cancel", to: uix_id_selector(@id))}
                     type="button"
                     class="auix-modal-close-button"
                     aria-label={dt("close")}
@@ -144,7 +144,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     <div
         :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
         id={@id}
-        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide("##{@id}")}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> uix_hide(uix_id_selector(@id))}
         role="alert"
         class={"auix-flash--#{@kind}"}
         {@rest}>
@@ -673,6 +673,23 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   end
 
   @doc """
+  Builds a CSS selector matching an element by id, with an optional id suffix.
+
+  Unlike `#id`, the attribute selector is valid for any id value, including ids
+  that start with a digit (such as UUIDv7) or contain special characters.
+
+  ## Examples
+
+      uix_id_selector("019b-7dd2")
+      #=> ~s([id="019b-7dd2"])
+  """
+  @spec uix_id_selector(term(), binary) :: binary
+  def uix_id_selector(id, suffix \\ "") do
+    escaped = "#{id}#{suffix}" |> String.replace("\\", "\\\\") |> String.replace("\"", "\\\"")
+    ~s([id="#{escaped}"])
+  end
+
+  @doc """
   Hides an element by adding classes for a transition animation.
 
   ## Examples
@@ -701,17 +718,17 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @spec show_modal(JS.t() | nil, binary) :: JS.t()
   def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
-    |> JS.show(to: "##{id}")
+    |> JS.show(to: uix_id_selector(id))
     |> JS.show(
-      to: "##{id}-bg",
+      to: uix_id_selector(id, "-bg"),
       time: 300,
       transition:
         {"auix-show-modal-transition", "auix-show-modal-transition--start",
          "auix-show-modal-transition--end"}
     )
-    |> uix_show("##{id}-container")
+    |> uix_show(uix_id_selector(id, "-container"))
     |> JS.add_class("auix-show-modal", to: "body")
-    |> JS.focus_first(to: "##{id}-content")
+    |> JS.focus_first(to: uix_id_selector(id, "-content"))
   end
 
   @doc """
@@ -727,12 +744,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   def hide_modal(js \\ %JS{}, id) do
     js
     |> JS.hide(
-      to: "##{id}-bg",
+      to: uix_id_selector(id, "-bg"),
       transition:
         {"auix-hide-modal-transition", "auix-hide-modal-transition--start",
          "auix-hide-modal-transition--end"}
     )
-    |> uix_hide("##{id}-container")
+    |> uix_hide(uix_id_selector(id, "-container"))
     |> JS.remove_class("auix-show-modal", to: "body")
     |> JS.pop_focus()
   end
