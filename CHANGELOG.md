@@ -2,6 +2,10 @@
 
 ## [0.1.7]
 
+### Fixed
+
+- **Row delete on ids starting with a digit**: the delete row actions (index and one-to-many) hid the row with an invalid `#<id>` CSS selector when the id started with a digit (e.g. UUIDv7), throwing in the browser console. They now use an attribute selector, and the index action derives it from the `:row_id` layout option.
+
 ### Changed
 
 - **Updated Dependencies**

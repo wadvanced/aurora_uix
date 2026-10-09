@@ -135,7 +135,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def remove_row_action(assigns) do
     ~H"""
       <.auix_link
-            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> uix_hide("##{row_info_id(@auix)}")}
+            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> uix_hide(row_dom_selector(@auix))}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={dt("Are you sure?")}
           >
@@ -517,6 +517,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   defp add_default_footer_actions(socket),
     do:
       Actions.add_actions(socket, :index_footer_actions, default_pagination: &pagination_action/1)
+
+  # Attribute selector: an id selector is invalid for ids starting with a digit (e.g. UUIDv7).
+  # The id comes from the same :row_id function that renders the row.
+  @spec row_dom_selector(map()) :: String.t()
+  defp row_dom_selector(%{row_info: row_info, layout_options: %{row_id: row_id}}),
+    do: ~s([id="#{row_id.(row_info)}"])
 
   # Extracts primary key value from row_info tuple {index, entity_map}
   @spec row_info_id(map()) :: term() | nil

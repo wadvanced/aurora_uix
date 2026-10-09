@@ -124,6 +124,18 @@ defmodule Aurora.UixWeb.Test.CreateUIActionsIndexTest do
            ]
   end
 
+  test "Test index row delete hides the row with an attribute selector", %{conn: conn} do
+    delete_all_inventory_data()
+    create_sample_products(1, :test)
+
+    {:ok, view, _html} = live(conn, "/create-ui-actions-index-products")
+
+    # An id selector (#<id>) is invalid for ids starting with a digit
+    assert view
+           |> element("tr:nth-of-type(1) a[name='auix-delete-product'][phx-click*='[id=']")
+           |> has_element?()
+  end
+
   test "Test index header custom actions", %{conn: conn} do
     delete_all_inventory_data()
     create_sample_products(5, :test)
