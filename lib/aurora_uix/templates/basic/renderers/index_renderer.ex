@@ -158,7 +158,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   defp modal_on_cancel(:show, _auix), do: JS.push("auix_route_back")
 
   defp modal_on_cancel(_live_action, auix),
-    do: JS.push("auix_request_close", target: "#auix-#{auix.module}-form")
+    do: JS.push("auix_request_close", target: uix_id_selector("auix-#{auix.module}-form"))
 
   @spec entity_id(map()) :: term() | list() | nil
   defp entity_id(%{entity: entity, primary_key: primary_key}),

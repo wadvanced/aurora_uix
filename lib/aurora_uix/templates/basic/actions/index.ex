@@ -172,7 +172,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         class={@selected_button_class}
         value={%{delete_all: true}}
         event="selected-delete_all"
-        target={"##{@auix.index_form_id}"}
+        target={uix_id_selector(@auix.index_form_id)}
       >
         <:content>
           {dt("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
@@ -518,11 +518,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     do:
       Actions.add_actions(socket, :index_footer_actions, default_pagination: &pagination_action/1)
 
-  # Attribute selector: an id selector is invalid for ids starting with a digit (e.g. UUIDv7).
   # The id comes from the same :row_id function that renders the row.
   @spec row_dom_selector(map()) :: String.t()
   defp row_dom_selector(%{row_info: row_info, layout_options: %{row_id: row_id}}),
-    do: ~s([id="#{row_id.(row_info)}"])
+    do: uix_id_selector(row_id.(row_info))
 
   # Extracts primary key value from row_info tuple {index, entity_map}
   @spec row_info_id(map()) :: term() | nil

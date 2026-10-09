@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
               get_function: inspect(@auix.association.related_parsed_opts.get_function),
               delete_function: inspect(@auix.association.related_parsed_opts.delete_function)}
           )
-          |> uix_hide(~s([id="#{elem(@auix.row_info, 0)}"]))}
+          |> uix_hide(uix_id_selector(elem(@auix.row_info, 0)))}
         name={"auix-delete-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
         data-confirm="Are you sure?"
       >

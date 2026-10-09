@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- **Row delete on ids starting with a digit**: the delete row actions (index and one-to-many) hid the row with an invalid `#<id>` CSS selector when the id started with a digit (e.g. UUIDv7), throwing in the browser console. They now use an attribute selector, and the index action derives it from the `:row_id` layout option.
+- **Invalid CSS id selectors on ids starting with a digit**: the delete row actions (index and one-to-many) hid the row with an invalid `#<id>` selector when the id started with a digit (e.g. UUIDv7), throwing in the browser console. All dynamic id selectors (row actions, modals, flash, form targets) now go through the new `uix_id_selector/2` helper, which builds an attribute selector valid for any id. The index delete action derives it from the `:row_id` layout option.
 
 ### Changed
 
