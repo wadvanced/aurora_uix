@@ -144,10 +144,10 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
   # `click_and_wait/5` re-clicks until its query matches, so waiting on anything that is already on
   # screen -- a flash left over from the previous entry, say -- re-submits the add form. The row the
   # click is meant to create is the only accessor that is both specific to this entry and absent
-  # until it lands. It sits behind the still-open add modal, hence `visible: false`.
+  # until it lands. It sits behind the still-open add modal and may not count as visible, hence `visible: :any`.
   @spec added_entry(atom(), integer()) :: Query.t()
   defp added_entry(field, index) do
-    Query.css("[name='post[tags][#{index}][#{field}]']", visible: false)
+    Query.css("[name='post[tags][#{index}][#{field}]']", visible: :any)
   end
 
   @spec validate_field(Session.t(), atom(), integer(), binary()) :: Session.t()
