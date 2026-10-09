@@ -121,6 +121,7 @@ config :wallaby,
   screenshot_on_failure: true,
   screenshot_dir: "tmp",
   hackney_options: [timeout: 5_000],
+  max_wait_time: 1_000,
   js_logger: nil,
   chromedriver: [
     headless: System.get_env("WALLABY_CHROME_HEADLESS", "true") == "true",

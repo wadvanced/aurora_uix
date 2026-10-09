@@ -78,13 +78,16 @@ defmodule Aurora.UixWeb.Test.BrowserCreateUIDefaultLayoutTest do
   end
 
   @spec assert_current_path(Session.t(), binary(), integer()) :: Session.t()
-  defp assert_current_path(session, path, seconds \\ 3)
+  defp assert_current_path(session, path, attempts \\ 30)
 
   defp assert_current_path(_session, path, 0), do: raise("Path: #{path} was not reached")
 
-  defp assert_current_path(session, path, seconds) do
-    Process.sleep(1000)
-    if current_path(session) != path, do: assert_current_path(session, path, seconds - 1)
-    session
+  defp assert_current_path(session, path, attempts) do
+    if current_path(session) == path do
+      session
+    else
+      Process.sleep(100)
+      assert_current_path(session, path, attempts - 1)
+    end
   end
 end

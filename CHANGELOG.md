@@ -1,5 +1,13 @@
 # Changelog for Aurora UIX
 
+## [0.1.7]
+
+### Changed
+
+- **Updated Dependencies**
+  - ash: 3.33.11 -> 3.34.6
+  - ash_postgres: 2.13.1 -> 2.14.5
+
 ## [0.1.6] - 2026-10-02
 
 **Sortable Columns, Named Renderers & Live Updates**

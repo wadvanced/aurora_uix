@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.6"
+  @version "0.1.7-rc.1"
 
   def project do
     [
@@ -227,9 +227,9 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.33"},
+      {:ash, "~> 3.34"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.13"},
+      {:ash_postgres, "~> 2.14"},
       {:aurora_ctx, "~> 0.1.11"},
       {:accessible, "~> 0.3"},
       {:bandit, "~> 1.12"},
