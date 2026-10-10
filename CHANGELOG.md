@@ -8,6 +8,11 @@
 
 ### Changed
 
+- **`:or_where` and `:select` are no longer accepted as index layout options**
+  - Neither was documented, and neither ever reached the list query on either backend. An OR
+    condition goes inside `:where`: a `dynamic/2` expression on Ecto resources, a custom read
+    action on Ash resources.
+
 - **Updated Dependencies**
   - ash: 3.33.11 -> 3.34.6
   - ash_postgres: 2.13.1 -> 2.14.5
