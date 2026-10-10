@@ -305,7 +305,7 @@ index_columns :product, [:reference, :name, :price],
 - `:pagination_disabled?` — Disable pagination (default: `false`)
 - `:new_action_label` — Label for the "new" action button (default: `"New {name}"`)
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
-- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it
+- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
 
 #### Form Layout Options
 

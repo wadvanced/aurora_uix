@@ -50,14 +50,14 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-374-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md § Index Layout Options` states that `:or_where` and `:select` are not index options (mechanical — no red test; verified by
+- [x] AC-3: `guides/core/layouts.md § Index Layout Options` states that `:or_where` and `:select` are not index options (mechanical — no red test; verified by
       `grep -c 'are not index options' guides/core/layouts.md` returning `1`)
 
 ##### Green checks
