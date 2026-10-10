@@ -38,7 +38,9 @@ defmodule Aurora.UixWeb.Test.AshWhereLayoutTest do
       order_by: :name,
       where: [
         {:email, :between, "author_test_order-05@test.com", "author_test_order-13@test.com"}
-      ]
+      ],
+      or_where: [{:email, :eq, "author_test_order-01@test.com"}],
+      select: [:id]
     )
   end
 

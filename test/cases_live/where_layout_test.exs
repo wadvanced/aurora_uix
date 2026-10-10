@@ -28,7 +28,9 @@ defmodule Aurora.UixWeb.Test.WhereLayoutTest do
   auix_create_ui do
     index_columns(:product, [:id, :reference, :name, :cost],
       order_by: :name,
-      where: [{:reference, :between, "item_test_order-05", "item_test_order-13"}]
+      where: [{:reference, :between, "item_test_order-05", "item_test_order-13"}],
+      or_where: [{:reference, :eq, "item_test_order-01"}],
+      select: [:id]
     )
   end
 

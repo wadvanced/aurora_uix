@@ -136,7 +136,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
             ) ::
               Socket.t()
 
-  @allowed_query_options [:where, :or_where, :order_by, :paginate, :select, :preload]
+  # `:or_where` would OR around the filter bar's conditions and `:select` would break the
+  # index projection, so neither is an index option.
+  @allowed_query_options [:where, :order_by, :paginate, :preload]
 
   defmacro __using__(_opts) do
     quote do
