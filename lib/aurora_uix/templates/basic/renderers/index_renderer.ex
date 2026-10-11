@@ -90,6 +90,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
               source_key: @auix.source_key,
               empty_list?: @auix.empty_list?,
               sort: @auix.sort,
+              sort_disabled?: @auix.layout_options.sort_disabled?,
               enable_viewport?: @auix[:enable_viewport?]
               }}
           streams={@auix.layout_options.get_streams.(assigns)}

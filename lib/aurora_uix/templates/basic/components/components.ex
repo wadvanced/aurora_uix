@@ -153,7 +153,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
 
-  A `:col` whose `field` has `sortable?: true` renders its label as a button that emits `"index-sort"` with the field key; the header carries `aria-sort` from `auix.sort`.
+  A `:col` whose `field` has `sortable?: true` renders its label as a button that emits `"index-sort"` with the field key, unless `auix.sort_disabled?` is `true`; the header carries `aria-sort` from `auix.sort`.
   """
   attr(:id, :string, required: true)
   attr(:rows, :list, required: true)
@@ -208,8 +208,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                 class={if i == 0, do: "auix-items-table-header-cell--first", else: "auix-items-table-header-cell"}
                 name="auix-column-label"
                 aria-sort={column_aria_sort(@auix, col)}>
-              <.table_column_sort :if={sortable_column?(col)} auix={@auix} col={col} />
-              <.table_column_label :if={!sortable_column?(col)} auix={@auix} label={col.label} />
+              <.table_column_sort :if={sortable_column?(@auix, col)} auix={@auix} col={col} />
+              <.table_column_label :if={!sortable_column?(@auix, col)} auix={@auix} label={col.label} />
             </th>
           </tr>
           <tr class="auix-items-table-header-row">
@@ -669,13 +669,17 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     """
   end
 
-  @spec sortable_column?(map()) :: boolean()
-  defp sortable_column?(%{field: %{sortable?: true}}), do: true
-  defp sortable_column?(_col), do: false
+  # Map.get/2: the one-to-many table's auix map carries no :sort_disabled?.
+  @spec sortable_column?(map(), map()) :: boolean()
+  defp sortable_column?(auix, %{field: %{sortable?: true}}),
+    do: Map.get(auix, :sort_disabled?) != true
+
+  defp sortable_column?(_auix, _col), do: false
 
   @spec column_aria_sort(map(), map()) :: binary() | nil
-  defp column_aria_sort(auix, %{field: %{sortable?: true, key: key}}),
-    do: auix |> column_sort_direction(key) |> aria_sort()
+  defp column_aria_sort(auix, %{field: %{key: key}} = col) do
+    if sortable_column?(auix, col), do: auix |> column_sort_direction(key) |> aria_sort()
+  end
 
   defp column_aria_sort(_auix, _col), do: nil
 

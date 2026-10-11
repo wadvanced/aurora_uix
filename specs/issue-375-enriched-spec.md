@@ -196,9 +196,9 @@ New-name evidence: `rg -n 'sort_disabled|SortDisabled|sort-disabled' lib test gu
 Mobile mockup: `05-sort-disabled.svg` in UI-2 § Mobile mockups shows the card view of this option; UI-2 delivers the card control it removes.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `SortDisabledTest` (Ecto `Product`, metadata `order_by: :reference`, layout `index_columns(:product, [:reference, :name], sort_disabled?: true)`), visiting `/sort-disabled-products`, then no `button[name^='auix-sort-']` exists and no `th` carries `aria-sort`; the `name` and `reference` headers render as plain labels.
-- [ ] AC-2 (error path): Given the same page with the three-product fixture (names `"Charlie"`, `"Alpha"`, `"Bravo"` in reference order), pushing `"index-sort"` with `"key"` `"name"` twice, then the name cells keep `["Charlie", "Alpha", "Bravo"]` and no `th` carries `aria-sort`.
-- [ ] AC-3: Given any index layout without `:sort_disabled?`, the column header sort buttons and the `"index-sort"` event behave as before (mechanical — no red test; verified by `test/cases_live/sortable_columns_test.exs` and `test/cases_live/ash_sortable_columns_test.exs` passing unmodified).
+- [x] AC-1: Given `SortDisabledTest` (Ecto `Product`, metadata `order_by: :reference`, layout `index_columns(:product, [:reference, :name], sort_disabled?: true)`), visiting `/sort-disabled-products`, then no `button[name^='auix-sort-']` exists and no `th` carries `aria-sort`; the `name` and `reference` headers render as plain labels.
+- [x] AC-2 (error path): Given the same page with the three-product fixture (names `"Charlie"`, `"Alpha"`, `"Bravo"` in reference order), pushing `"index-sort"` with `"key"` `"name"` twice, then the name cells keep `["Charlie", "Alpha", "Bravo"]` and no `th` carries `aria-sort`.
+- [x] AC-3: Given any index layout without `:sort_disabled?`, the column header sort buttons and the `"index-sort"` event behave as before (mechanical — no red test; verified by `test/cases_live/sortable_columns_test.exs` and `test/cases_live/ash_sortable_columns_test.exs` passing unmodified).
 
 ##### Test ports
 - Route `"sort-disabled-products"` registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud(SortDisabledTest.Product, "sort-disabled-products")` · `:index` · observable: `has_element?/2` on `button[name^='auix-sort-']` and `th[aria-sort]`; name cells `#auix-table-sort-disabled-products-index tr td:nth-of-type(3)` (columns: selection, `reference`, `name`).

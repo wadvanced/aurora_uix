@@ -415,6 +415,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
+  def auix_handle_event(
+        "index-sort",
+        _params,
+        %{assigns: %{auix: %{layout_options: %{sort_disabled?: true}}}} = socket
+      ),
+      do: {:noreply, socket}
+
   def auix_handle_event("index-sort", %{"key" => key}, %{assigns: %{auix: auix}} = socket) do
     case Enum.find(auix.index_fields, &(&1.sortable? and to_string(&1.key) == key)) do
       nil ->
