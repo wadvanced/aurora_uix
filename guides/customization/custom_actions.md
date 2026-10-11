@@ -32,7 +32,7 @@ The action system works by:
 ┌───────────────────────────────────────────────────────────┐
 │  PAGE HEADER                                              │
 │  ┌─ :index_header_actions ─────────────────────────────┐  │
-│  │  [toggle_filters]  [clear]  [submit]  [new]         │  │
+│  │  [toggle_filters]  [sort]  [clear]  [submit]  [new] │  │
 │  └─────────────────────────────────────────────────────┘  │
 │                                                           │
 │  ┌─ :index_selected_all_actions ───────────────────────┐  │
@@ -61,7 +61,7 @@ The action system works by:
 
 | Operation Key Prefix | Available Operations | Defaults You Can Target |
 |---|---|---|
-| `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_clear`, `:default_submit`, `:default_new` |
+| `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_sort`, `:default_clear`, `:default_submit`, `:default_new` |
 | `*_selected_all_action` | replace, remove *(no add / insert)* | `:default_toggle_all_selected` |
 | `*_selected_action` | add, insert, replace, remove | `:default_selected_uncheck_all`, `:default_selected_delete_all`, `:default_selected_check_all` |
 | `*_filters_action` | add, insert, replace, remove | *(none by default)* |
@@ -243,7 +243,7 @@ Aurora UIX provides four operations to customize actions in layout options. The 
 # Append a custom archive button after the default row actions
 add_row_action: {:archive, &MyViews.archive_action/1}
 
-# Append an Export CSV button after the default header actions (toggle_filters, clear, submit, new)
+# Append an Export CSV button after the default header actions (toggle_filters, sort, clear, submit, new)
 add_header_action: {:export, &MyViews.export_action/1}
 
 # Append a "Save and Continue" button after the default Save button in a form
@@ -281,6 +281,9 @@ remove_row_action: :default_row_show
 
 # Remove the New button from the header (useful for read-only index views)
 remove_header_action: :default_new
+
+# Remove the card view's sort control (the column headers still sort)
+remove_header_action: :default_sort
 
 # Remove the Back link from a show page footer
 remove_footer_action: :default_back

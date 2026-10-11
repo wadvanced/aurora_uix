@@ -510,7 +510,7 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"filter-toggle"` - Toggle filters panel
 - `"filters-clear"` - Clear all filters
 - `"filters-submit"` - Apply filters
-- `"index-sort"` - Sort the index by the column named in the `"key"` value; a second click on the same column reverses the direction
+- `"index-sort"` - Sort the index by the field named in the `"key"` value; sending the key of the current sort reverses the direction. Sent by the sortable column headers and by the card view's sort select and direction button; ignored when the layout option `sort_disabled?` is `true`
 - `"index-layout-change"` - Handles filter-form changes and row selection (matched via
   the `_target` field, e.g. `"selected_check__"` / `"selected_in_page__"` prefixes)
 - `"selected-toggle_all"` - Select all matching rows across the whole result set (async)
@@ -928,7 +928,7 @@ The `order_by` option:
 - Can be a single field atom (`:name`)
 - Determines the default sort column when the index loads
 - Is applied through the query layer to the database
-- Is replaced when the user clicks a sortable column header; a second click reverses the direction. A column opts out with the field option `sortable?: false`
+- Is replaced when the user sorts: a click on a sortable column header (a second click reverses the direction), or, in the mobile card view, the sort select and its direction button. A column opts out with the field option `sortable?: false`; the layout option `sort_disabled?: true` turns user sorting off for the whole index
 
 ### Example: Default Sort Configuration
 

@@ -6,6 +6,17 @@
 
 - **Invalid CSS id selectors on ids starting with a digit**: the delete row actions (index and one-to-many) hid the row with an invalid `#<id>` selector when the id started with a digit (e.g. UUIDv7), throwing in the browser console. All dynamic id selectors (row actions, modals, flash, form targets) now go through the new `uix_id_selector/2` helper, which builds an attribute selector valid for any id. The index delete action derives it from the `:row_id` layout option.
 
+### Added
+
+- **Sort control in the mobile card view**
+  - The card view, which has no column headers, gets a select of the sortable fields and a
+    button that reverses the direction, on both backends. It is the new `:default_sort` header
+    action, hidden from the `md` breakpoint up. New classes `auix-index-sort-action` and
+    `auix-index-sort-direction`.
+  - New index layout option `sort_disabled?: true` turns user sorting off: no sortable column
+    headers, no card sort control, and the `"index-sort"` event is ignored. `order_by` still
+    applies.
+
 ### Changed
 
 - **`:or_where` and `:select` are no longer accepted as index layout options**
