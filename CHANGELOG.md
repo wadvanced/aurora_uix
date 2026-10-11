@@ -1,6 +1,6 @@
 # Changelog for Aurora UIX
 
-## [0.1.7] - 2026-10-11
+## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**
 
