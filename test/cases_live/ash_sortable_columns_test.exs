@@ -52,6 +52,41 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     refute has_element?(view, "th[aria-sort='ascending']")
   end
 
+  test "the card sort control offers only the sortable fields", %{conn: conn} do
+    view = prepare_sort_test(conn)
+
+    for value <- ["", "name"],
+        do:
+          assert(
+            has_element?(
+              view,
+              "#auix-sort-form-author select[name='key'] option[value='#{value}']"
+            )
+          )
+
+    for value <- ["bio", "email", "selected_check__"],
+        do: refute(has_element?(view, "#auix-sort-form-author option[value='#{value}']"))
+  end
+
+  test "the card sort select sorts ascending, its direction button reverses", %{conn: conn} do
+    view = conn |> prepare_sort_test() |> select_sort("name")
+
+    assert mobile_name_cells(view) == ["Alpha", "Bravo", "Charlie"]
+    assert has_element?(view, "#auix-sort-form-author option[value='name'][selected]")
+    assert has_element?(view, "th[aria-sort='ascending'] button[name='auix-sort-name']")
+    assert has_element?(view, "button[name='auix-sort_direction-author'] span.hero-chevron-up")
+
+    view |> element("button[name='auix-sort_direction-author']") |> render_click()
+
+    assert mobile_name_cells(view) == ["Charlie", "Bravo", "Alpha"]
+    assert has_element?(view, "th[aria-sort='descending'] button[name='auix-sort-name']")
+
+    assert has_element?(
+             view,
+             "button[name='auix-sort_direction-author'] span.hero-chevron-down"
+           )
+  end
+
   @spec prepare_sort_test(Plug.Conn.t()) :: View.t()
   defp prepare_sort_test(conn) do
     delete_all_blog_data()
@@ -82,6 +117,26 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     |> render()
     |> LazyHTML.from_document()
     |> LazyHTML.query("#auix-table-ash-sortable-columns-authors-index tr td:nth-of-type(2)")
+    |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
+  end
+
+  @spec select_sort(View.t(), binary()) :: View.t()
+  defp select_sort(view, key) do
+    view
+    |> form("#auix-sort-form-author", %{"key" => key})
+    |> render_change()
+
+    view
+  end
+
+  @spec mobile_name_cells(View.t()) :: list(binary())
+  defp mobile_name_cells(view) do
+    view
+    |> render()
+    |> LazyHTML.from_document()
+    |> LazyHTML.query(
+      "#auix-table-ash-sortable-columns-authors-index-mobile .auix-items-card-item > div:nth-of-type(1) [name='auix-column-value']"
+    )
     |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
   end
 end

@@ -453,6 +453,11 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_crud(SortDisabledTest.Product, "sort-disabled-products")
 
+        RoutesHelper.register_crud(
+          SortDisabledTest.ProductLocation,
+          "sort-disabled-product-locations"
+        )
+
         RoutesHelper.register_crud(EventsTest.Product, "events-products")
         RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
         RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")

@@ -86,6 +86,50 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
     refute has_element?(view, "th[aria-sort='ascending']")
   end
 
+  test "the card sort control offers only the sortable fields", %{conn: conn} do
+    view = prepare_sort_test(conn)
+
+    for value <- ["", "reference", "name"],
+        do:
+          assert(
+            has_element?(
+              view,
+              "#auix-sort-form-product select[name='key'] option[value='#{value}']"
+            )
+          )
+
+    for value <- ["cost", "description", "image", "selected_check__"],
+        do: refute(has_element?(view, "#auix-sort-form-product option[value='#{value}']"))
+
+    refute has_element?(view, "button[name='auix-sort_direction-product']")
+  end
+
+  test "the card sort select sorts ascending, its direction button reverses", %{conn: conn} do
+    view = conn |> prepare_sort_test() |> select_sort("name")
+
+    assert mobile_name_cells(view) == ["Alpha", "Bravo", "Charlie"]
+    assert has_element?(view, "#auix-sort-form-product option[value='name'][selected]")
+    assert has_element?(view, "th[aria-sort='ascending'] button[name='auix-sort-name']")
+    assert has_element?(view, "button[name='auix-sort_direction-product'] span.hero-chevron-up")
+
+    view |> element("button[name='auix-sort_direction-product']") |> render_click()
+
+    assert mobile_name_cells(view) == ["Charlie", "Bravo", "Alpha"]
+    assert has_element?(view, "th[aria-sort='descending'] button[name='auix-sort-name']")
+
+    assert has_element?(
+             view,
+             "button[name='auix-sort_direction-product'] span.hero-chevron-down"
+           )
+  end
+
+  test "the card sort prompt leaves the order unchanged", %{conn: conn} do
+    view = conn |> prepare_sort_test() |> select_sort("")
+
+    assert mobile_name_cells(view) == ["Charlie", "Alpha", "Bravo"]
+    refute has_element?(view, "button[name='auix-sort_direction-product']")
+  end
+
   @spec prepare_sort_test(Plug.Conn.t()) :: View.t()
   defp prepare_sort_test(conn) do
     delete_all_inventory_data()
@@ -112,6 +156,26 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
     |> render()
     |> LazyHTML.from_document()
     |> LazyHTML.query("#auix-table-sortable-columns-products-index tr td:nth-of-type(3)")
+    |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
+  end
+
+  @spec select_sort(View.t(), binary()) :: View.t()
+  defp select_sort(view, key) do
+    view
+    |> form("#auix-sort-form-product", %{"key" => key})
+    |> render_change()
+
+    view
+  end
+
+  @spec mobile_name_cells(View.t()) :: list(binary())
+  defp mobile_name_cells(view) do
+    view
+    |> render()
+    |> LazyHTML.from_document()
+    |> LazyHTML.query(
+      "#auix-table-sortable-columns-products-index-mobile .auix-items-card-item > div:nth-of-type(2) [name='auix-column-value']"
+    )
     |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
   end
 

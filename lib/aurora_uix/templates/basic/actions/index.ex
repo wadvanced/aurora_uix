@@ -10,6 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Supports dynamic modification of actions via layout tree options
   - Includes responsive pagination controls with multiple breakpoints
   - Offers filter management actions (clear/submit)
+  - Offers a card-view sort control (sortable-field select and direction toggle)
 
   ## Key Constraints
 
@@ -360,6 +361,51 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
+  Renders the sort control for the index card view: a select of the sortable index fields
+  and, once a sort is active, a button that reverses its direction. Both emit `"index-sort"`.
+
+  ## Parameters
+  - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - Required context with:
+      - `:index_fields` (list()) - Index fields; only those with `sortable?: true` are offered
+      - `:sort` (map() | nil) - The active sort, `%{key: atom(), direction: :asc | :desc}`
+      - `:layout_options` (map()) - Must contain `:sort_disabled?`
+      - `:module` (binary()) - Context module name
+
+  ## Returns
+  Rendered.t() - The sort control, or an empty fragment when sorting is disabled or no
+  field is sortable
+  """
+  @spec sort_header_action(map()) :: Rendered.t()
+  def sort_header_action(%{auix: %{layout_options: %{sort_disabled?: false}} = auix} = assigns) do
+    sort_options =
+      for %{sortable?: true} = field <- auix.index_fields,
+          do: {dt(field.label), to_string(field.key)}
+
+    assigns = Map.put(assigns, :sort_options, sort_options)
+
+    ~H"""
+    <div :if={@sort_options != []} class="auix-index-sort-action" name={"auix-sort_action-#{@auix.module}"}>
+      <.form for={%{}} id={"auix-sort-form-#{@auix.module}"} phx-change="index-sort">
+        <.input type="select" id={"auix-sort-key-#{@auix.module}"} name="key"
+            options={@sort_options}
+            value={@auix.sort && to_string(@auix.sort.key)}
+            prompt={if is_nil(@auix.sort), do: dt("Sort by")}
+            omit_label?={true} />
+      </.form>
+      <button :if={@auix.sort} type="button" class="auix-index-sort-direction"
+          name={"auix-sort_direction-#{@auix.module}"}
+          phx-click="index-sort" phx-value-key={@auix.sort.key}
+          aria-label={dt("Reverse sort direction")}>
+        <.icon name={BasicHelpers.sort_icon(@auix.sort.direction)} class="auix-icon-size-5" />
+      </button>
+    </div>
+    """
+  end
+
+  def sort_header_action(assigns), do: ~H""
+
+  @doc """
   Renders a button to clear all applied filters in the index layout.
 
   ## Parameters
@@ -506,6 +552,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   defp add_default_header_actions(socket) do
     Actions.add_actions(socket, :index_header_actions,
       default_toggle_filters: &toggle_filters_action/1,
+      default_sort: &sort_header_action/1,
       default_clear: &clear_filters_action/1,
       default_submit: &submit_filters_action/1,
       default_new: &new_header_action/1
