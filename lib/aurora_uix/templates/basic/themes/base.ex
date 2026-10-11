@@ -1785,6 +1785,37 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     """
   end
 
+  def rule(:auix_index_sort_action) do
+    """
+      .auix-index-sort-action {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--auix-gap-minimal);
+      }
+
+      @media (min-width: #{breakpoint(:md)}) {
+        .auix-index-sort-action {
+          display: none;
+        }
+      }
+    """
+  end
+
+  def rule(:auix_index_sort_direction) do
+    """
+    .auix-index-sort-direction {
+      display: inline-flex;
+      align-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+    """
+  end
+
   def rule(:auix_index_select_actions) do
     """
     .auix-index-select-actions {

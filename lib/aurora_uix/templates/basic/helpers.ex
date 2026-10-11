@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - Layout options assignment and retrieval
   - Action management within assigns maps (add, insert, replace, remove)
   - Path and URL manipulations with routing stack encoding
+  - Sort direction icon names for the index sort controls
 
   ## Key Constraints
 
@@ -555,6 +556,22 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> assign_auix_new(:layout_options, %{})
     |> put_in([Access.key!(:assigns), :auix, :layout_options, option], option_value)
   end
+
+  @doc """
+  Returns the icon name for a sort direction.
+
+  Shared by the sortable column headers and the card view's sort direction button.
+
+  ## Parameters
+  - `direction` (:asc | :desc | nil) - The sort direction; `nil` for an unsorted column.
+
+  ## Returns
+  binary() - A `hero-*` icon name.
+  """
+  @spec sort_icon(:asc | :desc | nil) :: binary()
+  def sort_icon(:asc), do: "hero-chevron-up"
+  def sort_icon(:desc), do: "hero-chevron-down"
+  def sort_icon(nil), do: "hero-chevron-up-down"
 
   @doc """
   Sets a temporary to the auix entry in the socket's assigns.

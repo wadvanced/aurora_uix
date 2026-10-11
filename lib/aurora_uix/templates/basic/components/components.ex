@@ -33,6 +33,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   use Aurora.Uix.GettextResolver
   use Phoenix.Component
 
+  alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -658,7 +659,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:col, :map, required: true)
   @spec table_column_sort(map()) :: Rendered.t()
   defp table_column_sort(%{auix: auix, col: %{field: field}} = assigns) do
-    assigns = assign(assigns, :icon, auix |> column_sort_direction(field.key) |> sort_icon())
+    assigns =
+      assign(assigns, :icon, auix |> column_sort_direction(field.key) |> BasicHelpers.sort_icon())
 
     ~H"""
     <button type="button" class="auix-items-table-header-sort" name={"auix-sort-#{@col.field.key}"}
@@ -695,11 +697,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   defp aria_sort(:asc), do: "ascending"
   defp aria_sort(:desc), do: "descending"
   defp aria_sort(nil), do: "none"
-
-  @spec sort_icon(:asc | :desc | nil) :: binary()
-  defp sort_icon(:asc), do: "hero-chevron-up"
-  defp sort_icon(:desc), do: "hero-chevron-down"
-  defp sort_icon(nil), do: "hero-chevron-up-down"
 
   # Renders the count of selected items for a page range or specific page
   attr(:selected_in_page, :map, default: %{})
