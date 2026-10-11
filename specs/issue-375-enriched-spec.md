@@ -161,18 +161,18 @@ Depends on: none
 2. `mix.exs` `docs.extras` and the `README.md` What's New link keep pointing at `guides/whats_new/0.1.6.md`: `prepare-release` repoints them when 0.1.7 is cut, and `mix.exs` is outside this section's file set (AC-2). An unlisted `guides/whats_new/*.md` file is exempt from the extras check by its `-not -path 'guides/whats_new/*'` clause.
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-375-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md § Index Layout Options` lists `:sort_disabled?` directly after `:pagination_disabled?` (mechanical — no red test; verified by `grep -n -A1 'pagination_disabled?\` — Disable pagination' guides/core/layouts.md` showing the `:sort_disabled?` line)
-- [ ] AC-4: `guides/core/liveview.md` § Built-in Events and § How Sorting Works read as prescribed (mechanical — no red test; verified by `grep -c 'sort_disabled?' guides/core/liveview.md` returning `2`)
-- [ ] AC-5: `guides/customization/custom_actions.md` names `:default_sort` in the table and the remove example, and the diagram line keeps 61 characters (mechanical — no red test; verified by `grep -c ':default_sort' guides/customization/custom_actions.md` returning `2` and `grep -cF '│  │  [toggle_filters]  [sort]  [clear]  [submit]  [new] │  │' guides/customization/custom_actions.md` returning `1`)
-- [ ] AC-6: `guides/customization/styling.md § Class reference` carries the two new class rows (mechanical — no red test; verified by `grep -c 'auix-index-sort-' guides/customization/styling.md` returning `2`)
-- [ ] AC-7: `guides/whats_new/0.1.7.md` exists with the prescribed headings and `mix.exs` is untouched (mechanical — no red test; verified by `grep -c '^## ' guides/whats_new/0.1.7.md` returning `4`, `grep -c 'sort_disabled?: true' guides/whats_new/0.1.7.md` returning `1`, and `git diff --name-only origin/main...HEAD -- mix.exs` returning nothing)
+- [x] AC-3: `guides/core/layouts.md § Index Layout Options` lists `:sort_disabled?` directly after `:pagination_disabled?` (mechanical — no red test; verified by `grep -n -A1 'pagination_disabled?\` — Disable pagination' guides/core/layouts.md` showing the `:sort_disabled?` line)
+- [x] AC-4: `guides/core/liveview.md` § Built-in Events and § How Sorting Works read as prescribed (mechanical — no red test; verified by `grep -c 'sort_disabled?' guides/core/liveview.md` returning `2`)
+- [x] AC-5: `guides/customization/custom_actions.md` names `:default_sort` in the table and the remove example, and the diagram line keeps 61 characters (mechanical — no red test; verified by `grep -c ':default_sort' guides/customization/custom_actions.md` returning `2` and `grep -cF '│  │  [toggle_filters]  [sort]  [clear]  [submit]  [new] │  │' guides/customization/custom_actions.md` returning `1`)
+- [x] AC-6: `guides/customization/styling.md § Class reference` carries the two new class rows (mechanical — no red test; verified by `grep -c 'auix-index-sort-' guides/customization/styling.md` returning `2`)
+- [x] AC-7: `guides/whats_new/0.1.7.md` exists with the prescribed headings and `mix.exs` is untouched (mechanical — no red test; verified by `grep -c '^## ' guides/whats_new/0.1.7.md` returning `4`, `grep -c 'sort_disabled?: true' guides/whats_new/0.1.7.md` returning `1`, and `git diff --name-only origin/main...HEAD -- mix.exs` returning nothing)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
