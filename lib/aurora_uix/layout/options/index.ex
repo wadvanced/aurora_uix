@@ -17,6 +17,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:pagination_disabled?` - Controls whether pagination is enabled for the index list
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
     - Default: `false` (pagination active)
+  * `:sort_disabled?` - Turns off user sorting: the column headers and the card view's sort
+    control offer none, and the `"index-sort"` event is ignored. `:order_by` still applies.
+    - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
+    - Default: `false` (sorting active)
   * `:pagination_items_per_page` - Number of items to display per page.
     - Default: `40`.
   * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
@@ -119,6 +123,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
   defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_disabled?),
+    do: {:ok, false}
+
+  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :sort_disabled?),
     do: {:ok, false}
 
   defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}}, :page_title),

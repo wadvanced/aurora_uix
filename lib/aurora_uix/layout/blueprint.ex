@@ -328,6 +328,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Options
   - `:pagination_disabled?` (boolean()) - If true, pagination is not used for populating the index list.
+  - `:sort_disabled?` (boolean() | (map() -> boolean())) - If true, the index offers no user sorting: no sortable column headers, no card-view sort control, and the `"index-sort"` event is ignored. `:order_by` still applies.
   - `:page_title` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page title for the index layout. Example: `page_title: "Products List"` or `page_title: &custom_page_title/1`.
   - `:page_subtitle` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
   - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
