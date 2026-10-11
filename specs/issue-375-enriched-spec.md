@@ -9,7 +9,7 @@ The index card view (mobile) gets a sort control: the new `:default_sort` header
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
-| DOC-1 | Documentation | `CHANGELOG.md` § [0.1.7]; `guides/core/layouts.md` § Index Layout Options; `guides/core/liveview.md` § Built-in Events, § How Sorting Works; `guides/customization/custom_actions.md` § Index Layout Actions, § Action Operations; `guides/customization/styling.md` § Class reference | none | federico/375-doc-1-card-sort-docs | docs: document the card view sort control and sort_disabled? (#375 · DOC-1) |
+| DOC-1 | Documentation | `CHANGELOG.md` § [0.1.7]; `guides/core/layouts.md` § Index Layout Options; `guides/core/liveview.md` § Built-in Events, § How Sorting Works; `guides/customization/custom_actions.md` § Index Layout Actions, § Action Operations; `guides/customization/styling.md` § Class reference; `guides/whats_new/0.1.7.md` (new) | none | federico/375-doc-1-card-sort-docs | docs: document the card view sort control and sort_disabled? (#375 · DOC-1) |
 | UI-1 | UI | layout option `:sort_disabled?` · table header sort buttons · `"index-sort"` guard | DOC-1 | federico/375-ui-1-sort-disabled | feat: add the sort_disabled? index layout option (#375 · UI-1) |
 | UI-2 | UI | `:default_sort` header action (card view sort control) · theme | UI-1 | federico/375-ui-2-card-sort-control | feat: add a sort control to the mobile card view (#375 · UI-2) |
 
@@ -27,6 +27,7 @@ Depends on: none
 - `guides/core/liveview.md` § Built-in Events; § How Sorting Works
 - `guides/customization/custom_actions.md` § Index Layout Actions; § Action Operations
 - `guides/customization/styling.md` § Class reference
+- `guides/whats_new/0.1.7.md` — new file; `guides/whats_new/0.1.6.md` § Upgrading from 0.1.5, § Click-to-sort column headers (shape to copy)
 
 #### Implementation details
 
@@ -89,6 +90,76 @@ Depends on: none
    | `.auix-index-sort-direction` | Card-view sort direction button (arrow icon) | Structural only |
    ```
 
+##### guides/whats_new/0.1.7.md
+1. New file (`ls guides/whats_new` lists only `0.1.6.md`). Write it verbatim; the `# What's New in <version>` title, the intro paragraph, the link list, the `## Upgrading from <previous>` checklist first and the `## Where to go next` list copy the shape of `guides/whats_new/0.1.6.md`:
+   ````
+   # What's New in 0.1.7
+
+   This page walks through the changes of this release that you are most likely to use, with
+   examples you can paste into your own project. It is rewritten for every release; the
+   [CHANGELOG](../../CHANGELOG.md) keeps the complete history, including every fix.
+
+   - [Upgrading from 0.1.6](#upgrading-from-0-1-6)
+   - [Sort control in the mobile card view](#sort-control-in-the-mobile-card-view)
+   - [Turning user sorting off](#turning-user-sorting-off)
+
+   ## Upgrading from 0.1.6
+
+   This release is additive. One step is required.
+
+   **1. Re-generate the stylesheet.** The card view's sort control brings two new theme classes
+   (`auix-index-sort-action`, `auix-index-sort-direction`), and the generated `auix-*.css` files
+   are not rebuilt by a dependency update:
+
+   ```shell
+   mix auix.gen.stylesheet
+   ```
+
+   ## Sort control in the mobile card view
+
+   Below the `md` breakpoint the index renders cards instead of a table, and cards have no column
+   headers to click. The card view now carries a sort control: a select of the sortable fields
+   and, once a field is chosen, a button that reverses the direction. It emits the same
+   `"index-sort"` event and honours the same `sortable?` field flag as the column headers, on
+   both backends, so an index that sorts by its headers needs no change:
+
+   ```elixir
+   index_columns :product, [:reference, :name, :cost],
+     order_by: [asc: :name]            # the initial order, until the user sorts
+   ```
+
+   Fields opted out with `sortable?: false` are not offered. The control is the `:default_sort`
+   header action, hidden from the `md` breakpoint up, where the column headers sort. To drop it
+   and keep the column headers:
+
+   ```elixir
+   index_columns :product, [:reference, :name, :cost],
+     remove_header_action: :default_sort
+   ```
+
+   ## Turning user sorting off
+
+   The new index layout option `sort_disabled?` turns user sorting off for the whole index: no
+   sortable column headers, no card sort control, and the `"index-sort"` event is ignored.
+   `order_by` still applies:
+
+   ```elixir
+   index_columns :product, [:reference, :name, :cost],
+     order_by: [asc: :name],
+     sort_disabled?: true
+   ```
+
+   It accepts a boolean or an arity-1 function of the assigns, like `pagination_disabled?`.
+
+   ## Where to go next
+
+   - The full list of fixes and changes: [CHANGELOG](../../CHANGELOG.md)
+   - Index layout options: [Layouts](../core/layouts.md#index-layout-options)
+   - Adding, replacing and removing actions: [Custom Actions](../customization/custom_actions.md)
+   ````
+   The file ends with one newline after the last list item.
+2. `mix.exs` `docs.extras` and the `README.md` What's New link keep pointing at `guides/whats_new/0.1.6.md`: `prepare-release` repoints them when 0.1.7 is cut, and `mix.exs` is outside this section's file set (AC-2). An unlisted `guides/whats_new/*.md` file is exempt from the extras check by its `-not -path 'guides/whats_new/*'` clause.
+
 ##### Acceptance criteria
 - [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
@@ -101,6 +172,7 @@ Depends on: none
 - [ ] AC-4: `guides/core/liveview.md` § Built-in Events and § How Sorting Works read as prescribed (mechanical — no red test; verified by `grep -c 'sort_disabled?' guides/core/liveview.md` returning `2`)
 - [ ] AC-5: `guides/customization/custom_actions.md` names `:default_sort` in the table and the remove example, and the diagram line keeps 61 characters (mechanical — no red test; verified by `grep -c ':default_sort' guides/customization/custom_actions.md` returning `2` and `grep -cF '│  │  [toggle_filters]  [sort]  [clear]  [submit]  [new] │  │' guides/customization/custom_actions.md` returning `1`)
 - [ ] AC-6: `guides/customization/styling.md § Class reference` carries the two new class rows (mechanical — no red test; verified by `grep -c 'auix-index-sort-' guides/customization/styling.md` returning `2`)
+- [ ] AC-7: `guides/whats_new/0.1.7.md` exists with the prescribed headings and `mix.exs` is untouched (mechanical — no red test; verified by `grep -c '^## ' guides/whats_new/0.1.7.md` returning `4`, `grep -c 'sort_disabled?: true' guides/whats_new/0.1.7.md` returning `1`, and `git diff --name-only origin/main...HEAD -- mix.exs` returning nothing)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
