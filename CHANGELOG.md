@@ -1,6 +1,12 @@
 # Changelog for Aurora UIX
 
-## [0.1.7]
+## [0.1.7] - 2026-10-11
+
+**Card View Sorting & Safer Dynamic Ids**
+
+This release adds a sort control to the mobile card view and a `sort_disabled?` index option, fixes
+invalid CSS id selectors for ids starting with a digit (e.g. UUIDv7), stops accepting the
+never-working `:or_where` and `:select` index options, and updates Ash and AshPostgres.
 
 ### Fixed
 
