@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.7-rc.1"
+  @version "0.1.7"
 
   def project do
     [
@@ -45,7 +45,7 @@ defmodule Aurora.Uix.MixProject do
           "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/introduction/getting_started.md",
-          "guides/whats_new/0.1.6.md",
+          "guides/whats_new/0.1.7.md",
           "guides/core/resource_metadata.md",
           "guides/core/ash_integration.md",
           "guides/core/layouts.md",

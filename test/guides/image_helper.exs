@@ -54,6 +54,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     opts = get_options(screen_size, options_set)
 
     session
+    |> force_light_scheme()
     |> set_window_prefs(opts)
     |> pause()
     |> take_screenshot(name: file_name, log: true)
@@ -114,6 +115,21 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   end
 
   ## PRIVATE
+
+  # Pins prefers-color-scheme to light through the Chrome DevTools Protocol so the guide
+  # images never depend on the OS appearance of the machine that captures them.
+  @spec force_light_scheme(Wallaby.Session.t()) :: Wallaby.Session.t()
+  defp force_light_scheme(session) do
+    params = %{
+      cmd: "Emulation.setEmulatedMedia",
+      params: %{features: [%{name: "prefers-color-scheme", value: "light"}]}
+    }
+
+    {:ok, _response} =
+      Wallaby.HTTPClient.request(:post, "#{session.url}/goog/cdp/execute", params)
+
+    session
+  end
 
   # Pauses execution briefly to allow UI rendering to complete
   @spec pause(Wallaby.Session.t()) :: Wallaby.Session.t()
