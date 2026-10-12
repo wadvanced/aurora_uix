@@ -22,8 +22,8 @@ Spark gives typed `Spark.Options` schemas with file/line compile errors, generat
 |---|---|---|---|---|---|
 | DOC-1 | Documentation | CHANGELOG.md § [0.2.0], guides/core/layouts.md, guides/core/resource_metadata.md, guides/whats_new/0.2.md, documentation/dsls/DSL-Aurora.Uix.md, AGENTS.md | none | federico/318-doc-1-spark-dsl-migration | docs: spark DSL migration (0.2) (#318 · DOC-1) |
 | SCH-1 | Schema | lib/aurora_uix/dsl/entities/ and lib/aurora_uix/dsl/schemas/ | DOC-1 | federico/318-sch-1-dsl-entities | feat: spark DSL entity structs and schemas (#318 · SCH-1) |
-| UI-1 | UI | lib/aurora_uix/uix.ex, lib/aurora_uix/layout/ → lib/aurora_uix/dsl/ transformers, auix_configurations contract | DOC-1, SCH-1 | federico/318-ui-1-spark-switch | feat: switch use Aurora.Uix to use Spark.Dsl (#318 · UI-1) |
-| UI-2 | UI | lib/aurora_uix/dsl/transformers/ (parse_resources, lower_layout_tree, assign_node_ids, number_sections, merge_layout_trees, build_configurations) | DOC-1, SCH-1, UI-1 | federico/318-ui-2-transformers | feat: layout tree transformers for Spark DSL (#318 · UI-2) |
+| UI-1 | UI | lib/aurora_uix/dsl.ex, lib/aurora_uix/dsl/entities/ (auix_* + layout), lib/aurora_uix/dsl/info.ex, mix.exs, .formatter.exs, docs extras | DOC-1, SCH-1 | federico/318-ui-1-spark-switch | feat: spark DSL foundation, extension and entities (#318 · UI-1) |
+| UI-2 | UI | lib/aurora_uix/uix.ex, lib/aurora_uix/dsl/transformers/ (parse_resources, lower_layout_tree, assign_node_ids, number_sections, merge_layout_trees, build_configurations), lib/aurora_uix/layout/ deletion, test/support/golden/ | DOC-1, SCH-1, UI-1 | federico/318-ui-2-transformers | feat: layout tree transformers and Spark switch (#318 · UI-2) |
 
 A section starts only when every dependency is **merged**. Independent sections may run in parallel. Status is derived from GitHub, never recorded here.
 
@@ -241,44 +241,98 @@ Assertion API: plain `assert` on keyword schemas plus struct maps (parser-output
 3. `mix test` — parser test suites (both backends) green
 <!-- section:SCH-1:end -->
 <!-- section:UI-1:start -->
-### UI-1 — UI
+### UI-1 — UI · Spark foundation (extension, layout entities, go/no-go test)
 
 Depends on: DOC-1, SCH-1
 
 #### Documentation references
 
-- `lib/aurora_uix/uix.ex` — `__using__/1` module attribute change
-- `guides/core/layouts.md` — updated option tables (DOC-1)
+- `lib/aurora_uix/dsl.ex` — new extension module
+- `lib/aurora_uix/dsl/entities/auix_resource_metadata.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/auix_create_ui.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/index_columns.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/edit_layout.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/show_layout.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/inline.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/stacked.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/group.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/sections.ex` — new entity struct
+- `lib/aurora_uix/dsl/entities/section.ex` — new entity struct
+- `lib/aurora_uix/dsl/info.ex` — new info module
+- `mix.exs` — `defp deps/0`, `docs` `extras`
+- `.formatter.exs` — `spark_locals_without_parens`
+- `guides/advanced/advanced_usage.md` § Separating Resource Metadata from UI Modules
 
 #### Implementation details
 
-1. **`lib/aurora_uix/uix.ex` (`Aurora.Uix.__using__/1`)**: replace the current macro-based DSL setup with:
+Entity files follow the SCH-1 precedent (`lib/aurora_uix/dsl/entities/resource_metadata.ex`): each file defines one target struct module carrying `__spark_metadata__: nil`, an `@type t` naming `Spark.Dsl.Entity.spark_meta/0` for that key, plus `@doc false` `__entity__/0` returning the `%Spark.Dsl.Entity{}` declaration. Entity keys below come from `deps/spark/lib/spark/dsl/entity.ex` (`@fields`): `name`, `args`, `identifier`, `target`, `schema`, `entities`, `recursive_as`, `describe`. The nested-entity keyword shape follows the Reactor precedent (`Dsl.Step.__entity__()`, `deps/reactor/lib/reactor/dsl/step.ex`): `entities: [arguments: [Dsl.Argument.__entity__(), Dsl.WaitFor.__entity__()]]`. The empty recursion-collector shape follows `deps/reactor/lib/reactor/dsl/switch.ex` (`entities: [steps: []]`). `recursive_as` follows `deps/reactor/lib/reactor/dsl/around.ex` (`recursive_as: :steps`). The builder each entity generates is named after the entity (`defmacro entity.name(args, opts)`, `deps/spark/lib/spark/dsl/extension.ex`).
 
-   ```elixir
-   use Spark.Dsl, default_extensions: [extensions: [Aurora.Uix.Dsl]]
+1. `mix.exs` `defp deps/0` — insert the two lines below between `{:simple_sat, "~> 0.1"},` and `{:struct_inspect, "~> 0.1"},`, keeping alphabetical order:
+
+   ```
+   {:sourceror, "~> 1.2", only: :dev, runtime: false},
+   {:spark, "~> 2.7"},
    ```
 
-   This switches the module to Spark's DSL system while keeping the `Aurora.Uix.Dsl` extension loaded. The generated module keeps emitting `auix_resources/0`, `auix_resource/1` (`resource_metadata.ex:111,352`), `auix_layout_trees/0`, `auix_configurations/0`, `auix_preloads/0` (`create_ui.ex:73-88`), so tests and the documented `@auix_resource_metadata Mod.auix_resource(:name)` composition (`guides/advanced/advanced_usage.md:265-296`) keep working.
+   Justification: `Aurora.Uix.Dsl` (step 2) calls Spark modules directly, so `spark` becomes a direct dep instead of a transitive one (`mix.lock` pins `spark 2.7.6` under `{:ash, "~> 3.34"}`); `mix spark.formatter` (step 14) compiles its task module only when `Sourceror` is loadable (`deps/spark/lib/mix/tasks/spark.formatter.ex`), and `sourceror` is absent from `deps/`.
 
-2. **`auix_configurations/0` contract**: the map handed to `template.generate_module/1` (`create_ui.ex:327-335`) must stay structurally identical except where a step below declares an intentional change. Add a compile-time test verifying the map's shape is preserved.
+2. Create `lib/aurora_uix/dsl.ex` defining `Aurora.Uix.Dsl` (new; `grep -rn '^defmodule Aurora.Uix.Dsl$' lib/ --include='*.ex'` returns nothing; `grep -rn 'use Spark.Dsl' lib/ --include='*.ex'` returns nothing). Follow the Reactor precedent (`deps/reactor/lib/reactor/dsl.ex`): `use Spark.Dsl.Extension, sections: [@auix], transformers: [], verifiers: []` with `@auix %Spark.Dsl.Section{name: :auix, describe: "Aurora UIX resources plus layouts", top_level?: true, entities: [...]}` listing, in order: `Entity.AuixResourceMetadata.__entity__()`, `Entity.AuixCreateUi.__entity__()`, `Entity.IndexColumns.__entity__()`, `Entity.EditLayout.__entity__()`, `Entity.ShowLayout.__entity__()`, `Entity.Inline.__entity__()`, `Entity.Stacked.__entity__()`, `Entity.Group.__entity__()`, `Entity.Sections.__entity__()`, `Entity.Section.__entity__()`, `Entity.Field.__entity__()`, `Entity.Fields.__entity__()` (the last two are SCH-1's, `lib/aurora_uix/dsl/entities/field.ex`, `lib/aurora_uix/dsl/entities/fields.ex`). `transformers: []` plus `verifiers: []` are explicit: UI-2 registers its transformers; no verifiers exist in this issue.
 
-3. **`use Spark.Dsl, default_extensions: [extensions: [Aurora.Uix.Dsl]]`** ensures that `auix_resource_metadata … do … end` and `auix_create_ui do … end` remain callable at the top of a view module (no wrapper block), thanks to Spark's `top_level?: true` mechanic (`spark/dsl/extension.ex`).
+3. Create `lib/aurora_uix/dsl/entities/auix_resource_metadata.ex` defining `Aurora.Uix.Dsl.Entity.AuixResourceMetadata` (new; same empty search as step 2). Defstruct keys mirror `Entity.ResourceMetadata` (`lib/aurora_uix/dsl/entities/resource_metadata.ex`): `name`, `schema`, `context`, `ash_resource`, `ash_actor_assign`, `actor_assign`, `type`, `order_by`, `renderers`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :auix_resource_metadata`, `describe: "Declares UI metadata for one resource"`, `args: [:name]`, `identifier: :name`, `target: __MODULE__`, `schema: Aurora.Uix.Dsl.Entity.ResourceMetadata.__entity__().schema`, `entities: [field: [Entity.Field.__entity__(), Entity.Fields.__entity__()]]`. The schema reuse keeps one source of truth with SCH-1; the `field` key groups both field entities under one retrieval path.
+
+4. Create `lib/aurora_uix/dsl/entities/auix_create_ui.ex` defining `Aurora.Uix.Dsl.Entity.AuixCreateUi` (new; same empty search as step 2). Defstruct keys: `for`, `renderers`, `default_fields_layout`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :auix_create_ui`, `describe: "Generates index, form and show layouts for resources"`, `args: []`, `target: __MODULE__`, `entities: [layout: [Entity.IndexColumns.__entity__(), Entity.EditLayout.__entity__(), Entity.ShowLayout.__entity__()]]`, schema keys, every key required `false`: `for` (`{:or, [:atom, {:list, :atom}]}`, the atom plus list shapes filtered by `filter_resources/2`, `lib/aurora_uix/layout/create_ui.ex`); `renderers` (`{:map, :atom, {:or, [:atom, {:fun, 1}}]}`, the `html_type => renderer` table in the `auix_create_ui/2` docs, `lib/aurora_uix/layout/create_ui.ex`); `default_fields_layout` (`{:in, [:stacked, :inline]}`, default `:stacked` in `build_default_layout_paths/4`, `lib/aurora_uix/layout/blueprint.ex`, exercised as `default_fields_layout: :inline` in `test/cases_live/create_ui_default_layout_inline_test.exs`).
+
+5. Create `lib/aurora_uix/dsl/entities/index_columns.ex` defining `Aurora.Uix.Dsl.Entity.IndexColumns` (new; same empty search as step 2). Defstruct keys: `name`, `fields`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :index_columns`, `describe: "Declares the index table columns for one resource"`, `args: [:name, :fields]`, `identifier: :name`, `target: __MODULE__`, `schema: [name: [type: :atom, required: true], fields: [type: :list, required: true]] ++ Aurora.Uix.Dsl.Schema.ActionOptions.schema()`. Args mirror `index_columns(name, fields, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`); the action keys cover the `index_columns/3` Actions docs family (`lib/aurora_uix/action.ex` `action_option_names/0`).
+
+6. Create `lib/aurora_uix/dsl/entities/edit_layout.ex` defining `Aurora.Uix.Dsl.Entity.EditLayout` (new; same empty search as step 2). Defstruct keys: `name`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :edit_layout`, `describe: "Declares the form layout for one resource"`, `args: [:name]`, `identifier: :name`, `target: __MODULE__`, `entities: [inner_elements: []]`, `schema: [name: [type: :atom, required: true]] ++ Aurora.Uix.Dsl.Schema.FormOptions.schema() ++ Aurora.Uix.Dsl.Schema.ActionOptions.schema()`. Args mirror `edit_layout(name, opts, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`).
+
+7. Create `lib/aurora_uix/dsl/entities/show_layout.ex` defining `Aurora.Uix.Dsl.Entity.ShowLayout` (new; same empty search as step 2). Defstruct keys: `name`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :show_layout`, `describe: "Declares the show layout for one resource"`, `args: [:name]`, `identifier: :name`, `target: __MODULE__`, `entities: [inner_elements: []]`, `schema: [name: [type: :atom, required: true]] ++ Aurora.Uix.Dsl.Schema.ShowOptions.schema() ++ Aurora.Uix.Dsl.Schema.ActionOptions.schema()`. Args mirror `show_layout(name, opts, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`).
+
+8. Create `lib/aurora_uix/dsl/entities/inline.ex` defining `Aurora.Uix.Dsl.Entity.Inline` (new; same empty search as step 2). Defstruct keys: `fields`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :inline`, `describe: "Groups fields horizontally"`, `args: [{:optional, :fields}]`, `target: __MODULE__`, `recursive_as: :inner_elements`, `entities: [inner_elements: []]`, `schema: [fields: [type: {:or, [{:list, :atom}, :keyword_list]}, required: false]]`. Args mirror `inline(fields, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`); the field shapes mirror the `inline/2` docs ("a list of field identifiers or keyword options", `lib/aurora_uix/layout/blueprint.ex`); the optional-arg shape follows `Dsl.Step` (`deps/reactor/lib/reactor/dsl/step.ex`, `args: [:name, {:optional, :impl}]`).
+
+9. Create `lib/aurora_uix/dsl/entities/stacked.ex` defining `Aurora.Uix.Dsl.Entity.Stacked` (new; same empty search as step 2). Defstruct keys: `fields`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :stacked`, `describe: "Groups fields vertically"`, `args: [{:optional, :fields}]`, `target: __MODULE__`, `recursive_as: :inner_elements`, `entities: [inner_elements: []]`, `schema: [fields: [type: {:or, [{:list, :atom}, :keyword_list]}, required: false]]`. Args mirror `stacked(fields, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`).
+
+10. Create `lib/aurora_uix/dsl/entities/group.ex` defining `Aurora.Uix.Dsl.Entity.Group` (new; same empty search as step 2). Defstruct keys: `title`, `fields`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :group`, `describe: "Segments related fields under a title"`, `args: [:title, {:optional, :fields}]`, `identifier: :title`, `target: __MODULE__`, `recursive_as: :inner_elements`, `entities: [inner_elements: []]`, schema keys: `title` (`:string`, required `true`, per the `group/3` docs `title (string())`, `lib/aurora_uix/layout/blueprint.ex`); `fields` (same type as step 8, required `false`); `renderers` (`{:map, :atom, {:or, [:atom, {:fun, 1}]}`, required `false`, same table as step 4). Args mirror `group(title, opts, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`); the fields-list call shape mirrors `guides/core/layouts.md` § Group Layout — Bordered Field Grouping; a trailing keyword matching a schema key is parsed as opts, a positional list as `fields` (`shuffle_opts_to_end/5`, `deps/spark/lib/spark/dsl/extension.ex`).
+
+11. Create `lib/aurora_uix/dsl/entities/sections.ex` defining `Aurora.Uix.Dsl.Entity.Sections` (new; same empty search as step 2). Defstruct keys: `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :sections`, `describe: "Groups section tabs"`, `args: []`, `target: __MODULE__`, `recursive_as: :inner_elements`, `entities: [inner_elements: []]`, `schema: []`. Args mirror `sections(opts, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`).
+
+12. Create `lib/aurora_uix/dsl/entities/section.ex` defining `Aurora.Uix.Dsl.Entity.Section` (new; same empty search as step 2). Defstruct keys: `label`, `fields`, `default`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with `name: :section`, `describe: "One tab inside a sections container"`, `args: [:label, {:optional, :fields}]`, `identifier: :label`, `target: __MODULE__`, `recursive_as: :inner_elements`, `entities: [inner_elements: []]`, schema keys: `label` (`:string`, required `true`, per the `section/3` docs `label (string())`, `lib/aurora_uix/layout/blueprint.ex`); `fields` (same type as step 8, required `false`); `default` (`:boolean`, required `false`, the `default: true` tab shape in `test/cases_live/nested_sections_ui_layout_test.exs:47`). Args mirror `section(label, opts, do_block \\ nil)` (`lib/aurora_uix/layout/blueprint.ex`).
+
+13. Create `lib/aurora_uix/dsl/info.ex` defining `Aurora.Uix.Dsl.Info` (new; `grep -rn 'Dsl.Info' lib/ --include='*.ex'` returns nothing) with `use Spark.InfoGenerator, extension: Aurora.Uix.Dsl, sections: [:auix]`, following `deps/spark/lib/spark/info_generator.ex` (`use Spark.InfoGenerator, extension: MyDslExtension, sections: [:my_section]`).
+
+14. `.formatter.exs` — append `:spark` to `import_deps` (`import_deps: [:ash]` becomes `import_deps: [:ash, :spark]`) and insert the line `spark_locals_without_parens = []` before the opening `[`, keeping the keyword list as the file's last expression. Run `mix spark.formatter --extensions Aurora.Uix.Dsl` and commit the populated file. The task requires that exact variable name (`deps/spark/lib/mix/tasks/spark.formatter.ex` raises without it).
+
+15. `mix.exs` `docs` `extras` — insert `"documentation/dsls/DSL-Aurora.Uix.md",` after `"guides/advanced/troubleshooting.md",`, keeping the existing order. The file is DOC-1's committed placeholder; this section does not change its bytes.
+
+16. Leave `lib/aurora_uix/uix.ex` plus everything under `lib/aurora_uix/layout/` unmodified in this section. `use Aurora.Uix` keeps running the old macros with zero behaviour change; the switch to `use Spark.Dsl` belongs to UI-2. New files reference none of `Ecto.Association.*`, `Ecto.Embedded`, `Ash.Resource.*`; everything downstream keeps consuming `%Field{}` atoms.
+
+##### Red tests
+
+| AC | Placement | Setup | Assertion sketch |
+|---|---|---|---|
+| AC-2, AC-3, AC-4 | new file `test/cases/dsl_foundation_test.exs` (`ls test/cases/dsl_foundation_test.exs` returns nothing) | no DB; one test view module with `use Spark.Dsl, extensions: [Aurora.Uix.Dsl]`, declaring `auix_resource_metadata :product do field :name end` plus `auix_create_ui` with three-deep nesting (`group` inside `section` inside `sections` inside `edit_layout`), and `edit_title: &__MODULE__.title/1` on the `edit_layout` entity | `Spark.Dsl.Extension.get_entities(view, [:auix])` returns the `auix_resource_metadata` plus `auix_create_ui` entities; the nested `inner_elements` chain is three deep; the `:edit_title` value `== &__MODULE__.title/1` |
+| AC-6 | add to `test/cases/dsl_foundation_test.exs`, in the matching `describe` | no DB; same extension, view module declaring an unknown option | declaring `unknown_opt: true` raises `Spark.Error.DslError` |
+
+Assertion API: plain `assert` on entity structs plus `assert_raise` (compile-time extension layer, no DB, no mocks).
 
 #### Acceptance criteria
 
-- [ ] AC-1: `lib/aurora_uix/uix.ex` compiles with `--warnings-as-errors` and uses `use Spark.Dsl, default_extensions: [extensions: [Aurora.Uix.Dsl]]`
-- [ ] AC-2: The generated module still emits `auix_resources/0`, `auix_resource/1`, `auix_layout_trees/0`, `auix_configurations/0`, `auix_preloads/0` with the correct shapes
-- [ ] AC-3: `auix_resource_metadata :product, context: MyApp.Accounts, schema: MyApp.Accounts.Product do … end` still calls correctly at module top level
-- [ ] AC-4: `auix_create_ui do … end` still calls correctly at module top level
-- [ ] AC-5: The compile-time test for `auix_configurations/0` map shape passes
+- [ ] AC-1: `mix.exs` carries `{:spark, "~> 2.7"}` plus `{:sourceror, "~> 1.2", only: :dev, runtime: false}` under `defp deps/0` (mechanical — no red test; verified by `grep -n 'spark\|sourceror' mix.exs` returning two lines)
+- [ ] AC-2: `lib/aurora_uix/dsl.ex` compiles with `--warnings-as-errors`; `auix_resource_metadata` plus `auix_create_ui` are callable at module top level with no wrapper block
+- [ ] AC-3: every entity in steps 3–12 compiles with `--warnings-as-errors` and carries the prescribed name, args plus target; layout entities nest three levels deep
+- [ ] AC-4: named captures in entity options survive as real captures
+- [ ] AC-5: `.formatter.exs` carries the populated `spark_locals_without_parens` list plus `mix.exs` extras link the cheat-sheet placeholder (mechanical — no red test; verified by `grep -n 'spark_locals_without_parens' .formatter.exs` returning a populated list plus `grep -n 'DSL-Aurora' mix.exs` returning one line)
+- [ ] AC-6: an unknown option fails at compile time with `Spark.Error.DslError`
+- [ ] AC-7: `lib/aurora_uix/uix.ex` plus `lib/aurora_uix/layout/` unmodified; the pre-existing suite stays green (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` excluding those paths)
 
 ##### Green checks
 
-1. `mix compile --warnings-as-errors` clean
-2. `mix test` — full suite green (review-issue runs the suite)
+1. `mix compile --warnings-as-errors` clean for all new files
+2. `mix test test/cases/dsl_foundation_test.exs` green
+3. `mix test` — full suite green (review-issue runs the suite)
 <!-- section:UI-1:end -->
 <!-- section:UI-2:start -->
-### UI-2 — UI
+### UI-2 — UI · Layout transformers, Spark switch, old-DSL deletion
 
 Depends on: DOC-1, SCH-1, UI-1
 
@@ -290,8 +344,14 @@ Depends on: DOC-1, SCH-1, UI-1
 - `lib/aurora_uix/dsl/transformers/number_sections.ex` — new transformer module
 - `lib/aurora_uix/dsl/transformers/merge_layout_trees.ex` — new transformer module
 - `lib/aurora_uix/dsl/transformers/build_configurations.ex` — new transformer module
+- `lib/aurora_uix/uix.ex` — `__using__/1` switch
+- `lib/aurora_uix/layout/blueprint.ex`, `lib/aurora_uix/layout/create_ui.ex`, `lib/aurora_uix/layout/create_layout.ex` — deleted
+- `test/support/golden/` — new snapshot directory
+- `guides/advanced/advanced_usage.md` § Separating Resource Metadata from UI Modules
 
 #### Implementation details
+
+Transformer modules follow the Spark precedent (`deps/spark/lib/spark/dsl/transformer.ex`): each file defines one module with `use Spark.Dsl.Transformer`, `transform/1` returning one of `:ok`, `{:ok, dsl_state}`, `{:error, term}`, `:halt`, plus `before?/1`, `after?/1`, `after_compile?/0` only when ordering demands it. State reads use `Transformer.get_entities/2`, `Transformer.get_option/3`, `Transformer.get_persisted/2`; emitted module functions use `Transformer.eval/3` (`deps/spark/lib/spark/dsl/transformer.ex`).
 
 1. **`lib/aurora_uix/dsl/transformers/parse_resources.ex`** (`Aurora.Uix.Dsl.Transformers.ParseResources`):
 
@@ -304,6 +364,7 @@ Depends on: DOC-1, SCH-1, UI-1
    - Converts each layout node to `%TreePath{tag:, name:, config:, opts:, inner_elements:}`
    - Handles `inline`, `stacked`, `group`, `sections`, `section`, `field` nodes with `recursive_as: :inner_elements`
    - Expands each `Aurora.Uix.Dsl.Entity.Fields` entity (SCH-1 step 3) into N `field` entities in `keys` order before lowering.
+   - Lowers nodes by tag wherever they appear; no placement validation exists in this issue.
 
 3. **`lib/aurora_uix/dsl/transformers/assign_node_ids.ex`** (`Aurora.Uix.Dsl.Transformers.AssignNodeIds`):
 
@@ -315,6 +376,7 @@ Depends on: DOC-1, SCH-1, UI-1
 
    - Ports `Blueprint.parse_sections/2` and `normalize_sections_and_tabs/8` (`blueprint.ex:681-932`)
    - Handles `sections_index`, `tabs`, `active`, `tab_parent_id`, `maybe_mark_first_tab/2`
+   - Only `:form` plus `:show` trees are renumbered (`parse_sections/2` passes other layout types through, `blueprint.ex:683,692`)
 
 5. **`lib/aurora_uix/dsl/transformers/merge_layout_trees.ex`** (`Aurora.Uix.Dsl.Transformers.MergeLayoutTrees`):
 
@@ -327,25 +389,45 @@ Depends on: DOC-1, SCH-1, UI-1
    - Ports `fill_missing_paths/3` (form → show cloning, `create_ui.ex:347-367`)
    - Ports `fold_field_opts_into_config/1` (`create_ui.ex:140-151` — still needed because `get_field/3` in `templates/basic/helpers.ex` merges only `:config`)
    - Ports `extract_resource_preloads/1` and the renderer-table validation
+   - Merges the module-level renderer table read from the caller: `Transformer.get_persisted(dsl_state, :env)` carries the caller compile env, `Module.get_attribute(env.module, :auix_html_type_renderers)` with fallback `%{}`, reproducing the `Renderers.validate_table!("use Aurora.Uix, renderers:", ...)` call in `lib/aurora_uix/layout/create_ui.ex`; the compile env is persisted under `:env` (`run_transformers/4`, `deps/spark/lib/spark/dsl/extension.ex`)
+   - Emits `auix_resources/0`, `auix_resource/1`, `auix_layout_trees/0`, `auix_configurations/0`, `auix_preloads/0` through `Transformer.eval/3` calls, so the shapes defined today (`lib/aurora_uix/layout/resource_metadata.ex:111,352`, `lib/aurora_uix/layout/create_ui.ex:73-88`) keep compiling with identical return shapes
 
-7. **`use Aurora.Uix` → `use Spark.Dsl` switch** (from UI-1) ensures that `auix_layout_trees/0`, `auix_configurations/0`, `auix_preloads/0` keep their shapes.
+7. **`lib/aurora_uix/uix.ex` (`Aurora.Uix.__using__/1`, `lib/aurora_uix/uix.ex:105-124`)**: keep the `@auix_html_type_renderers` assignment from the `:renderers` use-opt (`lib/aurora_uix/uix.ex:107`) and replace every other line of the `quote` body with `use Spark.Dsl, default_extensions: [extensions: [Aurora.Uix.Dsl]]` (`deps/spark/lib/spark/dsl.ex`, `default_extensions` schema). The documented `@auix_resource_metadata Mod.auix_resource(:name)` composition (`guides/advanced/advanced_usage.md` § Separating Resource Metadata from UI Modules) keeps working through the step-6 emissions. All six transformers stay backend-agnostic: they move the existing callers while both backend parsers run unchanged for `:ash` plus `:ctx` resources; nothing here builds a changeset.
+
+8. Delete `lib/aurora_uix/layout/blueprint.ex`, `lib/aurora_uix/layout/create_ui.ex`, `lib/aurora_uix/layout/create_layout.ex` (whose `__before_compile__` body is already commented out). In `lib/aurora_uix/layout/helpers.ex` delete the macro-plumbing functions `extract_block_options/2`, `prepare_block/1`, `register_dsl_entry/6`, `create_layout_opts/1`, `create_layout/2`, `put_manual_opts/3`, `put_manual_tree_paths/3`, `reduce_blocks/1`, `extract_block/1`, `create_field_tag/2`, `process_field_tag_option/2` (`lib/aurora_uix/layout/helpers.ex`) and keep `get_fields_parser_module/1` plus `field_embedded_resource/2`.
+
+9. Rewrite the three `auix_create_layout` call sites (`test/cases_live/manual_trees_test.exs:16`, `test/cases_live/manual_layouts_test.exs:16,26`) against `auix_create_ui`, preserving resource names, options plus block contents; `auix_create_layout` no longer exists.
+
+10. Create `test/support/golden/` holding one snapshot per representative view module (`test/cases_live/create_ui_default_layout_test.exs`, `create_ui_default_layout_inline_test.exs`, `nested_sections_ui_layout_test.exs`, `group_ui_layout_test.exs`, `section_ui_layout_test.exs`, `manual_trees_test.exs`, `separated_multiple_resources_ui_test.exs`, `ash_default_layout_test.exs`): the eight modules span both backends (`ash_default_layout_test.exs` declares `ash_resource:`, the rest declare `context:` plus `schema:`). Each snapshot records `auix_resources/0`, `auix_layout_trees/0`, `auix_configurations/0` with exact ids (step 3 makes them deterministic, so no id normalisation) and function values compared as `{module, name, arity}`. Regeneration runs only under `AUIX_REGEN_GOLDEN=1` (new; no such variable exists in the repo), never silently. A snapshotted module missing from the golden file fails loudly.
+
+##### Red tests
+
+| AC | Placement | Setup | Assertion sketch |
+|---|---|---|---|
+| AC-1, AC-2, AC-3, AC-4, AC-5, AC-6 | new file `test/cases/dsl_transformers_test.exs` (`ls test/cases/dsl_transformers_test.exs` returns nothing) | no DB; one test view module per transformer with `use Spark.Dsl, extensions: [Aurora.Uix.Dsl]`, declaring the entities each transformer consumes | `ParseResources` output carries the routed `data` keys; `LowerLayoutTree` output carries `%TreePath{}` tags plus names with `inner_elements`; `AssignNodeIds` output matches `auix-group-<slug>-<n>` shape; `NumberSections` output carries numbering; `MergeLayoutTrees` output merges opts plus inner elements; `BuildConfigurations` output carries the configuration keys |
+| AC-7 | new file `test/cases/dsl_golden_test.exs` (`ls test/cases/dsl_golden_test.exs` returns nothing) | no DB; loads every snapshot under `test/support/golden/` | snapshot equality for all three functions per module; a missing module fails |
+| AC-8 | add to `test/cases/dsl_transformers_test.exs`, in the matching `describe` | no DB; view module declaring an unknown option | declaring `unknown_opt: true` raises `Spark.Error.DslError` |
+
+Assertion API: plain `assert` on structs plus maps plus `assert_raise` (compile-time transformer layer, no DB, no mocks).
 
 #### Acceptance criteria
 
-- [ ] AC-1: `lib/aurora_uix/dsl/transformers/parse_resources.ex` compiles and correctly lowers resource entities
+- [ ] AC-1: `lib/aurora_uix/dsl/transformers/parse_resources.ex` compiles and lowers resource entities with routed `data` keys
 - [ ] AC-2: `lib/aurora_uix/dsl/transformers/lower_layout_tree.ex` compiles and converts layout nodes to `%TreePath{}` with correct `inner_elements`
 - [ ] AC-3: `lib/aurora_uix/dsl/transformers/assign_node_ids.ex` compiles and produces deterministic ids (`auix-group-<slug>-<n>`, etc.)
-- [ ] AC-4: `lib/aurora_uix/dsl/transformers/number_sections.ex` compiles and correctly numbers sections and tabs
-- [ ] AC-5: `lib/aurora_uix/dsl/transformers/merge_layout_trees.ex` compiles and merges layout trees correctly
-- [ ] AC-6: `lib/aurora_uix/dsl/transformers/build_configurations.ex` compiles and builds configurations with correct layout paths
-- [ ] AC-7: Golden diff test (step 1) passes for representative view modules
-- [ ] AC-8: `mix compile --warnings-as-errors` clean for all new transformer files
+- [ ] AC-4: `lib/aurora_uix/dsl/transformers/number_sections.ex` compiles and numbers sections plus tabs
+- [ ] AC-5: `lib/aurora_uix/dsl/transformers/merge_layout_trees.ex` compiles and merges layout trees by `{name, tag}`
+- [ ] AC-6: `lib/aurora_uix/dsl/transformers/build_configurations.ex` compiles and emits the five `auix_*` functions with identical return shapes
+- [ ] AC-7: `test/support/golden/` snapshots exist and the golden test passes with exact ids
+- [ ] AC-8: an unknown option fails at compile time with `Spark.Error.DslError`
+- [ ] AC-9: `lib/aurora_uix/uix.ex` switched; the three layout files deleted; `helpers.ex` trimmed; the three manual call sites rewritten (mechanical — no red test; verified by `ls lib/aurora_uix/layout/blueprint.ex` failing plus `grep -rn 'auix_create_layout' test/ lib/ --include='*.ex' --include='*.exs'` returning nothing)
+- [ ] AC-10: `mix compile --warnings-as-errors` clean for all new plus touched files (mechanical — no red test; verified by the compile command)
 
 ##### Green checks
 
-1. `mix compile --warnings-as-errors` clean for all new transformer files
-2. `mix test` — full suite green (review-issue runs the suite)
-3. Golden diff empty except for step-2 ids (deterministic node ids)
+1. `mix compile --warnings-as-errors` clean for all new plus touched files
+2. `mix test test/cases/dsl_transformers_test.exs test/cases/dsl_golden_test.exs test/cases_live/manual_trees_test.exs test/cases_live/manual_layouts_test.exs` green
+3. `mix test` — full suite green (review-issue runs the suite)
 <!-- section:UI-2:end -->
 
 ---
