@@ -15,10 +15,15 @@ never-working `:or_where` and `:select` index options, and updates Ash and AshPo
 ### Added
 
 - **Sort control in the mobile card view**
-  - The card view, which has no column headers, gets a select of the sortable fields and a
-    button that reverses the direction, on both backends. It is the new `:default_sort` header
-    action, hidden from the `md` breakpoint up. New classes `auix-index-sort-action` and
-    `auix-index-sort-direction`.
+  - The card view, which has no column headers, gets a select of "Default order" (the backend
+    order, no user sort) and the sortable fields, with a switch button beside it that reverses
+    the direction, on both backends. The switch is disabled while the default order is shown.
+    It is the new `:default_sort` header action, hidden from the `md` breakpoint up, and has
+    the same height as the other header buttons. New class `auix-index-sort-action`.
+  - The select emits `"index-sort"` with `"sort"` set to the field key (or `""` to clear the
+    sort); the switch emits the new `"index-sort-direction"` event.
+  - Sortable column headers cycle through three states: a click sorts ascending, a second click
+    descending and a third returns to the backend order.
   - New index layout option `sort_disabled?: true` turns user sorting off: no sortable column
     headers, no card sort control, and the `"index-sort"` event is ignored. `order_by` still
     applies.

@@ -560,7 +560,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @doc """
   Returns the icon name for a sort direction.
 
-  Shared by the sortable column headers and the card view's sort direction button.
+  Shared by the sortable column headers and the card view's direction switch.
 
   ## Parameters
   - `direction` (:asc | :desc | nil) - The sort direction; `nil` for an unsorted column.

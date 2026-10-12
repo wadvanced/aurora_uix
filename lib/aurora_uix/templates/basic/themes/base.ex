@@ -1790,8 +1790,29 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-index-sort-action {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: stretch;
         gap: var(--auix-gap-minimal);
+      }
+
+      .auix-index-sort-action form,
+      .auix-index-sort-action .auix-fieldset {
+        display: flex;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* The hero icon keeps its own 1.5rem box, so the switch drops its vertical padding and
+         stretches to the select height, matching the other header buttons. */
+      .auix-index-sort-action button {
+        padding-top: 0;
+        padding-bottom: 0;
+        justify-content: center;
+      }
+
+      .auix-index-sort-action .auix-select {
+        box-sizing: border-box;
+        font-size: var(--auix-font-size-caption);
+        font-weight: var(--auix-font-weight-bold);
       }
 
       @media (min-width: #{breakpoint(:md)}) {
@@ -1799,20 +1820,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
           display: none;
         }
       }
-    """
-  end
-
-  def rule(:auix_index_sort_direction) do
-    """
-    .auix-index-sort-direction {
-      display: inline-flex;
-      align-items: center;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-    }
     """
   end
 

@@ -494,8 +494,7 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-horizontal-divider` | Horizontal rule separator | `--auix-border-width-default`, `--auix-color-horizontal-divider`, `--auix-margin-default` |
 | `.auix-sections-tab-button` | Section/tab navigation button | `--auix-padding-minimal`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-border-width-thick`, `--auix-border-radius-default` |
 | `.auix-items-table-header-sort` | Sortable index column header button (label + direction arrow) | `--auix-gap-minimal` |
-| `.auix-index-sort-action` | Card-view sort control in the index header actions (field select + direction button); hidden from the `md` breakpoint up, where the column headers sort | `--auix-gap-minimal` |
-| `.auix-index-sort-direction` | Card-view sort direction button (arrow icon) | Structural only |
+| `.auix-index-sort-action` | Card-view sort control in the index header actions (field select plus direction switch button); hidden from the `md` breakpoint up, where the column headers sort | `--auix-gap-minimal` |
 
 ### Scoping example
 

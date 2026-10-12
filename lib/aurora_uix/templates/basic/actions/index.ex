@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Supports dynamic modification of actions via layout tree options
   - Includes responsive pagination controls with multiple breakpoints
   - Offers filter management actions (clear/submit)
-  - Offers a card-view sort control (sortable-field select and direction toggle)
+  - Offers a card-view sort control (a select of default order plus the sortable fields, and a direction switch)
 
   ## Key Constraints
 
@@ -361,8 +361,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
-  Renders the sort control for the index card view: a select of the sortable index fields
-  and, once a sort is active, a button that reverses its direction. Both emit `"index-sort"`.
+  Renders the sort control for the index card view: a select of "Default order" (the backend
+  order, no user sort) and the sortable index fields, plus a switch button that reverses the
+  direction of the active sort. The switch is disabled while the default order is shown.
+
+  The select emits `"index-sort"` with `"sort"` set to the field key (or `""`); the button
+  emits `"index-sort-direction"`.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
@@ -382,23 +386,28 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       for %{sortable?: true} = field <- auix.index_fields,
           do: {dt(field.label), to_string(field.key)}
 
-    assigns = Map.put(assigns, :sort_options, sort_options)
+    assigns =
+      assigns
+      |> Map.put(:sort_options, sort_options)
+      |> Map.put(:sort_key, auix.sort && to_string(auix.sort.key))
+      |> Map.put(:sort_icon, BasicHelpers.sort_icon(auix.sort && auix.sort.direction))
 
     ~H"""
     <div :if={@sort_options != []} class="auix-index-sort-action" name={"auix-sort_action-#{@auix.module}"}>
       <.form for={%{}} id={"auix-sort-form-#{@auix.module}"} phx-change="index-sort">
-        <.input type="select" id={"auix-sort-key-#{@auix.module}"} name="key"
+        <.input type="select" id={"auix-sort-key-#{@auix.module}"} name="sort"
             options={@sort_options}
-            value={@auix.sort && to_string(@auix.sort.key)}
-            prompt={if is_nil(@auix.sort), do: dt("Sort by")}
+            value={@sort_key}
+            prompt={dt("Default order")}
             omit_label?={true} />
       </.form>
-      <button :if={@auix.sort} type="button" class="auix-index-sort-direction"
+      <.button type="button" class="auix-button--alt"
           name={"auix-sort_direction-#{@auix.module}"}
-          phx-click="index-sort" phx-value-key={@auix.sort.key}
+          disabled={is_nil(@auix.sort)}
+          phx-click="index-sort-direction"
           aria-label={dt("Reverse sort direction")}>
-        <.icon name={BasicHelpers.sort_icon(@auix.sort.direction)} class="auix-icon-size-5" />
-      </button>
+        <.icon name={@sort_icon} />
+      </.button>
     </div>
     """
   end

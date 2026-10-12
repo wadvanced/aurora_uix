@@ -52,7 +52,7 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     refute has_element?(view, "th[aria-sort='ascending']")
   end
 
-  test "the card sort control offers only the sortable fields", %{conn: conn} do
+  test "the card sort select offers default order and only the sortable fields", %{conn: conn} do
     view = prepare_sort_test(conn)
 
     for value <- ["", "name"],
@@ -60,15 +60,17 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
           assert(
             has_element?(
               view,
-              "#auix-sort-form-author select[name='key'] option[value='#{value}']"
+              "#auix-sort-form-author select[name='sort'] option[value='#{value}']"
             )
           )
 
     for value <- ["bio", "email", "selected_check__"],
         do: refute(has_element?(view, "#auix-sort-form-author option[value='#{value}']"))
+
+    assert has_element?(view, "button[name='auix-sort_direction-author'][disabled]")
   end
 
-  test "the card sort select sorts ascending, its direction button reverses", %{conn: conn} do
+  test "the card sort select and direction switch sort, reverse and clear", %{conn: conn} do
     view = conn |> prepare_sort_test() |> select_sort("name")
 
     assert mobile_name_cells(view) == ["Alpha", "Bravo", "Charlie"]
@@ -80,11 +82,22 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
 
     assert mobile_name_cells(view) == ["Charlie", "Bravo", "Alpha"]
     assert has_element?(view, "th[aria-sort='descending'] button[name='auix-sort-name']")
+    assert has_element?(view, "button[name='auix-sort_direction-author'] span.hero-chevron-down")
 
-    assert has_element?(
-             view,
-             "button[name='auix-sort_direction-author'] span.hero-chevron-down"
-           )
+    select_sort(view, "")
+
+    assert mobile_name_cells(view) == ["Charlie", "Alpha", "Bravo"]
+    assert has_element?(view, "button[name='auix-sort_direction-author'][disabled]")
+  end
+
+  test "a third header click returns to the backend order", %{conn: conn} do
+    view = conn |> prepare_sort_test() |> click_sort(:name) |> click_sort(:name)
+    assert name_cells(view) == ["Charlie", "Bravo", "Alpha"]
+
+    click_sort(view, :name)
+
+    assert name_cells(view) == ["Charlie", "Alpha", "Bravo"]
+    assert has_element?(view, "th[aria-sort='none'] button[name='auix-sort-name']")
   end
 
   @spec prepare_sort_test(Plug.Conn.t()) :: View.t()
@@ -121,9 +134,9 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
   end
 
   @spec select_sort(View.t(), binary()) :: View.t()
-  defp select_sort(view, key) do
+  defp select_sort(view, sort) do
     view
-    |> form("#auix-sort-form-author", %{"key" => key})
+    |> form("#auix-sort-form-author", %{"sort" => sort})
     |> render_change()
 
     view
