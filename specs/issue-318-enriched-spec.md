@@ -223,16 +223,16 @@ Assertion API: plain `assert` on keyword schemas plus struct maps (parser-output
 
 #### Acceptance criteria
 
-- [ ] AC-1: `lib/aurora_uix/dsl/entities/resource_metadata.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.ResourceMetadata` with `__entity__/0` naming `:resource_metadata`, args `[:name]` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus `mix run -e 'IO.inspect(Aurora.Uix.Dsl.Entity.ResourceMetadata.__entity__().name)'` printing `:resource_metadata`)
-- [ ] AC-2: `lib/aurora_uix/dsl/entities/field.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.Field` with `__entity__/0` naming `:field`, args `[:key]`, schema `FieldOptions.schema/0` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus the same `mix run -e` inspection printing `:field`)
-- [ ] AC-3: `lib/aurora_uix/dsl/entities/fields.ex` compiles and defines `Aurora.Uix.Dsl.Entity.Fields` with `validate_keys/1` plus struct expansion input for the UI-2 lowering transformer
-- [ ] AC-4: `lib/aurora_uix/dsl/schemas/field_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FieldOptions` with `schema/0` carrying exactly the 22 keys of step 4
-- [ ] AC-5: `lib/aurora_uix/dsl/schemas/index_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.IndexOptions` with `schema/0` carrying exactly the keys of step 5
-- [ ] AC-6: `lib/aurora_uix/dsl/schemas/form_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FormOptions` with `schema/0` carrying exactly the keys of step 6
-- [ ] AC-7: `lib/aurora_uix/dsl/schemas/show_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ShowOptions` with `schema/0` carrying exactly the keys of step 7
-- [ ] AC-8: `lib/aurora_uix/dsl/schemas/action_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ActionOptions` with `schema/0` derived from `Action.action_option_names/0` with tuple type for `add_`/`insert_`/`replace_` prefixes plus atom type for `remove_` prefix
-- [ ] AC-9: `lib/aurora_uix/layout/resource_metadata.ex` unmodified; `auix_resources/0` and `auix_resource/1` keep working (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` excluding `lib/aurora_uix/layout/` plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
-- [ ] AC-10: `resource_type/1` (`resource_metadata.ex:608-619`) unmodified, still sniffs `{:__spark_placeholder__, 0}` on the schema module (mechanical — no red test; verified by `grep -n '__spark_placeholder__' lib/aurora_uix/layout/resource_metadata.ex` returning the sniffing clause plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
+- [x] AC-1: `lib/aurora_uix/dsl/entities/resource_metadata.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.ResourceMetadata` with `__entity__/0` naming `:resource_metadata`, args `[:name]` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus `mix run -e 'IO.inspect(Aurora.Uix.Dsl.Entity.ResourceMetadata.__entity__().name)'` printing `:resource_metadata`)
+- [x] AC-2: `lib/aurora_uix/dsl/entities/field.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.Field` with `__entity__/0` naming `:field`, args `[:key]`, schema `FieldOptions.schema/0` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus the same `mix run -e` inspection printing `:field`)
+- [x] AC-3: `lib/aurora_uix/dsl/entities/fields.ex` compiles and defines `Aurora.Uix.Dsl.Entity.Fields` with `validate_keys/1` plus struct expansion input for the UI-2 lowering transformer
+- [x] AC-4: `lib/aurora_uix/dsl/schemas/field_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FieldOptions` with `schema/0` carrying exactly the 22 keys of step 4
+- [x] AC-5: `lib/aurora_uix/dsl/schemas/index_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.IndexOptions` with `schema/0` carrying exactly the keys of step 5
+- [x] AC-6: `lib/aurora_uix/dsl/schemas/form_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FormOptions` with `schema/0` carrying exactly the keys of step 6
+- [x] AC-7: `lib/aurora_uix/dsl/schemas/show_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ShowOptions` with `schema/0` carrying exactly the keys of step 7
+- [x] AC-8: `lib/aurora_uix/dsl/schemas/action_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ActionOptions` with `schema/0` derived from `Action.action_option_names/0` with tuple type for `add_`/`insert_`/`replace_` prefixes plus atom type for `remove_` prefix
+- [x] AC-9: `lib/aurora_uix/layout/resource_metadata.ex` unmodified; `auix_resources/0` and `auix_resource/1` keep working (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` excluding `lib/aurora_uix/layout/` plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
+- [x] AC-10: `resource_type/1` (`resource_metadata.ex:608-619`) unmodified, still sniffs `{:__spark_placeholder__, 0}` on the schema module (mechanical — no red test; verified by `grep -n '__spark_placeholder__' lib/aurora_uix/layout/resource_metadata.ex` returning the sniffing clause plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
 
 ##### Green checks
 
