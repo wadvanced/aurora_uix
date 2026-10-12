@@ -2,6 +2,10 @@
 
 Loaded by `epic-orchestrator`'s Provision, only when the batch holds a section spawn.
 
+Under OpenCode, the child enters this worktree with `session_move`, not `cd` — see
+`harness.md` § Entering a section worktree. The provisioning below is unchanged: the
+`git worktree add` runs over the shell tool exactly as written.
+
 One worktree per section, from its first spawn until `merge-pr` retires it. Path:
 `.claude/worktrees/section-<n>-<sec>`, `<sec>` lowercased (`PAR-7` → `par-7`). Gitignored.
 Parallel sections must never share a database or a port, which is why each gets its own

@@ -44,6 +44,11 @@ persists it only by running the store script once, after approval.
 Follows `../shared/turn-discipline.md` throughout: never poll a spawned task,
 no narration-only turns.
 
+Under OpenCode, substitute the tool vocabulary per `../shared/harness.md` —
+`subagent` for `Agent`, `question` for `AskUserQuestion`, a `question`-tool
+approval for `ExitPlanMode`, and the `subagent` tool's `model` parameter for the
+`Agent` call's `model`. The steps below are otherwise unchanged.
+
 ## Arguments
 
 ```

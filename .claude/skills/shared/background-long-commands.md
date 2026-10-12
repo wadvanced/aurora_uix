@@ -4,6 +4,9 @@ Single source of truth for how to run `.claude/scripts/gate.sh` and a **full**
 test suite. Referenced from the skills that invoke them; never duplicated into
 them.
 
+Under OpenCode, `run_in_background: true` is the shell tool's `background: true`
+(`harness.md`); the two-step shape and the `wait-verdict.sh` wait are unchanged.
+
 Both are long: `gate.sh` ends in `dialyzer` (~10 min on a first run), and the
 full suite is several hundred DB-backed tests. Neither belongs in the foreground, and neither is
 ever polled. There is exactly one way to run them, the same for every agent:
