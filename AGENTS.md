@@ -57,7 +57,7 @@ When referencing UI components in documentation or code, use simple names (e.g. 
 |---|---|
 | **Resource** | A registered schema + its UIX metadata (`auix_resource_metadata/2`). Identified by an atom name such as `:product`. |
 | **Field** | `%Aurora.Uix.Field{}` — the normalized, backend-agnostic description of one schema field: `type`, `html_type`, `data`, plus presentation flags. |
-| **Layout tree** | The declarative `%TreePath{}` structure produced by `auix_create_ui`, describing what renders where for a given `layout_type`. |
+| **Layout tree** | The declarative `%TreePath{}` structure produced by the Spark DSL entities plus transformers, describing what renders where for a given `layout_type`. |
 | **`layout_type`** | One of `:index`, `:form`, `:show`. Nearly every renderer branches on it. |
 | **Blueprint** | Compile-time expansion that turns resource metadata + layout declarations into the generated LiveView modules. |
 | **Backend / integration** | `:ash` or `:ctx`. Selected per resource; determines which parser and CRUD module are used. |
@@ -75,7 +75,7 @@ lib/
       ash/              #   Ash: fields_parser, crud, query_parser, context_parser_defaults
       ctx/              #   Ecto/aurora_ctx: same set
       crud.ex           #   backend-agnostic dispatcher
-    layout/             # blueprint.ex, create_ui.ex, resource_metadata.ex — metadata → layout trees
+    dsl/                # Spark DSL extension, entities, schemas, transformers, verifiers
     templates/basic/    # the default template: everything that renders
       renderers/        #   default_renderer.ex (dispatch), fields/, predefined/
       generators/       #   index/form/show module generation

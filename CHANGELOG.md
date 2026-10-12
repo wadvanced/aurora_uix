@@ -8,6 +8,17 @@ The issue → PR pipeline now runs under OpenCode as well as Claude Code.
 
 ### Added
 
+- **Spark DSL migration to 0.2**
+  - Replaced hand-rolled DSL in `lib/aurora_uix/layout/` with Spark `Dsl.Extension`
+  - `%TreePath{}`, `%Resource{}`, `%Field{}` remain the intermediate representation
+  - Unknown DSL options now fail at compile time with `Spark.Error.DslError`
+  - `group_id` / `sections_id` / `tab_id` / `html_id` become deterministic
+  - Layout macros importable at module top level; misuse raises verifier error
+  - Function-valued options must be named captures (`&Mod.fun/1`)
+  - `use Aurora.Uix` gains Spark's reserved options and attributes
+  - `auix_create_layout` removed
+  - Metadata-level and layout-level `field` share one schema
+
 - **OpenCode orchestration support**: the pipeline (spec, code, review, PR,
   merge) resolves OpenCode models from the issue's complexity level.
 

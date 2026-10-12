@@ -297,6 +297,8 @@ The backend type determines how CRUD operations are resolved:
 
 Each field in the resource metadata is a `Aurora.Uix.Field` struct with the following properties:
 
+For the DSL option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+
 ### Field Metadata
 
 - `key` - Schema's unique identifier for the field (atom)
@@ -452,6 +454,8 @@ The `html_type` option overrides the automatic HTML type inference. The `rendere
 depending on the layout, use the per-layout renderer options — each is a 1-arity function (or
 component) that receives the render assigns and returns a `Phoenix.LiveView.Rendered.t()`:
 
+For the complete typed renderer option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+
 ```elixir
 auix_resource_metadata :product, schema: MyApp.Product do
   field :status,
@@ -532,8 +536,7 @@ The `option_label` option controls what is shown as the label for each option in
 
 When `option_label` is set to a field reference (atom), you can also specify query options:
 
-- `:order_by` - Controls the ordering of options in the dropdown
-- `:where` - Filters the options to display
+For the complete typed query option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
 
 **Examples:**
 
