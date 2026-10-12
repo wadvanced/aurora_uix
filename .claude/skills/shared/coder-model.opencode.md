@@ -53,7 +53,7 @@ list scales:
 | Coordination | `opencode/ling-3.1-flash-free` | (pinned) | (pinned) |
 | Spec / Review | `opencode/muse-spark-1.3-contributor-free#medium` | `opencode/muse-spark-1.3-contributor-free#high` | `opencode/muse-spark-1.3-contributor-free#xhigh` |
 | Coder | `opencode/step-5-preview-free#high` | `opencode/space-bunny-free#high` | `opencode/space-bunny-free#xhigh` |
-| Ship | `opencode/nemotron-3.5-lightning-free` | (pinned) | (pinned) |
+| Ship | `opencode/ling-3.1-flash-free` | (pinned) | (pinned) |
 
 Pinned groups, and why, are in `coder-model.md`; the reasons do not change with
 the harness. Coordination and Ship use variantless models precisely because a
