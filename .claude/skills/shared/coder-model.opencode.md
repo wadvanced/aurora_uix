@@ -30,9 +30,9 @@ ollama/qwen3.6:35b-coder
 
 A model that exposes no variant list renders bare (`opencode/big-pickle`) and
 cannot carry a level. It may fill a pinned group only — never Coder or
-Spec/Review, whose whole point is that the level moves them. The nine Zen models
-available to this environment expose variants as follows; nothing outside this
-list scales:
+Spec/Review, whose whole point is that the level moves them. The eleven Zen
+models available to this environment expose variants as follows; nothing outside
+this list scales:
 
 | Model | Variants |
 |---|---|
@@ -45,22 +45,27 @@ list scales:
 | `opencode/longcat-2.5-preview-free` | — |
 | `opencode/mimo-v2.6-flash-free` | — |
 | `opencode/nemotron-3.5-lightning-free` | — |
+| `opencode/nemotron-3-ultra-free` | — |
+| `opencode/ling-3.0-flash-fin-free` | — |
 
 ## Level → models (OpenCode)
 
 | Group | `normal` ← default | `high` | `max` |
 |---|---|---|---|
-| Coordination | `opencode/ling-3.1-flash-free` | (pinned) | (pinned) |
+| Coordination | `opencode/space-bunny-free#medium` | (pinned) | (pinned) |
 | Spec / Review | `opencode/muse-spark-1.3-contributor-free#medium` | `opencode/muse-spark-1.3-contributor-free#high` | `opencode/muse-spark-1.3-contributor-free#xhigh` |
 | Coder | `opencode/step-5-preview-free#high` | `opencode/space-bunny-free#high` | `opencode/space-bunny-free#xhigh` |
-| Ship | `opencode/nemotron-3.5-lightning-free` | (pinned) | (pinned) |
+| Ship | `opencode/step-5-preview-free#high` | (pinned) | (pinned) |
 
 Pinned groups, and why, are in `coder-model.md`; the reasons do not change with
-the harness. Coordination and Ship use variantless models precisely because a
-pinned group must not scale with the level.
+the harness. A pinned group names **one fixed reference — variant included — that
+is identical at `normal`, `high` and `max`**; it need not be variantless. What it
+must not do is scale with the level. A variantless model can still fill a pinned
+group (a variantless reference is trivially fixed); a fixed `#variant` of a
+capable family is the safer choice when the group's work is fragile.
 
-The table is a starting template — retune a cell freely, keeping the variant
-constraint above.
+The table is a starting template — retune a cell freely, keeping the pin rule
+above.
 
 ## Announcing
 
