@@ -31,7 +31,8 @@ defmodule Aurora.UixWeb.Test.SortDisabledTest do
   test "a forged index-sort event is ignored when sorting is disabled", %{conn: conn} do
     view = prepare_sort_test(conn)
     render_click(view, "index-sort", %{"key" => "name"})
-    render_click(view, "index-sort", %{"key" => "name"})
+    render_click(view, "index-sort", %{"sort" => "name"})
+    render_click(view, "index-sort-direction", %{})
 
     assert name_cells(view) == ["Charlie", "Alpha", "Bravo"]
     refute has_element?(view, "th[aria-sort]")
