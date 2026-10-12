@@ -1,5 +1,31 @@
 # Changelog for Aurora UIX
 
+## [0.2.0] - Unreleased
+
+**OpenCode Orchestration Support**
+
+The issue → PR pipeline can now run under OpenCode as well as Claude Code. The
+complexity-level policy in `coder-model.md` is unchanged; it gains an OpenCode
+model binding, a Claude → OpenCode tool translation, and the agent, guard and
+command definitions the pipeline needs.
+
+### Added
+
+- **OpenCode orchestration support**
+  - New `coder-model.opencode.md` registry binding: the `normal` / `high` /
+    `max` complexity levels resolve to OpenCode `provider/model#variant`
+    references instead of Claude families.
+  - New `harness.md` translation: `subagent` for `Agent`, `question` for
+    `AskUserQuestion`, `session_move` for a spawned section's `cd` into its
+    worktree, and shell `background: true` for `run_in_background`.
+  - New `.opencode/agents/epic-orchestrator.md` agent definition and
+    `.opencode/commands/` templates, so `/improve-issue`, `/code-issue`,
+    `/review-issue`, `/pr-from-issue`, `/merge-pr` and `/orchestrate-issue`
+    work under OpenCode.
+  - New `.opencode/plugins/guard-long-commands/` plugin: the OpenCode form of
+    the long-command guard (no shell-backgrounded gates, no direct
+    `mix consistency`, no unwrapped full suite, no poll loops).
+
 ## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**
