@@ -168,14 +168,14 @@ Depends on: none
 
 #### Acceptance criteria
 
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no issue-link suffix (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file (its AC ticks) (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `guides/core/layouts.md`, `guides/core/resource_metadata.md`, `guides/whats_new/0.2.md`, `documentation/dsls/DSL-Aurora.Uix.md`, `AGENTS.md` and `specs/issue-318-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md` § `## [0.2.0] - Unreleased` › `### Added` carries the verbatim entry (mechanical — no red test; verified by `grep -nE 'Spark DSL migration' CHANGELOG.md` returning one line)
-- [ ] AC-4: `guides/core/layouts.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/layouts.md` returning a non-empty result)
-- [ ] AC-5: `guides/core/resource_metadata.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/resource_metadata.md` returning a non-empty result)
-- [ ] AC-6: `guides/whats_new/0.2.md` exists and covers the accepted breaks (mechanical — no red test; verified by `ls guides/whats_new/0.2.md` returning a file)
-- [ ] AC-7: `documentation/dsls/DSL-Aurora.Uix.md` exists as a committed placeholder pending generation when the Spark DSL extension lands (mechanical — no red test; verified by `ls documentation/dsls/DSL-Aurora.Uix.md` returning a file)
-- [ ] AC-8: `AGENTS.md` architecture tree names `dsl/` (mechanical — no red test; verified by `grep -n 'dsl/' AGENTS.md` returning a non-empty result)
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no issue-link suffix (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file (its AC ticks) (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `guides/core/layouts.md`, `guides/core/resource_metadata.md`, `guides/whats_new/0.2.md`, `documentation/dsls/DSL-Aurora.Uix.md`, `AGENTS.md` and `specs/issue-318-enriched-spec.md`)
+- [x] AC-3: `CHANGELOG.md` § `## [0.2.0] - Unreleased` › `### Added` carries the verbatim entry (mechanical — no red test; verified by `grep -nE 'Spark DSL migration' CHANGELOG.md` returning one line)
+- [x] AC-4: `guides/core/layouts.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/layouts.md` returning a non-empty result)
+- [x] AC-5: `guides/core/resource_metadata.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/resource_metadata.md` returning a non-empty result)
+- [x] AC-6: `guides/whats_new/0.2.md` exists and covers the accepted breaks (mechanical — no red test; verified by `ls guides/whats_new/0.2.md` returning a file)
+- [x] AC-7: `documentation/dsls/DSL-Aurora.Uix.md` exists as a committed placeholder pending generation when the Spark DSL extension lands (mechanical — no red test; verified by `ls documentation/dsls/DSL-Aurora.Uix.md` returning a file)
+- [x] AC-8: `AGENTS.md` architecture tree names `dsl/` (mechanical — no red test; verified by `grep -n 'dsl/' AGENTS.md` returning a non-empty result)
 
 ##### Green checks
 

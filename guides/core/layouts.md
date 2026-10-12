@@ -298,15 +298,7 @@ index_columns :product, [:reference, :name, :price],
   where: [{:active, true}]
 ```
 
-**Options:**
-- `:page_title` — Main title (default: `"Listing {title}"`)
-- `:page_subtitle` — Subtitle (default: empty)
-- `:pagination_items_per_page` — Rows per page (default: 40)
-- `:pagination_disabled?` — Disable pagination (default: `false`)
-- `:sort_disabled?` — Turn off user sorting: no sortable column headers, no sort control in the card view, and the `"index-sort"` event is ignored. `:order_by` still applies. Accepts a boolean or an arity-1 function of the assigns (default: `false`)
-- `:new_action_label` — Label for the "new" action button (default: `"New {name}"`)
-- `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
-- `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
+For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
 
 #### Form Layout Options
 
@@ -323,13 +315,7 @@ do
 end
 ```
 
-**Options:**
-- `:edit_title` — Title for edit form (default: `"Edit {name}"`)
-- `:edit_subtitle` — Subtitle for edit form (default: `"Use this form to manage '{title}' records in your database"`)
-- `:new_title` — Title for create form (default: `"New {name}"`)
-- `:new_subtitle` — Subtitle for create form (default: `"Creates a new '{name}' record in your database"`)
-- `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
-- `:unsaved_changes_guard_disabled?` — When `true`, closing the form modal with unsaved changes closes it without asking for confirmation (default: `false`, the guard is on)
+For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
 
 #### Show Layout Options
 
@@ -344,11 +330,7 @@ do
 end
 ```
 
-**Options:**
-- `:page_title` — Main title (default: `"{name}"` - the resource name)
-- `:page_subtitle` — Subtitle (default: `"Details"`)
-- `:edit_action_label` — Label for the edit action button (default: `"Edit {name}"`)
-- `:back_action_label` — Label for the back action (default: `"Back to {title}"`)
+For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
 
 ### Dynamic Titles & Subtitles
 
@@ -398,17 +380,7 @@ edit_layout :product do
 end
 ```
 
-**Relevant Field Options:**
-- `:readonly` — Make field read-only
-- `:hidden` — Hide field from UI
-- `:renderer` — Custom rendering function (form/edit and show layouts)
-- `:index_renderer` — Custom rendering function for the index layout only
-- `:edit_renderer` — Custom rendering function for the form (edit) layout only
-- `:show_renderer` — Custom rendering function for the show layout only
-- `:length` — Input field character width
-- `:placeholder` — Placeholder text
-- `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (`data: %{upload: …}`) never offers one, even with `sortable?: true`
-- `:option_label` — For select/radio fields
+For the complete typed field option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`
 does not cover:
