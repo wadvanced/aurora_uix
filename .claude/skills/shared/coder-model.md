@@ -25,7 +25,9 @@ yield one model; it yields a set of four, one per skill group.
 | Ship | Sonnet+low | Sonnet+low | Sonnet+low |
 
 Only **Spec / Review** and **Coder** move with the level. Coordination and Ship are pinned at
-every level, for reasons that do not vary with how hard the issue is:
+every level, for reasons that do not vary with how hard the issue is. "Pinned" means the
+reference does not scale with the level, not that it lacks a variant: a pinned group names
+one fully-qualified reference, variant included, chosen once and identical at every level.
 
 - **Coordination** is a first-match state machine. It caches no state across ticks, re-derives
   everything from GitHub each time, and delegates every judgement call upward as a verbatim
