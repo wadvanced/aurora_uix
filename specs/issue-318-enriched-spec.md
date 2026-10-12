@@ -20,7 +20,7 @@ Spark gives typed `Spark.Options` schemas with file/line compile errors, generat
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
-| DOC-1 | Documentation | CHANGELOG.md § 0.2, guides/core/layouts.md, guides/core/resource_metadata.md, guides/whats_new/0.2.md, documentation/dsls/DSL-Aurora.Uix.md, AGENTS.md | none | federico/318-doc-1-spark-dsl-migration | docs: spark DSL migration (0.2) (#318 · DOC-1) |
+| DOC-1 | Documentation | CHANGELOG.md § [0.2.0], guides/core/layouts.md, guides/core/resource_metadata.md, guides/whats_new/0.2.md, documentation/dsls/DSL-Aurora.Uix.md, AGENTS.md | none | federico/318-doc-1-spark-dsl-migration | docs: spark DSL migration (0.2) (#318 · DOC-1) |
 | SCH-1 | Schema | lib/aurora_uix/dsl/entities/ and lib/aurora_uix/dsl/schemas/ | DOC-1 | federico/318-sch-1-dsl-entities | feat: spark DSL entity structs and schemas (#318 · SCH-1) |
 | UI-1 | UI | lib/aurora_uix/uix.ex, lib/aurora_uix/layout/ → lib/aurora_uix/dsl/ transformers, auix_configurations contract | DOC-1, SCH-1 | federico/318-ui-1-spark-switch | feat: switch use Aurora.Uix to use Spark.Dsl (#318 · UI-1) |
 | UI-2 | UI | lib/aurora_uix/dsl/transformers/ (parse_resources, lower_layout_tree, assign_node_ids, number_sections, merge_layout_trees, build_configurations) | DOC-1, SCH-1, UI-1 | federico/318-ui-2-transformers | feat: layout tree transformers for Spark DSL (#318 · UI-2) |
@@ -34,18 +34,34 @@ Depends on: none
 
 #### Documentation references
 
-- `CHANGELOG.md` § `## [0.2]` › `### Added`
-- `guides/core/layouts.md` — option tables replaced by links to cheat sheet
-- `guides/core/resource_metadata.md` — option tables replaced by links to cheat sheet
-- `guides/whats_new/0.2.md` — new release notes
-- `documentation/dsls/DSL-Aurora.Uix.md` — generated cheat sheet
-- `AGENTS.md` — `layout/` → `dsl/` in architecture tree and glossary
+- `CHANGELOG.md` § `## [0.2.0] - Unreleased` › `### Added`
+- `guides/core/layouts.md` § Layout Options by Type, § Field-Level Options
+- `guides/core/resource_metadata.md` § Field Properties, § Per-layout renderers, § Query Options for Many-to-One
+- `guides/whats_new/0.2.md` — new release notes file, new (verified by `ls guides/whats_new/0.2.md` returning nothing on main)
+- `documentation/dsls/DSL-Aurora.Uix.md` — committed placeholder file, new (verified by `ls documentation/dsls/DSL-Aurora.Uix.md` returning nothing on main)
+- `AGENTS.md` § Architecture, § Glossary
 
 #### Implementation details
 
+##### AGENTS.md
+
+1. § Architecture — in the `lib/` tree, replace the `layout/` line with the `dsl/` tree lines below, keeping indentation style used by sibling lines:
+
+   ```
+     dsl/                  # Spark DSL extension, entities, schemas, transformers, verifiers
+   ```
+
+2. § Glossary — replace the **Layout tree** row text with the text below, keeping the table pipe format used by sibling rows:
+
+   ```
+   | **Layout tree** | The declarative `%TreePath{}` structure produced by the Spark DSL entities plus transformers, describing what renders where for a given `layout_type`. |
+   ```
+
+3. § Glossary — keep the **Resource** row plus the **Field** row unchanged.
+
 ##### CHANGELOG.md
 
-1. § `## [0.2]` › `### Added` — insert verbatim as the first entry under the heading, above the `contains` filter entry, followed by one blank line:
+1. § `## [0.2.0] - Unreleased` › `### Added` — insert verbatim as the first entry under the heading, followed by one blank line:
 
    ```
    - **Spark DSL migration to 0.2**
@@ -60,37 +76,106 @@ Depends on: none
      - Metadata-level and layout-level `field` share one schema
    ```
 
+##### documentation/dsls/DSL-Aurora.Uix.md
+
+1. Create directory `documentation/dsls/` when missing. Create file `documentation/dsls/DSL-Aurora.Uix.md` with the exact bytes below:
+
+   ```
+   # Aurora.Uix DSL — cheat sheet placeholder
+
+   This file becomes the generated cheat sheet from `mix spark.cheat_sheets`
+   when the Spark DSL extension lands in SCH-1 plus UI-1.
+
+   Until that generation lands, see `guides/core/layouts.md`
+   § Layout Options by Type plus § Field-Level Options,
+   plus `guides/core/resource_metadata.md` § Field Properties,
+   § Per-layout renderers, § Query Options for Many-to-One.
+   ```
+
 ##### guides/core/layouts.md
 
-1. Replace the option table in the "Options" section with a link to the cheat sheet, keeping the narrative description.
+1. § Index Layout Options — delete the `**Options:**` line plus the consecutive `- \`...\`` bullet lines directly below it, stopping at the blank line ahead of § Form Layout Options. Keep the heading, the introductory sentence, the code example. Insert in place of the deleted block the single line below:
+
+   ```
+   For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+2. § Form Layout Options — delete the `**Options:**` line plus the consecutive bullet lines directly below it, stopping at the blank line ahead of § Show Layout Options. Keep the heading, the introductory sentence, the code example. Insert in place of the deleted block the single line below:
+
+   ```
+   For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+3. § Show Layout Options — delete the `**Options:**` line plus the consecutive bullet lines directly below it, stopping at the blank line ahead of § Dynamic Titles & Subtitles. Keep the heading, the introductory sentence, the code example. Insert in place of the deleted block the single line below:
+
+   ```
+   For the complete typed option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+4. § Field-Level Options — delete the `**Relevant Field Options:**` line plus the consecutive bullet lines directly below it, stopping at the blank line ahead of the next heading. Keep the heading, the introductory sentence, the code example. Insert in place of the deleted block the single line below:
+
+   ```
+   For the complete typed field option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+5. Keep § Field Options, § Dynamic Titles & Subtitles, all code examples outside the deleted blocks, all narrative paragraphs outside the deleted blocks, unchanged.
 
 ##### guides/core/resource_metadata.md
 
-1. Replace the option table with a link to the cheat sheet, keeping the narrative description.
+1. § Field Properties — keep all subsection bullet lists verbatim. Insert directly below the introductory sentence beginning `Each field in the resource metadata` the single line below:
+
+   ```
+   For the DSL option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+2. § Query Options for Many-to-One — delete the two bullet lines naming `:order_by` plus `:where` directly below the sentence beginning `When \`option_label\``, keeping the heading, all prose paragraphs, all code examples. Insert in place of the deleted lines the single line below:
+
+   ```
+   For the complete typed query option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
+
+3. § Per-layout renderers — keep the heading, all prose paragraphs, the code example, the precedence list verbatim. Insert directly below the first paragraph ending `returns a \`Phoenix.LiveView.Rendered.t()\`` the single line below:
+
+   ```
+   For the complete typed renderer option reference, see [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md).
+   ```
 
 ##### guides/whats_new/0.2.md
 
-1. Write a What's New guide for the 0.2 release, covering the accepted breaks and migration path.
+1. Create file `guides/whats_new/0.2.md` with the exact bytes below:
 
-##### documentation/dsls/DSL-Aurora.Uix.md
+   ```
+   # What's new in 0.2 — Spark DSL migration
 
-1. Run `mix spark.cheat_sheets` and commit the output to `documentation/dsls/DSL-Aurora.Uix.md`.
+   ## Breaking changes
 
-##### AGENTS.md
+   - Unknown DSL options fail at compile time with a `Spark.Error.DslError`.
+   - `group_id` / `sections_id` / `tab_id` / `html_id` become deterministic.
+   - Layout macros are importable at module top level; misuse raises a verifier error instead of `undefined function`.
+   - Function-valued options must be named captures (`&Mod.fun/1`).
+   - `use Aurora.Uix` gains Spark reserved options plus attributes.
+   - `auix_create_layout` is removed; rewrite call sites against `auix_create_ui`.
+   - Metadata-level plus layout-level `field` share one schema.
 
-1. In the architecture tree, move `layout/` → `dsl/`.
-2. In the glossary, update the "Resource", "Field", and "Layout" entries to reference the new DSL structure.
+   ## Migration path
+
+   - Replace unknown option keys with keys named in the cheat sheet.
+   - Update CSS plus test selectors matching the old deterministic id shape to the new `auix-group-<slug>-<n>` shape.
+   - Replace anonymous function literals in DSL options with named captures.
+   - Replace `auix_create_layout` blocks with `auix_create_ui` blocks.
+   - See [DSL cheat sheet](../../documentation/dsls/DSL-Aurora.Uix.md) plus `guides/core/layouts.md` § Layout Options by Type.
+   ```
 
 #### Acceptance criteria
 
 - [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no issue-link suffix (mechanical — no red test; verified by `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file (its AC ticks) (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-318-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md` § `## [0.2]` › `### Added` carries the verbatim entry (mechanical — no red test; verified by `grep -nE '^\+ \*\*Spark DSL migration` CHANGELOG.md` returning one line)
-- [ ] AC-4: `guides/core/layouts.md` option table replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/layouts.md` returning a non-empty result)
-- [ ] AC-5: `guides/core/resource_metadata.md` option table replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/resource_metadata.md` returning a non-empty result)
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file (its AC ticks) (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `guides/core/layouts.md`, `guides/core/resource_metadata.md`, `guides/whats_new/0.2.md`, `documentation/dsls/DSL-Aurora.Uix.md`, `AGENTS.md` and `specs/issue-318-enriched-spec.md`)
+- [ ] AC-3: `CHANGELOG.md` § `## [0.2.0] - Unreleased` › `### Added` carries the verbatim entry (mechanical — no red test; verified by `grep -nE 'Spark DSL migration' CHANGELOG.md` returning one line)
+- [ ] AC-4: `guides/core/layouts.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/layouts.md` returning a non-empty result)
+- [ ] AC-5: `guides/core/resource_metadata.md` option lists replaced by cheat-sheet link (mechanical — no red test; verified by `grep -n 'cheat_sheet\|DSL-Aurora.Uix' guides/core/resource_metadata.md` returning a non-empty result)
 - [ ] AC-6: `guides/whats_new/0.2.md` exists and covers the accepted breaks (mechanical — no red test; verified by `ls guides/whats_new/0.2.md` returning a file)
-- [ ] AC-7: `documentation/dsls/DSL-Aurora.Uix.md` exists and is output of `mix spark.cheat_sheets` (mechanical — no red test; verified by `ls documentation/dsls/DSL-Aurora.Uix.md` returning a file)
-- [ ] AC-8: `AGENTS.md` has `layout/` → `dsl/` change in the architecture tree (mechanical — no red test; verified by `grep -n 'layout/' AGENTS.md | head -3` showing the moved line)
+- [ ] AC-7: `documentation/dsls/DSL-Aurora.Uix.md` exists as a committed placeholder pending generation when the Spark DSL extension lands (mechanical — no red test; verified by `ls documentation/dsls/DSL-Aurora.Uix.md` returning a file)
+- [ ] AC-8: `AGENTS.md` architecture tree names `dsl/` (mechanical — no red test; verified by `grep -n 'dsl/' AGENTS.md` returning a non-empty result)
 
 ##### Green checks
 
