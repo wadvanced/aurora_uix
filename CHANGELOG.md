@@ -1,5 +1,19 @@
 # Changelog for Aurora UIX
 
+## [Unreleased]
+
+### Changed
+
+- **Card view sort control**
+  - A select of "Default order" (the backend order, no user sort) and the sortable fields, with a
+    switch button beside it that reverses the direction. The switch is disabled while the default
+    order is shown. Choosing "Default order" clears the sort, which was previously impossible once
+    a sort was active. The control now has the same height as the other header buttons.
+  - The select emits `"index-sort"` with `"sort"` set to the field key (or `""`); the switch
+    emits the new `"index-sort-direction"` event.
+- **Sortable column headers cycle through three states**: a click sorts ascending, a second click
+  descending and a third returns to the backend order.
+
 ## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**
