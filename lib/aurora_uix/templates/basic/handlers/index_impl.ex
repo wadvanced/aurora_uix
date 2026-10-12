@@ -416,23 +416,43 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   def auix_handle_event(
-        "index-sort",
+        event,
         _params,
         %{assigns: %{auix: %{layout_options: %{sort_disabled?: true}}}} = socket
-      ),
+      )
+      when event in ["index-sort", "index-sort-direction"],
       do: {:noreply, socket}
 
+  # Column headers: none -> ascending -> descending -> none.
   def auix_handle_event("index-sort", %{"key" => key}, %{assigns: %{auix: auix}} = socket) do
-    case Enum.find(auix.index_fields, &(&1.sortable? and to_string(&1.key) == key)) do
+    case sortable_field(auix, key) do
+      nil -> {:noreply, socket}
+      %{key: field_key} -> {:noreply, apply_sort(socket, next_sort(auix.sort, field_key))}
+    end
+  end
+
+  # Card view select: "" returns to the backend order; a field keeps the current direction.
+  def auix_handle_event("index-sort", %{"sort" => ""}, socket),
+    do: {:noreply, apply_sort(socket, nil)}
+
+  def auix_handle_event("index-sort", %{"sort" => key}, %{assigns: %{auix: auix}} = socket) do
+    case sortable_field(auix, key) do
       nil ->
         {:noreply, socket}
 
       %{key: field_key} ->
-        {:noreply,
-         socket
-         |> assign_auix(:sort, next_sort(auix.sort, field_key))
-         |> prepare_query_options()
-         |> refresh_current_page()}
+        direction = if auix.sort, do: auix.sort.direction, else: :asc
+        {:noreply, apply_sort(socket, %{key: field_key, direction: direction})}
+    end
+  end
+
+  def auix_handle_event("index-sort-direction", _params, %{assigns: %{auix: auix}} = socket) do
+    case auix.sort do
+      nil ->
+        {:noreply, socket}
+
+      %{direction: direction} = sort ->
+        {:noreply, apply_sort(socket, %{sort | direction: flip(direction)})}
     end
   end
 
@@ -1067,8 +1087,25 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   defp maybe_put_sort(query_options, %{key: key, direction: direction}),
     do: Keyword.put(query_options, :order_by, [{direction, key}])
 
-  @spec next_sort(map() | nil, atom()) :: map()
+  @spec apply_sort(Socket.t(), map() | nil) :: Socket.t()
+  defp apply_sort(socket, sort) do
+    socket
+    |> assign_auix(:sort, sort)
+    |> prepare_query_options()
+    |> refresh_current_page()
+  end
+
+  @spec sortable_field(map(), binary()) :: Aurora.Uix.Field.t() | nil
+  defp sortable_field(auix, key),
+    do: Enum.find(auix.index_fields, &(&1.sortable? and to_string(&1.key) == key))
+
+  @spec flip(:asc | :desc) :: :asc | :desc
+  defp flip(:asc), do: :desc
+  defp flip(:desc), do: :asc
+
+  @spec next_sort(map() | nil, atom()) :: map() | nil
   defp next_sort(%{key: key, direction: :asc}, key), do: %{key: key, direction: :desc}
+  defp next_sort(%{key: key, direction: :desc}, key), do: nil
   defp next_sort(_sort, key), do: %{key: key, direction: :asc}
 
   # Read the items.
