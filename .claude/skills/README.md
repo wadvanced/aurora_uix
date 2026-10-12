@@ -65,9 +65,25 @@ rejects backgrounded gates, direct `mix consistency` runs and poll loops.
 `scripts/test_pg.sh` gives each checkout its own test PostgreSQL instance.
 
 `shared/` is not a skill. It holds `house-conventions.md`, `escalation.md`,
-`gate-receipt.md`, `background-long-commands.md`, `turn-discipline.md`, and
-`coder-model.md` — the model registry: one complexity level maps to a set of
-four models, one per skill group (Coordination, Spec/Review, Coder, Ship).
+`gate-receipt.md`, `background-long-commands.md`, `turn-discipline.md`,
+`harness.md` — the Claude → OpenCode tool translation — and `coder-model.md` —
+the model registry: one complexity level maps to a set of four models, one per
+skill group (Coordination, Spec/Review, Coder, Ship). `coder-model.md` owns the
+policy and the Claude binding; `coder-model.opencode.md` is the OpenCode binding
+and replaces only its "Level → models" table.
+
+## Running under OpenCode
+
+The skills are written in Claude Code's tool vocabulary; OpenCode reads the same
+files from `.claude/skills/` unchanged and substitutes the tools per
+`shared/harness.md` — `subagent` for `Agent`, `question` for `AskUserQuestion`, a
+`question`-tool approval for `ExitPlanMode`, `session_move` for a child's `cd`,
+and shell `background: true` for Bash `run_in_background`. A run resolves its
+model binding in `shared/coder-model.md` § "Resolving the harness" — a
+`HARNESS:` prompt line, else the runtime. The Claude `PreToolUse` guard becomes
+`.opencode/plugins/guard-long-commands/`, the pipeline invocations become
+`.opencode/commands/<skill>.md`, and `epic-orchestrator` is declared at
+`.opencode/agents/epic-orchestrator.md`.
 
 ## The pipeline
 

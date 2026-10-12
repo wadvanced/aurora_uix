@@ -2,6 +2,11 @@
 
 Loaded by `epic-orchestrator`'s Spawn, only on a non-empty batch.
 
+Under OpenCode, substitute the tool vocabulary and the worktree entry per
+`harness.md`: `subagent` for `Agent`, `agent: "general"` for
+`subagent_type: general-purpose`, `<provider>/<model>#<variant>` for
+`<family>+<effort>`, and `session_move` in place of the child's `cd`.
+
 Every spawn: `subagent_type: general-purpose`, **no `isolation`**, `model` from
 `coder-model.md` at `M.obs.level` — `code-issue` → Coder, `review-issue` → Spec/Review,
 `pr-from-issue` → the pinned Ship family (never the issue's level). Never hardcode a
@@ -33,6 +38,9 @@ First, run `cd "<WORKTREE path above>" && git rev-parse --show-toplevel` and con
 second line prints exactly the `WORKTREE:` path above. If the `cd` fails or the printed
 path differs, stop immediately and return `STATUS: BLOCKED — worktree-entry`, changing no
 files.
+OpenCode: instead call `tools.opencode.session_move({ directory: "<WORKTREE path above>" })`
+and verify with `git rev-parse --show-toplevel` over the shell tool; a failed move is the
+same `worktree-entry` halt.
 Then invoke the `<skill>` skill for issue <n> section <SEC-ID>.
 Return the skill's terminal STATUS / verdict line, and nothing else of length.
 ```

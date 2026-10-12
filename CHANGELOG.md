@@ -1,5 +1,16 @@
 # Changelog for Aurora UIX
 
+## [0.2.0] - Unreleased
+
+**OpenCode Orchestration Support**
+
+The issue → PR pipeline now runs under OpenCode as well as Claude Code.
+
+### Added
+
+- **OpenCode orchestration support**: the pipeline (spec, code, review, PR,
+  merge) resolves OpenCode models from the issue's complexity level.
+
 ## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**

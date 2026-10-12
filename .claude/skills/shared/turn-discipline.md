@@ -3,6 +3,10 @@
 Single source of truth for tool-call economy within a skill run. Referenced from
 every pipeline skill; never duplicated into them.
 
+Under OpenCode, substitute the tool vocabulary per `harness.md` (`subagent` for
+`Agent`, shell `background: true` for Bash `run_in_background`); the rules below
+are unchanged.
+
 - **Batch independent tool calls.** Calls with no data dependency between them go
   in one message, not one call per turn — a preflight's several `gh`/`git` reads,
   a spawn batch's several `Agent` calls, several independent file reads.

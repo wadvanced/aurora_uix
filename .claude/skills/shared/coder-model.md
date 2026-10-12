@@ -3,10 +3,19 @@
 Single source of truth for which model runs which step of the issue pipeline. Edit only here —
 never hardcode a model name in a `SKILL.md` or in an agent definition.
 
+This file owns the **policy** — the axis, the groups, the pins, level resolution and the rules —
+and the **Claude binding**. The **OpenCode binding** is `coder-model.opencode.md`; it replaces
+§ "Level → models" below and re-states no policy.
+
 **One axis decides every model: the complexity level the issue is started at.** A level does not
 yield one model; it yields a set of four, one per skill group.
 
 ## Level → models
+
+> **Running under OpenCode?** Read `coder-model.opencode.md` before this table.
+> Everything above it — the axis, the groups, the pins, level resolution, the
+> rules — is shared; only this table and the announce examples are
+> harness-specific.
 
 | Group | `normal` ← default | `high` | `max` |
 |---|---|---|---|
@@ -58,6 +67,21 @@ twenty ACs on one surface are still `normal`.
 | 5 or more files, or 4 or more layers (parser · layout · renderer · generator/handler · theme · guide schema) | `high` |
 | a change to the blueprint macro expansion, or to a behaviour every renderer implements | `high` |
 | a migration, or a guide schema on both backends | `normal` |
+
+## Resolving the harness
+
+A model name is never portable across harnesses, so the binding is chosen
+before the model. Precedence, **first match wins**:
+
+1. A `HARNESS: <claude|opencode>` line in the invoking prompt, for a spawned
+   run. Same convention family as `NON_INTERACTIVE:` (`escalation.md`),
+   `LEVEL:` and `GATE_RECEIPT:` (`gate-receipt.md`).
+2. The runtime the skill is executing in — a Claude Code run resolves the
+   Claude binding, an OpenCode run resolves the OpenCode binding.
+
+An unrecognised value is a halt — `STATUS: BLOCKED — unknown-harness` — never a
+silent fall back. The binding, not the runtime alone, is what a spawned run
+records; a run that crosses harnesses passes `HARNESS:` explicitly.
 
 ## Resolving the level
 

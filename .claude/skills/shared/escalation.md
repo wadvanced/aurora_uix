@@ -73,6 +73,13 @@ CHANGES: <the user's text, verbatim>
 `SPEC_PENDING` again. No other skill reads the line. An approval sends no line:
 `orchestrate-issue` runs `.claude/scripts/spec-store-write.sh` itself.
 
+A `HARNESS: <claude|opencode>` line travels the same way — a spawned run that
+crosses harnesses carries it so the model registry resolves the right binding.
+`coder-model.md` § Resolving the harness owns its meaning; this file only names
+it as a prompt line. Under OpenCode the two tools this file names are the
+`question` tool (`AskUserQuestion`) and a `question`-tool approval
+(`ExitPlanMode`); `harness.md` maps the rest.
+
 ## Statuses the orchestrator already understands
 
 These predate this contract and keep their meaning; they are listed so the

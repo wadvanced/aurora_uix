@@ -24,6 +24,10 @@ declare resource metadata and a layout, and the library generates LiveView index
 UIs over **two interchangeable backends** — Ash and Ecto (`aurora_ctx`) — both normalized into
 `%Aurora.Uix.Field{}`. That boundary shapes every spec (Writing rule 8).
 
+Under OpenCode, substitute the tool vocabulary per `../shared/harness.md` — `question` for
+`AskUserQuestion`, and a `question`-tool approval for the `ExitPlanMode` a later step names.
+The steps below are otherwise unchanged.
+
 ## Glossary
 
 Each term has one meaning in this file. No synonym is used.
