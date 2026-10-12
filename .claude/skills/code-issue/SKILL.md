@@ -231,7 +231,9 @@ bodies, not just their timestamps) fetches
    merged PR.` Slug: `dependency-unmerged`.
 7. **Complexity level resolves.** Read `**Complexity:**` from
    `/tmp/spec-<n>.md` and resolve the coder model by the precedence in
-   `../shared/coder-model.md`. A positional argument is a **one-off override** —
+   `../shared/coder-model.md`, through the binding its § Resolving the harness
+   selects (`coder-model.opencode.md` under OpenCode) — never the other binding's
+   Level → models table. A positional argument is a **one-off override** —
    announced, never written back to the issue. An unrecognised value fails
    (`unknown-level`); a v2 spec with **no** `**Complexity:**` line predates this
    contract and fails too (`complexity-missing`) — re-run `improve-issue` rather

@@ -26,8 +26,13 @@ its frontmatter, which OpenCode replaces with the one above.
 translation to every tool the specification names:
 
 - `Agent` → the `subagent` tool, with `agent: "general"`.
-- The spawn's `model` (`provider/model#variant`) comes from the registry binding
-  `coder-model.md` resolves for `M.obs.level` — never a hardcoded name.
+- The spawn's `model` (`provider/model#variant`) comes from the binding that
+  `.claude/skills/shared/coder-model.md` § Resolving the harness selects for
+  `M.obs.level` — **under OpenCode that is
+  `.claude/skills/shared/coder-model.opencode.md`**, never the Claude Level →
+  models table, and never a hardcoded name.
+- Boot's `Announce Coordination:` renders `<provider>/<model>#<variant>` under
+  OpenCode (e.g. `opencode/space-bunny-free#medium`), not `<family>+<effort>`.
 - `AskUserQuestion` → the `question` tool. A subagent cannot prompt, so the
   `STATUS: SPEC_PENDING` / `NEEDS_DECISION` return path is unchanged.
 - The child's worktree entry is `session_move`, not `cd`.

@@ -184,15 +184,17 @@ Always a question, never a judgement of this skill:
 ## 3 · Gate
 
 - **Pre-flight:** continue.
-- **Loads:** `../shared/coder-model.md`
+- **Loads:** `../shared/coder-model.md` and the binding its § Resolving the
+  harness selects (`coder-model.opencode.md` under OpenCode)
 - **Do:**
   1. Resolve the level, first match: `level_arg` · the spec's `**Complexity:**` line ·
      `normal`. An unrecognised value → **stop** `blocked`
      `unknown-level`. On an enrichment, propose the level from `coder-model.md` § Choosing a
      level; the user's `level_arg` overrides it.
   2. Announce, before any other output, in the format and with the `<source>` that file
-     defines: `Level: <level>[ (<source>)] · Spec/Review: <model+effort>`. A halt's output
-     follows this line.
+     defines, rendering the model per the selected binding: `Level: <level>[ (<source>)]
+     · Spec/Review: <model+effort>` under Claude, `… · Spec/Review:
+     <provider>/<model>#<variant>` under OpenCode. A halt's output follows this line.
 
 - **Writes:** `level`.
 

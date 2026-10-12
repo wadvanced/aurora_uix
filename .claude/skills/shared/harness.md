@@ -22,6 +22,16 @@ this file and substitutes. Which model registry a run uses is decided by
 | `Read` / `Edit` / `Write` / `Grep` / `Glob` | same tool names | |
 | `.claude/hooks/*` (`PreToolUse`) | an OpenCode plugin hook | See "The long-command guard" below. |
 
+## Resolving a model
+
+A `model` value always comes from the binding `coder-model.md` § Resolving the
+harness selects — never from the Level → models table of the other binding. An
+OpenCode run reads `coder-model.opencode.md`; a Claude run reads
+`coder-model.md` § Level → models. A spawn prompt records its binding as a
+`HARNESS: <claude|opencode>` line so a child resolves the same half its parent
+did, instead of inferring its runtime from the tools it happens to hold
+(`escalation.md` § Pre-supplied answers names the line).
+
 ## Entering a section worktree
 
 Claude's spawn prompt makes the child run

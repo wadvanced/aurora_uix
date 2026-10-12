@@ -83,7 +83,9 @@ Reset per pass: `obs`, `table`, `digest`, `changed`, `batch`, `results`.
 - **Loads:** `.claude/skills/shared/turn-discipline.md`; the marker table only:
   `sed -n '/^| Block | Written by | Read by |$/,/^$/p' .claude/skills/README.md | sed '$d'`
 - **Do:** parse the prompt — issue `<n>`, `--dry-run`, `DECISION:`. Record
-  this checkout's root. Announce `Coordination: <family>   Issue: #<n>`.
+  this checkout's root. Announce `Coordination: <model>   Issue: #<n>`, with
+  `<model>` rendered per the selected binding — `<family>+<effort>` under
+  Claude, `<provider>/<model>#<variant>` under OpenCode.
   `M.decision` picks an option labelled `Stop …` or `Abort …` → **stop** `stopped`.
 - **Writes:** `mode`, `decision`, `pass = 1`.
 
@@ -260,7 +262,9 @@ Reset per pass: `obs`, `table`, `digest`, `changed`, `batch`, `results`.
 ## 11 · Spawn
 
 - **Pre-flight:** `batch` empty → skip. Dry-run → resolve models, print the spawn lines, skip.
-- **Loads:** `.claude/skills/shared/coder-model.md`;
+- **Loads:** `.claude/skills/shared/coder-model.md` and the binding its §
+  Resolving the harness selects (`.claude/skills/shared/coder-model.opencode.md`
+  under OpenCode);
   `.claude/skills/shared/orchestrator/spawn-prompts.md`
 - **Do:** write the state file with each batched section `in_progress`; issue the whole
   batch in one message per `spawn-prompts.md`; end in this checkout. Never poll a spawn.

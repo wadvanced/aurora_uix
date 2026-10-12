@@ -158,7 +158,8 @@ Preflight: 8/8 preconditions pass — shipping <SEC-ID> (<new PR | refreshing #<
 ```
 
 Level is the loaded spec's `**Complexity:**` line; Ship is pinned at every
-level (`../shared/coder-model.md`).
+level. Resolve it through the binding `../shared/coder-model.md` § Resolving the
+harness selects (`coder-model.opencode.md` under OpenCode).
 
 ## Step 1 — Resolve the section's identity
 
