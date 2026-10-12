@@ -47,7 +47,14 @@ no narration-only turns.
 Under OpenCode, substitute the tool vocabulary per `../shared/harness.md` —
 `subagent` for `Agent`, `question` for `AskUserQuestion`, a `question`-tool
 approval for `ExitPlanMode`, and the `subagent` tool's `model` parameter for the
-`Agent` call's `model`. The steps below are otherwise unchanged.
+`Agent` call's `model`; the id the `subagent` tool returns is a `sessionID`,
+which step 3 patches as the `task_id`. The steps below are otherwise unchanged.
+
+Every `Agent` spawn this skill issues — the `epic-orchestrator` and every
+`improve-issue` re-spawn — carries a `HARNESS: <binding>` line naming this run's
+own binding, so a child resolves the same registry half this skill did rather
+than inferring its runtime; a child is always spawned in its parent's harness
+(`../shared/escalation.md`).
 
 ## Arguments
 
@@ -69,16 +76,20 @@ persisted level rather than resetting it.
 ## Steps
 
 1. **Resolve Coordination's model.** Read `.claude/skills/shared/coder-model.md`
-   and resolve the Coordination family — it is pinned at every complexity
-   level, but still resolved through the registry, never hardcoded.
+   § Resolving the harness, then read the binding it selects — under OpenCode,
+   `coder-model.opencode.md` — and resolve the Coordination model from that
+   binding's Level → models table. It is pinned at every complexity level, but
+   still resolved through the registry, never hardcoded.
 
 2. **Spawn** the `epic-orchestrator` agent with the issue number, passing the
    resolved model as the `Agent` call's `model` and `--dry-run` through in the
-   prompt when given.
+   prompt when given. The prompt also carries `HARNESS: <binding>` — this run's
+   own binding — so the agent resolves the same registry half this skill did.
 
 3. **Patch the task id into the state file.** Same mechanism as before: the
-   `Agent` call returns the agent's id once the spawn is accepted; the agent
-   itself cannot know it and writes `"task_id": null`.
+   `Agent` call returns the agent's id once the spawn is accepted — under
+   OpenCode, the `subagent` tool's `sessionID`; the agent itself cannot know it
+   and writes `"task_id": null`.
 
    A fixed-count `sleep`-and-poll loop burns a turn per retry. Instead, run
    this single command via Bash's `run_in_background` and end the turn — the
@@ -146,12 +157,14 @@ persisted level rather than resetting it.
    a. **Resolve Spec/Review's model** from the registry at the run's level —
       read `level` from `.orchestrator-state.json` (the agent wrote it this
       pass; it is the positional `<level>` on a fresh issue, else the
-      persisted `**Complexity:**`). Carry that same `model` on every
-      `improve-issue` spawn in this loop.
+      persisted `**Complexity:**`), then read the binding `coder-model.md` §
+      Resolving the harness selects — `coder-model.opencode.md` under OpenCode.
+      Carry that same `model` on every `improve-issue` spawn in this loop.
    b. **Spawn** `improve-issue <n>` as an `Agent` at that model, prompt
-      carrying `NON_INTERACTIVE: true`, plus `<level>` only if this issue has
-      no `enriched-spec:start v2` block yet (a fresh spec) — omit it on a
-      re-enrichment so the persisted level survives.
+      carrying `NON_INTERACTIVE: true` and `HARNESS: <binding>` (this run's own
+      binding), plus `<level>` only if this issue has no `enriched-spec:start v2`
+      block yet (a fresh spec) — omit it on a re-enrichment so the persisted
+      level survives.
    c. **Read its terminal output** and branch:
       - **`NEEDS_DECISION`** → `AskUserQuestion`, verbatim and in order, then
         re-spawn `improve-issue` with the answer as a `DECISION:` line

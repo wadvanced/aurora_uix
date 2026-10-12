@@ -7,10 +7,15 @@ Under OpenCode, substitute the tool vocabulary and the worktree entry per
 `subagent_type: general-purpose`, `<provider>/<model>#<variant>` for
 `<family>+<effort>`, and `session_move` in place of the child's `cd`.
 
-Every spawn: `subagent_type: general-purpose`, **no `isolation`**, `model` from
-`coder-model.md` at `M.obs.level` — `code-issue` → Coder, `review-issue` → Spec/Review,
+Every spawn: `subagent_type: general-purpose`, **no `isolation`**, `model` from the
+binding `coder-model.md` § Resolving the harness selects at `M.obs.level` — under
+OpenCode, `coder-model.opencode.md`; `code-issue` → Coder, `review-issue` → Spec/Review,
 `pr-from-issue` → the pinned Ship family (never the issue's level). Never hardcode a
 model, never write one onto a GitHub issue.
+
+Every spawn prompt also carries a `HARNESS: <claude|opencode>` line naming this
+orchestrator's own resolved binding, so a child never has to infer its runtime from the
+tools it happens to hold; a child is always spawned in its parent's harness.
 
 All `Agent` calls of the batch go in **one message**. This agent never changes its own
 directory to spawn a section — it stays in its own checkout for every tool call, Provision
@@ -26,6 +31,7 @@ Announce per spawn: `<SEC-ID> → <skill> @ <model>`
 
 ```
 NON_INTERACTIVE: true
+HARNESS: <claude|opencode>
 WORKTREE: <abs>/.claude/worktrees/section-<n>-<sec>
 SECTION_STATE:
 Section Map row: <the row, verbatim>
@@ -59,6 +65,7 @@ fetches the block lets it skip. **The verify line is never abbreviated away.**
 
 ```
 NON_INTERACTIVE: true
+HARNESS: <claude|opencode>
 Invoke the `review-issue` skill for issue <n>.
 Return the skill's terminal STATUS / verdict line, and nothing else of length.
 ```
@@ -78,7 +85,7 @@ branch or the modified files.
 
 A subagent reporting it cannot invoke the `Skill` tool: re-spawn with `Read
 .claude/skills/<skill>/SKILL.md and follow it exactly for issue <n>[ section <SEC-ID>].`
-— after the same verify.
+— after the same verify, and carrying the same `HARNESS:` line.
 
 ## Never
 
