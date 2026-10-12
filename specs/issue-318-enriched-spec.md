@@ -191,91 +191,54 @@ Depends on: DOC-1
 
 - `lib/aurora_uix/dsl/entities/resource_metadata.ex` — new entity struct
 - `lib/aurora_uix/dsl/entities/field.ex` — new entity struct
-- `lib/aurora_uix/dsl/entities/fields.ex` — new entity struct (transform)
-- `lib/aurora_uix/dsl/schemas/field_options.ex` — new schema
-- `lib/aurora_uix/dsl/schemas/index_options.ex` — new schema
-- `lib/aurora_uix/dsl/schemas/form_options.ex` — new schema
-- `lib/aurora_uix/dsl/schemas/show_options.ex` — new schema
-- `lib/aurora_uix/dsl/schemas/action_options.ex` — new schema
+- `lib/aurora_uix/dsl/entities/fields.ex` — new entity struct
+- `lib/aurora_uix/dsl/schemas/field_options.ex` — new shared field schema
+- `lib/aurora_uix/dsl/schemas/index_options.ex` — new index schema
+- `lib/aurora_uix/dsl/schemas/form_options.ex` — new form schema
+- `lib/aurora_uix/dsl/schemas/show_options.ex` — new show schema
+- `lib/aurora_uix/dsl/schemas/action_options.ex` — new action schema
 
 #### Implementation details
 
-Entities under `lib/aurora_uix/dsl/entities/`:
+Entity files follow the Reactor precedent (`deps/ash/lib/ash/reactor/dsl/actor.ex`): each file defines one target struct module carrying `__spark_metadata__: nil` (required for `Spark.Dsl.Entity.anno/1`, `deps/spark/lib/spark/dsl/entity.ex`), an `@type t` naming `Spark.Dsl.Entity.spark_meta/0` for that key, plus `@doc false` `__entity__/0` returning the `%Spark.Dsl.Entity{}` declaration consumed by the UI-1 extension. Schema files follow the Ash precedent (`Ash.Resource.Attribute.integer_primary_key_schema/0`, `deps/ash/lib/ash/resource/dsl.ex`): each file defines one module exposing `schema/0` returning a `Spark.Options` keyword schema. Spark option types used below come from the `deps/spark/lib/spark/options/options.ex` vocabulary (`:atom`, `:string`, `:boolean`, `:integer`, `:non_neg_integer`, `:map`, `:module`, `:keyword_list`, `{:or, [...]}`, `{:in, ...}`, `{:list, ...}`, `{:tuple, ...}`, `{:fun, ...}`, `{:map, ...}`).
 
-1. **`resource_metadata`** — args `[:name]`, with options:
-   - `:schema` — the schema module
-   - `:context` — the Ecto context module
-   - `:ash_resource` — the Ash resource module
-   - `:ash_actor_assign` (alias `:actor_assign`) — actor assign config
-   - `:order_by` — order by options
-   - `:type` — `:ash` or `:ctx`
-   - `:renderers` — renderer map
+1. Create `lib/aurora_uix/dsl/entities/resource_metadata.ex` defining `Aurora.Uix.Dsl.Entity.ResourceMetadata` (new; `grep -rn 'Dsl.Entity' lib/ --include='*.ex'` returns nothing). Defstruct keys: `name`, `schema`, `context`, `ash_resource`, `ash_actor_assign`, `actor_assign`, `type`, `order_by`, `renderers`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with name `:resource_metadata`, `args: [:name]`, `identifier: :name`, `target: __MODULE__`, and schema keys: `name` (`:atom`, required `true`); `schema` (`:module`, required `false`, the Ecto schema module read by `define_schema_and_type/1`, `lib/aurora_uix/layout/resource_metadata.ex`); `context` (`:module`, required `false`); `ash_resource` (`:module`, required `false`); `ash_actor_assign` (`:atom`, required `false`); `actor_assign` (`:atom`, required `false`, alias honoured by first-wins lookup of `[:ash_actor_assign, :actor_assign]` in `get_actor_assign/1`, `lib/aurora_uix/integration/ash/context_parser_defaults.ex`); `type` (`{:in, [:ash, :ctx]}`, required `false`, absent keeps the `resource_type/1` sniffing in `lib/aurora_uix/layout/resource_metadata.ex`); `order_by` (`{:or, [:atom, :keyword_list, {:list, :atom}]}`, required `false`, the three shapes in the `auix_resource_metadata/3` docs, `lib/aurora_uix/layout/resource_metadata.ex`); `renderers` (`{:map, :atom, {:or, [:atom, {:fun, 1}}]}`, required `false`, the `html_type => renderer` table in the `auix_resource_metadata/3` docs).
+2. Create `lib/aurora_uix/dsl/entities/field.ex` defining `Aurora.Uix.Dsl.Entity.Field` (new; same empty search as step 1). Defstruct keys: every key of `Aurora.Uix.Dsl.Schema.FieldOptions.schema/0` (step 4) plus `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with name `:field`, `args: [:key]`, `identifier: :key`, `target: __MODULE__`, `schema: Aurora.Uix.Dsl.Schema.FieldOptions.schema/0`. Metadata-level `field` plus layout-level `field` share this one schema.
+3. Create `lib/aurora_uix/dsl/entities/fields.ex` defining `Aurora.Uix.Dsl.Entity.Fields` (new; same empty search as step 1). Defstruct keys: `keys`, `opts`, `__spark_metadata__`. `__entity__/0` returns `%Spark.Dsl.Entity{}` with name `:fields`, `args: [:keys]`, `target: __MODULE__`, `transform: {__MODULE__, :validate_keys, []}`, schema keys: `keys` (`{:list, :atom}`, required `true`); `opts` (`:keyword_list`, required `false`, default `[]`). `validate_keys/1` returns `{:ok, struct}` for a non-empty atom list, `{:error, message}` otherwise. Expansion of one `fields` entity into N `field` entities in `keys` order happens in the UI-2 lowering transformer.
+4. Create `lib/aurora_uix/dsl/schemas/field_options.ex` defining `Aurora.Uix.Dsl.Schema.FieldOptions` (new; `grep -rn 'Dsl.Schema' lib/ --include='*.ex'` returns nothing) with `schema/0` returning exactly these keys, every key required `false`: `key` (`:atom`); `type` (`:atom`); `label` (`:string`); `placeholder` (`:string`); `length` (`:non_neg_integer`); `precision` (`:non_neg_integer`); `scale` (`:non_neg_integer`); `readonly` (`:boolean`); `hidden` (`:boolean`); `required` (`:boolean`); `disabled` (`:boolean`); `omitted` (`:boolean`); `filterable?` (`:boolean`); `sortable?` (`:boolean`); `renderer` (`{:or, [:atom, {:fun, 1}]}`, arity-1 function plus predefined atom per the `field/2` docs, `lib/aurora_uix/layout/resource_metadata.ex`); `index_renderer` (same type); `edit_renderer` (same type); `show_renderer` (same type); `expanded` (`{:or, [:boolean, {:fun, 1}]}`, boolean plus arity-1 capture per the `field/2` docs); `option_label` (`{:or, [:atom, {:fun, 1}, {:fun, 2}]}`, atom plus arity-1 and arity-2 functions per the many-to-one docs, `lib/aurora_uix/layout/blueprint.ex`, exercised in `index_value/1`, `lib/aurora_uix/templates/basic/renderers/default_renderer.ex`); `order_by` (`{:or, [:atom, :keyword_list, {:list, :atom}]}`, same three shapes as step 1); `where` (`:keyword_list`, the keyword clauses in the `index_columns/3` docs, `lib/aurora_uix/layout/blueprint.ex`). Field struct defaults (`lib/aurora_uix/field.ex` defstruct) stay the defaults; this schema only validates input.
+5. Create `lib/aurora_uix/dsl/schemas/index_options.ex` defining `Aurora.Uix.Dsl.Schema.IndexOptions` (new; same empty search as step 4) with `schema/0` returning exactly these keys, every key required `false`: `pagination_disabled?` (`{:or, [:boolean, {:fun, 1}]}`, per the `:index` options docs, `lib/aurora_uix/layout/options/index.ex`); `sort_disabled?` (same type, same source); `pagination_items_per_page` (`:non_neg_integer`, default `40` in `get_default/2`, `lib/aurora_uix/layout/options/index.ex`); `pages_bar_range_offset` (`{:or, [:non_neg_integer, {:fun, 2}]}`, integer attr in `lib/aurora_uix/templates/basic/components/components.ex`, arity-2 default `&page_bar_range_offset/2` invoked as `.fun.(nil, media)` in `lib/aurora_uix/templates/basic/actions/index.ex`); `get_streams` (`{:fun, 1}`, invoked as `.fun.(assigns)` in `lib/aurora_uix/templates/basic/renderers/index_renderer.ex`); `row_id` (`{:fun, 1}`, invoked as `.fun.(row)` in `lib/aurora_uix/templates/basic/components/components.ex`); `infinite_scroll_items_load` (`:non_neg_integer`, default `200` in `get_default/2`); `alternate_streams_suffixes` (`{:list, :string}`, default `["mobile"]` in `get_default/2`); `page_title` (`{:or, [:string, {:fun, 1}]}`, per the `:index` options docs); `page_subtitle` (same type, same source); `new_action_label` (`{:or, [:string, {:fun, 0}]}`, binary plus 0-arity function via `parse_value/1`, `lib/aurora_uix/layout/options.ex`); `order_by` (same type as step 1, layout value beats metadata per the `index_columns/3` docs); `where` (`:keyword_list`, same source); `handler_module` (`:module`, read by `handler_module/2`, `lib/aurora_uix/templates/basic/modules_generator.ex`); `renderers` (`{:map, :atom, {:or, [:atom, {:fun, 1}}]}`, the index table in the `index_columns/3` docs).
+6. Create `lib/aurora_uix/dsl/schemas/form_options.ex` defining `Aurora.Uix.Dsl.Schema.FormOptions` (new; same empty search as step 4) with `schema/0` returning exactly these keys, every key required `false`: `edit_title` (`{:or, [:string, {:fun, 1}]}`, per the `:form` options docs, `lib/aurora_uix/layout/options/form.ex`); `edit_subtitle` (same type, same source); `new_title` (same type, same source); `new_subtitle` (same type, same source); `save_action_label` (`{:or, [:string, {:fun, 0}]}`, same source); `record_navigator` (`{:or, [{:in, [:top, :bottom]}, {:list, {:in, [:top, :bottom]}}]}`, atom plus atom list per the `:form` options docs); `unsaved_changes_guard_disabled?` (`:boolean`, same source); `edit_handler_module` (`:module`, read by `handler_module/2`, `lib/aurora_uix/templates/basic/modules_generator.ex`); `renderers` (same type as step 5, the form table in `lib/aurora_uix/layout/blueprint.ex`).
+7. Create `lib/aurora_uix/dsl/schemas/show_options.ex` defining `Aurora.Uix.Dsl.Schema.ShowOptions` (new; same empty search as step 4) with `schema/0` returning exactly these keys, every key required `false`: `page_title` (`{:or, [:string, {:fun, 1}]}`, per the `:show` options docs, `lib/aurora_uix/layout/options/show.ex`); `page_subtitle` (same type, same source); `edit_action_label` (`{:or, [:string, {:fun, 0}]}`, same source); `back_action_label` (same type, same source); `record_navigator` (same type as step 6, same source); `show_handler_module` (`:module`, read by `handler_module/2`, `lib/aurora_uix/templates/basic/modules_generator.ex`); `renderers` (same type as step 5, the show table in `lib/aurora_uix/layout/blueprint.ex`).
+8. Create `lib/aurora_uix/dsl/schemas/action_options.ex` defining `Aurora.Uix.Dsl.Schema.ActionOptions` (new; same empty search as step 4) with `schema/0` derived at compile time from `Action.action_option_names/0` (`lib/aurora_uix/action.ex`, compile-time capture precedent: `@field_action_names Action.action_option_names()`, `lib/aurora_uix/layout/helpers.ex`): each name with an `add_`/`insert_`/`replace_` prefix maps to `{:tuple, [:atom, {:fun, 1}]}` (the `{name, &fun/1}` shape in the `index_columns/3` Actions docs, `lib/aurora_uix/layout/blueprint.ex`); each name with a `remove_` prefix maps to `:atom` (the bare-name shape in the same docs); every key required `false`.
+9. Leave `lib/aurora_uix/layout/resource_metadata.ex` unmodified in this section. `auix_resources/0`, `auix_resource/1` plus the `@auix_resource_metadata` composition keep working through the current `__before_compile__/1`; `resource_type/1` keeps sniffing `{:__spark_placeholder__, 0}` on the schema module. The macro-layer deletion plus the Spark caller move belong to UI-1. Backend parsers in `lib/aurora_uix/integration/ash/` plus `lib/aurora_uix/integration/ctx/` stay untouched. New files reference no `Ecto.Association.*`, `Ecto.Embedded`, `Ash.Resource.*` modules; everything downstream keeps consuming `%Field{}` atoms.
 
-2. **`field`** — args `[:key]`, with options (documented per the issue):
-   - `:key` — the field key name
-   - `:type` — the field type atom
-   - `:label` — display label
-   - `:placeholder` — placeholder text
-   - `:length` — max length for strings
-   - `:precision` — decimal precision
-   - `:scale` — decimal scale
-   - `:readonly` — whether the field is readonly
-   - `:hidden` — whether the field is hidden
-   - `:filterable?` — whether the field is filterable
-   - `:sortable?` — whether the field is sortable
-   - `:renderer` — renderer atom
-   - `:index_renderer` — index renderer atom
-   - `:edit_renderer` — edit renderer atom
-   - `:show_renderer` — show renderer atom
-   - `:required` — whether the field is required
-   - `:disabled` — whether the field is disabled
-   - `:omitted` — whether the field is omitted
-   - `:expanded` — whether the field is expanded
-   - `:option_label` — option label for collections
-   - `:order_by` — query order options
-   - `:where` — query where options
+##### Red tests
 
-3. **`fields`** — a `transform` expanding into N `field` entities, used for block-declared fields.
+| AC | Placement | Setup | Assertion sketch |
+|---|---|---|---|
+| AC-4, AC-5, AC-6, AC-7, AC-8 | new file `test/cases/dsl_schemas_test.exs` (`grep -rln 'Dsl.Schema' test/` returns nothing) | no DB; call each `schema/0` directly | `FieldOptions.schema/0` carries exactly the 22 keys of step 4 with the prescribed types; `IndexOptions`/`FormOptions`/`ShowOptions` carry exactly the keys of steps 5–7; `ActionOptions.schema/0` carries every member of `Action.action_option_names/0` with tuple type for `add_`/`insert_`/`replace_` prefixes plus atom type for `remove_` prefix |
+| AC-3 | new file `test/cases/dsl_entities_test.exs` (`grep -rln 'Dsl.Entity' test/` returns nothing) | no DB; build the structs directly | `%ResourceMetadata{}`, `%Field{}`, `%Fields{}` carry the prescribed fields plus `__spark_metadata__`; each `__entity__/0` returns `%Spark.Dsl.Entity{}` with the prescribed name, args plus target; `Fields.validate_keys/1` returns `{:ok, _}` for `[:a, :b]` plus `{:error, _}` for `[]` |
 
-Schemas under `lib/aurora_uix/dsl/schemas/`:
-
-1. **`field_options.ex`** — typed schema for field-level options, with types `{:tuple, [:atom, {:fun, 1}]}` for `add_*` / `insert_*` / `replace_*`, `:atom` for `remove_*`, and `:boolean`, `:string`, `:integer`, `:decimal` for scalar options.
-
-2. **`index_options.ex`** — typed schema for index-level options: `:pagination_disabled?`, `:pagination_items_per_page`, `:pages_bar_range_offset`, `:get_streams`, `:row_id`, `:infinite_scroll_items_load`, `:alternate_streams_suffixes`, `:page_title`, `:page_subtitle`, `:edit_title`, `:edit_subtitle`, `:new_title`, `:new_subtitle`, `:unsaved_changes_guard_disabled?`, `:record_navigator`, `:handler_module` / `:show_handler_module` / `:edit_handler_module`, `:renderers`.
-
-3. **`form_options.ex`** — typed schema for form-level options, same set as `index_options.ex`.
-
-4. **`show_options.ex`** — typed schema for show-level options, same set as `index_options.ex`.
-
-5. **`action_options.ex`** — typed schema for action options, generated from `Action.action_option_names/0`.
-
-`Transformers.ParseResources` reproduces `ResourceMetadata.resource_metadata/1` (`resource_metadata.ex:313-320`) exactly: `embedded_resources` → `configure_fields` → `add_associations` → `convert_fields_to_map`, including `maybe_add_option_to_data/2` routing (`option_label` → `field.data`, `order_by`/`where` → `field.data.query_opts`, `expanded` → `field.data.expanded`), `configure_many_to_one_selectors/1`, and `add_new_fields_from_changes/2` ordering (block-declared fields absent from the schema prepended in declaration order).
-
-Backend parsers under `integration/ash/` and `integration/ctx/` are **not touched**; only the caller moves.
-
-`auix_resources/0`, `auix_resource/1` and the `@auix_resource_metadata` composition keep working. Regression test for `resource_type/1` (`resource_metadata.ex:608-619`): it sniffs `{:__spark_placeholder__, 0}` on the *schema* module, which must stay correct once the view module also carries Spark attributes.
-
-Delete the macro layer of `layout/resource_metadata.ex`.
+Assertion API: plain `assert` on keyword schemas plus struct maps (parser-output layer, no DB, no mocks).
 
 #### Acceptance criteria
 
-- [ ] AC-1: `lib/aurora_uix/dsl/entities/resource_metadata.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.ResourceMetadata` with the correct args and options
-- [ ] AC-2: `lib/aurora_uix/dsl/entities/field.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.Field` with the correct args and options
-- [ ] AC-3: `lib/aurora_uix/dsl/entities/fields.ex` compiles and defines `Aurora.Uix.Dsl.Entity.Fields` as a transform expanding into N `field` entities
-- [ ] AC-4: `lib/aurora_uix/dsl/schemas/field_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FieldOptions` with the correct types
-- [ ] AC-5: `lib/aurora_uix/dsl/schemas/index_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.IndexOptions` with the correct options
-- [ ] AC-6: `lib/aurora_uix/dsl/schemas/form_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FormOptions` with the correct options
-- [ ] AC-7: `lib/aurora_uix/dsl/schemas/show_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ShowOptions` with the correct options
-- [ ] AC-8: `lib/aurora_uix/dsl/schemas/action_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ActionOptions` from `Action.action_option_names/0`
-- [ ] AC-9: `Transformers.ParseResources` reproduces `ResourceMetadata.resource_metadata/1` output exactly (golden diff test)
-- [ ] AC-10: `resource_type/1` (`resource_metadata.ex:608-619`) still sniffs `{:__spark_placeholder__, 0}` on the schema module correctly
-- [ ] AC-11: `layout/resource_metadata.ex` macro layer deleted; `auix_resources/0` and `auix_resource/1` still compile and return correct modules
+- [ ] AC-1: `lib/aurora_uix/dsl/entities/resource_metadata.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.ResourceMetadata` with `__entity__/0` naming `:resource_metadata`, args `[:name]` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus `mix run -e 'IO.inspect(Aurora.Uix.Dsl.Entity.ResourceMetadata.__entity__().name)'` printing `:resource_metadata`)
+- [ ] AC-2: `lib/aurora_uix/dsl/entities/field.ex` compiles with `--warnings-as-errors` and defines `Aurora.Uix.Dsl.Entity.Field` with `__entity__/0` naming `:field`, args `[:key]`, schema `FieldOptions.schema/0` (mechanical — no red test; verified by `mix compile --warnings-as-errors` clean plus the same `mix run -e` inspection printing `:field`)
+- [ ] AC-3: `lib/aurora_uix/dsl/entities/fields.ex` compiles and defines `Aurora.Uix.Dsl.Entity.Fields` with `validate_keys/1` plus struct expansion input for the UI-2 lowering transformer
+- [ ] AC-4: `lib/aurora_uix/dsl/schemas/field_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FieldOptions` with `schema/0` carrying exactly the 22 keys of step 4
+- [ ] AC-5: `lib/aurora_uix/dsl/schemas/index_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.IndexOptions` with `schema/0` carrying exactly the keys of step 5
+- [ ] AC-6: `lib/aurora_uix/dsl/schemas/form_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.FormOptions` with `schema/0` carrying exactly the keys of step 6
+- [ ] AC-7: `lib/aurora_uix/dsl/schemas/show_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ShowOptions` with `schema/0` carrying exactly the keys of step 7
+- [ ] AC-8: `lib/aurora_uix/dsl/schemas/action_options.ex` compiles and defines `Aurora.Uix.Dsl.Schema.ActionOptions` with `schema/0` derived from `Action.action_option_names/0` with tuple type for `add_`/`insert_`/`replace_` prefixes plus atom type for `remove_` prefix
+- [ ] AC-9: `lib/aurora_uix/layout/resource_metadata.ex` unmodified; `auix_resources/0` and `auix_resource/1` keep working (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD` excluding `lib/aurora_uix/layout/` plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
+- [ ] AC-10: `resource_type/1` (`resource_metadata.ex:608-619`) unmodified, still sniffs `{:__spark_placeholder__, 0}` on the schema module (mechanical — no red test; verified by `grep -n '__spark_placeholder__' lib/aurora_uix/layout/resource_metadata.ex` returning the sniffing clause plus `mix test test/cases/metadata_modifying_fields_test.exs` green)
 
 ##### Green checks
 
 1. `mix compile --warnings-as-errors` clean for all new files
-2. `mix test` — parser test suites (both backends) green
-3. `mix test` — `test/cases/metadata_*_test.exs` green (especially `metadata_modifying_fields_test.exs`)
+2. `mix test test/cases/dsl_schemas_test.exs test/cases/dsl_entities_test.exs test/cases/metadata_modifying_fields_test.exs` green
+3. `mix test` — parser test suites (both backends) green
 <!-- section:SCH-1:end -->
 <!-- section:UI-1:start -->
 ### UI-1 — UI
@@ -340,6 +303,7 @@ Depends on: DOC-1, SCH-1, UI-1
 
    - Converts each layout node to `%TreePath{tag:, name:, config:, opts:, inner_elements:}`
    - Handles `inline`, `stacked`, `group`, `sections`, `section`, `field` nodes with `recursive_as: :inner_elements`
+   - Expands each `Aurora.Uix.Dsl.Entity.Fields` entity (SCH-1 step 3) into N `field` entities in `keys` order before lowering.
 
 3. **`lib/aurora_uix/dsl/transformers/assign_node_ids.ex`** (`Aurora.Uix.Dsl.Transformers.AssignNodeIds`):
 
