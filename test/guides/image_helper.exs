@@ -10,6 +10,11 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   - Window resizing and zoom controls
   - Image post-processing (cropping, sharpening)
   - Automatic file management and cleanup
+  - Compare mode, to check that a change keeps the guide screens as they were: with
+    `AURORA_UIX_CAPTURES=compare`, captures go to `tmp/captures/` (the committed images stay
+    untouched) and each one must match the same image under the checkout named by
+    `AURORA_UIX_CAPTURES_BASELINE`, captured there from the baseline version
+    (see `scripts/compare_guides.sh`); a mismatch fails and writes a `-diff.png` beside it
 
   ## Key Constraints
   - Requires Wallaby configuration with `:screenshot_dir`
@@ -24,6 +29,9 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   alias Wallaby.Query
   @screenshot_dir Application.compile_env(:wallaby, :screenshot_dir)
   @screen_sizes %{desktop: %{width: 1_024, height: 768}, mobile: %{width: 412, height: 915}}
+  @compare_dir "tmp/captures"
+  # Root-mean-square pixel error (0..1) allowed for anti-aliasing noise.
+  @compare_tolerance 0.002
 
   @doc """
   Captures a screenshot with configurable window settings and image transformations.
@@ -138,9 +146,69 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     session
   end
 
-  # Moves screenshot from source to target directory, removes source file on success
+  # Moves screenshot from source to target directory, removes source file on success.
+  # In compare mode the committed image stays untouched and the capture is compared instead.
   @spec move_file(Wallaby.Session.t(), binary(), binary()) :: Wallaby.Session.t()
   defp move_file(session, file_name, target) do
+    if System.get_env("AURORA_UIX_CAPTURES") == "compare" do
+      compare_file(session, file_name, target)
+    else
+      replace_file(session, file_name, target)
+    end
+  end
+
+  @spec compare_file(Wallaby.Session.t(), binary(), binary()) :: Wallaby.Session.t()
+  defp compare_file(session, file_name, target) do
+    source_path = get_source_path(file_name)
+    captured_path = Path.expand("#{@compare_dir}/#{target}/#{file_name}.png")
+    diff_path = Path.expand("#{@compare_dir}/#{target}/#{file_name}-diff.png")
+
+    baseline_path =
+      "AURORA_UIX_CAPTURES_BASELINE"
+      |> System.fetch_env!()
+      |> Path.join("#{target}/#{file_name}.png")
+
+    captured_path |> Path.dirname() |> File.mkdir_p!()
+    File.cp!(source_path, captured_path)
+    File.rm(source_path)
+
+    case image_difference(baseline_path, captured_path) do
+      {:ok, difference, _diff_image} when difference <= @compare_tolerance ->
+        session
+
+      {:ok, difference, diff_image} ->
+        Image.write!(diff_image, diff_path)
+
+        ExUnit.Assertions.flunk("""
+        #{target}/#{file_name}.png differs from the baseline \
+        (#{Float.round(difference * 1.0, 6)} > #{@compare_tolerance}).
+        Baseline: #{baseline_path}
+        Captured: #{captured_path}
+        Difference: #{diff_path}
+        """)
+
+      {:error, reason} ->
+        ExUnit.Assertions.flunk(
+          "#{target}/#{file_name}.png not compared with #{baseline_path}: #{inspect(reason)}"
+        )
+    end
+  end
+
+  @spec image_difference(binary(), binary()) ::
+          {:ok, number(), Vix.Vips.Image.t()} | {:error, term()}
+  defp image_difference(baseline_path, captured_path) do
+    with {:ok, baseline} <- Image.open(baseline_path),
+         {:ok, captured} <- Image.open(captured_path) do
+      if Image.shape(baseline) == Image.shape(captured) do
+        Image.compare(baseline, captured, metric: :rmse)
+      else
+        {:error, {:size_changed, Image.shape(baseline), Image.shape(captured)}}
+      end
+    end
+  end
+
+  @spec replace_file(Wallaby.Session.t(), binary(), binary()) :: Wallaby.Session.t()
+  defp replace_file(session, file_name, target) do
     source_path = get_source_path(file_name)
     target_path = Path.expand("#{target}/#{file_name}.png")
 

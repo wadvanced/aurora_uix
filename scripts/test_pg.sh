@@ -86,7 +86,7 @@ instance_dir() {
 
 # --- Lifecycle -------------------------------------------------------------------
 running() {
-  "$(pg_bin pg_ctl)" status -D "$1" >/dev/null 2>&1
+  run_as_pg "$(pg_bin pg_ctl)" status -D "$1" >/dev/null 2>&1
 }
 
 create() {
