@@ -361,6 +361,8 @@ defmodule Aurora.Uix.Test.Helper do
   """
   @spec create_guides_sample_data() :: :ok
   def create_guides_sample_data do
+    # A fixed seed keeps the guide screenshots comparable between runs.
+    :rand.seed(:exsss, {438, 438, 438})
     delete_all_sample_data()
 
     product_locations =
