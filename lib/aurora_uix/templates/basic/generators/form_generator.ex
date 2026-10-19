@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Templates.Basic.Handlers.Form, as: FormHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -24,13 +25,13 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   Generates a LiveComponent module for form handling.
 
   ## Parameters
-  - `parsed_opts` (map()) - Form configuration with `tag: :form` and function references.
+  - `parsed_opts` (map()) - Form configuration with `layout_type: :form` and function references.
 
   ## Returns
   Macro.t() - The generated form component module as quoted code.
   """
   @spec generate_module(map()) :: Macro.t()
-  def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
+  def generate_module(%{layout_type: :form} = parsed_opts) do
     cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
 
     field_labels =
@@ -71,8 +72,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
     one2many_rendered? =
       cleaned_parsed_opts
       |> Map.get(:layout_tree)
-      |> Helpers.flatten_layout_tree()
-      |> Enum.filter(&(&1.tag == :field and &1.name in one2many_preload))
+      |> Node.fields()
+      |> Enum.filter(&(&1.key in one2many_preload))
       |> Enum.empty?()
       |> Kernel.not()
 

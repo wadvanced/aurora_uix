@@ -990,10 +990,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec load_items(Socket.t(), keyword()) :: Socket.t()
   defp load_items(%{assigns: %{auix: auix}} = socket, extra_options \\ []) do
-    layout_opts =
-      auix.layout_tree
-      |> Map.get(:opts, [])
-      |> Enum.filter(&(elem(&1, 0) in @allowed_query_options))
+    layout_opts = layout_query_options(auix.layout_tree)
 
     opts =
       auix
@@ -1015,6 +1012,14 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> prepare_query_options()
     |> read_items(read_items_options)
     |> update_streams()
+  end
+
+  # The layout's query: its `order_by` and `where`, plus `:paginate`/`:preload` options.
+  @spec layout_query_options(map()) :: keyword()
+  defp layout_query_options(layout_tree) do
+    [order_by: layout_tree.order_by, where: layout_tree.where]
+    |> Enum.reject(&is_nil(elem(&1, 1)))
+    |> Kernel.++(Enum.filter(layout_tree.options, &(elem(&1, 0) in @allowed_query_options)))
   end
 
   @spec resource_query_opts(term()) :: keyword()
@@ -1266,9 +1271,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         index_renderer: :default
       })
 
-    layout_tree.inner_elements
-    |> Enum.filter(&(&1.tag == :field))
-    |> Enum.map(&BasicHelpers.get_field(&1, configurations, resource_name))
+    layout_tree.children
+    |> Enum.map(& &1.field)
     |> Enum.reject(
       &(&1.type in [
           :one_to_many_association,

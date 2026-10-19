@@ -788,26 +788,26 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  Retrieves and processes field configuration from the resource configurations.
+  Retrieves a field of a resource from the resource configurations.
 
   ## Parameters
 
-  - `field` (%{name: atom()}) - Map containing the field name and options.
+  - `field_key` (atom()) - The field key.
   - `configurations` (map()) - Global configurations for all resources.
   - `resource_name` (atom()) - The name of the resource the field belongs to.
 
   ## Returns
 
-  Field.t() - A Field struct containing the processed field configuration.
+  Field.t() - The resource field, or a new field when the resource has none with that key.
   """
-  @spec get_field(map, map, atom) :: Field.t()
-  def get_field(%{name: field_key} = field, configurations, resource_name) do
+  @spec get_field(atom(), map(), atom()) :: Field.t()
+  def get_field(field_key, configurations, resource_name) do
     configurations
     |> Map.get(resource_name, %{})
     |> Map.get(:resource_config, %{})
     |> Map.get(:fields, %{})
-    |> Map.get(field_key, Field.new(%{key: field_key, resource: resource_name}))
-    |> Field.change(Map.get(field, :config, []))
+    |> Map.get(field_key)
+    |> Kernel.||(Field.new(%{key: field_key, resource: resource_name}))
   end
 
   @doc """
@@ -912,7 +912,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> List.flatten()
     |> Enum.map(&preload_entry_name/1)
     |> Enum.uniq()
-    |> Enum.map(&get_field(%{name: &1}, parsed_opts.configurations, parsed_opts.resource_name))
+    |> Enum.map(&get_field(&1, parsed_opts.configurations, parsed_opts.resource_name))
     |> Enum.filter(
       &(&1.type in [
           :many_to_one_association,
@@ -932,34 +932,24 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   defp preload_entry_name({name, _related}), do: name
 
   @doc """
-  Flattens a nested structure of elements into a list of paths.
+  Returns the children of the render tree of a resource layout.
 
   ## Parameters
 
-  - `elements` (map() | list()) - Nested structure containing inner_elements and tags.
-  - `result` (list()) - Accumulated result, defaults to empty list.
+  - `configurations` (map()) - Global configurations for all resources.
+  - `resource_name` (atom()) - The resource.
+  - `layout_type` (atom()) - The layout type (`:index`, `:form` or `:show`).
 
   ## Returns
 
-  list() - Flattened list of maps containing tag and name information.
+  list(Aurora.Uix.Layout.Node.t()) - The children, or `[]` when the resource or layout is absent.
   """
-  @spec flatten_layout_tree(map() | list(), list()) :: list()
-  def flatten_layout_tree(elements, result \\ [])
-  def flatten_layout_tree([], result), do: result
-
-  def flatten_layout_tree(%{inner_elements: inner_elements} = layout_tree, result) do
-    flatten_layout_tree(inner_elements, [
-      %{tag: layout_tree.tag, name: layout_tree[:name]} | result
-    ])
-  end
-
-  def flatten_layout_tree([%{inner_elements: inner_elements} | rest], result) do
-    inner_elements
-    |> Enum.reduce(
-      result,
-      &flatten_layout_tree(&1.inner_elements, [%{tag: &1.tag, name: &1[:name]} | &2])
-    )
-    |> then(&flatten_layout_tree(rest, &1))
+  @spec layout_children(map(), atom(), atom()) :: list()
+  def layout_children(configurations, resource_name, layout_type) do
+    case get_in(configurations, [resource_name, :layout_trees, layout_type]) do
+      %{children: children} -> children
+      _no_layout -> []
+    end
   end
 
   @doc """
@@ -1137,11 +1127,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @spec select_candidate_ids(map(), binary()) :: list(binary())
   def select_candidate_ids(%{auix: auix} = assigns, field_key) do
     field =
-      get_field(
-        %{name: String.to_existing_atom(field_key)},
-        auix.configurations,
-        auix.resource_name
-      )
+      get_field(String.to_existing_atom(field_key), auix.configurations, auix.resource_name)
 
     assigns
     |> Map.put(:field, field)

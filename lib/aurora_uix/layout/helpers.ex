@@ -21,8 +21,9 @@ defmodule Aurora.Uix.Layout.Helpers do
   """
 
   alias Aurora.Uix.Action
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
-  alias Aurora.Uix.TreePath
 
   alias Ecto.Embedded
 
@@ -31,6 +32,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   # Every action option name, not just one group's: a field-level action option carries a function
   # capture that has to be evaluated here, and missing a key sends raw AST to the renderer.
   @field_action_names Action.action_option_names()
+  @field_override_keys Map.keys(%Field{}) -- [:__struct__, :key, :resolved?, :__spark_metadata__]
   @fields_parser_integration_modules :aurora_uix
                                      |> Application.compile_env(
                                        :fields_parser_integration_modules,
@@ -104,60 +106,90 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Transforms DSL macro calls into standardized component entries.
+  Builds the field references of a layout's field list at macro expansion time.
 
-  Creates a component map with all necessary information for rendering, including
-  tag type, configuration, options, and nested elements.
+  Function captures in field options are evaluated in the caller's environment.
 
   ## Parameters
-  - `tag` (atom()) - The component type identifier (e.g., `:form`, `:field`).
-  - `name` (atom()) - The component name for identification.
-  - `config` (keyword() | tuple() | nil) - Static configuration or field definitions.
-  - `opts` (keyword()) - Component options and attributes.
-  - `do_block` (Macro.t()) - Nested component definitions and content.
-  - `env` (Macro.Env.t()) - The macro environment for code generation.
+  - `fields` (list()) - The quoted field list, e.g. `[:name, price: [label: "Price"]]`.
+  - `env` (Macro.Env.t()) - The caller's environment.
 
   ## Returns
-  Macro.t() - A quoted expression that evaluates to a component map.
+  Macro.t() - The escaped list of `Aurora.Uix.Layout.Declared.FieldRef` structs.
   """
-  @spec register_dsl_entry(
-          atom(),
-          atom(),
-          keyword() | tuple() | nil,
-          keyword(),
-          Macro.t(),
-          Macro.Env.t()
-        ) :: Macro.t()
-  def register_dsl_entry(tag, name, config, opts, do_block, env) do
-    {block, opts} = extract_block_options(opts, do_block)
+  @spec field_refs(list(), Macro.Env.t()) :: Macro.t()
+  def field_refs(fields, env), do: fields |> Enum.map(&field_ref(&1, env)) |> Macro.escape()
 
-    inner_elements =
-      case config do
-        {:fields, fields} ->
-          fields
-          |> Enum.map(&create_field_tag(&1, env))
-          |> Macro.escape()
+  @doc """
+  Builds a declared index layout from the options of `index_columns`.
 
-        _other ->
-          []
-      end
+  ## Parameters
+  - `resource` (atom()) - The resource name.
+  - `columns` ([Declared.FieldRef.t()]) - The columns.
+  - `opts` (keyword()) - The layout options.
 
-    config = if inner_elements == [], do: config, else: []
+  ## Returns
+  `Aurora.Uix.Layout.Declared.Index.t()` - The declared layout.
+  """
+  @spec declare_index(atom(), [Declared.FieldRef.t()], keyword()) :: Declared.Index.t()
+  def declare_index(resource, columns, opts) do
+    {query, layout_opts} = Keyword.split(opts, [:order_by, :where])
 
-    registration =
-      quote do
-        %TreePath{
-          tag: unquote(tag),
-          name: unquote(name),
-          opts: unquote(opts),
-          config: unquote(config),
-          inner_elements: unquote(prepare_block(block)) ++ unquote(inner_elements)
-        }
-      end
+    struct(
+      %Declared.Index{
+        resource: resource,
+        columns: columns,
+        order_by: query[:order_by],
+        where: query[:where]
+      },
+      container_opts(layout_opts, :handler_module)
+    )
+  end
 
-    quote do
-      unquote(registration)
-    end
+  @doc """
+  Builds a declared form or show layout from the options of `edit_layout` or `show_layout`.
+
+  ## Parameters
+  - `layout_type` (:form | :show) - The layout type.
+  - `resource` (atom()) - The resource name.
+  - `children` ([Declared.child()]) - The sub-layouts and fields of the block.
+  - `opts` (keyword()) - The layout options.
+
+  ## Returns
+  `Aurora.Uix.Layout.Declared.Form.t()` or `Aurora.Uix.Layout.Declared.Show.t()`.
+  """
+  @spec declare_container(:form | :show, atom(), [Declared.child()], keyword()) ::
+          Declared.Form.t() | Declared.Show.t()
+  def declare_container(:form, resource, children, opts),
+    do:
+      struct(
+        %Declared.Form{resource: resource, children: children},
+        container_opts(opts, :edit_handler_module)
+      )
+
+  def declare_container(:show, resource, children, opts),
+    do:
+      struct(
+        %Declared.Show{resource: resource, children: children},
+        container_opts(opts, :show_handler_module)
+      )
+
+  @doc """
+  Splits the fields from the options in the list given to `group` or `section`.
+
+  ## Parameters
+  - `fields_and_opts` (list()) - The quoted list, e.g. `[:name, :price]` or `[default: true]`.
+  - `option_keys` ([atom()]) - The option keys of the sub-layout.
+
+  ## Returns
+  {list(), keyword()} - The fields and the options.
+  """
+  @spec split_sub_layout_opts(list(), [atom()]) :: {list(), keyword()}
+  def split_sub_layout_opts(fields_and_opts, option_keys) do
+    Enum.split_with(fields_and_opts, fn
+      {key, _value} when is_atom(key) -> key not in option_keys
+      _field -> true
+    end)
   end
 
   @doc """
@@ -224,29 +256,21 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Creates a macro expression to store layout tree paths in the module attributes.
+  Creates a macro expression that stores the layouts of a block in the module attributes.
 
   ## Parameters
   - `block` (term()) - The block containing layout definitions.
-  - `env` (Macro.Env.t()) - The macro environment.
 
   ## Returns
-  Macro.t() - A quoted expression that, when executed, stores the tree paths.
+  Macro.t() - A quoted expression that, when executed, stores the declared layouts.
   """
-  @spec create_layout(term(), Macro.Env.t()) :: Macro.t()
-  def create_layout(block, env) do
-    ui = register_dsl_entry(:ui, :ui, [], [], block, env)
-
-    tree_paths =
-      quote do
-        Map.get(unquote(ui), :inner_elements, [])
-      end
-
+  @spec create_layout(term()) :: Macro.t()
+  def create_layout(block) do
     quote do
-      LayoutHelpers.put_manual_tree_paths(
+      LayoutHelpers.put_layouts(
         __MODULE__,
-        Module.get_attribute(__MODULE__, :auix_layout_trees, []),
-        unquote(tree_paths)
+        Module.get_attribute(__MODULE__, :auix_layouts, []),
+        unquote(prepare_block(block))
       )
     end
   end
@@ -275,33 +299,32 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Stores manually configured layout tree paths in the module attributes.
+  Stores declared layouts in the `@auix_layouts` module attribute.
 
-  Merges new layout tree paths with existing ones and stores them in the
-  `@auix_layout_trees` attribute, avoiding duplicates.
+  A layout replaces any layout stored earlier for the same resource and layout type.
 
   ## Parameters
-  - `module` (module()) - The module where the attributes are stored.
-  - `defined_by_module_attribute` (list()) - The list of tree paths already defined.
-  - `ui_defined` (list()) - The list of new tree paths to be added.
+  - `module` (module()) - The module where the attribute is stored.
+  - `stored` (list()) - The layouts already stored.
+  - `declared` ([Declared.layout()]) - The layouts to add.
 
   ## Returns
-  :ok - Indicates that the tree paths have been stored.
+  :ok
   """
-  @spec put_manual_tree_paths(module(), list(), list()) :: :ok
-  def put_manual_tree_paths(module, defined_by_module_attribute, ui_defined) do
-    Module.delete_attribute(module, :auix_layout_trees)
+  @spec put_layouts(module(), list(), [Declared.layout()]) :: :ok
+  def put_layouts(module, stored, declared) do
+    Module.delete_attribute(module, :auix_layouts)
+    Enum.each(declared, &Module.put_attribute(module, :auix_layouts, &1))
 
-    Enum.each(ui_defined, &Module.put_attribute(module, :auix_layout_trees, &1))
-
-    defined_by_module_attribute
+    stored
     |> List.flatten()
-    |> Enum.reject(fn tree_path ->
-      Enum.any?(ui_defined, &(&1.name == tree_path.name and &1.tag == tree_path.tag))
+    |> Enum.reject(fn layout ->
+      Enum.any?(
+        declared,
+        &(&1.__struct__ == layout.__struct__ and &1.resource == layout.resource)
+      )
     end)
-    |> Enum.each(fn tree_path ->
-      Module.put_attribute(module, :auix_layout_trees, tree_path)
-    end)
+    |> Enum.each(&Module.put_attribute(module, :auix_layouts, &1))
   end
 
   ## PRIVATE
@@ -317,26 +340,47 @@ defmodule Aurora.Uix.Layout.Helpers do
   defp extract_block(do: block), do: block
   defp extract_block(block), do: block
 
-  # Creates a standardized field tag structure from various field specifications.
-  @spec create_field_tag(atom() | {atom(), Keyword.t()}, Macro.Env.t()) :: map()
-  defp create_field_tag(field, _env) when is_atom(field) do
-    TreePath.new(%{tag: :field, name: field, config: [], inner_elements: []})
+  # Builds the field reference of one entry of a field list.
+  @spec field_ref(atom() | tuple(), Macro.Env.t()) :: Declared.FieldRef.t()
+  defp field_ref(key, _env) when is_atom(key), do: %Declared.FieldRef{key: key}
+
+  defp field_ref({key, opts}, env) when is_atom(key) and is_list(opts) do
+    field_opts = Enum.map(opts, &process_field_tag_option(&1, env))
+    overrides = Keyword.take(field_opts, @field_override_keys)
+
+    %Declared.FieldRef{
+      key: key,
+      overrides: if(overrides == [], do: nil, else: struct(%Field{key: key}, overrides)),
+      actions: Keyword.take(field_opts, @field_action_names),
+      order_by: Keyword.get(field_opts, :order_by),
+      where: Keyword.get(field_opts, :where)
+    }
   end
 
-  defp create_field_tag({field_name, opts} = _field, env) when is_list(opts) do
-    opts
-    |> Enum.map(&process_field_tag_option(&1, env))
-    |> then(
-      &TreePath.new(%{tag: :field, name: field_name, opts: &1, config: [], inner_elements: []})
-    )
+  defp field_ref({key, child}, _env) when is_atom(key) and is_atom(child),
+    do: %Declared.FieldRef{key: key, path: [child]}
+
+  defp field_ref({:{}, _meta, [key | path]}, _env), do: %Declared.FieldRef{key: key, path: path}
+
+  defp field_ref(field, env) do
+    raise CompileError,
+      file: env.file,
+      line: env.line,
+      description: "invalid field in layout: #{Macro.to_string(field)}"
   end
 
-  defp create_field_tag(field, _env) when is_tuple(field) do
-    TreePath.new(%{tag: :field, name: field, config: [], inner_elements: []})
-  end
+  # Splits container options into the typed keys and the option-set `options`.
+  @spec container_opts(keyword(), atom()) :: map()
+  defp container_opts(opts, handler_key) do
+    {actions, other_opts} = Keyword.split(opts, @field_action_names)
+    {typed, options} = Keyword.split(other_opts, [:renderers, handler_key])
 
-  defp create_field_tag({field_name, opts}, _env) do
-    TreePath.new(%{tag: :field, name: field_name, config: opts, inner_elements: []})
+    %{
+      renderers: typed[:renderers],
+      handler_module: typed[handler_key],
+      actions: actions,
+      options: options
+    }
   end
 
   # Processes field tag options, handling function components and quoted expressions.

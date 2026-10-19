@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
 
   ## Parameters
 
-    - `assigns` (Socket.t() | map()) - Must contain `:auix.layout_tree.opts` with action definitions.
+    - `assigns` (Socket.t() | map()) - Must contain `:auix.layout_tree.actions` with action definitions.
     - `actions` (map()) - Map of action names to tuples specifying:
       * `{action_group, :remove_auix_action}` - Removes the action
       * `{action_group, function}` - Applies the specified BasicHelpers function
@@ -72,12 +72,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
 
   """
   @spec modify_actions(Socket.t() | map(), map()) :: map()
-  def modify_actions(%Socket{assigns: %{auix: %{layout_tree: %{opts: opts}}}} = socket, actions) do
-    Enum.reduce(opts, socket, &modify_action(&1, &2, actions))
+  def modify_actions(%Socket{assigns: %{auix: %{layout_tree: layout_tree}}} = socket, actions) do
+    layout_tree
+    |> Map.get(:actions, [])
+    |> Enum.reduce(socket, &modify_action(&1, &2, actions))
   end
 
-  def modify_actions(%{auix: %{layout_tree: %{opts: opts}}} = assigns, actions) do
-    Enum.reduce(opts, assigns, &modify_action(&1, &2, actions))
+  def modify_actions(%{auix: %{layout_tree: layout_tree}} = assigns, actions) do
+    layout_tree
+    |> Map.get(:actions, [])
+    |> Enum.reduce(assigns, &modify_action(&1, &2, actions))
   end
 
   ## PRIVATE

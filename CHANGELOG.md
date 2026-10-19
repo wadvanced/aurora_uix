@@ -7,6 +7,8 @@
 - Resource metadata (`Aurora.Uix.Resource`, `Aurora.Uix.Field`) uses typed structures in preparation for
   the Spark DSL.
 - Resource metadata DSL moved to Spark.
+- Layouts (`Aurora.Uix.Layout.Declared`, `Aurora.Uix.Layout.Node`) use typed structures in preparation for
+  the Spark DSL.
 
 ## [0.1.7] - 2026-10-12
 

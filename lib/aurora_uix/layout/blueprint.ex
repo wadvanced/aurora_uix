@@ -22,34 +22,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `sections`: Tab-like field organization
   - `section`: Tab contents
 
-  ## Layout Tree Element Structure
+  ## Layout Structures
 
-  Internally, each layout is represented by a list of maps (called "paths"), where each
-  entry contains the following keys:
-
-  - **`:tag` (atom):**
-    The layout command. Possible values include:
-      - Container commands: `:index`, `:form`, `:show`
-      - Sub-layout commands: `:stacked`, `:group`, `:inline`, `:sections` and `section`
-
-  - **`:name` (atom):**
-    For container layouts (`:index`, `:form`, and `:show`), this key is **required** and
-    holds the resource configuration name to which the layout applies. For sub-layout
-    commands, this key is not required.
-
-  - **`:state` (atom):**
-    Indicates the beginning (`:start`) or ending (`:end`) of a layout block.
-
-  - **`:opts` (keyword list):**
-    Contains additional options for customizing the layout (for example, UI overrides
-    such as field length or custom renderers).
-
-  - **`:config` (tuple or map):**
-    Holds specific configuration data:
-      - For field lists: `{:fields, fields}` where `fields` is a list of field identifiers.
-      - For groups: `{:title, "Group Title"}`.
-      - For sections: `{:title, "Section Title"}` or other configuration as needed.
-      - Other commands may store custom configuration information here.
+  Each macro produces a declared layout struct (`Aurora.Uix.Layout.Declared`): `index_columns`
+  an `Index`, `edit_layout` a `Form`, `show_layout` a `Show`, and the sub-layouts an `Inline`,
+  `Stacked`, `Group`, `Sections` or `Section`. Each field in a list becomes a `FieldRef`.
+  At compile time `Aurora.Uix.Layout.RenderTree` builds them into the render nodes
+  (`Aurora.Uix.Layout.Node`) that the renderers read.
 
   ## Usage Examples
 
@@ -169,7 +148,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
       auix_create_ui do
         edit_layout :product do
           group "Identification", [:reference, :name, :description]
-          group "Quantities", [:quantity_initial, :quantity_entries, quantity_exits, quantity_at_hand]
+          group "Quantities", [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
           group "Dimensions", [:height, :width, :length]
         end
       end
@@ -197,7 +176,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
                   inline [reference: [readonly: true]]
                   inline [:name, :description]
                 end
-                group "Quantities", [:quantity_initial, :quantity_entries, quantity_exits, quantity_at_hand]
+                group "Quantities", [:quantity_initial, :quantity_entries, :quantity_exits, :quantity_at_hand]
               end
 
               group "Dimensions", [:height, :width, :length]
@@ -212,9 +191,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
 
-  alias Aurora.Uix.Counter
+  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
-  alias Aurora.Uix.TreePath
 
   @doc """
   Defines a form layout for resource editing.
@@ -263,9 +241,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
   ```
   """
   @spec edit_layout(atom(), keyword(), any()) :: Macro.t()
-  defmacro edit_layout(name, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:form, name, nil, opts, do_block, __CALLER__)
-  end
+  defmacro edit_layout(name, opts, do_block \\ nil),
+    do: container_layout(:form, name, opts, do_block)
 
   @doc """
 
@@ -313,9 +290,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
   @spec show_layout(atom(), keyword(), any()) :: Macro.t()
-  defmacro show_layout(name, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:show, name, nil, opts, do_block, __CALLER__)
-  end
+  defmacro show_layout(name, opts, do_block \\ nil),
+    do: container_layout(:show, name, opts, do_block)
 
   @doc """
   Registers index columns and associated options for a specific resource.
@@ -402,8 +378,13 @@ defmodule Aurora.Uix.Layout.Blueprint do
   ```
   """
   @spec index_columns(atom(), keyword() | list(), any()) :: Macro.t()
-  defmacro index_columns(name, fields, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(:index, name, {:fields, fields}, [], do_block, __CALLER__)
+  defmacro index_columns(name, fields, opts \\ []) do
+    {_block, opts} = LayoutHelpers.extract_block_options([], opts)
+    columns = LayoutHelpers.field_refs(fields, __CALLER__)
+
+    quote do
+      LayoutHelpers.declare_index(unquote(name), unquote(columns), unquote(opts))
+    end
   end
 
   @doc """
@@ -434,7 +415,11 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @spec inline(keyword(), any()) :: Macro.t()
   defmacro inline(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
-    LayoutHelpers.register_dsl_entry(:inline, nil, {:fields, fields}, [], block, __CALLER__)
+    children = children(block, fields, __CALLER__)
+
+    quote do
+      %Declared.Inline{children: unquote(children)}
+    end
   end
 
   @doc """
@@ -455,7 +440,11 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @spec stacked(keyword(), any()) :: Macro.t()
   defmacro stacked(fields, do_block \\ nil) do
     {block, fields} = LayoutHelpers.extract_block_options(fields, do_block)
-    LayoutHelpers.register_dsl_entry(:stacked, nil, {:fields, fields}, [], block, __CALLER__)
+    children = children(block, fields, __CALLER__)
+
+    quote do
+      %Declared.Stacked{children: unquote(children)}
+    end
   end
 
   @doc """
@@ -473,14 +462,12 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec group(atom(), keyword(), any()) :: Macro.t()
   defmacro group(title, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(
-      :group,
-      nil,
-      [title: title, group_id: "auix-group-#{unique_titled_id(title)}"],
-      opts,
-      do_block,
-      __CALLER__
-    )
+    {block, fields} = LayoutHelpers.extract_block_options(opts, do_block)
+    children = children(block, fields, __CALLER__)
+
+    quote do
+      %Declared.Group{title: unquote(title), children: unquote(children)}
+    end
   end
 
   @doc """
@@ -500,14 +487,12 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec sections(keyword(), any()) :: Macro.t()
   defmacro sections(opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(
-      :sections,
-      nil,
-      [sections_id: "auix-#{unique_titled_id("sections")}"],
-      opts,
-      do_block,
-      __CALLER__
-    )
+    {block, _opts} = LayoutHelpers.extract_block_options(opts, do_block)
+    children = children(block, [], __CALLER__)
+
+    quote do
+      %Declared.Sections{children: unquote(children)}
+    end
   end
 
   @doc """
@@ -525,419 +510,49 @@ defmodule Aurora.Uix.Layout.Blueprint do
   """
   @spec section(binary(), keyword(), any()) :: Macro.t()
   defmacro section(label, opts, do_block \\ nil) do
-    LayoutHelpers.register_dsl_entry(
-      :section,
-      nil,
-      [label: label, tab_id: "auix-section-#{unique_titled_id(label)}"],
-      opts,
-      do_block,
-      __CALLER__
-    )
+    {list_opts, do_block} = trailing_options(opts, do_block)
+    {block, fields_and_opts} = LayoutHelpers.extract_block_options(list_opts, do_block)
+    {fields, section_opts} = LayoutHelpers.split_sub_layout_opts(fields_and_opts, [:default])
+    children = children(block, fields, __CALLER__)
+
+    quote do
+      %Declared.Section{
+        label: unquote(label),
+        default?: unquote(Keyword.get(section_opts, :default, false)),
+        children: unquote(children)
+      }
+    end
   end
-
-  @doc """
-  Generates a default layout_tree structure for rendering UI components based on the given layout type.
-
-  ## Parameters
-  - `paths` (list()): An existing list of paths. If empty, default paths are generated.
-  - `resource_config` (atom()): The associated resource configuration.
-  - `layout_type` (atom()): The rendering layout type (`:index`, `:form`, or `:show`).
-
-  ## Returns
-  - map(): A map representing the UI structure.
-
-  ## Modes and Behaviour
-
-  - **`:index` layout types**: Generates an `:index` structure using all available fields as columns.
-  - **`:form` and `:show` layout types**: Generates a `:layout` structure containing an `:inline` group with all fields.
-  - If paths are already provided, they are returned unchanged.
-
-  ## Example
-
-    iex> Aurora.Uix.Layout.Blueprint.build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :index)
-    [
-      %{tag: :index, state: :start, opts: [], config: {:fields, [:name, :price]}},
-      %{tag: :index, state: :end}
-    ]
-
-    iex> build_default_layout_paths([], "product", %{fields: [%{field: :name}, %{field: :price}]}, [], :form)
-    [
-      %{tag: :form, state: :start, config: {:name, "product"}, opts: []},
-      %{tag: :inline, state: :start, config: {:fields, [:name, :price]}, opts: []},
-      %{tag: :inline, state: :end},
-      %{tag: :form, state: :end}
-    ]
-  """
-  @spec build_default_layout_paths(list(), map(), keyword(), atom()) :: TreePath.t()
-  def build_default_layout_paths(
-        [],
-        resource_config,
-        _opts,
-        :index
-      ) do
-    columns =
-      resource_config
-      |> fields_order()
-      |> Enum.reject(
-        &(get_in(resource_config, [:fields, &1, :type]) in [
-            :many_to_one_association,
-            :one_to_many_association,
-            :one_to_one_association,
-            :many_to_many_association
-          ])
-      )
-      |> Enum.map(&%TreePath{tag: :field, name: &1, inner_elements: [], opts: []})
-
-    TreePath.new(%{
-      tag: :index,
-      name: resource_config.name,
-      config: [],
-      opts: [],
-      inner_elements: columns
-    })
-  end
-
-  def build_default_layout_paths([], resource_config, opts, layout_type)
-      when layout_type in [:form, :show] do
-    columns =
-      resource_config
-      |> fields_order()
-      |> Enum.reject(
-        &(get_in(resource_config, [:fields, &1, :type]) in [
-            :many_to_one_association,
-            :one_to_many_association
-          ])
-      )
-      |> Enum.map(&%TreePath{tag: :field, name: &1, inner_elements: [], opts: []})
-
-    fields_layout_mode = Keyword.get(opts, :default_fields_layout, :stacked)
-
-    fields_layout = %TreePath{
-      tag: fields_layout_mode,
-      config: [],
-      opts: [],
-      inner_elements: columns
-    }
-
-    TreePath.new(%{
-      tag: layout_type,
-      name: resource_config.name,
-      config: [],
-      opts: [],
-      inner_elements: [fields_layout]
-    })
-  end
-
-  def build_default_layout_paths([], resource_config, _opts, layout_type),
-    do:
-      TreePath.new(%{
-        name: resource_config.name,
-        tag: layout_type,
-        config: [],
-        opts: [],
-        inner_elements: []
-      })
-
-  def build_default_layout_paths([%TreePath{} = paths], _resource_config, _opts, _layout_type),
-    do: paths
-
-  def build_default_layout_paths([%{} = paths], _resource_config, _opts, _layout_type),
-    do: TreePath.new(paths)
-
-  @doc """
-  Parses a list of paths to handle sections based on the given layout type.
-
-  ## Parameters
-  - `paths` (list()): A list of layout_tree maps representing the layout structure.
-  - `layout_type` (atom()): The layout type of parsing, such as `:index` or other modes.
-
-  ## Returns
-  - `list()`: A list of parsed paths with sections processed according to the layout type.
-
-  ## Examples
-    iex> paths = [
-      %{tag: :sections, state: :start},
-      %{tag: :section, state: :start, config: [tab_id: "tab1", label: "Tab 1"], opts: []},
-      %{tag: :section, state: :end},
-      %{tag: :sections, state: :end}
-      ]
-    iex> parse_sections(paths, :form)
-    [
-      %{
-        tag: :sections,
-        state: :start,
-        config: [%{active: true, label: "Tab 1", tab_id: "tab1"}]
-      },
-      %{
-        tag: :section,
-        state: :start,
-        config: [active: true, tab_id: "tab1", label: "Tab 1"],
-        opts: []
-      },
-      %{tag: :section, state: :end},
-      %{tag: :sections, state: :end}
-    ]
-
-  """
-  @spec parse_sections(TreePath.t(), atom()) :: TreePath.t()
-  def parse_sections(layout_tree, layout_type) when layout_type in [:form, :show] do
-    pid = Counter.start_counter()
-
-    layout_tree
-    |> Map.get(:inner_elements, [])
-    |> normalize_sections_and_tabs(pid)
-    |> then(&Map.put(layout_tree, :inner_elements, &1))
-  end
-
-  def parse_sections(layout_tree, _layout_type), do: layout_tree
 
   ## PRIVATE
 
-  @spec unique_titled_id(binary() | nil) :: binary()
-  defp unique_titled_id(nil), do: unique_titled_id("untitled")
-  defp unique_titled_id(""), do: unique_titled_id("untitled")
+  @spec container_layout(:form | :show, atom(), keyword(), Macro.t()) :: Macro.t()
+  defp container_layout(layout_type, name, opts, do_block) do
+    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
-  defp unique_titled_id(title) do
-    slug = normalize_title(title)
-
-    unique_suffix =
-      :md5
-      |> :crypto.hash(title <> to_string(:os.system_time(:millisecond)))
-      |> Base.encode16(case: :lower)
-      |> String.slice(0, 8)
-
-    unique_int = :erlang.unique_integer([:positive])
-
-    "#{slug}-#{unique_suffix}#{unique_int}"
-  end
-
-  @spec normalize_title(binary()) :: binary()
-  defp normalize_title(title) do
-    title
-    |> String.downcase()
-    |> String.replace(~r/[^a-z0-9\s-]/, "")
-    |> String.replace(~r/\s+/, "_")
-    |> String.trim("_")
-  end
-
-  ## -------------------
-  ## Sections parsing
-  ## -------------------
-
-  # Recursively processes a list of layout elements to establish the hierarchy and relationships
-  # between sections and tabs. It maintains indices for sections and tabs while traversing the
-  # elements tree, ensuring proper nesting and parent-child relationships.
-  #
-  # Parameters:
-  # - elements: List of layout elements to process
-  # - sections_id: ID of the current sections container (nil for root level)
-  # - sections_index: Counter for section numbering (starts at 0 and never resets)
-  # - tab_parent_id: ID of the parent tab if any (nil for root level)
-  # - tab_index: Counter for tab numbering within a section (starts at 0 and resets when a sections container starts)
-  # - tab_active?: Indicates if a tab is already active within the sections.
-  # - result: Accumulator for processed elements
-  #
-  # Returns a tuple containing:
-  # - List of processed elements with updated configuration
-  # - Final section index
-  @spec normalize_sections_and_tabs(
-          list(),
-          :atomics.atomics_ref(),
-          binary() | nil,
-          integer(),
-          binary() | nil,
-          integer(),
-          boolean(),
-          list()
-        ) :: list()
-  defp normalize_sections_and_tabs(
-         elements,
-         counter_pid,
-         sections_id \\ nil,
-         sections_index \\ 0,
-         tab_parent_id \\ nil,
-         tab_index \\ 0,
-         tab_active? \\ false,
-         result \\ []
-       )
-
-  defp normalize_sections_and_tabs(
-         [],
-         _counter_pid,
-         _sections_id,
-         _section_index,
-         _tab_parent_id,
-         _tab_index,
-         tab_active?,
-         result
-       ) do
-    result
-    |> Enum.reverse()
-    |> maybe_mark_first_tab(tab_active?)
-  end
-
-  defp normalize_sections_and_tabs(
-         [%{tag: :sections, config: config, inner_elements: inner_elements} = element | elements],
-         counter_pid,
-         _sections_id,
-         _sections_index,
-         tab_parent_id,
-         _tab_index,
-         _tab_active?,
-         result
-       ) do
-    next_sections_index = Counter.next_count(counter_pid)
-
-    new_inner_elements =
-      normalize_sections_and_tabs(
-        inner_elements,
-        counter_pid,
-        config[:sections_id],
-        next_sections_index,
-        tab_parent_id
+    quote do
+      LayoutHelpers.declare_container(
+        unquote(layout_type),
+        unquote(name),
+        unquote(LayoutHelpers.prepare_block(block)),
+        unquote(opts)
       )
-
-    tabs_info =
-      new_inner_elements
-      |> Enum.filter(&(&1.tag == :section))
-      |> Enum.map(&Map.new(&1.config))
-
-    new_config =
-      config
-      |> Keyword.put(:sections_index, next_sections_index)
-      |> Keyword.put(:tabs, tabs_info)
-
-    new_element =
-      TreePath.change(element, %{config: new_config, inner_elements: new_inner_elements})
-
-    normalize_sections_and_tabs(
-      elements,
-      counter_pid,
-      config[:sections_id],
-      next_sections_index,
-      tab_parent_id,
-      0,
-      false,
-      [new_element | result]
-    )
+    end
   end
 
-  defp normalize_sections_and_tabs(
-         [
-           %{tag: :section, opts: opts, config: config, inner_elements: inner_elements} = element
-           | elements
-         ],
-         counter_pid,
-         sections_id,
-         sections_index,
-         tab_parent_id,
-         tab_index,
-         tab_active?,
-         result
-       ) do
-    next_tab_index = tab_index + 1
-    next_tab_active? = !tab_active? and opts[:default] == true
+  # `section "Label", [:field], default: true` passes its options where the block would go.
+  @spec trailing_options(list(), term()) :: {list(), term()}
+  defp trailing_options(opts, [{key, _value} | _rest] = trailing) when key != :do,
+    do: {opts ++ trailing, nil}
 
-    new_inner_elements =
-      normalize_sections_and_tabs(
-        inner_elements,
-        counter_pid,
-        sections_id,
-        sections_index,
-        config[:tab_id],
-        next_tab_index
-      )
+  defp trailing_options(opts, do_block), do: {opts, do_block}
 
-    new_config =
-      Keyword.merge(config,
-        active: opts[:default] == true,
-        sections_id: sections_id,
-        sections_index: sections_index,
-        tab_parent_id: tab_parent_id,
-        tab_index: next_tab_index
-      )
-
-    new_element =
-      TreePath.change(element, %{config: new_config, inner_elements: new_inner_elements})
-
-    normalize_sections_and_tabs(
-      elements,
-      counter_pid,
-      sections_id,
-      sections_index,
-      tab_parent_id,
-      next_tab_index,
-      next_tab_active?,
-      [new_element | result]
-    )
+  # The block's sub-layouts first, then the listed fields.
+  @spec children(Macro.t(), list(), Macro.Env.t()) :: Macro.t()
+  defp children(block, fields, env) do
+    quote do
+      unquote(LayoutHelpers.prepare_block(block)) ++
+        unquote(LayoutHelpers.field_refs(fields, env))
+    end
   end
-
-  defp normalize_sections_and_tabs(
-         [%{inner_elements: inner_elements} = element | elements],
-         counter_pid,
-         sections_id,
-         sections_index,
-         tab_parent_id,
-         tab_index,
-         tab_active?,
-         result
-       ) do
-    new_inner_elements =
-      normalize_sections_and_tabs(
-        inner_elements,
-        counter_pid,
-        sections_id,
-        sections_index,
-        tab_parent_id,
-        tab_index,
-        tab_active?
-      )
-
-    new_element = TreePath.change(element, %{inner_elements: new_inner_elements})
-
-    normalize_sections_and_tabs(
-      elements,
-      counter_pid,
-      sections_id,
-      sections_index,
-      tab_parent_id,
-      tab_index,
-      tab_active?,
-      [new_element | result]
-    )
-  end
-
-  @spec maybe_mark_first_tab(list(), boolean()) :: list()
-  defp maybe_mark_first_tab(elements, true), do: elements
-
-  defp maybe_mark_first_tab(elements, _) do
-    elements
-    |> Enum.reduce(
-      {[], false},
-      fn
-        element, {acc, true} ->
-          {[element | acc], true}
-
-        %{tag: :section, config: config} = element, {acc, false} ->
-          config
-          |> Keyword.update(:active, true, fn _ -> true end)
-          |> then(&struct(element, %{config: &1}))
-          |> then(&{[&1 | acc], true})
-
-        element, {acc, tab_active?} ->
-          {[element | acc], tab_active?}
-      end
-    )
-    |> elem(0)
-    |> Enum.reverse()
-  end
-
-  @spec fields_order(map()) :: list()
-  defp fields_order(%{fields: fields, fields_order: []}) do
-    Enum.map(fields, &elem(&1, 0))
-  end
-
-  defp fields_order(%{fields_order: fields_order}), do: fields_order
-
-  defp fields_order(_), do: []
 end

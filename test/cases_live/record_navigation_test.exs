@@ -15,7 +15,7 @@ defmodule Aurora.UixWeb.Test.RecordNavigationTest do
     edit_layout :product, [] do
       stacked do
         inline([:reference, :name, :description])
-        inline([:quantity_initial, quantity_at_hand])
+        inline([:quantity_initial, :quantity_at_hand])
       end
     end
   end

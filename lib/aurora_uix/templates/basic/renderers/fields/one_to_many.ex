@@ -41,7 +41,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   def render(
         %{
           field: %{type: :one_to_many_association, data: data} = field,
-          auix: %{layout_tree: layout_tree, uri_path: uri_path} = auix
+          auix: %{uri_path: uri_path} = auix
         } = assigns
       ) do
     parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
@@ -73,7 +73,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       |> put_in([:auix, :association, :related_key], field.data.related_key)
       |> put_in([:auix, :association, :owner_key], field.data.owner_key)
       |> put_in([:auix, :association, :parsed_opts], parsed_opts)
-      |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
       |> OneToManyActions.set_actions()
       |> apply_options()
 
@@ -120,34 +119,22 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   @spec get_association_fields(map(), map()) :: list(map())
   defp get_association_fields(field, configurations) do
     configurations
-    |> get_in([field.data.resource, :layout_trees, :index, :inner_elements])
-    |> Enum.filter(&(&1.tag == :field))
-    |> Enum.map(fn path_field ->
-      path_field
-      |> BasicHelpers.get_field(configurations, field.data.resource)
-      |> then(&%{label: &1.label, key: &1.key, type: &1.type})
-    end)
+    |> BasicHelpers.layout_children(field.data.resource, :index)
+    |> Enum.map(&%{label: &1.field.label, key: &1.field.key, type: &1.field.type})
   end
 
   @spec apply_options(map()) :: map()
-  defp apply_options(%{auix: %{layout_tree: %{opts: opts}}} = assigns) do
-    opts
-    |> Enum.reduce(assigns, &apply_option(&2, &1))
-    |> maybe_apply_where()
-  end
+  defp apply_options(%{auix: %{layout_tree: layout_tree}} = assigns) do
+    query_opts =
+      [order_by: Map.get(layout_tree, :order_by), where: Map.get(layout_tree, :where)]
+      |> Enum.reject(&is_nil(elem(&1, 1)))
+      |> Enum.reverse()
 
-  @spec apply_option(map(), tuple()) :: map()
-  defp apply_option(
-         %{auix: %{association: association}} = assigns,
-         {option_key, _option_value} = option
-       )
-       when option_key in [:order_by, :where] do
-    association
-    |> Map.get(:query_opts, [])
-    |> then(&put_in(assigns, [:auix, :association, :query_opts], [option | &1]))
+    if query_opts == [],
+      do: assigns,
+      else:
+        assigns |> put_in([:auix, :association, :query_opts], query_opts) |> maybe_apply_where()
   end
-
-  defp apply_option(assigns, _opt), do: assigns
 
   @spec maybe_apply_where(map()) :: map()
   defp maybe_apply_where(

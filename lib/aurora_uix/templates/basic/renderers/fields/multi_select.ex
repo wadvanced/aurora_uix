@@ -63,14 +63,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.MultiSelect do
   Phoenix.LiveView.Rendered.t() - Rendered multi-value select component.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(
-        %{field: field, auix: %{layout_type: :form, layout_tree: layout_tree} = auix} = assigns
-      ) do
+  def render(%{field: field, auix: %{layout_type: :form} = auix} = assigns) do
     assigns =
       assigns
       |> assign_select()
       |> assign(:input_name, "#{auix.form[field.key].name}[]")
-      |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
       |> then(&put_in(&1, [:auix, :multi_select_toggle_state], toggle_state(&1)))
       |> MultiSelectActions.set_actions()
 

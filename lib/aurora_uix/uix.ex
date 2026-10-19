@@ -108,7 +108,7 @@ defmodule Aurora.Uix do
       @auix_html_type_renderers unquote(Keyword.get(opts, :renderers, Macro.escape(%{})))
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
-      Module.register_attribute(__MODULE__, :auix_layout_trees, accumulate: true)
+      Module.register_attribute(__MODULE__, :auix_layouts, accumulate: true)
 
       @auix_template Template.uix_template()
       @auix_layout_tags Template.uix_template().layout_tags()

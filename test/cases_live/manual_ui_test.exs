@@ -6,7 +6,6 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
-  alias Aurora.Uix.TreePath
 
   auix_resource_metadata :product do
     context Inventory
@@ -18,126 +17,24 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  @auix_layout_opts []
-
-  @auix_layout_trees %TreePath{
-    tag: :form,
-    name: :product,
-    inner_elements: [
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{tag: :field, name: :reference},
-          %TreePath{tag: :field, name: :name},
-          %TreePath{tag: :field, name: :description}
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :quantity_at_hand
-          },
-          %TreePath{
-            tag: :field,
-            name: :quantity_initial
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{tag: :field, name: :list_price},
-          %TreePath{tag: :field, name: :rrp}
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :product_location_id
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :product_transactions
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :inactive
-          }
-        ]
-      }
-    ]
-  }
-
-  @auix_layout_trees %TreePath{
-    tag: :show,
-    name: :product,
-    inner_elements: [
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{tag: :field, name: :reference},
-          %TreePath{tag: :field, name: :name},
-          %TreePath{tag: :field, name: :description}
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :quantity_at_hand
-          },
-          %TreePath{
-            tag: :field,
-            name: :quantity_initial
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :product_location_id
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :product_transactions
-          }
-        ]
-      },
-      %TreePath{
-        tag: :inline,
-        inner_elements: [
-          %TreePath{
-            tag: :field,
-            name: :inactive
-          }
-        ]
-      }
-    ]
-  }
-
   auix_create_ui do
+    edit_layout :product, [] do
+      inline([:reference, :name, :description])
+      inline([:quantity_at_hand, :quantity_initial])
+      inline([:list_price, :rrp])
+      inline([:product_location_id])
+      inline([:product_transactions])
+      inline([:inactive])
+    end
+
+    show_layout :product, [] do
+      inline([:reference, :name, :description])
+      inline([:quantity_at_hand, :quantity_initial])
+      inline([:product_location_id])
+      inline([:product_transactions])
+      inline([:inactive])
+    end
+
     index_columns(:product, [:reference, :name, :description, :product_location_id],
       order_by: :name,
       page_subtitle: "Manual view"
