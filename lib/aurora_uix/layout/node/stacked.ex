@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Layout.Node.Stacked do
   defstruct id: nil, children: []
 
   @type t() :: %__MODULE__{
-          id: binary(),
+          id: binary() | nil,
           children: [Aurora.Uix.Layout.Node.t()]
         }
 end

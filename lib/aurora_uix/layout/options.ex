@@ -168,7 +168,7 @@ defmodule Aurora.Uix.Layout.Options do
   ## Parameters
 
   - `assigns` (map()) - The assigns map, which must contain an `:auix` key with a
-    `layout_type` and a `layout_tree` render node.
+    `layout_type` and a `layout_tree` layout node.
   - `option` (atom()) - The option key to retrieve.
 
   ## Returns

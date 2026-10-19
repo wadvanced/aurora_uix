@@ -135,17 +135,18 @@ This converts to an `Aurora.Uix.Field` struct:
 ### Layout Structures
 
 The layout macros (`index_columns`, `edit_layout`, `show_layout`, `inline`, `stacked`, `group`,
-`sections`, `section`) produce **declared layouts**, structs under `Aurora.Uix.Layout.Declared`
-that hold exactly what you wrote:
+`sections`, `section`) produce **layout nodes**, one struct per node kind under
+`Aurora.Uix.Layout.Node` (`Index`, `Form`, `Show`, `Inline`, `Stacked`, `Group`, `Sections`,
+`Section`, `Field`), holding what you wrote:
 
 ```elixir
-%Aurora.Uix.Layout.Declared.Form{
+%Aurora.Uix.Layout.Node.Form{
   resource: :product,
   children: [
-    %Aurora.Uix.Layout.Declared.Inline{
+    %Aurora.Uix.Layout.Node.Inline{
       children: [
-        %Aurora.Uix.Layout.Declared.FieldRef{key: :name},
-        %Aurora.Uix.Layout.Declared.FieldRef{key: :price}
+        %Aurora.Uix.Layout.Node.Field{key: :name},
+        %Aurora.Uix.Layout.Node.Field{key: :price}
       ]
     }
   ],
@@ -153,13 +154,12 @@ that hold exactly what you wrote:
 }
 ```
 
-At compile time each declared layout is built into a **render tree**: one struct per node kind
-under `Aurora.Uix.Layout.Node` (`Index`, `Form`, `Show`, `Inline`, `Stacked`, `Group`,
-`Sections`, `Section`, `Field`). Renderers receive the current node as `@auix.layout_tree` and
-dispatch on its struct. Render nodes add what the build derives:
+At compile time each layout is built: the build fills in, on the same structs, what the
+renderers need. Renderers receive the current node as `@auix.layout_tree` and dispatch on its
+struct. The build adds:
 
 - `id` - Built from the resource, the layout type and the node's position, so it is the same on every compile.
-- `Field` nodes - `field` holds the resolved `Aurora.Uix.Field`: the resource field with the layout's options merged over it.
+- `Field` nodes - `field` holds the resolved `Aurora.Uix.Field`: the resource field with the layout's options (`overrides`) merged over it.
 - `Sections` and `Section` nodes - The tab state (`tabs`, `active?`, `sections_id`, `tab_index`, ...).
 - `Index`, `Form` and `Show` nodes - `options` holds the layout options read through `Aurora.Uix.Layout.Options`, and `actions` holds the `*_action` entries.
 
@@ -293,7 +293,7 @@ This retrieves the compiled resource metadata struct from the metadata module.
 
 Every module produced by `auix_create_ui` exposes two introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
 
-- **`auix_layouts/0`** — returns the declared layouts as you defined them (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
+- **`auix_layouts/0`** — returns the layouts as you defined them, before the build (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
 
   ```elixir
   MyAppWeb.Products.Index.auix_layouts()

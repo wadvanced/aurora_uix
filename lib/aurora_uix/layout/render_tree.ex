@@ -1,7 +1,7 @@
 defmodule Aurora.Uix.Layout.RenderTree do
   @moduledoc """
-  Builds the render nodes (`Aurora.Uix.Layout.Node`) of one resource layout from its declared
-  layout (`Aurora.Uix.Layout.Declared`).
+  Builds one resource layout: fills in what the renderers need on the layout nodes
+  (`Aurora.Uix.Layout.Node`) the layout macros produced.
 
   ## Key Features
   - Fills a missing layout with the default one: every non-association column for `:index`,
@@ -13,11 +13,11 @@ defmodule Aurora.Uix.Layout.RenderTree do
   - Computes the tab state of `sections` and `section` nodes.
 
   ## Key Constraints
-  - This is the only module that reads both declared layouts and render nodes.
+  - The input and the output are the same node structs; only this module fills `id`, the
+    field nodes' `field` and the tab state.
   """
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Resource
 
@@ -31,56 +31,42 @@ defmodule Aurora.Uix.Layout.RenderTree do
   @form_excluded_types [:many_to_one_association, :one_to_many_association]
 
   @doc """
-  Builds the render tree of a resource layout.
+  Builds a resource layout for rendering.
 
   ## Parameters
-  - `declared` (Declared.layout() | nil) - The declared layout, or `nil` to use the default one.
+  - `layout` (Node.layout() | nil) - The layout as the macros produced it, or `nil` to use the
+    default one.
   - `layout_type` (:index | :form | :show) - The layout type to build.
   - `resource` (Resource.t()) - The resolved resource the layout renders.
   - `opts` (keyword()) - `auix_create_ui` options; `:default_fields_layout` (`:stacked` or
     `:inline`) shapes the default form and show layouts.
 
   ## Returns
-  `Aurora.Uix.Layout.Node.layout()` - The render tree.
+  `Aurora.Uix.Layout.Node.layout()` - The built layout.
   """
-  @spec build(Declared.layout() | nil, atom(), Resource.t(), keyword()) :: Node.layout()
+  @spec build(Node.layout() | nil, atom(), Resource.t(), keyword()) :: Node.layout()
   def build(nil, layout_type, resource, opts),
     do: layout_type |> default(resource, opts) |> build(layout_type, resource, opts)
 
-  def build(%Declared.Index{} = declared, :index, resource, _opts) do
-    id = container_id(resource, :index)
-
-    %Node.Index{
-      id: id,
-      resource: resource.name,
-      children: Enum.map(declared.columns, &field_node(&1, resource)),
-      order_by: declared.order_by,
-      where: declared.where,
-      renderers: declared.renderers,
-      actions: declared.actions,
-      handler_module: declared.handler_module,
-      options: declared.options
+  def build(%Node.Index{} = layout, :index, resource, _opts) do
+    %{
+      layout
+      | id: container_id(resource, :index),
+        resource: resource.name,
+        children: Enum.map(layout.children, &field_node(&1, resource))
     }
   end
 
-  def build(%{} = declared, layout_type, resource, _opts) when layout_type in [:form, :show] do
+  def build(%{} = layout, layout_type, resource, _opts) when layout_type in [:form, :show] do
     id = container_id(resource, layout_type)
 
     children =
-      declared.children
+      layout.children
       |> Enum.with_index()
       |> Enum.map(fn {child, index} -> node(child, "#{id}-#{index}", resource) end)
       |> normalize_sections()
 
-    struct(container_module(layout_type), %{
-      id: id,
-      resource: resource.name,
-      children: children,
-      renderers: declared.renderers,
-      actions: declared.actions,
-      handler_module: declared.handler_module,
-      options: declared.options
-    })
+    %{layout | id: id, resource: resource.name, children: children}
   end
 
   @doc """
@@ -92,41 +78,41 @@ defmodule Aurora.Uix.Layout.RenderTree do
   - `opts` (keyword()) - `auix_create_ui` options, see `build/4`.
 
   ## Returns
-  `Aurora.Uix.Layout.Declared.layout()` - The default declared layout.
+  `Aurora.Uix.Layout.Node.layout()` - The default layout, not built yet.
   """
-  @spec default(atom(), Resource.t(), keyword()) :: Declared.layout()
+  @spec default(atom(), Resource.t(), keyword()) :: Node.layout()
   def default(:index, resource, _opts) do
-    %Declared.Index{
+    %Node.Index{
       resource: resource.name,
-      columns: resource |> field_keys(@index_excluded_types) |> Enum.map(&field_ref/1)
+      children: resource |> field_keys(@index_excluded_types) |> Enum.map(&%Node.Field{key: &1})
     }
   end
 
   def default(layout_type, resource, opts) when layout_type in [:form, :show] do
-    fields = resource |> field_keys(@form_excluded_types) |> Enum.map(&field_ref/1)
+    fields = resource |> field_keys(@form_excluded_types) |> Enum.map(&%Node.Field{key: &1})
 
     fields_layout =
       case Keyword.get(opts, :default_fields_layout, :stacked) do
-        :inline -> %Declared.Inline{children: fields}
-        _stacked -> %Declared.Stacked{children: fields}
+        :inline -> %Node.Inline{children: fields}
+        _stacked -> %Node.Stacked{children: fields}
       end
 
-    struct(declared_module(layout_type), %{resource: resource.name, children: [fields_layout]})
+    struct(container_module(layout_type), %{resource: resource.name, children: [fields_layout]})
   end
 
   @doc """
-  Resolves the `%Aurora.Uix.Field{}` a field reference renders.
+  Resolves the `%Aurora.Uix.Field{}` a field node renders.
 
   ## Parameters
-  - `field_ref` (Declared.FieldRef.t()) - The field as placed in the layout.
+  - `field_node` (Node.Field.t()) - The field as placed in the layout.
   - `resource` (Resource.t()) - The resource the field belongs to.
 
   ## Returns
   `Aurora.Uix.Field.t()` - The resource field with the layout overrides merged over it, or a new
   field when the resource has no field with that key.
   """
-  @spec resolve_field(Declared.FieldRef.t(), Resource.t()) :: Field.t()
-  def resolve_field(%Declared.FieldRef{key: key, overrides: overrides}, resource) do
+  @spec resolve_field(Node.Field.t(), Resource.t()) :: Field.t()
+  def resolve_field(%Node.Field{key: key, overrides: overrides}, resource) do
     resource.fields
     |> Map.get(key)
     |> Kernel.||(Field.new(%{key: key, resource: resource.name}))
@@ -141,13 +127,6 @@ defmodule Aurora.Uix.Layout.RenderTree do
   @spec container_module(atom()) :: module()
   defp container_module(:form), do: Node.Form
   defp container_module(:show), do: Node.Show
-
-  @spec declared_module(atom()) :: module()
-  defp declared_module(:form), do: Declared.Form
-  defp declared_module(:show), do: Declared.Show
-
-  @spec field_ref(atom()) :: Declared.FieldRef.t()
-  defp field_ref(key), do: %Declared.FieldRef{key: key}
 
   @spec merge_overrides(Field.t(), Field.t() | nil) :: Field.t()
   defp merge_overrides(field, nil), do: field
@@ -164,47 +143,37 @@ defmodule Aurora.Uix.Layout.RenderTree do
   defp fields_order(%Resource{fields: fields, fields_order: []}), do: Map.keys(fields)
   defp fields_order(%Resource{fields_order: fields_order}), do: fields_order
 
-  @spec field_node(Declared.FieldRef.t(), Resource.t()) :: Node.Field.t()
-  defp field_node(%Declared.FieldRef{} = field_ref, resource) do
-    %Node.Field{
-      key: field_ref.key,
-      path: field_ref.path,
-      field: resolve_field(field_ref, resource),
-      actions: field_ref.actions,
-      order_by: field_ref.order_by,
-      where: field_ref.where
-    }
-  end
+  @spec field_node(Node.Field.t(), Resource.t()) :: Node.Field.t()
+  defp field_node(%Node.Field{} = field_node, resource),
+    do: %{field_node | field: resolve_field(field_node, resource)}
 
-  @spec node(Declared.child(), binary(), Resource.t()) :: Node.t()
-  defp node(%Declared.FieldRef{} = field_ref, _id, resource), do: field_node(field_ref, resource)
+  @spec node(Node.t(), binary(), Resource.t()) :: Node.t()
+  defp node(%Node.Field{} = field, _id, resource), do: field_node(field, resource)
 
-  defp node(%Declared.Inline{children: children}, id, resource),
-    do: %Node.Inline{id: "#{id}-inline", children: nodes(children, id, resource)}
+  defp node(%Node.Inline{} = inline, id, resource),
+    do: %{inline | id: "#{id}-inline", children: nodes(inline.children, id, resource)}
 
-  defp node(%Declared.Stacked{children: children}, id, resource),
-    do: %Node.Stacked{id: "#{id}-stacked", children: nodes(children, id, resource)}
+  defp node(%Node.Stacked{} = stacked, id, resource),
+    do: %{stacked | id: "#{id}-stacked", children: nodes(stacked.children, id, resource)}
 
-  defp node(%Declared.Group{title: title, children: children}, id, resource),
-    do: %Node.Group{
-      id: titled_id("group", title, id),
-      title: title,
-      children: nodes(children, id, resource)
+  defp node(%Node.Group{} = group, id, resource),
+    do: %{
+      group
+      | id: titled_id("group", group.title, id),
+        children: nodes(group.children, id, resource)
     }
 
-  defp node(%Declared.Sections{children: children}, id, resource),
-    do: %Node.Sections{id: sections_id(id), children: nodes(children, id, resource)}
+  defp node(%Node.Sections{} = sections, id, resource),
+    do: %{sections | id: sections_id(id), children: nodes(sections.children, id, resource)}
 
-  defp node(%Declared.Section{} = section, id, resource) do
-    %Node.Section{
-      id: titled_id("section", section.label, id),
-      label: section.label,
-      active?: section.default?,
-      children: nodes(section.children, id, resource)
+  defp node(%Node.Section{} = section, id, resource),
+    do: %{
+      section
+      | id: titled_id("section", section.label, id),
+        children: nodes(section.children, id, resource)
     }
-  end
 
-  @spec nodes([Declared.child()], binary(), Resource.t()) :: [Node.t()]
+  @spec nodes([Node.t()], binary(), Resource.t()) :: [Node.t()]
   defp nodes(children, id, resource) do
     children
     |> Enum.with_index()

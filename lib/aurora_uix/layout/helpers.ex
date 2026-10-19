@@ -22,8 +22,8 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Node
 
   alias Ecto.Embedded
 
@@ -106,7 +106,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Builds the field references of a layout's field list at macro expansion time.
+  Builds the field nodes of a layout's field list at macro expansion time.
 
   Function captures in field options are evaluated in the caller's environment.
 
@@ -115,30 +115,30 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `env` (Macro.Env.t()) - The caller's environment.
 
   ## Returns
-  Macro.t() - The escaped list of `Aurora.Uix.Layout.Declared.FieldRef` structs.
+  Macro.t() - The escaped list of `Aurora.Uix.Layout.Node.Field` structs.
   """
-  @spec field_refs(list(), Macro.Env.t()) :: Macro.t()
-  def field_refs(fields, env), do: fields |> Enum.map(&field_ref(&1, env)) |> Macro.escape()
+  @spec field_nodes(list(), Macro.Env.t()) :: Macro.t()
+  def field_nodes(fields, env), do: fields |> Enum.map(&field_node(&1, env)) |> Macro.escape()
 
   @doc """
-  Builds a declared index layout from the options of `index_columns`.
+  Builds an index layout node from the options of `index_columns`.
 
   ## Parameters
   - `resource` (atom()) - The resource name.
-  - `columns` ([Declared.FieldRef.t()]) - The columns.
+  - `columns` ([Node.Field.t()]) - The columns.
   - `opts` (keyword()) - The layout options.
 
   ## Returns
-  `Aurora.Uix.Layout.Declared.Index.t()` - The declared layout.
+  `Aurora.Uix.Layout.Node.Index.t()` - The layout node.
   """
-  @spec declare_index(atom(), [Declared.FieldRef.t()], keyword()) :: Declared.Index.t()
+  @spec declare_index(atom(), [Node.Field.t()], keyword()) :: Node.Index.t()
   def declare_index(resource, columns, opts) do
     {query, layout_opts} = Keyword.split(opts, [:order_by, :where])
 
     struct(
-      %Declared.Index{
+      %Node.Index{
         resource: resource,
-        columns: columns,
+        children: columns,
         order_by: query[:order_by],
         where: query[:where]
       },
@@ -147,30 +147,30 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Builds a declared form or show layout from the options of `edit_layout` or `show_layout`.
+  Builds a form or show layout node from the options of `edit_layout` or `show_layout`.
 
   ## Parameters
   - `layout_type` (:form | :show) - The layout type.
   - `resource` (atom()) - The resource name.
-  - `children` ([Declared.child()]) - The sub-layouts and fields of the block.
+  - `children` ([Node.t()]) - The sub-layouts and fields of the block.
   - `opts` (keyword()) - The layout options.
 
   ## Returns
-  `Aurora.Uix.Layout.Declared.Form.t()` or `Aurora.Uix.Layout.Declared.Show.t()`.
+  `Aurora.Uix.Layout.Node.Form.t()` or `Aurora.Uix.Layout.Node.Show.t()`.
   """
-  @spec declare_container(:form | :show, atom(), [Declared.child()], keyword()) ::
-          Declared.Form.t() | Declared.Show.t()
+  @spec declare_container(:form | :show, atom(), [Node.t()], keyword()) ::
+          Node.Form.t() | Node.Show.t()
   def declare_container(:form, resource, children, opts),
     do:
       struct(
-        %Declared.Form{resource: resource, children: children},
+        %Node.Form{resource: resource, children: children},
         container_opts(opts, :edit_handler_module)
       )
 
   def declare_container(:show, resource, children, opts),
     do:
       struct(
-        %Declared.Show{resource: resource, children: children},
+        %Node.Show{resource: resource, children: children},
         container_opts(opts, :show_handler_module)
       )
 
@@ -262,7 +262,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   - `block` (term()) - The block containing layout definitions.
 
   ## Returns
-  Macro.t() - A quoted expression that, when executed, stores the declared layouts.
+  Macro.t() - A quoted expression that, when executed, stores the layouts.
   """
   @spec create_layout(term()) :: Macro.t()
   def create_layout(block) do
@@ -299,19 +299,19 @@ defmodule Aurora.Uix.Layout.Helpers do
   end
 
   @doc """
-  Stores declared layouts in the `@auix_layouts` module attribute.
+  Stores layout nodes in the `@auix_layouts` module attribute.
 
   A layout replaces any layout stored earlier for the same resource and layout type.
 
   ## Parameters
   - `module` (module()) - The module where the attribute is stored.
   - `stored` (list()) - The layouts already stored.
-  - `declared` ([Declared.layout()]) - The layouts to add.
+  - `declared` ([Node.layout()]) - The layouts to add.
 
   ## Returns
   :ok
   """
-  @spec put_layouts(module(), list(), [Declared.layout()]) :: :ok
+  @spec put_layouts(module(), list(), [Node.layout()]) :: :ok
   def put_layouts(module, stored, declared) do
     Module.delete_attribute(module, :auix_layouts)
     Enum.each(declared, &Module.put_attribute(module, :auix_layouts, &1))
@@ -340,15 +340,15 @@ defmodule Aurora.Uix.Layout.Helpers do
   defp extract_block(do: block), do: block
   defp extract_block(block), do: block
 
-  # Builds the field reference of one entry of a field list.
-  @spec field_ref(atom() | tuple(), Macro.Env.t()) :: Declared.FieldRef.t()
-  defp field_ref(key, _env) when is_atom(key), do: %Declared.FieldRef{key: key}
+  # Builds the field node of one entry of a field list.
+  @spec field_node(atom() | tuple(), Macro.Env.t()) :: Node.Field.t()
+  defp field_node(key, _env) when is_atom(key), do: %Node.Field{key: key}
 
-  defp field_ref({key, opts}, env) when is_atom(key) and is_list(opts) do
+  defp field_node({key, opts}, env) when is_atom(key) and is_list(opts) do
     field_opts = Enum.map(opts, &process_field_tag_option(&1, env))
     overrides = Keyword.take(field_opts, @field_override_keys)
 
-    %Declared.FieldRef{
+    %Node.Field{
       key: key,
       overrides: if(overrides == [], do: nil, else: struct(%Field{key: key}, overrides)),
       actions: Keyword.take(field_opts, @field_action_names),
@@ -357,12 +357,12 @@ defmodule Aurora.Uix.Layout.Helpers do
     }
   end
 
-  defp field_ref({key, child}, _env) when is_atom(key) and is_atom(child),
-    do: %Declared.FieldRef{key: key, path: [child]}
+  defp field_node({key, child}, _env) when is_atom(key) and is_atom(child),
+    do: %Node.Field{key: key, path: [child]}
 
-  defp field_ref({:{}, _meta, [key | path]}, _env), do: %Declared.FieldRef{key: key, path: path}
+  defp field_node({:{}, _meta, [key | path]}, _env), do: %Node.Field{key: key, path: path}
 
-  defp field_ref(field, env) do
+  defp field_node(field, env) do
     raise CompileError,
       file: env.file,
       line: env.line,

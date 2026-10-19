@@ -6,14 +6,14 @@ defmodule Aurora.Uix.Layout.Node.Group do
   - `id` is the DOM id of the group container.
 
   ## Key Constraints
-  - `id` comes from the node's position in its layout, or from the field for the groups
-    built by the many-to-one renderer.
+  - `id` is set when `Aurora.Uix.Layout.RenderTree` builds the layout, from the node's
+    position in it. The many-to-one renderer sets it from the field for the groups it builds.
   """
 
   defstruct id: nil, title: nil, children: []
 
   @type t() :: %__MODULE__{
-          id: binary(),
+          id: binary() | nil,
           title: binary() | nil,
           children: [Aurora.Uix.Layout.Node.t()]
         }

@@ -4,10 +4,10 @@ defmodule Aurora.Uix.Layout.Node.Index do
 
   ## Key Features
   - `children` holds one `Aurora.Uix.Layout.Node.Field` per column.
-  - Built from `Aurora.Uix.Layout.Declared.Index` by `Aurora.Uix.Layout.RenderTree`.
+  - The layout macro builds it; `Aurora.Uix.Layout.RenderTree` fills `id` and the fields.
 
   ## Key Constraints
-  - `id` is derived from the resource and layout type, so it is stable across compiles.
+  - `id` is `nil` until the build. It is derived from the resource and layout type, so it is stable across compiles.
   """
 
   defstruct id: nil,
@@ -21,7 +21,7 @@ defmodule Aurora.Uix.Layout.Node.Index do
             options: []
 
   @type t() :: %__MODULE__{
-          id: binary(),
+          id: binary() | nil,
           resource: atom(),
           children: [Aurora.Uix.Layout.Node.Field.t()],
           order_by: term(),

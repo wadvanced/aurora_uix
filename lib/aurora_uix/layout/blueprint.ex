@@ -24,11 +24,11 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   ## Layout Structures
 
-  Each macro produces a declared layout struct (`Aurora.Uix.Layout.Declared`): `index_columns`
-  an `Index`, `edit_layout` a `Form`, `show_layout` a `Show`, and the sub-layouts an `Inline`,
-  `Stacked`, `Group`, `Sections` or `Section`. Each field in a list becomes a `FieldRef`.
-  At compile time `Aurora.Uix.Layout.RenderTree` builds them into the render nodes
-  (`Aurora.Uix.Layout.Node`) that the renderers read.
+  Each macro produces a layout node (`Aurora.Uix.Layout.Node`): `index_columns` an `Index`,
+  `edit_layout` a `Form`, `show_layout` a `Show`, and the sub-layouts an `Inline`, `Stacked`,
+  `Group`, `Sections` or `Section`. Each field in a list becomes a `Field` node. At compile time
+  `Aurora.Uix.Layout.RenderTree` fills in the ids, resolved fields and tab state that the
+  renderers read.
 
   ## Usage Examples
 
@@ -191,8 +191,8 @@ defmodule Aurora.Uix.Layout.Blueprint do
 
   """
 
-  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Node
 
   @doc """
   Defines a form layout for resource editing.
@@ -380,7 +380,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   @spec index_columns(atom(), keyword() | list(), any()) :: Macro.t()
   defmacro index_columns(name, fields, opts \\ []) do
     {_block, opts} = LayoutHelpers.extract_block_options([], opts)
-    columns = LayoutHelpers.field_refs(fields, __CALLER__)
+    columns = LayoutHelpers.field_nodes(fields, __CALLER__)
 
     quote do
       LayoutHelpers.declare_index(unquote(name), unquote(columns), unquote(opts))
@@ -418,7 +418,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     children = children(block, fields, __CALLER__)
 
     quote do
-      %Declared.Inline{children: unquote(children)}
+      %Node.Inline{children: unquote(children)}
     end
   end
 
@@ -443,7 +443,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     children = children(block, fields, __CALLER__)
 
     quote do
-      %Declared.Stacked{children: unquote(children)}
+      %Node.Stacked{children: unquote(children)}
     end
   end
 
@@ -466,7 +466,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     children = children(block, fields, __CALLER__)
 
     quote do
-      %Declared.Group{title: unquote(title), children: unquote(children)}
+      %Node.Group{title: unquote(title), children: unquote(children)}
     end
   end
 
@@ -491,7 +491,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
     children = children(block, [], __CALLER__)
 
     quote do
-      %Declared.Sections{children: unquote(children)}
+      %Node.Sections{children: unquote(children)}
     end
   end
 
@@ -516,9 +516,9 @@ defmodule Aurora.Uix.Layout.Blueprint do
     children = children(block, fields, __CALLER__)
 
     quote do
-      %Declared.Section{
+      %Node.Section{
         label: unquote(label),
-        default?: unquote(Keyword.get(section_opts, :default, false)),
+        active?: unquote(Keyword.get(section_opts, :default, false)),
         children: unquote(children)
       }
     end
@@ -552,7 +552,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   defp children(block, fields, env) do
     quote do
       unquote(LayoutHelpers.prepare_block(block)) ++
-        unquote(LayoutHelpers.field_refs(fields, env))
+        unquote(LayoutHelpers.field_nodes(fields, env))
     end
   end
 end

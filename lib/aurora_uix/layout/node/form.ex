@@ -3,10 +3,10 @@ defmodule Aurora.Uix.Layout.Node.Form do
   Render node of a form layout, read by the renderers as `@auix.layout_tree`.
 
   ## Key Features
-  - Built from `Aurora.Uix.Layout.Declared.Form` by `Aurora.Uix.Layout.RenderTree`.
+  - The layout macro builds it; `Aurora.Uix.Layout.RenderTree` fills `id` and the fields.
 
   ## Key Constraints
-  - `id` is derived from the resource and layout type, so it is stable across compiles.
+  - `id` is `nil` until the build. It is derived from the resource and layout type, so it is stable across compiles.
   """
 
   defstruct id: nil,
@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Layout.Node.Form do
             options: []
 
   @type t() :: %__MODULE__{
-          id: binary(),
+          id: binary() | nil,
           resource: atom(),
           children: [Aurora.Uix.Layout.Node.t()],
           renderers: map() | nil,

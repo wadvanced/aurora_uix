@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   Renders a template based on its tag type.
 
   ## Parameters
-  - `assigns` (map()) - Aurora UIX context map whose `auix.layout_tree` is a render node.
+  - `assigns` (map()) - Aurora UIX context map whose `auix.layout_tree` is a layout node.
 
   ## Node Types (`Aurora.Uix.Layout.Node`)
   - `Index` - List view of entities

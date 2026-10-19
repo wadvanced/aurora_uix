@@ -9,7 +9,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Blueprint
-  alias Aurora.Uix.Layout.Declared
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.RenderTree
@@ -139,12 +138,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
   ## PRIVATE
 
   # Merges two layouts declared for the same resource and layout type; `layout` wins.
-  @spec merge_layouts(Declared.layout(), Declared.layout()) :: Declared.layout()
-  defp merge_layouts(%Declared.Index{} = acc, layout) do
+  @spec merge_layouts(Node.layout(), Node.layout()) :: Node.layout()
+  defp merge_layouts(%Node.Index{} = acc, layout) do
     acc
     |> merge_container_opts(layout)
     |> Map.merge(%{
-      columns: acc.columns ++ layout.columns,
+      children: acc.children ++ layout.children,
       order_by: layout.order_by || acc.order_by,
       where: layout.where || acc.where
     })
@@ -156,7 +155,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:children, acc.children ++ layout.children)
   end
 
-  @spec merge_container_opts(Declared.layout(), Declared.layout()) :: Declared.layout()
+  @spec merge_container_opts(Node.layout(), Node.layout()) :: Node.layout()
   defp merge_container_opts(acc, layout) do
     %{
       acc
@@ -255,10 +254,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
-  @spec layout_type(Declared.layout()) :: atom()
-  defp layout_type(%Declared.Index{}), do: :index
-  defp layout_type(%Declared.Form{}), do: :form
-  defp layout_type(%Declared.Show{}), do: :show
+  @spec layout_type(Node.layout()) :: atom()
+  defp layout_type(%Node.Index{}), do: :index
+  defp layout_type(%Node.Form{}), do: :form
+  defp layout_type(%Node.Show{}), do: :show
 
   # Without a show layout, the show view reuses the form layout and its `show_handler_module`.
   @spec put_missing_show(map()) :: map()
@@ -268,7 +267,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     form
     |> Map.from_struct()
     |> Map.put(:handler_module, Keyword.get(form.options, :show_handler_module))
-    |> then(&struct(Declared.Show, &1))
+    |> then(&struct(Node.Show, &1))
     |> then(&Map.put(layouts, :show, &1))
   end
 
