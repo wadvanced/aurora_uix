@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 #
-# Checks that the guide screens look as they did in a baseline version.
+# Checks that the guide screens look as they did in a baseline version. Run it by hand for
+# structural changes that must not change the rendered UI; `mix test` and CI never run it.
 #
-#   scripts/compare_guides.sh <baseline-ref>   # e.g. a tag of the last accepted version
+#   scripts/compare_guides.sh                  # compares with the `guides-baseline` tag
+#   scripts/compare_guides.sh <baseline-ref>   # compares with any other ref
 #
-# Captures the guide screenshots from <baseline-ref> in a temporary worktree, then captures them
+# Move `guides-baseline` forward when an accepted change is meant to alter the screens.
+#
+# Captures the guide screenshots from the baseline ref in a temporary worktree, then captures them
 # again from this checkout in compare mode (AURORA_UIX_CAPTURES=compare, see
 # test/guides/image_helper.exs). Both sets are temporary: the committed images are untouched, the
 # current captures and any -diff.png land in tmp/captures/, and the worktree is removed at the end
@@ -13,7 +17,7 @@
 
 set -euo pipefail
 
-ref="${1:?usage: scripts/compare_guides.sh <baseline-ref>}"
+ref="${1:-guides-baseline}"
 root=$(git rev-parse --show-toplevel)
 baseline="$root/tmp/compare_guides_baseline"
 
