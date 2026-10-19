@@ -64,16 +64,47 @@ defmodule Aurora.Uix.Field.Upload do
   - `consume` is required for the upload to be persisted; the other callbacks are optional.
   """
 
+  alias Phoenix.LiveView.Socket
+
   defstruct allow: [], consume: nil, download: nil, downloadable?: nil
 
-  @type callback() ::
-          (term() -> term()) | (term(), term() -> term()) | (term(), term(), term() -> term())
+  @typedoc "Result of `consume`: the value to store, no change, or an error shown as a flash."
+  @type consume_result() :: {:ok, term()} | :no_change | {:error, term()}
+
+  @typedoc "Callback receiving the consumed file binaries, optionally with the socket and field key."
+  @type consume() ::
+          ([binary()] -> consume_result())
+          | (Socket.t(), [binary()] -> consume_result())
+          | (Socket.t(), [binary()], atom() -> consume_result())
+
+  @typedoc "Result of `download`: the file to send, nothing, or an error shown as a flash."
+  @type download_result() ::
+          {:ok,
+           %{
+             required(:name) => binary(),
+             required(:content) => binary(),
+             optional(:content_type) => binary()
+           }}
+          | :no_download
+          | {:error, term()}
+
+  @typedoc "Callback receiving the stored field value, optionally with the socket and field key."
+  @type download() ::
+          (term() -> download_result())
+          | (Socket.t(), term() -> download_result())
+          | (Socket.t(), term(), atom() -> download_result())
+
+  @typedoc "Gate receiving the stored field value, optionally with the socket and field key."
+  @type downloadable() ::
+          (term() -> boolean())
+          | (Socket.t(), term() -> boolean())
+          | (Socket.t(), term(), atom() -> boolean())
 
   @type t() :: %__MODULE__{
           allow: keyword(),
-          consume: callback() | nil,
-          download: callback() | nil,
-          downloadable?: callback() | boolean() | nil
+          consume: consume() | nil,
+          download: download() | nil,
+          downloadable?: downloadable() | boolean() | nil
         }
 
   @doc """

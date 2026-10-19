@@ -241,7 +241,10 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 - `schema` - The Ecto schema or Ash resource module
 - `context` - Context module
 - `type` - Backend type (`:ctx` for Context, `:ash` for Ash)
-- `order_by`, `renderers` - As declared
+- `order_by` - As declared
+- `renderers` - The resource-level `:renderers` option: an `html_type => renderer` table applied to
+  every field of the resource. Per-field renderers (`renderer`, `index_renderer`, `edit_renderer`,
+  `show_renderer`) stay on each `Aurora.Uix.Field`
 - `display_name`, `title` - The `:name` and `:title` options
 - `backend_opts` - Options owned by the backend, such as `:ash_actor_assign` or the CRUD
   action and function overrides
