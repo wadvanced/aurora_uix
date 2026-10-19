@@ -330,7 +330,7 @@ the next step.
 
 > #### Using Ash policies? {: .info}
 > We kept this resource open to stay simple. If your resources are protected by
-> `Ash.Policy.Authorizer`, add `ash_actor_assign: :current_user` to the metadata
+> `Ash.Policy.Authorizer`, add `backend_opts: [ash_actor_assign: :current_user]` to the metadata
 > so Aurora UIX threads the current user as the Ash actor through every generated
 > CRUD call. See
 > [Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
@@ -433,14 +433,18 @@ defmodule InventoryWeb.CatalogViews do
 
   # Ecto (Option A): context: Catalog, schema: Category
   # Ash  (Option B): ash_resource: Category
-  auix_resource_metadata :category, context: Catalog, schema: Category do
+  auix_resource_metadata :category do
+    context Catalog
+    schema Category
     field :name, placeholder: "Category name", required: true
-    field :description, max_length: 255
+    field :description, length: 255
   end
 
   # Ecto (Option A): context: Catalog, schema: Product
   # Ash  (Option B): ash_resource: Product
-  auix_resource_metadata :product, context: Catalog, schema: Product do
+  auix_resource_metadata :product do
+    context Catalog
+    schema Product
     field :name, placeholder: "Product name", required: true
     field :price, precision: 12, scale: 2
     field :stock, required: true

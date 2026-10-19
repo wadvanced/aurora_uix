@@ -9,10 +9,12 @@ Aurora UIX helps you rapidly generate complete CRUD user interfaces with minimal
 Aurora UIX is built on three interconnected components:
 
 ### 1. Resource Metadata
-Define UI configuration declaratively using the `auix_resource_metadata/3` macro. Specify field-level options, validation rules, labels, and association handling all in one place.
+Define UI configuration declaratively using the `auix_resource_metadata` macro. Specify field-level options, validation rules, labels, and association handling all in one place.
 
 ```elixir
-auix_resource_metadata :product, context: Inventory, schema: Product do
+auix_resource_metadata :product do
+  context Inventory
+  schema Product
   field :name, placeholder: "Product name", required: true
   field :price, precision: 12, scale: 2
 end
@@ -64,7 +66,9 @@ defmodule MyAppWeb.InventoryViews do
 
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema Product
     field :name, placeholder: "Product name", required: true
     field :price, precision: 12, scale: 2
   end

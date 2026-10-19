@@ -29,7 +29,7 @@ defmodule Aurora.UixWeb.Test.CreateUILayoutTest do
   auix_resource_metadata(:product,
     context: Inventory,
     schema: Product,
-    list_function_paginated: &Inventory.list_products_paginated/1
+    backend_opts: [list_function_paginated: &Inventory.list_products_paginated/1]
   )
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex

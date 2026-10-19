@@ -9,11 +9,15 @@ defmodule Aurora.UixWeb.Test.AshWhereMany2OneTest do
 
   auix_resource_metadata(:author, ash_resource: Author)
 
-  auix_resource_metadata :post, ash_resource: Post do
+  auix_resource_metadata :post do
+    ash_resource(Post)
+
     field(:author_id,
       option_label: :name,
-      order_by: [desc: :name],
-      where: [{:name, :between, "Authortest-08", "Authortest-14"}]
+      query_opts: [
+        order_by: [desc: :name],
+        where: [{:name, :between, "Authortest-08", "Authortest-14"}]
+      ]
     )
   end
 

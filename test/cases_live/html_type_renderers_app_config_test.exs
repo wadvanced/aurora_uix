@@ -5,7 +5,9 @@ defmodule Aurora.UixWeb.Test.HtmlTypeRenderersAppConfigTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:deleted, renderer: :default_checkbox)
   end
 

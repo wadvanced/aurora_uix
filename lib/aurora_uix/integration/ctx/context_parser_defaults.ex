@@ -46,6 +46,20 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
   @change_function :change_function
   @new_function :new_function
 
+  @backend_opts_schema [
+    list_function: [type: {:fun, 1}, doc: "Lists the entries."],
+    list_function_paginated: [type: {:fun, 1}, doc: "Lists the entries with pagination."],
+    get_function: [type: {:fun, 2}, doc: "Gets one entry."],
+    delete_function: [type: {:fun, 1}, doc: "Deletes an entry."],
+    create_function: [type: {:fun, 1}, doc: "Creates an entry."],
+    update_function: [type: {:fun, 2}, doc: "Updates an entry."],
+    change_function: [type: {:fun, 2}, doc: "Builds a changeset."],
+    new_function: [type: {:fun, 2}, doc: "Builds a new entry."]
+  ]
+
+  @impl true
+  def backend_opts_schema, do: @backend_opts_schema
+
   @impl true
   def filter_options(valid_options, _resource_opts), do: valid_options
 

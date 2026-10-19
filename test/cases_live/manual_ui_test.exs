@@ -8,7 +8,9 @@ defmodule Aurora.UixWeb.Test.ManualUITest do
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
   alias Aurora.Uix.TreePath
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:inactive, disabled: false)
     field(:description, html_type: :textarea)
   end

@@ -33,7 +33,9 @@ Field-level customizations (like `readonly`, `hidden`, `renderer`) defined in yo
 All examples below use this resource metadata:
 
 ```elixir
-auix_resource_metadata :product, context: MyApp.Inventory, schema: Product do
+auix_resource_metadata :product do
+  context MyApp.Inventory
+  schema Product
   field :reference, required: true
   field :name, required: true
   field :description
@@ -378,7 +380,7 @@ end
 The function receives `assigns` and should return rendered HTML (using sigil `~H`).
 
 > **Note:** This is separate from the resource's own `name`/`title` metadata (set via
-> `auix_resource_metadata/3`), which many of the defaults above interpolate (e.g. `"New
+> `auix_resource_metadata`), which many of the defaults above interpolate (e.g. `"New
 > {name}"`, `"Back to {title}"`). Those accept a plain `binary()` or a captured **0-arity**
 > function returning a `binary()` — a different signature from the arity-1, `assigns`-receiving
 > functions documented here. See [Resource Metadata → Display Name and
@@ -407,7 +409,7 @@ end
 - `:show_renderer` — Custom rendering function for the show layout only
 - `:length` — Input field character width
 - `:placeholder` — Placeholder text
-- `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (`data: %{upload: …}`) never offers one, even with `sortable?: true`
+- `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (one with an `upload` block) never offers one, even with `sortable?: true`
 - `:option_label` — For select/radio fields
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`

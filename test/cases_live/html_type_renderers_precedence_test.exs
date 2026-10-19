@@ -8,10 +8,10 @@ defmodule Aurora.UixWeb.Test.HtmlTypeRenderersPrecedenceTest do
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
-  auix_resource_metadata :product,
-    context: Inventory,
-    schema: Product,
-    renderers: %{text: :badge, number: :rating} do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+    renderers(%{text: :badge, number: :rating})
     field(:deleted, show_renderer: :default_checkbox)
   end
 

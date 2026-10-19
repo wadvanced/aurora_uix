@@ -5,7 +5,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ProgressBar do
   - `:index` / `:show` — a read-only progress bar plus a percentage label.
   - `:form` — editing is not special; delegates to the default number input.
 
-  The maximum defaults to `100`; override it per field with `data: %{max: 5}`.
+  The maximum defaults to `100`; override it per field with `renderer_opts: [max: 5]`.
   """
 
   use Aurora.Uix.Renderer
@@ -46,7 +46,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ProgressBar do
     value = display_value(assigns)
 
     maximum =
-      case assigns.field.data[:max] do
+      case Keyword.get(assigns.field.renderer_opts, :max) do
         nil -> 100
         configured -> to_number(configured)
       end

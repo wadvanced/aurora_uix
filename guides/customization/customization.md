@@ -96,7 +96,8 @@ end
 **When to use it:** one field needs special display (avatar, badge, computed format) while the rest of the UI stays generated.
 
 ```elixir
-auix_resource_metadata :product, schema: MyApp.Product do
+auix_resource_metadata :product do
+  schema MyApp.Product
   field :avatar, html_type: :image, renderer: &MyAppWeb.Helpers.render_avatar/1
 end
 ```
@@ -170,9 +171,9 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `renderer` | Custom rendering function/component (form/edit + show) | [Custom Field Types](../core/resource_metadata.md#custom-field-types-and-rendering) |
 | `index_renderer` / `edit_renderer` / `show_renderer` | Per-layout custom rendering function/component | [Per-layout renderers](../core/resource_metadata.md#per-layout-renderers) |
 | `option_label` | Label source for select dropdowns (atom or function) | [Many-to-One](../core/resource_metadata.md#many-to-one-belongs_to) |
-| `order_by` | Sort order for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
-| `where` | Filter for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
-| `data: %{upload: …}` | Turn a field into a managed LiveView upload | [Field Data](../core/resource_metadata.md#field-data) |
+| `query_opts: [order_by: …]` | Sort order for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `query_opts: [where: …]` | Filter for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `upload` block | Turn a field into a managed LiveView upload | [File Uploads](../core/resource_metadata.md#file-uploads) |
 
 ## 7. Deep Extension Points
 

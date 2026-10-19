@@ -122,13 +122,15 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
   alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Blog.Tag
 
-  auix_resource_metadata(:author, ash_resource: Author) do
+  auix_resource_metadata :author do
+    ash_resource Author
     field :bio, html_type: :textarea
   end
 
   auix_resource_metadata(:category, ash_resource: Category)
 
-  auix_resource_metadata(:post__comment, ash_resource: Comment) do
+  auix_resource_metadata :post__comment do
+    ash_resource Comment
     field :description, html_type: :textarea
   end
 
@@ -256,7 +258,8 @@ auix_resource_metadata :user, schema: User, context: Accounts
 #### Without Domain
 
 ```elixir
-auix_resource_metadata :author, ash_resource: Author do
+auix_resource_metadata :author do
+  ash_resource Author
   field :name, required: true
   field :bio, html_type: :textarea
 end
@@ -265,10 +268,10 @@ end
 #### With Domain and Ordering
 
 ```elixir
-auix_resource_metadata :post,
-  ash_resource: Post,
-  order_by: [desc: :published_at] do
-  field :title, required: true, max_length: 100
+auix_resource_metadata :post do
+  ash_resource Post
+  order_by [desc: :published_at]
+  field :title, required: true, length: 100
   field :content, html_type: :textarea
   field :published_at, readonly: true
 end
@@ -356,16 +359,18 @@ Aurora UIX will automatically use this action for paginated index views.
 You can override automatic action discovery by explicitly specifying custom actions or action names. When provided, these options bypass the automatic discovery process and use the specified action instead.
 
 ```elixir
-auix_resource_metadata :post,
-  ash_resource: Post,
-  ash_read_action: :published_posts,      # Override default read action
-  ash_create_action: :publish,            # Override default create action
-  ash_update_action: :edit_published do   # Override default update action
+auix_resource_metadata :post do
+  ash_resource Post
+
+  backend_opts ash_read_action: :published_posts,  # Override default read action
+               ash_create_action: :publish,        # Override default create action
+               ash_update_action: :edit_published  # Override default update action
+
   # field configuration...
 end
 ```
 
-Available action configuration options:
+Available action configuration options, all given inside `backend_opts`:
 
 - `:ash_read_action` (or `:list_function`) - Custom read action name for non-paginated list
 - `:ash_read_action_paginated` (or `:list_function_paginated`) - Custom paginated read action name
@@ -383,9 +388,9 @@ Available action configuration options:
 Unlike other options that reference Ash actions, `:ash_new_function` accepts a custom function for initializing new records:
 
 ```elixir
-auix_resource_metadata :post,
-  ash_resource: Post,
-  ash_new_function: &MyApp.Blog.new_post/2 do
+auix_resource_metadata :post do
+  ash_resource Post
+  backend_opts ash_new_function: &MyApp.Blog.new_post/2
   # field configuration...
 end
 
@@ -420,7 +425,8 @@ relationships do
 end
 
 # In your Aurora UIX configuration
-auix_resource_metadata :post, ash_resource: Post do
+auix_resource_metadata :post do
+  ash_resource Post
   field :author_id, html_type: :select, option_label: :name
   field :category_id, html_type: :select, option_label: :name
 end
@@ -437,8 +443,9 @@ relationships do
 end
 
 # In your Aurora UIX configuration
-auix_resource_metadata :author, ash_resource: Author do
-  field :posts, order_by: [desc: :published_at]
+auix_resource_metadata :author do
+  ash_resource Author
+  field :posts, query_opts: [order_by: [desc: :published_at]]
 end
 ```
 
@@ -465,7 +472,8 @@ Calculations resolve from the calculation's declared return type. Simple scalar 
 When the parser cannot predictably map an element it logs an error and the field may render with an unusable type. Declare the field explicitly in `auix_resource_metadata` to fix it:
 
 ```elixir
-auix_resource_metadata :order, ash_resource: MyApp.Sales.Order do
+auix_resource_metadata :order do
+  ash_resource MyApp.Sales.Order
   # An aggregate/calculation the parser can't type predictably:
   field :latest_status, type: :string, html_type: :text
   field :total_amount, type: :decimal, html_type: :number, readonly: true
@@ -563,7 +571,8 @@ end
 Use field options to control visibility:
 
 ```elixir
-auix_resource_metadata :user, ash_resource: User do
+auix_resource_metadata :user do
+  ash_resource User
   field :id, hidden: true
   field :email, required: true
   field :password_hash, omitted: true  # Completely excluded
@@ -578,9 +587,9 @@ end
 Configure default filtering and sorting:
 
 ```elixir
-auix_resource_metadata :post,
-  ash_resource: Post,
-  order_by: [desc: :published_at] do
+auix_resource_metadata :post do
+  ash_resource Post
+  order_by [desc: :published_at]
   
   field :title, filterable?: true
   field :status, filterable?: true, html_type: :select
@@ -674,9 +683,9 @@ actions do
 end
 
 # In Aurora UIX - additional UI-specific filtering
-auix_resource_metadata :post,
-  ash_resource: Post,
-  ash_read_action: :published_posts do
+auix_resource_metadata :post do
+  ash_resource Post
+  backend_opts ash_read_action: :published_posts
   
   field :author_id, filterable?: true, html_type: :select
   field :category_id, filterable?: true, html_type: :select
@@ -933,8 +942,7 @@ If using custom actions, document them:
 auix_resource_metadata :post,
   ash_resource: Post,
   # Use custom action for listing only published posts
-  ash_read_action: :published,
-  ash_read_action_paginated: :published_paginated
+  backend_opts: [ash_read_action: :published, ash_read_action_paginated: :published_paginated]
 ```
 
 ## Authorization & policies
@@ -979,7 +987,7 @@ defmodule MyAppWeb.TemplatesLive do
 
   auix_resource_metadata :template,
     ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-    ash_actor_assign: :current_user
+    backend_opts: [ash_actor_assign: :current_user]
 
   auix_create_ui do
     edit_layout :template do
@@ -989,7 +997,7 @@ defmodule MyAppWeb.TemplatesLive do
 end
 ```
 
-That one option — `ash_actor_assign: :current_user` — is all the configuration
+That one option — `backend_opts: [ash_actor_assign: :current_user]` — is all the configuration
 this feature needs.
 
 #### 3. Put the actor on `socket.assigns`
@@ -1041,7 +1049,7 @@ they are interchangeable:
 ```elixir
 auix_resource_metadata :template,
   ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-  actor_assign: :current_user   # same as ash_actor_assign: :current_user
+  backend_opts: [actor_assign: :current_user]   # same as ash_actor_assign: :current_user
 ```
 
 Pick the spelling that reads better in your codebase. The canonical name is
@@ -1055,7 +1063,7 @@ introduce their own actor options without clashing.
 | `ash_actor_assign:` unset (default)                             | No `actor:` added. Backward compatible.                  |
 | `ash_actor_assign: :current_user` + assign present             | `actor: socket.assigns.current_user` forwarded.          |
 | `ash_actor_assign: :current_user` + assign `nil` or missing    | No `actor:` added. Policy denies as actor-less.          |
-| `ash_actor_assign: "current_user"` (non-atom)                  | Silently ignored. Behaves as if the option were unset.   |
+| `ash_actor_assign: "current_user"` (non-atom)                  | Compilation fails with the offending line.               |
 
 ### Why `authorize?:` is not exposed
 
@@ -1109,9 +1117,6 @@ which is why dropdowns are policy-correct without further configuration.
   current actor. Aurora UIX swallows `Ash.Error.Forbidden` on reads so the
   index page still renders. Inspect with `Ash.read/2` from `iex` using the
   same actor to confirm.
-- **"`ash_actor_assign:` seems ignored."** Only atoms are accepted — strings
-  and other types are silently dropped to keep the option defensive against
-  config typos. Use `:current_user`, not `"current_user"`.
 - **"I want policies off for one screen."** Don't. Configure the domain's
   `authorize` posture (or the resource's policies) instead of trying to
   override Aurora UIX. There is intentionally no escape hatch here.

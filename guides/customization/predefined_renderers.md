@@ -6,11 +6,13 @@ function **or** a **predefined renderer selected by a single atom** — a ready-
 widget for a common value shape:
 
 ```elixir
-auix_resource_metadata :product, context: Inventory, schema: Product do
+auix_resource_metadata :product do
+  context Inventory
+  schema Product
   field :active, renderer: :toggle_switch
   field :brand_color, renderer: :color
   field :status, index_renderer: :badge, show_renderer: :badge
-  field :stock_level, renderer: :progress_bar, data: %{max: 100}
+  field :stock_level, renderer: :progress_bar, renderer_opts: [max: 100]
 end
 ```
 
@@ -43,9 +45,9 @@ field just gets its normal input).
 | `:toggle_switch` | boolean | switch | switch | toggle switch |
 | `:color` | hex / rgb / named string | swatch | swatch | native colour picker |
 | `:badge` | enum / status string | pill | pill | default input |
-| `:progress_bar` | number (`data: %{max: n}`, default 100) | bar | bar | default input |
+| `:progress_bar` | number (`renderer_opts: [max: n]`, default 100) | bar | bar | default input |
 | `:url` | string | text | link | default input |
-| `:rating` | number (`data: %{max: n}`, default 5) | stars | stars | interactive stars |
+| `:rating` | number (`renderer_opts: [max: n]`, default 5) | stars | stars | interactive stars |
 
 The catalog also holds one named default per common HTML type: `:default_checkbox`,
 `:default_date`, `:default_datetime_local`, `:default_number`, `:default_select`,

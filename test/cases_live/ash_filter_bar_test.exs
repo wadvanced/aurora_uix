@@ -8,7 +8,8 @@ defmodule Aurora.UixWeb.Test.AshFilterBarTest do
 
   auix_resource_metadata(:author, ash_resource: Author)
 
-  auix_resource_metadata :post, ash_resource: Post do
+  auix_resource_metadata :post do
+    ash_resource(Post)
     field(:author_id, option_label: :name)
   end
 

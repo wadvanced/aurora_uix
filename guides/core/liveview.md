@@ -411,7 +411,9 @@ defmodule MyAppWeb.ProductViews do
 
   alias MyApp.Inventory
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema Product
     field :name, required: true
     field :description
     field :price
@@ -980,14 +982,8 @@ Aurora UIX uses Phoenix LiveView streams for index views, which efficiently hand
 
 ### Preloading Associations
 
-Configure preloads in your resource metadata to minimize N+1 queries:
-
-```elixir
-auix_resource_metadata :product, context: Inventory, schema: Product do
-  field :name
-  field :category, preload: true  # Preload associated data
-end
-```
+Association fields that a layout renders are preloaded with the entity, so there is no
+per-field preload option to set.
 
 ### Async Operations
 

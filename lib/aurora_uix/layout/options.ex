@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Layout.Options do
   - **Layout options** (e.g. `:page_title`, `:edit_title`, `:new_action_label`) accept an
     arity-1 function that receives `assigns` and returns a `Phoenix.LiveView.Rendered.t()`.
     See `get_option/3`.
-  - **Resource `name`/`title` metadata** (set via `auix_resource_metadata/3`, consumed as
+  - **Resource `name`/`title` metadata** (set via `auix_resource_metadata`, consumed as
     `assigns.auix.name` / `assigns.auix.title`) additionally accepts a **0-arity** function
     returning a `binary()`, resolved through `parse_value/1`. This is what every title,
     subtitle and action-label default interpolates when building its display string.

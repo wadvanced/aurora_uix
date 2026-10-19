@@ -23,13 +23,15 @@ defmodule Aurora.Uix.Field do
     - `edit_renderer` (`function` | `atom`) - Renderer used only for the form (edit) layout.
     - `show_renderer` (`function` | `atom`) - Renderer used only for the show layout.
     - `data` (`any`) - Metadata produced by the schema parsers (for example `owner_key`,
-      `related`, `related_key`, `resource` and `select` for associations, embeds and enums),
-      plus any renderer-specific values a host passes with the `:data` field option.
+      `related`, `related_key`, `resource` and `select` for associations, embeds and enums).
+      Hosts don't set it.
     - `option_label` (`atom` | `function`) - For many-to-one and many-to-many selectors: the field
       shown as each option's label, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`)
       returning it. `nil` uses the related primary key.
     - `query_opts` (`keyword`) - `:order_by` and `:where` applied when listing the related entries
       of an association.
+    - `renderer_opts` (`keyword`) - Settings read by the field's renderer, such as `:max` for the
+      predefined `:rating` and `:progress_bar` renderers.
     - `expanded` (`boolean` | `function`) - For `embeds_many` fields: whether the collection starts
       expanded. A function of arity 1 receives the rendering assigns.
     - `upload` (`Aurora.Uix.Field.Upload.t()` | `nil`) - Turns the field into a managed LiveView
@@ -89,35 +91,10 @@ defmodule Aurora.Uix.Field do
     filterable?: true,
     sortable?: false,
     query_opts: [],
+    renderer_opts: [],
     expanded: false,
     data: %{}
   }
-
-  @declarable_keys [
-    :type,
-    :html_type,
-    :renderer,
-    :index_renderer,
-    :edit_renderer,
-    :show_renderer,
-    :resource,
-    :label,
-    :placeholder,
-    :length,
-    :precision,
-    :scale,
-    :hidden,
-    :readonly,
-    :required,
-    :disabled,
-    :omitted,
-    :filterable?,
-    :sortable?,
-    :option_label,
-    :expanded,
-    :upload,
-    :data
-  ]
 
   defstruct [
     :key,
@@ -144,10 +121,12 @@ defmodule Aurora.Uix.Field do
     :sortable?,
     :option_label,
     :query_opts,
+    :renderer_opts,
     :expanded,
     :upload,
     :data,
-    resolved?: false
+    resolved?: false,
+    __spark_metadata__: nil
   ]
 
   @type t() :: %__MODULE__{
@@ -176,9 +155,11 @@ defmodule Aurora.Uix.Field do
           sortable?: boolean() | nil,
           option_label: atom() | function() | nil,
           query_opts: keyword() | nil,
+          renderer_opts: keyword() | nil,
           expanded: boolean() | function() | nil,
           upload: Upload.t() | nil,
-          resolved?: boolean()
+          resolved?: boolean(),
+          __spark_metadata__: term()
         }
 
   @doc """
@@ -201,39 +182,6 @@ defmodule Aurora.Uix.Field do
   def new(attrs \\ %{}), do: %__MODULE__{} |> change(attrs) |> resolve()
 
   @doc """
-  Builds the partial field of one `field` entry of `auix_resource_metadata`.
-
-  Only the options the host wrote are set; every other key stays `nil` and `resolved?` stays
-  `false`. `:order_by` and `:where` become `query_opts`, and `data: %{upload: ...}` becomes
-  `upload`. Unknown options are ignored.
-
-  ## Parameters
-  - `key` (atom() | tuple()) - The field the entry applies to.
-  - `opts` (keyword()) - The field options.
-
-  ## Returns
-  `Aurora.Uix.Field.t()` - The partial field.
-
-  ## Examples
-  ```elixir
-  Aurora.Uix.Field.declare(:name, required: true, order_by: :name)
-  # => %Aurora.Uix.Field{key: :name, required: true, query_opts: [order_by: :name], resolved?: false, ...}
-  ```
-  """
-  @spec declare(atom() | tuple(), keyword()) :: __MODULE__.t()
-  def declare(key, opts) do
-    {special, options} = Keyword.split(opts, [:data, :upload, :order_by, :where])
-
-    options
-    |> Keyword.take(@declarable_keys)
-    |> then(&struct(__MODULE__, &1))
-    |> struct(%{key: key})
-    |> put_query_opts(Keyword.take(special, [:order_by, :where]))
-    |> put_upload(special[:upload])
-    |> put_data(special[:data])
-  end
-
-  @doc """
   Merges the options set in `partial` over `field`.
 
   Keys that are `nil` in `partial` leave `field` unchanged; `query_opts` are merged option by
@@ -241,7 +189,7 @@ defmodule Aurora.Uix.Field do
 
   ## Parameters
   - `field` (t()) - The field to change, resolved or partial.
-  - `partial` (t()) - A partial field, as built by `declare/2`.
+  - `partial` (t()) - A partial field, as declared by a `field` entry.
 
   ## Returns
   `Aurora.Uix.Field.t()` - The merged field.
@@ -250,7 +198,7 @@ defmodule Aurora.Uix.Field do
   def merge(%__MODULE__{} = field, %__MODULE__{} = partial) do
     partial
     |> Map.from_struct()
-    |> Map.drop([:key, :resolved?])
+    |> Map.drop([:key, :resolved?, :__spark_metadata__])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
     |> Map.update(:query_opts, field.query_opts, &Keyword.merge(field.query_opts || [], &1))
@@ -309,28 +257,6 @@ defmodule Aurora.Uix.Field do
   def change(field, %{} = attrs), do: field |> struct(attrs) |> update_name()
 
   ## PRIVATE
-
-  @spec put_query_opts(t(), keyword()) :: t()
-  defp put_query_opts(field, []), do: field
-  defp put_query_opts(field, query_opts), do: struct(field, %{query_opts: query_opts})
-
-  @spec put_data(t(), term()) :: t()
-  defp put_data(field, nil), do: field
-
-  defp put_data(field, %{upload: upload} = data) do
-    rest = Map.delete(data, :upload)
-
-    field
-    |> put_upload(upload)
-    |> put_data(if rest == %{}, do: nil, else: rest)
-  end
-
-  defp put_data(field, data), do: struct(field, %{data: data})
-
-  @spec put_upload(t(), map() | keyword() | Upload.t() | nil) :: t()
-  defp put_upload(field, nil), do: field
-  defp put_upload(field, %Upload{} = upload), do: struct(field, %{upload: upload})
-  defp put_upload(field, upload), do: struct(field, %{upload: Upload.new(upload)})
 
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
   defp set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field

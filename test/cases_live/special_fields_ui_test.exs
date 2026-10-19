@@ -10,7 +10,10 @@ defmodule Aurora.UixWeb.Test.SpecialFieldsUITest do
 
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
     field(:status,
       html_type: :select,
       data: %{

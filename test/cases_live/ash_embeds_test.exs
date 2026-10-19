@@ -14,7 +14,9 @@ defmodule Aurora.UixWeb.Test.AshEmbedsTest do
 
   auix_resource_metadata(:author, schema: Author, order_by: [:bio])
 
-  auix_resource_metadata :post, schema: Post, order_by: [published_at: :desc] do
+  auix_resource_metadata :post do
+    schema(Post)
+    order_by(published_at: :desc)
     field(:tags, expanded: &__MODULE__.always_expanded/1)
   end
 

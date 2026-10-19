@@ -44,7 +44,7 @@ Common issues and solutions for Aurora UIX.
 **Symptoms:** Pages show blank or malformed UI elements.
 
 **Solutions:**
-- Verify you've defined resource metadata with `auix_resource_metadata/3` macro
+- Verify you've defined resource metadata with `auix_resource_metadata` macro
 - Ensure the layout DSL in `auix_create_ui` includes the fields you want to display
 - Check for errors in the browser console (F12 / DevTools)
 - Verify LiveView is properly connected (check for `PhxLiveSocket` connection in console)
@@ -156,12 +156,14 @@ embedded resource metadata with the parent's name:
 auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
 
 # CORRECT - Embedded resource uses parent prefix
-auix_resource_metadata(:post__comment, ash_resource: Comment) do
+auix_resource_metadata :post__comment do
+  ash_resource Comment
   field :description, html_type: :textarea
 end
 
 # WRONG - This won't be recognized as belonging to Post
-auix_resource_metadata(:comment, ash_resource: Comment) do
+auix_resource_metadata :comment do
+  ash_resource Comment
   field :description, html_type: :textarea
 end
 ```
@@ -187,7 +189,8 @@ end
 2. **Update field configurations:**
    ```elixir
    # All field customizations must use the prefixed name
-   auix_resource_metadata(:post__comment, ash_resource: Comment) do
+   auix_resource_metadata :post__comment do
+     ash_resource Comment
      field :content, html_type: :textarea
      field :author, label: "Comment Author"
    end
@@ -222,7 +225,8 @@ alias MyApp.Blog.Comment
 auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
 
 # Embedded resource - note the :post__comment naming
-auix_resource_metadata(:post__comment, ash_resource: Comment) do
+auix_resource_metadata :post__comment do
+  ash_resource Comment
   field :description, html_type: :textarea
 end
 
@@ -252,7 +256,7 @@ result so the LiveView stays alive.
 ```elixir
 auix_resource_metadata :template,
   ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-  ash_actor_assign: :current_user
+  backend_opts: [ash_actor_assign: :current_user]
 ```
 
 Also confirm the assign is actually set — typically via an `on_mount` hook
@@ -269,7 +273,7 @@ that mentions `Ash.Error.Forbidden`, or — on a host without the actor wired in
 `destroy`) cannot fall back to "empty" the way reads do, so the policy denial
 surfaces.
 
-**Solution:** Set `ash_actor_assign:` on the resource metadata, and make sure
+**Solution:** Set `backend_opts: [ash_actor_assign: …]` on the resource metadata, and make sure
 the assign is populated on the socket before the form mounts.
 
 ## Performance Issues

@@ -7,13 +7,17 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorUILayoutTest do
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
-  auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
+  auix_resource_metadata :product_location do
+    context Inventory
+    schema(ProductLocation)
     field(:products, omitted: true)
   end
 
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex

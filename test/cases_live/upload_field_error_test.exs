@@ -15,15 +15,13 @@ defmodule Aurora.UixWeb.Test.UploadFieldErrorTest do
   alias Aurora.Uix.Repo
   alias Aurora.UixWeb.Test.UploadFieldErrorTest.ErrorConsumer
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field(:image,
-      data: %{
-        upload: %{
-          allow: [accept: ~w(.png .jpg), max_entries: 1],
-          consume: &ErrorConsumer.fail/1
-        }
-      }
-    )
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
+    field :image do
+      upload allow: [accept: ~w(.png .jpg), max_entries: 1], consume: &ErrorConsumer.fail/1
+    end
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex

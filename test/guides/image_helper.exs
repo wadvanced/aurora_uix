@@ -23,7 +23,6 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   """
 
   use Aurora.UixWeb.Test.UICase, :phoenix_case
-  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
   alias Aurora.Uix.Guides.Inventory
   alias Wallaby.Query

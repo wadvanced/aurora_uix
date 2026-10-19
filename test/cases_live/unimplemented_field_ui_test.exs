@@ -8,7 +8,9 @@ defmodule Aurora.UixWeb.Test.UnimplementedFieldUITest do
   # Route registered in test/support/app_web/routes.ex as "unimplemented-field-products".
   # `labels` is a real array column; the override forces the html_type the parsers assign to any
   # array they cannot offer an editor for, without needing a schema the library refuses to edit.
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:labels, html_type: :unimplemented)
   end
 

@@ -7,7 +7,9 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:inactive, length: 10)
     field(:name, sortable?: false)
     field(:inserted_at, hidden: true)
@@ -15,10 +17,12 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
     # :height field properties are changed again, the last one should be the one prevailing
     field(:height, scale: 1)
     field(:data_virtual, html_type: :checkbox)
-    field(:status, data: [:in_stock, :discontinued, :online_only, :in_store_only])
+    field(:status, renderer_opts: [max: 5])
   end
 
-  auix_resource_metadata(:user, context: Accounts, schema: User) do
+  auix_resource_metadata :user do
+    context Accounts
+    schema(User)
     field(:emails, expanded: true)
   end
 
@@ -36,7 +40,7 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
       # Order is important, scale is changed, once again on the :height field
       height: %{precision: 16, scale: 1},
       data_virtual: %{html_type: :checkbox, sortable?: false},
-      status: %{data: [:in_stock, :discontinued, :online_only, :in_store_only]}
+      status: %{renderer_opts: [max: 5]}
     )
   end
 

@@ -7,7 +7,9 @@ defmodule Aurora.UixWeb.Test.CustomFieldRenderersTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:reference, renderer: &__MODULE__.renderer/1)
 
     field(:name,

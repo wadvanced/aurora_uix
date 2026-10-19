@@ -5,13 +5,10 @@ defmodule Aurora.Uix.Field.Upload do
   A field with an `upload` is rendered as a managed LiveView upload field:
 
   ```elixir
-  field :uploaded_blob_ref,
-    data: %{
-      upload: %{
-        allow:   [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
-        consume: &MyApp.Templates.store_xlsx/1
-      }
-    }
+  field :uploaded_blob_ref do
+    upload allow: [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
+           consume: &MyApp.Templates.store_xlsx/1
+  end
   ```
 
   - `allow` - keyword list forwarded to `Phoenix.LiveView.allow_upload/3`
@@ -66,7 +63,7 @@ defmodule Aurora.Uix.Field.Upload do
 
   alias Phoenix.LiveView.Socket
 
-  defstruct allow: [], consume: nil, download: nil, downloadable?: nil
+  defstruct allow: [], consume: nil, download: nil, downloadable?: nil, __spark_metadata__: nil
 
   @typedoc "Result of `consume`: the value to store, no change, or an error shown as a flash."
   @type consume_result() :: {:ok, term()} | :no_change | {:error, term()}
@@ -104,7 +101,8 @@ defmodule Aurora.Uix.Field.Upload do
           allow: keyword(),
           consume: consume() | nil,
           download: download() | nil,
-          downloadable?: downloadable() | boolean() | nil
+          downloadable?: downloadable() | boolean() | nil,
+          __spark_metadata__: term()
         }
 
   @doc """

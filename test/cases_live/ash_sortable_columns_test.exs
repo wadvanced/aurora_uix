@@ -5,13 +5,15 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
   alias Aurora.Uix.Guides.Blog.Author
   alias Phoenix.LiveViewTest.View
 
-  auix_resource_metadata :author, ash_resource: Author, order_by: :email do
+  auix_resource_metadata :author do
+    ash_resource(Author)
+    order_by(:email)
     field(:bio, sortable?: false)
 
-    field(:email,
-      sortable?: true,
-      data: %{upload: %{allow: [accept: ~w(.png)], consume: &Function.identity/1}}
-    )
+    field :email do
+      sortable? true
+      upload allow: [accept: ~w(.png)], consume: &Function.identity/1
+    end
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
