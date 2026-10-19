@@ -12,6 +12,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   - Integrates with Aurora UIX context and helpers
   """
 
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -30,21 +32,19 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   def render(
         %{
           field: %{type: :many_to_one_association} = field_struct,
-          auix: %{layout_tree: %{name: field_name}} = auix
+          auix: %{layout_tree: %Node.Field{path: []}} = auix
         } = assigns
-      )
-      when is_atom(field_name) do
-    inner_elements =
-      get_association_paths(field_struct, auix.configurations, :show)
+      ) do
+    children = get_association_paths(field_struct, auix.configurations, :show)
 
     association_label =
       get_in(auix.configurations, [field_struct.data.resource, :parsed_opts, :name])
 
     assigns
-    |> put_in([:auix, :layout_tree], %{
-      tag: :group,
-      config: [group_id: "#{field_struct.html_id}", title: association_label],
-      inner_elements: inner_elements
+    |> put_in([:auix, :layout_tree], %Node.Group{
+      id: "#{field_struct.html_id}",
+      title: association_label,
+      children: children
     })
     |> put_in([:auix, :_ignore_association_label], true)
     |> Renderer.render()
@@ -54,85 +54,58 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
     assigns
     |> parse_many_to_one_value()
     |> set_many_to_one_resource()
-    |> trim_path()
     |> Renderer.render()
   end
 
-  # Gets association field paths for rendering nested fields
-  @spec get_association_paths(map(), map(), atom()) :: list()
-  defp get_association_paths(field_struct, configurations, path_type) do
+  # Gets the related resource's layout, with every field reached through `field_struct`.
+  @spec get_association_paths(Field.t(), map(), atom()) :: [Node.t()]
+  defp get_association_paths(field_struct, configurations, layout_type) do
     configurations
-    |> get_in([field_struct.data.resource, :layout_trees, path_type, :inner_elements])
-    |> Kernel.||([])
-    |> convert_to_many_to_one_paths(field_struct.key)
+    |> BasicHelpers.layout_children(field_struct.data.resource, layout_type)
+    |> Enum.map(&through_association(&1, field_struct))
   end
 
-  # Converts a list of paths to many-to-one field paths
-  @spec convert_to_many_to_one_paths(list(), atom()) :: list()
-  defp convert_to_many_to_one_paths(paths, parent_field) do
-    Enum.map(paths, &convert_to_many_to_one_path(&1, parent_field))
-  end
+  @spec through_association(Node.t(), Field.t()) :: Node.t()
+  defp through_association(%Node.Field{key: key, path: path} = node, field_struct),
+    do: %{node | key: field_struct.key, path: [key | path], field: field_struct}
 
-  # Converts a single layout_tree to a many-to-one field layout_tree
-  @spec convert_to_many_to_one_path(map(), atom()) :: map()
-  defp convert_to_many_to_one_path(
-         %{tag: :field, name: field_name, inner_elements: inner_elements} = layout_tree,
-         parent_field
-       ) do
-    Map.merge(layout_tree, %{
-      name: {parent_field, field_name},
-      inner_elements: convert_to_many_to_one_paths(inner_elements, parent_field)
-    })
-  end
+  defp through_association(%{children: children} = node, field_struct),
+    do: %{node | children: Enum.map(children, &through_association(&1, field_struct))}
 
-  defp convert_to_many_to_one_path(%{inner_elements: inner_elements} = layout_tree, parent_field) do
-    Map.put(
-      layout_tree,
-      :inner_elements,
-      convert_to_many_to_one_paths(inner_elements, parent_field)
-    )
-  end
+  defp through_association(node, _field_struct), do: node
 
-  # Parses the value for a many-to-one association, handling tuple and atom names
+  # Narrows the entity to the record that holds the last field of the path.
   @spec parse_many_to_one_value(map()) :: map()
-  defp parse_many_to_one_value(%{auix: %{layout_tree: %{name: name}}} = assigns)
-       when is_atom(name),
-       do: assigns
-
   defp parse_many_to_one_value(
-         %{auix: %{layout_tree: %{name: names}, layout_type: :show, entity: entity}} =
+         %{
+           auix: %{
+             layout_tree: %Node.Field{key: key, path: path},
+             layout_type: :show,
+             entity: entity
+           }
+         } =
            assigns
-       )
-       when is_tuple(names) do
-    names
-    |> Tuple.to_list()
+       ) do
+    [key | path]
     |> delete_last()
     |> Enum.reduce(entity, &Map.get(&2, &1, %{}))
     |> then(&put_in(assigns, [:auix, :entity], &1))
   end
 
   defp parse_many_to_one_value(
-         %{auix: %{layout_tree: %{name: names}, form: form, layout_type: :form}} = assigns
-       )
-       when is_tuple(names) do
-    names
-    |> Tuple.to_list()
-    |> List.first()
-    |> then(&%{&1 => form[&1].value})
-    |> then(&put_in(assigns, [:auix, :entity], &1))
+         %{auix: %{layout_tree: %Node.Field{key: key}, form: form, layout_type: :form}} = assigns
+       ) do
+    assigns
+    |> put_in([:auix, :entity], %{key => form[key].value})
     |> put_in([:auix, :layout_type], :show)
     |> parse_many_to_one_value()
   end
 
-  # Sets the resource for a many-to-one association, updating assigns
+  # Resolves the last field of the path and makes it the node to render.
   @spec set_many_to_one_resource(map()) :: map()
-  defp set_many_to_one_resource(%{auix: %{layout_tree: %{name: name}}} = assigns)
-       when is_atom(name),
-       do: assigns
-
   defp set_many_to_one_resource(
          %{
-           auix: %{layout_tree: %{name: names}, configurations: configurations} = auix,
+           auix: %{layout_tree: %Node.Field{path: path}, configurations: configurations} = auix,
            field: parent_field_struct
          } = assigns
        ) do
@@ -144,10 +117,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
       |> then(&Map.put(parent_field_struct, :label, &1))
 
     field =
-      names
-      |> Tuple.delete_at(0)
-      |> Tuple.to_list()
-      |> Enum.reduce(field_struct, fn field_name, parent_field ->
+      Enum.reduce(path, field_struct, fn field_name, parent_field ->
         parent_field
         |> maybe_ignore_parent_label(ignore_association_label?)
         |> get_many_to_one_field(field_name, configurations)
@@ -166,6 +136,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
       field
     )
     |> put_in([:auix, :resource_name], field.resource)
+    |> put_in([:auix, :layout_tree], %Node.Field{key: field.key, field: field})
   end
 
   # Gets a nested field for a many-to-one association
@@ -186,7 +157,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
          field_name,
          configurations
        ) do
-    %{name: field_name}
+    field_name
     |> BasicHelpers.get_field(configurations, resource_name)
     |> struct(%{readonly: true, disabled: true})
     |> Map.update(:label, "", &"#{parent_label}#{&1}")
@@ -199,21 +170,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
 
   defp maybe_ignore_parent_label(parent_field, true), do: Map.put(parent_field, :label, "")
 
-  # Trims the layout_tree for a many-to-one association to the last element
-  @spec trim_path(map()) :: map()
-  defp trim_path(%{auix: %{layout_tree: %{name: name}}} = assigns) when is_atom(name), do: assigns
-
-  defp trim_path(%{auix: %{layout_tree: %{name: names}}} = assigns) do
-    names
-    |> Tuple.to_list()
-    |> List.last()
-    |> then(&put_in(assigns, [:auix, :layout_tree, :name], &1))
-  end
-
   # Deletes the last element from a list
   @spec delete_last(list()) :: list()
-  defp delete_last([]), do: []
-
   defp delete_last(list) do
     list
     |> Enum.reverse()

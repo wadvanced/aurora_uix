@@ -87,7 +87,7 @@ defmodule Aurora.Uix.Layout.CreateLayout do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
     quoted_opts = LayoutHelpers.create_layout_opts(opts)
-    layout_trees = LayoutHelpers.create_layout(block, __CALLER__)
+    layout_trees = LayoutHelpers.create_layout(block)
 
     quote do
       import Blueprint

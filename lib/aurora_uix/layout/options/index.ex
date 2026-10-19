@@ -122,37 +122,37 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   # Returns default values for supported options, otherwise delegates error.
   @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_disabled?),
+  defp get_default(%{auix: %{layout_type: :index}}, :pagination_disabled?),
     do: {:ok, false}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :sort_disabled?),
+  defp get_default(%{auix: %{layout_type: :index}}, :sort_disabled?),
     do: {:ok, false}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}, title: title}}, :page_title),
+  defp get_default(%{auix: %{layout_type: :index, title: title}}, :page_title),
     do: {:ok, "Listing #{LayoutOptions.parse_value(title)}"}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :page_subtitle),
+  defp get_default(%{auix: %{layout_type: :index}}, :page_subtitle),
     do: {:ok, ""}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pages_bar_range_offset),
+  defp get_default(%{auix: %{layout_type: :index}}, :pages_bar_range_offset),
     do: {:ok, &__MODULE__.page_bar_range_offset/2}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :get_streams),
+  defp get_default(%{auix: %{layout_type: :index}}, :get_streams),
     do: {:ok, &__MODULE__.get_streams/1}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :row_id),
+  defp get_default(%{auix: %{layout_type: :index}}, :row_id),
     do: {:ok, &__MODULE__.row_id/1}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :infinite_scroll_items_load),
+  defp get_default(%{auix: %{layout_type: :index}}, :infinite_scroll_items_load),
     do: {:ok, @default_infinity_scroll_items_load}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :pagination_items_per_page),
+  defp get_default(%{auix: %{layout_type: :index}}, :pagination_items_per_page),
     do: {:ok, @default_items_per_page}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}, name: name}}, :new_action_label),
+  defp get_default(%{auix: %{layout_type: :index, name: name}}, :new_action_label),
     do: {:ok, "New #{LayoutOptions.parse_value(name)}"}
 
-  defp get_default(%{auix: %{layout_tree: %{tag: :index}}}, :alternate_streams_suffixes),
+  defp get_default(%{auix: %{layout_type: :index}}, :alternate_streams_suffixes),
     do: {:ok, ["mobile"]}
 
   defp get_default(_assigns, option), do: {:not_found, option}

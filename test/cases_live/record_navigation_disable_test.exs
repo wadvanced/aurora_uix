@@ -17,14 +17,14 @@ defmodule Aurora.UixWeb.Test.RecordNavigationDisableTest do
     show_layout :product, record_navigator: :none do
       stacked do
         inline([:reference, :name, :description])
-        inline([:quantity_initial, quantity_at_hand])
+        inline([:quantity_initial, :quantity_at_hand])
       end
     end
 
     edit_layout :product, record_navigator: :bottom do
       stacked do
         inline([:reference, :name, :description])
-        inline([:quantity_initial, quantity_at_hand])
+        inline([:quantity_initial, :quantity_at_hand])
       end
     end
 

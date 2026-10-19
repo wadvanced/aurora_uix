@@ -7,8 +7,11 @@ defmodule Aurora.Uix.Layout.CreateUI do
   """
 
   alias Aurora.Uix.BehaviourHelper
+  alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Blueprint
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Node
+  alias Aurora.Uix.Layout.RenderTree
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Resource
@@ -17,7 +20,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @doc false
   # Generates UI modules before the module is compiled.
   #
-  # This macro is triggered before compilation, gathering all `auix_layout_trees`
+  # This macro is triggered before compilation, gathering all `auix_layouts`
   # and `auix_layout_opts` attributes to build the final UI modules.
   # It merges layout trees, processes resource metadata, and injects the
   # generated modules into the calling module.
@@ -31,17 +34,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmacro __before_compile__(env) do
     module = env.module
 
-    layout_trees =
-      Module.get_attribute(module, :auix_layout_trees, [])
+    declared_layouts =
+      module
+      |> Module.get_attribute(:auix_layouts, [])
+      |> Enum.group_by(&{&1.__struct__, &1.resource})
+      |> Enum.map(fn {_key, layouts} ->
+        layouts |> Enum.reverse() |> Enum.reduce(&merge_layouts(&2, &1))
+      end)
 
     opts =
       Module.get_attribute(module, :auix_layout_opts, [])
-
-    ## Merge layout paths
-    merged_layout_trees =
-      layout_trees
-      |> Enum.group_by(&{&1.name, &1.tag})
-      |> Enum.map(&merge_layout_trees/1)
 
     configurations =
       module
@@ -52,7 +54,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       |> filter_resources(opts[:for])
       |> Enum.reduce(
         [],
-        &[build_configurations(module, &1, merged_layout_trees, opts) | &2]
+        &[build_configurations(module, &1, declared_layouts, opts) | &2]
       )
       |> Enum.reject(&is_nil/1)
       |> Map.new()
@@ -71,9 +73,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
       unquote(modules)
 
       @doc false
-      @spec auix_layout_trees() :: list()
-      def auix_layout_trees do
-        unquote(Macro.escape(merged_layout_trees))
+      @spec auix_layouts() :: list()
+      def auix_layouts do
+        unquote(Macro.escape(declared_layouts))
       end
 
       @doc false
@@ -121,7 +123,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
 
     quoted_opts = LayoutHelpers.create_layout_opts(opts)
-    layout_trees = LayoutHelpers.create_layout(block, __CALLER__)
+    layout_trees = LayoutHelpers.create_layout(block)
 
     quote do
       import Blueprint
@@ -135,47 +137,33 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   ## PRIVATE
 
-  # Folds each field TreePath's per-field :opts into :config so render-time get_field/3
-  # (which merges only :config) applies layout-DSL field options for index/form/show alike.
-  @spec fold_field_opts_into_config(map()) :: map()
-  defp fold_field_opts_into_config(%{tag: :field, inner_elements: inner} = element) do
-    opts = Map.get(element, :opts, [])
-
-    element
-    |> Map.update(:config, [], &Keyword.merge(opts, &1))
-    |> Map.put(:inner_elements, Enum.map(inner, &fold_field_opts_into_config/1))
-  end
-
-  defp fold_field_opts_into_config(%{inner_elements: inner} = element),
-    do: Map.put(element, :inner_elements, Enum.map(inner, &fold_field_opts_into_config/1))
-
-  defp fold_field_opts_into_config(element), do: element
-
-  # Merges layout paths by their name and tag, combining inner elements and options.
-  @spec merge_layout_trees(tuple()) :: list()
-  defp merge_layout_trees({_, paths}) do
-    Enum.reduce(paths, nil, &merge_layout_opts_inner_elements/2)
-  end
-
-  # Merges the inner elements and options of two layout paths.
-  @spec merge_layout_opts_inner_elements(map(), map() | nil) :: map()
-  defp merge_layout_opts_inner_elements(layout_tree, nil), do: layout_tree
-
-  defp merge_layout_opts_inner_elements(layout_tree, acc) do
-    opts = Keyword.merge(acc.opts, layout_tree.opts)
-
-    inner_elements =
-      acc.inner_elements
-      |> Enum.reverse()
-      |> then(
-        &Enum.reduce(layout_tree.inner_elements, &1, fn path_element, acc_elements ->
-          [path_element | acc_elements]
-        end)
-      )
-
+  # Merges two layouts declared for the same resource and layout type; `layout` wins.
+  @spec merge_layouts(Node.layout(), Node.layout()) :: Node.layout()
+  defp merge_layouts(%Node.Index{} = acc, layout) do
     acc
-    |> Map.put(:opts, opts)
-    |> Map.put(:inner_elements, inner_elements)
+    |> merge_container_opts(layout)
+    |> Map.merge(%{
+      children: acc.children ++ layout.children,
+      order_by: layout.order_by || acc.order_by,
+      where: layout.where || acc.where
+    })
+  end
+
+  defp merge_layouts(acc, layout) do
+    acc
+    |> merge_container_opts(layout)
+    |> Map.put(:children, acc.children ++ layout.children)
+  end
+
+  @spec merge_container_opts(Node.layout(), Node.layout()) :: Node.layout()
+  defp merge_container_opts(acc, layout) do
+    %{
+      acc
+      | renderers: layout.renderers || acc.renderers,
+        handler_module: layout.handler_module || acc.handler_module,
+        actions: Keyword.merge(acc.actions, layout.actions),
+        options: Keyword.merge(acc.options, layout.options)
+    }
   end
 
   # Filters resource configurations based on the :for option.
@@ -205,7 +193,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp build_configurations(
          caller,
          {resource_config_name, resource_config},
-         layout_trees,
+         declared_layouts,
          opts
        ) do
     resource_module = Map.get(resource_config, :schema)
@@ -222,34 +210,22 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
       layout_tags = Module.get_attribute(caller, :auix_layout_tags)
 
-      # Get all layout paths
-
-      paths =
-        layout_tags
-        |> Enum.map(&locate_layout_trees(&1, layout_trees, resource_config_name))
-        |> Map.new()
-        |> fill_missing_paths(:form, :show)
+      layouts =
+        declared_layouts
+        |> Enum.filter(&(&1.resource == resource_config_name))
+        |> Map.new(&{layout_type(&1), &1})
+        |> put_missing_show()
 
       layout_trees =
-        layout_tags
-        |> Enum.map(fn tag ->
-          paths
-          |> Map.get(tag)
-          |> Blueprint.build_default_layout_paths(resource_config, opts, tag)
-          |> Blueprint.parse_sections(tag)
-          |> fold_field_opts_into_config()
-          |> then(&{tag, &1})
+        Map.new(layout_tags, fn tag ->
+          {tag, RenderTree.build(Map.get(layouts, tag), tag, resource_config, opts)}
         end)
-        |> Map.new()
 
       html_type_renderers =
         Map.new(layout_trees, fn {tag, layout_tree} ->
           {tag,
            [
-             Renderers.validate_table!(
-               "#{tag} layout renderers:",
-               Keyword.get(layout_tree.opts, :renderers, %{})
-             ),
+             Renderers.validate_table!("#{tag} layout renderers:", layout_tree.renderers || %{}),
              Renderers.validate_table!(
                "auix_create_ui renderers:",
                Keyword.get(opts, :renderers, %{})
@@ -277,6 +253,25 @@ defmodule Aurora.Uix.Layout.CreateUI do
        }}
     end
   end
+
+  @spec layout_type(Node.layout()) :: atom()
+  defp layout_type(%Node.Index{}), do: :index
+  defp layout_type(%Node.Form{}), do: :form
+  defp layout_type(%Node.Show{}), do: :show
+
+  # Without a show layout, the show view reuses the form layout and its `show_handler_module`.
+  @spec put_missing_show(map()) :: map()
+  defp put_missing_show(%{show: _show} = layouts), do: layouts
+
+  defp put_missing_show(%{form: form} = layouts) do
+    form
+    |> Map.from_struct()
+    |> Map.put(:handler_module, Keyword.get(form.options, :show_handler_module))
+    |> then(&struct(Node.Show, &1))
+    |> then(&Map.put(layouts, :show, &1))
+  end
+
+  defp put_missing_show(layouts), do: layouts
 
   # Builds the resource-specific layouts.
   @spec build_resource_layouts(tuple(), map(), module()) :: list()
@@ -310,8 +305,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       [],
       &[
         generate_module(
-          modules,
-          Map.get(layout_trees, &1, %{}),
+          %{modules: modules, layout_type: &1, layout_tree: Map.fetch!(layout_trees, &1)},
           configurations,
           parsed_opts,
           template
@@ -324,64 +318,30 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
   # Generates a single UI module.
-  @spec generate_module(map(), map(), map(), map(), module()) :: Macro.t()
-  defp generate_module(modules, layout_tree, configurations, parsed_opts, template) do
+  @spec generate_module(map(), map(), map(), module()) :: Macro.t()
+  defp generate_module(layout, configurations, parsed_opts, template) do
     parsed_opts
     |> Map.put(:configurations, configurations)
-    |> Map.put(:modules, modules)
-    |> Map.put(:layout_tree, layout_tree)
-    |> Map.put(:resource_name, layout_tree.name)
-    |> Map.put(:layout_type, layout_tree.tag)
+    |> Map.put(:modules, layout.modules)
+    |> Map.put(:layout_tree, layout.layout_tree)
+    |> Map.put(:resource_name, layout.layout_tree.resource)
+    |> Map.put(:layout_type, layout.layout_type)
     |> then(&template.generate_module(&1))
   end
-
-  # Locates layout trees for a specific tag and resource name.
-  @spec locate_layout_trees(atom(), list(), atom()) :: tuple()
-  defp locate_layout_trees(tag, layout_trees, resource_config_name) do
-    layout_trees
-    |> Enum.filter(&(&1.tag == tag && &1.name == resource_config_name))
-    |> then(&{tag, &1})
-  end
-
-  # Fills missing layout paths by copying from another layout type.
-  @spec fill_missing_paths(map(), atom(), atom()) :: map()
-  defp fill_missing_paths(layout_trees, from, to) do
-    layout_trees
-    |> Map.get(from, [])
-    |> fill_missing_paths_recursive(layout_trees[to], from, to)
-    |> then(&Map.put(layout_trees, to, &1))
-  end
-
-  # Recursively fills missing layout paths.
-  @spec fill_missing_paths_recursive(list(), list(), atom(), atom()) :: list()
-  defp fill_missing_paths_recursive(from_paths, to_paths, from, to)
-       when is_nil(to_paths) or to_paths == [],
-       do: Enum.map(from_paths, &update_layout_path_tag(&1, from, to))
-
-  defp fill_missing_paths_recursive(_from_paths, to_paths, _from, _to), do: to_paths
-
-  # Updates the tag of a layout path.
-  @spec update_layout_path_tag(map(), atom(), atom()) :: map()
-  defp update_layout_path_tag(%{tag: from} = layout_tree, from, to),
-    do: Map.put(layout_tree, :tag, to)
-
-  defp update_layout_path_tag(layout_tree, _from, _to), do: layout_tree
 
   # Extracts resource preloads from configurations.
   @spec extract_resource_preloads(map()) :: map()
   defp extract_resource_preloads(configurations) do
     fields_by_resource =
-      Enum.map(configurations, fn {resource_name,
-                                   %{
-                                     resource_config: %{fields: fields},
-                                     layout_trees: layout_trees
-                                   }} ->
+      Enum.map(configurations, fn {resource_name, %{layout_trees: layout_trees}} ->
         preload_fields =
           layout_trees
-          |> Enum.filter(&(elem(&1, 0) in [:index, :form, :show]))
-          |> Enum.map(&elem(&1, 1))
-          |> extract_resource_fields(fields)
-          |> Enum.uniq_by(& &1.name)
+          |> Map.take([:index, :form, :show])
+          |> Map.values()
+          |> Node.fields()
+          |> Enum.map(& &1.field)
+          |> Enum.filter(&preload?/1)
+          |> Enum.uniq_by(& &1.key)
 
         {resource_name, preload_fields}
       end)
@@ -390,21 +350,19 @@ defmodule Aurora.Uix.Layout.CreateUI do
       fields_by_resource
       |> Enum.map(fn {resource_name, resource_fields} ->
         resource_fields
-        |> Enum.reject(&Map.get(&1, :generated, false))
-        |> Enum.map(&{&1.name, &1.resource})
+        |> Enum.reject(&generated?/1)
+        |> Enum.map(&{&1.key, &1.resource})
         |> then(&{resource_name, &1})
       end)
       |> expand_associations()
 
     generated =
-      fields_by_resource
-      |> Enum.map(fn {resource_name, resource_fields} ->
+      Map.new(fields_by_resource, fn {resource_name, resource_fields} ->
         resource_fields
-        |> Enum.filter(&Map.get(&1, :generated, false))
-        |> Enum.map(& &1.name)
+        |> Enum.filter(&generated?/1)
+        |> Enum.map(& &1.key)
         |> then(&{resource_name, &1})
       end)
-      |> Map.new()
 
     Map.merge(associations, generated, fn _resource_name,
                                           association_preloads,
@@ -413,29 +371,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end)
   end
 
-  # Extracts resource fields from a list of resources.
-  @spec extract_resource_fields(list(), map(), list()) :: list()
-  defp extract_resource_fields(resources, fields, result \\ [])
-
-  defp extract_resource_fields([], _fields, result) do
-    result
-  end
-
-  defp extract_resource_fields(
-         [%{inner_elements: inner_elements} = resource | resources],
-         fields,
-         result
-       ) do
-    resource
-    |> maybe_add_association_info(fields)
-    |> then(&extract_resource_fields(inner_elements, fields, [&1]))
-    |> Enum.filter(&filter_preloads/1)
-    |> Enum.reduce(result, &[&1 | &2])
-    |> then(&extract_resource_fields(resources, fields, &1))
-  end
-
-  @spec filter_preloads(map()) :: boolean()
-  defp filter_preloads(%{tag: :field, type: type})
+  @spec preload?(Field.t()) :: boolean()
+  defp preload?(%Field{type: type})
        when type in [
               :one_to_many_association,
               :many_to_one_association,
@@ -444,35 +381,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
             ],
        do: true
 
-  defp filter_preloads(%{tag: :field, generated: true}), do: true
-  defp filter_preloads(_field), do: false
+  defp preload?(field), do: generated?(field)
 
-  # Adds association information to a field if it's an association.
-  @spec maybe_add_association_info(map(), map()) :: map()
-
-  defp maybe_add_association_info(%{tag: :field, name: names} = field, fields)
-       when is_tuple(names) do
-    names
-    |> Tuple.to_list()
-    |> List.first()
-    |> then(&Map.put(field, :name, &1))
-    |> maybe_add_association_info(fields)
-  end
-
-  defp maybe_add_association_info(%{tag: :field, name: name} = field, fields) do
-    fields
-    |> Map.get(name, %{type: nil, resource: nil, data: %{}})
-    |> then(
-      &Map.merge(field, %{
-        type: &1.type,
-        resource: &1.resource,
-        generated: match?(%{generated: true}, Map.get(&1, :data)),
-        inner_elements: []
-      })
-    )
-  end
-
-  defp maybe_add_association_info(field, _fields), do: Map.put(field, :inner_elements, [])
+  @spec generated?(Field.t()) :: boolean()
+  defp generated?(%Field{data: data}), do: match?(%{generated: true}, data)
 
   # Expands nested associations for preloading.
   @spec expand_associations(list()) :: map()

@@ -10,6 +10,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
   use Aurora.Uix.CoreComponentsImporter
 
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
@@ -42,25 +44,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
     Renderers.resolve(field, layout_type, tables).(assigns)
   end
 
-  # Returns field info for rendering, handling tuple and atom names
-  @spec get_field_info(map()) :: map()
-  defp get_field_info(%{
-         layout_tree: %{name: name} = layout_tree,
-         configurations: configurations,
-         resource_name: resource_name
-       })
-       when is_tuple(name) do
-    name
-    |> elem(0)
-    |> then(&Map.put(layout_tree, :name, &1))
-    |> BasicHelpers.get_field(configurations, resource_name)
-  end
-
-  defp get_field_info(%{
-         layout_tree: layout_tree,
-         configurations: configurations,
-         resource_name: resource_name
-       }) do
-    BasicHelpers.get_field(layout_tree, configurations, resource_name)
-  end
+  # The many-to-one renderer follows the node's association path from this field.
+  @spec get_field_info(map()) :: Field.t()
+  defp get_field_info(%{layout_tree: %Node.Field{field: field}}), do: field
 end

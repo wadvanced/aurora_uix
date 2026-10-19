@@ -15,7 +15,7 @@ Templates are the core of Aurora UIX's code generation system. A template is a m
 When you define a resource with `auix_resource_metadata`, Aurora UIX:
 
 1. Parses your field configurations
-2. Builds a layout tree from `@auix_layout_trees` (defines structure)
+2. Builds the render tree of each layout from the layouts you declared (see [Layout Structures](#layout-structures))
 3. Calls the configured template's `generate_module/1` callback
 4. The template generates LiveView modules for each layout type (index, show, form)
 
@@ -24,7 +24,8 @@ When you define a resource with `auix_resource_metadata`, Aurora UIX:
 A template module must implement:
 
 - **`generate_module(parsed_opts)`**: Receives a map with:
-  - `:layout_tree` - The layout structure (tag: :index, :show, :form, etc.)
+  - `:layout_type` - The layout being generated (`:index`, `:show` or `:form`)
+  - `:layout_tree` - Its render tree, an `Aurora.Uix.Layout.Node` struct
   - `:fields` - Field configurations
   - `:modules` - Module references
   - `:name` - Resource name
@@ -45,7 +46,7 @@ defmodule MyApp.CustomTemplate do
 
   @impl true
   def generate_module(parsed_opts) do
-    case parsed_opts.layout_tree.tag do
+    case parsed_opts.layout_type do
       :index -> generate_index_module(parsed_opts)
       :show -> generate_show_module(parsed_opts)
       :form -> generate_form_module(parsed_opts)
@@ -95,38 +96,6 @@ Then configure it in `config.exs`:
 config :aurora_uix, :template, MyApp.CustomTemplate
 ```
 
-## Creating Custom Layouts
-
-You can create layouts that exclude certain views or add custom ones by modifying your `@auix_layout_trees`.
-
-### Example: Custom Template Without Index/Show
-
-```elixir
-defmodule MyAppWeb.Product do
-  use Aurora.UixWeb, :live_view
-  alias Aurora.Uix.TreePath
-
-  auix_resource_metadata :product do
-    context Inventory
-    schema Product
-    field(:name, placeholder: "Product name")
-    field(:price, placeholder: "0.00")
-  end
-
-  # Only define form layout - no index or show
-  @auix_layout_trees %TreePath{
-    tag: :form,
-    name: :product,
-    inner_elements: [
-      %TreePath{tag: :field, name: :name},
-      %TreePath{tag: :field, name: :price}
-    ]
-  }
-end
-```
-
-The template will only generate a form module and skip index/show generation.
-
 ## Understanding Macro Type Conversions
 
 Aurora UIX macros convert your declarative configurations into strongly-typed Elixir structures. Understanding this conversion is key to extending the system.
@@ -163,35 +132,49 @@ This converts to an `Aurora.Uix.Field` struct:
 - `:fields` - Map of field configurations
 - `:order_by` - Query ordering preferences
 
-### Layout Tree Conversion
+### Layout Structures
 
-`@auix_layout_trees` defines the UI structure as `Aurora.Uix.TreePath` structures:
+The layout macros (`index_columns`, `edit_layout`, `show_layout`, `inline`, `stacked`, `group`,
+`sections`, `section`) produce **layout nodes**, one struct per node kind under
+`Aurora.Uix.Layout.Node` (`Index`, `Form`, `Show`, `Inline`, `Stacked`, `Group`, `Sections`,
+`Section`, `Field`), holding what you wrote:
 
 ```elixir
-%Aurora.Uix.TreePath{
-  tag: :form,              # View type: :form, :index, :show, :inline
-  name: :product,          # Resource name
-  inner_elements: [        # Nested elements
-    %TreePath{tag: :field, name: :name},
-    %TreePath{tag: :field, name: :price}
-  ]
+%Aurora.Uix.Layout.Node.Form{
+  resource: :product,
+  children: [
+    %Aurora.Uix.Layout.Node.Inline{
+      children: [
+        %Aurora.Uix.Layout.Node.Field{key: :name},
+        %Aurora.Uix.Layout.Node.Field{key: :price}
+      ]
+    }
+  ],
+  options: [edit_title: "Edit product"]
 }
 ```
 
-**Supported tags:**
-- `:form` - Form view for creating/editing
-- `:index` - List/table view
-- `:show` - Detail view
-- `:inline` - Horizontal field grouping
-- `:field` - Individual field reference
-- `:one_to_many` - Related records table
-- `:embeds_many` - Embedded collection
+At compile time each layout is built: the build fills in, on the same structs, what the
+renderers need. Renderers receive the current node as `@auix.layout_tree` and dispatch on its
+struct. The build adds:
+
+- `id` - Built from the resource, the layout type and the node's position, so it is the same on every compile.
+- `Field` nodes - `field` holds the resolved `Aurora.Uix.Field`: the resource field with the layout's options (`overrides`) merged over it.
+- `Sections` and `Section` nodes - The tab state (`tabs`, `active?`, `sections_id`, `tab_index`, ...).
+- `Index`, `Form` and `Show` nodes - `options` holds the layout options read through `Aurora.Uix.Layout.Options`, and `actions` holds the `*_action` entries.
+
+A custom renderer reads a node's keys directly:
+
+```elixir
+def render(%{auix: %{layout_tree: %Aurora.Uix.Layout.Node.Group{title: title}}} = assigns) do
+  ...
+end
+```
 
 ### Learning More About Conversions
 
 Check test files to see real-world examples of these conversions:
 
-- `test/cases_live/manual_ui_test.exs` - Complete layout tree examples
 - `test/cases_live/manual_resource_test.exs` - Resource metadata structures
 - `test/cases_live/manual_layouts_test.exs` - Layout option configurations
 
@@ -310,10 +293,10 @@ This retrieves the compiled resource metadata struct from the metadata module.
 
 Every module produced by `auix_create_ui` exposes two introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
 
-- **`auix_layout_trees/0`** — returns the layout trees as you defined them (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
+- **`auix_layouts/0`** — returns the layouts as you defined them, before the build (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
 
   ```elixir
-  MyAppWeb.Products.Index.auix_layout_trees()
+  MyAppWeb.Products.Index.auix_layouts()
   ```
 
 - **`auix_configurations/0`** — returns the full configuration map from which all LiveView code is generated. This is the "fat" intermediate representation: fields, metadata, module references, and resolved options. Useful when debugging unexpected rendering or when building tooling on top of Aurora UIX.

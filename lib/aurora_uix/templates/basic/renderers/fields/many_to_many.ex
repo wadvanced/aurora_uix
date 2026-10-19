@@ -68,6 +68,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
 
   import Aurora.Uix.Templates.Basic.Components
 
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Templates.Basic.Actions.ManyToMany, as: ManyToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
@@ -106,14 +107,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   def render(
         %{
           field: %{type: :many_to_many_association} = field,
-          auix: %{layout_type: :form, layout_tree: layout_tree} = auix
+          auix: %{layout_type: :form} = auix
         } = assigns
       ) do
     assigns =
       assigns
       |> assign_select(field)
       |> assign(:input_name, "#{auix.form[field.key].name}[]")
-      |> put_in([:auix, :layout_tree, :opts], Map.get(layout_tree, :opts, []))
       |> then(&put_in(&1, [:auix, :many_to_many_toggle_state], toggle_state(&1)))
       |> ManyToManyActions.set_actions()
 
@@ -212,21 +212,20 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
       configurations |> get_in([resource, :parsed_opts, :primary_key]) |> Kernel.||([])
 
     configurations
-    |> get_in([resource, :layout_trees, :index, :inner_elements])
-    |> Kernel.||([])
+    |> BasicHelpers.layout_children(resource, :index)
     |> Enum.flat_map(&column_name/1)
     |> Enum.reject(&(&1 in primary_key))
     |> Enum.filter(&label_candidate?(configurations, resource, &1))
   end
 
-  # Nested layout tags carry a tuple name (or none); only plain columns can label an option.
-  @spec column_name(map()) :: list(atom())
-  defp column_name(%{tag: :field, name: name}) when is_atom(name), do: [name]
-  defp column_name(_layout_tree), do: []
+  # Columns that follow an association path cannot label an option.
+  @spec column_name(Node.Field.t()) :: list(atom())
+  defp column_name(%Node.Field{key: key, path: []}), do: [key]
+  defp column_name(_node), do: []
 
   @spec label_candidate?(map(), atom(), atom()) :: boolean()
   defp label_candidate?(configurations, resource, name) do
-    %{name: name}
+    name
     |> BasicHelpers.get_field(configurations, resource)
     |> then(&(&1.type not in @non_label_types))
   end

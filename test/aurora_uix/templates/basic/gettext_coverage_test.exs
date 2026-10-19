@@ -16,11 +16,12 @@ defmodule Aurora.Uix.Templates.Basic.GettextCoverageTest do
   @spec sample_parsed_opts() :: map()
   defp sample_parsed_opts do
     %{
-      layout_tree: %{
-        tag: :form,
-        inner_elements: [
-          %{tag: :field, name: :reference, inner_elements: []},
-          %{tag: :field, name: :name, inner_elements: []}
+      layout_type: :form,
+      layout_tree: %Aurora.Uix.Layout.Node.Form{
+        resource: :product,
+        children: [
+          %Aurora.Uix.Layout.Node.Field{key: :reference},
+          %Aurora.Uix.Layout.Node.Field{key: :name}
         ]
       },
       fields: [

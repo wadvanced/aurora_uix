@@ -33,7 +33,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
-  def render(%{auix: %{layout_tree: %{tag: :show}}} = assigns) do
+  def render(%{auix: %{layout_type: :show}} = assigns) do
     ~H"""
     <div>
       <div class="auix-show-container">

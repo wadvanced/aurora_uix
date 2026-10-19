@@ -47,9 +47,7 @@ defmodule Aurora.UixWeb.IndexHandlerHook do
   def mount(params, session, %{assigns: %{auix: auix}} = socket) do
     new_socket =
       auix.layout_tree
-      |> Map.get(:opts, [])
-      |> Keyword.put(:where, {:reference, :lt, "item_test-06"})
-      |> then(&Map.put(auix.layout_tree, :opts, &1))
+      |> Map.put(:where, {:reference, :lt, "item_test-06"})
       |> then(&assign_auix(socket, :layout_tree, &1))
 
     super(params, session, new_socket)

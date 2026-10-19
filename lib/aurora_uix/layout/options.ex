@@ -122,7 +122,10 @@ defmodule Aurora.Uix.Layout.Options do
       end
 
       @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-      def get(%{auix: %{layout_tree: %{tag: unquote(layout_type), opts: opts}}} = assigns, option)
+      def get(
+            %{auix: %{layout_type: unquote(layout_type), layout_tree: %{options: opts}}} = assigns,
+            option
+          )
           when option in unquote(options) do
         if Keyword.has_key?(opts, option),
           do: get_option(assigns, opts[option], option),
@@ -165,7 +168,7 @@ defmodule Aurora.Uix.Layout.Options do
   ## Parameters
 
   - `assigns` (map()) - The assigns map, which must contain an `:auix` key with a
-    `%{layout_tree: %{tag: atom, name: binary()}}` structure.
+    `layout_type` and a `layout_tree` layout node.
   - `option` (atom()) - The option key to retrieve.
 
   ## Returns
@@ -176,7 +179,7 @@ defmodule Aurora.Uix.Layout.Options do
   ## Examples
 
   ```elixir
-  iex> assigns = %{auix: %{layout_tree: %{tag: :show, name: "resource"}}}
+  iex> assigns = %{auix: %{layout_type: :show, layout_tree: %Aurora.Uix.Layout.Node.Show{resource: :resource}}}
   iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
   {:not_found, :unsupported_option}
 
@@ -185,7 +188,7 @@ defmodule Aurora.Uix.Layout.Options do
   ```
   """
   @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
-  def get(%{auix: %{layout_tree: %{tag: tag, name: name}}} = assigns, option) do
+  def get(%{auix: %{layout_type: tag, layout_tree: %{resource: name}}} = assigns, option) do
     @layout_options_parsers
     |> Enum.reduce_while(
       {:cont, option},

@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   Generates a LiveView module for the specified UI component type.
 
   ## Parameters
-  - `parsed_opts` (map()) - Generation options with `layout_tree.tag` and component configuration.
+  - `parsed_opts` (map()) - Generation options with `layout_type` and component configuration.
 
   ## Returns
   Macro.t() - The generated LiveView module code.
@@ -27,7 +27,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   ## Examples
   ```elixir
   Aurora.Uix.Templates.Basic.ModulesGenerator.generate_module(
-    %{layout_tree: %{tag: :index}, name: :product,
+    %{layout_type: :index, name: :product,
         modules: %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb}
       }
     }
@@ -37,19 +37,19 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   If the tag is not implemented, returns a quoted block with no generation logic.
   """
   @spec generate_module(map()) :: Macro.t()
-  def generate_module(%{layout_tree: %{tag: :index}} = parsed_opts) do
+  def generate_module(%{layout_type: :index} = parsed_opts) do
     IndexGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(%{layout_tree: %{tag: :show}} = parsed_opts) do
+  def generate_module(%{layout_type: :show} = parsed_opts) do
     ShowComponentGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(%{layout_tree: %{tag: :form}} = parsed_opts) do
+  def generate_module(%{layout_type: :form} = parsed_opts) do
     FormGenerator.generate_module(parsed_opts)
   end
 
-  def generate_module(%{layout_tree: %{tag: type}}) do
+  def generate_module(%{layout_type: type}) do
     Logger.error("The logic for `#{inspect(type)} is not implemented.")
 
     quote do
@@ -113,17 +113,8 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   Returns the handler module or the default one.
   """
   @spec handler_module(map(), module()) :: module()
-  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :index}, default_module) do
-    Keyword.get(opts, :handler_module, default_module)
-  end
+  def handler_module(%{layout_tree: %{handler_module: nil}}, default_module), do: default_module
 
-  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :show}, default_module) do
-    Keyword.get(opts, :show_handler_module, default_module)
-  end
-
-  def handler_module(%{layout_tree: %{opts: opts}, layout_type: :form}, default_module) do
-    Keyword.get(opts, :edit_handler_module, default_module)
-  end
-
-  def handler_module(_parsed_opts, default_module), do: default_module
+  def handler_module(%{layout_tree: %{handler_module: handler_module}}, _default),
+    do: handler_module
 end
