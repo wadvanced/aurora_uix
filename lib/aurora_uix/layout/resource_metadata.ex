@@ -68,7 +68,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   alias Aurora.Uix.Counter
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Field.Override
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
@@ -279,7 +278,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     quote do
-      Override.new(unquote(field), unquote(opts))
+      Field.declare(unquote(field), unquote(opts))
     end
   end
 
@@ -339,12 +338,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `name` (atom()) - The resource identifier.
   - `opts` (keyword()) - The resource options. `:schema` and `:ash_resource` both set `schema`,
     `:name` sets `display_name`, and options not owned by the resource go to `backend_opts`.
-  - `field_overrides` (list(Override.t())) - The `field` entries, in declaration order.
+  - `field_overrides` (list(Field.t())) - The `field` entries as partial fields, in declaration
+    order.
 
   ## Returns
   `Aurora.Uix.Resource.t()` - The resource, with no parsed fields yet.
   """
-  @spec declare_resource(atom(), keyword(), [Override.t()]) :: Resource.t()
+  @spec declare_resource(atom(), keyword(), [Field.t()]) :: Resource.t()
   def declare_resource(name, opts, field_overrides) do
     {generic, backend_opts} = Keyword.split(opts, @generic_options)
     schema = generic[:schema] || generic[:ash_resource]
@@ -426,10 +426,10 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   # Later overrides of a field win, option by option.
-  @spec merge_overrides([Override.t()]) :: %{(atom() | tuple()) => Override.t()}
+  @spec merge_overrides([Field.t()]) :: %{(atom() | tuple()) => Field.t()}
   defp merge_overrides(field_overrides) do
-    Enum.reduce(field_overrides, %{}, fn %Override{key: key} = override, acc ->
-      Map.update(acc, key, override, &Override.merge(&1, override))
+    Enum.reduce(field_overrides, %{}, fn %Field{key: key} = override, acc ->
+      Map.update(acc, key, override, &Field.merge(&1, override))
     end)
   end
 
@@ -438,13 +438,13 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     Enum.map(fields, fn field ->
       case Map.get(overrides, field.key) do
         nil -> field
-        override -> Field.change(field, Override.to_field_changes(override))
+        override -> Field.merge(field, override)
       end
     end)
   end
 
   # Fields declared but not produced by the parser are appended, in declaration order.
-  @spec append_declared_fields([Field.t()], [Override.t()], map(), atom()) :: [Field.t()]
+  @spec append_declared_fields([Field.t()], [Field.t()], map(), atom()) :: [Field.t()]
   defp append_declared_fields(fields, [], _overrides, _resource_name), do: fields
 
   defp append_declared_fields(fields, field_overrides, overrides, resource_name) do
@@ -458,7 +458,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> Enum.map(fn key ->
         %{key: key, resource: resource_name}
         |> Field.new()
-        |> Field.change(Override.to_field_changes(overrides[key]))
+        |> Field.merge(overrides[key])
       end)
 
     fields ++ new_fields
@@ -505,6 +505,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       |> Enum.map(& &1.key)
       |> Enum.uniq()
 
-    struct(resource, %{fields: Map.new(fields, &{&1.key, &1}), fields_order: fields_order})
+    resource
+    |> struct(%{fields: Map.new(fields, &{&1.key, &1}), fields_order: fields_order})
+    |> Resource.resolve()
   end
 end

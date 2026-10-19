@@ -19,10 +19,13 @@ defmodule Aurora.Uix.Resource do
   - `backend_opts` (`keyword`) - Options owned by the backend, such as Ash's `:ash_actor_assign`
     and action names, or a context's CRUD function overrides. Only the backend's context parser
     defaults read them.
-  - `field_overrides` (`list`) - The `field` entries, as `Aurora.Uix.Field.Override` structs in
-    declaration order.
+  - `field_overrides` (`list`) - The `field` entries, as partial `Aurora.Uix.Field` structs
+    (`resolved?: false`, unset options `nil`) in declaration order.
   - `fields` (`map`) - `Aurora.Uix.Field` structs by field key, with the overrides applied.
   - `fields_order` (`list`) - Field keys in display order, without omitted fields.
+  - `resolved?` (`boolean`) - `false` while the resource is only declared; `true` once
+    `resolve/1` has filled the defaults (`type: :ctx`) and resolved every field. Resolution
+    in `Aurora.Uix.Layout.ResourceMetadata` sets it after parsing the schema.
 
   ## Key Features
   - Gives each resource option its own key; only backend-owned options share a keyword list.
@@ -36,7 +39,6 @@ defmodule Aurora.Uix.Resource do
   use Accessible
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Field.Override
 
   defstruct [
     :name,
@@ -45,27 +47,29 @@ defmodule Aurora.Uix.Resource do
     :order_by,
     :display_name,
     :title,
-    type: :ctx,
+    :type,
     renderers: %{},
     backend_opts: [],
     field_overrides: [],
     fields: %{},
-    fields_order: []
+    fields_order: [],
+    resolved?: false
   ]
 
   @type t() :: %__MODULE__{
           name: atom(),
           schema: module() | nil,
           context: module() | nil,
-          type: atom(),
+          type: atom() | nil,
           order_by: term(),
           display_name: binary() | function() | nil,
           title: binary() | function() | nil,
           renderers: map(),
           backend_opts: keyword(),
-          field_overrides: [Override.t()],
+          field_overrides: [Field.t()],
           fields: %{optional(atom() | tuple()) => Field.t()},
-          fields_order: list()
+          fields_order: list(),
+          resolved?: boolean()
         }
 
   @doc """
@@ -75,7 +79,7 @@ defmodule Aurora.Uix.Resource do
   - `attrs` (map() | `keyword()`) - Initial attributes with :name, :schema, :context, and :fields keys.
 
   ## Returns
-  `Aurora.Uix.Resource.t()` - A new resource struct.
+  `Aurora.Uix.Resource.t()` - A new resource struct, resolved.
 
   ## Examples
   ```elixir
@@ -84,7 +88,7 @@ defmodule Aurora.Uix.Resource do
   ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
-  def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
+  def new(attrs \\ %{}), do: %__MODULE__{} |> change(attrs) |> resolve()
 
   @doc """
   Updates an existing resource struct with the given attributes.
@@ -118,6 +122,27 @@ defmodule Aurora.Uix.Resource do
   end
 
   def change(resource_config, %{} = attrs), do: struct(resource_config, attrs)
+
+  @doc """
+  Fills the defaults of a declared resource, resolves its fields and marks it as resolved.
+
+  ## Parameters
+  - `resource` (`Aurora.Uix.Resource.t()`) - The resource to resolve.
+
+  ## Returns
+  `Aurora.Uix.Resource.t()` - The resource with `resolved?: true`. A resolved resource is
+  returned as is.
+  """
+  @spec resolve(t()) :: t()
+  def resolve(%__MODULE__{resolved?: true} = resource), do: resource
+
+  def resolve(%__MODULE__{} = resource) do
+    struct(resource, %{
+      type: resource.type || :ctx,
+      fields: Map.new(resource.fields, fn {key, field} -> {key, Field.resolve(field)} end),
+      resolved?: true
+    })
+  end
 
   @doc """
   Returns the resource options read by the context parsers (`Aurora.Uix.Parser`).

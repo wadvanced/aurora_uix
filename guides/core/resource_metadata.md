@@ -248,8 +248,11 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 - `display_name`, `title` - The `:name` and `:title` options
 - `backend_opts` - Options owned by the backend, such as `:ash_actor_assign` or the CRUD
   action and function overrides
-- `fields` - A map of field configurations by key
+- `field_overrides` - The `field` entries as partial `Aurora.Uix.Field` structs: unset options
+  are `nil` and `resolved?` is `false`
+- `fields` - A map of field configurations by key, each with `resolved?: true`
 - `fields_order` - List of field keys in display order
+- `resolved?` - `true` once the schema is parsed and the defaults are filled
 
 **Example output:**
 

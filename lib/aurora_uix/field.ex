@@ -50,6 +50,9 @@ defmodule Aurora.Uix.Field do
     - `filterable?` (`boolean`) - If true, it is expected that the field can be filterable by the UI.
     - `sortable?` (`boolean`) - If true, the index column header offers sorting. Parsers set it from the
       column type; it defaults to `false` for fields no parser produced.
+    - `resolved?` (`boolean`) - `false` while the field is partial, as declared by a `field` entry
+      (unset keys are `nil`); `true` once `resolve/1` has filled the defaults. Parsers and `new/1`
+      return resolved fields.
 
   ## Key Features
   - Encapsulates field properties for UI rendering and configuration.
@@ -58,6 +61,7 @@ defmodule Aurora.Uix.Field do
   ## Key Constraints
   - Field struct is used by template and resource modules for dynamic UI generation.
   - `data` holds parser output; host-facing options have their own typed keys.
+  - A `field` option explicitly set to `nil` is indistinguishable from an unset one.
   - Not intended for direct use outside Aurora.Uix internals.
 
   """
@@ -67,15 +71,9 @@ defmodule Aurora.Uix.Field do
   alias Aurora.Uix.Counter
   alias Aurora.Uix.Field.Upload
 
-  defstruct [
-    :key,
+  @defaults %{
     type: :string,
     html_type: :text,
-    renderer: nil,
-    index_renderer: nil,
-    edit_renderer: nil,
-    show_renderer: nil,
-    resource: nil,
     name: "",
     label: "",
     placeholder: "",
@@ -90,60 +88,194 @@ defmodule Aurora.Uix.Field do
     omitted: false,
     filterable?: true,
     sortable?: false,
-    option_label: nil,
     query_opts: [],
     expanded: false,
-    upload: nil,
     data: %{}
+  }
+
+  @declarable_keys [
+    :type,
+    :html_type,
+    :renderer,
+    :index_renderer,
+    :edit_renderer,
+    :show_renderer,
+    :resource,
+    :label,
+    :placeholder,
+    :length,
+    :precision,
+    :scale,
+    :hidden,
+    :readonly,
+    :required,
+    :disabled,
+    :omitted,
+    :filterable?,
+    :sortable?,
+    :option_label,
+    :expanded,
+    :upload,
+    :data
+  ]
+
+  defstruct [
+    :key,
+    :type,
+    :html_type,
+    :renderer,
+    :index_renderer,
+    :edit_renderer,
+    :show_renderer,
+    :resource,
+    :name,
+    :label,
+    :placeholder,
+    :length,
+    :precision,
+    :scale,
+    :html_id,
+    :hidden,
+    :readonly,
+    :required,
+    :disabled,
+    :omitted,
+    :filterable?,
+    :sortable?,
+    :option_label,
+    :query_opts,
+    :expanded,
+    :upload,
+    :data,
+    resolved?: false
   ]
 
   @type t() :: %__MODULE__{
-          key: atom() | nil,
+          key: atom() | tuple() | nil,
           type: atom() | nil,
           html_type: atom() | binary() | nil,
-          html_id: binary(),
+          html_id: binary() | nil,
           renderer: function() | atom() | nil,
           index_renderer: function() | atom() | nil,
           edit_renderer: function() | atom() | nil,
           show_renderer: function() | atom() | nil,
           data: any() | nil,
           resource: module() | nil,
-          name: binary(),
-          label: binary(),
-          placeholder: binary(),
-          length: non_neg_integer(),
-          precision: non_neg_integer(),
-          scale: non_neg_integer(),
-          hidden: boolean(),
-          readonly: boolean(),
-          required: boolean(),
-          disabled: boolean(),
-          omitted: boolean(),
-          filterable?: boolean(),
-          sortable?: boolean(),
+          name: binary() | nil,
+          label: binary() | nil,
+          placeholder: binary() | nil,
+          length: non_neg_integer() | nil,
+          precision: non_neg_integer() | nil,
+          scale: non_neg_integer() | nil,
+          hidden: boolean() | nil,
+          readonly: boolean() | nil,
+          required: boolean() | nil,
+          disabled: boolean() | nil,
+          omitted: boolean() | nil,
+          filterable?: boolean() | nil,
+          sortable?: boolean() | nil,
           option_label: atom() | function() | nil,
-          query_opts: keyword(),
-          expanded: boolean() | function(),
-          upload: Upload.t() | nil
+          query_opts: keyword() | nil,
+          expanded: boolean() | function() | nil,
+          upload: Upload.t() | nil,
+          resolved?: boolean()
         }
 
   @doc """
-  Creates a new `Aurora.Uix.Field` struct with the given attributes.
+  Creates a resolved `Aurora.Uix.Field` struct with the given attributes.
 
   ## Parameters
   - `attrs` (map() | keyword()) - Initial attributes for the field struct.
 
   ## Returns
-  `Aurora.Uix.Field.t()` - New key struct with derived name and html_id.
+  `Aurora.Uix.Field.t()` - New field with derived name and html_id, defaults applied and
+  `resolved?: true`.
 
   ## Examples
   ```elixir
   Aurora.Uix.Field.new(%{key: :user_name, label: "User"})
-  # => %Aurora.Uix.Field{key: :user_name, name: "user_name", label: "User", ...}
+  # => %Aurora.Uix.Field{key: :user_name, name: "user_name", label: "User", resolved?: true, ...}
   ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
-  def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
+  def new(attrs \\ %{}), do: %__MODULE__{} |> change(attrs) |> resolve()
+
+  @doc """
+  Builds the partial field of one `field` entry of `auix_resource_metadata`.
+
+  Only the options the host wrote are set; every other key stays `nil` and `resolved?` stays
+  `false`. `:order_by` and `:where` become `query_opts`, and `data: %{upload: ...}` becomes
+  `upload`. Unknown options are ignored.
+
+  ## Parameters
+  - `key` (atom() | tuple()) - The field the entry applies to.
+  - `opts` (keyword()) - The field options.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The partial field.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Field.declare(:name, required: true, order_by: :name)
+  # => %Aurora.Uix.Field{key: :name, required: true, query_opts: [order_by: :name], resolved?: false, ...}
+  ```
+  """
+  @spec declare(atom() | tuple(), keyword()) :: __MODULE__.t()
+  def declare(key, opts) do
+    {special, options} = Keyword.split(opts, [:data, :upload, :order_by, :where])
+
+    options
+    |> Keyword.take(@declarable_keys)
+    |> then(&struct(__MODULE__, &1))
+    |> struct(%{key: key})
+    |> put_query_opts(Keyword.take(special, [:order_by, :where]))
+    |> put_upload(special[:upload])
+    |> put_data(special[:data])
+  end
+
+  @doc """
+  Merges the options set in `partial` over `field`.
+
+  Keys that are `nil` in `partial` leave `field` unchanged; `query_opts` are merged option by
+  option. `key` and `resolved?` are kept from `field`.
+
+  ## Parameters
+  - `field` (t()) - The field to change, resolved or partial.
+  - `partial` (t()) - A partial field, as built by `declare/2`.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The merged field.
+  """
+  @spec merge(t(), t()) :: t()
+  def merge(%__MODULE__{} = field, %__MODULE__{} = partial) do
+    partial
+    |> Map.from_struct()
+    |> Map.drop([:key, :resolved?])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+    |> Map.update(:query_opts, field.query_opts, &Keyword.merge(field.query_opts || [], &1))
+    |> then(&struct(field, &1))
+  end
+
+  @doc """
+  Fills every unset key with its default and marks the field as resolved.
+
+  ## Parameters
+  - `field` (t()) - The field to resolve.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The field with `resolved?: true`. A resolved field is returned as is.
+  """
+  @spec resolve(t()) :: t()
+  def resolve(%__MODULE__{resolved?: true} = field), do: field
+
+  def resolve(%__MODULE__{} = field) do
+    @defaults
+    |> Enum.filter(fn {key, _default} -> is_nil(Map.get(field, key)) end)
+    |> Map.new()
+    |> Map.put(:resolved?, true)
+    |> then(&struct(field, &1))
+  end
 
   @doc """
   Updates an existing `Aurora.Uix.Field` struct with new attributes.
@@ -157,9 +289,9 @@ defmodule Aurora.Uix.Field do
 
   ## Examples
   ```elixir
-  field = Aurora.Uix.Field.new(%{field: :email})
+  field = Aurora.Uix.Field.new(%{key: :email})
   Aurora.Uix.Field.change(field, %{label: "Email Address"})
-  # => %Aurora.Uix.Field{field: :email, label: "Email Address", ...}
+  # => %Aurora.Uix.Field{key: :email, label: "Email Address", ...}
   ```
   """
   @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
@@ -178,15 +310,38 @@ defmodule Aurora.Uix.Field do
 
   ## PRIVATE
 
+  @spec put_query_opts(t(), keyword()) :: t()
+  defp put_query_opts(field, []), do: field
+  defp put_query_opts(field, query_opts), do: struct(field, %{query_opts: query_opts})
+
+  @spec put_data(t(), term()) :: t()
+  defp put_data(field, nil), do: field
+
+  defp put_data(field, %{upload: upload} = data) do
+    rest = Map.delete(data, :upload)
+
+    field
+    |> put_upload(upload)
+    |> put_data(if rest == %{}, do: nil, else: rest)
+  end
+
+  defp put_data(field, data), do: struct(field, %{data: data})
+
+  @spec put_upload(t(), map() | keyword() | Upload.t() | nil) :: t()
+  defp put_upload(field, nil), do: field
+  defp put_upload(field, %Upload{} = upload), do: struct(field, %{upload: upload})
+  defp put_upload(field, upload), do: struct(field, %{upload: Upload.new(upload)})
+
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
   defp set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field
 
-  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
-       when is_nil(resource) do
+  defp set_field_id(%__MODULE__{html_id: html_id, key: key, resource: resource} = field)
+       when html_id in [nil, ""] and is_nil(resource) do
     struct(field, %{html_id: "auix-field-#{key}-#{Counter.next_count(:auix_fields)}"})
   end
 
-  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
+  defp set_field_id(%__MODULE__{html_id: html_id, key: key, resource: resource} = field)
+       when html_id in [nil, ""] do
     struct(field, %{
       html_id: "auix-field-#{resource}-#{key}-#{Counter.next_count(:auix_fields)}"
     })

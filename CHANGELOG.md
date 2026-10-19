@@ -9,15 +9,21 @@
   and the generated UI are unchanged.
   - `Aurora.Uix.Resource` replaces `opts` with `order_by`, `renderers`, `display_name` (the `:name`
     option), `title` and `backend_opts` (backend-owned options such as `:ash_actor_assign` and the
-    CRUD action and function overrides). `inner_elements` becomes `field_overrides`, one
-    `Aurora.Uix.Field.Override` per `field` entry, and `fields` is always a map of `%Field{}`.
+    CRUD action and function overrides). `inner_elements` becomes `field_overrides`, one partial
+    `%Field{}` per `field` entry, and `fields` is always a map of `%Field{}`.
   - `Aurora.Uix.Field` gains `option_label`, `query_opts`, `expanded` and `upload`
     (`Aurora.Uix.Field.Upload`); `data` keeps what the schema parsers produce.
     `data: %{upload: ...}` is still accepted and moved into `upload`.
+  - `%Field{}` and `%Resource{}` gain a `resolved?` flag. Struct defaults are now `nil` (empty
+    lists and maps stay on `Resource`), so a declared, partial struct is told apart from a
+    resolved one; `Field.new/1`, `Resource.new/1` and resolution fill the defaults and set
+    `resolved?: true`. Hand-written resources in `@auix_resource_metadata` are resolved when the
+    UI is created.
   - **Breaking for host code reading these structures**: custom renderers read
     `field.option_label`, `field.query_opts`, `field.expanded` and `field.upload` instead of
     `field.data.*`, and `resource.order_by`/`resource.backend_opts` instead of `resource.opts`.
-    Hand-written `%Aurora.Uix.Field{}` upload fields set `upload: %Aurora.Uix.Field.Upload{}`.
+    Hand-written `%Aurora.Uix.Field{}` upload fields set `upload: %Aurora.Uix.Field.Upload{}`, and
+    bare `%Aurora.Uix.Field{}` literals outside resource metadata use `Field.new/1` to get defaults.
     The `:key` field option, which renamed the field an override applied to, is no longer read.
 
 ## [0.1.7] - 2026-10-12

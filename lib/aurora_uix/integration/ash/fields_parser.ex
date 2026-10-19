@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
     attribute =
       attributes
-      |> Map.get(field_key, %Field{type: type})
+      |> Map.get(field_key, Field.new(%{type: type}))
       |> map_from_struct()
       |> Map.merge(%{
         resource_schema: resource_schema,
