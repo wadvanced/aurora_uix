@@ -125,7 +125,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
     attribute =
       attributes
-      |> Map.get(field_key, %Field{type: type})
+      |> Map.get(field_key, Field.new(%{type: type}))
       |> map_from_struct()
       |> Map.merge(%{
         resource_schema: resource_schema,
@@ -721,7 +721,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   @spec embedded_resource_config({atom(), module(), atom()}, map(), list(Resource.t())) ::
           list(Resource.t())
   defp embedded_resource_config(
-         {parent_resource_name, schema_module, type},
+         {parent_resource_name, _schema_module, type},
          %{type: resource_type, name: field},
          result
        ) do
@@ -734,12 +734,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       end
 
     [
-      Resource.new(
-        name: resource_name,
-        type: type,
-        tag: :resource,
-        opts: [related_schema: schema_module, schema: embed_schema]
-      )
+      %Resource{name: resource_name, type: type, schema: embed_schema}
       | result
     ]
   end

@@ -241,9 +241,18 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 - `schema` - The Ecto schema or Ash resource module
 - `context` - Context module
 - `type` - Backend type (`:ctx` for Context, `:ash` for Ash)
-- `fields` - A map of field configurations by key
+- `order_by` - As declared
+- `renderers` - The resource-level `:renderers` option: an `html_type => renderer` table applied to
+  every field of the resource. Per-field renderers (`renderer`, `index_renderer`, `edit_renderer`,
+  `show_renderer`) stay on each `Aurora.Uix.Field`
+- `display_name`, `title` - The `:name` and `:title` options
+- `backend_opts` - Options owned by the backend, such as `:ash_actor_assign` or the CRUD
+  action and function overrides
+- `field_overrides` - The `field` entries as partial `Aurora.Uix.Field` structs: unset options
+  are `nil` and `resolved?` is `false`
+- `fields` - A map of field configurations by key, each with `resolved?: true`
 - `fields_order` - List of field keys in display order
-- `opts` - Additional configuration options
+- `resolved?` - `true` once the schema is parsed and the defaults are filled
 
 **Example output:**
 
@@ -254,7 +263,9 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
     schema: Product,
     context: Inventory,
     type: :ctx,  # or :ash for Ash resources
-    opts: [],
+    order_by: nil,
+    renderers: %{},
+    backend_opts: [],
     fields: %{
       id: %Aurora.Uix.Field{key: :id, type: :binary_id, html_type: :text, ...},
       name: %Aurora.Uix.Field{key: :name, type: :string, html_type: :text, ...},
@@ -263,7 +274,8 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
         key: :product_location_id,
         type: :binary_id,
         html_type: :select,
-        data: %{resource: :product_location, option_label: :name, ...}
+        option_label: :name,
+        data: %{resource: :product_location, ...}
       }
     },
     fields_order: [:id, :name, :description, :product_location_id, ...]
@@ -334,31 +346,16 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `disabled` - If true, the field does not participate in form interaction (appears disabled)
 - `omitted` - If true, the field is completely excluded from the UI (as if it doesn't exist)
 
-### Field Data
+### Selector, Embed and Upload Options
 
-The `data` property is a versatile map that holds configuration specific to the field's purpose and type. Its structure varies depending on the field's functionality:
+These field options have their own keys on `Aurora.Uix.Field`:
 
-**For many-to-one associations (`:many_to_one_association`):**
-
-- `resource` - The resource name of the related entity
-- `owner_key` - The foreign key field on this schema
-- `related` - The related schema module
-- `related_key` - The primary key of the related entity
-- `option_label` - Field name (atom), or function (arity 1 or 2) to generate dropdown labels
-- `query_opts` - Optional keyword list with `:order_by` and `:where` clauses for filtering options
-
-**For one-to-many associations (`:one_to_many_association`):**
-
-- `resource` - The resource name of the related entities (may be `nil` if not configured)
-- `owner_key` - The primary key on this schema
-- `related` - The related schema module
-- `related_key` - The foreign key field on the related schema
-
-**For embedded schemas (`:embeds_one`, `:embeds_many`):**
-
-- `owner` - The owner schema module
-- `resource` - The embedded resource name (follows `parent__embed` naming pattern)
-- `related` - The embedded schema module
+- `option_label` - For many-to-one and many-to-many selectors: the field name (atom) shown for each
+  option, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`) returning the label
+- `query_opts` - Keyword list with the `:order_by` and `:where` field options, applied when listing
+  the related entries of an association
+- `upload` - An `Aurora.Uix.Field.Upload` with the upload options described under
+  "For file-upload fields" below
 - `expanded` - (`:embeds_many` only) Controls whether the embedded collection renders expanded or
   collapsed on initial load, in both show and edit modes. Defaults to `false` (collapsed). Accepts a
   boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
@@ -373,6 +370,29 @@ The `data` property is a versatile map that holds configuration specific to the 
   field :addresses, expanded: &MyApp.Inventory.addresses_expanded?/1
   ```
 
+### Field Data
+
+The `data` property is a versatile map that holds configuration specific to the field's purpose and type. Its structure varies depending on the field's functionality:
+
+**For many-to-one associations (`:many_to_one_association`):**
+
+- `resource` - The resource name of the related entity
+- `owner_key` - The foreign key field on this schema
+- `related` - The related schema module
+- `related_key` - The primary key of the related entity
+
+**For one-to-many associations (`:one_to_many_association`):**
+
+- `resource` - The resource name of the related entities (may be `nil` if not configured)
+- `owner_key` - The primary key on this schema
+- `related` - The related schema module
+- `related_key` - The foreign key field on the related schema
+
+**For embedded schemas (`:embeds_one`, `:embeds_many`):**
+
+- `owner` - The owner schema module
+- `resource` - The embedded resource name (follows `parent__embed` naming pattern)
+- `related` - The embedded schema module
 **For select fields with fixed options:**
 
 - `select` - Map containing:
@@ -386,7 +406,7 @@ The `data` property is a versatile map that holds configuration specific to the 
 **For file-upload fields:**
 
 Set `data: %{upload: %{allow: [...], consume: &fun/1}}` to turn any field into a managed
-LiveView upload field:
+LiveView upload field. The options are stored in the field's `upload` key:
 
 ```elixir
 auix_resource_metadata :template, context: MyApp.Templates, schema: MyApp.Template do

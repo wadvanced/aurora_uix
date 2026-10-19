@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Renderers
+  alias Aurora.Uix.Resource
   alias Aurora.Uix.Template
 
   @doc false
@@ -46,7 +47,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
       module
       |> Module.get_attribute(:auix_resource_metadata, [])
       |> Enum.reduce(%{}, fn resource, acc ->
-        Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), elem(&1, 1)))
+        Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), Resource.resolve(elem(&1, 1))))
       end)
       |> filter_resources(opts[:for])
       |> Enum.reduce(
@@ -255,7 +256,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
              ),
              Renderers.validate_table!(
                "auix_resource_metadata renderers:",
-               Keyword.get(resource_config.opts, :renderers, %{})
+               resource_config.renderers
              ),
              Renderers.validate_table!(
                "use Aurora.Uix, renderers:",

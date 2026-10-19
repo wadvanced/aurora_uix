@@ -1,5 +1,12 @@
 # Changelog for Aurora UIX
 
+## [Unreleased]
+
+### Changed
+
+- Resource metadata (`Aurora.Uix.Resource`, `Aurora.Uix.Field`) uses typed structures in preparation for
+  the Spark DSL.
+
 ## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**

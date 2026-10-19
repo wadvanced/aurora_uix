@@ -997,8 +997,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     opts =
       auix
-      |> get_in([:configurations, auix.resource_name, :resource_config])
-      |> Map.get(:opts, [])
+      |> get_in([:configurations, auix.resource_name, :resource_config, :order_by])
+      |> resource_query_opts()
       |> Keyword.merge(layout_opts)
       |> Keyword.put_new(:order_by, [])
       |> Keyword.put_new(:where, [])
@@ -1016,6 +1016,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> read_items(read_items_options)
     |> update_streams()
   end
+
+  @spec resource_query_opts(term()) :: keyword()
+  defp resource_query_opts(nil), do: []
+  defp resource_query_opts(order_by), do: [order_by: order_by]
 
   @spec refresh_current_page(Socket.t()) :: Socket.t()
   defp refresh_current_page(%{assigns: %{auix: %{pagination: pagination}}} = socket) do

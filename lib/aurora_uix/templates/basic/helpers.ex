@@ -32,6 +32,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   import Aurora.Uix.Integration.Crud
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
@@ -1155,15 +1156,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @spec resource_select_options(map()) :: list()
   defp resource_select_options(
          %{
-           field: %{data: %{resource: resource_name} = data},
+           field: %{data: %{resource: resource_name}},
            auix: %{configurations: configurations}
          } = assigns
        ) do
     list_function = get_in(configurations, [resource_name, :parsed_opts, :list_function])
     socket_opts = backend_socket_opts(assigns, list_function)
 
-    data
-    |> Map.get(:query_opts, [])
+    assigns.field.query_opts
     |> Keyword.merge(socket_opts)
     |> then(&apply_list_function(list_function, &1))
     |> list_entries()
@@ -1209,23 +1209,23 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  Returns `true` iff the field carries a `data.upload` map (i.e., it is an upload field).
+  Returns `true` iff the field carries an `upload` configuration (i.e., it is an upload field).
 
   ## Parameters
   - `field` (`Aurora.Uix.Field.t()`) - The field struct to inspect.
 
   ## Returns
-  `boolean()` - `true` when `field.data[:upload]` is a map, `false` otherwise.
+  `boolean()` - `true` when `field.upload` is an `Aurora.Uix.Field.Upload`, `false` otherwise.
   """
   @spec upload_field?(Aurora.Uix.Field.t()) :: boolean()
-  def upload_field?(%{data: data}) when is_map(data), do: is_map(Map.get(data, :upload))
+  def upload_field?(%{upload: %Upload{}}), do: true
   def upload_field?(_field), do: false
 
   @doc """
   Returns the list of upload field structs for the current resource in an `auix` map.
 
   Traverses `auix.configurations[auix.resource_name].resource_config.fields` and returns
-  only those fields for which the data field contains a upload key.
+  only those fields that carry an `upload` configuration.
 
   ## Parameters
   - `auix` (map()) - The Aurora UIX context map containing `configurations` and `resource_name`.
@@ -1290,7 +1290,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   entity, actor) are available. The renderer reads the precomputed boolean so no
   user-provided gate runs inside the pure render path.
 
-  A field's `:expanded` data option may be a boolean or a function of arity 1 that
+  A field's `expanded` key may be a boolean or a function of arity 1 that
   receives the current assigns and returns a boolean. When absent, the default is `false`
   (collapsed).
 
@@ -1305,8 +1305,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     expanded_map =
       socket.assigns.auix
       |> embeds_many_fields()
-      |> Map.new(fn %{key: key, data: data} ->
-        {key, field_expanded?(assigns, Map.get(data, :expanded, false))}
+      |> Map.new(fn %{key: key, expanded: expanded} ->
+        {key, field_expanded?(assigns, expanded)}
       end)
 
     assign_auix(socket, :embeds_expanded, expanded_map)
@@ -1338,7 +1338,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     downloadable_map =
       auix
       |> upload_fields()
-      |> Map.new(fn %{key: key, data: %{upload: upload}} ->
+      |> Map.new(fn %{key: key, upload: upload} ->
         {key, field_downloadable?(socket, upload, Map.get(entity, key), key)}
       end)
 
@@ -1367,7 +1367,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     key = String.to_existing_atom(field_str)
     value = Map.get(auix[:entity] || %{}, key)
     field = auix |> upload_fields() |> Enum.find(&(&1.key == key))
-    download_fn = get_in(field || %{}, [:data, :upload, :download])
+    download_fn = field && field.upload.download
     do_download_upload(socket, download_fn, value, key)
   end
 
@@ -1390,9 +1390,9 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   defp field_expanded?(_assigns, gate) when is_boolean(gate), do: gate
   defp field_expanded?(_assigns, _gate), do: false
 
-  @spec field_downloadable?(Socket.t(), map(), term(), atom()) :: boolean()
+  @spec field_downloadable?(Socket.t(), Upload.t(), term(), atom()) :: boolean()
   defp field_downloadable?(socket, upload, value, key) do
-    case upload[:downloadable?] do
+    case upload.downloadable? do
       gate when is_function(gate) ->
         invoke_upload_callback(gate, socket, value, key) == true
 
@@ -1554,15 +1554,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   # Read from table
   @spec get_many_to_one_select_option(map(), term()) :: tuple()
   defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
+         %{field: %{option_label: option_label, data: %{related_key: related_key}}},
          entity
        )
-       when is_atom(option_label) do
+       when is_atom(option_label) and not is_nil(option_label) do
     {Map.get(entity, option_label), Map.get(entity, related_key)}
   end
 
   defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}},
+         %{field: %{option_label: option_label, data: %{related_key: related_key}}},
          entity
        )
        when is_function(option_label, 1) do
@@ -1570,7 +1570,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   defp get_many_to_one_select_option(
-         %{field: %{data: %{option_label: option_label, related_key: related_key}}} = assigns,
+         %{field: %{option_label: option_label, data: %{related_key: related_key}}} = assigns,
          entity
        )
        when is_function(option_label, 2) do

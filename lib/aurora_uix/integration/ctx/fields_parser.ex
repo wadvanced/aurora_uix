@@ -471,19 +471,14 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   @spec embedded_resource_config({atom(), module(), atom()}, map(), list(Resource.t())) ::
           list(Resource.t())
   defp embedded_resource_config(
-         {parent_resource_name, schema_module, type},
+         {parent_resource_name, _schema_module, type},
          %Embedded{field: field, related: embed_schema},
          result
        ) do
     resource_name = field_embedded_resource(parent_resource_name, field)
 
     [
-      Resource.new(
-        name: resource_name,
-        type: type,
-        tag: :resource,
-        opts: [related_schema: schema_module, schema: embed_schema]
-      )
+      %Resource{name: resource_name, type: type, schema: embed_schema}
       | result
     ]
   end

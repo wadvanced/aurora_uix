@@ -22,73 +22,18 @@ defmodule Aurora.Uix.Field do
     - `index_renderer` (`function` | `atom`) - Renderer used only for the index layout.
     - `edit_renderer` (`function` | `atom`) - Renderer used only for the form (edit) layout.
     - `show_renderer` (`function` | `atom`) - Renderer used only for the show layout.
-    - `data` (`any`) - A general purpose field.
-        Template parser expect specific format for this data, according to any of the field value.
-        Refer to the template documentation to learn special fields data structure.
-
-        **Upload fields** — a field is treated as a file-upload field when `data` contains an
-        `:upload` key whose value is a map with the following structure:
-
-        ```elixir
-        field :uploaded_blob_ref,
-          data: %{
-            upload: %{
-              allow:   [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
-              consume: &MyApp.Templates.store_xlsx/1
-            }
-          }
-        ```
-
-        - `:allow` — keyword list forwarded to `Phoenix.LiveView.allow_upload/3`
-          (`:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, …).
-        - `:consume` — callback invoked with the consumed binaries. Arity is detected
-          automatically via `Function.info/1`:
-
-          | Arity | Call shape                           | When to use                                     |
-          |-------|--------------------------------------|-------------------------------------------------|
-          | 1     | `consume.(binaries)`                 | Pure transform; no socket context needed.       |
-          | 2     | `consume.(socket, binaries)`         | Needs socket assigns (e.g. `current_user`).     |
-          | 3     | `consume.(socket, binaries, key)`    | One callback handles multiple upload fields.    |
-
-          All arities must return one of:
-          - `{:ok, value}` — `value` is written onto the entity params under the field key.
-          - `:no_change` — the field is left untouched; no-file-selected is also short-circuited
-            to `:no_change` so the callback need not handle an empty list.
-          - `{:error, reason}` — save aborts and `reason` is shown as an error flash.
-
-          The socket is **never** returned by `:consume`; use `handle_event("save", …)` override
-          for socket mutations on save.
-        - `:download` — **optional** producer callback invoked when the user clicks the Download
-          button. Its presence is the opt-in master switch: **no `:download` key means no button
-          is rendered.** Arity is detected the same way as `:consume`, with the stored field value
-          as the primary argument:
-
-          | Arity | Call shape                          | When to use                                  |
-          |-------|-------------------------------------|----------------------------------------------|
-          | 1     | `download.(value)`                  | Pure retrieval; no socket context needed.    |
-          | 2     | `download.(socket, value)`          | Needs socket assigns (e.g. `current_user`).  |
-          | 3     | `download.(socket, value, key)`     | One callback handles multiple upload fields. |
-
-          All arities must return one of:
-          - `{:ok, %{name: filename, content: binary}}` — triggers a client-side file download.
-            An optional `:content_type` key may be included in the map.
-          - `:no_download` — does nothing.
-          - `{:error, reason}` — `reason` is shown as an error flash.
-
-          Actor-based visibility should be enforced here (return `{:error, …}` or `:no_download`),
-          since the socket (and thus `current_user`) is available to arity-2 and arity-3 callbacks.
-        - `:downloadable?` — **optional** gate callback evaluated when the component mounts or
-          updates. Controls whether the Download button is visible. Only evaluated when `:download`
-          is also configured. Follows the same arity-dispatch pattern, with the stored field value
-          as the primary argument:
-
-          | Arity | Call shape                          |
-          |-------|-------------------------------------|
-          | 1     | `downloadable?.(value)`             |
-          | 2     | `downloadable?.(socket, value)`     |
-          | 3     | `downloadable?.(socket, value, key)`|
-
-          Must return a boolean. When absent, defaults to `not is_nil(value)`.
+    - `data` (`any`) - Metadata produced by the schema parsers (for example `owner_key`,
+      `related`, `related_key`, `resource` and `select` for associations, embeds and enums),
+      plus any renderer-specific values a host passes with the `:data` field option.
+    - `option_label` (`atom` | `function`) - For many-to-one and many-to-many selectors: the field
+      shown as each option's label, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`)
+      returning it. `nil` uses the related primary key.
+    - `query_opts` (`keyword`) - `:order_by` and `:where` applied when listing the related entries
+      of an association.
+    - `expanded` (`boolean` | `function`) - For `embeds_many` fields: whether the collection starts
+      expanded. A function of arity 1 receives the rendering assigns.
+    - `upload` (`Aurora.Uix.Field.Upload.t()` | `nil`) - Turns the field into a managed LiveView
+      upload field. See `Aurora.Uix.Field.Upload`.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
@@ -105,6 +50,9 @@ defmodule Aurora.Uix.Field do
     - `filterable?` (`boolean`) - If true, it is expected that the field can be filterable by the UI.
     - `sortable?` (`boolean`) - If true, the index column header offers sorting. Parsers set it from the
       column type; it defaults to `false` for fields no parser produced.
+    - `resolved?` (`boolean`) - `false` while the field is partial, as declared by a `field` entry
+      (unset keys are `nil`); `true` once `resolve/1` has filled the defaults. Parsers and `new/1`
+      return resolved fields.
 
   ## Key Features
   - Encapsulates field properties for UI rendering and configuration.
@@ -112,7 +60,8 @@ defmodule Aurora.Uix.Field do
 
   ## Key Constraints
   - Field struct is used by template and resource modules for dynamic UI generation.
-  - Some fields (e.g., `data`) may require special structure as expected by template parsers.
+  - `data` holds parser output; host-facing options have their own typed keys.
+  - A `field` option explicitly set to `nil` is indistinguishable from an unset one.
   - Not intended for direct use outside Aurora.Uix internals.
 
   """
@@ -120,16 +69,11 @@ defmodule Aurora.Uix.Field do
   use Accessible
 
   alias Aurora.Uix.Counter
+  alias Aurora.Uix.Field.Upload
 
-  defstruct [
-    :key,
+  @defaults %{
     type: :string,
     html_type: :text,
-    renderer: nil,
-    index_renderer: nil,
-    edit_renderer: nil,
-    show_renderer: nil,
-    resource: nil,
     name: "",
     label: "",
     placeholder: "",
@@ -144,52 +88,194 @@ defmodule Aurora.Uix.Field do
     omitted: false,
     filterable?: true,
     sortable?: false,
+    query_opts: [],
+    expanded: false,
     data: %{}
+  }
+
+  @declarable_keys [
+    :type,
+    :html_type,
+    :renderer,
+    :index_renderer,
+    :edit_renderer,
+    :show_renderer,
+    :resource,
+    :label,
+    :placeholder,
+    :length,
+    :precision,
+    :scale,
+    :hidden,
+    :readonly,
+    :required,
+    :disabled,
+    :omitted,
+    :filterable?,
+    :sortable?,
+    :option_label,
+    :expanded,
+    :upload,
+    :data
+  ]
+
+  defstruct [
+    :key,
+    :type,
+    :html_type,
+    :renderer,
+    :index_renderer,
+    :edit_renderer,
+    :show_renderer,
+    :resource,
+    :name,
+    :label,
+    :placeholder,
+    :length,
+    :precision,
+    :scale,
+    :html_id,
+    :hidden,
+    :readonly,
+    :required,
+    :disabled,
+    :omitted,
+    :filterable?,
+    :sortable?,
+    :option_label,
+    :query_opts,
+    :expanded,
+    :upload,
+    :data,
+    resolved?: false
   ]
 
   @type t() :: %__MODULE__{
-          key: atom() | nil,
+          key: atom() | tuple() | nil,
           type: atom() | nil,
           html_type: atom() | binary() | nil,
-          html_id: binary(),
+          html_id: binary() | nil,
           renderer: function() | atom() | nil,
           index_renderer: function() | atom() | nil,
           edit_renderer: function() | atom() | nil,
           show_renderer: function() | atom() | nil,
           data: any() | nil,
           resource: module() | nil,
-          name: binary(),
-          label: binary(),
-          placeholder: binary(),
-          length: non_neg_integer(),
-          precision: non_neg_integer(),
-          scale: non_neg_integer(),
-          hidden: boolean(),
-          readonly: boolean(),
-          required: boolean(),
-          disabled: boolean(),
-          omitted: boolean(),
-          filterable?: boolean(),
-          sortable?: boolean()
+          name: binary() | nil,
+          label: binary() | nil,
+          placeholder: binary() | nil,
+          length: non_neg_integer() | nil,
+          precision: non_neg_integer() | nil,
+          scale: non_neg_integer() | nil,
+          hidden: boolean() | nil,
+          readonly: boolean() | nil,
+          required: boolean() | nil,
+          disabled: boolean() | nil,
+          omitted: boolean() | nil,
+          filterable?: boolean() | nil,
+          sortable?: boolean() | nil,
+          option_label: atom() | function() | nil,
+          query_opts: keyword() | nil,
+          expanded: boolean() | function() | nil,
+          upload: Upload.t() | nil,
+          resolved?: boolean()
         }
 
   @doc """
-  Creates a new `Aurora.Uix.Field` struct with the given attributes.
+  Creates a resolved `Aurora.Uix.Field` struct with the given attributes.
 
   ## Parameters
   - `attrs` (map() | keyword()) - Initial attributes for the field struct.
 
   ## Returns
-  `Aurora.Uix.Field.t()` - New key struct with derived name and html_id.
+  `Aurora.Uix.Field.t()` - New field with derived name and html_id, defaults applied and
+  `resolved?: true`.
 
   ## Examples
   ```elixir
   Aurora.Uix.Field.new(%{key: :user_name, label: "User"})
-  # => %Aurora.Uix.Field{key: :user_name, name: "user_name", label: "User", ...}
+  # => %Aurora.Uix.Field{key: :user_name, name: "user_name", label: "User", resolved?: true, ...}
   ```
   """
   @spec new(map() | keyword()) :: __MODULE__.t()
-  def new(attrs \\ %{}), do: change(%__MODULE__{}, attrs)
+  def new(attrs \\ %{}), do: %__MODULE__{} |> change(attrs) |> resolve()
+
+  @doc """
+  Builds the partial field of one `field` entry of `auix_resource_metadata`.
+
+  Only the options the host wrote are set; every other key stays `nil` and `resolved?` stays
+  `false`. `:order_by` and `:where` become `query_opts`, and `data: %{upload: ...}` becomes
+  `upload`. Unknown options are ignored.
+
+  ## Parameters
+  - `key` (atom() | tuple()) - The field the entry applies to.
+  - `opts` (keyword()) - The field options.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The partial field.
+
+  ## Examples
+  ```elixir
+  Aurora.Uix.Field.declare(:name, required: true, order_by: :name)
+  # => %Aurora.Uix.Field{key: :name, required: true, query_opts: [order_by: :name], resolved?: false, ...}
+  ```
+  """
+  @spec declare(atom() | tuple(), keyword()) :: __MODULE__.t()
+  def declare(key, opts) do
+    {special, options} = Keyword.split(opts, [:data, :upload, :order_by, :where])
+
+    options
+    |> Keyword.take(@declarable_keys)
+    |> then(&struct(__MODULE__, &1))
+    |> struct(%{key: key})
+    |> put_query_opts(Keyword.take(special, [:order_by, :where]))
+    |> put_upload(special[:upload])
+    |> put_data(special[:data])
+  end
+
+  @doc """
+  Merges the options set in `partial` over `field`.
+
+  Keys that are `nil` in `partial` leave `field` unchanged; `query_opts` are merged option by
+  option. `key` and `resolved?` are kept from `field`.
+
+  ## Parameters
+  - `field` (t()) - The field to change, resolved or partial.
+  - `partial` (t()) - A partial field, as built by `declare/2`.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The merged field.
+  """
+  @spec merge(t(), t()) :: t()
+  def merge(%__MODULE__{} = field, %__MODULE__{} = partial) do
+    partial
+    |> Map.from_struct()
+    |> Map.drop([:key, :resolved?])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+    |> Map.update(:query_opts, field.query_opts, &Keyword.merge(field.query_opts || [], &1))
+    |> then(&struct(field, &1))
+  end
+
+  @doc """
+  Fills every unset key with its default and marks the field as resolved.
+
+  ## Parameters
+  - `field` (t()) - The field to resolve.
+
+  ## Returns
+  `Aurora.Uix.Field.t()` - The field with `resolved?: true`. A resolved field is returned as is.
+  """
+  @spec resolve(t()) :: t()
+  def resolve(%__MODULE__{resolved?: true} = field), do: field
+
+  def resolve(%__MODULE__{} = field) do
+    @defaults
+    |> Enum.filter(fn {key, _default} -> is_nil(Map.get(field, key)) end)
+    |> Map.new()
+    |> Map.put(:resolved?, true)
+    |> then(&struct(field, &1))
+  end
 
   @doc """
   Updates an existing `Aurora.Uix.Field` struct with new attributes.
@@ -203,9 +289,9 @@ defmodule Aurora.Uix.Field do
 
   ## Examples
   ```elixir
-  field = Aurora.Uix.Field.new(%{field: :email})
+  field = Aurora.Uix.Field.new(%{key: :email})
   Aurora.Uix.Field.change(field, %{label: "Email Address"})
-  # => %Aurora.Uix.Field{field: :email, label: "Email Address", ...}
+  # => %Aurora.Uix.Field{key: :email, label: "Email Address", ...}
   ```
   """
   @spec change(__MODULE__.t(), map() | keyword()) :: __MODULE__.t()
@@ -224,15 +310,38 @@ defmodule Aurora.Uix.Field do
 
   ## PRIVATE
 
+  @spec put_query_opts(t(), keyword()) :: t()
+  defp put_query_opts(field, []), do: field
+  defp put_query_opts(field, query_opts), do: struct(field, %{query_opts: query_opts})
+
+  @spec put_data(t(), term()) :: t()
+  defp put_data(field, nil), do: field
+
+  defp put_data(field, %{upload: upload} = data) do
+    rest = Map.delete(data, :upload)
+
+    field
+    |> put_upload(upload)
+    |> put_data(if rest == %{}, do: nil, else: rest)
+  end
+
+  defp put_data(field, data), do: struct(field, %{data: data})
+
+  @spec put_upload(t(), map() | keyword() | Upload.t() | nil) :: t()
+  defp put_upload(field, nil), do: field
+  defp put_upload(field, %Upload{} = upload), do: struct(field, %{upload: upload})
+  defp put_upload(field, upload), do: struct(field, %{upload: Upload.new(upload)})
+
   @spec set_field_id(__MODULE__.t()) :: __MODULE__.t()
   defp set_field_id(%__MODULE__{key: key} = field) when is_nil(key), do: field
 
-  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field)
-       when is_nil(resource) do
+  defp set_field_id(%__MODULE__{html_id: html_id, key: key, resource: resource} = field)
+       when html_id in [nil, ""] and is_nil(resource) do
     struct(field, %{html_id: "auix-field-#{key}-#{Counter.next_count(:auix_fields)}"})
   end
 
-  defp set_field_id(%__MODULE__{html_id: "", key: key, resource: resource} = field) do
+  defp set_field_id(%__MODULE__{html_id: html_id, key: key, resource: resource} = field)
+       when html_id in [nil, ""] do
     struct(field, %{
       html_id: "auix-field-#{resource}-#{key}-#{Counter.next_count(:auix_fields)}"
     })

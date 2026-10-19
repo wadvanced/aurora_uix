@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Renderers do
   no recompile is needed when the host registrar changes.
   """
 
+  alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Renderers.BuiltIn
 
   @table_exempt_types [
@@ -110,7 +111,7 @@ defmodule Aurora.Uix.Renderers do
   @spec table_applies?(map()) :: boolean()
   defp table_applies?(%{hidden: true}), do: false
   defp table_applies?(%{type: type}) when type in @table_exempt_types, do: false
-  defp table_applies?(%{data: %{upload: upload}}) when is_map(upload), do: false
+  defp table_applies?(%{upload: %Upload{}}), do: false
   defp table_applies?(_field), do: true
 
   @spec app_table() :: map()
