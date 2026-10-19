@@ -34,12 +34,13 @@ defmodule Aurora.Uix.Test.Helper do
   ## Parameters
   - `count` (integer()) - Number of products to create.
   - `prefix` (atom() | nil) - Prefix to use in the reference of the product.
-  - `attrs` (map()) - Attributes to override defaults.
+  - `attrs` (map() | (integer() -> map())) - Attributes to override defaults, or a function
+    returning them for each product index.
 
   ## Returns
   map() - Map of product IDs with atom keys in the format `id_n`.
   """
-  @spec create_sample_products(integer(), atom() | nil, map()) :: map()
+  @spec create_sample_products(integer(), atom() | nil, map() | (integer() -> map())) :: map()
   def create_sample_products(count, prefix \\ nil, attrs \\ %{}) do
     length = count |> to_string() |> String.length()
 
@@ -59,7 +60,7 @@ defmodule Aurora.Uix.Test.Helper do
         cost: cost,
         quantity_at_hand: quantity_at_hand
       }
-      |> struct(attrs)
+      |> struct(if is_function(attrs, 1), do: attrs.(index), else: attrs)
       |> Repo.insert()
       |> elem(1)
       |> then(&{"id_#{reference_id}", &1})
@@ -79,7 +80,12 @@ defmodule Aurora.Uix.Test.Helper do
   ## Returns
   map() - Map of product IDs with associated transactions.
   """
-  @spec create_sample_products_with_transactions(integer(), integer(), atom() | nil, map() | nil) ::
+  @spec create_sample_products_with_transactions(
+          integer(),
+          integer(),
+          atom() | nil,
+          map() | (integer() -> map()) | nil
+        ) ::
           map()
   def create_sample_products_with_transactions(
         product_count,
@@ -361,26 +367,40 @@ defmodule Aurora.Uix.Test.Helper do
   """
   @spec create_guides_sample_data() :: :ok
   def create_guides_sample_data do
+    # The guide screenshots show the data, ids included, so every run must create the same
+    # records: a fixed seed for the values and fixed ids for the records shown with their id.
+    :rand.seed(:exsss, {438, 438, 438})
     delete_all_sample_data()
 
-    product_locations =
-      Enum.map(["North", "South", "East", "West"], fn location ->
-        id = String.downcase(location)
+    # TRUNCATE, unlike DELETE, gives the tables fresh storage, so pages without a sort list the
+    # rows created next in insertion order. The test rolls it back like any other change.
+    Repo.query!("TRUNCATE product_locations, products, product_transactions CASCADE")
 
-        Inventory.create_product_location(%{
-          reference: "overview-#{id}",
+    product_locations =
+      ["North", "South", "East", "West"]
+      |> Enum.with_index(1)
+      |> Enum.map(fn {location, index} ->
+        Repo.insert!(%ProductLocation{
+          id: guide_id(1, index),
+          reference: "overview-#{String.downcase(location)}",
           name: "#{location} Side",
           type: "type-#{:rand.uniform(5)}"
         })
       end)
 
-    create_sample_products_with_transactions(100, 3, :overview, %{
+    product_attrs = %{
       quantity_initial: :rand.uniform(999),
       list_price: :rand.uniform(250) + 200,
       rpp: :rand.uniform(250),
-      product_location_id:
-        product_locations |> Enum.at(:rand.uniform(4) - 1) |> elem(1) |> Map.get(:id)
-    })
+      product_location_id: product_locations |> Enum.at(:rand.uniform(4) - 1) |> Map.get(:id)
+    }
+
+    create_sample_products_with_transactions(
+      100,
+      3,
+      :overview,
+      &Map.put(product_attrs, :id, guide_id(2, &1))
+    )
 
     blog_count = 5
     categories = create_sample_categories(blog_count)
@@ -476,6 +496,10 @@ defmodule Aurora.Uix.Test.Helper do
     end)
     |> then(fn _ -> product end)
   end
+
+  @spec guide_id(integer(), integer()) :: binary()
+  defp guide_id(kind, index),
+    do: "00000000-0000-4000-#{8000 + kind}-#{String.pad_leading("#{index}", 12, "0")}"
 
   @spec reference_id(atom() | binary() | nil, integer(), integer()) :: binary()
   defp reference_id(nil, index, length), do: reference_id("", index, length)
