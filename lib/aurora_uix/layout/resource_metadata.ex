@@ -67,9 +67,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
 
   alias Aurora.Uix.Counter
-  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Field
   alias Aurora.Uix.Field.Override
+  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
   alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
 
