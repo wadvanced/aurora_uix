@@ -30,19 +30,23 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
 
   auix_resource_metadata(:author__author_profile, ash_resource: AuthorProfile)
 
-  auix_resource_metadata(:author, ash_resource: Author) do
+  auix_resource_metadata :author do
+    ash_resource(Author)
     field :bio, html_type: :textarea
   end
 
   auix_resource_metadata(:category, ash_resource: Category)
 
-  auix_resource_metadata(:post__comment, ash_resource: Comment) do
+  auix_resource_metadata :post__comment do
+    ash_resource(Comment)
     field :description, html_type: :textarea
   end
 
   auix_resource_metadata(:topics, ash_resource: Topic)
 
-  auix_resource_metadata(:post, ash_resource: Post, order_by: :title) do
+  auix_resource_metadata :post do
+    ash_resource(Post)
+    order_by(:title)
     field :topics, label: "Topics"
   end
 

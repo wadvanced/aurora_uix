@@ -32,12 +32,12 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   `authorize?:` is **never** set explicitly by this module. The actor is resolved at
   the call site by `socket_opts/2`, which reads `CrudSpec.actor_assign` (the atom
-  configured via `auix_resource_metadata ..., ash_actor_assign: :current_user`) and
+  configured via `auix_resource_metadata ..., backend_opts: [ash_actor_assign: :current_user]`) and
   pulls the actor from `socket.assigns`.
 
   ### Resolution example
 
-  Given `auix_resource_metadata :template, ash_resource: Tpl, ash_actor_assign: :current_user`
+  Given `auix_resource_metadata :template, ash_resource: Tpl, backend_opts: [ash_actor_assign: :current_user]`
   and a LiveView with `socket.assigns.current_user = %User{id: 1}`:
 
       iex> socket_opts(crud_spec, socket)

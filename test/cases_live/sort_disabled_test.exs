@@ -9,7 +9,9 @@ defmodule Aurora.UixWeb.Test.SortDisabledTest do
 
   auix_resource_metadata(:product, context: Inventory, schema: Product, order_by: :reference)
 
-  auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
+  auix_resource_metadata :product_location do
+    context Inventory
+    schema(ProductLocation)
     field(:reference, sortable?: false)
     field(:name, sortable?: false)
   end

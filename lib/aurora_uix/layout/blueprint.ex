@@ -333,7 +333,7 @@ defmodule Aurora.Uix.Layout.Blueprint do
   - `:page_subtitle` (binary() | (map() - Phoenix.LiveView.Rendered.t())): The page subtitle for the index layout. Example: `page_subtitle: "All available products"` or `page_subtitle: &custom_page_subtitle/1`.
   - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
     Takes precedence over any order_by set in `auix_resource_metadata`.
-    See `Aurora.Uix.Layout.ResourceMetadata.auix_resource_metadata/3` for details.
+    See `Aurora.Uix.Layout.ResourceMetadata` for details.
   - `:where` (keyword()) - Where clauses to use for filtering the items to show.
   - `:renderers` (map()) - `html_type => renderer` table for the index layout. Beats
     `auix_create_ui`; a field's `:index_renderer` beats it.

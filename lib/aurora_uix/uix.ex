@@ -40,9 +40,9 @@ defmodule Aurora.Uix do
     use Aurora.Uix
 
     # Define schema configuration
-    auix_resource_metadata :product,
-      schema: MyApp.Product,
-      context: MyApp.Products do
+    auix_resource_metadata :product do
+      schema MyApp.Product
+      context MyApp.Products
       field :name, placeholder: "Product name", max_length: 40, required: true
       field :description, max_length: 255
       field :price, precision: 12, scale: 2, readonly: true
@@ -68,9 +68,9 @@ defmodule Aurora.Uix do
     use Aurora.Uix
 
     # Configure schema metadata
-    auix_resource_metadata :user,
-      schema: MyApp.Accounts.User,
-      context: MyApp.Accounts do
+    auix_resource_metadata :user do
+      schema MyApp.Accounts.User
+      context MyApp.Accounts
       field :email, placeholder: "user@example.com", required: true
       field :password, type: :password, required: true
     end
@@ -96,7 +96,6 @@ defmodule Aurora.Uix do
 
   alias Aurora.Uix.Layout.CreateLayout
   alias Aurora.Uix.Layout.CreateUI
-  alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Template
 
   require Logger
@@ -104,6 +103,8 @@ defmodule Aurora.Uix do
   @doc false
   defmacro __using__(opts) do
     quote do
+      use Aurora.Uix.Dsl
+
       @auix_html_type_renderers unquote(Keyword.get(opts, :renderers, Macro.escape(%{})))
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
       Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
@@ -117,9 +118,6 @@ defmodule Aurora.Uix do
 
       import CreateUI,
         only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
-
-      import ResourceMetadata,
-        only: [auix_resource_metadata: 1, auix_resource_metadata: 2, auix_resource_metadata: 3]
     end
   end
 end

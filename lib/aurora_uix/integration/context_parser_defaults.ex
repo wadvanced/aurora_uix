@@ -133,6 +133,32 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
   """
   @callback filter_options(valid_opts :: list(atom()), resource_opts :: keyword()) :: list(atom())
 
+  @doc """
+  Returns the schema of the `:backend_opts` this backend accepts in `auix_resource_metadata`.
+
+  ## Returns
+  keyword() - A `Spark.Options` schema.
+  """
+  @callback backend_opts_schema() :: keyword()
+
+  @doc """
+  Returns the `:backend_opts` schema of a backend type, or `nil` when the type has no CRUD
+  integration (such as `:default`), in which case the options are not validated.
+
+  ## Parameters
+  - `type` (atom()) - The resource's backend type.
+
+  ## Returns
+  keyword() | nil - The `Spark.Options` schema.
+  """
+  @spec backend_opts_schema(atom()) :: keyword() | nil
+  def backend_opts_schema(type) do
+    case Map.get(@parser_defaults_integration_modules, type) do
+      nil -> nil
+      module -> module.backend_opts_schema()
+    end
+  end
+
   @impl true
   def get_options(%{type: type} = _resource_config, resource_opts) do
     parser = get_parser_defaults_module(type)

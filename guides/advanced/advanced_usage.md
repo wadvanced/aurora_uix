@@ -106,7 +106,9 @@ defmodule MyAppWeb.Product do
   use Aurora.UixWeb, :live_view
   alias Aurora.Uix.TreePath
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema Product
     field(:name, placeholder: "Product name")
     field(:price, placeholder: "0.00")
   end
@@ -226,10 +228,12 @@ You can create multiple metadata sets for the same schema:
 
 ```elixir
 # Full product metadata - admin representation
-auix_resource_metadata :product_admin, context: Inventory, schema: Product do
+auix_resource_metadata :product_admin do
+  context Inventory
+  schema Product
   field :id, hidden: true
-  field :reference, required: true, max_length: 50
-  field :name, required: true, max_length: 200
+  field :reference, required: true, length: 50
+  field :name, required: true, length: 200
   field :description, html_type: :textarea
   field :quantity_at_hand, precision: 12, scale: 2
   field :quantity_initial, precision: 12, scale: 2
@@ -241,7 +245,9 @@ auix_resource_metadata :product_admin, context: Inventory, schema: Product do
 end
 
 # Customer-facing product metadata
-auix_resource_metadata :product_customer, context: Inventory, schema: Product do
+auix_resource_metadata :product_customer do
+  context Inventory
+  schema Product
   field :reference, required: true
   field :name, required: true
   field :description
@@ -250,7 +256,9 @@ auix_resource_metadata :product_customer, context: Inventory, schema: Product do
 end
 
 # Audit/logging metadata
-auix_resource_metadata :product_audit, context: Inventory, schema: Product do
+auix_resource_metadata :product_audit do
+  context Inventory
+  schema Product
   field :reference
   field :inserted_at, readonly: true
   field :updated_at, readonly: true
@@ -360,10 +368,12 @@ defmodule MyAppWeb.Metadata.Inventory.Product do
   alias MyApp.Inventory.Product
 
   # Admin representation - all fields including sensitive data
-  auix_resource_metadata :product_admin, context: Inventory, schema: Product do
+  auix_resource_metadata :product_admin do
+    context Inventory
+    schema Product
     field :id, hidden: true
-    field :reference, required: true, max_length: 50
-    field :name, required: true, max_length: 200
+    field :reference, required: true, length: 50
+    field :name, required: true, length: 200
     field :description, html_type: :textarea
     field :quantity_at_hand
     field :quantity_initial
@@ -375,7 +385,9 @@ defmodule MyAppWeb.Metadata.Inventory.Product do
   end
 
   # Customer representation - only public fields
-  auix_resource_metadata :product_customer, context: Inventory, schema: Product do
+  auix_resource_metadata :product_customer do
+    context Inventory
+    schema Product
     field :reference, required: true
     field :name, required: true
     field :description
@@ -384,7 +396,9 @@ defmodule MyAppWeb.Metadata.Inventory.Product do
   end
 
   # Audit representation - only audit/tracking fields
-  auix_resource_metadata :product_audit, context: Inventory, schema: Product do
+  auix_resource_metadata :product_audit do
+    context Inventory
+    schema Product
     field :reference
     field :inserted_at, readonly: true
     field :updated_at, readonly: true
@@ -484,11 +498,15 @@ defmodule MyAppWeb.Metadata.Inventory.Product do
   alias MyApp.Inventory
   alias MyApp.Inventory.Product
 
-  auix_resource_metadata :product_admin, context: Inventory, schema: Product do
+  auix_resource_metadata :product_admin do
+    context Inventory
+    schema Product
     # ... admin representation ...
   end
 
-  auix_resource_metadata :product_customer, context: Inventory, schema: Product do
+  auix_resource_metadata :product_customer do
+    context Inventory
+    schema Product
     # ... customer representation ...
   end
 end
@@ -511,21 +529,29 @@ defmodule MyAppWeb.Metadata.Inventory.Catalog do
   alias MyApp.Inventory.{Product, Category, Stock}
 
   # Product representations
-  auix_resource_metadata :product_admin, context: Inventory, schema: Product do
+  auix_resource_metadata :product_admin do
+    context Inventory
+    schema Product
     # ...
   end
 
-  auix_resource_metadata :product_customer, context: Inventory, schema: Product do
+  auix_resource_metadata :product_customer do
+    context Inventory
+    schema Product
     # ...
   end
 
   # Category representations
-  auix_resource_metadata :category_admin, context: Inventory, schema: Category do
+  auix_resource_metadata :category_admin do
+    context Inventory
+    schema Category
     # ...
   end
 
   # Stock representations
-  auix_resource_metadata :stock_admin, context: Inventory, schema: Stock do
+  auix_resource_metadata :stock_admin do
+    context Inventory
+    schema Stock
     # ...
   end
 end
@@ -879,10 +905,10 @@ defmodule MyAppWeb.ProductViews do
   alias MyApp.Products.Product
 
   # Use custom backend options
-  auix_resource_metadata :product, 
-    schema: Product,
-    type: :custom,  # Specify your backend type
-    custom_option: :value do
+  auix_resource_metadata :product do
+    schema Product
+    type :custom
+    custom_option :value
     
     field :name, required: true
     field :price, html_type: :number

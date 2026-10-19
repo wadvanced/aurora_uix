@@ -6,13 +6,16 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
   alias Aurora.Uix.Guides.Inventory.Product
   alias Phoenix.LiveViewTest.View
 
-  auix_resource_metadata :product, context: Inventory, schema: Product, order_by: :reference do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+    order_by(:reference)
     field(:cost, sortable?: false)
 
-    field(:image,
-      sortable?: true,
-      data: %{upload: %{allow: [accept: ~w(.png)], consume: &Function.identity/1}}
-    )
+    field :image do
+      sortable? true
+      upload allow: [accept: ~w(.png)], consume: &Function.identity/1
+    end
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex

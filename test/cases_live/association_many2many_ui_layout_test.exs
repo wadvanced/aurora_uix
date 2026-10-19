@@ -9,7 +9,9 @@ defmodule Aurora.UixWeb.Test.AssociationMany2ManyUILayoutTest do
 
   # Routes for both resources are registered in test/support/app_web/routes.ex as
   # "association/many_to_many/layout/products" and ".../suppliers".
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:suppliers, option_label: :name)
   end
 

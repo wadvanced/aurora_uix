@@ -11,12 +11,12 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
 
   auix_resource_metadata(:policy_item,
     ash_resource: AshActorTest.PolicyItem,
-    ash_actor_assign: :current_user
+    backend_opts: [ash_actor_assign: :current_user]
   )
 
   auix_resource_metadata(:policy_item_scope,
     ash_resource: AshActorTest.PolicyItemScope,
-    ash_actor_assign: :scope
+    backend_opts: [ash_actor_assign: :scope]
   )
 
   auix_resource_metadata(:public_item,

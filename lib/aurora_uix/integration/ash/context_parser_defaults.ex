@@ -29,15 +29,15 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   - `:ash_actor_assign` (alias: `:actor_assign`) - Atom naming the `socket.assigns`
     key that holds the actor for policy-protected resources. Default `nil`. When set,
     every generated CRUD call forwards `actor: socket.assigns[<assign>]` to Ash.
-    Non-atom values are silently rejected as a defensive measure against typos.
+    Non-atom values fail compilation.
 
   ## Example
 
       auix_resource_metadata :template,
         ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-        ash_actor_assign: :current_user      # canonical
+        backend_opts: [ash_actor_assign: :current_user]   # canonical
         # or, equivalently:
-        # actor_assign: :current_user        # alias
+        # backend_opts: [actor_assign: :current_user]     # alias
 
   See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
   for the worked example and the full behaviour matrix.
@@ -59,6 +59,29 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @change_function_aliases [:change_function, :ash_change_action]
   @new_function_aliases [:new_function, :ash_new_function]
 
+  @action_type {:or, [:atom, {:fun, 1}, {:fun, 2}]}
+
+  @backend_opts_schema [
+    ash_actor_assign: [type: :atom, doc: "`socket.assigns` key holding the actor."],
+    actor_assign: [type: :atom, doc: "Alias of `:ash_actor_assign`."],
+    list_function: [type: @action_type, doc: "Read action, or alias `:ash_read_action`."],
+    ash_read_action: [type: @action_type, doc: "Read action."],
+    list_function_paginated: [type: @action_type, doc: "Paginated read action."],
+    ash_read_action_paginated: [type: @action_type, doc: "Paginated read action."],
+    get_function: [type: @action_type, doc: "Get action."],
+    ash_get_action: [type: @action_type, doc: "Get action."],
+    delete_function: [type: @action_type, doc: "Destroy action."],
+    ash_destroy_action: [type: @action_type, doc: "Destroy action."],
+    create_function: [type: @action_type, doc: "Create action."],
+    ash_create_action: [type: @action_type, doc: "Create action."],
+    update_function: [type: @action_type, doc: "Update action."],
+    ash_update_action: [type: @action_type, doc: "Update action."],
+    change_function: [type: @action_type, doc: "Change action."],
+    ash_change_action: [type: @action_type, doc: "Change action."],
+    new_function: [type: {:fun, 2}, doc: "Builds a new entry."],
+    ash_new_function: [type: {:fun, 2}, doc: "Builds a new entry."]
+  ]
+
   @error_action_type "Does not exists or it is of the wrong type"
   @error_action_needs_pagination "#{@error_action_type}, or pagination is not supported"
   @error_new_function_invalid "The function reference is nil or invalid, should be a function with 2 arity (attrs, opts)"
@@ -73,6 +96,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   The fill_missing_options in in charge of 'copying' the missing one, thus ensuring that
   both are the same wether one or none were provided and respect the distinction if both were provided.
   """
+  @impl true
+  def backend_opts_schema, do: @backend_opts_schema
+
   @impl true
   def filter_options(valid_options, resource_opts) do
     valid_options

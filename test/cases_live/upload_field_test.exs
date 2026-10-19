@@ -41,15 +41,14 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.UixWeb.Test.UploadFieldTest.Consumer
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field(:image,
-      data: %{
-        upload: %{
-          allow: [accept: ~w(.png .jpg), max_entries: 1],
-          consume: &Consumer.consume_image/1
-        }
-      }
-    )
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
+    field :image do
+      upload allow: [accept: ~w(.png .jpg), max_entries: 1],
+             consume: &Consumer.consume_image/1
+    end
   end
 
   # When you define a link in a test, add a line to test/support/app_web/routes.ex
@@ -299,15 +298,14 @@ defmodule Aurora.UixWeb.Test.SocketAwareUploadFieldTest do
   alias Aurora.Uix.Repo
   alias Aurora.UixWeb.Test.UploadFieldTest.SocketAwareConsumer
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field(:image,
-      data: %{
-        upload: %{
-          allow: [accept: ~w(.png .jpg), max_entries: 1],
-          consume: &SocketAwareConsumer.consume_with_action/2
-        }
-      }
-    )
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
+    field :image do
+      upload allow: [accept: ~w(.png .jpg), max_entries: 1],
+             consume: &SocketAwareConsumer.consume_with_action/2
+    end
   end
 
   # Route registered as "socket-aware-upload-products" in test/support/app_web/routes.ex
@@ -362,17 +360,16 @@ defmodule Aurora.UixWeb.Test.DownloadUploadFieldTest do
   alias Aurora.UixWeb.Test.UploadFieldTest.Consumer
   alias Aurora.UixWeb.Test.UploadFieldTest.Downloader
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field(:image,
-      data: %{
-        upload: %{
-          allow: [accept: ~w(.png .jpg), max_entries: 1],
-          consume: &Consumer.consume_image/1,
-          downloadable?: &Downloader.can_download?/1,
-          download: &Downloader.fetch/1
-        }
-      }
-    )
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
+    field :image do
+      upload allow: [accept: ~w(.png .jpg), max_entries: 1],
+             consume: &Consumer.consume_image/1,
+             downloadable?: &Downloader.can_download?/1,
+             download: &Downloader.fetch/1
+    end
   end
 
   # Route registered as "download-upload-field-products" in test/support/app_web/routes.ex

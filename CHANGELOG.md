@@ -6,6 +6,7 @@
 
 - Resource metadata (`Aurora.Uix.Resource`, `Aurora.Uix.Field`) uses typed structures in preparation for
   the Spark DSL.
+- Resource metadata DSL moved to Spark.
 
 ## [0.1.7] - 2026-10-12
 

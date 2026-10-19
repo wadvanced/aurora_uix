@@ -23,7 +23,10 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
     field(:inactive,
       renderer: :toggle_switch,
       index_renderer: :toggle_switch,
@@ -36,7 +39,7 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersTest do
     field(:quantity_at_hand,
       renderer: :progress_bar,
       index_renderer: :progress_bar,
-      data: %{max: 100},
+      renderer_opts: [max: 100],
       label: "Progress bar"
     )
 
@@ -115,8 +118,16 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersInteractiveTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field(:cost, renderer: :rating, index_renderer: :rating, data: %{max: 5}, label: "Rating")
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
+    field(:cost,
+      renderer: :rating,
+      index_renderer: :rating,
+      renderer_opts: [max: 5],
+      label: "Rating"
+    )
   end
 
   auix_create_ui()

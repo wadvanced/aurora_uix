@@ -16,7 +16,6 @@ defmodule Aurora.Uix.Guides.Blog do
   - Only for guides and test scenarios
   - Not included in production builds
   """
-  use Aurora.Uix
   use Ash.Domain
 
   resources do

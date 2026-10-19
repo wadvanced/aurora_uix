@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating do
   - `:form` — an interactive star selector backed by a radio group bound to the form
     field (pure HTML/CSS, no JS hook required).
 
-  The number of stars defaults to `5`; override it per field with `data: %{max: 10}`.
+  The number of stars defaults to `5`; override it per field with `renderer_opts: [max: 10]`.
   """
 
   use Aurora.Uix.Renderer
@@ -82,7 +82,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating do
   @spec scale(map()) :: Range.t()
   defp scale(field) do
     stars_max =
-      case field.data[:max] do
+      case Keyword.get(field.renderer_opts, :max) do
         nil -> 5
         configured -> to_int(configured)
       end

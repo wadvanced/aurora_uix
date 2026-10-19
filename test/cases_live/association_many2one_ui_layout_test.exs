@@ -7,7 +7,9 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneUILayoutTest do
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Guides.Inventory.ProductTransaction
 
-  auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
+  auix_resource_metadata :product_location do
+    context Inventory
+    schema(ProductLocation)
     field(:products, omitted: true)
   end
 

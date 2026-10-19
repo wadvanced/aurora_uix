@@ -10,15 +10,22 @@ defmodule Aurora.UixWeb.Test.AssociationMany2OneSelectorFunctionTest do
   @spec option_label(map()) :: binary()
   def option_label(entity), do: "The #{entity.name}"
 
-  auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do
+  auix_resource_metadata :product_location do
+    context Inventory
+    schema(ProductLocation)
     field(:products, omitted: true)
   end
 
-  auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction) do
+  auix_resource_metadata :product_transaction do
+    context Inventory
+    schema(ProductTransaction)
     field(:product, option_label: :name)
   end
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
+
     field(:product_location_id,
       option_label: &__MODULE__.option_label/1
     )

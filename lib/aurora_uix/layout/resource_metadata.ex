@@ -1,118 +1,120 @@
 defmodule Aurora.Uix.Layout.ResourceMetadata do
   @moduledoc """
-  Provides a comprehensive, declarative UI configuration system for structured data in
-  Phoenix LiveView.
+  Spark DSL extension for resource metadata: `auix_resource_metadata`, `field`, `fields` and
+  `upload`, available in any module that calls `use Aurora.Uix`.
 
-  Enables rich, metadata-driven UI configuration for data structures with flexible
-  field-level UI metadata management and seamless integration with Phoenix LiveView.
-
-  ## Configuration Strategies
-  - Field-level customization
-  - Bulk field configuration
-  - Automatic default generation based on field types
-  - Inheritance and extension of configurations
-
-  ## Supported Field Attributes
-  - Labels and placeholders
-  - Input types and lengths
-  - Validation rules (e.g. required)
-  - Rendering options (readonly, hidden, disabled)
-  - Precision and scale for numeric fields
-  - Custom rendering via component or function
-  - Omission flag to exclude fields entirely (`:omitted`)
+  Each `auix_resource_metadata` declares one resource. Its options and every field option are
+  validated at compile time, so an unknown or mistyped option fails compilation at its line.
+  The declared resources are then resolved (schema parsed, associations linked, field options
+  applied) and returned by the generated `auix_resources/0` and `auix_resource/1`.
 
   ## Example
 
   ```elixir
-    defmodule MyApp.Product do
-      use Ecto.Schema
-      import Ecto.Changeset
+  defmodule MyAppWeb.Inventory.Views do
+    use Aurora.Uix
 
-      schema "products" do
-        field :name, :string
-        field :price, :float
-        field :quantity, :integer
-        belongs_to :category, MyApp.Category
+    auix_resource_metadata :product do
+      schema MyApp.Product
+      context MyApp.Inventory
+      field :id, hidden: true
+      field :name, placeholder: "Product name", length: 40, required: true
+      field :price, precision: 12, scale: 2
+      fields [:msrp, :rrp], precision: 10, scale: 2
 
-        timestamps()
+      field :image do
+        upload allow: [accept: ~w(.png .jpg), max_entries: 1], consume: &MyApp.store/1
       end
     end
 
-    defmodule MyApp.Category do
-      use Ecto.Schema
-      import Ecto.Changeset
-
-      schema "categories" do
-        field :name, :string
-        has_many :products, MyApp.Product
-
-        timestamps()
-      end
+    auix_resource_metadata :category do
+      schema MyApp.Category
+      context MyApp.Inventory
+      field :products, resource: :product
     end
 
-    defmodule MyAppWeb.Inventory.Views do
-      auix_resource_metadata :product, schema: MyApp.Product, context: MyApp.Inventory do
-        field :id, hidden: true
-        field :name, placeholder: "Product name", max_length: 40, required: true
-        field :price, placeholder: "Price", precision: 12, scale: 2
-      end
-
-      auix_resource_metadata :category, schema: MyApp.Category do
-        field :id, readonly: true
-        field :name, max_length: 20, required: true
-        field :products, resource: :product
-      end
-    end
+    auix_resource_metadata :author, ash_resource: MyApp.Blog.Author, order_by: [:name],
+      backend_opts: [ash_actor_assign: :current_user]
+  end
   ```
+
+  ## Resource options
+
+  #{Spark.Options.docs(Aurora.Uix.Layout.ResourceMetadata.Dsl.resource_schema())}
+
+  ## Field options
+
+  #{Spark.Options.docs(Aurora.Uix.Layout.ResourceMetadata.Dsl.field_schema())}
+
+  ## Key Features
+  - Compile-time validation of every resource and field option, with the offending line.
+  - `backend_opts` are validated by the resource's backend (see
+    `Aurora.Uix.Integration.ContextParserDefaults.backend_opts_schema/1`).
+  - `fields [:a, :b], opts` declares the same options for several fields.
+
+  ## Key Constraints
+  - Function options take captured functions (`&Mod.fun/1`), not inline `fn`.
+  - A context (`:ctx`) resource requires `:context`.
+  - A field option explicitly set to `nil` is the same as leaving it out.
   """
 
-  alias Aurora.Uix.Counter
+  use Spark.Dsl.Extension,
+    sections: [__MODULE__.Dsl.section()],
+    transformers: [__MODULE__.ResolveResources]
+
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Integration.ContextParserDefaults
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
-  alias Aurora.Uix.Layout.ResourceMetadata
   alias Aurora.Uix.Resource
+  alias Spark.Dsl.Entity
+  alias Spark.Error.DslError
 
-  @doc false
-  @spec __using__(any()) ::
-          {:__block__, [], [{:@ | :import | {any(), any(), any()}, [...], [...]}, ...]}
-  defmacro __using__(_opts) do
-    quote do
-      import Aurora.Uix.Layout.ResourceMetadata
+  @doc """
+  Prepares a declared resource for resolution: detects its backend, expands `fields` entries
+  into one field each and validates the backend options.
 
-      Module.register_attribute(__MODULE__, :_auix_process_resource_config, accumulate: true)
+  ## Parameters
+  - `resource` (Resource.t()) - The resource as declared.
+  - `module` (module()) - The module declaring it, for error reporting.
 
-      @before_compile Aurora.Uix.Layout.ResourceMetadata
-    end
+  ## Returns
+  `Aurora.Uix.Resource.t()` - The declared resource, ready for `resolve_resources/1`.
+
+  Raises `Spark.Error.DslError` for a context resource without `:context` or invalid
+  `:backend_opts`.
+  """
+  @spec prepare_resource(Resource.t(), module()) :: Resource.t()
+  def prepare_resource(%Resource{} = resource, module) do
+    resource
+    |> struct(%{type: resource.type || schema_type(resource.schema)})
+    |> struct(%{field_overrides: Enum.flat_map(resource.field_overrides, &expand_keys/1)})
+    |> validate_context(module)
+    |> validate_backend_opts(module)
   end
 
-  @doc false
-  defmacro __before_compile__(env) do
-    Counter.start_counter(:auix_fields)
+  @doc """
+  Returns the code defining `auix_resources/0`, `auix_resource/1` and the
+  `@auix_resource_metadata` attribute for the resolved resources.
 
-    resources_metadata =
-      env.module
-      |> Module.get_attribute(:_auix_process_resource_config)
-      |> resolve_resources()
+  ## Parameters
+  - `resources` (map()) - Resolved resources by name.
 
-    resource_functions = Enum.map(resources_metadata, &resource_functions/1)
+  ## Returns
+  `Macro.t()` - The code to evaluate in the declaring module.
+  """
+  @spec resource_functions_code(%{atom() => Resource.t()}) :: Macro.t()
+  def resource_functions_code(resources) do
+    resource_functions = Enum.map(resources, &resource_functions/1)
 
     quote do
-      Module.put_attribute(
-        unquote(env.module),
-        :auix_resource_metadata,
-        unquote(Macro.escape(resources_metadata))
-      )
+      Module.put_attribute(__MODULE__, :auix_resource_metadata, unquote(Macro.escape(resources)))
 
       @doc """
       Gets the configuration for all configured resources.
-
-      Returns all resource metadata configurations.
-
-      Returns a list of resource configurations.
       """
       @spec auix_resources() :: map()
       def auix_resources do
-        unquote(Macro.escape(resources_metadata))
+        unquote(Macro.escape(resources))
       end
 
       unquote(resource_functions)
@@ -121,200 +123,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     end
   end
 
-  @doc """
-  Defines UI configuration for a schema.
-
-  ## Parameters
-
-  - `name` (atom()) - Resource identifier.
-  - `opts` (keyword()) - Configuration options.
-  - `do_block` (Macro.t() | nil) - Field configurations block.
-
-  ## Options
-
-  ### Common Options
-
-  - `:order_by` (atom() | list() | keyword()) - Order used for displaying the index.
-    * atom() - Single field name (e.g., `:name`)
-    * list() - List of field names
-    * keyword() - Direction-annotated fields (e.g., `[desc: :created_at]`)
-    See [Ecto.Query.order_by/3](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3)
-    for details about the supported directions.
-  - `:renderers` (map()) - `html_type => renderer` table for every field of this resource
-    (e.g. `%{checkbox: :toggle_switch}`). Beats `use Aurora.Uix`; `auix_create_ui`, a layout
-    macro's `renderers:` and a field slot beat it. See `Aurora.Uix.Renderers`.
-
-  ### Context-based Integration (`:ctx` type)
-
-  For Ecto schema resources with Context modules:
-
-  - `:schema` (module()) - Required. Ecto schema module.
-  - `:context` (module()) - Required. Context module with CRUD functions.
-
-  ### Ash Framework Integration (`:ash` type)
-
-  For Ash Framework resources:
-
-  - `:ash_resource` (module()) - Required. Ash resource module.
-  - `:ash_actor_assign` (atom()) - Optional. Name of the `socket.assigns` key that
-    holds the actor for policy-protected resources. When set, every generated CRUD
-    call forwards `actor: socket.assigns[<assign>]` to Ash (`Ash.read/get/create/
-    update/destroy/load` and `AshPhoenix.Form.for_update`). When unset (default),
-    no `actor:` is added, preserving the previous behaviour for resources that do
-    not use `Ash.Policy.Authorizer`. `:actor_assign` is accepted as a shorthand
-    alias. `authorize?:` is never set explicitly — the host domain's own
-    `authorize` config decides whether policies run. See the
-    [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
-    for the worked example, behaviour matrix, and troubleshooting.
-
-  Note: You can also use `:schema` as an alias for `:ash_resource` when working with Ash resources.
-  context is irrelevant as ash resources know the domain that they belong to.
-
-  ## Examples
-
-  ### Context-based Resource
-
-      auix_resource_metadata(:product,
-        schema: MyApp.Inventory.Product,
-        context: MyApp.Inventory,
-        order_by: :reference
-      )
-
-  ### Context Resource with Sort Direction
-
-      auix_resource_metadata(:product,
-        schema: MyApp.Inventory.Product,
-        context: MyApp.Inventory,
-        order_by: [desc: :created_at]
-      )
-
-  ### Ash Resource
-
-      auix_resource_metadata(:author,
-        ash_resource: MyApp.Blog.Author,
-        order_by: [:name]
-      )
-
-  ### Ash Resource with policy-protected actions (actor threading)
-
-      auix_resource_metadata(:template,
-        ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
-        ash_actor_assign: :current_user
-      )
-
-  ## Returns
-
-  Macro.t() - Configured metadata block for the resource.
-  """
-  @spec auix_resource_metadata(atom(), keyword(), Macro.t() | nil) :: Macro.t()
-  defmacro auix_resource_metadata(name, opts \\ [], do_block \\ nil) do
-    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
-
-    resource_config =
-      quote do
-        ResourceMetadata.declare_resource(
-          unquote(name),
-          unquote(opts),
-          List.flatten(unquote(LayoutHelpers.prepare_block(block)))
-        )
-      end
-
-    quote do
-      use ResourceMetadata
-      Module.put_attribute(__MODULE__, :_auix_process_resource_config, unquote(resource_config))
-    end
-  end
-
-  @doc """
-  Configures a single field within a resource configuration.
-
-  Provides fine-grained control over field presentation, validation,
-  and interaction rules. Supports comprehensive customization of
-  individual fields.
-
-  ## Parameters
-  - `field` (atom() | tuple()): The name of the field to configure
-  - `opts` (keyword()): Field-specific configuration options
-
-  ## Options
-
-  The following options can be provided to configure the field:
-
-  - `:type`(`atom()`) - The html type that best represent the current field elixir type.
-  - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
-  - `:placeholder` (`binary()`) - Placeholder text for the field.
-  - `:length`(`non_neg_integer()`) - Display length of the field.
-  - `:precision` (`integer()`) - The numeric precision for decimal or float fields.
-  - `:scale` (`integer()`) - The numeric scale for decimal or float fields.
-  - `:readonly` (`boolean()`) - Marks the field as read-only.
-  - `:hidden` (`boolean()`) - Hides the field.
-  - `:filterable?` (`boolean()`) - If true, allows the field to participate in UI filtering.
-  - `:sortable?` (`boolean()`) - If false, the index column header offers no sorting. Parsed from the column type when omitted. An upload field (`:data` with an `:upload` map) never offers sorting.
-  - `:renderer` (`function()` | `atom()`) - Renderer for the form (edit) and show layouts unless a
-    more specific `:edit_renderer`/`:show_renderer` is set. An arity-1 function, or an atom naming
-    a predefined renderer (e.g. `:toggle_switch`; see `Aurora.Uix.Renderer`). Does not apply to
-    the index layout — use `:index_renderer`.
-  - `:index_renderer` (`function()` | `atom()`) - Renderer used only for the index layout.
-  - `:edit_renderer` (`function()` | `atom()`) - Renderer used only for the form (edit) layout.
-    Falls back to `:renderer` when not set.
-  - `:show_renderer` (`function()` | `atom()`) - Renderer used only for the show layout. Falls
-    back to `:renderer` when not set.
-  - `:required` (`boolean()`) - Marks the field as required.
-  - `:disabled` (`boolean()`) - If true, the field should not participate in form interaction.
-  - `:omitted` (`boolean()`) - If true, the field will be entirely excluded from the UI and configuration.
-  - `:expanded` (`boolean()` | `function()`) - For `embeds_many` fields only. Controls whether the
-    embedded collection renders expanded (`true`) or collapsed (`false`, the default) on initial load,
-    in both show and edit modes. Accepts a boolean or a captured function of arity 1 (e.g.
-    `&MyApp.expanded?/1`, not an inline `fn`) that receives the rendering assigns and returns a
-    boolean. The runtime collapse/expand toggle remains available regardless.
-
-  ## Example
-
-  ```elixir
-  field :name, label: "Product Name", placeholder: "Enter product name", required: true
-  field :price, precision: 12, scale: 2, label: "Price ($)"
-  ```
-  """
-  @spec field(atom() | tuple(), keyword()) :: Macro.t()
-  defmacro field(field, opts \\ []) do
-    quote do
-      Field.declare(unquote(field), unquote(opts))
-    end
-  end
-
-  @doc """
-  Applies configuration to multiple fields simultaneously.
-
-  Enables bulk configuration of fields, reducing repetitive code
-  and promoting consistent field settings across multiple attributes.
-
-  ## Parameters
-  - `fields` (list() of atoms or tuples): Fields to be configured
-  - `opts` (keyword()): Configuration options applied to all specified fields
-
-  ## Example
-  ```elixir
-  fields [:msrp, :rrp, :list_price], precision: 10, scale: 2
-  ```
-  """
-  @spec fields([atom() | tuple()], keyword()) :: Macro.t()
-  defmacro fields(fields, opts \\ []) do
-    quotes =
-      Enum.map(fields, fn field ->
-        quote do
-          field(unquote(field), unquote(opts))
-        end
-      end)
-
-    quote do
-      unquote(quotes)
-    end
-  end
-
   ## PRIVATE
 
-  # creates the function for each resource.
-  @spec resource_functions({atom(), map()}) :: Macro.t()
+  @spec resource_functions({atom(), Resource.t()}) :: Macro.t()
   defp resource_functions({resource_key, resource}) do
     quote do
       @doc """
@@ -327,47 +138,64 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     end
   end
 
-  ## RESOLUTION
+  @spec expand_keys(Field.t()) :: [Field.t()]
+  defp expand_keys(%Field{key: keys} = field) when is_list(keys),
+    do: Enum.map(keys, &struct(field, %{key: &1}))
 
-  @generic_options [:schema, :ash_resource, :context, :type, :order_by, :renderers, :name, :title]
+  defp expand_keys(field), do: [field]
 
-  @doc """
-  Builds the declared resource of one `auix_resource_metadata` call.
+  @spec validate_context(Resource.t(), module()) :: Resource.t()
+  defp validate_context(%Resource{schema: nil} = resource, _module), do: resource
 
-  ## Parameters
-  - `name` (atom()) - The resource identifier.
-  - `opts` (keyword()) - The resource options. `:schema` and `:ash_resource` both set `schema`,
-    `:name` sets `display_name`, and options not owned by the resource go to `backend_opts`.
-  - `field_overrides` (list(Field.t())) - The `field` entries as partial fields, in declaration
-    order.
-
-  ## Returns
-  `Aurora.Uix.Resource.t()` - The resource, with no parsed fields yet.
-  """
-  @spec declare_resource(atom(), keyword(), [Field.t()]) :: Resource.t()
-  def declare_resource(name, opts, field_overrides) do
-    {generic, backend_opts} = Keyword.split(opts, @generic_options)
-    schema = generic[:schema] || generic[:ash_resource]
-
-    %Resource{
-      name: name,
-      schema: schema,
-      context: generic[:context],
-      type: generic[:type] || schema_type(schema),
-      order_by: generic[:order_by],
-      display_name: generic[:name],
-      title: generic[:title],
-      renderers: Keyword.get(generic, :renderers, %{}),
-      backend_opts: backend_opts,
-      field_overrides: field_overrides
-    }
+  defp validate_context(%Resource{type: :ctx, context: nil} = resource, module) do
+    raise DslError,
+      module: module,
+      path: [:auix_resource_metadata, resource.name],
+      location: Entity.anno(resource),
+      message: "context resource #{inspect(resource.name)} requires the `:context` option"
   end
+
+  defp validate_context(resource, _module), do: resource
+
+  @spec validate_backend_opts(Resource.t(), module()) :: Resource.t()
+  defp validate_backend_opts(%Resource{} = resource, module) do
+    case ContextParserDefaults.backend_opts_schema(resource.type) do
+      nil ->
+        resource
+
+      schema ->
+        case Spark.Options.validate(resource.backend_opts, schema) do
+          {:ok, backend_opts} ->
+            struct(resource, %{backend_opts: backend_opts})
+
+          {:error, error} ->
+            raise DslError,
+              module: module,
+              path: [:auix_resource_metadata, resource.name, :backend_opts],
+              location: Entity.anno(resource),
+              message: Exception.message(error)
+        end
+    end
+  end
+
+  ## RESOLUTION
 
   # The accumulated attribute lists the latest declaration first, and resolution keeps that
   # order: an association points to the latest resource declared for its schema, and a resource
   # name declared twice keeps its first declaration.
+
+  @doc """
+  Resolves the prepared resources: parses each schema, links associations and applies the
+  field options.
+
+  ## Parameters
+  - `resources` (list(Resource.t())) - Prepared resources, latest declaration first.
+
+  ## Returns
+  `map()` - Resolved resources by name.
+  """
   @spec resolve_resources([Resource.t()]) :: %{atom() => Resource.t()}
-  defp resolve_resources(resources) do
+  def resolve_resources(resources) do
     resources
     |> add_embedded_resources()
     |> Enum.map(&parse_fields/1)

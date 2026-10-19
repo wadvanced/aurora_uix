@@ -4,7 +4,8 @@ defmodule Aurora.UixWeb.Test.AshCheckboxCheckedTest do
 
   alias Aurora.UixWeb.Test.AshCheckbox.Item
 
-  auix_resource_metadata :checkbox_item, ash_resource: Item do
+  auix_resource_metadata :checkbox_item do
+    ash_resource(Item)
     field(:is_deleted, disabled: true)
   end
 

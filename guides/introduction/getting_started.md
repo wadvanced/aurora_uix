@@ -185,7 +185,7 @@ Aurora UIX works in three main steps:
 
 ### 1. Define Resource Metadata
 
-Resource metadata describes the UI characteristics of fields in your Ecto schema. Use the `auix_resource_metadata/3` macro to configure how each field should be rendered:
+Resource metadata describes the UI characteristics of fields in your Ecto schema. Use the `auix_resource_metadata` macro to configure how each field should be rendered:
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
@@ -194,9 +194,11 @@ defmodule MyAppWeb.ProductViews do
   alias MyApp.Inventory
   alias MyApp.Inventory.Product
 
-  auix_resource_metadata :product, context: Inventory, schema: Product do
-    field :name, placeholder: "Product name", max_length: 40, required: true
-    field :description, max_length: 255
+  auix_resource_metadata :product do
+    context Inventory
+    schema Product
+    field :name, placeholder: "Product name", length: 40, required: true
+    field :description, length: 255
     field :price, precision: 12, scale: 2, readonly: true
   end
 end
@@ -210,7 +212,7 @@ This tells Aurora UIX:
 For detailed configuration options, see the [Resource Metadata Guide](../core/resource_metadata.md).
 
 > **Using Ash with policies?** If your resource is protected by
-> `Ash.Policy.Authorizer`, add `ash_actor_assign: :current_user` to thread the
+> `Ash.Policy.Authorizer`, add `backend_opts: [ash_actor_assign: :current_user]` to thread the
 > current user as the Ash actor on every generated CRUD call. See
 > [Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
 

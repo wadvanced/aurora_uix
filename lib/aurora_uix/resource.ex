@@ -53,7 +53,8 @@ defmodule Aurora.Uix.Resource do
     field_overrides: [],
     fields: %{},
     fields_order: [],
-    resolved?: false
+    resolved?: false,
+    __spark_metadata__: nil
   ]
 
   @type t() :: %__MODULE__{
@@ -69,7 +70,8 @@ defmodule Aurora.Uix.Resource do
           field_overrides: [Field.t()],
           fields: %{optional(atom() | tuple()) => Field.t()},
           fields_order: list(),
-          resolved?: boolean()
+          resolved?: boolean(),
+          __spark_metadata__: term()
         }
 
   @doc """

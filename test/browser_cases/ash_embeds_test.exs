@@ -21,7 +21,8 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
                "div[id*='auix-embeds-many-add-auix-field-post-tags-'][id$='-wrapper'] button.auix-modal-close-button"
              )
 
-  auix_resource_metadata :post, schema: Post do
+  auix_resource_metadata :post do
+    schema(Post)
     field :content, html_type: :textarea
   end
 

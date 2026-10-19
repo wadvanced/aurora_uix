@@ -22,7 +22,9 @@ defmodule Aurora.UixWeb.Guides.Overview do
 
   auix_resource_metadata(:product__product_barcode, context: Inventory, schema: ProductBarcode)
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product) do
+  auix_resource_metadata :product do
+    context Inventory
+    schema(Product)
     field(:product_location_id, option_label: :name)
   end
 
