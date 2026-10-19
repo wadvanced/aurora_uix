@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Layout.Node.Section do
   - `id` is the tab id, derived from the node's position in its layout.
   - `id`, `sections_id` and the indexes are set when `Aurora.Uix.Layout.RenderTree` builds the
     layout.
+  - `fields` and `__spark_metadata__` are only used while the layout DSL builds the node.
   """
 
   defstruct id: nil,
@@ -20,7 +21,9 @@ defmodule Aurora.Uix.Layout.Node.Section do
             sections_index: 0,
             tab_parent_id: nil,
             tab_index: 0,
-            children: []
+            children: [],
+            fields: [],
+            __spark_metadata__: nil
 
   @type t() :: %__MODULE__{
           id: binary() | nil,
@@ -30,6 +33,8 @@ defmodule Aurora.Uix.Layout.Node.Section do
           sections_index: non_neg_integer(),
           tab_parent_id: binary() | nil,
           tab_index: non_neg_integer(),
-          children: [Aurora.Uix.Layout.Node.t()]
+          children: [Aurora.Uix.Layout.Node.t()],
+          fields: list(),
+          __spark_metadata__: term()
         }
 end

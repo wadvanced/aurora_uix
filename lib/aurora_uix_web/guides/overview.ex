@@ -65,7 +65,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
           end
 
           section "Quantities" do
-            stacked([:quantity_initial, :quantity_entries, :quantities_exits])
+            stacked([:quantity_initial, :quantity_entries, :quantity_exits])
           end
 
           section "Identities" do

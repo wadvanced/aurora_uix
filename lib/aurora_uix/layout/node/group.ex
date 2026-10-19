@@ -8,13 +8,16 @@ defmodule Aurora.Uix.Layout.Node.Group do
   ## Key Constraints
   - `id` is set when `Aurora.Uix.Layout.RenderTree` builds the layout, from the node's
     position in it. The many-to-one renderer sets it from the field for the groups it builds.
+  - `fields` and `__spark_metadata__` are only used while the layout DSL builds the node.
   """
 
-  defstruct id: nil, title: nil, children: []
+  defstruct id: nil, title: nil, children: [], fields: [], __spark_metadata__: nil
 
   @type t() :: %__MODULE__{
           id: binary() | nil,
           title: binary() | nil,
-          children: [Aurora.Uix.Layout.Node.t()]
+          children: [Aurora.Uix.Layout.Node.t()],
+          fields: list(),
+          __spark_metadata__: term()
         }
 end

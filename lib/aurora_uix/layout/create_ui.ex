@@ -1,56 +1,190 @@
 defmodule Aurora.Uix.Layout.CreateUI do
   @moduledoc """
-  Provides a framework for dynamically generating UI layouts for Phoenix applications.
+  Spark DSL extension for the UI: `auix_create_ui`, `auix_create_layout` and the layouts they
+  hold, available in any module that calls `use Aurora.Uix`.
 
-  Offers a compile-time mechanism to create UI components for resources, including index,
-  form, and show views, based on flexible configuration using a DSL.
+  `auix_create_ui` generates the index, form and show LiveViews of the module's resources. A
+  resource without a declared layout gets the default one.
+
+  ## Example
+
+  ```elixir
+  defmodule MyAppWeb.Inventory.Views do
+    use Aurora.Uix
+
+    auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Product
+
+    auix_create_ui renderers: %{checkbox: :toggle_switch} do
+      index_columns :product, [:reference, name: [label: "Product"]], page_title: "Products"
+
+      edit_layout :product, new_title: "New product" do
+        group "Identification", [:reference, :name]
+
+        sections do
+          section "Prices", [:msrp, :rrp], default: true
+
+          section "Details" do
+            inline [:description]
+            field :notes, readonly: true
+          end
+        end
+      end
+
+      show_layout :product do
+        inline [:reference, :name, :description]
+      end
+    end
+  end
+  ```
+
+  `auix_create_ui()` with no block generates the default layouts.
+
+  ## Layouts
+  - `index_columns resource, fields, options` - the index columns and options. See
+    `Aurora.Uix.Layout.Options.Index`; `order_by` and `where` set the listed entries.
+  - `edit_layout resource, options do ... end` - the form layout. See
+    `Aurora.Uix.Layout.Options.Form`.
+  - `show_layout resource, options do ... end` - the show layout. See
+    `Aurora.Uix.Layout.Options.Page`. Without it, the show view reuses the form layout.
+
+  Every layout also takes the `add_/insert_/replace_/remove_*_action` options of its action
+  groups (see `Aurora.Uix.Templates.Basic.Actions.Index`), `renderers:` (an `html_type =>
+  renderer` table, see `Aurora.Uix.Renderers`) and its handler module (`handler_module:`,
+  `edit_handler_module:` or `show_handler_module:`).
+
+  ## Sub-layouts
+  - `inline fields` / `inline do ... end` - side by side.
+  - `stacked fields` / `stacked do ... end` - one below the other.
+  - `group title, fields` / `group title do ... end` - framed under a title.
+  - `sections do ... end` - tabs, holding only `section` entries.
+  - `section label, fields, default: true` / `section label do ... end` - one tab.
+  - `field key, options` - one field with options.
+
+  A block's sub-layouts come first, then the listed fields. A field is an atom, a `{key, options}`
+  pair or an association path such as `{:category_id, :name}`.
+
+  ## `auix_create_ui` options
+
+  #{Spark.Options.docs(Aurora.Uix.Layout.CreateUI.Dsl.ui_schema())}
+
+  ## Field options
+
+  The resource metadata field options, plus `order_by` and `where` for one-to-many fields and
+  the action options of association fields.
+
+  ## Key Features
+  - Compile-time validation of fields and options, with the offending line.
+  - Generates the LiveView modules, plus `auix_layouts/0`, `auix_configurations/0` and
+    `auix_preloads/0`, in the declaring module.
+
+  ## Key Constraints
+  - Options and a `do` block go together only as `edit_layout :product, options do ... end`.
+  - A field list holding only `key: options` pairs or association paths is read as options;
+    write those fields with `field` in a block.
+  - One `auix_create_ui` per module, and one layout per resource and layout type in it.
   """
+
+  use Spark.Dsl.Extension,
+    sections: [__MODULE__.Dsl.section()],
+    transformers: [__MODULE__.GenerateUI]
 
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Blueprint
-  alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.CreateUI.Call
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.RenderTree
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Resource
   alias Aurora.Uix.Template
+  alias Spark.Error.DslError
 
-  @doc false
-  # Generates UI modules before the module is compiled.
-  #
-  # This macro is triggered before compilation, gathering all `auix_layouts`
-  # and `auix_layout_opts` attributes to build the final UI modules.
-  # It merges layout trees, processes resource metadata, and injects the
-  # generated modules into the calling module.
-  #
-  # ## Parameters
-  # - `env` (Macro.Env.t()) - The macro environment.
-  #
-  # ## Returns
-  # Macro.t() - A quoted expression containing the generated UI modules.
-  @spec __before_compile__(Macro.Env.t()) :: Macro.t()
-  defmacro __before_compile__(env) do
-    module = env.module
+  @doc """
+  Collects the layouts of the `auix_create_ui` and `auix_create_layout` calls of a module.
 
-    declared_layouts =
-      module
-      |> Module.get_attribute(:auix_layouts, [])
-      |> Enum.group_by(&{&1.__struct__, &1.resource})
-      |> Enum.map(fn {_key, layouts} ->
-        layouts |> Enum.reverse() |> Enum.reduce(&merge_layouts(&2, &1))
-      end)
+  A later `auix_create_layout` or `auix_create_ui` replaces an earlier layout for the same
+  resource and layout type.
 
-    opts =
-      Module.get_attribute(module, :auix_layout_opts, [])
+  ## Parameters
+  - `calls` ([Call.t()]) - The calls, in declaration order.
+  - `module` (module()) - The declaring module, for error reporting.
 
+  ## Returns
+  `[Node.layout()]` - The layouts.
+  """
+  @spec collect_layouts([Call.t()], module()) :: [Node.layout()]
+  def collect_layouts(calls, module) do
+    Enum.reduce(calls, [], fn call, layouts ->
+      Enum.each(call.children, &reject_duplicate(&1, call.children, module))
+
+      layouts
+      |> Enum.reject(fn layout -> Enum.any?(call.children, &same_layout?(&1, layout)) end)
+      |> Enum.concat(call.children)
+    end)
+  end
+
+  @doc """
+  Returns the options of an `auix_create_ui` call.
+
+  ## Parameters
+  - `call` (Call.t()) - The `auix_create_ui` call.
+
+  ## Returns
+  `keyword()` - Its options, given positionally or as keywords.
+  """
+  @spec ui_opts(Call.t()) :: keyword()
+  def ui_opts(%Call{} = call) do
+    call
+    |> Map.take([:renderers, :default_fields_layout])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> then(&Keyword.merge(call.layout_opts, &1))
+  end
+
+  @doc """
+  Checks that every layout names a declared resource and fields that resource has.
+
+  ## Parameters
+  - `layouts` ([Node.layout()]) - The layouts.
+  - `resources` (map()) - The resolved resources by name.
+  - `module` (module()) - The declaring module, for error reporting.
+
+  ## Returns
+  `:ok`, or raises `Spark.Error.DslError`.
+  """
+  @spec validate_layouts([Node.layout()], map(), module()) :: :ok
+  def validate_layouts(layouts, resources, module) do
+    Enum.each(layouts, fn layout ->
+      case Map.get(resources, layout.resource) do
+        nil ->
+          raise DslError,
+            module: module,
+            path: [:auix_create_ui, layout_type(layout), layout.resource],
+            message: "unknown resource #{inspect(layout.resource)}"
+
+        resource ->
+          validate_fields(layout, resource, module)
+      end
+    end)
+  end
+
+  @doc """
+  Returns the code generating the UI of a module.
+
+  ## Parameters
+  - `module` (module()) - The declaring module.
+  - `declared_layouts` ([Node.layout()]) - The layouts.
+  - `resources` (map()) - The resolved resources by name.
+  - `opts` (keyword()) - The `auix_create_ui` options.
+
+  ## Returns
+  `Macro.t()` - The generated LiveView modules and `auix_layouts/0`, `auix_configurations/0` and
+  `auix_preloads/0`.
+  """
+  @spec ui_code(module(), [Node.layout()], map(), keyword()) :: Macro.t()
+  def ui_code(module, declared_layouts, resources, opts) do
     configurations =
-      module
-      |> Module.get_attribute(:auix_resource_metadata, [])
-      |> Enum.reduce(%{}, fn resource, acc ->
-        Enum.reduce(resource, acc, &Map.put(&2, elem(&1, 0), Resource.resolve(elem(&1, 1))))
-      end)
+      resources
+      |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end)
       |> filter_resources(opts[:for])
       |> Enum.reduce(
         [],
@@ -92,78 +226,41 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
   end
 
-  @doc """
-  Configures and initiates UI generation for a specific module.
-
-  ## Parameters
-  - `opts` (keyword()) - Configuration options for UI generation.
-  - `do_block` (Macro.t() | nil) - An optional configuration block for advanced layouts.
-
-  ## Options
-  - `:for` (atom()) - The target resource name to generate the UI for.
-  - `:renderers` (map()) - `html_type => renderer` table for every layout this call generates.
-    Beats `auix_resource_metadata` and `use Aurora.Uix`; a layout macro's `renderers:` and a
-    field slot beat it. See `Aurora.Uix.Renderers`.
-
-  ## Returns
-  Macro.t() - A quoted expression that sets up the UI configuration.
-
-  ## Examples
-  ```elixir
-  auix_create_ui for: :product do
-    index_columns [:name, :price]
-    edit_layout do
-      inline [:name, :price]
-    end
-  end
-  ```
-  """
-  @spec auix_create_ui(keyword(), Macro.t() | nil) :: Macro.t()
-  defmacro auix_create_ui(opts \\ [], do_block \\ nil) do
-    {block, opts} = LayoutHelpers.extract_block_options(opts, do_block)
-
-    quoted_opts = LayoutHelpers.create_layout_opts(opts)
-    layout_trees = LayoutHelpers.create_layout(block)
-
-    quote do
-      import Blueprint
-
-      @before_compile Aurora.Uix.Layout.CreateUI
-
-      unquote(quoted_opts)
-      unquote(layout_trees)
-    end
-  end
-
   ## PRIVATE
 
-  # Merges two layouts declared for the same resource and layout type; `layout` wins.
-  @spec merge_layouts(Node.layout(), Node.layout()) :: Node.layout()
-  defp merge_layouts(%Node.Index{} = acc, layout) do
-    acc
-    |> merge_container_opts(layout)
-    |> Map.merge(%{
-      children: acc.children ++ layout.children,
-      order_by: layout.order_by || acc.order_by,
-      where: layout.where || acc.where
-    })
+  @spec reject_duplicate(Node.layout(), [Node.layout()], module()) :: :ok
+  defp reject_duplicate(layout, layouts, module) do
+    if Enum.count(layouts, &same_layout?(&1, layout)) > 1 do
+      raise DslError,
+        module: module,
+        path: [:auix_create_ui, layout_type(layout), layout.resource],
+        message:
+          "#{inspect(layout.resource)} has more than one #{layout_type(layout)} layout; declare it once"
+    end
+
+    :ok
   end
 
-  defp merge_layouts(acc, layout) do
-    acc
-    |> merge_container_opts(layout)
-    |> Map.put(:children, acc.children ++ layout.children)
-  end
+  @spec same_layout?(Node.layout(), Node.layout()) :: boolean()
+  defp same_layout?(layout, other),
+    do: layout.__struct__ == other.__struct__ and layout.resource == other.resource
 
-  @spec merge_container_opts(Node.layout(), Node.layout()) :: Node.layout()
-  defp merge_container_opts(acc, layout) do
-    %{
-      acc
-      | renderers: layout.renderers || acc.renderers,
-        handler_module: layout.handler_module || acc.handler_module,
-        actions: Keyword.merge(acc.actions, layout.actions),
-        options: Keyword.merge(acc.options, layout.options)
-    }
+  @spec validate_fields(Node.layout(), Resource.t(), module()) :: :ok
+  defp validate_fields(layout, resource, module) do
+    unknown_fields =
+      layout |> Node.fields() |> Enum.reject(&Map.has_key?(resource.fields, &1.key))
+
+    case unknown_fields do
+      [] ->
+        :ok
+
+      unknown ->
+        raise DslError,
+          module: module,
+          path: [:auix_create_ui, layout_type(layout), layout.resource],
+          message:
+            "unknown fields #{inspect(Enum.map(unknown, & &1.key))} for resource #{inspect(resource.name)}"
+    end
   end
 
   # Filters resource configurations based on the :for option.

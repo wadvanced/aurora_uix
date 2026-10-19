@@ -8,6 +8,7 @@
   the Spark DSL.
 - Resource metadata DSL moved to Spark.
 - Layouts (`Aurora.Uix.Layout.Node`) use typed structures in preparation for the Spark DSL.
+- Layout DSL (`auix_create_ui` and its layouts) moved to Spark.
 
 ## [0.1.7] - 2026-10-12
 

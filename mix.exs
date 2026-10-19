@@ -83,13 +83,13 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Resource,
             Aurora.Uix.Selection,
             Aurora.Uix.Stack,
-            Aurora.Uix.Stack.EmptyStackError,
-            Aurora.Uix.TreePath
+            Aurora.Uix.Stack.EmptyStackError
           ],
           Layouts: [
-            Aurora.Uix.Layout.Blueprint,
-            Aurora.Uix.Layout.CreateLayout,
             Aurora.Uix.Layout.CreateUI,
+            Aurora.Uix.Layout.CreateUI.Dsl,
+            Aurora.Uix.Layout.CreateUI.Call,
+            Aurora.Uix.Layout.CreateUI.GenerateUI,
             Aurora.Uix.Layout.Helpers,
             Aurora.Uix.Layout.Options,
             Aurora.Uix.Layout.Options.Form,

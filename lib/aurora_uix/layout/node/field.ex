@@ -12,9 +12,17 @@ defmodule Aurora.Uix.Layout.Node.Field do
   ## Key Constraints
   - `field` is `nil` until `Aurora.Uix.Layout.RenderTree` builds the layout.
   - `actions`, `order_by` and `where` apply to association fields.
+  - `__spark_metadata__` is only used while the layout DSL builds the node.
   """
 
-  defstruct key: nil, path: [], overrides: nil, field: nil, actions: [], order_by: nil, where: nil
+  defstruct key: nil,
+            path: [],
+            overrides: nil,
+            field: nil,
+            actions: [],
+            order_by: nil,
+            where: nil,
+            __spark_metadata__: nil
 
   @type t() :: %__MODULE__{
           key: atom(),
@@ -23,6 +31,7 @@ defmodule Aurora.Uix.Layout.Node.Field do
           field: Aurora.Uix.Field.t() | nil,
           actions: keyword(),
           order_by: term(),
-          where: term()
+          where: term(),
+          __spark_metadata__: term()
         }
 end

@@ -11,8 +11,6 @@ defmodule Aurora.UixWeb.Test.ManualLayoutsTest do
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  @auix_layout_opts []
-
   auix_create_layout do
     edit_layout :product, [] do
       inline([:reference, :name, :description])

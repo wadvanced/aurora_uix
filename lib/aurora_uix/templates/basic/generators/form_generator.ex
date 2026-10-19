@@ -85,7 +85,6 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
 
         use unquote(parsed_opts.modules.web), :live_component
         use Aurora.Uix.GettextResolver
-        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         unquote(extract_function)
 
@@ -99,8 +98,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
 
           socket
           |> assign(Map.put(assigns, :auix, merged_auix))
-          |> BasicHelpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
-          |> BasicHelpers.assign_actor_to_auix()
+          |> Helpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+          |> Helpers.assign_actor_to_auix()
           |> then(&unquote(handler_module).update(assigns, &1))
         end
 
