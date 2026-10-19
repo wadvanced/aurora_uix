@@ -255,7 +255,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
              ),
              Renderers.validate_table!(
                "auix_resource_metadata renderers:",
-               Keyword.get(resource_config.opts, :renderers, %{})
+               resource_config.renderers
              ),
              Renderers.validate_table!(
                "use Aurora.Uix, renderers:",

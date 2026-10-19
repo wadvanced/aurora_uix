@@ -476,7 +476,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
           :no_change | {:ok, term()} | {:error, term()}
   defp do_consume_uploads(_socket, _field, []), do: :no_change
 
-  defp do_consume_uploads(socket, %{key: key, data: %{upload: %{consume: consume}}}, binaries) do
+  defp do_consume_uploads(socket, %{key: key, upload: %{consume: consume}}, binaries)
+       when is_function(consume) do
     case Function.info(consume)[:arity] do
       1 -> consume.(binaries)
       2 -> consume.(socket, binaries)
@@ -517,7 +518,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
       if Map.has_key?(acc.assigns[:uploads] || %{}, field.key) do
         acc
       else
-        Phoenix.LiveView.allow_upload(acc, field.key, field.data.upload.allow)
+        Phoenix.LiveView.allow_upload(acc, field.key, field.upload.allow)
       end
     end)
   end

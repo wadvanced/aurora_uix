@@ -40,14 +40,14 @@ defmodule Aurora.Uix.Test.Cases.MetadataModifyingFieldsTest do
     )
   end
 
-  test "embeds_many :expanded option is routed into the field data, preserving embed keys" do
+  test "embeds_many :expanded option sets the field's expanded key, preserving embed keys" do
     emails =
       __MODULE__
       |> resource_configs()
       |> get_in([:user, Access.key!(:fields), :emails])
 
-    assert emails.data.expanded == true
-    # The embeds_many source-of-truth keys must survive the merge.
+    assert emails.expanded == true
+    # The embeds_many source-of-truth keys must survive the override.
     assert Map.has_key?(emails.data, :related)
     assert Map.has_key?(emails.data, :owner)
     assert Map.has_key?(emails.data, :resource)

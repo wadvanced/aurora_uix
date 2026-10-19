@@ -194,6 +194,7 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersResolverTest do
   use ExUnit.Case, async: false
 
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Renderers.BuiltIn
   alias Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer
@@ -290,7 +291,7 @@ defmodule Aurora.UixWeb.Test.PredefinedRenderersResolverTest do
   test "hidden, upload and association fields skip html_type tables" do
     for {field, tables} <- [
           {%Field{html_type: :checkbox, hidden: true}, [%{checkbox: :toggle_switch}]},
-          {%Field{html_type: :text, data: %{upload: %{}}}, [%{text: :badge}]},
+          {%Field{html_type: :text, upload: %Upload{}}, [%{text: :badge}]},
           {%Field{html_type: :select, type: :many_to_many_association}, [%{select: :badge}]}
         ] do
       assert Renderers.resolve(field, :show, tables) == (&DefaultRenderer.render/1)

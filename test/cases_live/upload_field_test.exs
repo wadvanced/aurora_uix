@@ -34,6 +34,7 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
 
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Repo
@@ -254,8 +255,8 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
   end
 
   describe "upload_fields/1" do
-    test "returns only fields that have a data.upload config" do
-      field_with_upload = %Field{key: :image, data: %{upload: %{allow: [], consume: & &1}}}
+    test "returns only fields that have an upload config" do
+      field_with_upload = %Field{key: :image, upload: %Upload{allow: [], consume: & &1}}
       field_without = %Field{key: :name, data: %{}}
 
       auix = %{
@@ -274,7 +275,7 @@ defmodule Aurora.UixWeb.Test.UploadFieldTest do
       assert hd(result).key == :image
     end
 
-    test "returns empty list when no fields have data.upload" do
+    test "returns empty list when no fields have an upload config" do
       field = %Field{key: :name, data: %{}}
 
       auix = %{

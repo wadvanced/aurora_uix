@@ -67,10 +67,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
 
   alias Aurora.Uix.Counter
-  alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
+  alias Aurora.Uix.Layout.Resource, as: DeclaredResource
+  alias Aurora.Uix.Layout.Resource.FieldOverride
   alias Aurora.Uix.Layout.ResourceMetadata
-  alias Aurora.Uix.Resource
+  alias Aurora.Uix.Layout.ResourceResolver
 
   @doc false
   @spec __using__(any()) ::
@@ -89,7 +90,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defmacro __before_compile__(env) do
     Counter.start_counter(:auix_fields)
 
-    resources_metadata = resource_metadata(env.module)
+    resources_metadata =
+      env.module
+      |> Module.get_attribute(:_auix_process_resource_config)
+      |> Enum.reverse()
+      |> ResourceResolver.resolve()
 
     resource_functions = Enum.map(resources_metadata, &resource_functions/1)
 
@@ -209,12 +214,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
     resource_config =
       quote do
-        %{
-          tag: :resource,
-          name: unquote(name),
-          opts: unquote(opts),
-          inner_elements: unquote(LayoutHelpers.prepare_block(block))
-        }
+        DeclaredResource.new(
+          unquote(name),
+          unquote(opts),
+          List.flatten(unquote(LayoutHelpers.prepare_block(block)))
+        )
       end
 
     quote do
@@ -238,7 +242,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   The following options can be provided to configure the field:
 
-  - `:key` (`atom()` | tuple()) - The referred field in the schema. This should be rarely changed.
   - `:type`(`atom()`) - The html type that best represent the current field elixir type.
   - `:label` (`binary()`) - A custom label for the field. (auto-generated from field name if omitted).
   - `:placeholder` (`binary()`) - Placeholder text for the field.
@@ -276,7 +279,9 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   """
   @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
-    LayoutHelpers.register_dsl_entry(:field, field, [], opts, nil, __CALLER__)
+    quote do
+      FieldOverride.new(unquote(field), unquote(opts))
+    end
   end
 
   @doc """
@@ -309,37 +314,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   end
 
   ## PRIVATE
-  @spec resource_metadata(module()) :: map()
-  defp resource_metadata(module) do
-    module
-    |> Module.get_attribute(:_auix_process_resource_config)
-    |> embedded_resources()
-    |> configure_fields()
-    |> add_associations()
-    |> convert_fields_to_map()
-  end
-
-  @spec embedded_resources([map()]) :: [map()]
-  defp embedded_resources(resource_configs) do
-    resource_configs
-    |> Enum.map(&embedded_resource_config_data/1)
-    |> Enum.reduce(resource_configs, &embedded_resource/2)
-  end
-
-  @spec embedded_resource_config_data(map()) :: {atom(), module()} | nil
-  defp embedded_resource_config_data(%{name: name, tag: :resource} = resource) do
-    case define_schema_and_type(resource) do
-      {nil, _} -> nil
-      {schema, resource_type} -> {name, schema, resource_type}
-    end
-  end
-
-  @spec embedded_resource({atom(), module()} | nil, [map()]) :: [map()]
-  defp embedded_resource(nil, result), do: result
-
-  defp embedded_resource({_parent_resource_name, _schema_module, type} = parent_resource, result) do
-    LayoutHelpers.get_fields_parser_module(type).embedded_resource(parent_resource, result)
-  end
 
   # creates the function for each resource.
   @spec resource_functions({atom(), map()}) :: Macro.t()
@@ -352,269 +326,6 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       def auix_resource(unquote(resource_key)) do
         unquote(Macro.escape(resource))
       end
-    end
-  end
-
-  # Process initial field configuration for resources:
-  # 1. Initializes base struct with schema/context
-  # 2. Parsing schema fields into Field structs
-  # 3. Applying field changes from config
-  # 4. Reordering fields by configuration order
-  @spec configure_fields([map()]) :: list()
-  defp configure_fields(resources) do
-    Enum.map(resources, &configure_resource_fields/1)
-  end
-
-  # Configure fields for a single resource:
-  # - Sets up basic struct with schema and context
-  # - Processes field metadata from schema
-  # - Returns {name, resource} tuple
-  @spec configure_resource_fields(map()) :: {atom(), Resource.t()}
-  defp configure_resource_fields(resource) do
-    {schema, resource_type} = define_schema_and_type(resource)
-
-    context = resource.opts[:context]
-
-    opts =
-      resource.opts
-      |> Keyword.delete(:schema)
-      |> Keyword.delete(:context)
-      |> Keyword.delete(:ash_resource)
-
-    fields_parser = LayoutHelpers.get_fields_parser_module(resource_type)
-
-    parsed_resource =
-      %Resource{name: resource.name}
-      |> put_option(resource.opts, :context)
-      |> put_option(resource.opts, :schema)
-      |> struct(%{
-        schema: schema,
-        context: context,
-        type: resource_type,
-        opts: opts,
-        fields: fields_parser.parse_fields(schema, resource.name),
-        inner_elements: resource.inner_elements
-      })
-
-    {resource.name, parsed_resource}
-  end
-
-  @spec define_schema_and_type(map()) :: tuple()
-  defp define_schema_and_type(resource) do
-    schema =
-      resource.opts[:schema] ||
-        resource.opts[:ash_resource]
-
-    resource_type = resource.opts[:type] || resource_type(schema)
-    {schema, resource_type}
-  end
-
-  # Apply field changes from resource config block:
-  # - Merges changes with existing fields
-  # - Later changes override earlier ones
-  # - Preserves field order
-  @spec apply_field_changes(map(), map()) :: map()
-  defp apply_field_changes(%{fields: fields} = resource_struct, %{inner_elements: field_changes}) do
-    # Creates a MAP of {field_name, opts}. The opts are merged discarding previous duplicated options changes.
-    changes =
-      field_changes
-      |> List.flatten()
-      |> Enum.reduce(%{}, fn %{name: field, opts: opts}, acc ->
-        acc
-        |> Map.get(field, [])
-        |> Keyword.merge(opts)
-        |> then(&Map.put(acc, field, &1))
-      end)
-
-    # Applies each opts to the field.
-    fields
-    |> Enum.map(fn field ->
-      changes
-      |> Map.get(field.key, [])
-      |> apply_field_change(field)
-    end)
-    |> then(&struct(resource_struct, %{fields: &1}))
-  end
-
-  @spec apply_field_change(keyword(), Field.t()) :: Field.t()
-  defp apply_field_change([], field), do: field
-
-  defp apply_field_change(change, field) do
-    change
-    |> Enum.reduce(%{data: Map.get(field, :data, %{})}, &maybe_add_option_to_data(&1, &2))
-    |> then(&Field.change(field, &1))
-  end
-
-  @spec maybe_add_option_to_data(tuple(), map()) :: map()
-  defp maybe_add_option_to_data({:option_label, option_label}, result) do
-    result
-    |> Map.get(:data, %{})
-    |> Map.put(:option_label, option_label)
-    |> then(&Map.put(result, :data, &1))
-  end
-
-  defp maybe_add_option_to_data({option_key, option_value}, result)
-       when option_key in [:order_by, :where] do
-    data = Map.get(result, :data, %{})
-
-    data
-    |> Map.get(:query_opts, [])
-    |> Keyword.put(option_key, option_value)
-    |> then(&Map.put(data, :query_opts, &1))
-    |> then(&Map.put(result, :data, &1))
-  end
-
-  defp maybe_add_option_to_data({:expanded, expanded}, result) do
-    result
-    |> Map.get(:data, %{})
-    |> Map.put(:expanded, expanded)
-    |> then(&Map.put(result, :data, &1))
-  end
-
-  defp maybe_add_option_to_data({key, value}, result), do: Map.put(result, key, value)
-
-  # - Appends unconfigured fields at end
-  @spec add_new_fields_from_changes(map(), map()) :: map()
-  defp add_new_fields_from_changes(resource_struct, %{inner_elements: []}), do: resource_struct
-
-  defp add_new_fields_from_changes(%{fields: fields, name: resource_name} = resource_struct, %{
-         inner_elements: field_changes
-       }) do
-    fields_list = Enum.map(fields, & &1.key)
-
-    # Creates a list of Field.t() according to the changes order. New fields are added in this stage.
-    new_fields =
-      field_changes
-      |> List.flatten()
-      |> Enum.reject(&(&1.name in fields_list))
-      |> Enum.map(fn field ->
-        %{key: field.name, resource: resource_name}
-        |> Field.new()
-        |> Field.change(field.opts)
-      end)
-
-    # Filter out known processed fields and then append each field to the first_fields
-    # In this way the order defined in the resource config is the one used leaving the
-    # unmentioned fields at the bottom.
-    fields
-    |> Enum.reverse()
-    |> Enum.reduce(new_fields, &[&1 | &2])
-    |> then(&struct(resource_struct, %{fields: &1}))
-  end
-
-  @spec convert_fields_to_map(list()) :: map()
-  defp convert_fields_to_map(resources) do
-    resources
-    |> Enum.map(&convert_resource_fields_to_map/1)
-    |> Map.new()
-  end
-
-  # Converts a resource's fields list to a map format for faster access.
-  # Also maintains fields order in a separate list for consistent iteration.
-  @spec convert_resource_fields_to_map({atom(), map()}) :: {atom(), map()}
-  defp convert_resource_fields_to_map({resource_name, %{fields: fields} = resource})
-       when is_list(fields) do
-    fields_order =
-      fields
-      |> Enum.reject(& &1.omitted)
-      |> Enum.map(& &1.key)
-      |> Enum.uniq()
-
-    fields
-    |> Enum.map(&{&1.key, &1})
-    |> Map.new()
-    |> then(&Map.merge(resource, %{fields: &1, fields_order: fields_order}))
-    |> then(&{resource_name, &1})
-  end
-
-  defp convert_resource_fields_to_map(resource), do: resource
-
-  # Updates map with an option if present in opts
-  # Returns original map if option not present
-  @spec put_option(map(), keyword(), atom()) :: map
-  defp put_option(resource_config, opts, key) do
-    if Keyword.has_key?(opts, key),
-      do: Map.put(resource_config, key, opts[key]),
-      else: resource_config
-  end
-
-  # Processes and adds schema associations
-  # Adds each association as a field with proper metadata
-  @spec add_associations(list()) :: list
-  defp add_associations(resources) do
-    Enum.map(resources, fn resource ->
-      resource
-      |> add_resource_associations(resources)
-      |> then(&{elem(&1, 0), &1 |> elem(1) |> struct(%{inner_elements: []})})
-    end)
-  end
-
-  # Adds associations to a single resource
-  # Maintains proper field ordering
-  @spec add_resource_associations({atom(), map()}, list()) :: {atom(), map()}
-  defp add_resource_associations({name, %{schema: nil} = resource}, _resources),
-    do: {name, resource}
-
-  defp add_resource_associations({name, %{schema: schema, fields: fields} = resource}, resources) do
-    fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
-
-    schema
-    |> fields_parser.parse_associations(name, resources, fields)
-    |> Enum.reverse()
-    |> then(&struct(resource, %{fields: &1}))
-    |> configure_many_to_one_selectors()
-    |> apply_field_changes(resource)
-    |> add_new_fields_from_changes(resource)
-    |> then(&{name, &1})
-  end
-
-  @spec configure_many_to_one_selectors(Resource.t()) :: Resource.t()
-  defp configure_many_to_one_selectors(%{fields: fields} = resource) do
-    fields
-    |> Enum.filter(&(&1.type == :many_to_one_association))
-    |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
-    |> Enum.map(&{&1.data.owner_key, %{html_type: :select, data: &1.data}})
-    |> Enum.reduce(fields, &replace_related_field/2)
-    |> then(&struct(resource, %{fields: &1}))
-  end
-
-  @spec replace_related_field(tuple(), list(Field.t())) :: list(Field.t())
-  defp replace_related_field(related_changes, fields),
-    do: Enum.map(fields, &replace_related_field_data(&1, related_changes))
-
-  @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
-  defp replace_related_field_data(%{type: type} = field, _related_changes)
-       when type in [
-              :many_to_one_association,
-              :one_to_many_association,
-              :one_to_one_association,
-              :many_to_many_association
-            ],
-       do: field
-
-  defp replace_related_field_data(
-         %{key: field_key, label: label} = field,
-         {field_key, changes}
-       ) do
-    label
-    |> Kernel.||("")
-    |> String.replace_suffix(" id", "")
-    |> then(&Map.put(changes, :label, &1))
-    |> then(&Field.change(field, &1))
-  end
-
-  defp replace_related_field_data(field, _related_changes), do: field
-
-  @spec resource_type(nil | module()) :: atom()
-  defp resource_type(nil), do: :default
-
-  defp resource_type(schema) do
-    functions = schema.__info__(:functions)
-
-    cond do
-      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash
-      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ctx
-      true -> :default
     end
   end
 end

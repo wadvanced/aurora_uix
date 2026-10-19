@@ -44,6 +44,7 @@ defmodule Aurora.Uix.Parser do
 
   alias Aurora.Uix.Integration.ContextParserDefaults
   alias Aurora.Uix.Parsers.Common
+  alias Aurora.Uix.Resource
 
   @doc """
   Returns the list of supported configuration option keys for the parser.
@@ -118,11 +119,8 @@ defmodule Aurora.Uix.Parser do
 
   ## Parameters
 
-  - `resource_config` (map()) - Resource configuration containing:
-    * `:schema` (module()) - Ecto schema or Ash resource module
-    * `:type` (atom()) - Backend type (`:ctx` or `:ash`)
-    * `:context` (module()) - Context
-    * `:opts` (keyword()) - Default options
+  - `resource_config` (`Aurora.Uix.Resource.t()`) - The resolved resource. Its
+    `Aurora.Uix.Resource.parser_opts/1` are the defaults for `opts`.
   - `opts` (keyword()) - Additional configuration options merged with resource defaults.
     Options are delegated to parser modules:
     * `Aurora.Uix.Parsers.Common` - Schema properties (`:module`, `:name`, `:source`, etc.)
@@ -136,7 +134,7 @@ defmodule Aurora.Uix.Parser do
 
   ## Examples
 
-      iex> Aurora.Uix.Parser.parse(%{schema: Aurora.Uix.Guides.Accounts.User, type: :ctx, context: Aurora.Uix.Guides.Accounts, name: :user, opts: []}, [])
+      iex> Aurora.Uix.Parser.parse(%Aurora.Uix.Resource{schema: Aurora.Uix.Guides.Accounts.User, type: :ctx, context: Aurora.Uix.Guides.Accounts, name: :user}, [])
       %{
         module: "user",
         name: "User",
@@ -204,12 +202,12 @@ defmodule Aurora.Uix.Parser do
       }
 
   """
-  @spec parse(map(), keyword()) :: map()
+  @spec parse(Resource.t(), keyword()) :: map()
   def parse(resource_config, opts \\ []) do
     opts =
       opts
       |> List.flatten()
-      |> then(&Keyword.merge(resource_config.opts, &1))
+      |> then(&(resource_config |> Resource.parser_opts() |> Keyword.merge(&1)))
 
     Enum.reduce(
       [Common, ContextParserDefaults],

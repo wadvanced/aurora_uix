@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   import Aurora.Uix.Templates.Basic.Components
 
   alias Aurora.Uix.Counter
+  alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer
   alias Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer
@@ -59,9 +60,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   def render(%{field: %{type: :embeds_many}} = assigns),
     do: EmbedsManyRenderer.render(assigns)
 
-  def render(%{field: %{data: %{upload: upload_data}}} = assigns)
-      when is_map(upload_data),
-      do: UploadRenderer.render(assigns)
+  def render(%{field: %{upload: %Upload{}}} = assigns), do: UploadRenderer.render(assigns)
 
   # A multi-value select renders as a checkbox group, for the reasons `MultiSelect` documents.
   # Hidden fields stay on the generic clause below, which renders them as a single
@@ -102,24 +101,24 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   # --- index cell values ---
 
   @spec index_value(map()) :: Phoenix.LiveView.Rendered.t()
-  defp index_value(%{field: %{html_type: :select, data: %{option_label: label_field}}} = assigns)
-       when is_atom(label_field) do
+  defp index_value(%{field: %{html_type: :select, option_label: label_field}} = assigns)
+       when is_atom(label_field) and not is_nil(label_field) do
     ~H"""
-      {Map.get(@entity, @field.data.option_label)}
+      {Map.get(@entity, @field.option_label)}
     """
   end
 
-  defp index_value(%{field: %{html_type: :select, data: %{option_label: option_label}}} = assigns)
+  defp index_value(%{field: %{html_type: :select, option_label: option_label}} = assigns)
        when is_function(option_label, 1) do
     ~H"""
-    {@field.data.option_label.(@entity)}
+    {@field.option_label.(@entity)}
     """
   end
 
-  defp index_value(%{field: %{html_type: :select, data: %{option_label: option_label}}} = assigns)
+  defp index_value(%{field: %{html_type: :select, option_label: option_label}} = assigns)
        when is_function(option_label, 2) do
     ~H"""
-      {@field.data.option_label.(assigns, @entity)}
+      {@field.option_label.(assigns, @entity)}
     """
   end
 

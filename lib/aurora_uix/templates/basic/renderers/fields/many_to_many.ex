@@ -185,14 +185,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToMany do
   # presents a record -- its `:index` layout -- so resolve a label from there and let the shared
   # helper build the options exactly as it does for a host-declared `option_label:`.
   @spec with_option_label(map(), map()) :: map()
-  defp with_option_label(%{data: %{option_label: _option_label}} = field, _auix), do: field
-
-  defp with_option_label(%{data: data} = field, %{configurations: configurations}) do
+  defp with_option_label(%{option_label: nil, data: data} = field, %{
+         configurations: configurations
+       }) do
     case default_option_label(configurations, data) do
       nil -> field
-      option_label -> %{field | data: Map.put(data, :option_label, option_label)}
+      option_label -> %{field | option_label: option_label}
     end
   end
+
+  defp with_option_label(field, _auix), do: field
 
   # Best `:index` column of the related resource to stand in for the record.
   @spec default_option_label(map(), map()) :: atom() | nil

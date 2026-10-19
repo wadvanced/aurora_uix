@@ -31,6 +31,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   alias Aurora.Uix.Field
   alias Aurora.Uix.Helpers.Common, as: CommonHelpers
   alias Aurora.Uix.Integration.FieldsParser, as: CommonFieldsParser
+  alias Aurora.Uix.Layout.Resource, as: DeclaredResource
   alias Aurora.Uix.Resource
 
   require Logger
@@ -202,18 +203,19 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   - `parent_resource` ({atom(), module(), atom()}) - Tuple containing parent resource name,
   schema module, and type.
-  - `result` (list(Resource.t())) - Accumulator list of resource configurations.
+  - `result` (list(DeclaredResource.t())) - Accumulator list of declared resources.
 
   ## Returns
 
-  list(Resource.t()) - Updated list with embedded resource configurations added.
+  list(DeclaredResource.t()) - Updated list with the embedded resources added.
 
   ## Examples
 
       iex> embedded_resource({:users, MyApp.User, :ash}, [])
-      [%Resource{name: :users__profile, ...}]
+      [%Aurora.Uix.Layout.Resource{name: :users__profile, ...}]
   """
-  @spec embedded_resource({atom(), module(), atom()}, list(Resource.t())) :: list(Resource.t())
+  @spec embedded_resource({atom(), module(), atom()}, list(DeclaredResource.t())) ::
+          list(DeclaredResource.t())
   def embedded_resource({_parent_name, schema_module, _type} = parent_resource, result) do
     schema_module
     |> AshResourceInfo.attributes()
@@ -718,10 +720,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   ## PRIVATE
 
   # Creates a resource configuration for an embedded field.
-  @spec embedded_resource_config({atom(), module(), atom()}, map(), list(Resource.t())) ::
-          list(Resource.t())
+  @spec embedded_resource_config({atom(), module(), atom()}, map(), list(DeclaredResource.t())) ::
+          list(DeclaredResource.t())
   defp embedded_resource_config(
-         {parent_resource_name, schema_module, type},
+         {parent_resource_name, _schema_module, type},
          %{type: resource_type, name: field},
          result
        ) do
@@ -734,12 +736,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
       end
 
     [
-      Resource.new(
-        name: resource_name,
-        type: type,
-        tag: :resource,
-        opts: [related_schema: schema_module, schema: embed_schema]
-      )
+      %DeclaredResource{name: resource_name, type: type, schema: embed_schema}
       | result
     ]
   end

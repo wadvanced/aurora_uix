@@ -22,73 +22,18 @@ defmodule Aurora.Uix.Field do
     - `index_renderer` (`function` | `atom`) - Renderer used only for the index layout.
     - `edit_renderer` (`function` | `atom`) - Renderer used only for the form (edit) layout.
     - `show_renderer` (`function` | `atom`) - Renderer used only for the show layout.
-    - `data` (`any`) - A general purpose field.
-        Template parser expect specific format for this data, according to any of the field value.
-        Refer to the template documentation to learn special fields data structure.
-
-        **Upload fields** — a field is treated as a file-upload field when `data` contains an
-        `:upload` key whose value is a map with the following structure:
-
-        ```elixir
-        field :uploaded_blob_ref,
-          data: %{
-            upload: %{
-              allow:   [accept: ~w(.xlsx), max_entries: 1, max_file_size: 5_000_000],
-              consume: &MyApp.Templates.store_xlsx/1
-            }
-          }
-        ```
-
-        - `:allow` — keyword list forwarded to `Phoenix.LiveView.allow_upload/3`
-          (`:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, …).
-        - `:consume` — callback invoked with the consumed binaries. Arity is detected
-          automatically via `Function.info/1`:
-
-          | Arity | Call shape                           | When to use                                     |
-          |-------|--------------------------------------|-------------------------------------------------|
-          | 1     | `consume.(binaries)`                 | Pure transform; no socket context needed.       |
-          | 2     | `consume.(socket, binaries)`         | Needs socket assigns (e.g. `current_user`).     |
-          | 3     | `consume.(socket, binaries, key)`    | One callback handles multiple upload fields.    |
-
-          All arities must return one of:
-          - `{:ok, value}` — `value` is written onto the entity params under the field key.
-          - `:no_change` — the field is left untouched; no-file-selected is also short-circuited
-            to `:no_change` so the callback need not handle an empty list.
-          - `{:error, reason}` — save aborts and `reason` is shown as an error flash.
-
-          The socket is **never** returned by `:consume`; use `handle_event("save", …)` override
-          for socket mutations on save.
-        - `:download` — **optional** producer callback invoked when the user clicks the Download
-          button. Its presence is the opt-in master switch: **no `:download` key means no button
-          is rendered.** Arity is detected the same way as `:consume`, with the stored field value
-          as the primary argument:
-
-          | Arity | Call shape                          | When to use                                  |
-          |-------|-------------------------------------|----------------------------------------------|
-          | 1     | `download.(value)`                  | Pure retrieval; no socket context needed.    |
-          | 2     | `download.(socket, value)`          | Needs socket assigns (e.g. `current_user`).  |
-          | 3     | `download.(socket, value, key)`     | One callback handles multiple upload fields. |
-
-          All arities must return one of:
-          - `{:ok, %{name: filename, content: binary}}` — triggers a client-side file download.
-            An optional `:content_type` key may be included in the map.
-          - `:no_download` — does nothing.
-          - `{:error, reason}` — `reason` is shown as an error flash.
-
-          Actor-based visibility should be enforced here (return `{:error, …}` or `:no_download`),
-          since the socket (and thus `current_user`) is available to arity-2 and arity-3 callbacks.
-        - `:downloadable?` — **optional** gate callback evaluated when the component mounts or
-          updates. Controls whether the Download button is visible. Only evaluated when `:download`
-          is also configured. Follows the same arity-dispatch pattern, with the stored field value
-          as the primary argument:
-
-          | Arity | Call shape                          |
-          |-------|-------------------------------------|
-          | 1     | `downloadable?.(value)`             |
-          | 2     | `downloadable?.(socket, value)`     |
-          | 3     | `downloadable?.(socket, value, key)`|
-
-          Must return a boolean. When absent, defaults to `not is_nil(value)`.
+    - `data` (`any`) - Metadata produced by the schema parsers (for example `owner_key`,
+      `related`, `related_key`, `resource` and `select` for associations, embeds and enums),
+      plus any renderer-specific values a host passes with the `:data` field option.
+    - `option_label` (`atom` | `function`) - For many-to-one and many-to-many selectors: the field
+      shown as each option's label, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`)
+      returning it. `nil` uses the related primary key.
+    - `query_opts` (`keyword`) - `:order_by` and `:where` applied when listing the related entries
+      of an association.
+    - `expanded` (`boolean` | `function`) - For `embeds_many` fields: whether the collection starts
+      expanded. A function of arity 1 receives the rendering assigns.
+    - `upload` (`Aurora.Uix.Field.Upload.t()` | `nil`) - Turns the field into a managed LiveView
+      upload field. See `Aurora.Uix.Field.Upload`.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
@@ -112,7 +57,7 @@ defmodule Aurora.Uix.Field do
 
   ## Key Constraints
   - Field struct is used by template and resource modules for dynamic UI generation.
-  - Some fields (e.g., `data`) may require special structure as expected by template parsers.
+  - `data` holds parser output; host-facing options have their own typed keys.
   - Not intended for direct use outside Aurora.Uix internals.
 
   """
@@ -120,6 +65,7 @@ defmodule Aurora.Uix.Field do
   use Accessible
 
   alias Aurora.Uix.Counter
+  alias Aurora.Uix.Field.Upload
 
   defstruct [
     :key,
@@ -144,6 +90,10 @@ defmodule Aurora.Uix.Field do
     omitted: false,
     filterable?: true,
     sortable?: false,
+    option_label: nil,
+    query_opts: [],
+    expanded: false,
+    upload: nil,
     data: %{}
   ]
 
@@ -170,7 +120,11 @@ defmodule Aurora.Uix.Field do
           disabled: boolean(),
           omitted: boolean(),
           filterable?: boolean(),
-          sortable?: boolean()
+          sortable?: boolean(),
+          option_label: atom() | function() | nil,
+          query_opts: keyword(),
+          expanded: boolean() | function(),
+          upload: Upload.t() | nil
         }
 
   @doc """
