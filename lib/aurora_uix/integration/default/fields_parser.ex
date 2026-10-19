@@ -24,7 +24,6 @@ defmodule Aurora.Uix.Integration.Default.FieldsParser do
   """
 
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Resource, as: DeclaredResource
   alias Aurora.Uix.Resource
 
   @doc """
@@ -76,18 +75,17 @@ defmodule Aurora.Uix.Integration.Default.FieldsParser do
 
   - `parent_resource` ({atom(), module(), atom()}) - Tuple containing parent resource name,
   schema module, and type.
-  - `result` (list(DeclaredResource.t())) - Accumulator list of declared resources.
+  - `result` (list(Resource.t())) - Accumulator list of resource configurations.
 
   ## Returns
 
-  list(DeclaredResource.t()) - Updated list with the embedded resources added.
+  list(Resource.t()) - Updated list with embedded resource configurations added.
 
   ## Examples
 
       iex> embedded_resource({:users, MyApp.User, :ctx}, [])
-      [%Aurora.Uix.Layout.Resource{name: :users__profile, ...}]
+      [%Resource{name: :users__profile, ...}]
   """
-  @spec embedded_resource({atom(), module(), atom()}, list(DeclaredResource.t())) ::
-          list(DeclaredResource.t())
+  @spec embedded_resource({atom(), module(), atom()}, list(Resource.t())) :: list(Resource.t())
   def embedded_resource(_parent_resource, result), do: result
 end

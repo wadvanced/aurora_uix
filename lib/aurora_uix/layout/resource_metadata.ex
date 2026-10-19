@@ -68,10 +68,10 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   alias Aurora.Uix.Counter
   alias Aurora.Uix.Layout.Helpers, as: LayoutHelpers
-  alias Aurora.Uix.Layout.Resource, as: DeclaredResource
-  alias Aurora.Uix.Layout.Resource.FieldOverride
+  alias Aurora.Uix.Field
+  alias Aurora.Uix.Field.Override
   alias Aurora.Uix.Layout.ResourceMetadata
-  alias Aurora.Uix.Layout.ResourceResolver
+  alias Aurora.Uix.Resource
 
   @doc false
   @spec __using__(any()) ::
@@ -93,8 +93,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     resources_metadata =
       env.module
       |> Module.get_attribute(:_auix_process_resource_config)
-      |> Enum.reverse()
-      |> ResourceResolver.resolve()
+      |> resolve_resources()
 
     resource_functions = Enum.map(resources_metadata, &resource_functions/1)
 
@@ -214,7 +213,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
     resource_config =
       quote do
-        DeclaredResource.new(
+        ResourceMetadata.declare_resource(
           unquote(name),
           unquote(opts),
           List.flatten(unquote(LayoutHelpers.prepare_block(block)))
@@ -280,7 +279,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   @spec field(atom() | tuple(), keyword()) :: Macro.t()
   defmacro field(field, opts \\ []) do
     quote do
-      FieldOverride.new(unquote(field), unquote(opts))
+      Override.new(unquote(field), unquote(opts))
     end
   end
 
@@ -327,5 +326,185 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         unquote(Macro.escape(resource))
       end
     end
+  end
+
+  ## RESOLUTION
+
+  @generic_options [:schema, :ash_resource, :context, :type, :order_by, :renderers, :name, :title]
+
+  @doc """
+  Builds the declared resource of one `auix_resource_metadata` call.
+
+  ## Parameters
+  - `name` (atom()) - The resource identifier.
+  - `opts` (keyword()) - The resource options. `:schema` and `:ash_resource` both set `schema`,
+    `:name` sets `display_name`, and options not owned by the resource go to `backend_opts`.
+  - `field_overrides` (list(Override.t())) - The `field` entries, in declaration order.
+
+  ## Returns
+  `Aurora.Uix.Resource.t()` - The resource, with no parsed fields yet.
+  """
+  @spec declare_resource(atom(), keyword(), [Override.t()]) :: Resource.t()
+  def declare_resource(name, opts, field_overrides) do
+    {generic, backend_opts} = Keyword.split(opts, @generic_options)
+    schema = generic[:schema] || generic[:ash_resource]
+
+    %Resource{
+      name: name,
+      schema: schema,
+      context: generic[:context],
+      type: generic[:type] || schema_type(schema),
+      order_by: generic[:order_by],
+      display_name: generic[:name],
+      title: generic[:title],
+      renderers: Keyword.get(generic, :renderers, %{}),
+      backend_opts: backend_opts,
+      field_overrides: field_overrides
+    }
+  end
+
+  # The accumulated attribute lists the latest declaration first, and resolution keeps that
+  # order: an association points to the latest resource declared for its schema, and a resource
+  # name declared twice keeps its first declaration.
+  @spec resolve_resources([Resource.t()]) :: %{atom() => Resource.t()}
+  defp resolve_resources(resources) do
+    resources
+    |> add_embedded_resources()
+    |> Enum.map(&parse_fields/1)
+    |> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed)) end)
+    |> Map.new()
+  end
+
+  @spec add_embedded_resources([Resource.t()]) :: [Resource.t()]
+  defp add_embedded_resources(resources) do
+    resources
+    |> Enum.reject(&is_nil(&1.schema))
+    |> Enum.reduce(resources, fn resource, result ->
+      resource.type
+      |> LayoutHelpers.get_fields_parser_module()
+      |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
+    end)
+  end
+
+  @spec parse_fields(Resource.t()) :: {atom(), Resource.t()}
+  defp parse_fields(%Resource{} = resource) do
+    resource.type
+    |> LayoutHelpers.get_fields_parser_module()
+    |> then(& &1.parse_fields(resource.schema, resource.name))
+    |> then(&{resource.name, struct(resource, %{fields: &1})})
+  end
+
+  @spec schema_type(module() | nil) :: atom()
+  defp schema_type(nil), do: :default
+
+  defp schema_type(schema) do
+    functions = schema.__info__(:functions)
+
+    cond do
+      Enum.any?(functions, &(&1 == {:__spark_placeholder__, 0})) -> :ash
+      Enum.any?(functions, &(&1 == {:__schema__, 1})) -> :ctx
+      true -> :default
+    end
+  end
+
+  # Associations are parsed against every resource, so a related resource can be found by schema.
+  @spec resolve_fields({atom(), Resource.t()}, [{atom(), Resource.t()}]) :: {atom(), Resource.t()}
+  defp resolve_fields({name, %Resource{schema: nil} = resource}, _resources),
+    do: {name, put_fields(resource, resource.fields)}
+
+  defp resolve_fields({name, %Resource{} = resource}, resources) do
+    fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
+    overrides = merge_overrides(resource.field_overrides)
+
+    resource.schema
+    |> fields_parser.parse_associations(name, resources, resource.fields)
+    |> Enum.reverse()
+    |> configure_many_to_one_selectors()
+    |> apply_overrides(overrides)
+    |> append_declared_fields(resource.field_overrides, overrides, name)
+    |> then(&{name, put_fields(resource, &1)})
+  end
+
+  # Later overrides of a field win, option by option.
+  @spec merge_overrides([Override.t()]) :: %{(atom() | tuple()) => Override.t()}
+  defp merge_overrides(field_overrides) do
+    Enum.reduce(field_overrides, %{}, fn %Override{key: key} = override, acc ->
+      Map.update(acc, key, override, &Override.merge(&1, override))
+    end)
+  end
+
+  @spec apply_overrides([Field.t()], map()) :: [Field.t()]
+  defp apply_overrides(fields, overrides) do
+    Enum.map(fields, fn field ->
+      case Map.get(overrides, field.key) do
+        nil -> field
+        override -> Field.change(field, Override.to_field_changes(override))
+      end
+    end)
+  end
+
+  # Fields declared but not produced by the parser are appended, in declaration order.
+  @spec append_declared_fields([Field.t()], [Override.t()], map(), atom()) :: [Field.t()]
+  defp append_declared_fields(fields, [], _overrides, _resource_name), do: fields
+
+  defp append_declared_fields(fields, field_overrides, overrides, resource_name) do
+    parsed_keys = Enum.map(fields, & &1.key)
+
+    new_fields =
+      field_overrides
+      |> Enum.map(& &1.key)
+      |> Enum.uniq()
+      |> Enum.reject(&(&1 in parsed_keys))
+      |> Enum.map(fn key ->
+        %{key: key, resource: resource_name}
+        |> Field.new()
+        |> Field.change(Override.to_field_changes(overrides[key]))
+      end)
+
+    fields ++ new_fields
+  end
+
+  @spec configure_many_to_one_selectors([Field.t()]) :: [Field.t()]
+  defp configure_many_to_one_selectors(fields) do
+    fields
+    |> Enum.filter(&(&1.type == :many_to_one_association))
+    |> Enum.reject(&(get_in(&1, [Access.key!(:data), :resource]) == nil))
+    |> Enum.map(&{&1.data.owner_key, %{html_type: :select, data: &1.data}})
+    |> Enum.reduce(fields, &replace_related_field/2)
+  end
+
+  @spec replace_related_field({atom(), map()}, [Field.t()]) :: [Field.t()]
+  defp replace_related_field(related_changes, fields),
+    do: Enum.map(fields, &replace_related_field_data(&1, related_changes))
+
+  @spec replace_related_field_data(Field.t(), {atom(), map()}) :: Field.t()
+  defp replace_related_field_data(%{type: type} = field, _related_changes)
+       when type in [
+              :many_to_one_association,
+              :one_to_many_association,
+              :one_to_one_association,
+              :many_to_many_association
+            ],
+       do: field
+
+  defp replace_related_field_data(%{key: field_key, label: label} = field, {field_key, changes}) do
+    label
+    |> Kernel.||("")
+    |> String.replace_suffix(" id", "")
+    |> then(&Map.put(changes, :label, &1))
+    |> then(&Field.change(field, &1))
+  end
+
+  defp replace_related_field_data(field, _related_changes), do: field
+
+  @spec put_fields(Resource.t(), [Field.t()]) :: Resource.t()
+  defp put_fields(resource, fields) do
+    fields_order =
+      fields
+      |> Enum.reject(& &1.omitted)
+      |> Enum.map(& &1.key)
+      |> Enum.uniq()
+
+    struct(resource, %{fields: Map.new(fields, &{&1.key, &1}), fields_order: fields_order})
   end
 end

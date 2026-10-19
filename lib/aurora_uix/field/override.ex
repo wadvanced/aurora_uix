@@ -1,4 +1,4 @@
-defmodule Aurora.Uix.Layout.Resource.FieldOverride do
+defmodule Aurora.Uix.Field.Override do
   @moduledoc """
   One `field` entry of `auix_resource_metadata`: the options a host sets on a field.
 
@@ -83,12 +83,12 @@ defmodule Aurora.Uix.Layout.Resource.FieldOverride do
   - `opts` (keyword()) - The field options.
 
   ## Returns
-  `Aurora.Uix.Layout.Resource.FieldOverride.t()` - The override.
+  `Aurora.Uix.Field.Override.t()` - The override.
 
   ## Examples
   ```elixir
-  Aurora.Uix.Layout.Resource.FieldOverride.new(:name, required: true, label: "Name")
-  # => %Aurora.Uix.Layout.Resource.FieldOverride{key: :name, required: true, label: "Name", ...}
+  Aurora.Uix.Field.Override.new(:name, required: true, label: "Name")
+  # => %Aurora.Uix.Field.Override{key: :name, required: true, label: "Name", ...}
   ```
   """
   @spec new(atom() | tuple(), keyword()) :: t()
@@ -110,7 +110,7 @@ defmodule Aurora.Uix.Layout.Resource.FieldOverride do
   - `override` (t()) - The later override.
 
   ## Returns
-  `Aurora.Uix.Layout.Resource.FieldOverride.t()` - The combined override.
+  `Aurora.Uix.Field.Override.t()` - The combined override.
   """
   @spec merge(t(), t()) :: t()
   def merge(%__MODULE__{} = base, %__MODULE__{} = override) do

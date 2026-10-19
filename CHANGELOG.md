@@ -7,12 +7,10 @@
 - **Resource metadata structures** (first step of moving the DSLs to Spark): what
   `auix_resource_metadata` declares and what it resolves to now have fixed shapes. The DSL syntax
   and the generated UI are unchanged.
-  - `auix_resource_metadata` produces an `Aurora.Uix.Layout.Resource` with one
-    `Aurora.Uix.Layout.Resource.FieldOverride` per `field`, resolved into `Aurora.Uix.Resource` by
-    the new `Aurora.Uix.Layout.ResourceResolver`.
   - `Aurora.Uix.Resource` replaces `opts` with `order_by`, `renderers`, `display_name` (the `:name`
     option), `title` and `backend_opts` (backend-owned options such as `:ash_actor_assign` and the
-    CRUD action and function overrides), and drops `inner_elements`. `fields` is always a map.
+    CRUD action and function overrides). `inner_elements` becomes `field_overrides`, one
+    `Aurora.Uix.Field.Override` per `field` entry, and `fields` is always a map of `%Field{}`.
   - `Aurora.Uix.Field` gains `option_label`, `query_opts`, `expanded` and `upload`
     (`Aurora.Uix.Field.Upload`); `data` keeps what the schema parsers produce.
     `data: %{upload: ...}` is still accepted and moved into `upload`.

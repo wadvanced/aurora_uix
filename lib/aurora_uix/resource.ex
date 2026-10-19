@@ -1,27 +1,42 @@
 defmodule Aurora.Uix.Resource do
   @moduledoc """
-  A resolved resource: its declaration combined with what its schema parser produced.
+  A resource: what `auix_resource_metadata` declares, plus the fields its schema parser produces.
 
-  Built from `Aurora.Uix.Layout.Resource` by `Aurora.Uix.Layout.ResourceResolver`, and returned
-  by the generated `auix_resources/0` and `auix_resource/1`.
+  `auix_resource_metadata` fills the declared keys and `field_overrides`;
+  `Aurora.Uix.Layout.ResourceMetadata` then parses the schema into `fields` and `fields_order`.
+  The generated `auix_resources/0` and `auix_resource/1` return the result.
 
-  - `name`, `schema`, `context`, `order_by`, `renderers`, `display_name`, `title` and
-    `backend_opts` - As declared; see `Aurora.Uix.Layout.Resource`.
-  - `type` (`atom`) - The backend: `:ctx`, `:ash`, `:default` or a custom backend.
-  - `fields` (`map`) - `Aurora.Uix.Field` structs by field key.
+  - `name` (`atom`) - The resource identifier, e.g. `:product`.
+  - `schema` (`module`) - Ecto schema or Ash resource (`:schema` or `:ash_resource` option).
+  - `context` (`module`) - Context module of an Ecto resource.
+  - `type` (`atom`) - The backend: `:ctx`, `:ash`, `:default` or a custom backend. Detected from
+    the schema unless the `:type` option overrides it.
+  - `order_by` - Order of the index entries, in `Ecto.Query.order_by/3` form.
+  - `renderers` (`map`) - The `:renderers` option: an `html_type => renderer` table for every
+    field of the resource.
+  - `display_name` (`binary` | `function`) - The `:name` option: the resource's display name.
+  - `title` (`binary` | `function`) - The `:title` option: the resource's display title.
+  - `backend_opts` (`keyword`) - Options owned by the backend, such as Ash's `:ash_actor_assign`
+    and action names, or a context's CRUD function overrides. Only the backend's context parser
+    defaults read them.
+  - `field_overrides` (`list`) - The `field` entries, as `Aurora.Uix.Field.Override` structs in
+    declaration order.
+  - `fields` (`map`) - `Aurora.Uix.Field` structs by field key, with the overrides applied.
   - `fields_order` (`list`) - Field keys in display order, without omitted fields.
 
   ## Key Features
-  - Gives each resource option its own key.
+  - Gives each resource option its own key; only backend-owned options share a keyword list.
   - `parser_opts/1` returns the options the context parsers read, in keyword form.
 
   ## Key Constraints
-  - `fields` is always a map and `fields_order` always a list once resolved.
+  - `fields` is always a map of `Aurora.Uix.Field` structs; overrides live only in
+    `field_overrides`.
   """
 
   use Accessible
 
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Field.Override
 
   defstruct [
     :name,
@@ -33,6 +48,7 @@ defmodule Aurora.Uix.Resource do
     type: :ctx,
     renderers: %{},
     backend_opts: [],
+    field_overrides: [],
     fields: %{},
     fields_order: []
   ]
@@ -47,6 +63,7 @@ defmodule Aurora.Uix.Resource do
           title: binary() | function() | nil,
           renderers: map(),
           backend_opts: keyword(),
+          field_overrides: [Override.t()],
           fields: %{optional(atom() | tuple()) => Field.t()},
           fields_order: list()
         }
