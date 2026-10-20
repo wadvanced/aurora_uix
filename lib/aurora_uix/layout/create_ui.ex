@@ -39,6 +39,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   `auix_create_ui()` with no block generates the default layouts.
 
+  ## Reusable layouts
+
+  A module with `auix_create_layout` blocks and no `auix_create_ui` only exposes its layouts
+  through `auix_layouts/0`. `auix_create_ui include: [MyAppWeb.ProductLayouts]` uses them; for
+  one resource and layout type, the module's own layout replaces an included one.
+
   ## Layouts
   - `index_columns resource, fields, options` - the index columns and options. See
     `Aurora.Uix.Layout.Options.Index`; `order_by` and `where` set the listed entries.
@@ -102,25 +108,63 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @doc """
   Collects the layouts of the `auix_create_ui` and `auix_create_layout` calls of a module.
 
-  A later `auix_create_layout` or `auix_create_ui` replaces an earlier layout for the same
-  resource and layout type.
+  The calls' layouts follow `included`. A later layout replaces an earlier one for the same
+  resource and layout type, so the module's own layouts replace included ones.
 
   ## Parameters
   - `calls` ([Call.t()]) - The calls, in declaration order.
+  - `included` ([Node.layout()]) - Layouts brought in with `include`, see `included_layouts/2`.
   - `module` (module()) - The declaring module, for error reporting.
 
   ## Returns
   `[Node.layout()]` - The layouts.
   """
-  @spec collect_layouts([Call.t()], module()) :: [Node.layout()]
-  def collect_layouts(calls, module) do
-    Enum.reduce(calls, [], fn call, layouts ->
+  @spec collect_layouts([Call.t()], [Node.layout()], module()) :: [Node.layout()]
+  def collect_layouts(calls, included, module) do
+    Enum.reduce(calls, included, fn call, layouts ->
       Enum.each(call.children, &reject_duplicate(&1, call.children, module))
-
-      layouts
-      |> Enum.reject(fn layout -> Enum.any?(call.children, &same_layout?(&1, layout)) end)
-      |> Enum.concat(call.children)
+      replace_layouts(layouts, call.children)
     end)
+  end
+
+  @doc """
+  Reads the layouts of the modules an `auix_create_ui` call includes.
+
+  A later module's layout replaces an earlier one's for the same resource and layout type.
+
+  ## Parameters
+  - `modules` (module() | [module()] | nil) - The `include` option.
+  - `module` (module()) - The declaring module, for error reporting.
+
+  ## Returns
+  `[Node.layout()]` - The included layouts, or raises `Spark.Error.DslError` when a module has
+  no layouts.
+  """
+  @spec included_layouts(module() | [module()] | nil, module()) :: [Node.layout()]
+  def included_layouts(modules, module) do
+    modules
+    |> List.wrap()
+    |> Enum.reduce([], &replace_layouts(&2, module_layouts(&1, module)))
+  end
+
+  @doc """
+  Returns the code defining `auix_layouts/0`, which returns a module's layouts as written.
+
+  ## Parameters
+  - `layouts` ([Node.layout()]) - The layouts.
+
+  ## Returns
+  `Macro.t()` - The function definition.
+  """
+  @spec layouts_code([Node.layout()]) :: Macro.t()
+  def layouts_code(layouts) do
+    quote do
+      @doc false
+      @spec auix_layouts() :: list()
+      def auix_layouts do
+        unquote(Macro.escape(layouts))
+      end
+    end
   end
 
   @doc """
@@ -135,7 +179,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec ui_opts(Call.t()) :: keyword()
   def ui_opts(%Call{} = call) do
     call
-    |> Map.take([:renderers, :default_fields_layout])
+    |> Map.take([:renderers, :default_fields_layout, :include])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> then(&Keyword.merge(call.layout_opts, &1))
   end
@@ -206,11 +250,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     quote do
       unquote(modules)
 
-      @doc false
-      @spec auix_layouts() :: list()
-      def auix_layouts do
-        unquote(Macro.escape(declared_layouts))
-      end
+      unquote(layouts_code(declared_layouts))
 
       @doc false
       @spec auix_configurations() :: map()
@@ -239,6 +279,27 @@ defmodule Aurora.Uix.Layout.CreateUI do
     end
 
     :ok
+  end
+
+  @spec replace_layouts([Node.layout()], [Node.layout()]) :: [Node.layout()]
+  defp replace_layouts(layouts, new_layouts) do
+    layouts
+    |> Enum.reject(fn layout -> Enum.any?(new_layouts, &same_layout?(&1, layout)) end)
+    |> Enum.concat(new_layouts)
+  end
+
+  @spec module_layouts(module(), module()) :: [Node.layout()]
+  defp module_layouts(included, module) do
+    if match?({:module, _}, Code.ensure_compiled(included)) and
+         function_exported?(included, :auix_layouts, 0) do
+      included.auix_layouts()
+    else
+      raise DslError,
+        module: module,
+        path: [:auix_create_ui, :include],
+        message:
+          "#{inspect(included)} has no layouts; include modules that declare auix_create_layout or auix_create_ui"
+    end
   end
 
   @spec same_layout?(Node.layout(), Node.layout()) :: boolean()

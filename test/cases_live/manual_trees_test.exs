@@ -11,7 +11,7 @@ defmodule Aurora.UixWeb.Test.ManualTreesTest do
   auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
   auix_resource_metadata(:product_transaction, context: Inventory, schema: ProductTransaction)
 
-  auix_create_layout(omit_missing_layouts_creation?: false) do
+  auix_create_layout do
     edit_layout :product, [] do
       inline([:reference, :name, :description])
       inline([:quantity_at_hand, :quantity_initial])

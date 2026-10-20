@@ -19,6 +19,15 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     """)
   end
 
+  test "including a module without layouts fails compilation" do
+    assert_raise DslError, ~r/Aurora.Uix.Guides.Inventory has no layouts/, fn ->
+      compile("""
+        auix_create_ui include: Aurora.Uix.Guides.Inventory do
+        end
+      """)
+    end
+  end
+
   test "an unknown layout option fails compilation" do
     assert_raise DslError, ~r/unknown index layout options \[:page_tittle\]/, fn ->
       compile("""

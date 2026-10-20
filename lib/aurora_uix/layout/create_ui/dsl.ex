@@ -74,11 +74,12 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     default_fields_layout: [
       type: {:in, [:stacked, :inline]},
       doc: "How the default form and show layouts place the fields."
+    ],
+    include: [
+      type: {:or, [:atom, {:list, :atom}]},
+      doc:
+        "Modules whose layouts (`auix_layouts/0`) this call uses. The module's own layouts replace included ones for the same resource and layout type."
     ]
-  ]
-
-  @create_layout_schema [
-    omit_missing_layouts_creation?: [type: :boolean, doc: "Has no effect."]
   ]
 
   @field %Entity{
@@ -231,19 +232,11 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
 
   @create_layout %Entity{
     name: :auix_create_layout,
-    describe: "Declares layouts that `auix_create_ui` uses.",
+    describe:
+      "Declares layouts for the module's `auix_create_ui`, or for other modules to include.",
     target: Call,
-    args: [{:optional, :layout_opts, []}],
     entities: [children: @layouts],
-    auto_set_fields: [kind: :auix_create_layout],
-    schema: [
-      layout_opts: [
-        type: :keyword_list,
-        keys: @create_layout_schema,
-        default: [],
-        doc: "Options."
-      ]
-    ]
+    auto_set_fields: [kind: :auix_create_layout]
   }
 
   @ui %Section{
