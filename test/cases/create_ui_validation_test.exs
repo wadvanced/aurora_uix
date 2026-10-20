@@ -50,6 +50,16 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
                  end
   end
 
+  test "an index layout preload of the wrong type fails compilation" do
+    assert_raise DslError, ~r/invalid value for :preload option: expected list/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:reference], preload: :product_location
+        end
+      """)
+    end
+  end
+
   test "an unknown field option fails compilation" do
     assert_raise DslError, ~r/field :name: unknown options \[:lable\]/, fn ->
       compile("""

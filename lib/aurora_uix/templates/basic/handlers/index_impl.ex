@@ -138,7 +138,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   # `:or_where` would OR around the filter bar's conditions and `:select` would break the
   # index projection, so neither is an index option.
-  @allowed_query_options [:where, :order_by, :paginate, :preload]
+  @allowed_query_options [:where, :order_by, :preload]
 
   defmacro __using__(_opts) do
     quote do
@@ -994,7 +994,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
     opts =
       auix
-      |> get_in([:configurations, auix.resource_name, :resource_config, :order_by])
+      |> get_in([:configurations, auix.resource_name, :resource_config])
       |> resource_query_opts()
       |> Keyword.merge(layout_opts)
       |> Keyword.put_new(:order_by, [])
@@ -1014,7 +1014,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> update_streams()
   end
 
-  # The layout's query: its `order_by` and `where`, plus `:paginate`/`:preload` options.
+  # The layout's query: its `order_by` and `where`, plus its `:preload` option.
   @spec layout_query_options(map()) :: keyword()
   defp layout_query_options(layout_tree) do
     [order_by: layout_tree.order_by, where: layout_tree.where]
@@ -1022,9 +1022,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> Kernel.++(Enum.filter(layout_tree.options, &(elem(&1, 0) in @allowed_query_options)))
   end
 
-  @spec resource_query_opts(term()) :: keyword()
-  defp resource_query_opts(nil), do: []
-  defp resource_query_opts(order_by), do: [order_by: order_by]
+  # The layout's own options override the resource's.
+  @spec resource_query_opts(map()) :: keyword()
+  defp resource_query_opts(resource_config) do
+    Enum.reject(
+      [
+        order_by: resource_config.order_by,
+        where: resource_config.where,
+        preload: resource_config.preload
+      ],
+      &is_nil(elem(&1, 1))
+    )
+  end
 
   @spec refresh_current_page(Socket.t()) :: Socket.t()
   defp refresh_current_page(%{assigns: %{auix: %{pagination: pagination}}} = socket) do

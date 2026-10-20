@@ -17,7 +17,7 @@ Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project 
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.7"}
+    {:aurora_uix, "~> 0.2.0"}
   ]
 end
 ```
@@ -27,6 +27,21 @@ Then fetch the dependencies:
 ```shell
 mix deps.get
 ```
+
+## Formatter
+
+Aurora UIX exports the calls of its DSLs (`schema`, `label`, `backend_opts`, `rule`, `inline`, ...) so
+`mix format` keeps them without parentheses. Import them in your `.formatter.exs`:
+
+```elixir
+[
+  import_deps: [:aurora_uix],
+  # ...
+]
+```
+
+Without it, `mix format` rewrites `ash_resource Employment` as `ash_resource(Employment)`, and keeps the
+parentheses afterwards.
 
 ## Live Updates (optional)
 

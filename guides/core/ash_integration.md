@@ -37,7 +37,7 @@ Besides Aurora UIX, you'll need to add Ash dependencies for using it as a backen
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.7"},  # Main framework
+    {:aurora_uix, "~> 0.2.0"},  # Main framework
     {:ash, "~> 3.0"},           # If use Ash as backend
     {:ash_postgres, "~> 2.0"}   # Needed if using postgres as your data layer. Add any other data layer required by your backend
   ]
@@ -481,6 +481,19 @@ end
 ```
 
 Any `field/2` option overrides the parsed value, so `type:` and `html_type:` give full control for these computed fields. See [Field Properties / Custom Field Types](resource_metadata.md) for the full option list.
+
+### Loading a computed field the parser does not detect
+
+A calculation or aggregate the parser detects is loaded with the entity wherever a layout renders it. Setting `data:` on a field replaces the parsed `data`, including that mark, and a field the parser cannot recognise never gets it. Declare `generated?: true` on such a field so it is loaded too:
+
+```elixir
+auix_resource_metadata :order do
+  ash_resource MyApp.Sales.Order
+  field :total_amount, generated?: true, type: :decimal, html_type: :number
+end
+```
+
+Without it the field stays `%Ash.NotLoaded{}` on the index and show pages.
 
 ## Embedded Resources
 

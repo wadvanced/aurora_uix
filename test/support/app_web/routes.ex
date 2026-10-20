@@ -274,6 +274,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          LoadItemsOptionsTest,
+          "load-items-options-"
+        )
+
+        RoutesHelper.register_product_crud(
           HandlerHooksIndexTest,
           "handler-hooks-index-"
         )
@@ -291,6 +296,16 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_product_crud(
           OrderByMetadataTest,
           "order-by-metadata-"
+        )
+
+        RoutesHelper.register_product_crud(
+          PreloadMetadataTest,
+          "preload-metadata-"
+        )
+
+        RoutesHelper.register_product_crud(
+          PreloadLayoutTest,
+          "preload-layout-"
         )
 
         RoutesHelper.register_product_crud(
@@ -442,6 +457,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(AshFilterBarTest.Post, "ash-filter-bar-posts")
+
+        RoutesHelper.register_crud(AshPreloadMetadataTest.Author, "ash-preload-metadata-authors")
 
         RoutesHelper.register_crud(
           AshWhereOne2ManyTest.Author,

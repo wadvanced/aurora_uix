@@ -40,6 +40,17 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataValidationTest do
     end
   end
 
+  test "a mistyped resource preload fails compilation" do
+    assert_raise DslError, ~r/preload/, fn ->
+      compile("""
+        auix_resource_metadata :product,
+          schema: Aurora.Uix.Guides.Inventory.Product,
+          context: Aurora.Uix.Guides.Inventory,
+          preload: :product_location
+      """)
+    end
+  end
+
   test "a context resource without :context fails compilation" do
     assert_raise DslError, ~r/requires the `:context` option/, fn ->
       compile("""

@@ -49,9 +49,11 @@ if ! printf '%s\n' "$changed_files" |
 fi
 
 # Keep in sync with the `consistency` alias in mix.exs.
+spark_extensions="Aurora.Uix.Layout.ResourceMetadata,Aurora.Uix.Layout.CreateUI,Aurora.Uix.Templates.Theme.Extension,Aurora.Uix.Layout.Options.Extension"
 stage_names=(
   "auix.gen.tailwind_classes"
   "format"
+  "spark.formatter"
   "compile --warnings-as-errors"
   "credo --strict"
   "dialyzer"
@@ -60,6 +62,7 @@ stage_names=(
 stage_cmds=(
   "auix.gen.tailwind_classes"
   "format"
+  "spark.formatter --extensions $spark_extensions"
   "compile --warnings-as-errors"
   "credo --strict --format oneline"
   "dialyzer --quiet"

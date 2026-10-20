@@ -1,9 +1,22 @@
 # Changelog for Aurora UIX
 
-## [Unreleased]
+## [0.2.0] - 2026-10-21
+
+**Spark DSLs**
+
+This release moves the resource metadata, layout, theme and layout option DSLs to Spark. Options are
+validated at compile time, and layouts can be reused across modules with `auix_create_ui include:`.
+This release is breaking: see the What's New guide for the upgrade checklist.
 
 ### Changed
 
+- **Updated Dependencies**
+  - ash: 3.34.6 -> 3.36.1
+  - ash_postgres: 2.14.5 -> 2.15.1
+  - bandit: 1.12.5 -> 1.13.1
+  - esbuild: 0.10.0 -> 0.10.1
+  - phoenix: 1.8.15 -> 1.8.16
+  - phoenix_live_view: 1.2.12 -> 1.2.13
 - Resource metadata (`Aurora.Uix.Resource`, `Aurora.Uix.Field`) uses typed structures in preparation for
   the Spark DSL.
 - Resource metadata DSL moved to Spark.
@@ -14,6 +27,31 @@
 - Theme DSL (`rule` and `include`) moved to Spark.
 - Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
 - Layout option sets (`option`) moved to Spark; layout option values are type-checked.
+
+### Documentation
+
+- `auix.load_items_options`: the keys the index handler reads, when it rebuilds them and how a handler scopes the list at runtime
+  (LiveView guide, "Scoping the Index Query at Runtime").
+- `remove_selected_action` and `@auix._myself`, plus which `auix` assigns and markup a host may rely on
+  (`fields_to_reject` is supported; the filter and query assigns are internal).
+
+### Fixed
+
+- **`preload` on a resource and on `index_columns`**: 0.1.7 accepted both, undocumented, and loaded the
+  listed associations in the index list. The Spark DSL rejected them. They are declared again: `preload`
+  (and the resource-level `where`, which 0.1.7 also honoured) in `auix_resource_metadata`, and `preload` as an
+  index layout option. `:paginate` is no longer in the index handler's query options, since it never had an effect.
+
+- **Formatter exports**: `.formatter.exs` exported only `auix_resource_metadata`, `field`, `fields` and `upload`, so
+  `mix format` wrapped every other call of the Spark DSLs (`schema`, `label`, `backend_opts`, `rule`, `inline`, ...) in
+  parentheses. It now exports all of them; add `:aurora_uix` to `import_deps` of the host's `.formatter.exs`.
+
+- **Declaring a generated field**: `data: %{generated: true}` was rejected and nothing replaced it, so a calculation or
+  aggregate the parser did not detect was never loaded with the entity. The new `generated?` field option declares it.
+
+### Documentation
+
+- Migration prompt in the 0.2.0 What's New guide: step-by-step rules a coding assistant follows to migrate from 0.1.7.
 
 ## [0.1.7] - 2026-10-12
 

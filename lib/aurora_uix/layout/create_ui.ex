@@ -542,6 +542,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp preload?(field), do: generated?(field)
 
   @spec generated?(Field.t()) :: boolean()
+  defp generated?(%Field{generated?: true}), do: true
   defp generated?(%Field{data: data}), do: match?(%{generated: true}, data)
 
   # Expands nested associations for preloading.

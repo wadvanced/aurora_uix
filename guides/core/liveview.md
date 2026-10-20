@@ -615,6 +615,53 @@ defmodule MyApp.ProductShowHandler do
 end
 ```
 
+#### Targeting the Component
+
+The form and the show view are LiveComponents, so an event sent from a custom renderer or action reaches the
+parent LiveView unless it names the component. Both handlers set `@auix._myself` to the component's `@myself`
+for that:
+
+```elixir
+def archive_button(assigns) do
+  ~H"""
+  <button type="button" phx-click="archive" phx-target={@auix._myself}>Archive</button>
+  """
+end
+
+# or, from a Phoenix.LiveView.JS command
+JS.push("archive", target: @auix._myself)
+```
+
+The event is handled by the `auix_handle_event/3` of the form or show handler, as in the examples above.
+`@auix._myself` exists in the form and the show view only: the index is a LiveView, so its events need no target.
+
+#### Hiding Fields at Runtime
+
+A form or show handler hides fields for one entity by assigning `:fields_to_reject`, a list of field keys. The
+renderer skips them, in any group or section:
+
+```elixir
+import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]
+
+@impl FormImpl
+def auix_update(assigns, socket) do
+  {:ok, socket} = super(assigns, socket)
+
+  {:ok, assign_auix(socket, :fields_to_reject, [:internal_notes])}
+end
+```
+
+Use the `hidden` and `omitted` field options when the field is hidden for every entity.
+
+#### What Is Internal
+
+Besides the callbacks and assigns this guide documents, `:fields_to_reject` and `@auix._myself` are the only
+`auix` assigns a handler may rely on. The others, such as `:index_layout_form`, `:filters_selected_count`,
+`:query_options` and `:read_items`, are internal and can change in any release. The `auix-*` CSS classes and the
+`name` and `id` attributes of the generated markup, such as `auix-delete-*`, follow the semi-public policy of the
+[styling guide](../customization/styling.md#escape-hatch-semantic-class-overrides): they can change in any
+release, and the change is listed in the CHANGELOG.
+
 ## Reacting to Data Changes
 
 When the host names a PubSub server, every data change made through a generated UI is
@@ -956,6 +1003,48 @@ When the index loads:
 - Products are sorted by `:name` (from layout)
 - The sort is applied at the database level for performance
 
+### Scoping the Index Query at Runtime
+
+The index handler keeps the query of the list in `auix.load_items_options`, a keyword list. A custom
+`IndexImpl` handler can read it and replace it with `assign_auix(socket, :load_items_options, ...)`.
+Only these keys are read; any other is ignored:
+
+| Key | Value |
+|-----|-------|
+| `:where` | A list of conditions, a map of equalities, a single condition or a dynamic expression |
+| `:order_by` | The order of the entries |
+| `:preload` | Associations to load besides the ones the layout renders |
+
+The handler builds it from the resource's options, the index layout's options and the associations the
+layout renders, each time it loads the list: on mount, on `auix_route_back` and when the items per page change.
+Submitting the filters and changing the sort read it again, add the submitted filters and the sort to it, and reload
+the list. Other reloads, such as a refresh after a save, reuse the query last built.
+
+Choose where to set a `where` by how long it must last:
+
+- **From the first load on**: in `mount/3`, before calling `super`, change the layout tree. It is read at every rebuild,
+  so it lasts for the life of the view.
+
+  ```elixir
+  def mount(params, session, %{assigns: %{auix: auix}} = socket) do
+    layout_tree = struct(auix.layout_tree, where: {:reference, :lt, "item_test-06"})
+
+    super(params, session, assign_auix(socket, :layout_tree, layout_tree))
+  end
+  ```
+
+- **After the list is loaded**: replace `load_items_options`. It applies from the next filter submit or sort change,
+  and the next rebuild discards it. To last, also change the layout tree as above.
+
+  ```elixir
+  load_items_options =
+    Keyword.put(auix.load_items_options, :where, [{:reference, :lt, "item_test-06"}])
+
+  assign_auix(socket, :load_items_options, load_items_options)
+  ```
+
+The other query assigns of `auix` (`query_options`, `read_items`) are internal: they change between releases.
+
 ## Navigation
 
 Aurora UIX handles navigation through:
@@ -983,7 +1072,9 @@ Aurora UIX uses Phoenix LiveView streams for index views, which efficiently hand
 ### Preloading Associations
 
 Association fields that a layout renders are preloaded with the entity, so there is no
-per-field preload option to set.
+per-field preload option to set. To load an association the layout does not render, list it in the
+resource's or the index layout's `preload` (see
+[Index Query Options](resource_metadata.md#index-query-options)).
 
 ### Async Operations
 

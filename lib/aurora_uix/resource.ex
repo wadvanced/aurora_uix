@@ -12,6 +12,9 @@ defmodule Aurora.Uix.Resource do
   - `type` (`atom`) - The backend: `:ctx`, `:ash`, `:default` or a custom backend. Detected from
     the schema unless the `:type` option overrides it.
   - `order_by` - Order of the index entries, in `Ecto.Query.order_by/3` form.
+  - `where` - Filter of the index entries; the filter bar's conditions are added to it.
+  - `preload` (`list`) - Associations the index list loads in addition to the ones its layout
+    renders, e.g. `[:category, posts: :author]`.
   - `renderers` (`map`) - The `:renderers` option: an `html_type => renderer` table for every
     field of the resource.
   - `display_name` (`binary` | `function`) - The `:name` option: the resource's display name.
@@ -45,6 +48,8 @@ defmodule Aurora.Uix.Resource do
     :schema,
     :context,
     :order_by,
+    :where,
+    :preload,
     :display_name,
     :title,
     :type,
@@ -63,6 +68,8 @@ defmodule Aurora.Uix.Resource do
           context: module() | nil,
           type: atom() | nil,
           order_by: term(),
+          where: term(),
+          preload: list() | nil,
           display_name: binary() | function() | nil,
           title: binary() | function() | nil,
           renderers: map(),

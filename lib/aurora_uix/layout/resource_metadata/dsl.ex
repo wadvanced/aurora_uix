@@ -84,6 +84,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     disabled: [type: :boolean, doc: "Excludes the field from form interaction."],
     omitted: [type: :boolean, doc: "Removes the field from the UI entirely."],
     filterable?: [type: :boolean, doc: "Whether the field can be filtered in the index."],
+    generated?: [
+      type: :boolean,
+      doc:
+        "Marks a calculation or aggregate that is loaded with the entity, not stored with it. The parser detects the usual ones."
+    ],
     sortable?: [
       type: :boolean,
       doc: "Whether the index column offers sorting. Parsed from the column type when omitted."
@@ -134,6 +139,15 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     ],
     type: [type: :atom, doc: "Backend (`:ctx`, `:ash`). Detected from the schema when omitted."],
     order_by: [type: :any, doc: "Order of the index entries, in `Ecto.Query.order_by/3` form."],
+    where: [
+      type: :any,
+      doc: "Filter of the index entries. The filter bar's conditions are added to it."
+    ],
+    preload: [
+      type: {:list, :any},
+      doc:
+        "Associations the index list loads besides the ones its layout renders, e.g. `[:category, posts: :author]`."
+    ],
     renderers: [
       type: {:map, :atom, @renderer_type},
       doc:

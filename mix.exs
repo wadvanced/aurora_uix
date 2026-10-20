@@ -2,7 +2,17 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.1.7"
+  @version "0.2.0"
+
+  @spark_extensions Enum.join(
+                      [
+                        "Aurora.Uix.Layout.ResourceMetadata",
+                        "Aurora.Uix.Layout.CreateUI",
+                        "Aurora.Uix.Templates.Theme.Extension",
+                        "Aurora.Uix.Layout.Options.Extension"
+                      ],
+                      ","
+                    )
 
   def project do
     [
@@ -228,12 +238,12 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.34"},
+      {:ash, "~> 3.36"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.14"},
+      {:ash_postgres, "~> 2.15"},
       {:aurora_ctx, "~> 0.1.11"},
       {:accessible, "~> 0.3"},
-      {:bandit, "~> 1.12"},
+      {:bandit, "~> 1.13"},
       {:css_parser, "~> 0.1"},
       {:ecto_sql, "~> 3.14"},
       {:gettext, "~> 1.0"},
@@ -268,6 +278,7 @@ defmodule Aurora.Uix.MixProject do
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
       {:image, "~> 0.72", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
+      {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
       {:wallaby, "~> 0.31", only: :test, runtime: false}
     ]
   end
@@ -338,6 +349,7 @@ defmodule Aurora.Uix.MixProject do
       consistency: [
         "auix.gen.tailwind_classes",
         "format",
+        "spark.formatter --extensions #{@spark_extensions}",
         "compile --warnings-as-errors",
         "credo --strict",
         "dialyzer",
@@ -346,9 +358,24 @@ defmodule Aurora.Uix.MixProject do
     ]
   end
 
+  # ExDoc's copy button joins the text of the child elements of `code`, so a plain `text` block
+  # (no highlighting spans) copies as empty. This copies the whole text of such blocks instead.
   defp before_closing_body_tag(_),
-    do:
-      ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
+    do: """
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>
+    <script>
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("pre > .copy-button")
+        const code = button && button.parentElement.querySelector(":scope > code")
+        if (!code || code.children.length > 0) return
+        event.stopImmediatePropagation()
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          button.classList.add("clicked")
+          setTimeout(() => button.classList.remove("clicked"), 3000)
+        })
+      }, true)
+    </script>
+    """
 
   defp filter_modules(module, _map) do
     module

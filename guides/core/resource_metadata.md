@@ -137,6 +137,26 @@ For Ash Framework resources:
 
 When using Ash resources, you can also use `:schema` as an alias for `:ash_resource` 
 
+### Index Query Options
+
+A resource can shape the query behind its index list. An `index_columns` layout can set the same
+options for one layout, and the layout's value replaces the resource's.
+
+- `:order_by` - Initial order of the entries, in `Ecto.Query.order_by/3` form.
+- `:where` - Filter of the entries. Conditions submitted from the filter bar are added to it.
+- `:preload` (list()) - Associations the index list loads besides the ones its layout renders, for
+  an `option_label` function, a custom renderer or a hook that reads them. Entries are association
+  names or nested keyword lists, such as `[:category, posts: :author]`. It works on both backends.
+
+```elixir
+auix_resource_metadata :product do
+  context Inventory
+  schema Product
+  order_by :reference
+  preload [:product_location]
+end
+```
+
 ### Display Name and Title
 
 Both backends accept two optional presentation options, independent of the resource's
@@ -249,7 +269,7 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 - `schema` - The Ecto schema or Ash resource module
 - `context` - Context module
 - `type` - Backend type (`:ctx` for Context, `:ash` for Ash)
-- `order_by` - As declared
+- `order_by`, `where`, `preload` - As declared (see [Index Query Options](#index-query-options))
 - `renderers` - The resource-level `:renderers` option: an `html_type => renderer` table applied to
   every field of the resource. Per-field renderers (`renderer`, `index_renderer`, `edit_renderer`,
   `show_renderer`) stay on each `Aurora.Uix.Field`
@@ -345,6 +365,9 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `scale` - Number of digits to the right of decimal separator for numeric fields
 - `required` - If true, the field should not be empty
 - `filterable?` - If true, the field can participate in filtering UI interfaces
+- `generated?` - If true, the value is not stored with the entity (an Ash calculation or aggregate) and is loaded with it
+  wherever a layout renders the field. The Ash parser detects the calculations and aggregates of a resource; declare it for
+  any other field that needs the same load. `data: %{generated: true}` is no longer accepted
 - `sortable?` - If true, the index column header offers sorting. The parser sets it from the column type; fields no parser produced default to `false`
 
 ### Presentation State
@@ -475,6 +498,9 @@ end
 ```
 
 The `html_type` option overrides the automatic HTML type inference. The `renderer` option allows providing a custom function or component for rendering the field.
+
+A renderer of the form or the show view can send an event to the component with `phx-target={@auix._myself}`; see
+[Targeting the Component](liveview.md#targeting-the-component).
 
 ### Per-layout renderers
 
