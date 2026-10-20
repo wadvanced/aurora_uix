@@ -53,7 +53,7 @@ spark_extensions="Aurora.Uix.Layout.ResourceMetadata,Aurora.Uix.Layout.CreateUI,
 stage_names=(
   "auix.gen.tailwind_classes"
   "format"
-  "spark.formatter --check"
+  "spark.formatter"
   "compile --warnings-as-errors"
   "credo --strict"
   "dialyzer"
@@ -62,7 +62,7 @@ stage_names=(
 stage_cmds=(
   "auix.gen.tailwind_classes"
   "format"
-  "spark.formatter --check --extensions $spark_extensions"
+  "spark.formatter --extensions $spark_extensions"
   "compile --warnings-as-errors"
   "credo --strict --format oneline"
   "dialyzer --quiet"

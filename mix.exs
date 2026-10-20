@@ -349,7 +349,7 @@ defmodule Aurora.Uix.MixProject do
       consistency: [
         "auix.gen.tailwind_classes",
         "format",
-        "spark.formatter --check --extensions #{@spark_extensions}",
+        "spark.formatter --extensions #{@spark_extensions}",
         "compile --warnings-as-errors",
         "credo --strict",
         "dialyzer",
