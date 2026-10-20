@@ -1,6 +1,6 @@
 # Used by "mix format"
-# The calls of the Aurora UIX DSL, see test/cases/formatter_exports_test.exs
-locals_without_parens = [
+# Managed by `mix spark.formatter`
+spark_locals_without_parens = [
   allow: 1,
   ash_resource: 1,
   auix_create_layout: 0,
@@ -91,8 +91,8 @@ locals_without_parens = [
 
 [
   import_deps: [:ash],
-  locals_without_parens: locals_without_parens,
-  export: [locals_without_parens: locals_without_parens],
+  locals_without_parens: spark_locals_without_parens,
+  export: [locals_without_parens: spark_locals_without_parens],
   inputs: [
     "{mix,.formatter}.exs",
     ".doctor.exs",

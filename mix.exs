@@ -4,6 +4,16 @@ defmodule Aurora.Uix.MixProject do
   @source_url "https://github.com/wadvanced/aurora_uix"
   @version "0.2.0"
 
+  @spark_extensions Enum.join(
+                      [
+                        "Aurora.Uix.Layout.ResourceMetadata",
+                        "Aurora.Uix.Layout.CreateUI",
+                        "Aurora.Uix.Templates.Theme.Extension",
+                        "Aurora.Uix.Layout.Options.Extension"
+                      ],
+                      ","
+                    )
+
   def project do
     [
       app: :aurora_uix,
@@ -268,6 +278,7 @@ defmodule Aurora.Uix.MixProject do
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
       {:image, "~> 0.72", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
+      {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
       {:wallaby, "~> 0.31", only: :test, runtime: false}
     ]
   end
@@ -338,6 +349,7 @@ defmodule Aurora.Uix.MixProject do
       consistency: [
         "auix.gen.tailwind_classes",
         "format",
+        "spark.formatter --check --extensions #{@spark_extensions}",
         "compile --warnings-as-errors",
         "credo --strict",
         "dialyzer",
