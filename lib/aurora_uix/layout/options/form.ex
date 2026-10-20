@@ -39,19 +39,23 @@ defmodule Aurora.Uix.Layout.Options.Form do
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
 
-  use Aurora.Uix.Layout.Options,
-    layout_type: :form,
-    options: [
-      :edit_title,
-      :edit_subtitle,
-      :new_title,
-      :new_subtitle,
-      :save_action_label,
-      :record_navigator,
-      :unsaved_changes_guard_disabled?
-    ]
+  use Aurora.Uix.Layout.Options, layout_type: :form
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
+
+  # A text, or a function of the assigns rendering it.
+  @title {:or, [nil, :string, {:fun, 1}]}
+  # A text, a function returning it, or a function of the assigns.
+  @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
+  @record_navigator {:or, [:atom, {:list, :atom}, {:fun, 1}]}
+
+  option(:edit_title, @title)
+  option(:edit_subtitle, @title)
+  option(:new_title, @title)
+  option(:new_subtitle, @title)
+  option(:save_action_label, @label)
+  option(:record_navigator, @record_navigator)
+  option(:unsaved_changes_guard_disabled?, {:or, [:boolean, {:fun, 1}]})
 
   ## PRIVATE
 

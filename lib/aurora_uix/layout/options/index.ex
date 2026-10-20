@@ -10,9 +10,11 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   * `:alternate_streams_suffixes` - A list of suffixes use for producing multiple streams.
     Current implementation produces an alternate stream for displaying in card format.
+    - Accepts a list of `binary()` or a function of arity 1 that receives assigns.
     - Default: `["mobile"]`.
   * `:infinite_scroll_items_load` - The count of items to read into the streams when the
     infinity scroll pagination triggers.
+    - Accepts a positive `integer()` or a function of arity 1 that receives assigns.
     - Default: `200`.
   * `:pagination_disabled?` - Controls whether pagination is enabled for the index list
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
@@ -22,8 +24,10 @@ defmodule Aurora.Uix.Layout.Options.Index do
     - Accepts `boolean()` or function of arity 1 that receives assigns and returns boolean
     - Default: `false` (sorting active)
   * `:pagination_items_per_page` - Number of items to display per page.
+    - Accepts a positive `integer()` or a function of arity 1 that receives assigns.
     - Default: `40`.
   * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
+    - Accepts a function of arity 2 that receives assigns and the breakpoint.
   * `:page_title` - Title for showing in the page.
     - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
     - Default: `"List {name}"`, where `{name}` is the resource name.
@@ -35,26 +39,31 @@ defmodule Aurora.Uix.Layout.Options.Index do
       `Aurora.Uix.Layout.Options.parse_value/1`).
     - Default: `"New {name}"`, where `{name}` is the resource name.
   * `:get_streams` - Function for extracting row data from assigns
+    - Accepts a function of arity 1.
   * `:row_id` - Function for extracting row identifiers
+    - Accepts a function of arity 1.
   """
 
-  use Aurora.Uix.Layout.Options,
-    layout_type: :index,
-    options: [
-      :pagination_disabled?,
-      :sort_disabled?,
-      :page_title,
-      :page_subtitle,
-      :pages_bar_range_offset,
-      :get_streams,
-      :row_id,
-      :infinite_scroll_items_load,
-      :pagination_items_per_page,
-      :new_action_label,
-      :alternate_streams_suffixes
-    ]
+  use Aurora.Uix.Layout.Options, layout_type: :index
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
+
+  # A text, or a function of the assigns rendering it.
+  @title {:or, [nil, :string, {:fun, 1}]}
+  # A text, a function returning it, or a function of the assigns.
+  @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
+
+  option(:pagination_disabled?, {:or, [:boolean, {:fun, 1}]})
+  option(:sort_disabled?, {:or, [:boolean, {:fun, 1}]})
+  option(:page_title, @title)
+  option(:page_subtitle, @title)
+  option(:pages_bar_range_offset, {:or, [{:fun, 1}, {:fun, 2}]})
+  option(:get_streams, {:fun, 1})
+  option(:row_id, {:fun, 1})
+  option(:infinite_scroll_items_load, {:or, [:pos_integer, {:fun, 1}]})
+  option(:pagination_items_per_page, {:or, [:pos_integer, {:fun, 1}]})
+  option(:new_action_label, @label)
+  option(:alternate_streams_suffixes, {:or, [{:list, :string}, {:fun, 1}]})
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40

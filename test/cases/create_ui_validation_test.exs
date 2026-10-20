@@ -38,6 +38,18 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     end
   end
 
+  test "a layout option of the wrong type fails compilation" do
+    assert_raise DslError,
+                 ~r/index layout: expected :pagination_items_per_page option to match/,
+                 fn ->
+                   compile("""
+                     auix_create_ui do
+                       index_columns :product, [:reference], pagination_items_per_page: "forty"
+                     end
+                   """)
+                 end
+  end
+
   test "an unknown field option fails compilation" do
     assert_raise DslError, ~r/field :name: unknown options \[:lable\]/, fn ->
       compile("""

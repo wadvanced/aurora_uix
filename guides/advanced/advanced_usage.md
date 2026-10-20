@@ -253,7 +253,7 @@ Then use them in different views (organized by role/context):
 ```elixir
 # Admin portal uses admin metadata
 defmodule MyAppWeb.Admin.ProductsLive do
-  @auix_resource_metadata MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_admin)
+  @auix_resource_metadata %{product_admin: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_admin)}
   
   auix_create_ui do
     index_columns(:product_admin, [:reference, :name, :quantity_at_hand, :list_price])
@@ -262,7 +262,7 @@ end
 
 # Customer portal uses customer metadata
 defmodule MyAppWeb.Customer.ProductsLive do
-  @auix_resource_metadata MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_customer)
+  @auix_resource_metadata %{product_customer: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_customer)}
   
   auix_create_ui do
     index_columns(:product_customer, [:reference, :name, :list_price, :rrp])
@@ -271,7 +271,7 @@ end
 
 # Audit logs use audit metadata
 defmodule MyAppWeb.Audit.ProductsLive do
-  @auix_resource_metadata MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_audit)
+  @auix_resource_metadata %{product_audit: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_audit)}
   
   auix_create_ui do
     index_columns(:product_audit, [:reference, :inserted_at, :updated_at])
@@ -284,10 +284,11 @@ end
 To access metadata defined in another module, use the `auix_resource/1` function:
 
 ```elixir
-@auix_resource_metadata MyApp.ResourceMetadata.auix_resource(:product)
+@auix_resource_metadata %{product: MyApp.ResourceMetadata.auix_resource(:product)}
 ```
 
-This retrieves the compiled resource metadata struct from the metadata module.
+`auix_resource/1` returns the resolved `%Aurora.Uix.Resource{}`. `@auix_resource_metadata` takes a map of
+resources by name, so the view refers to the resource by that name.
 
 ### Introspecting generated UI modules
 
@@ -345,7 +346,7 @@ Create metadata modules in the web layer, organized by schema context:
 ```elixir
 # lib/my_app_web/metadata/inventory/product.ex
 defmodule MyAppWeb.Metadata.Inventory.Product do
-  use Aurora.Uix.Layout.ResourceMetadata
+  use Aurora.Uix
   
   alias MyApp.Inventory
   alias MyApp.Inventory.Product
@@ -399,7 +400,7 @@ defmodule MyAppWeb.Admin.ProductsLive do
   
   alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
   
-  @auix_resource_metadata ProductMetadata.auix_resource(:product_admin)
+  @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
   
   auix_create_ui do
     index_columns(:product_admin, [
@@ -428,7 +429,7 @@ defmodule MyAppWeb.Customer.ProductsLive do
   
   alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
   
-  @auix_resource_metadata ProductMetadata.auix_resource(:product_customer)
+  @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
   
   auix_create_ui do
     index_columns(:product_customer, [:reference, :name, :list_price, :rrp])
@@ -454,7 +455,7 @@ defmodule MyAppWeb.Public.ProductCatalogLive do
   
   alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
   
-  @auix_resource_metadata ProductMetadata.auix_resource(:product_customer)
+  @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
   
   auix_create_ui do
     index_columns(:product_customer, [:name, :list_price])
@@ -476,7 +477,7 @@ You can organize metadata for one or multiple schemas within a metadata context 
 ```elixir
 # lib/my_app_web/metadata/inventory/product.ex
 defmodule MyAppWeb.Metadata.Inventory.Product do
-  use Aurora.Uix.Layout.ResourceMetadata
+  use Aurora.Uix
   
   alias MyApp.Inventory
   alias MyApp.Inventory.Product
@@ -497,8 +498,8 @@ end
 # In your views:
 alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
 
-@auix_resource_metadata ProductMetadata.auix_resource(:product_admin)
-@auix_resource_metadata ProductMetadata.auix_resource(:product_customer)
+@auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+@auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
 ```
 
 **Multiple Schemas in Same Context:**
@@ -506,7 +507,7 @@ alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
 # lib/my_app_web/metadata/inventory/catalog.ex
 # Group related schemas together
 defmodule MyAppWeb.Metadata.Inventory.Catalog do
-  use Aurora.Uix.Layout.ResourceMetadata
+  use Aurora.Uix
   
   alias MyApp.Inventory
   alias MyApp.Inventory.{Product, Category, Stock}
@@ -542,21 +543,21 @@ end
 # In your views:
 alias MyAppWeb.Metadata.Inventory.Catalog, as: CatalogMetadata
 
-@auix_resource_metadata CatalogMetadata.auix_resource(:product_admin)
-@auix_resource_metadata CatalogMetadata.auix_resource(:category_admin)
+@auix_resource_metadata %{product_admin: CatalogMetadata.auix_resource(:product_admin)}
+@auix_resource_metadata %{category_admin: CatalogMetadata.auix_resource(:category_admin)}
 ```
 
 **Completely Separate Metadata Modules (Fine-Grained):**
 ```elixir
 # lib/my_app_web/metadata/inventory/products.ex
 defmodule MyAppWeb.Metadata.Inventory.Products do
-  use Aurora.Uix.Layout.ResourceMetadata
+  use Aurora.Uix
   # Product representations only
 end
 
 # lib/my_app_web/metadata/inventory/categories.ex
 defmodule MyAppWeb.Metadata.Inventory.Categories do
-  use Aurora.Uix.Layout.ResourceMetadata
+  use Aurora.Uix
   # Category representations only
 end
 
@@ -564,8 +565,8 @@ end
 alias MyAppWeb.Metadata.Inventory.Products, as: ProductMetadata
 alias MyAppWeb.Metadata.Inventory.Categories, as: CategoryMetadata
 
-@auix_resource_metadata ProductMetadata.auix_resource(:product_admin)
-@auix_resource_metadata CategoryMetadata.auix_resource(:category_admin)
+@auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+@auix_resource_metadata %{category_admin: CategoryMetadata.auix_resource(:category_admin)}
 ```
 
 **Choose based on your preferences:**

@@ -13,6 +13,7 @@
 - Themes list their rules as typed structures (`rules/0`) in preparation for the Spark DSL.
 - Theme DSL (`rule` and `include`) moved to Spark.
 - Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
+- Layout option sets (`option`) moved to Spark; layout option values are type-checked.
 
 ## [0.1.7] - 2026-10-12
 
