@@ -15,56 +15,46 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Baseline do
   """
   use Aurora.Uix.Templates.Theme
 
-  @impl true
-  @spec rule(atom()) :: binary()
-  def rule(:_auix_html) do
-    """
-    html, :host {
-      line-height: revert;
-      background-color: var(--auix-color-bg-default);
-      color: var(--auix-color-text-primary);
-      -webkit-text-size-adjust: 100%;
-      tab-size: 4;
-      font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
-      font-feature-settings: var(--auix-default-font-feature-settings, normal);
-      font-variation-settings: var(--auix-default-font-variation-settings, normal);
-      -webkit-tap-highlight-color: transparent;
-    }
+  rule(:_auix_html, """
+  html, :host {
+    line-height: revert;
+    background-color: var(--auix-color-bg-default);
+    color: var(--auix-color-text-primary);
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(--auix-font-family-default, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
+    font-feature-settings: var(--auix-default-font-feature-settings, normal);
+    font-variation-settings: var(--auix-default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
 
-    /* Reverts tailwind overall setting */
-    *, ::after, ::before, ::backdrop, ::file-selector-button {
-      border: revert;
-    }
-    button, input, select, optgroup, textarea, ::file-selector-button {
-      color: var(--auix-color-text-primary);
-      border-radius: var(--auix-border-radius-small);
-      background-color: transparent;
-      opacity: var(--auix-opacity-100);
-    }
-    """
-  end
+  /* Reverts tailwind overall setting */
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    border: revert;
+  }
+  button, input, select, optgroup, textarea, ::file-selector-button {
+    color: var(--auix-color-text-primary);
+    border-radius: var(--auix-border-radius-small);
+    background-color: transparent;
+    opacity: var(--auix-opacity-100);
+  }
+  """)
 
-  def rule(:_auix_tag_body) do
-    """
-    body {
-      margin: var(--auix-margin-medium);
-    }
-    """
-  end
+  rule(:_auix_tag_body, """
+  body {
+    margin: var(--auix-margin-medium);
+  }
+  """)
 
-  def rule(:_auix_tag_a) do
-    """
-    a {
-      color: inherit;
-      -webkit-text-decoration: inherit;
-      text-decoration: inherit;
-    }
+  rule(:_auix_tag_a, """
+  a {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
 
-    a:hover {
-      cursor: pointer;
-    }
-    """
-  end
-
-  def rule(_), do: ""
+  a:hover {
+    cursor: pointer;
+  }
+  """)
 end
