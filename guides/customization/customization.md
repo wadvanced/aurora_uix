@@ -176,6 +176,14 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `generated?` | Mark a calculation or aggregate loaded with the entity, not stored with it | [Field Properties](../core/resource_metadata.md#validation-and-constraints) |
 | `upload` block | Turn a field into a managed LiveView upload | [File Uploads](../core/resource_metadata.md#file-uploads) |
 
+Options of the resource itself that shape its index list (an `index_columns` layout can set the same ones for one layout):
+
+| Option | Effect | Details |
+|---|---|---|
+| `order_by` | Initial order of the index entries | [Index Query Options](../core/resource_metadata.md#index-query-options) |
+| `where` | Filter of the index entries; the filter bar adds to it | [Index Query Options](../core/resource_metadata.md#index-query-options) |
+| `preload` | Associations the index loads besides the ones its layout renders | [Index Query Options](../core/resource_metadata.md#index-query-options) |
+
 ## 7. Deep Extension Points
 
 **What it is:** the generation pipeline itself is replaceable — custom templates (implement `Aurora.Uix.Template`), custom layout trees, custom data backends (implement `Aurora.Uix.Integration.Crud`), and metadata/UI module separation for reuse across views.
