@@ -35,14 +35,14 @@ Aurora UIX generates complete CRUD UIs out of the box — this hub catalogs ever
 
 ### 1.2 Custom theme modules
 
-**What it is:** themes are Elixir modules (`use Aurora.Uix.Templates.Theme`) that emit CSS rules via pattern-matched `rule/1` functions and compose by delegation.
+**What it is:** themes are Elixir modules (`use Aurora.Uix.Templates.Theme`) that declare CSS rules with `rule` and compose by including a parent theme.
 **When to use it:** you want a named, switchable theme (light/dark variants, brand palettes) rather than ad-hoc overrides.
 
 ```elixir
 defmodule MyApp.Themes.Ocean do
   use Aurora.Uix.Templates.Theme, theme_name: :ocean
-  def rule(:root_colors), do: "..."          # your palette
-  def rule(rule), do: ThemeBase.rule(rule)   # inherit the rest
+  rule :root_colors, "..."   # your palette
+  include ThemeBase          # inherit the rest
 end
 # config/config.exs
 config :aurora_uix, theme_name: :ocean
