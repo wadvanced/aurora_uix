@@ -209,7 +209,7 @@ defmodule Aurora.UixWeb.Test.InlineFieldOptsTest do
 
   auix_create_ui do
     edit_layout :product do
-      inline(reference: [readonly: true], name: [])
+      inline([{:reference, [readonly: true]}, :name])
     end
   end
 

@@ -23,6 +23,12 @@ Sub-layouts are organizational containers that structure how fields are displaye
 - **`group(title, fields)`** or **`group(title, do_block)`** — Visually groups related fields under a title with a border/frame
 - **`sections(do_block)`** — Creates a tabbed container; use with `section` blocks
 - **`section(title, fields)`** or **`section(title, do_block)`** — Represents a single tab; holds fields or nested layouts
+- **`field(key, options)`** — Places one field, with options, inside a block
+
+Every option is checked when the module compiles: an unknown layout or field option, a layout for
+a resource the module does not declare, a field the resource does not have, a `section` outside
+`sections`, or two layouts of the same type for one resource fails compilation at that line. The
+full reference is `Aurora.Uix.Layout.CreateUI`.
 
 ### Field Options
 
@@ -388,17 +394,24 @@ The function receives `assigns` and should return rendered HTML (using sigil `~H
 
 ### Field-Level Options
 
-Customize individual fields within any layout using keyword options:
+Customize individual fields within any layout using keyword options, either in a field list
+or with `field` inside a block:
 
 ```elixir
 edit_layout :product do
-  inline [
-    reference: [readonly: true, length: 20],
-    name: [placeholder: "Product name", length: 100],
-    id: [hidden: true]
-  ]
+  inline do
+    field :reference, readonly: true, length: 20
+    field :name, placeholder: "Product name", length: 100
+    field :id, hidden: true
+  end
 end
 ```
+
+A field list made only of `key: options` pairs, such as
+`inline [reference: [readonly: true], name: []]`, or only of association paths such as
+`{:category_id, :name}`, is read as the sub-layout's own options and fails compilation. Write
+those fields with `field`, as above. A list that also holds a plain field works:
+`inline [{:reference, [readonly: true]}, :name]`.
 
 **Relevant Field Options:**
 - `:readonly` — Make field read-only
@@ -663,11 +676,11 @@ Use field options to hide fields conditionally:
 
 ```elixir
 edit_layout :product do
-  stacked [
-    id: [hidden: true],          # Always hidden
-    reference: [readonly: true], # Visible but read-only
-    name: []                      # Normal editable field
-  ]
+  stacked do
+    field :id, hidden: true          # Always hidden
+    field :reference, readonly: true # Visible but read-only
+    field :name                      # Normal editable field
+  end
 end
 ```
 

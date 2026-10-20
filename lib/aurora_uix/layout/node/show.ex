@@ -7,6 +7,7 @@ defmodule Aurora.Uix.Layout.Node.Show do
 
   ## Key Constraints
   - `id` is `nil` until the build. It is derived from the resource and layout type, so it is stable across compiles.
+  - `__spark_metadata__` is only used while the layout DSL builds the node.
   """
 
   defstruct id: nil,
@@ -15,7 +16,8 @@ defmodule Aurora.Uix.Layout.Node.Show do
             renderers: nil,
             actions: [],
             handler_module: nil,
-            options: []
+            options: [],
+            __spark_metadata__: nil
 
   @type t() :: %__MODULE__{
           id: binary() | nil,
@@ -24,6 +26,7 @@ defmodule Aurora.Uix.Layout.Node.Show do
           renderers: map() | nil,
           actions: keyword(),
           handler_module: module() | nil,
-          options: keyword()
+          options: keyword(),
+          __spark_metadata__: term()
         }
 end

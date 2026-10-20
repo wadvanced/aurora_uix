@@ -5,6 +5,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.ResolveResources do
 
   ## Key Features
   - Runs the resolution in `Aurora.Uix.Layout.ResourceMetadata` once all declarations are read.
+  - Persists the resolved resources as `:auix_resources` for the UI generation
+    (`Aurora.Uix.Layout.CreateUI.GenerateUI`).
 
   ## Key Constraints
   - Defines nothing in a module without resource declarations.
@@ -28,12 +30,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.ResolveResources do
         Counter.start_counter(:auix_fields)
 
         # Resolution expects the latest declaration first.
-        declared
-        |> Enum.map(&ResourceMetadata.prepare_resource(&1, module))
-        |> Enum.reverse()
-        |> ResourceMetadata.resolve_resources()
-        |> ResourceMetadata.resource_functions_code()
-        |> then(&{:ok, Transformer.eval(dsl_state, [], &1)})
+        resources =
+          declared
+          |> Enum.map(&ResourceMetadata.prepare_resource(&1, module))
+          |> Enum.reverse()
+          |> ResourceMetadata.resolve_resources()
+
+        dsl_state
+        |> Transformer.persist(:auix_resources, resources)
+        |> Transformer.eval([], ResourceMetadata.resource_functions_code(resources))
+        |> then(&{:ok, &1})
     end
   end
 end

@@ -16,6 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   """
 
   alias Aurora.Uix.Templates.Basic.Handlers.Index, as: IndexHandler
+  alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   @doc """
@@ -40,12 +41,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
 
         use unquote(parsed_opts.modules.web), :live_view
 
-        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
-
         @impl true
         def mount(params, session, socket) do
           socket
-          |> BasicHelpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+          |> Helpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
           |> then(&unquote(handler_module).mount(params, session, &1))
         end
 

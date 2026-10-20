@@ -94,8 +94,6 @@ defmodule Aurora.Uix do
   """
   use StructInspect.Overrides
 
-  alias Aurora.Uix.Layout.CreateLayout
-  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Template
 
   require Logger
@@ -107,17 +105,9 @@ defmodule Aurora.Uix do
 
       @auix_html_type_renderers unquote(Keyword.get(opts, :renderers, Macro.escape(%{})))
       Module.register_attribute(__MODULE__, :auix_resource_metadata, accumulate: true)
-      Module.register_attribute(__MODULE__, :auix_layout_opts, accumulate: false)
-      Module.register_attribute(__MODULE__, :auix_layouts, accumulate: true)
 
       @auix_template Template.uix_template()
       @auix_layout_tags Template.uix_template().layout_tags()
-
-      import CreateLayout,
-        only: [auix_create_layout: 1, auix_create_layout: 2]
-
-      import CreateUI,
-        only: [auix_create_ui: 0, auix_create_ui: 1, auix_create_ui: 2]
     end
   end
 end

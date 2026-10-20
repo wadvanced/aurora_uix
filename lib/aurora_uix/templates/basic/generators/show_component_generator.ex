@@ -55,13 +55,12 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component
-        alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
 
         @impl true
         def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do
           socket
           |> assign(assigns)
-          |> BasicHelpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+          |> Helpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
           |> then(&unquote(handler_module).update(assigns, &1))
         end
 
