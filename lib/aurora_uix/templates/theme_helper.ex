@@ -157,43 +157,64 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   end
 
   @doc """
-  Extracts the rule contents and replace and create a new rule using the target_name.
+  Copies another rule of the same theme into a rule's CSS, renaming its selector.
+
+  Used inside a `rule` of a theme. The copy is made when the theme compiles, from the theme's own
+  or included rules.
 
   ## Parameters
   - `rule_source` (`atom()`) - rule name to import from.
   - `target_name` (`binary()` | `atom()`) - rule to create.
 
   ## Returns
-  - `binary()` - The new css rule.
+  - `binary()` - A marker that the theme replaces with the renamed CSS of `rule_source`.
 
   """
-  @spec import_rule(atom(), binary() | atom()) :: Macro.t()
-  defmacro import_rule(rule_source, target_name) do
-    parsed_rule_source =
-      rule_source
-      |> to_string()
-      |> String.replace("_", "-")
-      |> String.replace_leading("-", "")
+  @spec import_rule(atom(), binary() | atom()) :: binary()
+  def import_rule(rule_source, target_name), do: "<<auix_import:#{rule_source}:#{target_name}>>"
 
-    parsed_target_name =
-      target_name
-      |> to_string()
-      |> String.replace("_", "-")
+  @doc """
+  Replaces the `import_rule/2` markers of a rule's CSS.
 
-    quote do
-      unquote(rule_source)
-      |> rule()
-      |> then(
-        &Regex.replace(
-          ~r"\.#{unquote(parsed_rule_source)}\b",
-          &1,
-          ".#{unquote(parsed_target_name)}"
-        )
-      )
-    end
-  end
+  ## Parameters
+  - `css` (`binary()`) - The rule's CSS.
+  - `css_by_name` (`map()`) - The theme's rules CSS, by rule name as a string.
+  - `module` (`module()`) - The theme, for error reporting.
+
+  ## Returns
+  - `binary()` - The CSS with each marker replaced by the imported rule's CSS, renamed.
+
+  """
+  @spec resolve_imports(binary(), map(), module()) :: binary()
+  def resolve_imports(css, css_by_name, module), do: resolve_imports(css, css_by_name, module, [])
 
   ## PRIVATE
+
+  @spec resolve_imports(binary(), map(), module(), [binary()]) :: binary()
+  defp resolve_imports(css, css_by_name, module, seen) do
+    Regex.replace(~r/<<auix_import:(\w+):(\w+)>>/, css, fn _marker, source, target ->
+      if source in seen or not Map.has_key?(css_by_name, source) do
+        raise Spark.Error.DslError,
+          module: module,
+          path: [:rule, String.to_existing_atom(target)],
+          message: "import_rule cannot import #{source}"
+      end
+
+      css_by_name
+      |> Map.fetch!(source)
+      |> resolve_imports(css_by_name, module, [source | seen])
+      |> rename_rule(source, target)
+    end)
+  end
+
+  # Mirrors the class names: `_auix_flash` and `auix_flash__info` become `auix-flash` and
+  # `auix-flash--info`.
+  @spec rename_rule(binary(), binary(), binary()) :: binary()
+  defp rename_rule(css, source, target) do
+    source = source |> String.replace("_", "-") |> String.replace_leading("-", "")
+    target = String.replace(target, "_", "-")
+    Regex.replace(~r"\.#{source}\b", css, ".#{target}")
+  end
 
   # Emits the CSS of the named rules of a theme, in the given order. A name the theme does not
   # list emits nothing.

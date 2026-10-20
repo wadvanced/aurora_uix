@@ -1,18 +1,18 @@
 # Creating Custom Registered Themes
 
-Aurora UIX's theme system leverages Elixir's pattern matching and module composition to create flexible, composable CSS generation. Rather than hard-coding CSS, themes are Elixir modules that define rules dynamically, allowing you to create custom themes by extending base rules with your own color palettes and styling.
+Aurora UIX's theme system composes CSS from Elixir modules. A theme declares its rules by name and includes another theme for everything it does not declare, so you create a custom theme by extending the base rules with your own color palette and styling.
 
 ## Understanding the Theme Architecture
 
-Aurora UIX themes follow a four-layer delegation chain:
+Aurora UIX themes follow a four-layer include chain:
 
 **Layer 1: Color Palette**
 - Defines all color variables for a specific theme variant
-- Uses pattern matching to define `:root_colors` rule
+- Declares the `:root_colors` rule
 - Implements both light and dark mode variants
 - Theme-specific and forms the foundation
 - Example: `VitreousMarble` theme with Slate/Cyan/Ruby colors
-- Delegates everything else to Layer 2 (`ThemeBase`)
+- Includes Layer 2 (`ThemeBase`) for everything else
 
 **Layer 2: Color Aliases**
 - Defines `:root_color_aliases` - component-specific color variables (buttons, inputs,
@@ -20,49 +20,66 @@ Aurora UIX themes follow a four-layer delegation chain:
 - Sits between the theme palette and the structural variables, so a single alias can be
   overridden to restyle one component without touching its siblings
 - Shared across all themes - implemented once in `ThemeBase`
-- Delegates everything else to Layer 3 (`BaseVariables`)
+- Includes Layer 3 (`BaseVariables`) for everything else
 
 **Layer 3: Base Variables**
 - Defines all structural CSS variables (sizes, spacing, fonts, shadows)
 - Color-agnostic - contains only dimension and layout properties
-- Delegates to Base for additional rules
+- Includes `Base` for the class rules
 - Example: `BaseVariables` defines `--auix-padding-default`, `--auix-border-radius-default`, etc.
 
 **Layer 4: Base Rules**
 - Defines all CSS class rules (`.auix-button-default`, `.auix-button`, `.auix-input`, etc.)
 - Uses the color and alias variables from Layers 1-2
 - Shared across all themes
-- Delegated through pattern matching for composition
+- Reached by every theme through the `include` chain
 
-## How It Works: Pattern Matching & Composition
+## How It Works: Rules & Includes
 
-Each theme module implements the `Aurora.Uix.Templates.Theme` behaviour with a `rule/1` function. This function uses pattern matching to return CSS for specific rule names:
+Each theme module uses `Aurora.Uix.Templates.Theme` and declares its rules with `rule name, css`.
+`include` brings in every rule of another theme that the module does not declare itself:
 
 ```elixir
-def rule(:root_colors) do
-  # Returns CSS for color variables (Layer 1)
-end
+defmodule MyApp.Themes.MyTheme do
+  use Aurora.Uix.Templates.Theme, theme_name: :my_theme
 
-def rule(:root) do
-  # Returns CSS for structural variables (Layer 3)
-end
+  rule :root_colors, """
+  :root[data-theme-name="#{@theme_name}"] {
+    /* CSS for color variables (Layer 1) */
+  }
+  """
 
-def rule(:_auix_button_default) do
-  # Returns CSS for button styling (Layer 4)
-end
+  rule :_auix_button_default, """
+  .auix-button-default {
+    /* CSS for button styling (Layer 4) */
+  }
+  """
 
-def rule(other_rule) do
-  # Delegate to parent theme
-  SomeOtherTheme.rule(other_rule)
+  # Every other rule comes from the parent theme
+  include Aurora.Uix.Templates.Basic.Themes.ThemeBase
 end
 ```
 
-This pattern allows **composition**: each theme layer only defines what it needs, delegating everything else to the parent layer.
+This allows **composition**: each theme layer only declares what it needs and includes the parent
+layer for everything else. A rule with the same name as an included rule replaces it.
 
-Every theme also gets a generated `rules/0`, which lists its rules in stylesheet order as
+Rules come in the order they are written, and an `include` places the included theme's rules
+where it is written. Write `include` last so your rules come first, as the built-in themes do. A
+theme declares each rule name once and has at most one `include`; anything else fails
+compilation.
+
+A rule's CSS is built when the theme compiles. It can use `@theme_name`, module attributes and
+functions of other modules, but not functions of the theme itself.
+
+Inside a rule, `import_rule(:source_rule, :target_rule)` copies another rule of the theme,
+renaming its class selector. For example, `import_rule(:_auix_button_default, :auix_button)` copies
+`.auix-button-default { ... }` as `.auix-button { ... }`.
+
+Every theme gets a generated `rules/0`, which lists its rules in stylesheet order as
 `Aurora.Uix.Templates.Theme.Rule` structs. Each one has the rule `name`, its `css`, and its
-`source`: `:local` for a rule the theme defines, or `{:theme, module}` for a rule that comes from
-the theme it delegates to. `rule_names/0` returns the same names.
+`source`: `:local` for a rule the theme declares, or `{:theme, module}` for a rule that comes from
+the theme it includes. `rule_names/0` returns the same names and `rule/1` returns one rule's CSS,
+or `""` for a name the theme does not have.
 
 ## Layer 1: Color Palette (Custom Theme)
 
@@ -74,44 +91,30 @@ defmodule MyApp.Themes.CustomTheme do
   
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
-  @impl true
-  def rule(:root_colors) do
-    """
+  rule :root_colors, """
+  :root[data-theme-name="#{@theme_name}"],
+  :host[data-theme-name="#{@theme_name}"] {
+    /* Light Mode Colors (Default) */
+    --auix-color-bg-default: #FFFFFF;
+    --auix-color-bg-secondary: #F3F4F6;
+    --auix-color-text-primary: #111827;
+    --auix-color-text-secondary: #4B5563;
+    --auix-color-error: #EF4444;
+    --auix-color-info-ring: #3B82F6;
+    
+    /* Dark Mode Color Values (Stored as separate variables) */
+    --dark--auix-color-bg-default: #0F172A;
+    --dark--auix-color-bg-secondary: #1F2937;
+    --dark--auix-color-text-primary: #F8FAFC;
+    --dark--auix-color-text-secondary: #D1D5DB;
+    --dark--auix-color-error: #EF5350;
+    --dark--auix-color-info-ring: #64B5F6;
+  }
+  
+  /* Apply Dark Mode via Media Query (respects OS preference) */
+  @media (prefers-color-scheme: dark) {
     :root[data-theme-name="#{@theme_name}"],
     :host[data-theme-name="#{@theme_name}"] {
-      /* Light Mode Colors (Default) */
-      --auix-color-bg-default: #FFFFFF;
-      --auix-color-bg-secondary: #F3F4F6;
-      --auix-color-text-primary: #111827;
-      --auix-color-text-secondary: #4B5563;
-      --auix-color-error: #EF4444;
-      --auix-color-info-ring: #3B82F6;
-      
-      /* Dark Mode Color Values (Stored as separate variables) */
-      --dark--auix-color-bg-default: #0F172A;
-      --dark--auix-color-bg-secondary: #1F2937;
-      --dark--auix-color-text-primary: #F8FAFC;
-      --dark--auix-color-text-secondary: #D1D5DB;
-      --dark--auix-color-error: #EF5350;
-      --dark--auix-color-info-ring: #64B5F6;
-    }
-    
-    /* Apply Dark Mode via Media Query (respects OS preference) */
-    @media (prefers-color-scheme: dark) {
-      :root[data-theme-name="#{@theme_name}"],
-      :host[data-theme-name="#{@theme_name}"] {
-        --auix-color-bg-default: var(--dark--auix-color-bg-default);
-        --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
-        --auix-color-text-primary: var(--dark--auix-color-text-primary);
-        --auix-color-text-secondary: var(--dark--auix-color-text-secondary);
-        --auix-color-error: var(--dark--auix-color-error);
-        --auix-color-info-ring: var(--dark--auix-color-info-ring);
-      }
-    }
-    
-    /* Apply Dark Mode via Data Attribute (explicit override, highest priority) */
-    :root[data-theme="dark"][data-theme-name="#{@theme_name}"],
-    :host[data-theme="dark"][data-theme-name="#{@theme_name}"] {
       --auix-color-bg-default: var(--dark--auix-color-bg-default);
       --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
       --auix-color-text-primary: var(--dark--auix-color-text-primary);
@@ -119,12 +122,21 @@ defmodule MyApp.Themes.CustomTheme do
       --auix-color-error: var(--dark--auix-color-error);
       --auix-color-info-ring: var(--dark--auix-color-info-ring);
     }
-    """
-  end
+  }
+  
+  /* Apply Dark Mode via Data Attribute (explicit override, highest priority) */
+  :root[data-theme="dark"][data-theme-name="#{@theme_name}"],
+  :host[data-theme="dark"][data-theme-name="#{@theme_name}"] {
+    --auix-color-bg-default: var(--dark--auix-color-bg-default);
+    --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
+    --auix-color-text-primary: var(--dark--auix-color-text-primary);
+    --auix-color-text-secondary: var(--dark--auix-color-text-secondary);
+    --auix-color-error: var(--dark--auix-color-error);
+    --auix-color-info-ring: var(--dark--auix-color-info-ring);
+  }
+  """
 
-  # Delegate everything else to ThemeBase (Layer 2)
-  @impl true
-  def rule(rule), do: ThemeBase.rule(rule)
+  include ThemeBase
 end
 ```
 
@@ -135,7 +147,7 @@ end
 - Dark mode colors stored as `--dark--` prefixed variables in the same rule
 - Use `@media (prefers-color-scheme: dark)` to switch colors based on OS preference
 - Use `[data-theme="dark"]` selector for explicit dark mode override (highest priority)
-- Delegate non-color rules to parent layer via pattern matching
+- `include` the parent layer for every non-color rule
 
 ## Understanding Light and Dark Modes
 
@@ -183,21 +195,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
 
   alias Aurora.Uix.Templates.Basic.Themes.BaseVariables
 
-  @impl true
-  def rule(:root_color_aliases) do
-    """
-    :root, :host {
-      --auix-color-label-text: var(--auix-color-text-label);
-      --auix-color-input-text: var(--auix-color-text-primary);
-      --auix-color-button-bg: var(--auix-color-bg-default--reverted);
-      /* ... more component aliases ... */
-    }
-    """
-  end
+  rule :root_color_aliases, """
+  :root, :host {
+    --auix-color-label-text: var(--auix-color-text-label);
+    --auix-color-input-text: var(--auix-color-text-primary);
+    --auix-color-button-bg: var(--auix-color-bg-default--reverted);
+    /* ... more component aliases ... */
+  }
+  """
 
-  # Delegate everything else to BaseVariables
-  @impl true
-  def rule(rule), do: BaseVariables.rule(rule)
+  include BaseVariables
 end
 ```
 
@@ -214,28 +221,23 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
   use Aurora.Uix.Templates.Theme
   alias Aurora.Uix.Templates.Basic.Themes.Base
 
-  @impl true
-  def rule(:root) do
-    """
-    :root, :host {
-      /* Sizes & Dimensions */
-      --auix-box-size-unit: 1rem;
-      --auix-border-radius-default: 0.5rem;
-      --auix-padding-default: 0.625rem;
-      
-      /* Fonts */
-      --auix-font-size-title: 1.125rem;
-      --auix-font-family-default: var(--auix-font-sans);
-      
-      /* Shadows */
-      --auix-shadow-default: 0 1px 3px 0 var(--auix-color-shadow-black-alpha);
-    }
-    """
-  end
+  rule :root, """
+  :root, :host {
+    /* Sizes & Dimensions */
+    --auix-box-size-unit: 1rem;
+    --auix-border-radius-default: 0.5rem;
+    --auix-padding-default: 0.625rem;
+    
+    /* Fonts */
+    --auix-font-size-title: 1.125rem;
+    --auix-font-family-default: var(--auix-font-sans);
+    
+    /* Shadows */
+    --auix-shadow-default: 0 1px 3px 0 var(--auix-color-shadow-black-alpha);
+  }
+  """
 
-  # Delegate everything else to Base
-  @impl true
-  def rule(rule), do: Base.rule(rule)
+  include Base
 end
 ```
 
@@ -251,44 +253,30 @@ defmodule MyApp.Themes.Ocean do
   
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
 
-  @impl true
-  def rule(:root_colors) do
-    """
+  rule :root_colors, """
+  :root[data-theme-name="#{@theme_name}"],
+  :host[data-theme-name="#{@theme_name}"] {
+    /* Light Mode (Default) */
+    --auix-color-bg-default: #E0F2FE;      /* Sky-100 */
+    --auix-color-bg-secondary: #BAE6FD;    /* Sky-200 */
+    --auix-color-text-primary: #0C4A6E;    /* Sky-900 */
+    --auix-color-text-secondary: #0369A1;  /* Sky-700 */
+    --auix-color-error: #0EA5E9;           /* Sky-400 */
+    --auix-color-focus-ring: #06B6D4;      /* Cyan-500 */
+    
+    /* Dark Mode Color Values */
+    --dark--auix-color-bg-default: #082F49;
+    --dark--auix-color-bg-secondary: #0C4A6E;
+    --dark--auix-color-text-primary: #E0F2FE;
+    --dark--auix-color-text-secondary: #38BDF8;
+    --dark--auix-color-error: #38BDF8;
+    --dark--auix-color-focus-ring: #06B6D4;
+  }
+  
+  /* Apply Dark Mode via Media Query */
+  @media (prefers-color-scheme: dark) {
     :root[data-theme-name="#{@theme_name}"],
     :host[data-theme-name="#{@theme_name}"] {
-      /* Light Mode (Default) */
-      --auix-color-bg-default: #E0F2FE;      /* Sky-100 */
-      --auix-color-bg-secondary: #BAE6FD;    /* Sky-200 */
-      --auix-color-text-primary: #0C4A6E;    /* Sky-900 */
-      --auix-color-text-secondary: #0369A1;  /* Sky-700 */
-      --auix-color-error: #0EA5E9;           /* Sky-400 */
-      --auix-color-focus-ring: #06B6D4;      /* Cyan-500 */
-      
-      /* Dark Mode Color Values */
-      --dark--auix-color-bg-default: #082F49;
-      --dark--auix-color-bg-secondary: #0C4A6E;
-      --dark--auix-color-text-primary: #E0F2FE;
-      --dark--auix-color-text-secondary: #38BDF8;
-      --dark--auix-color-error: #38BDF8;
-      --dark--auix-color-focus-ring: #06B6D4;
-    }
-    
-    /* Apply Dark Mode via Media Query */
-    @media (prefers-color-scheme: dark) {
-      :root[data-theme-name="#{@theme_name}"],
-      :host[data-theme-name="#{@theme_name}"] {
-        --auix-color-bg-default: var(--dark--auix-color-bg-default);
-        --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
-        --auix-color-text-primary: var(--dark--auix-color-text-primary);
-        --auix-color-text-secondary: var(--dark--auix-color-text-secondary);
-        --auix-color-error: var(--dark--auix-color-error);
-        --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
-      }
-    }
-    
-    /* Apply Dark Mode via Data Attribute (explicit override) */
-    :root[data-theme="dark"][data-theme-name="#{@theme_name}"],
-    :host[data-theme="dark"][data-theme-name="#{@theme_name}"] {
       --auix-color-bg-default: var(--dark--auix-color-bg-default);
       --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
       --auix-color-text-primary: var(--dark--auix-color-text-primary);
@@ -296,11 +284,21 @@ defmodule MyApp.Themes.Ocean do
       --auix-color-error: var(--dark--auix-color-error);
       --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
     }
-    """
-  end
+  }
+  
+  /* Apply Dark Mode via Data Attribute (explicit override) */
+  :root[data-theme="dark"][data-theme-name="#{@theme_name}"],
+  :host[data-theme="dark"][data-theme-name="#{@theme_name}"] {
+    --auix-color-bg-default: var(--dark--auix-color-bg-default);
+    --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
+    --auix-color-text-primary: var(--dark--auix-color-text-primary);
+    --auix-color-text-secondary: var(--dark--auix-color-text-secondary);
+    --auix-color-error: var(--dark--auix-color-error);
+    --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
+  }
+  """
 
-  @impl true
-  def rule(rule), do: ThemeBase.rule(rule)
+  include ThemeBase
 end
 ```
 
@@ -336,42 +334,34 @@ defmodule MyApp.Themes.CompactTheme do
   # Because `<.button>` applies `.auix-button-default` as its structural base,
   # customising it here propagates to every button variant (primary, alt, index-bar)
   # without touching color rules.
-  @impl true
-  def rule(:_auix_button_default) do
-    """
-    .auix-button-default {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding: 0.25rem 0.5rem;  /* More compact padding */
-      font-size: 0.75rem;        /* Smaller font */
-      border-radius: 0.25rem;    /* Tighter corners */
-    }
-    """
-  end
+  rule :_auix_button_default, """
+  .auix-button-default {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.25rem 0.5rem;  /* More compact padding */
+    font-size: 0.75rem;        /* Smaller font */
+    border-radius: 0.25rem;    /* Tighter corners */
+  }
+  """
 
   # Define colors
-  @impl true
-  def rule(:root_colors) do
-    """
-    :root[data-theme-name="#{@theme_name}"],
-    :host[data-theme-name="#{@theme_name}"] {
-      --auix-color-bg-default: #FFFFFF;
-      --auix-color-text-primary: #000000;
-      /* ... other colors ... */
-    }
-    """
-  end
+  rule :root_colors, """
+  :root[data-theme-name="#{@theme_name}"],
+  :host[data-theme-name="#{@theme_name}"] {
+    --auix-color-bg-default: #FFFFFF;
+    --auix-color-text-primary: #000000;
+    /* ... other colors ... */
+  }
+  """
 
-  # Delegate everything else
-  @impl true
-  def rule(rule), do: ThemeBase.rule(rule)
+  include ThemeBase
 end
 ```
 
-**Pattern matching allows you to**:
+**Rules and includes allow you to**:
 - Define custom rules for specific selectors
-- Delegate to parent theme for everything else
+- Include the parent theme for everything else
 - Incrementally customize without duplicating code
 
 ## Using Custom Themes
@@ -384,7 +374,7 @@ Simply create a theme module that uses the `Aurora.Uix.Templates.Theme` macro:
 defmodule MyApp.Themes.Ocean do
   use Aurora.Uix.Templates.Theme, theme_name: :ocean
   
-  # ... define your rule(:root_colors), etc.
+  # ... declare your rule :root_colors, etc.
 end
 ```
 
@@ -442,46 +432,37 @@ end
 
 The CSS will automatically apply the correct theme based on the `data-theme-name` attribute.
 
-## The Power of Pattern Matching
+## Building Rules from Shared CSS
 
-The real power comes from Elixir's pattern matching and module composition:
+Rule CSS is built when the theme compiles, so keep shared pieces in module attributes or in
+functions of another module:
 
 ```elixir
 defmodule MyApp.Themes.Advanced do
   use Aurora.Uix.Templates.Theme, theme_name: :advanced
-  
+
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
+  alias MyApp.Themes.Palette
+
+  @radius "0.25rem"
 
   # Custom rule for buttons
-  def rule(:_auix_button_default), do: custom_button_styles()
-  
+  rule :_auix_button_default, ".auix-button-default { border-radius: #{@radius}; }"
+
   # Custom rule for inputs
-  def rule(:_auix_input_default), do: custom_input_styles()
-  
-  # Custom colors
-  def rule(:root_colors), do: custom_colors()
-  
-  # Everything else delegates
-  def rule(rule), do: ThemeBase.rule(rule)
+  rule :_auix_input, ".auix-input { border-radius: #{@radius}; }"
 
-  defp custom_button_styles do
-    # Your button CSS
-  end
+  # Custom colors, built by another module
+  rule :root_colors, Palette.root_colors(@theme_name)
 
-  defp custom_input_styles do
-    # Your input CSS
-  end
-
-  defp custom_colors do
-    # Your color variables
-  end
+  include ThemeBase
 end
 ```
 
 This approach provides:
 - **Composition**: Each layer adds its own rules
 - **Overridability**: Replace any rule you want
-- **Delegation**: Unused rules inherit from parent
+- **Inclusion**: Undeclared rules come from the parent
 - **Reusability**: Share base variables across themes
 - **Maintainability**: Clear separation of concerns
 
@@ -494,31 +475,27 @@ defmodule MyApp.Themes.BrandTheme do
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
   
   # Only override what's specific to your brand
-  @impl true
-  def rule(:root_colors) do
-    """
-    :root[data-theme-name="#{@theme_name}"],
-    :host[data-theme-name="#{@theme_name}"] {
-      /* Brand Colors */
-      --auix-color-bg-default: #F9F5F0;        /* Brand cream */
-      --auix-color-text-primary: #2C1810;      /* Brand dark brown */
-      --auix-color-focus-ring: #C85A3A;        /* Brand orange */
-      --auix-color-error: #D32F2F;
-      --auix-color-info-ring: #1976D2;
-      
-      /* Shadows using brand colors */
-      --auix-color-shadow-alpha: rgba(44, 24, 16, 0.08);
-      
-      /* Dark mode */
-      --dark--auix-color-bg-default: #1A1208;
-      --dark--auix-color-text-primary: #F9F5F0;
-      --dark--auix-color-focus-ring: #FF9966;
-    }
-    """
-  end
+  rule :root_colors, """
+  :root[data-theme-name="#{@theme_name}"],
+  :host[data-theme-name="#{@theme_name}"] {
+    /* Brand Colors */
+    --auix-color-bg-default: #F9F5F0;        /* Brand cream */
+    --auix-color-text-primary: #2C1810;      /* Brand dark brown */
+    --auix-color-focus-ring: #C85A3A;        /* Brand orange */
+    --auix-color-error: #D32F2F;
+    --auix-color-info-ring: #1976D2;
+    
+    /* Shadows using brand colors */
+    --auix-color-shadow-alpha: rgba(44, 24, 16, 0.08);
+    
+    /* Dark mode */
+    --dark--auix-color-bg-default: #1A1208;
+    --dark--auix-color-text-primary: #F9F5F0;
+    --dark--auix-color-focus-ring: #FF9966;
+  }
+  """
 
-  @impl true
-  def rule(rule), do: ThemeBase.rule(rule)
+  include ThemeBase
 end
 ```
 
