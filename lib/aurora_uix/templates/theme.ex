@@ -35,6 +35,7 @@ defmodule Aurora.Uix.Templates.Theme do
   /
 
   alias Aurora.Uix.Templates.Theme
+  alias Aurora.Uix.Templates.Theme.Rule
 
   @doc """
   Callback that should return the CSS rule for a given rule name.
@@ -59,6 +60,15 @@ defmodule Aurora.Uix.Templates.Theme do
   @callback rule_names() :: list()
 
   @doc """
+  Callback that should return the theme's rules, in stylesheet order.
+
+  ## Returns
+
+  ([Rule.t()]) - One `Aurora.Uix.Templates.Theme.Rule` per rule name.
+  """
+  @callback rules() :: [Rule.t()]
+
+  @doc """
   Injects the `Theme` behaviour and callbacks into the calling module.
   """
   @spec __using__(any()) :: Macro.t()
@@ -73,32 +83,52 @@ defmodule Aurora.Uix.Templates.Theme do
   end
 
   @doc """
-  Injects the `rule_names/0` function into the module before compilation.
+  Injects `rules/0` and `rule_names/0` into the module before compilation.
 
-  This function is generated based on the `rule/1` function definitions in the module.
+  The rule names and their sources come from the `rule/1` clause heads. A clause delegating to
+  another theme (`def rule(rule), do: OtherTheme.rule(rule)`) brings in that theme's rules.
   """
   @spec __before_compile__(Macro.Env.t()) :: Macro.t()
   defmacro __before_compile__(env) do
-    module = env.module
-
-    rule_names =
-      module
+    entries =
+      env.module
       |> Module.get_definition({:rule, 1})
       |> elem(3)
       |> Enum.map(&get_rule_names/1)
-      |> process_alias_modules()
-      |> Enum.reject(&(is_nil(&1) or &1 == :_))
-      |> Enum.uniq()
+      |> Enum.flat_map(&rule_entries/1)
+      |> Enum.uniq_by(&elem(&1, 0))
 
     quote do
       @doc false
-      @spec rule_names() :: list()
-      def rule_names, do: List.flatten(unquote(rule_names))
+      @spec rules() :: [Rule.t()]
+      def rules, do: Theme.build_rules(__MODULE__, unquote(Macro.escape(entries)))
+
+      @doc false
+      @spec rule_names() :: [atom()]
+      def rule_names, do: Enum.map(rules(), & &1.name)
 
       @doc false
       @spec theme_name() :: atom()
       def theme_name, do: @theme_name
     end
+  end
+
+  @doc """
+  Builds the rules of a theme from its rule names and their sources.
+
+  ## Parameters
+  - `module` (module()) - The theme module; its `rule/1` gives each rule's CSS.
+  - `entries` ([{atom(), Rule.source()}]) - The rule names, in stylesheet order, with their
+    sources.
+
+  ## Returns
+  `[Rule.t()]` - The theme's rules.
+  """
+  @spec build_rules(module(), [{atom(), Rule.source()}]) :: [Rule.t()]
+  def build_rules(module, entries) do
+    Enum.map(entries, fn {name, source} ->
+      %Rule{name: name, css: module.rule(name), source: source}
+    end)
   end
 
   @doc false
@@ -131,21 +161,27 @@ defmodule Aurora.Uix.Templates.Theme do
 
   defp process_contents({name, _contents}), do: name
 
-  @spec process_alias_modules(list(atom() | nil)) :: list(atom() | nil)
-  defp process_alias_modules(clauses) do
-    Enum.map(clauses, &module_rules/1)
-  end
+  # A clause named after a rule is a local rule; a clause delegating to another theme brings in
+  # that theme's rules, keeping where each one comes from.
+  @spec rule_entries(atom() | nil) :: [{atom(), Rule.source()}]
+  defp rule_entries(name) when name in [nil, :_], do: []
 
-  @spec module_rules(atom() | nil) :: atom() | nil
-  defp module_rules(module) when is_atom(module) do
-    with {:module, module} <- Code.ensure_compiled(module),
-         true <- {:rule_names, 0} in module.__info__(:functions) do
-      module.rule_names()
+  defp rule_entries(name) do
+    if theme_module?(name) do
+      Enum.map(name.rules(), &{&1.name, delegated_source(&1.source, name)})
     else
-      {:error, _} -> module
-      _ -> nil
+      [{name, :local}]
     end
   end
+
+  @spec theme_module?(atom()) :: boolean()
+  defp theme_module?(name) do
+    match?({:module, _}, Code.ensure_compiled(name)) and function_exported?(name, :rules, 0)
+  end
+
+  @spec delegated_source(Rule.source(), module()) :: Rule.source()
+  defp delegated_source(:local, module), do: {:theme, module}
+  defp delegated_source(source, _module), do: source
 
   @spec process_option(module(), tuple()) :: any()
   defp process_option(module, {:theme_name, theme_name}),
