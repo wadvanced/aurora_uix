@@ -28,6 +28,10 @@ This release is breaking: see the What's New guide for the upgrade checklist.
 - Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
 - Layout option sets (`option`) moved to Spark; layout option values are type-checked.
 
+### Documentation
+
+- Migration prompt in the 0.2.0 What's New guide: step-by-step rules a coding assistant follows to migrate from 0.1.7.
+
 ## [0.1.7] - 2026-10-12
 
 **Card View Sorting & Safer Dynamic Ids**
