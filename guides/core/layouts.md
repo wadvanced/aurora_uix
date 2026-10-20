@@ -399,22 +399,19 @@ or with `field` inside a block:
 
 ```elixir
 edit_layout :product do
-  inline [
-    :description,
-    reference: [readonly: true, length: 20],
-    name: [placeholder: "Product name", length: 100]
-  ]
-
   inline do
+    field :reference, readonly: true, length: 20
+    field :name, placeholder: "Product name", length: 100
     field :id, hidden: true
-    field :msrp, readonly: true
   end
 end
 ```
 
-A field list made only of `key: options` pairs (or of association paths such as
-`{:category_id, :name}`) is read as the sub-layout's own options and fails compilation. Write
-those fields with `field`, or include a plain field in the list.
+A field list made only of `key: options` pairs, such as
+`inline [reference: [readonly: true], name: []]`, or only of association paths such as
+`{:category_id, :name}`, is read as the sub-layout's own options and fails compilation. Write
+those fields with `field`, as above. A list that also holds a plain field works:
+`inline [{:reference, [readonly: true]}, :name]`.
 
 **Relevant Field Options:**
 - `:readonly` — Make field read-only
