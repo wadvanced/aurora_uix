@@ -3,20 +3,25 @@ defmodule Aurora.Uix.Layout.Options do
   Provides a framework for defining and retrieving layout-specific options.
 
   Intended to be `used` by layout option sets (e.g., `Index`, `Form`, `Show`) to establish
-  a common interface for handling options. Each option set lists its options, exposed as
-  `Aurora.Uix.Layout.Options.Option` structs by `options/0`.
+  a common interface for handling options. Each option set declares its options with
+  `option name, type`, exposed as `Aurora.Uix.Layout.Options.Option` structs by `options/0`.
 
   ## Usage
 
   ```elixir
   defmodule MyLayout.Options do
-    use Aurora.Uix.Layout.Options, layout_type: :my_layout, options: [:my_option]
+    use Aurora.Uix.Layout.Options, layout_type: :my_layout
+
+    option :my_option, {:or, [:string, {:fun, 1}]}
 
     # The option's value when the layout does not set it.
     defp get_default(_assigns, :my_option), do: {:ok, "default"}
     defp get_default(_assigns, option), do: {:not_found, option}
   end
   ```
+
+  A layout's value for an option is validated against the option's `Spark.Options` type when the
+  layout compiles.
 
   ## Function-valued options
 
@@ -66,23 +71,59 @@ defmodule Aurora.Uix.Layout.Options do
   """
   @callback get(assigns :: map(), option :: atom()) :: any()
 
-  # Injects option handling into an option set.
+  # Brings in the option set DSL (`option name, type`).
   #
   # ## Parameters
-  # - `opts` (keyword()) - `:layout_type`, the layout the options belong to, and `:options`, the
-  #   option names. Each option needs a `get_default/2` clause in the calling module.
+  # - `opts` (keyword()) - `:layout_type`, the layout the options belong to. Each option needs a
+  #   `get_default/2` clause in the calling module.
   #
   # ## Returns
-  # Macro.t() - The `options/0` and `get/2` definitions.
+  # Macro.t() - The DSL, the behaviour and the `get_option/3` import.
   @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(opts) do
-    {layout_type, names} = LayoutOptions.__using_opts__(opts)
-    options = Enum.map(names, &%Option{layout_type: layout_type, name: &1})
+    layout_type = LayoutOptions.__layout_type__(opts)
 
     quote do
+      use Aurora.Uix.Layout.Options.Definition
+
       @behaviour LayoutOptions
       import LayoutOptions, only: [get_option: 3]
 
+      @auix_layout_type unquote(layout_type)
+    end
+  end
+
+  @doc false
+  # Reads the `use` options. The 0.1.x `use Aurora.Uix.Layout.Options, :layout_type` fails, so a
+  # set never ends up accepting no options.
+  @spec __layout_type__(keyword() | atom()) :: atom()
+  def __layout_type__(opts) when is_list(opts) do
+    opts |> Keyword.validate!([:layout_type]) |> Keyword.fetch!(:layout_type)
+  end
+
+  def __layout_type__(layout_type) do
+    raise ArgumentError,
+          "use Aurora.Uix.Layout.Options, #{inspect(layout_type)} no longer finds the options; " <>
+            "write `use Aurora.Uix.Layout.Options, layout_type: #{inspect(layout_type)}` and " <>
+            "declare each option with `option :name, type`"
+  end
+
+  @doc """
+  Returns the code defining an option set's `options/0` and `get/2`.
+
+  ## Parameters
+  - `layout_type` (atom()) - The layout the options belong to.
+  - `options` ([Option.t()]) - The declared options.
+
+  ## Returns
+  `Macro.t()` - The function definitions. `get/2` reads a declared option from the layout, then
+  from the set's `get_default/2`.
+  """
+  @spec options_code(atom(), [Option.t()]) :: Macro.t()
+  def options_code(layout_type, options) do
+    names = Enum.map(options, & &1.name)
+
+    quote do
       @doc false
       @spec options() :: [Option.t()]
       def options do
@@ -104,18 +145,20 @@ defmodule Aurora.Uix.Layout.Options do
     end
   end
 
-  @doc false
-  # Reads the `use` options. `use Aurora.Uix.Layout.Options, :layout_type` from 0.1.x lists no
-  # options, so it fails instead of accepting none.
-  @spec __using_opts__(keyword() | atom()) :: {atom(), [atom()]}
-  def __using_opts__(opts) when is_list(opts) do
-    {Keyword.fetch!(opts, :layout_type), Keyword.fetch!(opts, :options)}
-  end
+  @doc """
+  Returns the options of a layout type, from every registered option set.
 
-  def __using_opts__(layout_type) do
-    raise ArgumentError,
-          "use Aurora.Uix.Layout.Options, #{inspect(layout_type)} no longer lists the options; " <>
-            "write `use Aurora.Uix.Layout.Options, layout_type: #{inspect(layout_type)}, options: [...]`"
+  ## Parameters
+  - `layout_type` (atom()) - The layout type (e.g., `:index`, `:form`).
+
+  ## Returns
+  `[Option.t()]` - The options, with their types.
+  """
+  @spec options(atom()) :: [Option.t()]
+  def options(layout_type) do
+    @layout_options_parsers
+    |> Enum.flat_map(& &1.options())
+    |> Enum.filter(&(&1.layout_type == layout_type))
   end
 
   @doc """
@@ -134,9 +177,8 @@ defmodule Aurora.Uix.Layout.Options do
   """
   @spec available_options(atom()) :: list(atom())
   def available_options(layout_type) do
-    @layout_options_parsers
-    |> Enum.flat_map(& &1.options())
-    |> Enum.filter(&(&1.layout_type == layout_type))
+    layout_type
+    |> options()
     |> Enum.map(& &1.name)
   end
 

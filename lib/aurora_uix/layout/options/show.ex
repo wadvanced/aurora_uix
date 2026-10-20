@@ -30,17 +30,21 @@ defmodule Aurora.Uix.Layout.Options.Show do
     - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
   """
 
-  use Aurora.Uix.Layout.Options,
-    layout_type: :show,
-    options: [
-      :page_title,
-      :page_subtitle,
-      :edit_action_label,
-      :back_action_label,
-      :record_navigator
-    ]
+  use Aurora.Uix.Layout.Options, layout_type: :show
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
+
+  # A text, or a function of the assigns rendering it.
+  @title {:or, [nil, :string, {:fun, 1}]}
+  # A text, a function returning it, or a function of the assigns.
+  @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
+  @record_navigator {:or, [:atom, {:list, :atom}, {:fun, 1}]}
+
+  option(:page_title, @title)
+  option(:page_subtitle, @title)
+  option(:edit_action_label, @label)
+  option(:back_action_label, @label)
+  option(:record_navigator, @record_navigator)
 
   ## PRIVATE
 

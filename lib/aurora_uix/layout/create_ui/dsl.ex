@@ -400,23 +400,47 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     known = option_names(layout_type)
     unknown = options |> Keyword.keys() |> Enum.reject(&(&1 in known))
 
-    case unknown do
-      [] ->
-        {:ok,
-         %{
-           renderers: typed[:renderers],
-           handler_module: typed[handler_key],
-           order_by: typed[:order_by],
-           where: typed[:where],
-           actions: actions,
-           options: options
-         }}
+    with :ok <-
+           reject_unknown(
+             unknown,
+             layout_type,
+             action_names ++ typed_keys(layout_type, handler_key) ++ known
+           ),
+         :ok <- validate_option_types(options, layout_type) do
+      {:ok,
+       %{
+         renderers: typed[:renderers],
+         handler_module: typed[handler_key],
+         order_by: typed[:order_by],
+         where: typed[:where],
+         actions: actions,
+         options: options
+       }}
+    end
+  end
 
-      _unknown ->
-        valid = Enum.sort(action_names ++ typed_keys(layout_type, handler_key) ++ known)
+  @spec reject_unknown([atom()], atom(), [atom()]) :: :ok | {:error, binary()}
+  defp reject_unknown([], _layout_type, _valid), do: :ok
 
-        {:error,
-         "unknown #{layout_type} layout options #{inspect(unknown)}, valid options are: #{inspect(valid)}"}
+  defp reject_unknown(unknown, layout_type, valid) do
+    {:error,
+     "unknown #{layout_type} layout options #{inspect(unknown)}, valid options are: #{inspect(Enum.sort(valid))}"}
+  end
+
+  # Each option-set option is checked against the type its option set declares.
+  @spec validate_option_types(keyword(), atom()) :: :ok | {:error, binary()}
+  defp validate_option_types(options, layout_type) do
+    schema =
+      layout_type
+      |> Options.options()
+      |> Enum.map(&{&1.name, [type: &1.type]})
+      |> then(
+        &if(layout_type == :form, do: [{:show_handler_module, [type: :atom]} | &1], else: &1)
+      )
+
+    case Spark.Options.validate(options, schema) do
+      {:ok, _validated} -> :ok
+      {:error, error} -> {:error, "#{layout_type} layout: #{Exception.message(error)}"}
     end
   end
 
