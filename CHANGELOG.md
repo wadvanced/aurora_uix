@@ -1,6 +1,6 @@
 # Changelog for Aurora UIX
 
-## [0.2.0] - 2026-10-20
+## [0.2.0] - 2026-10-21
 
 **Spark DSLs**
 
