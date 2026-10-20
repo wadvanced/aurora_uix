@@ -28,6 +28,11 @@ This release is breaking: see the What's New guide for the upgrade checklist.
 - Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
 - Layout option sets (`option`) moved to Spark; layout option values are type-checked.
 
+### Documentation
+
+- `auix.load_items_options`: the keys the index handler reads, when it rebuilds them and how a handler scopes the list at runtime
+  (LiveView guide, "Scoping the Index Query at Runtime").
+
 ### Fixed
 
 - **`preload` on a resource and on `index_columns`**: 0.1.7 accepted both, undocumented, and loaded the

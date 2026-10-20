@@ -956,6 +956,48 @@ When the index loads:
 - Products are sorted by `:name` (from layout)
 - The sort is applied at the database level for performance
 
+### Scoping the Index Query at Runtime
+
+The index handler keeps the query of the list in `auix.load_items_options`, a keyword list. A custom
+`IndexImpl` handler can read it and replace it with `assign_auix(socket, :load_items_options, ...)`.
+Only these keys are read; any other is ignored:
+
+| Key | Value |
+|-----|-------|
+| `:where` | A list of conditions, a map of equalities, a single condition or a dynamic expression |
+| `:order_by` | The order of the entries |
+| `:preload` | Associations to load besides the ones the layout renders |
+
+The handler builds it from the resource's options, the index layout's options and the associations the
+layout renders, each time it loads the list: on mount, on `auix_route_back` and when the items per page change.
+Submitting the filters and changing the sort read it again, add the submitted filters and the sort to it, and reload
+the list. Other reloads, such as a refresh after a save, reuse the query last built.
+
+Choose where to set a `where` by how long it must last:
+
+- **From the first load on**: in `mount/3`, before calling `super`, change the layout tree. It is read at every rebuild,
+  so it lasts for the life of the view.
+
+  ```elixir
+  def mount(params, session, %{assigns: %{auix: auix}} = socket) do
+    layout_tree = struct(auix.layout_tree, where: {:reference, :lt, "item_test-06"})
+
+    super(params, session, assign_auix(socket, :layout_tree, layout_tree))
+  end
+  ```
+
+- **After the list is loaded**: replace `load_items_options`. It applies from the next filter submit or sort change,
+  and the next rebuild discards it. To last, also change the layout tree as above.
+
+  ```elixir
+  load_items_options =
+    Keyword.put(auix.load_items_options, :where, [{:reference, :lt, "item_test-06"}])
+
+  assign_auix(socket, :load_items_options, load_items_options)
+  ```
+
+The other query assigns of `auix` (`query_options`, `read_items`) are internal: they change between releases.
+
 ## Navigation
 
 Aurora UIX handles navigation through:
