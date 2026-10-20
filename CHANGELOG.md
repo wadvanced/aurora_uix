@@ -35,6 +35,10 @@ This release is breaking: see the What's New guide for the upgrade checklist.
   (and the resource-level `where`, which 0.1.7 also honoured) in `auix_resource_metadata`, and `preload` as an
   index layout option. `:paginate` is no longer in the index handler's query options, since it never had an effect.
 
+- **Formatter exports**: `.formatter.exs` exported only `auix_resource_metadata`, `field`, `fields` and `upload`, so
+  `mix format` wrapped every other call of the Spark DSLs (`schema`, `label`, `backend_opts`, `rule`, `inline`, ...) in
+  parentheses. It now exports all of them; add `:aurora_uix` to `import_deps` of the host's `.formatter.exs`.
+
 - **Declaring a generated field**: `data: %{generated: true}` was rejected and nothing replaced it, so a calculation or
   aggregate the parser did not detect was never loaded with the entity. The new `generated?` field option declares it.
 

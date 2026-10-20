@@ -28,6 +28,21 @@ Then fetch the dependencies:
 mix deps.get
 ```
 
+## Formatter
+
+Aurora UIX exports the calls of its DSLs (`schema`, `label`, `backend_opts`, `rule`, `inline`, ...) so
+`mix format` keeps them without parentheses. Import them in your `.formatter.exs`:
+
+```elixir
+[
+  import_deps: [:aurora_uix],
+  # ...
+]
+```
+
+Without it, `mix format` rewrites `ash_resource Employment` as `ash_resource(Employment)`, and keeps the
+parentheses afterwards.
+
 ## Live Updates (optional)
 
 Name your application's PubSub server so every generated index updates when data changes in
