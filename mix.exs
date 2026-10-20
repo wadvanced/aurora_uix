@@ -346,9 +346,24 @@ defmodule Aurora.Uix.MixProject do
     ]
   end
 
+  # ExDoc's copy button joins the text of the child elements of `code`, so a plain `text` block
+  # (no highlighting spans) copies as empty. This copies the whole text of such blocks instead.
   defp before_closing_body_tag(_),
-    do:
-      ~s(<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>)
+    do: """
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.4.0/mermaid.esm.min.mjs"></script>
+    <script>
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("pre > .copy-button")
+        const code = button && button.parentElement.querySelector(":scope > code")
+        if (!code || code.children.length > 0) return
+        event.stopImmediatePropagation()
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          button.classList.add("clicked")
+          setTimeout(() => button.classList.remove("clicked"), 3000)
+        })
+      }, true)
+    </script>
+    """
 
   defp filter_modules(module, _map) do
     module
