@@ -228,12 +228,12 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.34"},
+      {:ash, "~> 3.36"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.14"},
+      {:ash_postgres, "~> 2.15"},
       {:aurora_ctx, "~> 0.1.11"},
       {:accessible, "~> 0.3"},
-      {:bandit, "~> 1.12"},
+      {:bandit, "~> 1.13"},
       {:css_parser, "~> 0.1"},
       {:ecto_sql, "~> 3.14"},
       {:gettext, "~> 1.0"},

@@ -10,6 +10,13 @@ This release is breaking: see the What's New guide for the upgrade checklist.
 
 ### Changed
 
+- **Updated Dependencies**
+  - ash: 3.34.6 -> 3.36.1
+  - ash_postgres: 2.14.5 -> 2.15.1
+  - bandit: 1.12.5 -> 1.13.1
+  - esbuild: 0.10.0 -> 0.10.1
+  - phoenix: 1.8.15 -> 1.8.16
+  - phoenix_live_view: 1.2.12 -> 1.2.13
 - Resource metadata (`Aurora.Uix.Resource`, `Aurora.Uix.Field`) uses typed structures in preparation for
   the Spark DSL.
 - Resource metadata DSL moved to Spark.
