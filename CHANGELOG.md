@@ -35,6 +35,9 @@ This release is breaking: see the What's New guide for the upgrade checklist.
   (and the resource-level `where`, which 0.1.7 also honoured) in `auix_resource_metadata`, and `preload` as an
   index layout option. `:paginate` is no longer in the index handler's query options, since it never had an effect.
 
+- **Declaring a generated field**: `data: %{generated: true}` was rejected and nothing replaced it, so a calculation or
+  aggregate the parser did not detect was never loaded with the entity. The new `generated?` field option declares it.
+
 ### Documentation
 
 - Migration prompt in the 0.2.0 What's New guide: step-by-step rules a coding assistant follows to migrate from 0.1.7.

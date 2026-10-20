@@ -84,6 +84,11 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     disabled: [type: :boolean, doc: "Excludes the field from form interaction."],
     omitted: [type: :boolean, doc: "Removes the field from the UI entirely."],
     filterable?: [type: :boolean, doc: "Whether the field can be filtered in the index."],
+    generated?: [
+      type: :boolean,
+      doc:
+        "Marks a calculation or aggregate that is loaded with the entity, not stored with it. The parser detects the usual ones."
+    ],
     sortable?: [
       type: :boolean,
       doc: "Whether the index column offers sorting. Parsed from the column type when omitted."

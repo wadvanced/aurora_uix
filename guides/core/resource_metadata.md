@@ -365,6 +365,9 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `scale` - Number of digits to the right of decimal separator for numeric fields
 - `required` - If true, the field should not be empty
 - `filterable?` - If true, the field can participate in filtering UI interfaces
+- `generated?` - If true, the value is not stored with the entity (an Ash calculation or aggregate) and is loaded with it
+  wherever a layout renders the field. The Ash parser detects the calculations and aggregates of a resource; declare it for
+  any other field that needs the same load. `data: %{generated: true}` is no longer accepted
 - `sortable?` - If true, the index column header offers sorting. The parser sets it from the column type; fields no parser produced default to `false`
 
 ### Presentation State

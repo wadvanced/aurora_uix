@@ -36,6 +36,9 @@ defmodule Aurora.Uix.Field do
       expanded. A function of arity 1 receives the rendering assigns.
     - `upload` (`Aurora.Uix.Field.Upload.t()` | `nil`) - Turns the field into a managed LiveView
       upload field. See `Aurora.Uix.Field.Upload`.
+    - `generated?` (`boolean` | `nil`) - If true the value is not stored with the entity (an Ash
+      calculation or aggregate) and is loaded with it when a layout renders the field. The Ash parser
+      sets it in `data` for the calculations and aggregates it discovers; declare it for any other.
     - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
@@ -124,6 +127,7 @@ defmodule Aurora.Uix.Field do
     :renderer_opts,
     :expanded,
     :upload,
+    :generated?,
     :data,
     resolved?: false,
     __spark_metadata__: nil
@@ -158,6 +162,7 @@ defmodule Aurora.Uix.Field do
           renderer_opts: keyword() | nil,
           expanded: boolean() | function() | nil,
           upload: Upload.t() | nil,
+          generated?: boolean() | nil,
           resolved?: boolean(),
           __spark_metadata__: term()
         }

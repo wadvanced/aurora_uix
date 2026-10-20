@@ -173,6 +173,7 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `option_label` | Label source for select dropdowns (atom or function) | [Many-to-One](../core/resource_metadata.md#many-to-one-belongs_to) |
 | `query_opts: [order_by: …]` | Sort order for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
 | `query_opts: [where: …]` | Filter for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `generated?` | Mark a calculation or aggregate loaded with the entity, not stored with it | [Field Properties](../core/resource_metadata.md#validation-and-constraints) |
 | `upload` block | Turn a field into a managed LiveView upload | [File Uploads](../core/resource_metadata.md#file-uploads) |
 
 ## 7. Deep Extension Points
