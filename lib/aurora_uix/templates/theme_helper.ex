@@ -84,7 +84,6 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     theme_module = theme_module()
 
     theme_module.rule_names()
-    |> List.flatten()
     |> Enum.reject(&(&1 in [:root, :root_colors, :root_color_aliases]))
     |> style(theme_module)
     |> Enum.join(" ")
@@ -105,7 +104,6 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   @spec generate_baseline_stylesheet() :: binary()
   def generate_baseline_stylesheet do
     Baseline.rule_names()
-    |> List.flatten()
     |> style(Baseline)
     |> Enum.join(" ")
   end
@@ -197,22 +195,19 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   ## PRIVATE
 
-  # Generates the `<style>` tag with the CSS rules.
-  # For dynamic themes, generates a component call. For static themes, embeds CSS directly.
-  @spec style(list(), module()) :: list()
-  defp style(rules, theme) do
-    Enum.map(rules, &"#{read_rule(&1, theme)}\n")
-  end
+  # Emits the CSS of the named rules of a theme, in the given order. A name the theme does not
+  # list emits nothing.
+  @spec style([atom()], module()) :: [binary()]
+  defp style(rule_names, theme) do
+    css_by_name = Map.new(theme.rules(), &{&1.name, &1.css})
 
-  # Reads a single CSS rule from the theme.
-  # Converts dashed names to snake_case atoms and fetches the rule from the theme module.
-  @spec read_rule(binary() | atom(), module()) :: binary()
-  defp read_rule(rule, theme) do
-    rule
-    |> convert_dashes()
-    |> theme.rule()
-    |> trim_rule()
-    |> CssSanitizer.sanitize_css()
+    Enum.map(rule_names, fn rule_name ->
+      css_by_name
+      |> Map.get(rule_name, "")
+      |> trim_rule()
+      |> CssSanitizer.sanitize_css()
+      |> then(&"#{&1}\n")
+    end)
   end
 
   # Trims unnecessary whitespace and comments from a CSS rule.
@@ -236,16 +231,6 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
     else
       rule
     end
-  end
-
-  # Converts a string with dashes to a snake_case atom.
-  # Used to convert CSS class names (kebab-case) to Elixir function names (snake_case).
-  @spec convert_dashes(binary() | atom()) :: atom()
-  defp convert_dashes(rule) do
-    rule
-    |> to_string()
-    |> String.replace("-", "_")
-    |> String.to_atom()
   end
 
   @spec find_registered_themes() :: map()

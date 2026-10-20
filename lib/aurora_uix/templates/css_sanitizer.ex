@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   from the theme module through the CSS sanitization pipeline.
 
   Parameters:
-    - theme_module (module): Theme module implementing rule_names/0 and rule/1 functions
+    - theme_module (module): Theme module implementing rules/0
 
   Returns:
     - :ok (implicitly) - logs validation results and errors
@@ -116,12 +116,8 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   def validate_theme_rules(theme_module) do
     Logger.configure(level: :debug)
 
-    rule_names = theme_module.rule_names()
-
-    rule_names
-    |> Enum.map(fn rule_name ->
-      theme_module.rule(rule_name)
-    end)
+    theme_module.rules()
+    |> Enum.map(& &1.css)
     |> Enum.each(&sanitize_css/1)
   end
 
