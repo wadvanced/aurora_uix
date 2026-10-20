@@ -12,6 +12,7 @@
 - Reusable layouts: `auix_create_ui include:` uses the layouts of other modules.
 - Themes list their rules as typed structures (`rules/0`) in preparation for the Spark DSL.
 - Theme DSL (`rule` and `include`) moved to Spark.
+- Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
 
 ## [0.1.7] - 2026-10-12
 

@@ -39,7 +39,18 @@ defmodule Aurora.Uix.Layout.Options.Form do
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
 
-  use Aurora.Uix.Layout.Options, :form
+  use Aurora.Uix.Layout.Options,
+    layout_type: :form,
+    options: [
+      :edit_title,
+      :edit_subtitle,
+      :new_title,
+      :new_subtitle,
+      :save_action_label,
+      :record_navigator,
+      :unsaved_changes_guard_disabled?
+    ]
+
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   ## PRIVATE

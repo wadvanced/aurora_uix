@@ -38,7 +38,22 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:row_id` - Function for extracting row identifiers
   """
 
-  use Aurora.Uix.Layout.Options, :index
+  use Aurora.Uix.Layout.Options,
+    layout_type: :index,
+    options: [
+      :pagination_disabled?,
+      :sort_disabled?,
+      :page_title,
+      :page_subtitle,
+      :pages_bar_range_offset,
+      :get_streams,
+      :row_id,
+      :infinite_scroll_items_load,
+      :pagination_items_per_page,
+      :new_action_label,
+      :alternate_streams_suffixes
+    ]
+
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   @default_pages_bar_range_offset 2
