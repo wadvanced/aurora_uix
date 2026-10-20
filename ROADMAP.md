@@ -5,18 +5,20 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.1.7
+## Current Status: v0.2.0
 
-Aurora UIX v0.1.7 adds a sort control to the mobile card view and a `sort_disabled?` index layout option, fixes invalid CSS id selectors for ids that start with a digit, and removes the `:or_where` and `:select` index options that never reached the query.
+Aurora UIX v0.2.0 moves the resource metadata, layout, theme and layout option DSLs to Spark. Options are type-checked at compile time, and layouts can be reused across modules with `auix_create_ui include:`. This release is breaking; see the What's New guide.
 
-**Recent Changes (v0.1.7)**:
-- Sort control (field select and direction button) in the mobile card view
-- `sort_disabled?` index layout option turns user sorting off
-- Attribute-based id selectors (`uix_id_selector/2`) fix delete actions on ids starting with a digit
-- `:or_where` and `:select` are no longer accepted as index layout options
-- Updated `ash` and `ash_postgres`
+**Recent Changes (v0.2.0)**:
+- Resource metadata, layout, theme and layout option DSLs moved to Spark
+- Typed structures for resources, fields, layout nodes, theme rules and layout options
+- Reusable layouts (`auix_create_ui include:`)
 
-**Previous Release (v0.1.6)**:
+**Previous Release (v0.1.7)**:
+- Card view sort control and `sort_disabled?` index option
+- Attribute-based id selectors for ids starting with a digit
+
+**Earlier Release (v0.1.6)**:
 - Sortable index column headers
 - Predefined field renderers (`:toggle_switch`, `:color`, `:badge`, `:progress_bar`, `:url`, `:rating`) and a `renderers:` map by HTML type
 - Live updates across sessions through Phoenix PubSub (`Aurora.Uix.Events`)

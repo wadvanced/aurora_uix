@@ -123,7 +123,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.1.7"}
+    {:aurora_uix, "~> 0.2.0"}
   ]
 end
 ```
@@ -226,7 +226,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background tutorial: from nothing installed to a running CRUD app
 - **[Overview](./guides/overview/overview.md)** — Architecture and core concepts
 - **[Getting Started](./guides/introduction/getting_started.md)** — Installation and first CRUD UI
-- **[What's New](./guides/whats_new/0.1.7.md)** — Headline changes of 0.1.7 with upgrade notes and examples; one page is kept per release in `guides/whats_new/`
+- **[What's New](./guides/whats_new/0.2.0.md)** — Headline changes of 0.2.0 with upgrade notes and examples; one page is kept per release in `guides/whats_new/`
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic

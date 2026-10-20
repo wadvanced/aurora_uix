@@ -1,6 +1,12 @@
 # Changelog for Aurora UIX
 
-## [Unreleased]
+## [0.2.0] - 2026-10-20
+
+**Spark DSLs**
+
+This release moves the resource metadata, layout, theme and layout option DSLs to Spark. Options are
+validated at compile time, and layouts can be reused across modules with `auix_create_ui include:`.
+This release is breaking: see the What's New guide for the upgrade checklist.
 
 ### Changed
 
