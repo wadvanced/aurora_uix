@@ -59,6 +59,11 @@ end
 
 This pattern allows **composition**: each theme layer only defines what it needs, delegating everything else to the parent layer.
 
+Every theme also gets a generated `rules/0`, which lists its rules in stylesheet order as
+`Aurora.Uix.Templates.Theme.Rule` structs. Each one has the rule `name`, its `css`, and its
+`source`: `:local` for a rule the theme defines, or `{:theme, module}` for a rule that comes from
+the theme it delegates to. `rule_names/0` returns the same names.
+
 ## Layer 1: Color Palette (Custom Theme)
 
 Create your own theme by defining colors as the foundation:

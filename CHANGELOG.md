@@ -10,6 +10,7 @@
 - Layouts (`Aurora.Uix.Layout.Node`) use typed structures in preparation for the Spark DSL.
 - Layout DSL (`auix_create_ui` and its layouts) moved to Spark.
 - Reusable layouts: `auix_create_ui include:` uses the layouts of other modules.
+- Themes list their rules as typed structures (`rules/0`) in preparation for the Spark DSL.
 
 ## [0.1.7] - 2026-10-12
 
