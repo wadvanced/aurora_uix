@@ -344,6 +344,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          IncludedLayoutsTest,
+          "included-layouts-"
+        )
+
+        RoutesHelper.register_product_crud(
           SelectedTest,
           "selected-"
         )

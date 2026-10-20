@@ -684,6 +684,41 @@ edit_layout :product do
 end
 ```
 
+### Reusable Layouts
+
+Declare layouts in their own module with `auix_create_layout`, and bring them into any module
+that generates a UI with `auix_create_ui include:`:
+
+```elixir
+defmodule MyAppWeb.ProductLayouts do
+  use Aurora.Uix
+
+  auix_create_layout do
+    edit_layout :product do
+      inline [:reference, :name]
+    end
+  end
+end
+
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix
+
+  auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Product
+
+  auix_create_ui include: MyAppWeb.ProductLayouts do
+    show_layout :product do
+      inline [:name]
+    end
+  end
+end
+```
+
+`include` takes one module or a list. Each module returns its layouts from `auix_layouts/0`, so a
+module with `auix_create_ui` can be included too. For one resource and layout type, the module's
+own layout replaces an included one, and a later included module replaces an earlier one.
+Included layouts are checked against the including module's resources, and the including module
+recompiles when an included module changes.
+
 ## Best Practices
 
 1. **Keep layouts readable** — Avoid deeply nested structures; prefer multiple groups over excessive nesting

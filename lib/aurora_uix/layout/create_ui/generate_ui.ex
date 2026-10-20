@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
     evaluates the generated code in the declaring module.
 
   ## Key Constraints
-  - Generates nothing in a module without `auix_create_ui`.
+  - A module without `auix_create_ui` only gets `auix_layouts/0`, when it declares layouts.
   - A module holds at most one `auix_create_ui`.
   """
 
@@ -32,16 +32,24 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
 
     case Enum.filter(calls, &(&1.kind == :auix_create_ui)) do
       [] ->
-        {:ok, dsl_state}
+        calls
+        |> CreateUI.collect_layouts([], module)
+        |> layouts_only(dsl_state)
 
       [ui] ->
         resources = resources(dsl_state, module)
-        layouts = CreateUI.collect_layouts(calls, module)
+        opts = CreateUI.ui_opts(ui)
+        includes = opts |> Keyword.get(:include) |> List.wrap()
+        included = CreateUI.included_layouts(includes, module)
+        layouts = CreateUI.collect_layouts(calls, included, module)
         :ok = CreateUI.validate_layouts(layouts, resources, module)
 
+        # The included layouts are read at compile time, so the module recompiles with them.
+        requires = Enum.map(includes, &quote(do: require(unquote(&1))))
+
         module
-        |> CreateUI.ui_code(layouts, resources, CreateUI.ui_opts(ui))
-        |> then(&{:ok, Transformer.eval(dsl_state, [], &1)})
+        |> CreateUI.ui_code(layouts, resources, opts)
+        |> then(&{:ok, Transformer.eval(dsl_state, [], [requires, &1])})
 
       _several ->
         raise DslError,
@@ -50,6 +58,13 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
           message: "a module holds one auix_create_ui"
     end
   end
+
+  # A module with layouts and no `auix_create_ui` only exposes them, for others to include.
+  @spec layouts_only([Aurora.Uix.Layout.Node.layout()], map()) :: {:ok, map()}
+  defp layouts_only([], dsl_state), do: {:ok, dsl_state}
+
+  defp layouts_only(layouts, dsl_state),
+    do: {:ok, Transformer.eval(dsl_state, [], CreateUI.layouts_code(layouts))}
 
   # The declared resources, plus any a module writes to `@auix_resource_metadata` by hand.
   @spec resources(map(), module()) :: map()
