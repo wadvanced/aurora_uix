@@ -32,6 +32,8 @@ This release is breaking: see the What's New guide for the upgrade checklist.
 
 - `auix.load_items_options`: the keys the index handler reads, when it rebuilds them and how a handler scopes the list at runtime
   (LiveView guide, "Scoping the Index Query at Runtime").
+- `remove_selected_action` and `@auix._myself`, plus which `auix` assigns and markup a host may rely on
+  (`fields_to_reject` is supported; the filter and query assigns are internal).
 
 ### Fixed
 

@@ -287,6 +287,9 @@ remove_header_action: :default_sort
 
 # Remove the Back link from a show page footer
 remove_footer_action: :default_back
+
+# Remove the bulk delete button shown when rows are selected
+remove_selected_action: :default_selected_delete_all
 ```
 
 All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name).
@@ -382,6 +385,8 @@ end
   - `.selection` — Selection state (index layouts only)
   - `.pagination` — Pagination state (index layouts only)
   - `.filters_enabled?` — Whether filters panel is open
+  - `._myself` — The component's `@myself` in form and show actions; target it with `phx-target` to send an event to the
+    form or show handler (see [Targeting the Component](../core/liveview.md#targeting-the-component))
 
 **Row Info Structure:**
 
@@ -445,7 +450,8 @@ This helper handles both single and composite primary keys:
 
 A bulk action runs over the rows the user ticked in the index. It takes three pieces: a control
 in the selected-actions strip, a layout option that places it there, and a handler clause that
-does the work. This recipe adds a **Deactivate selected** button that sets `inactive` on every
+does the work. The built-in controls are `:default_selected_uncheck_all`, `:default_selected_delete_all` and
+`:default_selected_check_all`; `remove_selected_action` removes any of them. This recipe adds a **Deactivate selected** button that sets `inactive` on every
 selected product.
 
 **1. The control.** The selected-actions strip calls each action with `%{auix: auix}`.

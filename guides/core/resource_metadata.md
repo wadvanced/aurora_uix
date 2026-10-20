@@ -499,6 +499,9 @@ end
 
 The `html_type` option overrides the automatic HTML type inference. The `renderer` option allows providing a custom function or component for rendering the field.
 
+A renderer of the form or the show view can send an event to the component with `phx-target={@auix._myself}`; see
+[Targeting the Component](liveview.md#targeting-the-component).
+
 ### Per-layout renderers
 
 `renderer` applies to the **form (edit)** and **show** layouts. To render a field differently

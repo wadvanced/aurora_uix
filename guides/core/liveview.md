@@ -615,6 +615,53 @@ defmodule MyApp.ProductShowHandler do
 end
 ```
 
+#### Targeting the Component
+
+The form and the show view are LiveComponents, so an event sent from a custom renderer or action reaches the
+parent LiveView unless it names the component. Both handlers set `@auix._myself` to the component's `@myself`
+for that:
+
+```elixir
+def archive_button(assigns) do
+  ~H"""
+  <button type="button" phx-click="archive" phx-target={@auix._myself}>Archive</button>
+  """
+end
+
+# or, from a Phoenix.LiveView.JS command
+JS.push("archive", target: @auix._myself)
+```
+
+The event is handled by the `auix_handle_event/3` of the form or show handler, as in the examples above.
+`@auix._myself` exists in the form and the show view only: the index is a LiveView, so its events need no target.
+
+#### Hiding Fields at Runtime
+
+A form or show handler hides fields for one entity by assigning `:fields_to_reject`, a list of field keys. The
+renderer skips them, in any group or section:
+
+```elixir
+import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]
+
+@impl FormImpl
+def auix_update(assigns, socket) do
+  {:ok, socket} = super(assigns, socket)
+
+  {:ok, assign_auix(socket, :fields_to_reject, [:internal_notes])}
+end
+```
+
+Use the `hidden` and `omitted` field options when the field is hidden for every entity.
+
+#### What Is Internal
+
+Besides the callbacks and assigns this guide documents, `:fields_to_reject` and `@auix._myself` are the only
+`auix` assigns a handler may rely on. The others, such as `:index_layout_form`, `:filters_selected_count`,
+`:query_options` and `:read_items`, are internal and can change in any release. The `auix-*` CSS classes and the
+`name` and `id` attributes of the generated markup, such as `auix-delete-*`, follow the semi-public policy of the
+[styling guide](../customization/styling.md#escape-hatch-semantic-class-overrides): they can change in any
+release, and the change is listed in the CHANGELOG.
+
 ## Reacting to Data Changes
 
 When the host names a PubSub server, every data change made through a generated UI is
