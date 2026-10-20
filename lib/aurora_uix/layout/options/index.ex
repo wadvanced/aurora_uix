@@ -38,6 +38,9 @@ defmodule Aurora.Uix.Layout.Options.Index do
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
       `Aurora.Uix.Layout.Options.parse_value/1`).
     - Default: `"New {name}"`, where `{name}` is the resource name.
+  * `:preload` - Associations the index list loads besides the ones the layout renders, e.g.
+    `[:category, posts: :author]`. It replaces the resource's `preload` for this layout.
+    - Accepts a `list()`.
   * `:get_streams` - Function for extracting row data from assigns
     - Accepts a function of arity 1.
   * `:row_id` - Function for extracting row identifiers
@@ -58,6 +61,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
   option(:page_title, @title)
   option(:page_subtitle, @title)
   option(:pages_bar_range_offset, {:or, [{:fun, 1}, {:fun, 2}]})
+  option(:preload, {:list, :any})
   option(:get_streams, {:fun, 1})
   option(:row_id, {:fun, 1})
   option(:infinite_scroll_items_load, {:or, [:pos_integer, {:fun, 1}]})

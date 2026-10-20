@@ -28,6 +28,13 @@ This release is breaking: see the What's New guide for the upgrade checklist.
 - Layout option sets list their options as typed structures (`options/0`) in preparation for the Spark DSL.
 - Layout option sets (`option`) moved to Spark; layout option values are type-checked.
 
+### Fixed
+
+- **`preload` on a resource and on `index_columns`**: 0.1.7 accepted both, undocumented, and loaded the
+  listed associations in the index list. The Spark DSL rejected them. They are declared again: `preload`
+  (and the resource-level `where`, which 0.1.7 also honoured) in `auix_resource_metadata`, and `preload` as an
+  index layout option. `:paginate` is no longer in the index handler's query options, since it never had an effect.
+
 ### Documentation
 
 - Migration prompt in the 0.2.0 What's New guide: step-by-step rules a coding assistant follows to migrate from 0.1.7.

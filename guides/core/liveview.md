@@ -983,7 +983,9 @@ Aurora UIX uses Phoenix LiveView streams for index views, which efficiently hand
 ### Preloading Associations
 
 Association fields that a layout renders are preloaded with the entity, so there is no
-per-field preload option to set.
+per-field preload option to set. To load an association the layout does not render, list it in the
+resource's or the index layout's `preload` (see
+[Index Query Options](resource_metadata.md#index-query-options)).
 
 ### Async Operations
 

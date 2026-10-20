@@ -294,6 +294,16 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
+          PreloadMetadataTest,
+          "preload-metadata-"
+        )
+
+        RoutesHelper.register_product_crud(
+          PreloadLayoutTest,
+          "preload-layout-"
+        )
+
+        RoutesHelper.register_product_crud(
           OrderByLayoutTest,
           "order-by-layout-"
         )
@@ -442,6 +452,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(AshFilterBarTest.Post, "ash-filter-bar-posts")
+
+        RoutesHelper.register_crud(AshPreloadMetadataTest.Author, "ash-preload-metadata-authors")
 
         RoutesHelper.register_crud(
           AshWhereOne2ManyTest.Author,
