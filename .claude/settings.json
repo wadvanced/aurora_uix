@@ -35,6 +35,18 @@
           { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-long-commands.sh" }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "timeout": 3000,
+            "statusMessage": "Preparing the build cache: restoring it takes under a minute; a first build takes about 30 minutes. The session starts when this finishes."
+          }
+        ]
+      }
     ]
   }
 }
