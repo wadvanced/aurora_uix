@@ -27,6 +27,9 @@ defmodule Aurora.Uix.MixProject do
       xref: xref(Mix.env()),
       dialyzer: [
         plt_add_apps: [:eex, :mix],
+        # A fixed project path, so scripts/build_cache.sh can pack and restore the PLTs.
+        plt_local_path: "priv/plts",
+        plt_core_path: "priv/plts",
         ignore_warnings: ".dialyzer.ignore-warnings"
       ],
       aliases: aliases(),
