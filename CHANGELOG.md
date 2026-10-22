@@ -7,6 +7,8 @@
 - Claude Code cloud sessions restore a cached build at start (`.claude/hooks/session-start.sh`,
   `scripts/build_cache.sh`), so a new session skips the dependency compile and the dialyzer PLT build.
   Dialyzer PLTs now live in `priv/plts`.
+- The build cache compiles both the `dev` and `test` environments and builds the dialyzer PLT in
+  `dev`, where dialyxir is available; it no longer fails with "task 'dialyzer' not found".
 
 ## [0.2.0] - 2026-10-21
 

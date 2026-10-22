@@ -12,13 +12,21 @@
 #
 # The cache lives in S3, in two objects per key:
 #
-#   s3://$CACHE_BUCKET/build-cache/$PROJECT/<key>-build.tar.zst   deps/ and _build/test
+#   s3://$CACHE_BUCKET/build-cache/$PROJECT/<key>-build.tar.zst   deps/ and _build/<env> per env
 #   s3://$CACHE_BUCKET/build-cache/$PROJECT/<key>-plt.tar.zst     priv/plts
 #
 # and needs PROJECT, CACHE_BUCKET and AWS credentials (AWS_ACCESS_KEY_ID,
 # AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION) in the environment. Without PROJECT and
 # CACHE_BUCKET there is no store: `restore` and `save` do nothing and `ensure` only builds.
 # BUILD_CACHE_LOCAL_DIR=<dir> uses a local directory as the store instead of S3.
+#
+# Which Mix environments are prepared, set per project in the cloud environment:
+#
+#   BUILD_CACHE_MIX_ENVS   environments compiled and cached, space-separated (default: dev test)
+#   BUILD_CACHE_PLT_ENV    environment the dialyzer PLT is built in (default: dev)
+#
+# dialyxir is `only: [:dev]` here and `mix consistency` runs in dev, while `mix test` runs in
+# test, so both are compiled and the PLT is built in dev. The settings are part of the cache key.
 #
 # `ensure` saves the build part as soon as the dependencies compile, before the slow PLT
 # step, so a session that is stopped or times out during the PLT still leaves the build part
@@ -57,7 +65,10 @@ cd "$(dirname "$0")/.."
 
 PARTS=(build plt)
 
-export MIX_ENV=test
+MIX_ENVS="${BUILD_CACHE_MIX_ENVS:-dev test}"
+PLT_ENV="${BUILD_CACHE_PLT_ENV:-dev}"
+# Mix commands without an explicit environment (deps.get, the Hex and rebar installs).
+export MIX_ENV="${PLT_ENV}"
 # test/config/test.exs starts a per-checkout PostgreSQL (scripts/test_pg.sh) whenever the
 # test config loads. Compiling and building the PLT never touch the database, so use the shared
 # connection settings and start nothing.
@@ -147,6 +158,7 @@ cache_key() {
     . /etc/os-release && echo "$ID $VERSION_ID"
     uname -m
     ldd --version 2>&1 | head -1
+    echo "envs: $MIX_ENVS plt: $PLT_ENV"
   } | sha256sum | cut -c1-16
 }
 
@@ -157,7 +169,7 @@ store_configured() {
 # Paths packed into each part.
 part_paths() {
   case "$1" in
-    build) echo "deps _build/test" ;;
+    build) printf 'deps'; for env in $MIX_ENVS; do printf ' _build/%s' "$env"; done; echo ;;
     plt) echo "priv/plts" ;;
   esac
 }
@@ -257,7 +269,7 @@ restore() {
   done
 
   if [ "$restored" -eq 1 ]; then
-    if mix compile >/dev/null 2>&1; then
+    if compile_all_envs >/dev/null 2>&1; then
       log "cache restored and verified"
     else
       log "restored cache does not compile on this machine, discarding it"
@@ -268,12 +280,24 @@ restore() {
   return 0
 }
 
-build_deps() {
-  logged mix local.hex --force --if-missing && logged mix local.rebar --force --if-missing &&
-    logged mix deps.get && logged mix deps.compile && logged mix compile
+compile_all_envs() {
+  local env
+  for env in $MIX_ENVS; do
+    MIX_ENV="$env" mix compile || return 1
+  done
 }
 
-build_plt() { logged mix dialyzer --plt; }
+build_deps() {
+  logged mix local.hex --force --if-missing && logged mix local.rebar --force --if-missing &&
+    logged mix deps.get || return 1
+  local env
+  for env in $MIX_ENVS; do
+    log "compiling the $env environment"
+    MIX_ENV="$env" logged mix deps.compile && MIX_ENV="$env" logged mix compile || return 1
+  done
+}
+
+build_plt() { MIX_ENV="$PLT_ENV" logged mix dialyzer --plt; }
 
 build() { build_deps && build_plt; }
 
