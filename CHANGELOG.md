@@ -1,5 +1,13 @@
 # Changelog for Aurora UIX
 
+## [0.2.1]
+
+### Build
+
+- Claude Code cloud sessions restore a cached build at start (`.claude/hooks/session-start.sh`,
+  `scripts/build_cache.sh`), so a new session skips the dependency compile and the dialyzer PLT build.
+  Dialyzer PLTs now live in `priv/plts`.
+
 ## [0.2.0] - 2026-10-21
 
 **Spark DSLs**

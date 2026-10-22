@@ -75,3 +75,6 @@ aurora_uix-*.tar
 # epic-orchestrator run ledger and gate receipt — local only, never committed
 /.orchestrator-state.json
 /.test-receipt.json
+
+# Dialyzer PLTs (packed by scripts/build_cache.sh)
+/priv/plts/
