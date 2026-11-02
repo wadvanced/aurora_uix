@@ -9,7 +9,7 @@ permissions:
 jobs:
   publish:
     name: Publish to hex
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix: 
         elixir: ['1.19.4-otp-28']
