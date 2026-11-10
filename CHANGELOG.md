@@ -2,6 +2,22 @@
 
 ## [0.2.1]
 
+### Added
+
+- **Reusable components**
+  - `auix_create_ui` generates an `IndexComponent` next to `FormComponent` and `ShowComponent`. The three
+    components can be embedded in any LiveView; the generated `Index` LiveView hosts them and keeps its
+    routes, handler hooks and behaviour.
+  - A component never navigates: it reports what the user asked for to its parent, and the parent decides.
+    `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView (`@auix.navigation`),
+    which patches and navigates as before.
+  - `auix_create_ui generate:` chooses which modules are generated; leaving out `:live_view` generates the
+    components alone.
+  - `Aurora.Uix.Live.ComponentHooks` forwards `Aurora.Uix.Events` to the components of a hand-written LiveView.
+  - A one-to-many list is an embedded `IndexComponent`; its columns come from the resource the field names
+    with `resource:`.
+  - New guide: Reusable Components.
+
 ### Build
 
 - Claude Code cloud sessions restore a cached build at start (`.claude/hooks/session-start.sh`,
