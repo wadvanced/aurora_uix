@@ -63,8 +63,7 @@ Depends on: none
    | `.ShowComponent` | LiveComponent | The read-only detail view |
    | `.Index` | LiveView | Hosts the three components, owns the routes and wraps form and show in a modal |
 
-   The generated `.Index` LiveView behaves as it always did: the same routes, the same handler hooks, the same
-   modal. This guide is about the other use: embedding the components in a LiveView you write.
+   This guide shows how to embed the components in a LiveView you write.
 
    ## Embedding a component
 
@@ -272,7 +271,9 @@ Depends on: none
    ````markdown
    # What's New in 0.2.1
 
-   0.2.1 has no breaking change. The [CHANGELOG](../../CHANGELOG.md) keeps the complete history.
+   0.2.1 has no breaking change. Coming from a version earlier than 0.2.0? Follow
+   [Upgrading from 0.1.7](0.2.0.md#upgrading-from-0-1-7) first. The [CHANGELOG](../../CHANGELOG.md) keeps the
+   complete history.
 
    - [Reusable components](#reusable-components)
    - [Upgrading from 0.2.0](#upgrading-from-0-2-0)
@@ -304,6 +305,8 @@ Depends on: none
    No change is required. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
    `@auix[:index_new_link]` stay readable; a handler that assigned one of them directly now changes navigation
    through `auix_route_forward/2`, `auix_route_back/1` and `Aurora.Uix.Navigation`.
+
+   Coming from a version earlier than 0.2.0? Follow [Upgrading from 0.1.7](0.2.0.md#upgrading-from-0-1-7) first.
    ````
 
 ##### Acceptance criteria
@@ -318,6 +321,8 @@ Depends on: none
 - [ ] AC-4: `guides/core/liveview.md § Navigation` documents `Aurora.Uix.Navigation` and no longer carries the `~p"/products/#{product.id}/edit"` example (mechanical — no red test; verified by `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -c 'push_patch(socket, to: ~p' guides/core/liveview.md` returning `0`)
 - [ ] AC-5: `guides/core/liveview.md` lists `IndexComponent` in the module tree and in § Generated Module Structure, states that `@auix._myself` exists in the index, and links the new guide from § Related guides (mechanical — no red test; verified by `grep -c 'IndexComponent' guides/core/liveview.md` returning `3` and `grep -c '(components.md)' guides/core/liveview.md` returning `3`)
 - [ ] AC-6: `guides/whats_new/0.2.1.md` exists and links the Reusable Components guide (mechanical — no red test; verified by `grep -c '(../core/components.md)' guides/whats_new/0.2.1.md` returning `1`)
+- [ ] AC-7: the introduction of `guides/core/components.md` describes the guide without comparing it to earlier versions (mechanical — no red test; verified by `grep -c 'behaves as it always did' guides/core/components.md` returning `0` and `grep -c '^This guide shows how to embed the components in a LiveView you write\.$' guides/core/components.md` returning `1`)
+- [ ] AC-8: `guides/whats_new/0.2.1.md` sends readers coming from a version earlier than 0.2.0 to the 0.2.0 upgrade steps, in the introduction and in § Upgrading from 0.2.0 (mechanical — no red test; verified by `grep -c '(0.2.0.md#upgrading-from-0-1-7)' guides/whats_new/0.2.1.md` returning `2`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
