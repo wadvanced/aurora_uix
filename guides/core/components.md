@@ -9,8 +9,7 @@
 | `.ShowComponent` | LiveComponent | The read-only detail view |
 | `.Index` | LiveView | Hosts the three components, owns the routes and wraps form and show in a modal |
 
-The generated `.Index` LiveView behaves as it always did: the same routes, the same handler hooks, the same
-modal. This guide is about the other use: embedding the components in a LiveView you write.
+This guide shows how to embed the components in a LiveView you write.
 
 ## Embedding a component
 
