@@ -47,6 +47,29 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
     |> delete_single_transaction(product_id, :form)
   end
 
+  test "auix_update override hides a field in the show view", %{conn: conn} do
+    delete_all_inventory_data()
+    %{"id_test-1" => product} = create_sample_products(1, :test)
+    {:ok, view, _html} = live(conn, "/handler-hooks-show-products/#{product.id}/show")
+
+    assert has_element?(view, "#auix-one_to_many-product__product_transactions-show")
+    assert has_element?(view, "#auix-product-show-modal input[value='#{product.reference}']")
+    refute has_element?(view, "#auix-product-show-modal input[value='#{product.name}']")
+  end
+
+  test "a targeted custom event routes back from the show handler", %{conn: conn} do
+    delete_all_inventory_data()
+    %{"id_test-1" => product} = create_sample_products(1, :test)
+    {:ok, view, _html} = live(conn, "/handler-hooks-show-products/#{product.id}/show")
+
+    view
+    |> with_target("#auix-product-show-modal [data-phx-component]")
+    |> render_click("hooks_back", %{})
+
+    patched_uri = view |> assert_patch() |> URI.parse()
+    assert patched_uri.path == "/handler-hooks-show-products"
+  end
+
   @spec visit_products_index(Plug.Conn.t()) :: {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp visit_products_index(conn) do
     {:ok, view, html} = live(conn, "/handler-hooks-show-products")
@@ -259,7 +282,9 @@ end
 defmodule Aurora.UixWeb.ShowHandlerHook do
   use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
 
+  import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3, auix_route_back: 1]
   import Phoenix.LiveView, only: [push_patch: 2, put_flash: 3]
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
   alias Phoenix.LiveView.Socket
 
   @doc """
@@ -277,4 +302,18 @@ defmodule Aurora.UixWeb.ShowHandlerHook do
   def handle_event(event, params, socket) do
     super(event, params, socket)
   end
+
+  @impl ShowComponentImpl
+  def auix_update(assigns, socket) do
+    {:ok, socket} = super(assigns, socket)
+
+    {:ok, assign_auix(socket, :fields_to_reject, [:name])}
+  end
+
+  @impl ShowComponentImpl
+  def auix_handle_event("hooks_back", _params, socket) do
+    {:noreply, auix_route_back(socket)}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
 end
