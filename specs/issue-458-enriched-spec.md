@@ -473,14 +473,14 @@ Coverage of the documented extension points. A row marked "existing" gets no new
 | § Show Handler Hook › `auix_handle_event/3`, § Adding Custom Events (show) | custom targeted event, `auix_route_back/1` | AC-8 |
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an index handler that overrides `auix_mount/3` and `auix_handle_params/3`, each assigning a custom `@auix` key and calling `super`, visiting `I?filter=abc` and sending the untargeted `hooks_report` event shows `mount=mounted filter=abc` in the info flash
-- [ ] AC-2: Given the same handler, the untargeted `hooks_async` event starts a task with `start_async/3`, and the task's result reaches `auix_handle_async/3`, which shows `async done` in the info flash
-- [ ] AC-3: Given a direct load of `I/<id>/edit`, a valid save reaches the index handler's `auix_handle_info/2` as `{component, {:saved, entity}}`; the `hooks_report` event then shows `saved=Renamed` in the info flash
-- [ ] AC-4: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and `auix_update/2`, each calling `super` and then adding a key to `:fields_to_reject` with `assign_auix/3`, the edit form renders no input for `rrp`, none for `list_price`, and the input for `description`
-- [ ] AC-5: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the form then renders no input for `description`, and still none for `rrp` and `list_price`
-- [ ] AC-6: Given the same form handler, the built-in `auix_request_close` event, which no clause of the handler names, reaches the default implementation through `super` and patches to `F`
-- [ ] AC-7: Given a show handler whose `auix_update/2` calls `super` and then assigns `:fields_to_reject`, the show view renders its one-to-many list and the `reference` input, and renders no input for `name`
-- [ ] AC-8: Given the same show handler, a `hooks_back` event targeted at the show component reaches its `auix_handle_event/3`, and the `auix_route_back/1` it calls patches to `S`
+- [x] AC-1: Given an index handler that overrides `auix_mount/3` and `auix_handle_params/3`, each assigning a custom `@auix` key and calling `super`, visiting `I?filter=abc` and sending the untargeted `hooks_report` event shows `mount=mounted filter=abc` in the info flash
+- [x] AC-2: Given the same handler, the untargeted `hooks_async` event starts a task with `start_async/3`, and the task's result reaches `auix_handle_async/3`, which shows `async done` in the info flash
+- [x] AC-3: Given a direct load of `I/<id>/edit`, a valid save reaches the index handler's `auix_handle_info/2` as `{component, {:saved, entity}}`; the `hooks_report` event then shows `saved=Renamed` in the info flash
+- [x] AC-4: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and `auix_update/2`, each calling `super` and then adding a key to `:fields_to_reject` with `assign_auix/3`, the edit form renders no input for `rrp`, none for `list_price`, and the input for `description`
+- [x] AC-5: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the form then renders no input for `description`, and still none for `rrp` and `list_price`
+- [x] AC-6: Given the same form handler, the built-in `auix_request_close` event, which no clause of the handler names, reaches the default implementation through `super` and patches to `F`
+- [x] AC-7: Given a show handler whose `auix_update/2` calls `super` and then assigns `:fields_to_reject`, the show view renders its one-to-many list and the `reference` input, and renders no input for `name`
+- [x] AC-8: Given the same show handler, a `hooks_back` event targeted at the show component reaches its `auix_handle_event/3`, and the `auix_route_back/1` it calls patches to `S`
 
 ##### Test ports
 - Routes: the three registrations already in `test/support/app_web/routes.ex` inside `load_test_routes/0` — `RoutesHelper.register_product_crud(HandlerHooksIndexTest, "handler-hooks-index-")`, `RoutesHelper.register_product_crud(HandlerHooksShowTest, "handler-hooks-show-")`, `RoutesHelper.register_product_crud(HandlerHooksFormTest, "handler-hooks-form-")`. Each one expands to `RoutesHelper.register_crud/2` for `products` (`test/support/app_web/routes_helper.ex`, `register_product_crud/2`). No registration is added and none is changed.
