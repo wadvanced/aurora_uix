@@ -11,7 +11,7 @@ This spec covers steps 1–3 of the epic: the documented component contract, a t
 |---|---|---|---|---|---|
 | DOC-1 | Documentation | `CHANGELOG.md` § `[0.2.1]`, `guides/core/components.md` (new), `guides/core/liveview.md` § Module Generation, § Generated Module Structure, § Targeting the Component, § Navigation, § Related guides, `guides/whats_new/0.2.1.md` (new) | none | federico/458-doc-1-components-contract | docs: component contract and navigation spec (#458 · DOC-1) |
 | UI-1 | UI | handlers · navigation characterization tests, Ecto and Ash (no library change) | DOC-1 | federico/458-ui-1-navigation-characterization | test: lock current navigation behaviour (#458 · UI-1) |
-| UI-2 | UI | handlers · compatibility suite for the documented handler hooks (no library change) | DOC-1 | federico/458-ui-2-compatibility-suite | test: compatibility suite for handler hooks (#458 · UI-2) |
+| UI-2 | UI | handlers · handler-hook tests for the documented callbacks, in the existing `handler_hooks_*` test files (no library change) | DOC-1 | federico/458-ui-2-compatibility-suite | test: cover the documented handler hooks (#458 · UI-2) |
 | UI-3 | UI | handlers · extract `Aurora.Uix.Navigation` (`base_path`) | UI-1, UI-2 | federico/458-ui-3-navigation-module | refactor: extract Aurora.Uix.Navigation (#458 · UI-3) |
 
 A section starts only when every dependency is **merged**. Independent
@@ -441,7 +441,7 @@ Once `P/new` has been opened on a view, the index of that view renders no rows, 
 4. `git diff --name-only origin/main...HEAD -- lib` prints nothing
 <!-- section:UI-1:end -->
 <!-- section:UI-2:start -->
-### UI-2 — UI · handlers · compatibility suite for the documented handler hooks
+### UI-2 — UI · handlers · handler-hook tests for the documented callbacks
 Depends on: DOC-1
 
 #### Documentation references
@@ -449,122 +449,183 @@ Depends on: DOC-1
 
 #### Implementation details
 
-This section adds tests and test support only. It changes no file under `lib/`. Every test passes on its first run. A test that fails on its first run is a spec defect to report, never a reason to change library code.
+This section extends three existing test files and the handler module each one already defines. It adds no test file, no support module and no route, and it changes no file under `lib/`. Every new test passes on its first run. A test that fails on its first run is a spec defect to report, never a reason to change library code. The tests these files already hold stay unmodified.
 
-Layout types covered: `:index`, `:form`, `:show`. The suite runs on the Ecto backend only: the handler behaviours, the event targets and the message delivery it exercises never reach a parser or a CRUD module.
+Layout types covered: `:index`, `:form`, `:show`. The tests run on the Ecto backend only: the handler behaviours and the event and message delivery they exercise reach neither a parser nor a CRUD module.
 
-The test hosts mirror the guide examples: the same callback, the same `super` call, the same helper. Guide section to test:
+Notation: `I = "/handler-hooks-index-products"`, `F = "/handler-hooks-form-products"`, `S = "/handler-hooks-show-products"`, `<id>` a product id.
 
-| `guides/core/liveview.md` section | Extension point | Exercised by |
+Coverage of the documented extension points. A row marked "existing" gets no new test:
+
+| `guides/core/liveview.md` section | Extension point | Covered by |
 |---|---|---|
-| § Index Handler Hook › `auix_mount/3`, `auix_handle_params/3`, `apply_action/2` | override with `super` | AC-1 |
-| § Index Handler Hook › `auix_handle_event/3`, `auix_handle_async/3` | custom event, custom async task, fallback to `super` | AC-2 |
-| § Index Handler Hook › `auix_handle_info/2` | custom message, fallback to `super` | AC-3, AC-7 |
-| § Form/Edit Handler Hook › `auix_update/2`, `auix_handle_event/3` | override with `super` | AC-3, AC-4 |
-| § Form/Edit Handler Hook › `save_entity/2` | override with `super` | existing `test/cases_live/handler_hooks_form_test.exs` `"Test main edit link"` |
-| § Show Handler Hook › `auix_update/2`, `auix_handle_event/3` | override with `super`, `auix_route_back/1`, `push_navigate/2` | AC-5 |
-| § Advanced: Overriding Phoenix Callbacks › `mount/3` | override with `super` | existing `test/cases_live/handler_hooks_index_test.exs` `"Test index hooks"` |
-| § Advanced: Overriding Phoenix Callbacks › `update/2` | override with `super` | AC-6 |
-| § Adding Custom Events | custom events in the three handlers | AC-2, AC-3, AC-5 |
-| § Targeting the Component | `phx-target={@auix._myself}` | AC-3, AC-5 |
-| § Hiding Fields at Runtime | `assign_auix(socket, :fields_to_reject, keys)` | AC-4 |
+| § Advanced: Overriding Phoenix Callbacks › `mount/3` | override with `super` | existing: `test/cases_live/handler_hooks_index_test.exs` `"Test index hooks"` |
+| § Index Handler Hook › `apply_action/2` | override with `super` | existing: same test |
+| § Index Handler Hook › `auix_mount/3`, `auix_handle_params/3` | override with `super` | AC-1 |
+| § Index Handler Hook › `auix_handle_event/3`, § Adding Custom Events (index) | custom untargeted event, fallback to `super` | existing: `test/cases_live/selected_bulk_action_test.exs` `"the control deactivates the ticked rows and clears the selection"` |
+| § Index Handler Hook › `auix_handle_async/3` | custom task, fallback to `super` | AC-2 |
+| § Index Handler Hook › `auix_handle_info/2` | custom clause, fallback to `super` | existing for a PubSub message: `test/cases_live/events_test.exs` (`Aurora.UixWeb.EventsProbeIndexHandler`); AC-3 for a message a form sends with `send(self(), …)` |
+| § Form/Edit Handler Hook › `save_entity/2` | override with `super` | existing: `test/cases_live/handler_hooks_form_test.exs` `"Test main edit link"` |
+| § Form/Edit Handler Hook › `auix_update/2`, § Hiding Fields at Runtime | override with `super`, `assign_auix(socket, :fields_to_reject, keys)` | AC-4 |
+| § Advanced: Overriding Phoenix Callbacks › `update/2` | override with `super` | AC-4 |
+| § Form/Edit Handler Hook › `auix_handle_event/3`, § Adding Custom Events (form), § Targeting the Component | custom event through `phx-target={@auix._myself}`, fallback to `super` | AC-5, AC-6 |
+| § Show Handler Hook › `auix_update/2`, § Hiding Fields at Runtime | override with `super` | AC-7 |
+| § Show Handler Hook › `auix_handle_event/3`, § Adding Custom Events (show) | custom targeted event, `auix_route_back/1` | AC-8 |
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an index handler that overrides `auix_mount/3`, `auix_handle_params/3` and `apply_action/2` and calls `super` in each, visiting the index reports the three callbacks to the probe from the LiveView process, and the index lists its rows
-- [ ] AC-2: Given the same handler, an untargeted `compat_ping` event reaches its `auix_handle_event/3`; the task it starts with `start_async/3` reaches its `auix_handle_async/3`; an untargeted `filter-toggle` event still reaches the default implementation through `super`
-- [ ] AC-3: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the `send(self(), {:compat_notify, :form})` it performs reaches the index handler's `auix_handle_info/2` in the LiveView process
-- [ ] AC-4: Given a form handler whose `auix_update/2` calls `super` and then assigns `:compat_note` and `:fields_to_reject` with `assign_auix/3`, the form renders the note, renders no input for the rejected field, and still renders the note after a later event
-- [ ] AC-5: Given a show footer action with two buttons targeted at `@auix._myself`, `compat_back` runs `auix_route_back/1` in the show handler and patches to the index; `compat_go` runs `push_navigate/2` in the show handler and live-redirects to the edit path
-- [ ] AC-6: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and calls `super`, opening the form reports `:update` before `:auix_update` to the probe
-- [ ] AC-7: Given the index handler, a message its `auix_handle_info/2` does not match is passed to `super`, is ignored, and the LiveView keeps rendering
+- [ ] AC-1: Given an index handler that overrides `auix_mount/3` and `auix_handle_params/3`, each assigning a custom `@auix` key and calling `super`, visiting `I?filter=abc` and sending the untargeted `hooks_report` event shows `mount=mounted filter=abc` in the info flash
+- [ ] AC-2: Given the same handler, the untargeted `hooks_async` event starts a task with `start_async/3`, and the task's result reaches `auix_handle_async/3`, which shows `async done` in the info flash
+- [ ] AC-3: Given a direct load of `I/<id>/edit`, a valid save reaches the index handler's `auix_handle_info/2` as `{component, {:saved, entity}}`; the `hooks_report` event then shows `saved=Renamed` in the info flash
+- [ ] AC-4: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and `auix_update/2`, each calling `super` and then adding a key to `:fields_to_reject` with `assign_auix/3`, the edit form renders no input for `rrp`, none for `list_price`, and the input for `description`
+- [ ] AC-5: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the form then renders no input for `description`, and still none for `rrp` and `list_price`
+- [ ] AC-6: Given the same form handler, the built-in `auix_request_close` event, which no clause of the handler names, reaches the default implementation through `super` and patches to `F`
+- [ ] AC-7: Given a show handler whose `auix_update/2` calls `super` and then assigns `:fields_to_reject`, the show view renders its one-to-many list and the `reference` input, and renders no input for `name`
+- [ ] AC-8: Given the same show handler, a `hooks_back` event targeted at the show component reaches its `auix_handle_event/3`, and the `auix_route_back/1` it calls patches to `S`
 
 ##### Test ports
-- Route registered in `test/support/app_web/routes.ex` inside `load_test_routes/0` via `RoutesHelper.register_crud/2`: `register_crud(CompatibilityTest.Product, "compatibility-products")`. `P = "/compatibility-products"`.
-- Probe: the test process registers itself with `Process.register(self(), :auix_compat_probe)` in `setup`; each host callback sends `{:compat, callback_name, self()}` to `Process.whereis(:auix_compat_probe)` when it is alive. The same pattern is in `test/cases_live/events_test.exs` (`Aurora.UixWeb.EventsProbeIndexHandler`, `:auix_events_probe`). The test module is `async: false` (the default of `UICase`).
-- Observables: `assert_receive/2` on probe messages, `has_element?/2`, `assert_patch/1`, the `{:error, {:live_redirect, %{to: path}}}` return.
+- Routes: the three registrations already in `test/support/app_web/routes.ex` inside `load_test_routes/0` — `RoutesHelper.register_product_crud(HandlerHooksIndexTest, "handler-hooks-index-")`, `RoutesHelper.register_product_crud(HandlerHooksShowTest, "handler-hooks-show-")`, `RoutesHelper.register_product_crud(HandlerHooksFormTest, "handler-hooks-form-")`. Each one expands to `RoutesHelper.register_crud/2` for `products` (`test/support/app_web/routes_helper.ex`, `register_product_crud/2`). No registration is added and none is changed.
+- Observables: `has_element?/2` on `#flash-info` with a text filter (the selector `test/cases_live/selected_bulk_action_test.exs` asserts on), `has_element?/2` on `[name='product[<field>]']` and on `#auix-product-show-modal input[value='…']`, `assert_patch/1`.
+- A targeted event with no button: `view |> with_target("#auix-product-<live_action>-modal [data-phx-component]") |> render_click(event, %{})`, as `request_close/2` in `test/cases_live/form_discard_guard_test.exs` does.
 
 ##### Red tests
-Every row passes on first run (characterization). Setup for every row: `delete_all_inventory_data()`, `create_sample_products(3, :test)`, `id` = the id of `"id_test-1"`.
+Every row passes on first run (characterization). Every row is a new `test` appended after the last existing `test` of the named file; none of the three files has a `describe` block.
 
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
-| AC-1 | new file (`ls test/cases_live \| grep -i compat` returns nothing) | `{:ok, view, _} = live(conn, P)` | `test/cases_live/compatibility_test.exs` | `"index callbacks run with super in the LiveView process"` | `pid = view.pid`; `assert_receive {:compat, :auix_mount, ^pid}`; same for `:auix_handle_params` and `:apply_action`; `assert has_element?(view, "tr[id^='products-#{id}']")` |
-| AC-2 | add to `compatibility_test.exs` | as AC-1 | `test/cases_live/compatibility_test.exs` | `"untargeted index events and async results reach the index handler"` | `render_click(view, "compat_ping", %{})`; `assert_receive {:compat, :auix_handle_event, ^pid}`; `assert_receive {:compat, :auix_handle_async, ^pid}`; `render_click(view, "filter-toggle", %{})` returns HTML (no crash) |
-| AC-3 | add to `compatibility_test.exs` | `live(conn, "P/#{id}/edit")` | `test/cases_live/compatibility_test.exs` | `"a targeted form event notifies the index through send(self())"` | `view \|> element("button[name='compat-notify-form']") \|> render_click()`; `assert_receive {:compat, {:form_event, "compat_notify"}, ^pid}`; `assert_receive {:compat, {:auix_handle_info, :form}, ^pid}` |
-| AC-4 | add to `compatibility_test.exs` | as AC-3 | `test/cases_live/compatibility_test.exs` | `"custom auix keys survive later events and rejected fields are hidden"` | `assert has_element?(view, "[name='compat-note']", "kept")`; `refute has_element?(view, "input[name='product[description]']")`; `assert has_element?(view, "input[name='product[name]']")`; click `button[name='compat-notify-form']`; `assert has_element?(view, "[name='compat-note']", "kept")` |
-| AC-5 | add to `compatibility_test.exs` | `live(conn, "P/#{id}/show")` | `test/cases_live/compatibility_test.exs` | `"targeted show events route back and navigate"` | click `button[name='compat-back']`; `assert_patch(view) =~ ~r"^/compatibility-products\?routing_stack="`; remount; `{:error, {:live_redirect, %{to: to}}} = view \|> element("button[name='compat-go']") \|> render_click()`; `to == "P/#{id}/edit"` |
-| AC-6 | add to `compatibility_test.exs` | as AC-3 | `test/cases_live/compatibility_test.exs` | `"a Phoenix update override runs before auix_update"` | `{:messages, messages} = Process.info(self(), :messages)` after `render(view)`; `names = for {:compat, name, ^pid} <- messages, name in [:update, :auix_update], do: name`; `Enum.take(names, 2) == [:update, :auix_update]` |
-| AC-7 | add to `compatibility_test.exs` | as AC-1 | `test/cases_live/compatibility_test.exs` | `"an unknown message is ignored through super"` | `send(view.pid, :compat_unknown)`; `assert has_element?(view, "tr[id^='products-#{id}']")` |
+| AC-1 | add to `test/cases_live/handler_hooks_index_test.exs` | `{:ok, view, _html} = live(conn, "/handler-hooks-index-products?filter=abc")` | `test/cases_live/handler_hooks_index_test.exs` | `"auix_mount and auix_handle_params overrides keep their auix keys"` | `render_click(view, "hooks_report", %{})`; `assert has_element?(view, "#flash-info", "mount=mounted filter=abc")` |
+| AC-2 | add to `test/cases_live/handler_hooks_index_test.exs` | `{:ok, view, _html} = live(conn, "/handler-hooks-index-products")` | `test/cases_live/handler_hooks_index_test.exs` | `"an async task started by a custom event reaches auix_handle_async"` | `render_click(view, "hooks_async", %{})`; `render_async(view)`; `assert has_element?(view, "#flash-info", "async done")` |
+| AC-3 | add to `test/cases_live/handler_hooks_index_test.exs` | `delete_all_inventory_data()`; `%{"id_test-1" => product} = create_sample_products(1, :test)`; `{:ok, view, _html} = live(conn, "/handler-hooks-index-products/#{product.id}/edit")` | `test/cases_live/handler_hooks_index_test.exs` | `"a form save reaches auix_handle_info in the index"` | `view \|> form("#auix-product-form", product: %{name: "Renamed", quantity_initial: 11}) \|> render_submit()`; `render_click(view, "hooks_report", %{})`; `assert has_element?(view, "#flash-info", "saved=Renamed")` |
+| AC-4 | add to `test/cases_live/handler_hooks_form_test.exs` | `delete_all_inventory_data()`; `%{"id_test-1" => product} = create_sample_products(1, :test)`; `{:ok, view, _html} = live(conn, "/handler-hooks-form-products/#{product.id}/edit")` | `test/cases_live/handler_hooks_form_test.exs` | `"update and auix_update overrides hide their fields"` | `refute has_element?(view, "[name='product[rrp]']")`; `refute has_element?(view, "[name='product[list_price]']")`; `assert has_element?(view, "[name='product[description]']")` |
+| AC-5 | add to `test/cases_live/handler_hooks_form_test.exs` | as AC-4 | `test/cases_live/handler_hooks_form_test.exs` | `"a targeted custom event reaches the form handler"` | `view \|> element("button[name='hooks-hide-description']") \|> render_click()`; `refute has_element?(view, "[name='product[description]']")`; `refute has_element?(view, "[name='product[rrp]']")`; `refute has_element?(view, "[name='product[list_price]']")`; `assert has_element?(view, "[name='product[name]']")` |
+| AC-6 | add to `test/cases_live/handler_hooks_form_test.exs` | as AC-4 | `test/cases_live/handler_hooks_form_test.exs` | `"a built-in form event falls through to super"` | `view \|> with_target("#auix-product-edit-modal [data-phx-component]") \|> render_click("auix_request_close", %{})`; `assert URI.parse(assert_patch(view)).path == "/handler-hooks-form-products"` |
+| AC-7 | add to `test/cases_live/handler_hooks_show_test.exs` | `delete_all_inventory_data()`; `%{"id_test-1" => product} = create_sample_products(1, :test)`; `{:ok, view, _html} = live(conn, "/handler-hooks-show-products/#{product.id}/show")` | `test/cases_live/handler_hooks_show_test.exs` | `"auix_update override hides a field in the show view"` | `assert has_element?(view, "#auix-one_to_many-product__product_transactions-show")`; `assert has_element?(view, "#auix-product-show-modal input[value='#{product.reference}']")`; `refute has_element?(view, "#auix-product-show-modal input[value='#{product.name}']")` |
+| AC-8 | add to `test/cases_live/handler_hooks_show_test.exs` | as AC-7 | `test/cases_live/handler_hooks_show_test.exs` | `"a targeted custom event routes back from the show handler"` | `view \|> with_target("#auix-product-show-modal [data-phx-component]") \|> render_click("hooks_back", %{})`; `assert URI.parse(assert_patch(view)).path == "/handler-hooks-show-products"` |
+
+In `handler_hooks_show_test.exs` the two new tests go directly after `test "Test one-to-many relationship UI workflow new Product"`, above the private helpers.
 
 ##### Modules & components
-1. `Aurora.UixWeb.Test.Compatibility.Probe` at `test/support/compatibility/probe.ex` — new (search: `grep -rn "Compatibility" lib test` returns nothing). One function, with `@doc` and `@spec`:
-   `report(name :: term()) :: :ok` — sends `{:compat, name, self()}` to `Process.whereis(:auix_compat_probe)` when that returns a pid; returns `:ok` in both cases.
-2. `Aurora.UixWeb.Test.Compatibility.IndexHandler` at `test/support/compatibility/index_handler.ex` — new. `use Aurora.Uix.Templates.Basic.Handlers.IndexImpl`, `alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl`, `alias Aurora.UixWeb.Test.Compatibility.Probe` (the header of `Aurora.UixWeb.EventsProbeIndexHandler` in `test/cases_live/events_test.exs`). `start_async/3` comes from the `import Phoenix.LiveView` that `IndexImpl.__using__/1` injects. Every override carries `@impl IndexImpl`:
-   - `auix_mount(params, session, socket)` — `Probe.report(:auix_mount)`, then `super(params, session, socket)`.
-   - `auix_handle_params(params, url, socket)` — `Probe.report(:auix_handle_params)`, then `super(params, url, socket)`.
-   - `apply_action(socket, params)` — `Probe.report(:apply_action)`, then `super(socket, params)`.
-   - `auix_handle_event("compat_ping", _params, socket)` — `Probe.report(:auix_handle_event)`; returns `{:noreply, start_async(socket, :compat_async, fn -> :done end)}`. Second clause `auix_handle_event(event, params, socket)` calls `super(event, params, socket)`.
-   - `auix_handle_async(:compat_async, {:ok, :done}, socket)` — `Probe.report(:auix_handle_async)`; returns `{:noreply, socket}`. Second clause calls `super(task, result, socket)`.
-   - `auix_handle_info({:compat_notify, origin}, socket)` — `Probe.report({:auix_handle_info, origin})`; returns `{:noreply, socket}`. Second clause calls `super(message, socket)`.
-3. `Aurora.UixWeb.Test.Compatibility.FormHandler` at `test/support/compatibility/form_handler.ex` — new. `use Aurora.Uix.Templates.Basic.Handlers.FormImpl`, `import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]`, `alias Aurora.Uix.Templates.Basic.Handlers.FormImpl`, `alias Aurora.UixWeb.Test.Compatibility.Probe`. `FormImpl.__using__/1` injects no import and no alias, so the module declares them:
-   - `@impl Phoenix.LiveComponent` `update(assigns, socket)` — `Probe.report(:update)`, then `super(assigns, socket)`.
-   - `@impl FormImpl` `auix_update(assigns, socket)` — `Probe.report(:auix_update)`; `{:ok, socket} = super(assigns, socket)`; returns `{:ok, socket |> assign_auix(:compat_note, "kept") |> assign_auix(:fields_to_reject, [:description])}`.
-   - `@impl FormImpl` `auix_handle_event("compat_notify", _params, socket)` — `Probe.report({:form_event, "compat_notify"})`; `send(self(), {:compat_notify, :form})`; returns `{:noreply, socket}`. Second clause calls `super(event, params, socket)`.
-4. `Aurora.UixWeb.Test.Compatibility.ShowHandler` at `test/support/compatibility/show_handler.ex` — new. `use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl`, `import Aurora.Uix.Templates.Basic.Helpers, only: [auix_route_back: 1]`, `import Phoenix.LiveView, only: [push_navigate: 2]`, `alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl`, `alias Aurora.UixWeb.Test.Compatibility.Probe`. `ShowComponentImpl.__using__/1` injects no import and no alias, so the module declares them:
-   - `@impl ShowComponentImpl` `auix_update(assigns, socket)` — `Probe.report(:show_auix_update)`, then `super(assigns, socket)`.
-   - `@impl ShowComponentImpl` `auix_handle_event("compat_back", _params, socket)` — returns `{:noreply, auix_route_back(socket)}`.
-   - `auix_handle_event("compat_go", _params, socket)` — reads `%{entity: entity, uri_path: uri_path} = socket.assigns.auix`; returns `{:noreply, push_navigate(socket, to: "/#{uri_path}/#{entity.id}/edit")}`.
-   - Last clause calls `super(event, params, socket)`.
-5. `Aurora.UixWeb.Test.CompatibilityTest` at `test/cases_live/compatibility_test.exs` — new. Header copied from `test/cases_live/create_ui_actions_show_test.exs` (`use Aurora.Uix.CoreComponentsImporter`, `import Phoenix.Component, only: [sigil_H: 2]`). Two public function components, each with `@spec name(map()) :: Rendered.t()`:
+1. Earlier implementation on the section branch `federico/458-ui-2-compatibility-suite`. Delete `test/cases_live/compatibility_test.exs`. Delete the directory `test/support/compatibility/` (`probe.ex`, `index_handler.ex`, `form_handler.ex`, `show_handler.ex`). In `test/support/app_web/routes.ex` delete the line `RoutesHelper.register_crud(CompatibilityTest.Product, "compatibility-products")`. After this step `git diff --name-only origin/main...HEAD -- test/support` prints nothing.
+2. `Aurora.UixWeb.IndexHandlerHook` in `test/cases_live/handler_hooks_index_test.exs` — modified. `mount/3` and `apply_action/2` stay as they are. Append below `apply_action/2`:
    ```elixir
-   def compat_form_footer(assigns) do
-     ~H"""
-     <div name="compat-form-footer">
-       <span name="compat-note">{@auix[:compat_note]}</span>
-       <button type="button" name="compat-notify-form" phx-click="compat_notify" phx-target={@auix._myself}>Notify</button>
-     </div>
-     """
+   @impl IndexImpl
+   def auix_mount(params, session, socket) do
+     super(params, session, assign_auix(socket, :hooks_mount, "mounted"))
    end
 
-   def compat_show_footer(assigns) do
-     ~H"""
-     <div name="compat-show-footer">
-       <button type="button" name="compat-back" phx-click="compat_back" phx-target={@auix._myself}>Back</button>
-       <button type="button" name="compat-go" phx-click="compat_go" phx-target={@auix._myself}>Go</button>
-     </div>
-     """
+   @impl IndexImpl
+   def auix_handle_params(params, url, socket) do
+     super(params, url, assign_auix(socket, :hooks_filter, Map.get(params, "filter")))
    end
+
+   @impl IndexImpl
+   def auix_handle_event("hooks_report", _params, %{assigns: %{auix: auix}} = socket) do
+     saved = Map.get(auix, :hooks_saved)
+     report = "mount=#{auix.hooks_mount} filter=#{auix.hooks_filter} saved=#{saved}"
+
+     {:noreply, put_flash(socket, :info, report)}
+   end
+
+   def auix_handle_event("hooks_async", _params, socket) do
+     {:noreply, start_async(socket, :hooks_async, fn -> "async done" end)}
+   end
+
+   def auix_handle_event(event, params, socket), do: super(event, params, socket)
+
+   @impl IndexImpl
+   def auix_handle_async(:hooks_async, {:ok, message}, socket) do
+     {:noreply, put_flash(socket, :info, message)}
+   end
+
+   def auix_handle_async(task, result, socket), do: super(task, result, socket)
+
+   @impl IndexImpl
+   def auix_handle_info({_component, {:saved, entity}} = message, socket) do
+     super(message, assign_auix(socket, :hooks_saved, entity.name))
+   end
+
+   def auix_handle_info(message, socket), do: super(message, socket)
    ```
-   Metadata and layout:
+   `assign_auix/3`, `put_flash/3` and `start_async/3` come from the imports `IndexImpl.__using__/1` injects (`Aurora.Uix.Templates.Basic.Helpers`, `Phoenix.LiveView`). The module adds no import and no alias. The names `hooks_report`, `hooks_async`, `:hooks_mount`, `:hooks_filter` and `:hooks_saved` are new (search: `grep -rn "hooks_report\|hooks_async\|hooks_mount\|hooks_filter\|hooks_saved" lib test` returns nothing).
+3. `Aurora.UixWeb.Test.HandlerHooksIndexTest` in the same file — modified. The `auix_create_ui` block and `test "Test index hooks"` stay as they are. Add the three tests of AC-1, AC-2 and AC-3.
+4. `Aurora.UixWeb.FormHandlerHook` in `test/cases_live/handler_hooks_form_test.exs` — modified. `FormImpl.__using__/1` injects no import, so add `import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]` between the `use` line and the first `alias`. `save_entity/2` stays as it is. Append below `save_entity/2`:
    ```elixir
-   auix_resource_metadata(:product, context: Inventory, schema: Product)
+   @impl Phoenix.LiveComponent
+   def update(assigns, socket) do
+     {:ok, socket} = super(assigns, socket)
+     rejected = [:list_price | socket.assigns.auix.fields_to_reject]
 
-   auix_create_ui do
-     index_columns(:product, [:reference, :name],
-       handler_module: Aurora.UixWeb.Test.Compatibility.IndexHandler
-     )
+     {:ok, assign_auix(socket, :fields_to_reject, rejected)}
+   end
 
+   @impl FormImpl
+   def auix_update(assigns, socket) do
+     {:ok, socket} = super(assigns, socket)
+
+     {:ok, assign_auix(socket, :fields_to_reject, [:rrp])}
+   end
+
+   @impl FormImpl
+   def auix_handle_event("hooks_hide_description", _params, %{assigns: %{auix: auix}} = socket) do
+     {:noreply, assign_auix(socket, :fields_to_reject, [:description | auix.fields_to_reject])}
+   end
+
+   def auix_handle_event(event, params, socket), do: super(event, params, socket)
+   ```
+   The event name `hooks_hide_description` is new (search: `grep -rn "hooks_hide_description" lib test` returns nothing).
+5. `Aurora.UixWeb.Test.HandlerHooksFormTest` in the same file — modified.
+   - Add `import Phoenix.Component, only: [sigil_H: 2]` directly below `use Aurora.Uix.CoreComponentsImporter`.
+   - Add one public function component above `auix_resource_metadata(:product, …)`, with the `@spec` form `custom_back_footer_action/1` has in `test/cases_live/create_ui_actions_show_test.exs`:
+     ```elixir
+     @spec hooks_footer_action(map()) :: Rendered.t()
+     def hooks_footer_action(assigns) do
+       ~H"""
+       <button type="button" name="hooks-hide-description" phx-click="hooks_hide_description" phx-target={@auix._myself}>
+         Hide description
+       </button>
+       """
+     end
+     ```
+     Contract: it reads `@auix._myself`, which `FormImpl.auix_update/2` assigns; the tests select it as `button[name='hooks-hide-description']`. The form renderer calls it as `action.(%{auix: @auix})` (`lib/aurora_uix/templates/basic/renderers/form_renderer.ex`, the `@auix.form_footer_actions` loop).
+   - Change the `edit_layout` head to:
+     ```elixir
      edit_layout :product,
-       edit_handler_module: Aurora.UixWeb.Test.Compatibility.FormHandler,
-       add_footer_action: {:compat_form_footer, &__MODULE__.compat_form_footer/1} do
-       stacked([:reference, :name, :description, :quantity_initial])
-     end
+       edit_handler_module: Aurora.UixWeb.FormHandlerHook,
+       add_footer_action: {:hooks_hide_description, &__MODULE__.hooks_footer_action/1} do
+     ```
+     The three `inline/1` lines and the `show_layout` block stay as they are.
+   - The two existing tests stay as they are. They submit `reference`, `name` and `quantity_initial` only, and none of the three is rejected.
+   - Add the three tests of AC-4, AC-5 and AC-6.
+6. `Aurora.UixWeb.ShowHandlerHook` in `test/cases_live/handler_hooks_show_test.exs` — modified. `ShowComponentImpl.__using__/1` injects no import and no alias. Add `import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3, auix_route_back: 1]` above the existing `import Phoenix.LiveView, …` line, and `alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl` above `alias Phoenix.LiveView.Socket`. The two `handle_event/3` clauses stay as they are. Append below them:
+   ```elixir
+   @impl ShowComponentImpl
+   def auix_update(assigns, socket) do
+     {:ok, socket} = super(assigns, socket)
 
-     show_layout :product,
-       show_handler_module: Aurora.UixWeb.Test.Compatibility.ShowHandler,
-       add_footer_action: {:compat_show_footer, &__MODULE__.compat_show_footer/1} do
-       stacked([:reference, :name, :description, :quantity_initial])
-     end
+     {:ok, assign_auix(socket, :fields_to_reject, [:name])}
    end
+
+   @impl ShowComponentImpl
+   def auix_handle_event("hooks_back", _params, socket) do
+     {:noreply, auix_route_back(socket)}
+   end
+
+   def auix_handle_event(event, params, socket), do: super(event, params, socket)
    ```
-6. Components: none added to the library. Theme: none. `dt/1` strings: none.
+   The event name `hooks_back` is new (search: `grep -rn "hooks_back" lib test` returns nothing). The module's second `handle_event/3` clause passes `hooks_back` to `super`, which calls `auix_handle_event/3`.
+7. `Aurora.UixWeb.Test.HandlerHooksShowTest` in the same file — modified. The `auix_create_ui` block, the two existing tests and every private helper stay as they are. The file declares no `show_layout`, so the show view reuses the `edit_layout` and its `show_handler_module` (`lib/aurora_uix/layout/create_ui.ex`, `put_missing_show/1`). Add the two tests of AC-7 and AC-8.
+8. Load guarantees.
+   - AC-3: the generated `handle_event("save", …)` in `FormImpl.__using__/1` calls `FormImpl.notify_parent({:saved, entity})`, which is `send(self(), {FormImpl, {:saved, entity}})`. The form component runs in the LiveView process, so the message reaches `handle_info/2` of the generated index module and, through `IndexImpl.__using__/1`, `auix_handle_info/2`.
+   - AC-4, AC-5, AC-7: `Aurora.Uix.Templates.Basic.Renderer.render_inner_elements/1` skips every `%Node.Field{}` whose key is in `auix.fields_to_reject` (`lib/aurora_uix/templates/basic/renderer.ex`, private `inner_path/1`, first clause).
+   - AC-5: the generated form `update/2` (`lib/aurora_uix/templates/basic/generators/form_generator.ex`) merges the incoming `auix` into the socket's `auix`, so `:fields_to_reject` stays between events. A component event does not call `update/2` again.
+9. Components: none added to the library. Theme: none. `dt/1` strings: none.
 
 ##### Green tests
-1. The tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases_live/compatibility_test.exs`)
+1. The tests above pass, unmodified, together with the tests the three files already hold (code-issue runs these, targeted: `mix test test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs`)
 2. `mix test` — full suite green (review-issue runs this; code-issue runs
    only this section's test files)
 3. `mix compile --warnings-as-errors` clean
-4. `git diff --name-only origin/main...HEAD -- lib` prints nothing
+4. `git diff --name-only origin/main...HEAD -- lib test/support` prints nothing
+5. `git diff --name-only origin/main...HEAD -- test` prints exactly `test/cases_live/handler_hooks_form_test.exs`, `test/cases_live/handler_hooks_index_test.exs` and `test/cases_live/handler_hooks_show_test.exs`
 <!-- section:UI-2:end -->
 <!-- section:UI-3:start -->
 ### UI-3 — UI · handlers · extract `Aurora.Uix.Navigation`
@@ -587,11 +648,11 @@ The section moves the navigation helpers out of `lib/aurora_uix/templates/basic/
 - [ ] AC-6: the navigation struct has no mode: `Navigation.new(mode: :local)` raises `KeyError`
 - [ ] AC-7: `auix_link`, `auix_link_back` and `auix_back` render a `phx-target` attribute they are given, and render none when they are given none
 - [ ] AC-8: `Aurora.Uix.Templates.Basic.Helpers` still exports `assign_auix_current_path/2`, `assign_auix_uri_path/1`, `assign_auix_index_new_link/1`, `assign_auix_routing_stack/2`, `assign_auix_routing_stack/3`, `auix_route_forward/2` and `auix_route_back/1`
-- [ ] AC-9: the suites of UI-1 and UI-2 pass with their files unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/compatibility_test.exs test/support/navigation_helper.ex test/support/compatibility` printing nothing, and `mix test` green)
+- [ ] AC-9: the tests of UI-1 and UI-2 pass with their files unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/support/navigation_helper.ex test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs` printing nothing, and `mix test` green)
 - [ ] AC-10: `Navigation.related_uri_path/3` replaces the parent source with the related source inside a `uri_path` (`"navigation-products"`, `"products"`, `"product_transactions"` gives `"navigation-product_transactions"`), and returns the path unchanged when both sources are equal
 
 ##### Test ports
-- No new route. The LiveView behaviour is observed through the routes of UI-1 and UI-2.
+- No new route. The LiveView behaviour is observed through the routes of UI-1 and the `handler-hooks-*` routes the tests of UI-2 visit.
 - Pure functions of `Aurora.Uix.Navigation`, called directly.
 - A bare socket for `put/2`: `%Phoenix.LiveView.Socket{}` with `assigns: %{__changed__: %{}, auix: %{}}`.
 - Directly rendered components for AC-7: `Phoenix.LiveViewTest.render_component/2`, as `test/cases/core_components_input_test.exs` does.
@@ -668,7 +729,7 @@ The section moves the navigation helpers out of `lib/aurora_uix/templates/basic/
 10. Components: none new. Theme: none. `dt/1` strings: none.
 
 ##### Green tests
-1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/navigation_test.exs test/cases/routing_components_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/compatibility_test.exs`)
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/navigation_test.exs test/cases/routing_components_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs`)
 2. `mix test` — full suite green (review-issue runs this; code-issue runs
    only this section's test files)
 3. `mix compile --warnings-as-errors` clean
@@ -682,6 +743,8 @@ The section moves the navigation helpers out of `lib/aurora_uix/templates/basic/
 - A one-to-many field whose `resource:` names an alternate resource on the same schema. Its navigation test is added with step 6.
 - Direct load of a `/new` URL. `uri_path` keeps its `/new` suffix there today, so a save patches back to `/new`, and a new parent with a child list redirects to `/new/<id>/edit`. UI-1 does not assert that path, UI-3 reproduces today's parsing, and the fix belongs to a separate issue.
 - New tests for `guides/customization/*`. Custom actions, predefined renderers and theming keep their existing tests; a routing-component override has no navigation test.
-- An Ash run of the compatibility suite. The handler behaviours, event targets and message delivery it exercises are backend-agnostic.
+- An Ash run of the handler-hook tests of UI-2. The handler behaviours, event targets and message delivery they exercise are backend-agnostic.
+- A separate test file, test namespace, support module and route for the handler-hook tests. UI-2 extends `test/cases_live/handler_hooks_index_test.exs`, `handler_hooks_form_test.exs` and `handler_hooks_show_test.exs`.
+- A test of `push_navigate/2` called from a handler. It is a Phoenix function and runs no library code.
 - `README.md` § What's New link. `prepare-release` updates it.
 <!-- enriched-spec:end -->
