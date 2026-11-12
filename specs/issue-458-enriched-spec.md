@@ -466,13 +466,13 @@ The test hosts mirror the guide examples: the same callback, the same `super` ca
 | § Hiding Fields at Runtime | `assign_auix(socket, :fields_to_reject, keys)` | AC-4 |
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an index handler that overrides `auix_mount/3`, `auix_handle_params/3` and `apply_action/2` and calls `super` in each, visiting the index reports the three callbacks to the probe from the LiveView process, and the index lists its rows
-- [ ] AC-2: Given the same handler, an untargeted `compat_ping` event reaches its `auix_handle_event/3`; the task it starts with `start_async/3` reaches its `auix_handle_async/3`; an untargeted `filter-toggle` event still reaches the default implementation through `super`
-- [ ] AC-3: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the `send(self(), {:compat_notify, :form})` it performs reaches the index handler's `auix_handle_info/2` in the LiveView process
-- [ ] AC-4: Given a form handler whose `auix_update/2` calls `super` and then assigns `:compat_note` and `:fields_to_reject` with `assign_auix/3`, the form renders the note, renders no input for the rejected field, and still renders the note after a later event
-- [ ] AC-5: Given a show footer action with two buttons targeted at `@auix._myself`, `compat_back` runs `auix_route_back/1` in the show handler and patches to the index; `compat_go` runs `push_navigate/2` in the show handler and live-redirects to the edit path
-- [ ] AC-6: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and calls `super`, opening the form reports `:update` before `:auix_update` to the probe
-- [ ] AC-7: Given the index handler, a message its `auix_handle_info/2` does not match is passed to `super`, is ignored, and the LiveView keeps rendering
+- [x] AC-1: Given an index handler that overrides `auix_mount/3`, `auix_handle_params/3` and `apply_action/2` and calls `super` in each, visiting the index reports the three callbacks to the probe from the LiveView process, and the index lists its rows
+- [x] AC-2: Given the same handler, an untargeted `compat_ping` event reaches its `auix_handle_event/3`; the task it starts with `start_async/3` reaches its `auix_handle_async/3`; an untargeted `filter-toggle` event still reaches the default implementation through `super`
+- [x] AC-3: Given a form footer action whose button carries `phx-target={@auix._myself}`, clicking it reaches the form handler's `auix_handle_event/3`; the `send(self(), {:compat_notify, :form})` it performs reaches the index handler's `auix_handle_info/2` in the LiveView process
+- [x] AC-4: Given a form handler whose `auix_update/2` calls `super` and then assigns `:compat_note` and `:fields_to_reject` with `assign_auix/3`, the form renders the note, renders no input for the rejected field, and still renders the note after a later event
+- [x] AC-5: Given a show footer action with two buttons targeted at `@auix._myself`, `compat_back` runs `auix_route_back/1` in the show handler and patches to the index; `compat_go` runs `push_navigate/2` in the show handler and live-redirects to the edit path
+- [x] AC-6: Given a form handler that overrides `Phoenix.LiveComponent` `update/2` and calls `super`, opening the form reports `:update` before `:auix_update` to the probe
+- [x] AC-7: Given the index handler, a message its `auix_handle_info/2` does not match is passed to `super`, is ignored, and the LiveView keeps rendering
 
 ##### Test ports
 - Route registered in `test/support/app_web/routes.ex` inside `load_test_routes/0` via `RoutesHelper.register_crud/2`: `register_crud(CompatibilityTest.Product, "compatibility-products")`. `P = "/compatibility-products"`.
