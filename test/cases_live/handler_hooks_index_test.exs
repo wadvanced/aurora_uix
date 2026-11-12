@@ -34,6 +34,34 @@ defmodule Aurora.UixWeb.Test.HandlerHooksIndexTest do
 
     refute html =~ "item_test-06"
   end
+
+  test "auix_mount and auix_handle_params overrides keep their auix keys", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/handler-hooks-index-products?filter=abc")
+
+    render_click(view, "hooks_report", %{})
+    assert has_element?(view, "#flash-info", "mount=mounted filter=abc")
+  end
+
+  test "an async task started by a custom event reaches auix_handle_async", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/handler-hooks-index-products")
+
+    render_click(view, "hooks_async", %{})
+    render_async(view)
+    assert has_element?(view, "#flash-info", "async done")
+  end
+
+  test "a form save reaches auix_handle_info in the index", %{conn: conn} do
+    delete_all_inventory_data()
+    %{"id_test-1" => product} = create_sample_products(1, :test)
+    {:ok, view, _html} = live(conn, "/handler-hooks-index-products/#{product.id}/edit")
+
+    view
+    |> form("#auix-product-form", product: %{name: "Renamed", quantity_initial: 11})
+    |> render_submit()
+
+    render_click(view, "hooks_report", %{})
+    assert has_element?(view, "#flash-info", "saved=Renamed")
+  end
 end
 
 defmodule Aurora.UixWeb.IndexHandlerHook do
@@ -57,4 +85,42 @@ defmodule Aurora.UixWeb.IndexHandlerHook do
   def apply_action(socket, params) do
     super(socket, params)
   end
+
+  @impl IndexImpl
+  def auix_mount(params, session, socket) do
+    super(params, session, assign_auix(socket, :hooks_mount, "mounted"))
+  end
+
+  @impl IndexImpl
+  def auix_handle_params(params, url, socket) do
+    super(params, url, assign_auix(socket, :hooks_filter, Map.get(params, "filter")))
+  end
+
+  @impl IndexImpl
+  def auix_handle_event("hooks_report", _params, %{assigns: %{auix: auix}} = socket) do
+    saved = Map.get(auix, :hooks_saved)
+    report = "mount=#{auix.hooks_mount} filter=#{auix.hooks_filter} saved=#{saved}"
+
+    {:noreply, put_flash(socket, :info, report)}
+  end
+
+  def auix_handle_event("hooks_async", _params, socket) do
+    {:noreply, start_async(socket, :hooks_async, fn -> "async done" end)}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
+
+  @impl IndexImpl
+  def auix_handle_async(:hooks_async, {:ok, message}, socket) do
+    {:noreply, put_flash(socket, :info, message)}
+  end
+
+  def auix_handle_async(task, result, socket), do: super(task, result, socket)
+
+  @impl IndexImpl
+  def auix_handle_info({_component, {:saved, entity}} = message, socket) do
+    super(message, assign_auix(socket, :hooks_saved, entity.name))
+  end
+
+  def auix_handle_info(message, socket), do: super(message, socket)
 end
