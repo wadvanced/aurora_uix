@@ -483,6 +483,7 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_crud(EventsTest.Product, "events-products")
         RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
         RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")
+        RoutesHelper.register_crud(CompatibilityTest.Product, "compatibility-products")
 
         RoutesHelper.register_crud(
           SelectedBulkActionTest.Product,
