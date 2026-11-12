@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
-  alias Aurora.Uix.Stack
+  alias Aurora.Uix.Navigation
 
   alias Phoenix.LiveView.Socket
 
@@ -371,10 +371,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
+
+  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) :: Socket.t()
   def assign_auix_current_path(socket, url) do
-    assign_auix(socket, :_current_path, url |> URI.parse() |> Map.get(:path))
+    Navigation.assign_current_path(socket, url)
   end
 
   @doc """
@@ -387,36 +389,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
+
+  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_uri_path(Socket.t()) :: Socket.t()
-  def assign_auix_uri_path(%{assigns: %{auix: auix} = assigns} = socket) do
-    all_paths =
-      auix._current_path
-      |> String.replace_leading("/", "")
-      |> String.replace_trailing("/edit", "")
-      |> String.replace_trailing("/show", "")
-      |> String.replace_trailing("/show-edit", "")
-      |> String.split("/")
-      |> Enum.reverse()
-
-    reverse_paths =
-      case {assigns[:live_action], all_paths} do
-        {:edit, [_ | paths]} -> paths
-        {:show, [_ | paths]} -> paths
-        {:show_edit, [_ | paths]} -> paths
-        {_, paths} -> paths
-      end
-
-    uri_path =
-      reverse_paths
-      |> Enum.reverse()
-      |> Enum.join("/")
-
-    uri_path_id = String.replace(uri_path, "/", "--")
-
-    socket
-    |> assign_auix(:uri_path, uri_path)
-    |> assign_auix(:uri_path_id, uri_path_id)
+  def assign_auix_uri_path(socket) do
+    Navigation.assign_uri_path(socket)
   end
 
   @doc """
@@ -463,28 +441,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
       %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
 
+  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) :: Socket.t()
   def assign_auix_routing_stack(socket, params, default_route \\ nil)
 
-  def assign_auix_routing_stack(
-        socket,
-        %{"routing_stack" => encoded_routing_stack},
-        _default_route
-      ) do
-    encoded_routing_stack
-    |> decode_routing_stack()
-    |> then(&assign_auix(socket, :routing_stack, &1))
-  end
-
-  def assign_auix_routing_stack(socket, _params, nil) do
-    assign_auix(socket, :routing_stack, Stack.new())
-  end
-
-  def assign_auix_routing_stack(socket, _params, default_route) do
-    default_route
-    |> Stack.new()
-    |> then(&assign_auix(socket, :routing_stack, &1))
+  def assign_auix_routing_stack(socket, params, default_route) do
+    Navigation.assign_stack(socket, params, default_route)
   end
 
   @doc """
@@ -747,15 +710,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
+
+  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec auix_route_forward(Socket.t(), keyword()) :: Socket.t()
-  def auix_route_forward(
-        %{assigns: %{auix: %{_current_path: current_path}}} = socket,
-        navigation
-      ) do
-    socket
-    |> add_forward_path(current_path, navigation)
-    |> route_to(navigation)
+  def auix_route_forward(socket, navigation) do
+    Navigation.forward(socket, Navigation.get(socket), navigation)
   end
 
   @doc """
@@ -768,23 +728,12 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
+
+  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec auix_route_back(Socket.t()) :: Socket.t()
-  def auix_route_back(%{assigns: %{auix: %{routing_stack: routing_stack} = auix}} = socket) do
-    current_path = Map.get(auix, :_current_path, "")
-
-    fallback_path = determine_fallback_path(current_path)
-
-    {new_navigation_stack, back_path} = Stack.pop(routing_stack, fallback_path)
-
-    calculated_back_path =
-      if current_path == back_path.path,
-        do: fallback_path,
-        else: back_path
-
-    socket
-    |> assign_auix(:routing_stack, new_navigation_stack)
-    |> route_to(Map.new(calculated_back_path))
+  def auix_route_back(socket) do
+    Navigation.back(socket, Navigation.get(socket))
   end
 
   @doc """
@@ -1462,81 +1411,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> assign_auix(:one_to_many_related_key, related_key)
   end
 
-  # Adds a path to the forward navigation stack and updates last route path in assigns
-  @spec add_forward_path(Socket.t(), binary(), keyword()) ::
-          Socket.t()
-  defp add_forward_path(%{assigns: %{auix: %{routing_stack: stack}}} = socket, path, navigation) do
-    navigation_entry =
-      navigation
-      |> route_type()
-      |> then(&%{type: &1, path: path})
-
-    stack
-    |> Stack.push(navigation_entry)
-    |> then(&assign_auix(socket, :routing_stack, &1))
-    |> assign_auix(:_last_route_path, path)
-  end
-
-  defp add_forward_path(socket, _path, _navigation), do: socket
-
-  # Handles route changes based on navigation type and current routing stack
-  @spec route_to(Socket.t(), map() | keyword()) :: Socket.t()
-  defp route_to(%{assigns: %{auix: %{routing_stack: stack}}} = socket, %{
-         type: :navigate,
-         path: path
-       }) do
-    push_navigate(socket, to: route_path_with_stack(path, stack))
-  end
-
-  defp route_to(%{assigns: %{auix: %{routing_stack: stack}}} = socket, %{
-         type: :patch,
-         path: path
-       }) do
-    push_patch(socket, to: route_path_with_stack(path, stack))
-  end
-
-  defp route_to(socket, to: path), do: route_to(socket, %{type: :navigate, path: path})
-
-  defp route_to(socket, patch: path), do: route_to(socket, %{type: :patch, path: path})
-
-  # Converts navigation keyword options to route type atoms
-  @spec route_type(keyword()) :: atom()
-  defp route_type(to: _path), do: :navigate
-  defp route_type(patch: _path), do: :patch
-
-  # Builds a complete path with routing stack encoded as a query parameter
-  @spec route_path_with_stack(binary(), map()) :: binary()
-  defp route_path_with_stack(path, routing_stack) do
-    query_parameter_separator = if String.contains?(path, "?"), do: "&", else: "?"
-
-    routing_stack
-    |> encode_routing_stack()
-    |> then(&"#{path}#{query_parameter_separator}routing_stack=#{&1}")
-  end
-
-  # Encodes routing stack into a compressed, Base64 URL-safe string
-  @spec encode_routing_stack(struct()) :: binary()
-  defp encode_routing_stack(routing_stack) do
-    routing_stack
-    |> Map.from_struct()
-    |> Jason.encode!()
-    |> :zlib.compress()
-    |> Base.encode64()
-    |> URI.encode_www_form()
-  end
-
-  # Decodes an obfuscated routing stack string back into a stack struct
-  @spec decode_routing_stack(binary()) :: struct()
-  defp decode_routing_stack(obfuscated) do
-    obfuscated
-    |> Base.decode64!()
-    |> :zlib.uncompress()
-    |> Jason.decode!()
-    |> Map.get("values", [])
-    |> Enum.map(&%{path: &1["path"], type: String.to_existing_atom(&1["type"])})
-    |> Stack.new()
-  end
-
   # Read from table
   @spec get_many_to_one_select_option(map(), term()) :: tuple()
   defp get_many_to_one_select_option(
@@ -1581,46 +1455,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   defp process_error_detail([child, %{}]) when is_map(child) do
     Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
-  end
-
-  @spec determine_fallback_path(binary()) :: map()
-  defp determine_fallback_path(current_path) do
-    path =
-      cond do
-        String.ends_with?(current_path, "/show-edit") ->
-          remove_trailing_paths(current_path, 2)
-
-        String.ends_with?(current_path, "/show") ->
-          remove_trailing_paths(current_path, 2)
-
-        String.ends_with?(current_path, "/edit") ->
-          remove_trailing_paths(current_path, 2)
-
-        String.ends_with?(current_path, "/new") ->
-          remove_trailing_paths(current_path, 1)
-
-        true ->
-          current_path
-      end
-
-    %{type: :navigate, path: path}
-  end
-
-  @spec remove_trailing_paths(binary(), integer()) :: binary()
-  defp remove_trailing_paths(current_path, count) do
-    paths =
-      current_path
-      |> String.split("/")
-      |> Enum.reverse()
-
-    if Enum.count(paths) > count,
-      do:
-        paths
-        |> Enum.with_index(&if &2 < count, do: nil, else: &1)
-        |> Enum.reject(&is_nil/1)
-        |> Enum.reverse()
-        |> Enum.join("/"),
-      else: List.last(paths)
   end
 
   @spec maybe_update_source(map(), atom() | binary()) :: map()

@@ -17,6 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Integration.Crud
 
+  alias Aurora.Uix.Navigation
   alias Aurora.Uix.Templates.Basic.Actions.OneToMany, as: OneToManyActions
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Phoenix.HTML.Safe
@@ -201,7 +202,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
          uri_path
        ) do
     uri_path
-    |> String.replace(source, related_source)
+    |> Navigation.related_uri_path(source, related_source)
     |> then(&Map.put(related_parsed_opts, :uri_path, &1))
   end
 
