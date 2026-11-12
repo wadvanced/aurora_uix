@@ -6,6 +6,7 @@ defmodule Aurora.UixWeb.Test.Routes do
   test routes into the router. These routes are used for testing various
   features and scenarios of the Aurora.Uix framework.
   """
+  alias Aurora.Uix.RouteHelper
   alias Aurora.UixWeb.Test.RoutesHelper
 
   @doc """
@@ -488,6 +489,30 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_crud(
           SelectedBulkActionTest.Product,
           "selected-bulk-action-products"
+        )
+
+        RoutesHelper.register_crud(NavigationTest.Product, "navigation-products")
+
+        RoutesHelper.register_crud(
+          NavigationTest.ProductTransaction,
+          "navigation-product_transactions"
+        )
+
+        RoutesHelper.register_crud(AshNavigationTest.Author, "ash-navigation-authors")
+        RoutesHelper.register_crud(AshNavigationTest.Post, "ash-navigation-posts")
+
+        require Aurora.Uix.RouteHelper
+
+        RouteHelper.auix_live_resources(
+          "/navigation-only-products",
+          NavigationTest.Product,
+          only: [:index, :show]
+        )
+
+        RouteHelper.auix_live_resources(
+          "/navigation-except-products",
+          NavigationTest.Product,
+          except: [:new, :edit]
         )
       end
 
