@@ -16,7 +16,8 @@ The `auix_create_ui/0` macro generates a complete set of modules for your resour
 
 ```
 Overview.Product                      # Parent module (generated)
-├── Overview.Product.Index            # LiveView - Handles list/index page
+├── Overview.Product.Index            # LiveView - Hosts the components, owns the routes
+├── Overview.Product.IndexComponent   # LiveComponent - Handles the list
 ├── Overview.Product.FormComponent    # LiveComponent - Handles create/edit forms
 └── Overview.Product.ShowComponent    # LiveComponent - Handles detail view display
 ```
@@ -30,6 +31,10 @@ Overview.Product                      # Parent module (generated)
 - Hosts modal containers for form and show components
 - Provides navigation between list and detail views
 - Implements LiveView callbacks: `mount/3`, `handle_params/3`, `handle_event/3`, `handle_info/2`, `handle_async/3`
+
+**IndexComponent Module** (`Overview.Product.IndexComponent`) - LiveComponent:
+- Holds the list state the Index LiveView delegates to it: streams, filters, sort, pagination and selection
+- Can be embedded in any LiveView; see [Reusable Components](components.md)
 
 **FormComponent Module** (`Overview.Product.FormComponent`) - LiveComponent:
 - Renders create and edit forms in modals
@@ -633,7 +638,8 @@ JS.push("archive", target: @auix._myself)
 ```
 
 The event is handled by the `auix_handle_event/3` of the form or show handler, as in the examples above.
-`@auix._myself` exists in the form and the show view only: the index is a LiveView, so its events need no target.
+`@auix._myself` exists in the index, the form and the show view. An untargeted event in the generated index
+still reaches the Index LiveView and its `auix_handle_event/3`.
 
 #### Hiding Fields at Runtime
 
@@ -1047,18 +1053,30 @@ The other query assigns of `auix` (`query_options`, `read_items`) are internal: 
 
 ## Navigation
 
-Aurora UIX handles navigation through:
+`Aurora.Uix.Navigation` owns the navigation of the generated LiveView. Its state is `@auix.navigation`, an
+`%Aurora.Uix.Navigation{}` with the base path, the current path and the routing stack.
 
-1. **LiveView patches** - For route changes within the same view (fast)
-2. **LiveView pushes** - For full page navigation
-3. **Routing stack** - Maintains history for back/forward navigation
+| Function | Does |
+|---|---|
+| `Navigation.path(nav, action, id)` | Builds the path of `:index`, `:new`, `:show`, `:edit` or `:show_edit` |
+| `Navigation.forward(socket, nav, target)` | Pushes the current path on the routing stack and goes to `target` (`patch: path` or `to: path`) |
+| `Navigation.back(socket, nav)` | Pops the routing stack and goes back |
 
-Navigate between views:
+`auix_route_forward/2` and `auix_route_back/1` call them with the socket's own navigation, and remain the
+helpers to use in a handler:
 
 ```elixir
-push_navigate(socket, to: ~p"/products/#{product.id}")
-push_patch(socket, to: ~p"/products/#{product.id}/edit")
+def auix_handle_event("archive", _params, socket) do
+  {:noreply, auix_route_back(socket)}
+end
 ```
+
+The generated LiveView navigates with a patch for a change within the view, a navigate for another view,
+and the routing stack in `?routing_stack=` so that back returns to where the user came from. The components
+never navigate: they report to the LiveView that hosts them; see [Reusable Components](components.md).
+
+`@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and `@auix[:index_new_link]` mirror the
+navigation state and stay readable from custom actions.
 
 ## Performance Considerations
 
@@ -1132,6 +1150,7 @@ Visit `http://localhost:4000/dev/dashboard`
 
 ## Related guides
 
+- [Reusable Components](components.md) — embedding the index, form and show components in your own LiveView
 - [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub; behavior hooks are [section 5](../customization/customization.md#5-customizing-liveview-behavior)
 - [Custom Actions](../customization/custom_actions.md) — the buttons and links that fire the events you handle here
 - [Layout System](layouts.md) — where handler modules are attached via layout options

@@ -310,19 +310,19 @@ Depends on: none
    ````
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-458-enriched-spec.md`)
-- [ ] AC-3: `guides/core/components.md` exists with the sections Embedding a component, Inputs, Outputs, Events, Navigation, Live updates, Several instances on one page, Generating the components alone, One-to-many lists and Design decisions (mechanical — no red test; verified by `grep -c '^## ' guides/core/components.md` returning `10`)
-- [ ] AC-4: `guides/core/liveview.md § Navigation` documents `Aurora.Uix.Navigation` and no longer carries the `~p"/products/#{product.id}/edit"` example (mechanical — no red test; verified by `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -c 'push_patch(socket, to: ~p' guides/core/liveview.md` returning `0`)
-- [ ] AC-5: `guides/core/liveview.md` lists `IndexComponent` in the module tree and in § Generated Module Structure, states that `@auix._myself` exists in the index, and links the new guide from § Related guides (mechanical — no red test; verified by `grep -c 'IndexComponent' guides/core/liveview.md` returning `3` and `grep -c '(components.md)' guides/core/liveview.md` returning `3`)
-- [ ] AC-6: `guides/whats_new/0.2.1.md` exists and links the Reusable Components guide (mechanical — no red test; verified by `grep -c '(../core/components.md)' guides/whats_new/0.2.1.md` returning `1`)
-- [ ] AC-7: the introduction of `guides/core/components.md` describes the guide without comparing it to earlier versions (mechanical — no red test; verified by `grep -c 'behaves as it always did' guides/core/components.md` returning `0` and `grep -c '^This guide shows how to embed the components in a LiveView you write\.$' guides/core/components.md` returning `1`)
-- [ ] AC-8: `guides/whats_new/0.2.1.md` sends readers coming from a version earlier than 0.2.0 to the 0.2.0 upgrade steps, in the introduction and in § Upgrading from 0.2.0 (mechanical — no red test; verified by `grep -c '(0.2.0.md#upgrading-from-0-1-7)' guides/whats_new/0.2.1.md` returning `2`)
+- [x] AC-3: `guides/core/components.md` exists with the sections Embedding a component, Inputs, Outputs, Events, Navigation, Live updates, Several instances on one page, Generating the components alone, One-to-many lists and Design decisions (mechanical — no red test; verified by `grep -c '^## ' guides/core/components.md` returning `10`)
+- [x] AC-4: `guides/core/liveview.md § Navigation` documents `Aurora.Uix.Navigation` and no longer carries the `~p"/products/#{product.id}/edit"` example (mechanical — no red test; verified by `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -c 'push_patch(socket, to: ~p' guides/core/liveview.md` returning `0`)
+- [x] AC-5: `guides/core/liveview.md` lists `IndexComponent` in the module tree and in § Generated Module Structure, states that `@auix._myself` exists in the index, and links the new guide from § Related guides (mechanical — no red test; verified by `grep -c 'IndexComponent' guides/core/liveview.md` returning `3` and `grep -c '(components.md)' guides/core/liveview.md` returning `3`)
+- [x] AC-6: `guides/whats_new/0.2.1.md` exists and links the Reusable Components guide (mechanical — no red test; verified by `grep -c '(../core/components.md)' guides/whats_new/0.2.1.md` returning `1`)
+- [x] AC-7: the introduction of `guides/core/components.md` describes the guide without comparing it to earlier versions (mechanical — no red test; verified by `grep -c 'behaves as it always did' guides/core/components.md` returning `0` and `grep -c '^This guide shows how to embed the components in a LiveView you write\.$' guides/core/components.md` returning `1`)
+- [x] AC-8: `guides/whats_new/0.2.1.md` sends readers coming from a version earlier than 0.2.0 to the 0.2.0 upgrade steps, in the introduction and in § Upgrading from 0.2.0 (mechanical — no red test; verified by `grep -c '(0.2.0.md#upgrading-from-0-1-7)' guides/whats_new/0.2.1.md` returning `2`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
