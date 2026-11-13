@@ -12,7 +12,8 @@ This spec covers steps 1–3 of the epic: the documented component contract, a t
 | DOC-1 | Documentation | `CHANGELOG.md` § `[0.2.1]`, `guides/core/components.md` (new), `guides/core/liveview.md` § Module Generation, § Generated Module Structure, § Targeting the Component, § Navigation, § Related guides, `guides/whats_new/0.2.1.md` (new) | none | federico/458-doc-1-components-contract | docs: component contract and navigation spec (#458 · DOC-1) |
 | UI-1 | UI | handlers · navigation characterization tests, Ecto and Ash (no library change) | DOC-1 | federico/458-ui-1-navigation-characterization | test: lock current navigation behaviour (#458 · UI-1) |
 | UI-2 | UI | handlers · handler-hook tests for the documented callbacks, in the existing `handler_hooks_*` test files (no library change) | DOC-1 | federico/458-ui-2-compatibility-suite | test: cover the documented handler hooks (#458 · UI-2) |
-| UI-3 | UI | handlers · extract `Aurora.Uix.Navigation` (`base_path`) | UI-1, UI-2 | federico/458-ui-3-navigation-module | refactor: extract Aurora.Uix.Navigation (#458 · UI-3) |
+| UI-3 | UI | handlers · extract `Aurora.Uix.Navigation` (`base_path`) as a pure data module; socket layer in `Aurora.Uix.Templates.Basic.Helpers` | UI-1, UI-2 | federico/458-ui-3-navigation-module | refactor: extract Aurora.Uix.Navigation (#458 · UI-3) |
+| DOC-2 | Documentation | `guides/core/components.md` § Navigation, `guides/core/liveview.md` § Navigation, `guides/whats_new/0.2.1.md` § Upgrading from 0.2.0 (the pure `Aurora.Uix.Navigation` API of UI-3) | UI-3 | federico/458-doc-2-navigation-guides | docs: navigation guides match the pure Aurora.Uix.Navigation (#458 · DOC-2) |
 
 A section starts only when every dependency is **merged**. Independent
 sections may run in parallel. Status is derived from GitHub, never recorded
@@ -637,103 +638,356 @@ Depends on: UI-1, UI-2
 
 #### Implementation details
 
-The section moves the navigation helpers out of `lib/aurora_uix/templates/basic/helpers.ex` into one module, with the navigation state in one struct. No generated URL, event or markup changes. Layout types covered: `:index`, `:form`, `:show`. The module is backend-agnostic: it references no `Ecto.*` and no `Ash.*` module.
+The section splits navigation into two layers. `Aurora.Uix.Navigation` is a pure data module: a struct, and functions that take the struct and return it. `Aurora.Uix.Templates.Basic.Helpers` is the socket layer: the only module that reads and writes `auix.navigation`, mirrors the legacy `auix` keys, and calls `push_patch/2` and `push_navigate/2`. Handlers call the helpers and `Navigation.path/3`. Generated URLs, events and markup do not change. Layout types covered: `:index`, `:form`, `:show`. Both modules are backend-agnostic: they reference no `Ecto.*` and no `Ash.*` module.
+
+A **route** is the map `%{type: :patch | :navigate, path: binary()}`.
 
 ##### Acceptance criteria
 - [ ] AC-1: `Navigation.path/3` returns `"/<uri_path>"` for `:index`, `"/<uri_path>/new"` for `:new`, and `"/<uri_path>/<id>/show"`, `"/<uri_path>/<id>/edit"`, `"/<uri_path>/<id>/show-edit"` for `:show`, `:edit`, `:show_edit`
 - [ ] AC-2: `Navigation.resolve_uri_path/2` without a `base_path` derives `uri_path` from `current_path` exactly as `assign_auix_uri_path/1` does today, for the paths `"/a/products"`, `"/a/products/7/edit"`, `"/a/products/7/show"`, `"/a/products/7/show-edit"` and `"/a/products/new"` (the last keeps today's result, `"a/products/new"`); `uri_path_id` replaces every `/` with `--`
 - [ ] AC-3: `Navigation.resolve_uri_path/2` with `base_path: "/shop/products"` sets `uri_path` to `"shop/products"` for every `current_path` and every live action
 - [ ] AC-4: `Navigation.encode_stack/1` of an empty stack returns `"eJyrVipLzClNLVayio6tBQAhgwS%2F"`, and `decode_stack/1` of the URI-decoded form of an encoded stack returns a stack with the same entries in the same order
-- [ ] AC-5: `Navigation.put/2` stores the struct at `auix.navigation` and mirrors it: `auix.routing_stack` always; `auix.uri_path`, `auix.uri_path_id`, `auix._current_path` and `auix._last_route_path` when the struct field is not `nil`
+- [ ] AC-5: the helpers `assign_auix_current_path/2`, `assign_auix_uri_path/1` and `assign_auix_routing_stack/3` store the struct at `auix.navigation` and mirror it: `auix.routing_stack` always; `auix.uri_path`, `auix.uri_path_id`, `auix._current_path` and `auix._last_route_path` when the struct field is not `nil`
 - [ ] AC-6: the navigation struct has no mode: `Navigation.new(mode: :local)` raises `KeyError`
 - [ ] AC-7: `auix_link`, `auix_link_back` and `auix_back` render a `phx-target` attribute they are given, and render none when they are given none
-- [ ] AC-8: `Aurora.Uix.Templates.Basic.Helpers` still exports `assign_auix_current_path/2`, `assign_auix_uri_path/1`, `assign_auix_index_new_link/1`, `assign_auix_routing_stack/2`, `assign_auix_routing_stack/3`, `auix_route_forward/2` and `auix_route_back/1`
+- [ ] AC-8: `Aurora.Uix.Templates.Basic.Helpers` exports `assign_auix_current_path/2`, `assign_auix_uri_path/1`, `assign_auix_index_new_link/1`, `assign_auix_routing_stack/2`, `assign_auix_routing_stack/3`, `auix_route_forward/2`, `auix_route_back/1`, `assign_auix_navigation/2`, `auix_route_back_from/2` and `auix_route_back_to_edit/2`
 - [ ] AC-9: the tests of UI-1 and UI-2 pass with their files unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/support/navigation_helper.ex test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs` printing nothing, and `mix test` green)
-- [ ] AC-10: `Navigation.related_uri_path/3` replaces the parent source with the related source inside a `uri_path` (`"navigation-products"`, `"products"`, `"product_transactions"` gives `"navigation-product_transactions"`), and returns the path unchanged when both sources are equal
+- [ ] AC-10: `Navigation.forward/2` returns `{nav, route}` and touches no socket. The returned `nav` has the old `current_path` pushed on its stack as `%{type: <type of the target>, path: <current_path>}` and `last_route_path` set to the old `current_path`. The `route` has the type of the target (`patch: path` gives `:patch`, `to: path` gives `:navigate`) and the target path followed by `routing_stack=<encoded new stack>`, joined with `?` when the target path has no `?`, and with `&` when it has one
+- [ ] AC-11: `Navigation.back/1` returns `{nav, route}` and touches no socket. With a stack whose top differs from `current_path`, the route is the top entry and the returned stack has it popped. With an empty stack, and with a stack whose top path equals `current_path`, the route is `%{type: :navigate, path: <index fallback>}`: `current_path` without its last two segments when it ends in one of `/show`, `/edit`, `/show-edit`, and without its last segment when it ends in `/new`. Every route path carries `routing_stack=<encoded returned stack>`
+- [ ] AC-12: `Navigation.back_to_edit/2` pops the origin entry of the stack and returns `{nav, route}` with `route == %{type: :navigate, path: "<origin path without its query>/<id>/edit?routing_stack=<encoded returned stack>"}`; the returned stack is the stack without the origin entry
+- [ ] AC-13: `Navigation.put_current_path/2` sets `current_path` to the path component of a URL (`"http://localhost:4001/a/products/7/edit?x=1"` gives `"/a/products/7/edit"`), and `Navigation.put_stack/2` replaces the stack
+- [ ] AC-14: error paths. `Navigation.forward/2` on a struct whose `current_path` is `nil` raises `FunctionClauseError`; `Navigation.back_to_edit/2` on a struct with an empty stack raises `Aurora.Uix.Stack.EmptyStackError`
+- [ ] AC-15: `Aurora.Uix.Navigation` is pure (mechanical — no red test; verified by `grep -nE 'Phoenix|Templates|import ' lib/aurora_uix/navigation.ex` printing nothing)
+- [ ] AC-16: outside `helpers.ex`, the template layer calls no function of `Aurora.Uix.Navigation` except `path/3` (mechanical — no red test; verified by `grep -rnE 'Navigation\.[a-z_]+' lib/aurora_uix/templates | grep -v 'templates/basic/helpers.ex' | grep -v 'Navigation\.path('` printing nothing, and `grep -rn '%{nav |' lib/aurora_uix/templates` printing nothing)
+- [ ] AC-17: one function writes the navigation keys of `auix` (mechanical — no red test; verified by `grep -rnE "assign_auix(_new)?\(([a-z_0-9&]+, )?:(navigation|routing_stack|uri_path|uri_path_id|_current_path|_last_route_path)," lib` printing exactly six lines, all of them inside `put_navigation/2` of `lib/aurora_uix/templates/basic/helpers.ex`)
+- [ ] AC-18: `assign_auix_navigation/2` starts the navigation of a component from `auix.uri_path` and the stack it is given: with `auix.uri_path == "a/b"` and a `nil` stack, `auix.navigation == Navigation.new(uri_path: "a/b")`, `auix.routing_stack == Stack.new()` and `auix` has no `_current_path` key; with a stack, `auix.navigation.stack` and `auix.routing_stack` are that stack
 
 ##### Test ports
 - No new route. The LiveView behaviour is observed through the routes of UI-1 and the `handler-hooks-*` routes the tests of UI-2 visit.
-- Pure functions of `Aurora.Uix.Navigation`, called directly.
-- A bare socket for `put/2`: `%Phoenix.LiveView.Socket{}` with `assigns: %{__changed__: %{}, auix: %{}}`.
+- Pure functions of `Aurora.Uix.Navigation`, called directly, in `test/cases/navigation_test.exs`. That file builds no socket and aliases no module under `Aurora.Uix.Templates`.
+- The socket helpers, called directly on a bare socket, in `test/cases/templates/basic/helpers_navigation_test.exs`: `%Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, auix: %{}}}`.
 - Directly rendered components for AC-7: `Phoenix.LiveViewTest.render_component/2`, as `test/cases/core_components_input_test.exs` does.
 
 ##### Red tests
+`Navigation` is `Aurora.Uix.Navigation`, `Stack` is `Aurora.Uix.Stack`, `Helpers` is `Aurora.Uix.Templates.Basic.Helpers`. `@empty` stands for the literal `"eJyrVipLzClNLVayio6tBQAhgwS%2F"`.
+
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
-| AC-1 | new file (`ls test/cases \| grep -i navig` returns nothing) | `nav = Navigation.new(uri_path: "a/products")` | `test/cases/navigation_test.exs` | `"path/3 builds the five paths"` | `Navigation.path(nav, :index) == "/a/products"`; `Navigation.path(nav, :new) == "/a/products/new"`; `Navigation.path(nav, :show, 7) == "/a/products/7/show"`; `:edit`, `:show_edit` alike |
-| AC-2 | add to `test/cases/navigation_test.exs` | `Navigation.new(current_path: path)` | same | `"resolve_uri_path/2 parses the current path as before"` | for `{path, live_action, expected}` in `{"/a/products", :index, "a/products"}`, `{"/a/products/7/edit", :edit, "a/products"}`, `{"/a/products/7/show", :show, "a/products"}`, `{"/a/products/7/show-edit", :show_edit, "a/products"}`, `{"/a/products/new", :new, "a/products/new"}`: `Navigation.resolve_uri_path(nav, live_action).uri_path == expected`; `.uri_path_id == String.replace(expected, "/", "--")` |
-| AC-3 | add to same | `Navigation.new(base_path: "/shop/products", current_path: "/elsewhere/9/edit")` | same | `"resolve_uri_path/2 prefers base_path"` | `.uri_path == "shop/products"` for `:edit` and for `:index` |
-| AC-4 | add to same | `Stack.new()`; a stack of two entries | same | `"encode_stack/1 and decode_stack/1 round-trip"` | `Navigation.encode_stack(Stack.new()) == "eJyrVipLzClNLVayio6tBQAhgwS%2F"`; `stack \|> Navigation.encode_stack() \|> URI.decode_www_form() \|> Navigation.decode_stack() == stack` |
-| AC-5 | add to same | bare socket; `nav = Navigation.new(uri_path: "a/b", uri_path_id: "a--b")` | same | `"put/2 stores the struct and mirrors the legacy keys"` | after `Navigation.put(socket, nav)`: `auix.navigation == nav`, `auix.uri_path == "a/b"`, `auix.uri_path_id == "a--b"`, `auix.routing_stack == nav.stack`, `refute Map.has_key?(auix, :_current_path)`, `refute Map.has_key?(auix, :_last_route_path)` |
-| AC-6 | add to same | none | same | `"new/1 rejects a key the struct does not have"` | `assert_raise KeyError, fn -> Navigation.new(mode: :local) end` |
-| AC-7 | new file (`ls test/cases \| grep -i routing` returns nothing) | the test module has `use ExUnit.Case, async: true`, `use Aurora.Uix.CoreComponentsImporter`, `import Aurora.Uix.Templates.Basic.RoutingComponents`, `import Phoenix.Component, only: [sigil_H: 2]`, `import Phoenix.LiveViewTest`, and four function components: `targeted_link/1` = `~H\|<.auix_link patch="/x" phx-target="#c">x</.auix_link>\|`, `targeted_link_back/1` = `~H\|<.auix_link_back phx-target="#c">x</.auix_link_back>\|`, `targeted_back/1` = `~H\|<.auix_back phx-target="#c">x</.auix_back>\|`, `plain_link/1` = `~H\|<.auix_link patch="/x">x</.auix_link>\|` | `test/cases/routing_components_test.exs` | `"routing links pass phx-target through"` | each `render_component(&component/1, %{})` is parsed with `LazyHTML.from_fragment/1`; `LazyHTML.query(html, "a[phx-click='auix_route_forward'][phx-target='#c']")` has one node for `targeted_link/1`; `a[phx-click='auix_route_back'][phx-target='#c']` has one node for `targeted_link_back/1` and for `targeted_back/1`; `a[phx-target]` has no node for `plain_link/1` |
-| AC-8 | add to `test/cases/navigation_test.exs` | `Code.ensure_loaded!(Helpers)` | same | `"the Basic helpers keep their navigation functions"` | `function_exported?(Helpers, name, arity)` for the seven name/arity pairs of AC-8 |
-| AC-10 | add to `test/cases/navigation_test.exs` | none | same | `"related_uri_path/3 swaps the source segment"` | the two values of AC-10 |
+| AC-1 | on the branch, kept unchanged | `nav = Navigation.new(uri_path: "a/products")` | `test/cases/navigation_test.exs` | `"path/3 builds the five paths"` | `Navigation.path(nav, :index) == "/a/products"`; `Navigation.path(nav, :new) == "/a/products/new"`; `Navigation.path(nav, :show, 7) == "/a/products/7/show"`; `:edit`, `:show_edit` alike |
+| AC-2 | on the branch, kept unchanged | `Navigation.new(current_path: path)` | same | `"resolve_uri_path/2 parses the current path as before"` | for `{path, live_action, expected}` in `{"/a/products", :index, "a/products"}`, `{"/a/products/7/edit", :edit, "a/products"}`, `{"/a/products/7/show", :show, "a/products"}`, `{"/a/products/7/show-edit", :show_edit, "a/products"}`, `{"/a/products/new", :new, "a/products/new"}`: `Navigation.resolve_uri_path(nav, live_action).uri_path == expected`; `.uri_path_id == String.replace(expected, "/", "--")` |
+| AC-3 | on the branch, kept unchanged | `Navigation.new(base_path: "/shop/products", current_path: "/elsewhere/9/edit")` | same | `"resolve_uri_path/2 prefers base_path"` | `.uri_path == "shop/products"` for `:edit` and for `:index` |
+| AC-4 | on the branch, kept unchanged | `Stack.new()`; a stack of two entries | same | `"encode_stack/1 and decode_stack/1 round-trip"` | `Navigation.encode_stack(Stack.new()) == @empty`; `stack \|> Navigation.encode_stack() \|> URI.decode_www_form() \|> Navigation.decode_stack() == stack` |
+| AC-5 | new file (`ls test/cases/templates/basic` lists only `helpers_actor_test.exs`). Module `Aurora.Uix.Templates.Basic.HelpersNavigationTest`, `use ExUnit.Case, async: true`, aliases `Aurora.Uix.Navigation`, `Aurora.Uix.Stack`, `Aurora.Uix.Templates.Basic.Helpers` | bare socket; `auix = socket \|> Helpers.assign_auix_current_path("/a/b?x=1") \|> Helpers.assign_auix_uri_path() \|> Helpers.assign_auix_routing_stack(%{}) \|> then(& &1.assigns.auix)` | `test/cases/templates/basic/helpers_navigation_test.exs` | `"the helpers store the struct and mirror the legacy keys"` | `auix.navigation == Navigation.new(current_path: "/a/b", uri_path: "a/b", uri_path_id: "a--b")`; `auix._current_path == "/a/b"`; `auix.uri_path == "a/b"`; `auix.uri_path_id == "a--b"`; `auix.routing_stack == Stack.new()`; `refute Map.has_key?(auix, :_last_route_path)` |
+| AC-6 | on the branch, kept unchanged | none | `test/cases/navigation_test.exs` | `"new/1 rejects a key the struct does not have"` | `assert_raise KeyError, fn -> Navigation.new(mode: :local) end` |
+| AC-7 | on the branch, kept unchanged | the four function components of the file | `test/cases/routing_components_test.exs` | `"routing links pass phx-target through"` | one node for `a[phx-click='auix_route_forward'][phx-target='#c']` from `targeted_link/1`; one node for `a[phx-click='auix_route_back'][phx-target='#c']` from `targeted_link_back/1` and from `targeted_back/1`; no node for `a[phx-target]` from `plain_link/1` |
+| AC-8 | add to `test/cases/templates/basic/helpers_navigation_test.exs` | `Code.ensure_loaded!(Helpers)` | same | `"the Basic helpers keep their navigation functions"` | `function_exported?(Helpers, name, arity)` for the ten name/arity pairs of AC-8 |
+| AC-10 | add to `test/cases/navigation_test.exs` | `nav = Navigation.new(current_path: "/a/products", uri_path: "a/products")` | `test/cases/navigation_test.exs` | `"forward/2 pushes the current path and returns the route"` | `{nav2, route} = Navigation.forward(nav, patch: "/a/products/7/show")`: `nav2.stack == Stack.new([%{type: :patch, path: "/a/products"}])`; `nav2.last_route_path == "/a/products"`; `route == %{type: :patch, path: "/a/products/7/show?routing_stack=" <> Navigation.encode_stack(nav2.stack)}`. `{nav3, route3} = Navigation.forward(nav, to: "/a/products?page=2")`: `nav3.stack == Stack.new([%{type: :navigate, path: "/a/products"}])`; `route3 == %{type: :navigate, path: "/a/products?page=2&routing_stack=" <> Navigation.encode_stack(nav3.stack)}` |
+| AC-11 | add to same | three structs, built with `Navigation.new/1` | same | `"back/1 pops the stack and falls back to the index path"` | `Navigation.new(current_path: "/a/products/7/show", stack: Stack.new([%{type: :patch, path: "/a/products"}]))` gives `{nav2, %{type: :patch, path: "/a/products?routing_stack=" <> @empty}}` with `nav2.stack == Stack.new()`; `Navigation.new(current_path: "/a/products/7/edit")` gives the route `%{type: :navigate, path: "/a/products?routing_stack=" <> @empty}`; `Navigation.new(current_path: "/a/products/new", stack: Stack.new([%{type: :patch, path: "/a/products/new"}]))` gives the route `%{type: :navigate, path: "/a/products?routing_stack=" <> @empty}` and an empty stack |
+| AC-12 | add to same | `nav = Navigation.new(stack: Stack.new([%{type: :patch, path: "/a/products?page=2"}]))` | same | `"back_to_edit/2 returns to the edit path of the origin"` | `{nav2, route} = Navigation.back_to_edit(nav, 7)`: `route == %{type: :navigate, path: "/a/products/7/edit?routing_stack=" <> @empty}`; `nav2.stack == Stack.new()` |
+| AC-13 | add to same | `Navigation.new()` | same | `"put_current_path/2 and put_stack/2 set their field"` | `Navigation.put_current_path(Navigation.new(), "http://localhost:4001/a/products/7/edit?x=1").current_path == "/a/products/7/edit"`; with `stack = Stack.new([%{type: :patch, path: "/a"}])`, `Navigation.put_stack(Navigation.new(), stack).stack == stack` |
+| AC-14 | add to same | none | same | `"forward/2 needs a current path and back_to_edit/2 an origin"` | `assert_raise FunctionClauseError, fn -> Navigation.forward(Navigation.new(), patch: "/x") end`; `assert_raise Aurora.Uix.Stack.EmptyStackError, fn -> Navigation.back_to_edit(Navigation.new(), 7) end` |
+| AC-18 | add to `test/cases/templates/basic/helpers_navigation_test.exs` | `socket = %Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, auix: %{uri_path: "a/b"}}}`; `stack = Stack.new([%{type: :patch, path: "/a/b"}])` | same | `"assign_auix_navigation/2 starts the navigation of a component"` | `auix = Helpers.assign_auix_navigation(socket, nil).assigns.auix`: `auix.navigation == Navigation.new(uri_path: "a/b")`; `auix.routing_stack == Stack.new()`; `refute Map.has_key?(auix, :_current_path)`. `auix2 = Helpers.assign_auix_navigation(socket, stack).assigns.auix`: `auix2.navigation.stack == stack`; `auix2.routing_stack == stack` |
 
 ##### Modules & components
-1. `Aurora.Uix.Navigation` at `lib/aurora_uix/navigation.ex` — new (search: `grep -rn "Aurora.Uix.Navigation" lib test` returns nothing). `@moduledoc` with `## Key Features` and `## Key Constraints`; `@doc` + `@spec` on every public function; `@spec` on every private function. Aliases: `Aurora.Uix.Stack`, `Phoenix.LiveView.Socket`. Imports: `Phoenix.LiveView, only: [push_navigate: 2, push_patch: 2]`. It writes `auix` through `Aurora.Uix.Templates.Basic.Helpers.assign_auix/3`, called fully qualified through an alias `BasicHelpers`.
-   - Struct and type:
+1. Starting point. Work on the head of `federico/458-ui-3-navigation-module` (commit `d3fd717`), which already holds a first implementation of this section. Every "replace" and "delete" below quotes that branch's code, not `main`. On that branch `lib/aurora_uix/navigation.ex` exists and mixes the struct, pure functions and socket functions; `helpers.ex` delegates to it; `index_impl.ex`, `form_impl.ex`, `show_component_impl.ex` and `renderers/fields/one_to_many.ex` call it. Steps 2 to 8 give each file's end state.
+2. `Aurora.Uix.Navigation` at `lib/aurora_uix/navigation.ex` — modified into a pure data module, in the style of `lib/aurora_uix/stack.ex`.
+   - Delete `import Phoenix.LiveView, only: [push_navigate: 2, push_patch: 2]`, `alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers` and `alias Phoenix.LiveView.Socket`. The only alias left is `alias Aurora.Uix.Stack`.
+   - Delete the public functions `get/1`, `put/2`, `assign_current_path/2`, `assign_uri_path/1`, `assign_stack/3`, `forward/3`, `back/2`, `record/4`, `related_uri_path/3`, with their `@doc` and `@spec`.
+   - Delete the private functions `maybe_assign/3`, `route_to/3` and `route_type/1`, with their `@spec` and comments.
+   - Keep unchanged: `defstruct` (the six fields `base_path`, `current_path`, `uri_path`, `uri_path_id`, `stack`, `last_route_path`), `@type t()`, `new/1`, `resolve_uri_path/2`, `path/3`, `encode_stack/1`, `decode_stack/1`, and the private `put_uri_path/2`, `route_path_with_stack/2`, `determine_fallback_path/1`, `remove_trailing_paths/2`.
+   - Add, after `@type t()`: `@type route() :: %{type: :patch | :navigate, path: binary()}`. Change the `@spec` of `determine_fallback_path/1` to `determine_fallback_path(binary()) :: route()`.
+   - Add the public functions below (new: `grep -rnE 'put_current_path|put_stack|back_to_edit' lib test guides` returns nothing; `forward/2` and `back/1` replace `forward/3` and `back/2`). Each gets a `@doc` with `## Parameters` and `## Returns`, in the form the file already uses. Place them in this order after `resolve_uri_path/2`: `put_current_path/2`, `put_stack/2`, `path/3` (existing), `forward/2`, `back/1`, `back_to_edit/2`.
      ```elixir
-     defstruct base_path: nil,
-               current_path: nil,
-               uri_path: nil,
-               uri_path_id: nil,
-               stack: %Stack{},
-               last_route_path: nil
+     @spec put_current_path(t(), binary() | URI.t() | nil) :: t()
+     def put_current_path(%__MODULE__{} = nav, url),
+       do: %{nav | current_path: url |> URI.parse() |> Map.get(:path)}
+
+     @spec put_stack(t(), Stack.t()) :: t()
+     def put_stack(%__MODULE__{} = nav, %Stack{} = stack), do: %{nav | stack: stack}
+
+     @spec forward(t(), keyword()) :: {t(), route()}
+     def forward(%__MODULE__{current_path: current_path} = nav, target)
+         when is_binary(current_path) do
+       %{type: type, path: path} = target_route(target)
+       stack = Stack.push(nav.stack, %{type: type, path: current_path})
+
+       {%{nav | stack: stack, last_route_path: current_path},
+        %{type: type, path: route_path_with_stack(path, stack)}}
+     end
+
+     @spec back(t()) :: {t(), route()}
+     def back(%__MODULE__{} = nav) do
+       current_path = nav.current_path || ""
+       fallback_route = determine_fallback_path(current_path)
+       {stack, popped_route} = Stack.pop(nav.stack, fallback_route)
+
+       %{type: type, path: path} =
+         if current_path == popped_route.path, do: fallback_route, else: popped_route
+
+       {%{nav | stack: stack}, %{type: type, path: route_path_with_stack(path, stack)}}
+     end
+
+     @spec back_to_edit(t(), term()) :: {t(), route()}
+     def back_to_edit(%__MODULE__{} = nav, id) do
+       {stack, origin} = Stack.pop!(nav.stack)
+
+       edit_path =
+         origin
+         |> Map.get(:path)
+         |> URI.parse()
+         |> Map.get(:path)
+         |> then(&"#{&1}/#{id}/edit")
+
+       back(%{nav | stack: Stack.push(stack, %{type: :navigate, path: edit_path})})
+     end
      ```
-     `@type t()` lists the six fields: `base_path: binary() | nil`, `current_path: binary() | nil`, `uri_path: binary() | nil`, `uri_path_id: binary() | nil`, `stack: Stack.t()`, `last_route_path: binary() | nil`.
-   - `new(opts :: keyword()) :: t()` with default `[]` — `struct!(__MODULE__, opts)`. An unknown key raises `KeyError`.
-   - `get(socket :: Socket.t()) :: t()` — returns `socket.assigns.auix[:navigation]` when it is a `%Navigation{}`, and `new()` when the key is absent (the first call of a mount).
-   - `put(socket :: Socket.t(), nav :: t()) :: Socket.t()` — assigns `:navigation` and `:routing_stack` (`nav.stack`) with `assign_auix/3`; assigns `:uri_path`, `:uri_path_id`, `:_current_path` (`nav.current_path`) and `:_last_route_path` (`nav.last_route_path`) each only when the struct field is not `nil`.
-   - `assign_current_path(socket, url :: binary() | URI.t() | nil) :: Socket.t()` — `put(socket, %{get(socket) | current_path: url |> URI.parse() |> Map.get(:path)})`. Body moved from `helpers.ex` `assign_auix_current_path/2`.
-   - `resolve_uri_path(nav :: t(), live_action :: atom() | nil) :: t()` — pure. With `nav.base_path` a binary: `uri_path = String.replace_leading(nav.base_path, "/", "")`. Otherwise the algorithm of `helpers.ex` `assign_auix_uri_path/1`, moved verbatim, reading `nav.current_path` in place of `auix._current_path` and the `live_action` argument in place of `assigns[:live_action]`. Both branches set `uri_path_id = String.replace(uri_path, "/", "--")`.
-   - `assign_uri_path(socket :: Socket.t()) :: Socket.t()` — `put(socket, resolve_uri_path(get(socket), socket.assigns[:live_action]))`.
-   - `assign_stack(socket, params :: map(), default_route :: map() | nil) :: Socket.t()` with default `nil` — the three clauses of `helpers.ex` `assign_auix_routing_stack/3`, each ending in `put(socket, %{get(socket) | stack: stack})` in place of `assign_auix(socket, :routing_stack, stack)`.
-   - `path(nav :: t(), action :: :index | :new | :show | :edit | :show_edit, id :: term()) :: binary()` with default `nil` for `id` — the five results of AC-1.
-   - `forward(socket :: Socket.t(), nav :: t(), target :: keyword()) :: Socket.t()` — one clause, guarded by `is_binary(nav.current_path)`. `target` is `[to: path]` (navigate) or `[patch: path]`. It pushes `%{type: route_type(target), path: nav.current_path}` on `nav.stack`, sets `last_route_path` to `nav.current_path`, calls `put/2`, then `route_to/3`. Logic moved from `helpers.ex` `auix_route_forward/2` and `add_forward_path/3`.
-   - `back(socket :: Socket.t(), nav :: t()) :: Socket.t()` — the body of `helpers.ex` `auix_route_back/1`, with `current_path = nav.current_path || ""` and `nav.stack` in place of `routing_stack`; it calls `put(socket, %{nav | stack: new_stack})`, then `route_to/3`.
-   - `record(socket :: Socket.t(), nav :: t(), id :: term(), action :: :show | :edit | :show_edit) :: Socket.t()` — `push_patch(socket, to: path(nav, action, id))`. It adds no `routing_stack` parameter.
-   - `related_uri_path(uri_path :: binary(), source :: binary(), related_source :: binary()) :: binary()` — `String.replace(uri_path, source, related_source)`.
-   - `encode_stack(stack :: Stack.t()) :: binary()` and `decode_stack(encoded :: binary()) :: Stack.t()` — the bodies of `helpers.ex` `encode_routing_stack/1` and `decode_routing_stack/1`, moved verbatim.
-   - Private, moved verbatim from `helpers.ex` with `nav.stack` passed as an argument where they read `auix.routing_stack`: `route_to/3` (`route_to(socket, stack, target)`, the four clauses of `route_to/2`), `route_type/1`, `route_path_with_stack/2`, `determine_fallback_path/1`, `remove_trailing_paths/2`.
-2. `lib/aurora_uix/templates/basic/helpers.ex` — modified.
-   - Add `alias Aurora.Uix.Navigation` in alphabetical position.
-   - `assign_auix_current_path/2`: body becomes `Navigation.assign_current_path(socket, url)`.
-   - `assign_auix_uri_path/1`: head becomes `assign_auix_uri_path(socket)`; body becomes `Navigation.assign_uri_path(socket)`.
-   - `assign_auix_routing_stack/3`: keep the default-argument head; replace the three clauses with one clause whose body is `Navigation.assign_stack(socket, params, default_route)`.
-   - `auix_route_forward/2`: head becomes `auix_route_forward(socket, navigation)`; body becomes `Navigation.forward(socket, Navigation.get(socket), navigation)`.
-   - `auix_route_back/1`: head becomes `auix_route_back(socket)`; body becomes `Navigation.back(socket, Navigation.get(socket))`.
+   - Add the private function (new: `grep -rn 'target_route' lib test` returns nothing):
+     ```elixir
+     @spec target_route(keyword()) :: route()
+     defp target_route(to: path), do: %{type: :navigate, path: path}
+     defp target_route(patch: path), do: %{type: :patch, path: path}
+     ```
+   - `@moduledoc`: rewrite it. First paragraph: `Navigation state of a generated Aurora UIX view, as plain data.` `## Key Features`: the struct with its six fields; `uri_path` resolution from `base_path` and from `current_path`; the five resource paths; `forward/2`, `back/1` and `back_to_edit/2` return the new struct and the route to follow; routing stack encoding and decoding. `## Key Constraints`: every function takes the struct and returns data, and none takes a socket; backend-agnostic, it references no Ecto and no Ash module; the struct has no navigation mode, an unknown key given to `new/1` raises `KeyError`; `forward/2` requires a binary `current_path`. The text contains none of the words `Phoenix`, `Templates` and `import` (AC-15).
+3. `lib/aurora_uix/templates/basic/helpers.ex` — modified. It is the socket layer.
+   - Add `alias Aurora.Uix.Stack` on the line after `alias Aurora.Uix.Navigation`.
+   - In the `@doc` of `assign_auix_current_path/2`, `assign_auix_uri_path/1`, `assign_auix_routing_stack/3`, `auix_route_forward/2` and `auix_route_back/1`, delete the line ``Delegates to `Aurora.Uix.Navigation`.`` and the blank line before it. Their `@spec` lines stay.
+   - Replace the bodies of the five functions, and add three public functions. `assign_auix_navigation/2` goes directly after `assign_auix_routing_stack/3`; `auix_route_back_from/2` and `auix_route_back_to_edit/2` go directly after `auix_route_back/1`. The three are new (`grep -rnE 'assign_auix_navigation|auix_route_back_from|auix_route_back_to_edit' lib test guides` returns nothing); each gets a `@doc` with `## Parameters` and `## Returns`.
+     ```elixir
+     def assign_auix_current_path(socket, url),
+       do: update_navigation(socket, &Navigation.put_current_path(&1, url))
+
+     def assign_auix_uri_path(socket) do
+       update_navigation(socket, &Navigation.resolve_uri_path(&1, socket.assigns[:live_action]))
+     end
+
+     def assign_auix_routing_stack(socket, params, default_route \\ nil)
+
+     def assign_auix_routing_stack(
+           socket,
+           %{"routing_stack" => encoded_routing_stack},
+           _default_route
+         ) do
+       encoded_routing_stack
+       |> Navigation.decode_stack()
+       |> then(fn stack -> update_navigation(socket, &Navigation.put_stack(&1, stack)) end)
+     end
+
+     def assign_auix_routing_stack(socket, _params, nil),
+       do: update_navigation(socket, &Navigation.put_stack(&1, Stack.new()))
+
+     def assign_auix_routing_stack(socket, _params, default_route) do
+       default_route
+       |> Stack.new()
+       |> then(fn stack -> update_navigation(socket, &Navigation.put_stack(&1, stack)) end)
+     end
+
+     @spec assign_auix_navigation(Socket.t(), Stack.t() | nil) :: Socket.t()
+     def assign_auix_navigation(socket, stack) do
+       put_navigation(
+         socket,
+         Navigation.new(uri_path: socket.assigns.auix[:uri_path], stack: stack || Stack.new())
+       )
+     end
+
+     def auix_route_forward(socket, navigation),
+       do: navigate_with(socket, &Navigation.forward(&1, navigation))
+
+     def auix_route_back(socket), do: navigate_with(socket, &Navigation.back/1)
+
+     @spec auix_route_back_from(Socket.t(), binary()) :: Socket.t()
+     def auix_route_back_from(socket, current_path) do
+       navigate_with(socket, fn nav ->
+         nav
+         |> Navigation.put_current_path(current_path)
+         |> Navigation.back()
+       end)
+     end
+
+     @spec auix_route_back_to_edit(Socket.t(), term()) :: Socket.t()
+     def auix_route_back_to_edit(socket, id),
+       do: navigate_with(socket, &Navigation.back_to_edit(&1, id))
+     ```
+     `@doc` first lines: `assign_auix_navigation/2` — `Starts the navigation of a component from its auix uri_path and the routing stack it received.`; `auix_route_back_from/2` — `Navigates back as if the socket were at the given path.`; `auix_route_back_to_edit/2` — `Navigates back to the edit path of a record, under the path the user came from.`
+   - Add the private functions below, directly before the first clause of `get_many_to_one_select_option/2` (new: `grep -rnE 'update_navigation|navigate_with|put_navigation|push_route|maybe_assign_auix|defp navigation\(' lib test` returns nothing). `push_navigate/2` and `push_patch/2` are already imported by `use Phoenix.LiveComponent`.
+     ```elixir
+     @spec navigation(Socket.t()) :: Navigation.t()
+     defp navigation(socket) do
+       case socket.assigns.auix[:navigation] do
+         %Navigation{} = nav -> nav
+         nil -> Navigation.new()
+       end
+     end
+
+     # The single writer of `auix.navigation` and of the legacy keys that mirror it.
+     @spec put_navigation(Socket.t(), Navigation.t()) :: Socket.t()
+     defp put_navigation(socket, %Navigation{} = nav) do
+       socket
+       |> assign_auix(:navigation, nav)
+       |> assign_auix(:routing_stack, nav.stack)
+       |> maybe_assign_auix(:uri_path, nav.uri_path)
+       |> maybe_assign_auix(:uri_path_id, nav.uri_path_id)
+       |> maybe_assign_auix(:_current_path, nav.current_path)
+       |> maybe_assign_auix(:_last_route_path, nav.last_route_path)
+     end
+
+     @spec maybe_assign_auix(Socket.t(), atom(), term()) :: Socket.t()
+     defp maybe_assign_auix(socket, _key, nil), do: socket
+     defp maybe_assign_auix(socket, key, value), do: assign_auix(socket, key, value)
+
+     @spec update_navigation(Socket.t(), (Navigation.t() -> Navigation.t())) :: Socket.t()
+     defp update_navigation(socket, fun) do
+       socket
+       |> navigation()
+       |> fun.()
+       |> then(&put_navigation(socket, &1))
+     end
+
+     @spec navigate_with(Socket.t(), (Navigation.t() -> {Navigation.t(), Navigation.route()})) ::
+             Socket.t()
+     defp navigate_with(socket, fun) do
+       {nav, route} =
+         socket
+         |> navigation()
+         |> fun.()
+
+       socket
+       |> put_navigation(nav)
+       |> push_route(route)
+     end
+
+     @spec push_route(Socket.t(), Navigation.route()) :: Socket.t()
+     defp push_route(socket, %{type: :navigate, path: path}), do: push_navigate(socket, to: path)
+     defp push_route(socket, %{type: :patch, path: path}), do: push_patch(socket, to: path)
+     ```
    - `assign_auix_index_new_link/1`: unchanged.
-   - Delete the private functions `add_forward_path/3`, `route_to/2`, `route_type/1`, `route_path_with_stack/2`, `encode_routing_stack/1`, `decode_routing_stack/1`, `determine_fallback_path/1`, `remove_trailing_paths/2` and their `@spec` lines.
-   - Delete `alias Aurora.Uix.Stack`: after the edits above its only remaining mentions are inside the `@doc` of `assign_auix_routing_stack/3`.
-   - `@doc` and `@spec` of the five public functions stay; each `@doc` gains one closing line: ``Delegates to `Aurora.Uix.Navigation`.``
-3. `lib/aurora_uix/templates/basic/handlers/index_impl.ex` — modified. Add `alias Aurora.Uix.Navigation` in alphabetical position.
-   - `auix_handle_params/3`: replace `"/#{&1.assigns.auix.uri_path}"` with `Navigation.path(Navigation.get(&1), :index)`. The other lines of the pipeline stay.
-   - `auix_handle_event("delete", %{"id" => id, "get_function" => …, "delete_function" => …}, socket)`: replace `socket.assigns.auix[:_current_path]` with `Navigation.get(socket).current_path`.
-   - `auix_handle_event("pagination_to_page", …)`, `("pagination_previous", …)`, `("pagination_next", …)`: replace each `"/#{auix.uri_path}?page=#{…}"` with `"#{Navigation.path(Navigation.get(socket), :index)}?page=#{…}"`, keeping the page expression.
-   - `auix_handle_event("read_indexed_entry", …)`: replace the `push_patch(new_socket, to: "/#{uri_path}/#{found_id}/#{live_action_suffix}")` call with `Navigation.record(new_socket, Navigation.get(new_socket), found_id, record_action(socket))`; remove `uri_path` from the pattern that binds `new_socket`; remove the `live_action_suffix` binding.
-   - Replace the private `get_live_action_suffix/1` with `record_action/1`: `@spec record_action(Socket.t()) :: :show | :edit | :show_edit`; `live_action: :show_edit` gives `:show_edit`, `live_action: :edit` gives `:edit`, every other socket gives `:show`.
-   - `react_to_change(socket, :show, :deleted, _entity_id)`: replace `"/#{auix.uri_path}"` with `Navigation.path(Navigation.get(socket), :index)`.
+4. `lib/aurora_uix/templates/basic/handlers/index_impl.ex` — modified. `alias Aurora.Uix.Navigation` stays. The handler reads `navigation: nav` from `auix` in a pattern and calls `Navigation.path/3`; it calls no other function of the module.
+   - `auix_handle_params/3`: replace the whole `|> then(&assign_auix_routing_stack(&1, params, %{type: :patch, path: &1 |> Navigation.get() |> Navigation.path(:index)}))` step with `|> assign_index_routing_stack(params)`. Add the private function (new: `grep -rn 'assign_index_routing_stack' lib test` returns nothing):
+     ```elixir
+     @spec assign_index_routing_stack(Socket.t(), map()) :: Socket.t()
+     defp assign_index_routing_stack(%{assigns: %{auix: %{navigation: nav}}} = socket, params) do
+       assign_auix_routing_stack(socket, params, %{type: :patch, path: Navigation.path(nav, :index)})
+     end
+     ```
+   - `auix_handle_event("delete", %{"id" => id, "get_function" => get_function_string, "delete_function" => delete_function_string}, socket)`: the third argument becomes `%{assigns: %{auix: %{navigation: nav}}} = socket`; replace `Navigation.get(socket).current_path` with `nav.current_path`.
+   - `auix_handle_event("pagination_to_page", %{"page" => page}, …)`: the `auix` pattern becomes `%{pagination: %Pagination{}, navigation: nav}`; the patch becomes `"#{Navigation.path(nav, :index)}?page=#{page}"`.
+   - `auix_handle_event("pagination_previous", …)` and `("pagination_next", …)`, first clause of each: add `navigation: nav` to the `auix` pattern, after `layout_options: %{pagination_disabled?: pagination_disabled?}`; replace `Navigation.path(Navigation.get(socket), :index)` with `Navigation.path(nav, :index)`, keeping the page expression.
+   - `auix_handle_event("read_indexed_entry", …)`: the match on `load_page/2` becomes `%{assigns: %{auix: %{primary_keys: primary_keys, navigation: nav}}} = new_socket = load_page(socket, int_new_page)`; replace the `Navigation.record(new_socket, Navigation.get(new_socket), found_id, record_action(socket))` call with `push_patch(new_socket, to: Navigation.path(nav, record_action(socket), found_id))`. `record_action/1` stays.
+   - `react_to_change(socket, :show, :deleted, _entity_id)`: the head becomes `%{assigns: %{auix: %{navigation: nav}}} = socket`; the last pipeline step becomes `|> push_patch(to: Navigation.path(nav, :index))`.
    - The `auix_route_forward` and `auix_route_back` event clauses keep calling the imported `auix_route_forward/2` and `auix_route_back/1`.
-4. `lib/aurora_uix/templates/basic/handlers/form_impl.ex` — modified. Add `alias Aurora.Uix.Navigation` in alphabetical position.
-   - `auix_update/2`: replace `|> assign_auix(:routing_stack, routing_stack || Stack.new())` with `|> Navigation.put(Navigation.new(uri_path: Map.get(auix, :uri_path), stack: routing_stack || Stack.new()))`. `auix` is the socket's `auix` already bound in the head; the generated `update/2` (`generators/form_generator.ex`) merges the incoming `uri_path` into it before the handler runs. `current_path` stays `nil`, so `put/2` writes no `_current_path`.
-   - `conditional_route_back(socket, :new, true)`: bind `nav = Navigation.get(socket)`; pop `nav.stack` with `Stack.pop!/1`; build the edit path exactly as today; call `Navigation.back(socket, %{nav | stack: Stack.push(new_routing_stack, %{type: :navigate, path: edit_path})})`. The head keeps matching `entity` and `primary_key` and drops `routing_stack`.
+   - Load guarantee: `auix.navigation` is written by `auix_handle_params/3` through `assign_auix_current_path/2` (step 3, `put_navigation/2`). `handle_params` runs before any event and before any message of the LiveView, so every clause above finds the key.
+5. `lib/aurora_uix/templates/basic/handlers/form_impl.ex` — modified.
+   - Delete `alias Aurora.Uix.Navigation` and `alias Aurora.Uix.Stack`: after the edits below the module calls neither.
+   - `auix_update/2`: replace the three-line step `|> Navigation.put(Navigation.new(uri_path: Map.get(auix, :uri_path), stack: routing_stack || Stack.new()))` with `|> assign_auix_navigation(routing_stack)`.
+   - `conditional_route_back(socket, :new, true)`: the head stays; the body becomes the single call `auix_route_back_to_edit(socket, BasicHelpers.primary_key_value(entity, primary_key))`.
    - `conditional_route_back(socket, _action, _one2many_rendered?)`: unchanged.
-   - `route_back_from_close/1`: body becomes `nav = Navigation.get(socket)` then `Navigation.back(socket, %{nav | current_path: Map.get(auix, :_close_path, "")})`.
+   - `route_back_from_close/1`: the head stays; the body becomes the single call `auix_route_back_from(socket, Map.get(auix, :_close_path, ""))`. The comment above the function stays.
    - `@spec` of `conditional_route_back/3`: unchanged. Callers: the generated `handle_event("save", …)` in `FormImpl.__using__/1`, unchanged.
-5. `lib/aurora_uix/templates/basic/handlers/show_component_impl.ex` — modified. Add `alias Aurora.Uix.Navigation`. `auix_update/2`: replace `|> assign_auix(:routing_stack, routing_stack || Stack.new())` with `|> then(&Navigation.put(&1, Navigation.new(uri_path: Map.get(&1.assigns.auix, :uri_path), stack: routing_stack || Stack.new())))`.
-6. `lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` — modified. Add `alias Aurora.Uix.Navigation` in alphabetical position. In `set_related_uri_path/3`, replace `String.replace(source, related_source)` in the pipeline with `Navigation.related_uri_path(source, related_source)`.
-7. Unchanged on purpose: `actions/index.ex`, `actions/show_component.ex`, `actions/one_to_many.ex`, `renderers/index_renderer.ex` and `components/components.ex` keep reading `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack`, `@auix[:_current_path]` and `@auix[:index_new_link]`; `put/2` mirrors them. `components/routing_components.ex` is unchanged: `phx-target` already reaches the anchor through `@rest`, because `:global` attributes include every `phx-*` attribute, and the name `target` is taken by the HTML attribute in `auix_link`'s `include:` list.
-8. Contract change. `auix.navigation` is a new `auix` key. `auix.routing_stack`, `auix.uri_path`, `auix.uri_path_id`, `auix._current_path` and `auix._last_route_path` are now written only by `Navigation.put/2`; a direct `assign_auix/3` of one of them no longer changes navigation. No `@spec` of an existing public function changes.
-9. Edge cases. `Navigation.get/1` on a socket with no `auix.navigation` returns `new()`. `forward/3` on a navigation whose `current_path` is `nil` (a form or show component) raises `FunctionClauseError`, as `auix_route_forward/2` does today in a component. `decode_stack/1` on a malformed parameter raises, as `decode_routing_stack/1` does today.
-10. Components: none new. Theme: none. `dt/1` strings: none.
+6. `lib/aurora_uix/templates/basic/handlers/show_component_impl.ex` — modified. Delete `alias Aurora.Uix.Navigation` and `alias Aurora.Uix.Stack`. `auix_update/2`: replace the whole `|> then(&Navigation.put(&1, Navigation.new(uri_path: Map.get(&1.assigns.auix, :uri_path), stack: routing_stack || Stack.new())))` step with `|> assign_auix_navigation(routing_stack)`.
+7. `lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` — returns to its content on `main`: `git checkout origin/main -- lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex`. That removes `alias Aurora.Uix.Navigation` and restores `|> String.replace(source, related_source)` in `set_related_uri_path/3`.
+8. Tests on the branch.
+   - `test/cases/navigation_test.exs`: delete the tests `"put/2 stores the struct and mirrors the legacy keys"`, `"the Basic helpers keep their navigation functions"` and `"related_uri_path/3 swaps the source segment"`, and the line `alias Aurora.Uix.Templates.Basic.Helpers`. Add the module attribute `@empty "eJyrVipLzClNLVayio6tBQAhgwS%2F"` and the tests of rows AC-10 to AC-14.
+   - `test/cases/templates/basic/helpers_navigation_test.exs`: new, with the tests of rows AC-5, AC-8 and AC-18.
+   - `test/cases/routing_components_test.exs`: unchanged.
+9. Unchanged on purpose: `actions/index.ex`, `actions/show_component.ex`, `actions/one_to_many.ex`, `renderers/index_renderer.ex` and `components/components.ex` keep reading `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack`, `@auix[:_current_path]` and `@auix[:index_new_link]`; `put_navigation/2` mirrors them. `components/routing_components.ex` is unchanged: `phx-target` already reaches the anchor through `@rest`, because `:global` attributes include every `phx-*` attribute, and the name `target` is taken by the HTML attribute in `auix_link`'s `include:` list.
+10. Contract change. `auix.navigation` is a new `auix` key holding a full `%Aurora.Uix.Navigation{}`. `auix.routing_stack`, `auix.uri_path`, `auix.uri_path_id`, `auix._current_path` and `auix._last_route_path` are written only by `put_navigation/2` in `helpers.ex`; they are read-only mirrors, and a direct `assign_auix/3` of one of them no longer changes navigation. No `@spec` of an existing public function of `helpers.ex` changes. Compared with the branch, `Aurora.Uix.Navigation` loses nine public functions; their callers and new handling:
+
+    | Removed | Callers on the branch | New handling |
+    |---|---|---|
+    | `get/1`, `put/2` | `helpers.ex`, `index_impl.ex`, `form_impl.ex`, `show_component_impl.ex` | private `navigation/1` and `put_navigation/2` in `helpers.ex` (step 3); handlers bind `navigation: nav` (step 4) |
+    | `assign_current_path/2`, `assign_uri_path/1`, `assign_stack/3` | `helpers.ex` | `update_navigation/2` with `put_current_path/2`, `resolve_uri_path/2`, `put_stack/2` (step 3) |
+    | `forward/3`, `back/2` | `helpers.ex`, `form_impl.ex` | `forward/2`, `back/1` through `navigate_with/2` (step 3); `auix_route_back_from/2`, `auix_route_back_to_edit/2` (step 5) |
+    | `record/4` | `index_impl.ex` | `push_patch/2` with `Navigation.path/3` (step 4) |
+    | `related_uri_path/3` | `renderers/fields/one_to_many.ex` | `String.replace/3` (step 7) |
+11. Edge cases. `navigation/1` on a socket with no `auix.navigation` returns `Navigation.new()` (the first helper call of a mount, and the first `update/2` of a component). `auix_route_forward/2` on a navigation whose `current_path` is `nil` (a form component, a show component) raises `FunctionClauseError`, as on `main`. `auix_route_back_to_edit/2` with an empty stack raises `Aurora.Uix.Stack.EmptyStackError`, as `Stack.pop!/1` does on `main`. `auix_route_back_from/2` given `""` leaves `current_path` `nil`, and `back/1` then falls back to the path `""`, the result `main` gives for a form with no `_close_path`. `decode_stack/1` on a malformed parameter raises, as on `main`.
+12. Components: none new. Theme: none. `dt/1` strings: none.
 
 ##### Green tests
-1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/navigation_test.exs test/cases/routing_components_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs`)
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/navigation_test.exs test/cases/templates/basic/helpers_navigation_test.exs test/cases/routing_components_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/handler_hooks_index_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs`)
 2. `mix test` — full suite green (review-issue runs this; code-issue runs
    only this section's test files)
 3. `mix compile --warnings-as-errors` clean
+4. The greps of AC-15, AC-16 and AC-17 print what those ACs state
 <!-- section:UI-3:end -->
+<!-- section:DOC-2:start -->
+### DOC-2 — Documentation · navigation guides after UI-3
+Depends on: UI-3
+
+#### Documentation references
+- `guides/core/liveview.md § Navigation`
+- `guides/core/components.md § Navigation`
+- `guides/whats_new/0.2.1.md § Upgrading from 0.2.0`
+
+#### Implementation details
+
+The section corrects the statements of the merged guides that UI-3 makes false. After UI-3, `Aurora.Uix.Navigation` is a pure data module: `forward/2` and `back/1` take the struct, take no socket, and return `{nav, route}`. A socket's navigation is changed only by the helpers of `Aurora.Uix.Templates.Basic.Helpers`. The section edits three guide files and no other file.
+
+##### guides/core/components.md
+1. § Navigation — replace the paragraph that starts `` The generated `.Index` LiveView is one such parent. `` with, verbatim:
+   ```
+   The generated `.Index` LiveView is one such parent. It answers `{:open, action, id}`, `{:closed}` and
+   `{:page, page}` with a patch or a navigate under its routes, with the routing stack in `?routing_stack=`.
+   Its URLs are the ones it always had. `Aurora.Uix.Navigation` computes each path, and the LiveView applies it.
+   ```
+2. § Navigation — replace the paragraph that starts `` In the generated LiveView, `@auix.navigation` holds `` with, verbatim:
+   ```
+   In the generated LiveView, `@auix.navigation` holds the `%Aurora.Uix.Navigation{}`: the base path, the
+   current path and the routing stack. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
+   `@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`.
+   `Aurora.Uix.Navigation` is plain data: its functions return data and take no socket. Change navigation with
+   `auix_route_forward/2` and `auix_route_back/1`, not by assigning those keys.
+   ```
+
+##### guides/core/liveview.md
+1. § Navigation — replace the start of the section body, from the line that starts `` `Aurora.Uix.Navigation` owns the navigation `` through the line `helpers to use in a handler:`, with, verbatim:
+   ```
+   `Aurora.Uix.Navigation` describes the navigation of the generated LiveView as plain data. The state is
+   `@auix.navigation`, an `%Aurora.Uix.Navigation{}` with the base path, the current path and the routing stack.
+   The functions take that struct and return data. None takes a socket.
+
+   | Function | Returns |
+   |---|---|
+   | `Navigation.path(nav, action, id)` | The path of `:index`, `:new`, `:show`, `:edit` or `:show_edit` |
+   | `Navigation.forward(nav, target)` | `{nav, route}`: `nav` has the current path pushed on the routing stack, and `route` leads to `target` (`patch: path` or `to: path`) |
+   | `Navigation.back(nav)` | `{nav, route}`: `nav` has the routing stack popped, and `route` leads back |
+
+   A route is `%{type: :patch | :navigate, path: path}`. Its path carries the routing stack in `routing_stack=`.
+
+   Only the helpers change a socket. `auix_route_forward/2` calls `Navigation.forward/2` and `auix_route_back/1`
+   calls `Navigation.back/1` on `@auix.navigation`; each stores the returned struct and pushes the returned
+   route. Use them in a handler:
+   ```
+   The `auix_handle_event("archive", …)` example and the two paragraphs after it stay.
+
+##### guides/whats_new/0.2.1.md
+1. § Upgrading from 0.2.0 — replace the paragraph that starts `No change is required.` with, verbatim:
+   ```
+   No change is required. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
+   `@auix[:index_new_link]` stay readable; a handler that assigned one of them directly now changes navigation
+   with `auix_route_forward/2` and `auix_route_back/1`.
+   ```
+
+##### Unchanged on purpose
+1. `CHANGELOG.md § [0.2.1]`: its sentence `` `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView (`@auix.navigation`), which patches and navigates as before. `` is true after UI-3. The section adds no entry: it corrects guides the entry already announces.
+2. `guides/whats_new/0.2.1.md § Reusable components`: the bullet `` `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView. `` is true after UI-3.
+3. `guides/customization/overriding_components.md`: `auix_link/1`, `auix_link_back/1` and `auix_back/1` fire the same events.
+4. `Navigation.back_to_edit/2`, `put_current_path/2`, `put_stack/2`, `resolve_uri_path/2`, `encode_stack/1`, `decode_stack/1` and the helpers `assign_auix_navigation/2`, `auix_route_back_from/2`, `auix_route_back_to_edit/2` get no guide text. The table of `guides/core/liveview.md § Navigation` lists the functions a host handler calls; the `@doc` of each function (UI-3) documents the others.
+
+##### Acceptance criteria
+- [ ] AC-1: `CHANGELOG.md` is not modified (mechanical — no red test; verified by
+      `git diff --name-only origin/main...HEAD -- CHANGELOG.md` printing nothing)
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+      (its AC ticks) (mechanical — no red test; verified by
+      `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
+      `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-458-enriched-spec.md`)
+- [ ] AC-3: `guides/core/liveview.md § Navigation` documents `forward/2` and `back/1` as functions that take the struct and return `{nav, route}` (mechanical — no red test; verified by `grep -c 'Navigation.forward(nav, target)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.back(nav)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -cE 'Navigation\.(forward|back)\(socket' guides/core/liveview.md` returning `0`)
+- [ ] AC-4: `guides/core/liveview.md § Navigation` states that only the helpers change a socket (mechanical — no red test; verified by `grep -c '^Only the helpers change a socket\.' guides/core/liveview.md` returning `1` and `grep -c 'call them with the socket' guides/core/liveview.md` returning `0`)
+- [ ] AC-5: `guides/core/components.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the way to change navigation, and describes `Aurora.Uix.Navigation` as plain data (mechanical — no red test; verified by `grep -c 'change navigation through' guides/core/components.md` returning `0`, `grep -c 'its functions return data and take no socket' guides/core/components.md` returning `1` and `grep -c 'Navigation`: a patch' guides/core/components.md` returning `0`)
+- [ ] AC-6: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` names the two helpers alone (mechanical — no red test; verified by `grep -c '^with `auix_route_forward/2` and `auix_route_back/1`\.$' guides/whats_new/0.2.1.md` returning `1` and `grep -c 'and `Aurora.Uix.Navigation`\.$' guides/whats_new/0.2.1.md` returning `0`)
+
+##### Green checks
+1. `mix consistency` clean (code-issue); `mix test` — full suite green
+   (review-issue runs the suite)
+<!-- section:DOC-2:end -->
 
 ---
 
