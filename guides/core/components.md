@@ -86,13 +86,14 @@ A component does not know how it is used. It reports what the user asked for, an
 that means: render a form, assign a selected record, change the URL, or nothing.
 
 The generated `.Index` LiveView is one such parent. It answers `{:open, action, id}`, `{:closed}` and
-`{:page, page}` with `Aurora.Uix.Navigation`: a patch or a navigate under its routes, with the routing stack
-in `?routing_stack=`. Its URLs are the ones it always had.
+`{:page, page}` with a patch or a navigate under its routes, with the routing stack in `?routing_stack=`.
+Its URLs are the ones it always had. `Aurora.Uix.Navigation` computes each path, and the LiveView applies it.
 
 In the generated LiveView, `@auix.navigation` holds the `%Aurora.Uix.Navigation{}`: the base path, the
 current path and the routing stack. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
-`@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`; change navigation through
-`Aurora.Uix.Navigation`, `auix_route_forward/2` and `auix_route_back/1`, not by assigning those keys.
+`@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`.
+`Aurora.Uix.Navigation` is plain data: its functions return data and take no socket. Change navigation with
+`auix_route_forward/2` and `auix_route_back/1`, not by assigning those keys.
 
 ## Live updates
 

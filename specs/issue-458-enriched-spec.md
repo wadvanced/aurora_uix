@@ -973,16 +973,16 @@ The section corrects the statements of the merged guides that UI-3 makes false. 
 4. `Navigation.back_to_edit/2`, `put_current_path/2`, `put_stack/2`, `resolve_uri_path/2`, `encode_stack/1`, `decode_stack/1` and the helpers `assign_auix_navigation/2`, `auix_route_back_from/2`, `auix_route_back_to_edit/2` get no guide text. The table of `guides/core/liveview.md § Navigation` lists the functions a host handler calls; the `@doc` of each function (UI-3) documents the others.
 
 ##### Acceptance criteria
-- [ ] AC-1: `CHANGELOG.md` is not modified (mechanical — no red test; verified by
+- [x] AC-1: `CHANGELOG.md` is not modified (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD -- CHANGELOG.md` printing nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-458-enriched-spec.md`)
-- [ ] AC-3: `guides/core/liveview.md § Navigation` documents `forward/2` and `back/1` as functions that take the struct and return `{nav, route}` (mechanical — no red test; verified by `grep -c 'Navigation.forward(nav, target)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.back(nav)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -cE 'Navigation\.(forward|back)\(socket' guides/core/liveview.md` returning `0`)
-- [ ] AC-4: `guides/core/liveview.md § Navigation` states that only the helpers change a socket (mechanical — no red test; verified by `grep -c '^Only the helpers change a socket\.' guides/core/liveview.md` returning `1` and `grep -c 'call them with the socket' guides/core/liveview.md` returning `0`)
-- [ ] AC-5: `guides/core/components.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the way to change navigation, and describes `Aurora.Uix.Navigation` as plain data (mechanical — no red test; verified by `grep -c 'change navigation through' guides/core/components.md` returning `0`, `grep -c 'its functions return data and take no socket' guides/core/components.md` returning `1` and `grep -c 'Navigation`: a patch' guides/core/components.md` returning `0`)
-- [ ] AC-6: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` names the two helpers alone (mechanical — no red test; verified by `grep -c '^with `auix_route_forward/2` and `auix_route_back/1`\.$' guides/whats_new/0.2.1.md` returning `1` and `grep -c 'and `Aurora.Uix.Navigation`\.$' guides/whats_new/0.2.1.md` returning `0`)
+- [x] AC-3: `guides/core/liveview.md § Navigation` documents `forward/2` and `back/1` as functions that take the struct and return `{nav, route}` (mechanical — no red test; verified by `grep -c 'Navigation.forward(nav, target)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.back(nav)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -cE 'Navigation\.(forward|back)\(socket' guides/core/liveview.md` returning `0`)
+- [x] AC-4: `guides/core/liveview.md § Navigation` states that only the helpers change a socket (mechanical — no red test; verified by `grep -c '^Only the helpers change a socket\.' guides/core/liveview.md` returning `1` and `grep -c 'call them with the socket' guides/core/liveview.md` returning `0`)
+- [x] AC-5: `guides/core/components.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the way to change navigation, and describes `Aurora.Uix.Navigation` as plain data (mechanical — no red test; verified by `grep -c 'change navigation through' guides/core/components.md` returning `0`, `grep -c 'its functions return data and take no socket' guides/core/components.md` returning `1` and `grep -c 'Navigation`: a patch' guides/core/components.md` returning `0`)
+- [x] AC-6: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` names the two helpers alone (mechanical — no red test; verified by `grep -c '^with `auix_route_forward/2` and `auix_route_back/1`\.$' guides/whats_new/0.2.1.md` returning `1` and `grep -c 'and `Aurora.Uix.Navigation`\.$' guides/whats_new/0.2.1.md` returning `0`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
