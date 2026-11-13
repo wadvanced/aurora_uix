@@ -26,8 +26,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   alias Aurora.Uix.Events
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
-  alias Aurora.Uix.Navigation
-  alias Aurora.Uix.Stack
   alias Aurora.Uix.Templates.Basic.Actions.Form, as: FormActions
   alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -197,9 +195,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
      |> assign_auix_new(:_form_dirty?, false)
      |> assign_auix_new(:_discard_confirm_open?, false)
      |> assign_auix(:_myself, socket.assigns.myself)
-     |> Navigation.put(
-       Navigation.new(uri_path: Map.get(auix, :uri_path), stack: routing_stack || Stack.new())
-     )
+     |> assign_auix_navigation(routing_stack)
      |> assign_layout_options()
      |> FormActions.set_actions()
      |> maybe_allow_uploads(auix)
@@ -382,20 +378,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         :new,
         true
       ) do
-    nav = Navigation.get(socket)
-    {new_routing_stack, original_path} = Stack.pop!(nav.stack)
-
-    edit_path =
-      original_path
-      |> Map.get(:path)
-      |> URI.parse()
-      |> Map.get(:path)
-      |> then(&"#{&1}/#{BasicHelpers.primary_key_value(entity, primary_key)}/edit")
-
-    Navigation.back(socket, %{
-      nav
-      | stack: Stack.push(new_routing_stack, %{type: :navigate, path: edit_path})
-    })
+    auix_route_back_to_edit(socket, BasicHelpers.primary_key_value(entity, primary_key))
   end
 
   def conditional_route_back(socket, _action, _one2many_rendered?),
@@ -502,8 +485,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   # the close path is supplied separately and applied only for this back navigation.
   @spec route_back_from_close(Socket.t()) :: Socket.t()
   defp route_back_from_close(%{assigns: %{auix: auix}} = socket) do
-    nav = Navigation.get(socket)
-    Navigation.back(socket, %{nav | current_path: Map.get(auix, :_close_path, "")})
+    auix_route_back_from(socket, Map.get(auix, :_close_path, ""))
   end
 
   @spec maybe_allow_uploads(Socket.t(), map()) :: Socket.t()

@@ -284,12 +284,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix_uri_path()
      |> assign_auix_index_new_link()
      |> push_event(:set_html_theme_name, %{theme_name: ThemeHelper.theme_name()})
-     |> then(
-       &assign_auix_routing_stack(&1, params, %{
-         type: :patch,
-         path: &1 |> Navigation.get() |> Navigation.path(:index)
-       })
-     )
+     |> assign_index_routing_stack(params)
      |> render_with(&Renderer.render/1)}
   end
 
@@ -315,7 +310,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           "get_function" => get_function_string,
           "delete_function" => delete_function_string
         },
-        socket
+        %{assigns: %{auix: %{navigation: nav}}} = socket
       ) do
     {get_function, _} = Code.eval_string(get_function_string)
     {delete_function, _} = Code.eval_string(delete_function_string)
@@ -330,7 +325,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
         socket
         |> put_flash(:info, dt("Item deleted successfully"))
-        |> push_patch(to: Navigation.get(socket).current_path)
+        |> push_patch(to: nav.current_path)
       else
         _ -> socket
       end
@@ -557,12 +552,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   def auix_handle_event(
         "pagination_to_page",
         %{"page" => page},
-        %{assigns: %{auix: %{pagination: %Pagination{}}}} = socket
+        %{assigns: %{auix: %{pagination: %Pagination{}, navigation: nav}}} = socket
       ) do
-    {:noreply,
-     auix_route_forward(socket,
-       patch: "#{Navigation.path(Navigation.get(socket), :index)}?page=#{page}"
-     )}
+    {:noreply, auix_route_forward(socket, patch: "#{Navigation.path(nav, :index)}?page=#{page}")}
   end
 
   def auix_handle_event("pagination_to_page", _params, socket), do: {:noreply, socket}
@@ -574,7 +566,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           assigns: %{
             auix: %{
               pagination: %Pagination{} = pagination,
-              layout_options: %{pagination_disabled?: pagination_disabled?}
+              layout_options: %{pagination_disabled?: pagination_disabled?},
+              navigation: nav
             }
           }
         } = socket
@@ -584,8 +577,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     else
       {:noreply,
        auix_route_forward(socket,
-         patch:
-           "#{Navigation.path(Navigation.get(socket), :index)}?page=#{previous_page(pagination)}"
+         patch: "#{Navigation.path(nav, :index)}?page=#{previous_page(pagination)}"
        )}
     end
   end
@@ -599,7 +591,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           assigns: %{
             auix: %{
               pagination: %Pagination{} = pagination,
-              layout_options: %{pagination_disabled?: pagination_disabled?}
+              layout_options: %{pagination_disabled?: pagination_disabled?},
+              navigation: nav
             }
           }
         } = socket
@@ -609,7 +602,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     else
       {:noreply,
        auix_route_forward(socket,
-         patch: "#{Navigation.path(Navigation.get(socket), :index)}?page=#{next_page(pagination)}"
+         patch: "#{Navigation.path(nav, :index)}?page=#{next_page(pagination)}"
        )}
     end
   end
@@ -624,7 +617,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     int_new_page = String.to_integer(new_page)
     int_index = String.to_integer(index)
 
-    %{assigns: %{auix: %{primary_keys: primary_keys}}} =
+    %{assigns: %{auix: %{primary_keys: primary_keys, navigation: nav}}} =
       new_socket = load_page(socket, int_new_page)
 
     case Map.get(primary_keys, int_index) do
@@ -638,12 +631,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
           |> elem(1)
 
         {:noreply,
-         Navigation.record(
-           new_socket,
-           Navigation.get(new_socket),
-           found_id,
-           record_action(socket)
-         )}
+         push_patch(new_socket, to: Navigation.path(nav, record_action(socket), found_id))}
     end
   end
 
@@ -905,10 +893,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     end
   end
 
-  defp react_to_change(%{assigns: %{auix: _auix}} = socket, :show, :deleted, _entity_id) do
+  defp react_to_change(
+         %{assigns: %{auix: %{navigation: nav}}} = socket,
+         :show,
+         :deleted,
+         _entity_id
+       ) do
     socket
     |> put_flash(:info, dt("Item deleted successfully"))
-    |> push_patch(to: socket |> Navigation.get() |> Navigation.path(:index))
+    |> push_patch(to: Navigation.path(nav, :index))
   end
 
   defp react_to_change(%{assigns: %{auix: auix}} = socket, _form_action, :updated, _entity_id),
@@ -1506,6 +1499,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> then(&apply_to_page(auix.list_function_selected, &1, auix.pagination.page, extra_opts))
     |> Map.get(:entries, [])
     |> Enum.map(&BasicHelpers.primary_key_value(&1, auix.primary_key))
+  end
+
+  @spec assign_index_routing_stack(Socket.t(), map()) :: Socket.t()
+  defp assign_index_routing_stack(%{assigns: %{auix: %{navigation: nav}}} = socket, params) do
+    assign_auix_routing_stack(socket, params, %{type: :patch, path: Navigation.path(nav, :index)})
   end
 
   @spec record_action(Socket.t()) :: :show | :edit | :show_edit

@@ -37,6 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Integration.Connector
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Navigation
+  alias Aurora.Uix.Stack
 
   alias Phoenix.LiveView.Socket
 
@@ -371,13 +372,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
-
-  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_current_path(Socket.t(), binary() | URI.t() | nil) :: Socket.t()
-  def assign_auix_current_path(socket, url) do
-    Navigation.assign_current_path(socket, url)
-  end
+  def assign_auix_current_path(socket, url),
+    do: update_navigation(socket, &Navigation.put_current_path(&1, url))
 
   @doc """
   Sets the global uri path, relies on auix_current_path.
@@ -389,12 +387,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
-
-  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_uri_path(Socket.t()) :: Socket.t()
   def assign_auix_uri_path(socket) do
-    Navigation.assign_uri_path(socket)
+    update_navigation(socket, &Navigation.resolve_uri_path(&1, socket.assigns[:live_action]))
   end
 
   @doc """
@@ -440,14 +436,48 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
       iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
       %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
-
-  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) :: Socket.t()
   def assign_auix_routing_stack(socket, params, default_route \\ nil)
 
-  def assign_auix_routing_stack(socket, params, default_route) do
-    Navigation.assign_stack(socket, params, default_route)
+  def assign_auix_routing_stack(
+        socket,
+        %{"routing_stack" => encoded_routing_stack},
+        _default_route
+      ) do
+    encoded_routing_stack
+    |> Navigation.decode_stack()
+    |> then(fn stack -> update_navigation(socket, &Navigation.put_stack(&1, stack)) end)
+  end
+
+  def assign_auix_routing_stack(socket, _params, nil),
+    do: update_navigation(socket, &Navigation.put_stack(&1, Stack.new()))
+
+  def assign_auix_routing_stack(socket, _params, default_route) do
+    default_route
+    |> Stack.new()
+    |> then(fn stack -> update_navigation(socket, &Navigation.put_stack(&1, stack)) end)
+  end
+
+  @doc """
+  Starts the navigation of a component from its auix uri_path and the routing stack it received.
+
+  ## Parameters
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `stack` (Aurora.Uix.Stack.t() | nil) - The routing stack received; `nil` starts an empty
+    one.
+
+  ## Returns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated auix assigns.
+  """
+  @spec assign_auix_navigation(Socket.t(), Stack.t() | nil) :: Socket.t()
+  def assign_auix_navigation(socket, stack) do
+    put_navigation(
+      socket,
+      Navigation.new(uri_path: socket.assigns.auix[:uri_path], stack: stack || Stack.new())
+    )
   end
 
   @doc """
@@ -710,13 +740,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
-
-  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec auix_route_forward(Socket.t(), keyword()) :: Socket.t()
-  def auix_route_forward(socket, navigation) do
-    Navigation.forward(socket, Navigation.get(socket), navigation)
-  end
+  def auix_route_forward(socket, navigation),
+    do: navigate_with(socket, &Navigation.forward(&1, navigation))
 
   @doc """
   Handles backward navigation by popping the last route from the stack.
@@ -728,13 +755,46 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
-
-  Delegates to `Aurora.Uix.Navigation`.
   """
   @spec auix_route_back(Socket.t()) :: Socket.t()
-  def auix_route_back(socket) do
-    Navigation.back(socket, Navigation.get(socket))
+  def auix_route_back(socket), do: navigate_with(socket, &Navigation.back/1)
+
+  @doc """
+  Navigates back as if the socket were at the given path.
+
+  ## Parameters
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `current_path` (binary()) - The path to navigate back from.
+
+  ## Returns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
+  """
+  @spec auix_route_back_from(Socket.t(), binary()) :: Socket.t()
+  def auix_route_back_from(socket, current_path) do
+    navigate_with(socket, fn nav ->
+      nav
+      |> Navigation.put_current_path(current_path)
+      |> Navigation.back()
+    end)
   end
+
+  @doc """
+  Navigates back to the edit path of a record, under the path the user came from.
+
+  ## Parameters
+
+  - `socket` (Phoenix.LiveView.Socket.t()) - The LiveView socket.
+  - `id` (term()) - The record id.
+
+  ## Returns
+
+  Phoenix.LiveView.Socket.t() - Socket with updated routing stack.
+  """
+  @spec auix_route_back_to_edit(Socket.t(), term()) :: Socket.t()
+  def auix_route_back_to_edit(socket, id),
+    do: navigate_with(socket, &Navigation.back_to_edit(&1, id))
 
   @doc """
   Retrieves a field of a resource from the resource configurations.
@@ -1410,6 +1470,55 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> then(&assign_auix(socket, :entity, &1))
     |> assign_auix(:one_to_many_related_key, related_key)
   end
+
+  @spec navigation(Socket.t()) :: Navigation.t()
+  defp navigation(socket) do
+    case socket.assigns.auix[:navigation] do
+      %Navigation{} = nav -> nav
+      nil -> Navigation.new()
+    end
+  end
+
+  # The single writer of `auix.navigation` and of the legacy keys that mirror it.
+  @spec put_navigation(Socket.t(), Navigation.t()) :: Socket.t()
+  defp put_navigation(socket, %Navigation{} = nav) do
+    socket
+    |> assign_auix(:navigation, nav)
+    |> assign_auix(:routing_stack, nav.stack)
+    |> maybe_assign_auix(:uri_path, nav.uri_path)
+    |> maybe_assign_auix(:uri_path_id, nav.uri_path_id)
+    |> maybe_assign_auix(:_current_path, nav.current_path)
+    |> maybe_assign_auix(:_last_route_path, nav.last_route_path)
+  end
+
+  @spec maybe_assign_auix(Socket.t(), atom(), term()) :: Socket.t()
+  defp maybe_assign_auix(socket, _key, nil), do: socket
+  defp maybe_assign_auix(socket, key, value), do: assign_auix(socket, key, value)
+
+  @spec update_navigation(Socket.t(), (Navigation.t() -> Navigation.t())) :: Socket.t()
+  defp update_navigation(socket, fun) do
+    socket
+    |> navigation()
+    |> fun.()
+    |> then(&put_navigation(socket, &1))
+  end
+
+  @spec navigate_with(Socket.t(), (Navigation.t() -> {Navigation.t(), Navigation.route()})) ::
+          Socket.t()
+  defp navigate_with(socket, fun) do
+    {nav, route} =
+      socket
+      |> navigation()
+      |> fun.()
+
+    socket
+    |> put_navigation(nav)
+    |> push_route(route)
+  end
+
+  @spec push_route(Socket.t(), Navigation.route()) :: Socket.t()
+  defp push_route(socket, %{type: :navigate, path: path}), do: push_navigate(socket, to: path)
+  defp push_route(socket, %{type: :patch, path: path}), do: push_patch(socket, to: path)
 
   # Read from table
   @spec get_many_to_one_select_option(map(), term()) :: tuple()
