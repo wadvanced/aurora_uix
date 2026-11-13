@@ -3,7 +3,8 @@ defmodule Aurora.Uix.Test.NavigationTest do
 
   alias Aurora.Uix.Navigation
   alias Aurora.Uix.Stack
-  alias Aurora.Uix.Templates.Basic.Helpers
+
+  @empty "eJyrVipLzClNLVayio6tBQAhgwS%2F"
 
   test "path/3 builds the five paths" do
     nav = Navigation.new(uri_path: "a/products")
@@ -45,7 +46,7 @@ defmodule Aurora.Uix.Test.NavigationTest do
         %{type: :navigate, path: "/a/products/7/show"}
       ])
 
-    assert Navigation.encode_stack(Stack.new()) == "eJyrVipLzClNLVayio6tBQAhgwS%2F"
+    assert Navigation.encode_stack(Stack.new()) == @empty
 
     assert stack
            |> Navigation.encode_stack()
@@ -53,48 +54,89 @@ defmodule Aurora.Uix.Test.NavigationTest do
            |> Navigation.decode_stack() == stack
   end
 
-  test "put/2 stores the struct and mirrors the legacy keys" do
-    socket = %Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, auix: %{}}}
-    nav = Navigation.new(uri_path: "a/b", uri_path_id: "a--b")
-
-    auix = Navigation.put(socket, nav).assigns.auix
-
-    assert auix.navigation == nav
-    assert auix.uri_path == "a/b"
-    assert auix.uri_path_id == "a--b"
-    assert auix.routing_stack == nav.stack
-    refute Map.has_key?(auix, :_current_path)
-    refute Map.has_key?(auix, :_last_route_path)
-  end
-
   test "new/1 rejects a key the struct does not have" do
     assert_raise KeyError, fn -> Navigation.new(mode: :local) end
   end
 
-  test "the Basic helpers keep their navigation functions" do
-    Code.ensure_loaded!(Helpers)
+  test "forward/2 pushes the current path and returns the route" do
+    nav = Navigation.new(current_path: "/a/products", uri_path: "a/products")
 
-    for {name, arity} <- [
-          assign_auix_current_path: 2,
-          assign_auix_uri_path: 1,
-          assign_auix_index_new_link: 1,
-          assign_auix_routing_stack: 2,
-          assign_auix_routing_stack: 3,
-          auix_route_forward: 2,
-          auix_route_back: 1
-        ] do
-      assert function_exported?(Helpers, name, arity)
-    end
+    {nav2, route} = Navigation.forward(nav, patch: "/a/products/7/show")
+
+    assert nav2.stack == Stack.new([%{type: :patch, path: "/a/products"}])
+    assert nav2.last_route_path == "/a/products"
+
+    assert route == %{
+             type: :patch,
+             path: "/a/products/7/show?routing_stack=" <> Navigation.encode_stack(nav2.stack)
+           }
+
+    {nav3, route3} = Navigation.forward(nav, to: "/a/products?page=2")
+
+    assert nav3.stack == Stack.new([%{type: :navigate, path: "/a/products"}])
+
+    assert route3 == %{
+             type: :navigate,
+             path: "/a/products?page=2&routing_stack=" <> Navigation.encode_stack(nav3.stack)
+           }
   end
 
-  test "related_uri_path/3 swaps the source segment" do
-    assert Navigation.related_uri_path(
-             "navigation-products",
-             "products",
-             "product_transactions"
-           ) == "navigation-product_transactions"
+  test "back/1 pops the stack and falls back to the index path" do
+    {nav2, route} =
+      [
+        current_path: "/a/products/7/show",
+        stack: Stack.new([%{type: :patch, path: "/a/products"}])
+      ]
+      |> Navigation.new()
+      |> Navigation.back()
 
-    assert Navigation.related_uri_path("navigation-products", "products", "products") ==
-             "navigation-products"
+    assert route == %{type: :patch, path: "/a/products?routing_stack=" <> @empty}
+    assert nav2.stack == Stack.new()
+
+    {_nav, fallback_route} =
+      [current_path: "/a/products/7/edit"]
+      |> Navigation.new()
+      |> Navigation.back()
+
+    assert fallback_route == %{type: :navigate, path: "/a/products?routing_stack=" <> @empty}
+
+    {nav3, same_path_route} =
+      [
+        current_path: "/a/products/new",
+        stack: Stack.new([%{type: :patch, path: "/a/products/new"}])
+      ]
+      |> Navigation.new()
+      |> Navigation.back()
+
+    assert same_path_route == %{type: :navigate, path: "/a/products?routing_stack=" <> @empty}
+    assert nav3.stack == Stack.new()
+  end
+
+  test "back_to_edit/2 returns to the edit path of the origin" do
+    nav = Navigation.new(stack: Stack.new([%{type: :patch, path: "/a/products?page=2"}]))
+
+    {nav2, route} = Navigation.back_to_edit(nav, 7)
+
+    assert route == %{type: :navigate, path: "/a/products/7/edit?routing_stack=" <> @empty}
+    assert nav2.stack == Stack.new()
+  end
+
+  test "put_current_path/2 and put_stack/2 set their field" do
+    assert Navigation.put_current_path(
+             Navigation.new(),
+             "http://localhost:4001/a/products/7/edit?x=1"
+           ).current_path == "/a/products/7/edit"
+
+    stack = Stack.new([%{type: :patch, path: "/a"}])
+
+    assert Navigation.put_stack(Navigation.new(), stack).stack == stack
+  end
+
+  test "forward/2 needs a current path and back_to_edit/2 an origin" do
+    assert_raise FunctionClauseError, fn -> Navigation.forward(Navigation.new(), patch: "/x") end
+
+    assert_raise Aurora.Uix.Stack.EmptyStackError, fn ->
+      Navigation.back_to_edit(Navigation.new(), 7)
+    end
   end
 end
