@@ -91,8 +91,7 @@ Its URLs are the ones it always had. `Aurora.Uix.Navigation` computes each path,
 
 In the generated LiveView, `@auix.navigation` holds the `%Aurora.Uix.Navigation{}`: the base path, the
 current path and the routing stack. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
-`@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`.
-`Aurora.Uix.Navigation` is plain data: its functions return data and take no socket. Change navigation with
+`@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`. Change navigation with
 `auix_route_forward/2` and `auix_route_back/1`, not by assigning those keys.
 
 ## Live updates

@@ -1055,7 +1055,7 @@ The other query assigns of `auix` (`query_options`, `read_items`) are internal: 
 
 `Aurora.Uix.Navigation` describes the navigation of the generated LiveView as plain data. The state is
 `@auix.navigation`, an `%Aurora.Uix.Navigation{}` with the base path, the current path and the routing stack.
-The functions take that struct and return data. None takes a socket.
+The functions take that struct and return data.
 
 | Function | Returns |
 |---|---|
@@ -1065,9 +1065,8 @@ The functions take that struct and return data. None takes a socket.
 
 A route is `%{type: :patch | :navigate, path: path}`. Its path carries the routing stack in `routing_stack=`.
 
-Only the helpers change a socket. `auix_route_forward/2` calls `Navigation.forward/2` and `auix_route_back/1`
-calls `Navigation.back/1` on `@auix.navigation`; each stores the returned struct and pushes the returned
-route. Use them in a handler:
+`auix_route_forward/2` calls `Navigation.forward/2` and `auix_route_back/1` calls `Navigation.back/1` on
+`@auix.navigation`; each stores the returned struct and pushes the returned route. Use them in a handler:
 
 ```elixir
 def auix_handle_event("archive", _params, socket) do
