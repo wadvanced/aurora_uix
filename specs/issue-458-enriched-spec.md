@@ -919,7 +919,7 @@ Depends on: UI-3
 
 #### Implementation details
 
-The section corrects the statements of the merged guides that UI-3 makes false. After UI-3, `Aurora.Uix.Navigation` is a pure data module: `forward/2` and `back/1` take the struct, take no socket, and return `{nav, route}`. A socket's navigation is changed only by the helpers of `Aurora.Uix.Templates.Basic.Helpers`. The section edits three guide files and no other file.
+The section corrects the statements of the merged guides that UI-3 makes false. After UI-3, `Aurora.Uix.Navigation` is a pure data module: `forward/2` and `back/1` take the struct and return `{nav, route}`. A handler navigates with the helpers `auix_route_forward/2` and `auix_route_back/1` of `Aurora.Uix.Templates.Basic.Helpers`. The section edits three guide files and no other file.
 
 ##### guides/core/components.md
 1. § Navigation — replace the paragraph that starts `` The generated `.Index` LiveView is one such parent. `` with, verbatim:
@@ -932,17 +932,16 @@ The section corrects the statements of the merged guides that UI-3 makes false. 
    ```
    In the generated LiveView, `@auix.navigation` holds the `%Aurora.Uix.Navigation{}`: the base path, the
    current path and the routing stack. `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and
-   `@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`.
-   `Aurora.Uix.Navigation` is plain data: its functions return data and take no socket. Change navigation with
+   `@auix[:index_new_link]` remain readable there. They mirror `@auix.navigation`. Change navigation with
    `auix_route_forward/2` and `auix_route_back/1`, not by assigning those keys.
    ```
 
 ##### guides/core/liveview.md
-1. § Navigation — replace the start of the section body, from the line that starts `` `Aurora.Uix.Navigation` owns the navigation `` through the line `helpers to use in a handler:`, with, verbatim:
+1. § Navigation — replace every line between the heading `## Navigation` and the ` ```elixir ` line that opens the `auix_handle_event("archive", …)` example with, verbatim, keeping one blank line after the heading and one before the ` ```elixir ` line:
    ```
    `Aurora.Uix.Navigation` describes the navigation of the generated LiveView as plain data. The state is
    `@auix.navigation`, an `%Aurora.Uix.Navigation{}` with the base path, the current path and the routing stack.
-   The functions take that struct and return data. None takes a socket.
+   The functions take that struct and return data.
 
    | Function | Returns |
    |---|---|
@@ -952,11 +951,10 @@ The section corrects the statements of the merged guides that UI-3 makes false. 
 
    A route is `%{type: :patch | :navigate, path: path}`. Its path carries the routing stack in `routing_stack=`.
 
-   Only the helpers change a socket. `auix_route_forward/2` calls `Navigation.forward/2` and `auix_route_back/1`
-   calls `Navigation.back/1` on `@auix.navigation`; each stores the returned struct and pushes the returned
-   route. Use them in a handler:
+   `auix_route_forward/2` calls `Navigation.forward/2` and `auix_route_back/1` calls `Navigation.back/1` on
+   `@auix.navigation`; each stores the returned struct and pushes the returned route. Use them in a handler:
    ```
-   The `auix_handle_event("archive", …)` example and the two paragraphs after it stay.
+   The `auix_handle_event("archive", …)` example and the two paragraphs after it stay, unchanged.
 
 ##### guides/whats_new/0.2.1.md
 1. § Upgrading from 0.2.0 — replace the paragraph that starts `No change is required.` with, verbatim:
@@ -980,9 +978,10 @@ The section corrects the statements of the merged guides that UI-3 makes false. 
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-458-enriched-spec.md`)
 - [ ] AC-3: `guides/core/liveview.md § Navigation` documents `forward/2` and `back/1` as functions that take the struct and return `{nav, route}` (mechanical — no red test; verified by `grep -c 'Navigation.forward(nav, target)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.back(nav)' guides/core/liveview.md` returning `1`, `grep -c 'Navigation.path(nav, action, id)' guides/core/liveview.md` returning `1` and `grep -cE 'Navigation\.(forward|back)\(socket' guides/core/liveview.md` returning `0`)
-- [ ] AC-4: `guides/core/liveview.md § Navigation` states that only the helpers change a socket (mechanical — no red test; verified by `grep -c '^Only the helpers change a socket\.' guides/core/liveview.md` returning `1` and `grep -c 'call them with the socket' guides/core/liveview.md` returning `0`)
-- [ ] AC-5: `guides/core/components.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the way to change navigation, and describes `Aurora.Uix.Navigation` as plain data (mechanical — no red test; verified by `grep -c 'change navigation through' guides/core/components.md` returning `0`, `grep -c 'its functions return data and take no socket' guides/core/components.md` returning `1` and `grep -c 'Navigation`: a patch' guides/core/components.md` returning `0`)
+- [ ] AC-4: `guides/core/liveview.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the helpers to use in a handler, and says what each one does (mechanical — no red test; verified by `grep -c 'each stores the returned struct and pushes the returned route' guides/core/liveview.md` returning `1`, `grep -c 'call them with the socket' guides/core/liveview.md` returning `0` and `grep -c 'Only the helpers change a socket' guides/core/liveview.md` returning `0`)
+- [ ] AC-5: `guides/core/components.md § Navigation` names `auix_route_forward/2` and `auix_route_back/1` as the way to change navigation, and names `Aurora.Uix.Navigation` as what computes each path (mechanical — no red test; verified by `grep -c 'change navigation through' guides/core/components.md` returning `0`, `grep -c 'Change navigation with$' guides/core/components.md` returning `1`, `grep -c 'computes each path, and the LiveView applies it' guides/core/components.md` returning `1` and `grep -c 'Navigation`: a patch' guides/core/components.md` returning `0`)
 - [ ] AC-6: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` names the two helpers alone (mechanical — no red test; verified by `grep -c '^with `auix_route_forward/2` and `auix_route_back/1`\.$' guides/whats_new/0.2.1.md` returning `1` and `grep -c 'and `Aurora.Uix.Navigation`\.$' guides/whats_new/0.2.1.md` returning `0`)
+- [ ] AC-7: the text of § Navigation in both guides has no statement about a socket; the word stays only in the code examples (mechanical — no red test; verified by `grep -c 'socket' guides/core/components.md` returning `3`, `grep -c 'take no socket' guides/core/components.md` returning `0`, `awk '/^## Navigation$/,/^## Performance Considerations$/' guides/core/liveview.md | grep -c 'socket'` returning `2` and `grep -c 'None takes a socket' guides/core/liveview.md` returning `0`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
