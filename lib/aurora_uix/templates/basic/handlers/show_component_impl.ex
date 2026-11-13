@@ -24,7 +24,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   import Phoenix.LiveView
 
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
-  alias Aurora.Uix.Stack
   alias Aurora.Uix.Templates.Basic.Actions.ShowComponent, as: ShowComponentActions
   alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
@@ -111,7 +110,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
      socket
      |> assign_auix_new(:_sections, %{})
      |> assign_auix(:_myself, socket.assigns.myself)
-     |> assign_auix(:routing_stack, routing_stack || Stack.new())
+     |> assign_auix_navigation(routing_stack)
      |> assign_layout_options()
      |> ShowComponentActions.set_actions()
      |> BasicHelpers.assign_upload_downloadable()
