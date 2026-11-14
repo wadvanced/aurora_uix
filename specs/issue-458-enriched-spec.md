@@ -4,7 +4,7 @@
 **Complexity:** high
 
 ### Overview
-This spec covers steps 1–3 of the epic: the documented component contract, a test suite that locks today's navigation and handler-hook behaviour, and the extraction of `Aurora.Uix.Navigation`. Nothing here changes generated behaviour: every URL, event and `@auix` key a host reads stays as it is. The documented contract departs from the issue body's design decisions 3 and 6 by a decision taken during enrichment: a component has no navigation mode. It always reports intents to its parent, and the parent (the generated `.Index` LiveView, or a hand-written host) decides what they mean. All sections are backend-agnostic UI work; the navigation suite runs on both backends (Ecto `inventory`, Ash `blog`).
+This spec covers the whole epic: the documented component contract, the test suites that lock navigation and handler-hook behaviour, `Aurora.Uix.Navigation`, generated modules as named artifacts, standalone Form and Show components, the list engine, `.IndexComponent`, `Aurora.Uix.Live.ComponentHooks` and one-to-many lists through the index component. A component has no navigation mode: embedded, it reports intents to its parent, while the form and the show view the generated `.Index` LiveView opens keep navigating under its routes, and that LiveView keeps its own list. A LiveView written by hand pairs a component with one of its own resources: it declares the pairing with `use:` in its own `auix_create_ui` and gives the component the input `resource`. The work is non-breaking for 0.2.1 except two compile-time changes of UI-4: two generated modules with one name no longer compile, and a resource created for an embedded field generates no modules. All sections are backend-agnostic UI work; the navigation and component suites run on both backends (Ecto `inventory`, Ash `blog`).
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
@@ -14,6 +14,13 @@ This spec covers steps 1–3 of the epic: the documented component contract, a t
 | UI-2 | UI | handlers · handler-hook tests for the documented callbacks, in the existing `handler_hooks_*` test files (no library change) | DOC-1 | federico/458-ui-2-compatibility-suite | test: cover the documented handler hooks (#458 · UI-2) |
 | UI-3 | UI | handlers · extract `Aurora.Uix.Navigation` (`base_path`) as a pure data module; socket layer in `Aurora.Uix.Templates.Basic.Helpers` | UI-1, UI-2 | federico/458-ui-3-navigation-module | refactor: extract Aurora.Uix.Navigation (#458 · UI-3) |
 | DOC-2 | Documentation | `guides/core/components.md` § Navigation, `guides/core/liveview.md` § Navigation, `guides/whats_new/0.2.1.md` § Upgrading from 0.2.0 (the pure `Aurora.Uix.Navigation` API of UI-3) | UI-3 | federico/458-doc-2-navigation-guides | docs: navigation guides match the pure Aurora.Uix.Navigation (#458 · DOC-2) |
+| UI-4 | UI | layout · generated modules as named artifacts: `Aurora.Uix.Layout.Artifacts`, `module_name:`, `use:`, `live_view`, `generate:`, `auix_modules/0`, `auix_module/1` (generated and imported modules), pairings declared with `generate: []`, `Helpers.component_binding/3`, name collisions as compile errors, no modules for embedded resources, `live_view:` on `auix_live_resources/3` | UI-3 | federico/458-ui-4-named-artifacts | feat: generated modules are named artifacts (#458 · UI-4) |
+| UI-5 | UI | generators and handlers · standalone Form and Show components: inputs (`resource` resolved in the rendering LiveView), intents, `Aurora.UixWeb.Test.ComponentHostLive` | UI-4 | federico/458-ui-5-standalone-form-show | feat: standalone form and show components (#458 · UI-5) |
+| UI-6 | UI | handlers · extract the list engine `Handlers.IndexList` (no behaviour change) | UI-4 | federico/458-ui-6-index-list-engine | refactor: extract the index list engine (#458 · UI-6) |
+| UI-7 | UI | generators and handlers · `.IndexComponent`, `IndexComponentImpl`, kind `:index_component`, the `resource` input, per-instance ids and event targets | UI-5, UI-6 | federico/458-ui-7-index-component | feat: IndexComponent and IndexComponentImpl (#458 · UI-7) |
+| UI-8 | UI | live · `Aurora.Uix.Live.ComponentHooks` | UI-7 | federico/458-ui-8-component-hooks | feat: ComponentHooks forwards events to embedded components (#458 · UI-8) |
+| UI-9 | UI | renderers · one-to-many list through the index component of the related resource | UI-8 | federico/458-ui-9-one-to-many-index-component | feat: one-to-many lists through the index component (#458 · UI-9) |
+| DOC-3 | Documentation | `CHANGELOG.md` § `[0.2.1]`, `guides/advanced/advanced_usage.md` § Single vs Multiple Resources, § Introspecting generated UI modules, `guides/core/components.md`, `guides/core/liveview.md` § Module Generation, § Generated Module Structure, § Using Generated Modules with Routes, § Specifying Handler Hooks in Layout DSL, § Navigation, `guides/whats_new/0.2.1.md` (what UI-4 to UI-9 deliver) | UI-9 | federico/458-doc-3-components-guides | docs: component guides and CHANGELOG match the delivered components (#458 · DOC-3) |
 
 A section starts only when every dependency is **merged**. Independent
 sections may run in parallel. Status is derived from GitHub, never recorded
@@ -987,13 +994,1351 @@ The section corrects the statements of the merged guides that UI-3 makes false. 
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
    (review-issue runs the suite)
 <!-- section:DOC-2:end -->
+<!-- section:UI-4:start -->
+### UI-4 — UI · layout · generated modules are named artifacts
+Depends on: UI-3
+
+#### Documentation references
+- `guides/core/liveview.md § Module Generation with auix_create_ui`, `§ Using Generated Modules with Routes`
+- `guides/advanced/advanced_usage.md § Accessing Separated Metadata` (the `@auix_resource_metadata` import this section mirrors)
+- `guides/core/components.md § Generating the components alone`
+
+#### Implementation details
+
+Every module `auix_create_ui` generates becomes a named **artifact**: one registry entry per generated module, kept by the declaring module. A module also lists the entries it imports with `@auix_modules`, under the atoms it gives them. Kinds in this section: `:form_component` (from `edit_layout`), `:show_component` (from `show_layout`) and `:live_view` (from `auix_create_ui` itself). UI-7 adds `:index_component`. Layout types covered: `:form`, `:show`; `:index` keeps generating the LiveView. Everything here is backend-agnostic: no `Ecto.*` and no `Ash.*` module is referenced.
+
+Terms used below. **Hint**: the last segment of a resource's schema module (`"Product"`), the middle segment of every generated module name. **Entry**: the map `%{module: module(), kind: atom(), fields: [atom()], layout: Node.layout() | nil}`; it holds no resource. **Target resource**: a resource of the module that has a schema, passes `for:` and has `embedded?: false`.
+
+A **pairing** is a `use:` line: it gives a resource of the module a component generated in another module. Every module that calls `use Aurora.Uix` declares pairings, a LiveView written by hand included. That LiveView imports its resources with `@auix_resource_metadata` and its components with `@auix_modules`, each under an atom of its own, and writes `auix_create_ui generate: [] do edit_layout :product_location, use: :location_form end`. `generate: []` generates no module and keeps every check of `use:`. `Helpers.component_binding/3` turns a pairing into the options the component runs with: the generated LiveView calls it in this section, and a component given the input `resource` calls it in UI-5 and UI-7. No resource struct is passed by hand.
+
+Two changes break code that compiled before. Both surface at compile time, and DOC-3 lists both in the CHANGELOG:
+- two artifacts with the same name raise `Spark.Error.DslError`, and so do two artifacts that resolve to the same module;
+- a resource created for an embedded field generates no modules.
+
+##### Acceptance criteria
+- [ ] AC-1: `Artifacts.module_name(MyApp.Views, "Product", :index_compact)` returns `MyApp.Views.Product.IndexCompact`; `Artifacts.default_name("ProductLocation", :form_component)` returns `:product_location_form_component`; `Artifacts.default_name("Product", :live_view)` returns `:product_index`; `Artifacts.schema_hint(Aurora.Uix.Guides.Inventory.Product)` returns `"Product"`
+- [ ] AC-2: a module with one resource `:product` and `auix_create_ui()` defines `<Module>.Product.Index`, `<Module>.Product.FormComponent` and `<Module>.Product.ShowComponent`, and `auix_modules/0` returns a map with exactly the keys `:product_index`, `:product_form_component`, `:product_show_component`; the entry of `:product_form_component` is `%{module: <Module>.Product.FormComponent, kind: :form_component, fields: fields, layout: %Node.Form{resource: nil}}` with `:reference in fields`; `auix_module(:product_form_component)` returns that entry and `auix_module(:nope)` returns `nil`
+- [ ] AC-3: `edit_layout :product, module_name: :reference_form do … end` defines `<Module>.Product.ReferenceForm`, defines no `<Module>.Product.FormComponent`, and registers the entry under `:reference_form`
+- [ ] AC-4: `live_view :product, module_name: :catalog` inside `auix_create_ui` defines `<Module>.Product.Catalog` as the LiveView, defines no `<Module>.Product.Index`, and registers it under `:catalog` with `kind: :live_view`, `fields: []`, `layout: nil`
+- [ ] AC-5: `auix_create_ui generate: [:form_component, :show_component]` defines no `<Module>.Product.Index`; `auix_modules/0` has no entry of kind `:live_view`
+- [ ] AC-6: two declared resources on one schema with default names fail compilation with `Spark.Error.DslError` whose message contains `module name :product_form_component is taken more than once`
+- [ ] AC-7: two artifacts that resolve to one module under different names (`edit_layout :product_compact, module_name: :form_component do … end` next to the default form of `:product`) fail compilation with a message containing `would be generated twice`
+- [ ] AC-8: error paths of `use:`. Each fails compilation with `Spark.Error.DslError`: an atom that is neither declared nor imported (`unknown module :nope in use:`); an entry of another kind (`use: :product_show_component names a show_component`); a `live_view` entry (`names a live_view`); an entry whose layout places a field the resource lacks (`unknown fields [:description] for resource :product_location in use:`); `use:` with a `do` block (`use: takes no do block`); `use:` with `module_name:` (`use: takes no other option`)
+- [ ] AC-9: `generate: [:live_view]` fails compilation with a message containing `the live view of :product needs a form component and a show component`
+- [ ] AC-10: a module whose resource has embedded fields (`:user` on `Aurora.Uix.Guides.Accounts.User`) defines no `<Module>.Profile.Index`, `<Module>.Profile.FormComponent`, `<Module>.Profile.ShowComponent`, `<Module>.Email.Index`; `the keys of `auix_modules/0` that start with `user` are exactly `:user_index`, `:user_form_component`, `:user_show_component`, none starts with `profile` and none with `email`; `auix_configurations/0` still has the keys `:user__profile` and `:user__emails`
+- [ ] AC-11: a form component generated in one module and imported with `@auix_modules` serves a resource of another schema in the importing module: with `edit_layout :product_location, use: :reference_form`, the form the generated LiveView opens has the inputs `product_location[reference]` and `product_location[name]`, has no input `product_location[type]`, and saving it updates the product location; the importing module defines no `<Module>.ProductLocation.FormComponent`
+- [ ] AC-12: `auix_live_resources(path, module, live_view: :locations)` routes the five actions to `<module>.Locations`; without the option the routes point to `<module>.Index`
+- [ ] AC-13: an `@auix_modules` value that is not an entry (`%{reference_form: nil}`) fails compilation with a message containing `@auix_modules entry :reference_form is not a generated module`
+- [ ] AC-14: no runtime code rebuilds a generated module name (mechanical — no red test; verified by `grep -rn 'ModulesGenerator.module_name' lib` printing only the `def module_name` documentation example lines of `lib/aurora_uix/templates/basic/modules_generator.ex`)
+- [ ] AC-15: every existing test passes with its file unchanged, and `lib/aurora_uix_web/routes.ex` is unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test lib/aurora_uix_web` listing only `test/cases/artifacts_test.exs`, `test/cases/create_ui_validation_test.exs`, `test/cases_live/named_modules_test.exs` and `test/support/app_web/routes.ex`, and `mix test` green)
+- [ ] AC-16: `auix_modules/0` and `auix_module/1` return an imported entry under the atom the importing module gave it: in the importing module of AC-11, `auix_module(:reference_form)` equals `NamedModulesForms.auix_module(:reference_form)`, and `auix_modules/0` has the key `:reference_form`
+- [ ] AC-17: a module declares a pairing and generates nothing: with an imported resource `:product_location`, an imported entry `:location_form` and `auix_create_ui generate: [] do edit_layout :product_location, use: :location_form end`, `auix_modules/0` has exactly the key `:location_form`; `auix_configurations().product_location` has `artifacts.form_component` equal to the imported module and `used` equal to `[:form_component]`; no `<Module>.ProductLocation.FormComponent`, `<Module>.ProductLocation.ShowComponent` and `<Module>.ProductLocation.Index` is defined
+- [ ] AC-18: `Helpers.component_binding/3` returns the options of a pairing: for the module of AC-17, `component_binding(auix_configurations(), :product_location, :form)` has `resource_name: :product_location`, `layout_type: :form`, `modules.caller` equal to the module, `artifacts.form_component` equal to the imported module, and a `layout_tree` of `:product_location` that places `:reference` and `:name`; error path: a resource the configurations lack raises `KeyError`
+
+##### Test ports
+- Compile-time behaviour: `Code.compile_string/1` through the private `compile/1` of `test/cases/create_ui_validation_test.exs`. Its header declares `:product`; a test that needs more resources declares them at the start of the body it passes.
+- Pure functions of `Aurora.Uix.Layout.Artifacts`, called directly.
+- `Aurora.UixWeb.Test.NamedModulesHost` (Modules & components step 14), a module that declares one pairing and generates nothing: its `auix_modules/0` and `auix_configurations/0`, and `Helpers.component_binding/3`, called directly.
+- Routes under `"/named-modules-locations"` registered in `test/support/app_web/routes.ex`, inside the quote of `load_test_routes/0`, directly after the `"/navigation-except-products"` registration, as `RouteHelper.auix_live_resources("/named-modules-locations", NamedModulesTest.ProductLocation, live_view: :locations)`. `RoutesHelper.register_crud/2` always routes to `Index`, and this route exercises `live_view:`, as the `only:` and `except:` routes of UI-1 exercise theirs · layout types `:index`, `:form` · observable: `has_element?/2` on `input[name='product_location[reference]']`.
+
+##### Red tests
+`Artifacts` is `Aurora.Uix.Layout.Artifacts`. `mod` is the module returned by `compile/1` that exports `auix_modules/0`: `{mod, _} = Enum.find(compiled, fn {m, _} -> function_exported?(m, :auix_modules, 0) end)`. `P` is `Aurora.Uix.Guides.Inventory.Product`, `I` is `Aurora.Uix.Guides.Inventory`.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1 | new file (`ls test/cases \| grep -i artifact` prints nothing). Module `Aurora.Uix.Test.ArtifactsTest`, `use ExUnit.Case, async: true` | none | `test/cases/artifacts_test.exs` | `"names are built from the caller, the schema hint and the atom"` | the four equalities of AC-1 |
+| AC-2 | add to `test/cases/create_ui_validation_test.exs` | `compile("  auix_create_ui()\n")` | same | `"every generated module has a registry entry"` | `mod.auix_modules() \|> Map.keys() \|> Enum.sort() == [:product_form_component, :product_index, :product_show_component]`; `%{module: m, kind: :form_component, fields: fields, layout: %Node.Form{resource: nil}} = mod.auix_module(:product_form_component)`; `m == Module.concat(mod, Product.FormComponent)`; `:reference in fields`; `mod.auix_module(:nope) == nil`; `Code.ensure_loaded?(Module.concat(mod, Product.Index))` |
+| AC-3 | add to same | body: `auix_create_ui do` / `edit_layout :product, module_name: :reference_form do` / `inline [:reference, :name]` / `end` / `end` | same | `"module_name names the component of its layout"` | `mod.auix_module(:reference_form).module == Module.concat(mod, Product.ReferenceForm)`; `mod.auix_module(:reference_form).fields == [:reference, :name]`; `refute Code.ensure_loaded?(Module.concat(mod, Product.FormComponent))` |
+| AC-4 | add to same | body: `auix_create_ui do` / `live_view :product, module_name: :catalog` / `end` | same | `"a live_view line names the live view"` | `mod.auix_module(:catalog) == %{module: Module.concat(mod, Product.Catalog), kind: :live_view, fields: [], layout: nil}`; `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))` |
+| AC-5 | add to same | `compile("  auix_create_ui generate: [:form_component, :show_component]\n")` | same | `"generate chooses the kinds of module"` | `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))`; `Enum.all?(mod.auix_modules(), fn {_name, entry} -> entry.kind != :live_view end)` |
+| AC-6 | add to same | body starts with `auix_resource_metadata :product_compact, context: I, schema: P` (full module names), then `auix_create_ui()` | same | `"two resources on one schema need their own module names"` | `assert_raise DslError, ~r/module name :product_form_component is taken more than once/, fn -> compile(body) end` |
+| AC-7 | add to same | body as AC-6, with `auix_create_ui do` / `edit_layout :product_compact, module_name: :form_component do` / `inline [:name]` / `end` / `show_layout :product_compact, module_name: :compact_show do` / `inline [:name]` / `end` / `live_view :product_compact, module_name: :compact` / `end` | same | `"two names for one module fail compilation"` | `assert_raise DslError, ~r/would be generated twice/, fn -> compile(body) end` |
+| AC-8 | add to same | six bodies. (a) `edit_layout :product, use: :nope`. (b) `edit_layout :product, use: :product_show_component`. (c) `edit_layout :product, use: :product_index`. (d) body starts with `auix_resource_metadata :product_location, context: I, schema: Aurora.Uix.Guides.Inventory.ProductLocation`, then `auix_create_ui do` / `edit_layout :product, module_name: :described do` / `inline [:reference, :description]` / `end` / `edit_layout :product_location, use: :described` / `end`. (e) `edit_layout :product, use: :product_form_component do` / `inline [:name]` / `end`. (f) `edit_layout :product, use: :product_form_component, module_name: :other` | same | `"use: rejects what it cannot take"` | one `assert_raise DslError, regex, fn -> … end` per body, with the six messages of AC-8 in that order |
+| AC-9 | add to same | `compile("  auix_create_ui generate: [:live_view]\n")` | same | `"a live view needs its form and show components"` | `assert_raise DslError, ~r/the live view of :product needs a form component and a show component/, …` |
+| AC-10 | add to same | body starts with `auix_resource_metadata :user, context: Aurora.Uix.Guides.Accounts, schema: Aurora.Uix.Guides.Accounts.User`, then `auix_create_ui()` | same | `"an embedded resource generates no modules"` | `mod.auix_modules() \|> Map.keys() \|> Enum.sort() == [:product_form_component, :product_index, :product_show_component, :user_form_component, :user_index, :user_show_component]`; `refute Code.ensure_loaded?(Module.concat(mod, Profile.Index))`; the same for `Profile.FormComponent`, `Profile.ShowComponent`, `Email.Index`; `Map.has_key?(mod.auix_configurations(), :user__profile)`; `Map.has_key?(mod.auix_configurations(), :user__emails)` |
+| AC-11, AC-12 | new file (`ls test/cases_live \| grep named_modules` prints nothing) | two top-level modules in the file, see Modules & components step 14; `delete_all_inventory_data()`; `create_sample_product_locations(1)`; `[location] = Aurora.Uix.Repo.all(ProductLocation)`; `live(conn, "/named-modules-locations/#{location.id}/edit")` | `test/cases_live/named_modules_test.exs` | `"a used form component serves the resource of its host"` | `has_element?(view, "#auix-product_location-form input[name='product_location[reference]']")`; the same for `[name]`; `refute has_element?(view, "input[name='product_location[type]']")`; `view \|> form("#auix-product_location-form", product_location: %{name: "Renamed"}) \|> render_submit()`; `Aurora.Uix.Repo.get!(ProductLocation, location.id).name == "Renamed"`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.FormComponent)`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.Index)`; `Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.Locations)` |
+| AC-13 | add to `test/cases/create_ui_validation_test.exs` | body: `@auix_modules %{reference_form: nil}` then `auix_create_ui()` | same | `"an imported module must be a registry entry"` | `assert_raise DslError, ~r/@auix_modules entry :reference_form is not a generated module/, …` |
+| AC-16 | add to `test/cases_live/named_modules_test.exs` | none; `T` is the test module, `Forms` is `Aurora.UixWeb.Test.NamedModulesForms` | same | `"an imported module is in the registry of its importer"` | `T.auix_module(:reference_form) == Forms.auix_module(:reference_form)`; `Map.has_key?(T.auix_modules(), :reference_form)` |
+| AC-17 | add to same | none; `PairingHost` is `Aurora.UixWeb.Test.NamedModulesHost` | same | `"a module declares a pairing without generating modules"` | `Map.keys(PairingHost.auix_modules()) == [:location_form]`; `configuration = PairingHost.auix_configurations().product_location`; `configuration.artifacts.form_component == Forms.Product.ReferenceForm`; `configuration.used == [:form_component]`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesHost.ProductLocation.FormComponent)`; the same for `ProductLocation.ShowComponent` and `ProductLocation.Index` |
+| AC-18 | add to same | `binding = Aurora.Uix.Templates.Basic.Helpers.component_binding(PairingHost.auix_configurations(), :product_location, :form)` | same | `"component_binding/3 builds the options of a pairing"` | `%{resource_name: :product_location, layout_type: :form, modules: %{caller: PairingHost}, artifacts: %{form_component: module}, layout_tree: %Aurora.Uix.Layout.Node.Form{resource: :product_location} = tree} = binding`; `module == Forms.Product.ReferenceForm`; `tree \|> Aurora.Uix.Layout.Node.fields() \|> Enum.map(& &1.key) == [:reference, :name]`; `assert_raise KeyError, fn -> Aurora.Uix.Templates.Basic.Helpers.component_binding(PairingHost.auix_configurations(), :nope, :form) end` |
+
+##### Modules & components
+1. `Aurora.Uix.Layout.Artifacts` at `lib/aurora_uix/layout/artifacts.ex` — new (`grep -rnE 'Layout\.Artifacts|auix_modules|auix_module\b|schema_hint' lib test` prints nothing). Aliases, alphabetical: `Aurora.Uix.Layout.CreateUI.LiveView`, `Aurora.Uix.Layout.Node`, `Aurora.Uix.Layout.RenderTree`, `Aurora.Uix.Resource`, `Spark.Error.DslError`. `@moduledoc` first paragraph: `Names the modules auix_create_ui generates and keeps their registry.` `## Key Features`: one naming function for every generated module; one entry per generated module, with the imported entries beside them; `use:` substitution; collision detection. `## Key Constraints`: an entry holds no resource; the schema hint only names, it never restricts reuse; pure, it defines no module itself. Public functions, each with `@doc` (`## Parameters`, `## Returns`) and `@spec`:
+   - `@type kind() :: :live_view | :form_component | :show_component`, `@type entry() :: %{module: module(), kind: kind(), fields: [atom()], layout: Node.layout() | nil}`.
+   - `kinds/0` returns `[:live_view, :form_component, :show_component]`.
+   - `schema_hint(schema)` returns `schema |> Module.split() |> List.last()`.
+   - `module_name(caller, schema_hint, name)` returns `Module.concat([caller, schema_hint, name |> Atom.to_string() |> Macro.camelize()])`.
+   - `default_name(schema_hint, kind)` returns `String.to_atom("#{Macro.underscore(schema_hint)}_index")` for `:live_view` and `String.to_atom("#{Macro.underscore(schema_hint)}_#{kind}")` for a component kind. The atom is built at compile time from a schema module name.
+   - `functions_code(entries)` returns the quote that defines `auix_modules/0` (returns `entries`, escaped) and `auix_module/1` (one clause per name, then `def auix_module(_), do: nil`), in the shape of `ResourceMetadata.resource_functions_code/1` in `lib/aurora_uix/layout/resource_metadata.ex`. It puts no module attribute.
+   - `plan(input)` — see step 2.
+2. `Artifacts.plan/1`. `@spec plan(map()) :: %{layouts: map(), resolved: map(), entries: %{atom() => entry()}}`. Input keys: `caller` (module), `resources` (`%{name => Resource.t()}`, already filtered by `for:`), `layouts` (`%{name => %{index: layout | nil, form: layout | nil, show: layout | nil}}`, the declared layouts as written), `live_views` (`[LiveView.t()]`), `imported` (`%{atom => entry}`), `generate` (`[kind]`), `opts` (the `auix_create_ui` options). It raises `DslError` with `module: caller` and `path: [:auix_create_ui]` for every error below. Algorithm:
+   1. Imported entries. Every value of `imported` matches `%{module: m, kind: k, fields: f}` with `is_atom(m)` and `is_list(f)`; otherwise raise `"@auix_modules entry #{inspect(name)} is not a generated module; take it from auix_module/1"`.
+   2. Targets. A resource is a target when `resource.schema != nil and not resource.embedded?`. Targets are visited in the order of `Enum.sort_by(resources, &elem(&1, 0))`. `hint = schema_hint(resource.schema)`.
+   3. `live_view` lines. A line naming a resource that is not a target raises `"unknown resource #{inspect(line.resource)}"`; two lines for one resource raise `"#{inspect(resource)} has more than one live_view line"`; a line while `:live_view not in generate` raises `"live_view #{inspect(resource)} needs :live_view in generate:"`.
+   4. Names. For every target and every pair `{:form, :form_component}`, `{:show, :show_component}` whose kind is in `generate` and whose declared layout has `use: nil`: `segment = layout.module_name || kind` (a `nil` layout gives `kind`), `name = layout.module_name || default_name(hint, kind)`, `module = module_name(caller, hint, segment)`. For every target, when `:live_view in generate`: `segment = line.module_name || :index`, `name = line.module_name || default_name(hint, :live_view)`. Collect `{name, kind, resource_name, module}`.
+   5. Collisions, checked on the collection of step 4 before anything else is resolved. Names are checked in `Enum.sort/1` order and the first offending one is reported. A name collected twice, and a collected name that is also a key of `imported`, raise `"module name #{inspect(name)} is taken more than once (#{owners}); set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with a live_view line"`, where `owners` is the resource names of the name, inspected and joined with `", "`, plus the text `@auix_modules` for an imported name. Two different names with one module raise `"#{inspect(module)} would be generated twice, as #{inspect(name_a)} and #{inspect(name_b)}; set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with a live_view line"`.
+   6. Layouts and entries, for `:form` first and then `:show`, for every resource of `resources` (targets and non-targets). Within one layout type, every layout with `use: nil` is handled, and its entry built, before any layout with `use:`, so a `use:` finds an entry whatever the order of the resources:
+      - a declared layout with `use: nil` is the effective layout;
+      - a declared layout with `use: name` on a non-target raises `"use: is not available for #{inspect(resource_name)}, an embedded resource"`;
+      - a declared layout with `use: name` on a target resolves `name` in `imported` first, then in the entries of this module. No match raises `"unknown module #{inspect(name)} in use:; declare it with module_name: or import it with @auix_modules"` when the name is not in the collection of step 4 either, and `"use: #{inspect(name)} names a #{found_kind}; the #{layout_type} layout of #{inspect(resource_name)} takes a #{kind}"` when the name is known with another kind. A match of another kind raises that same second message. A field of `entry.fields` that is not a key of `resource.fields` raises `"unknown fields #{inspect(missing)} for resource #{inspect(resource_name)} in use: #{inspect(name)}"`. The effective layout is `%{entry.layout | resource: resource_name}`; the resolved module is `entry.module`; the kind is added to the resource's `used` list;
+      - no declared `:show` layout and an effective `:form` layout: the effective `:show` layout is the form copied into a `%Node.Show{}` — `form |> Map.from_struct() |> Map.merge(%{handler_module: Keyword.get(form.options, :show_handler_module), module_name: nil, use: nil}) |> then(&struct(Node.Show, &1))`. This is `put_missing_show/1`, moved here from `lib/aurora_uix/layout/create_ui.ex`;
+      - otherwise the effective layout is `nil` (the default layout).
+      For a target whose kind is in `generate` and is not used, add the entry `name => %{module: module, kind: kind, fields: fields, layout: %{written | resource: nil}}`, where `written` is the effective layout, and `RenderTree.default(layout_type, resource, opts)` for a `nil` one, and `fields` is `written |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq()`. The `:index` layout of every resource is passed through unchanged.
+   7. Live views. For every target with `:live_view in generate`: both `form_component` and `show_component` resolve to a module, otherwise raise `"the live view of #{inspect(resource_name)} needs a form component and a show component; add :form_component and :show_component to generate:, or name them with use:"`. Add the entry `name => %{module: module, kind: :live_view, fields: [], layout: nil}`.
+   8. Result. `layouts`: `%{resource_name => %{index: layout | nil, form: layout | nil, show: layout | nil}}` with the effective layouts, for every resource. `resolved`: for every target, `%{artifacts: %{live_view: module | nil, form_component: module | nil, show_component: module | nil}, used: [kind], generate: [kind]}`, where `generate` lists the kinds this module generates for the resource (in `generate:`, and not used). `entries`: `Map.merge(imported, generated)`, where `generated` is the entries of steps 6 and 7; step 5 leaves no name in both. `auix_modules/0` and `auix_module/1` therefore return an imported entry under the atom the importing module gave it.
+3. `Aurora.Uix.Layout.CreateUI.LiveView` at `lib/aurora_uix/layout/create_ui/live_view.ex` — new (`grep -rn 'CreateUI.LiveView' lib test` prints nothing). `defstruct resource: nil, module_name: nil, __spark_metadata__: nil`, `@type t()`, `@moduledoc` with `## Key Features` (one `live_view` line of `auix_create_ui`: the resource and the name of its LiveView) and `## Key Constraints` (it names a module; it is not a layout and has no fields).
+4. `lib/aurora_uix/layout/node/form.ex` and `lib/aurora_uix/layout/node/show.ex` — modified. Add `module_name: nil` and `use: nil` to `defstruct`, directly after `handler_module: nil`, and `module_name: atom() | nil`, `use: atom() | nil` to `@type t()`. Add one line to `## Key Features`: `` `module_name` names the generated component; `use` names the component taken instead of generating one. ``
+5. `lib/aurora_uix/layout/create_ui/call.ex` — modified. Add `generate: nil` after `include: nil` and `live_views: []` after `children: []` in `defstruct`; add `generate: [atom()] | nil` and `live_views: [Aurora.Uix.Layout.CreateUI.LiveView.t()]` to `@type t()`; extend the `## Key Constraints` sentence to list `generate` with `renderers`, `default_fields_layout` and `include`.
+6. `lib/aurora_uix/layout/create_ui/dsl.ex` — modified.
+   - `@ui_schema`: append `generate: [type: {:list, {:in, [:live_view, :form_component, :show_component]}}, doc: "The kinds of module to generate. Defaults to all of them."]`.
+   - `@edit_layout` schema: append `module_name: [type: :atom, doc: "Names the generated component."]` and `use: [type: :atom, doc: "Takes a component of the registry instead of generating one. No block, no other option."]`. `@show_layout` is built from `@edit_layout` and takes both. Spark reads the keywords of a layout line without a block as entity options, so these two keys carry `edit_layout :r, use: :x`; a line with a block carries its keywords in `layout_opts`.
+   - New entity, defined before `@create_ui` (`grep -n 'live_view' lib/aurora_uix/layout/create_ui/dsl.ex` prints nothing): `@live_view %Entity{name: :live_view, describe: "Names the LiveView of a resource.", target: Aurora.Uix.Layout.CreateUI.LiveView, args: [:resource], schema: [resource: [type: :atom, required: true, doc: "The resource."], module_name: [type: :atom, required: true, doc: "The name of the LiveView."]]}`. Alias `Aurora.Uix.Layout.CreateUI.LiveView` in alphabetical position.
+   - `@create_ui`: `entities: [children: @layouts, live_views: [@live_view]]`. `@create_layout` is unchanged.
+   - `typed_keys/2`, second clause (`_layout_type`): return `[:renderers, :module_name, :use, handler_key]`. The `:index` clause is unchanged, so `module_name:` and `use:` on `index_columns` stay unknown options until UI-7.
+   - `container_opts/2`: add `module_name: typed[:module_name]` and `use: typed[:use]` to the returned map.
+   - `build_node(%module{} = layout) when module in [Node.Form, Node.Show]`: after `container_opts/2` succeeds, add the step `:ok <- validate_naming(layout, container)` and build the node as `struct(layout, %{container | module_name: container.module_name || layout.module_name, use: layout.use})`. New private function (`grep -rn 'validate_naming' lib` prints nothing):
+     ```elixir
+     @spec validate_naming(Node.layout(), map()) :: :ok | {:error, binary()}
+     defp validate_naming(_layout, %{use: use}) when not is_nil(use),
+       do: {:error, "use: takes no do block"}
+
+     defp validate_naming(%{use: use, module_name: module_name}, _container)
+          when not is_nil(use) and not is_nil(module_name),
+          do: {:error, "use: takes no other option"}
+
+     defp validate_naming(_layout, _container), do: :ok
+     ```
+   - `build_node(%Node.Index{})`: unchanged. `struct/2` ignores the two new keys of the container map.
+   - `@moduledoc` `## Key Features`: add `live_view` to the entities the section holds.
+7. `lib/aurora_uix/resource.ex` — modified. Add `embedded?: false` to `defstruct` after `resolved?: false`, `embedded?: boolean()` to `@type t()`, and the `@moduledoc` line `` - `embedded?` (`boolean`) - `true` for a resource the library created for an embedded field. ``
+8. `lib/aurora_uix/layout/resource_metadata.ex`, `add_embedded_resources/1` — modified. The parsers prepend the resources they create, so the created ones are the head of the result:
+   ```elixir
+   defp add_embedded_resources(resources) do
+     with_embedded =
+       resources
+       |> Enum.reject(&is_nil(&1.schema))
+       |> Enum.reduce(resources, fn resource, result ->
+         resource.type
+         |> LayoutHelpers.get_fields_parser_module()
+         |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
+       end)
+
+     {created, declared} = Enum.split(with_embedded, length(with_embedded) - length(resources))
+     Enum.map(created, &struct(&1, %{embedded?: true})) ++ declared
+   end
+   ```
+   Load guarantee: `embedded_resource/2` of `lib/aurora_uix/integration/ctx/fields_parser.ex` and of `lib/aurora_uix/integration/ash/fields_parser.ex` both return `[%Resource{…} | result]` from `embedded_resource_config/3`. A resource the host declares under the same name stays `embedded?: false` and wins in `resolve_resources/1`, because `Map.new/1` keeps the last pair. No parser file changes.
+9. `lib/aurora_uix/uix.ex`, `__using__/1` — add `Module.register_attribute(__MODULE__, :auix_modules, accumulate: true)` directly after the `:auix_resource_metadata` registration.
+10. `lib/aurora_uix/layout/create_ui/generate_ui.ex` — modified. In the `[ui]` branch call `CreateUI.ui_code(layouts, resources, opts, %{live_views: ui.live_views, imported: imported_modules(module)})`. New private function (`grep -rn 'imported_modules' lib` prints nothing):
+    ```elixir
+    # The modules a module imports by writing `@auix_modules` by hand.
+    @spec imported_modules(module()) :: map()
+    defp imported_modules(module) do
+      module
+      |> Module.get_attribute(:auix_modules, [])
+      |> Enum.reduce(%{}, &Map.merge(&2, &1))
+    end
+    ```
+11. `lib/aurora_uix/layout/create_ui.ex` — modified.
+    - `ui_opts/1`: `Map.take([:renderers, :default_fields_layout, :include, :generate])`.
+    - `ui_code/4` becomes `ui_code/5`: `@spec ui_code(module(), [Node.layout()], map(), keyword(), map()) :: Macro.t()`, fifth parameter `artifacts` (`%{live_views: list(), imported: map()}`), documented in `@doc`. Its only caller is `GenerateUI.transform/1` (step 10). New body order: (a) `resources = resources |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end) |> filter_resources(opts[:for]) |> Map.new()`; (b) `layouts = Map.new(resources, fn {name, _resource} -> {name, resource_layouts(declared_layouts, name)} end)`, with the new private `resource_layouts/2` returning `declared_layouts |> Enum.filter(&(&1.resource == name)) |> Map.new(&{layout_type(&1), &1})`; (c) `plan = Artifacts.plan(%{caller: module, resources: resources, layouts: layouts, live_views: artifacts.live_views, imported: artifacts.imported, generate: Keyword.get(opts, :generate, Artifacts.kinds()), opts: opts})`; (d) `configurations` built as today from `resources`, passing `plan` to `build_configurations/4` in place of `declared_layouts`; (e) the rest as today. Add `unquote(Artifacts.functions_code(plan.entries))` to the returned quote, directly after `unquote(layouts_code(declared_layouts))`.
+    - `build_configurations/4`: the third parameter is the plan. Replace the `layouts = declared_layouts |> … |> put_missing_show()` block with `layouts = Map.fetch!(plan.layouts, resource_config_name)`; `layout_trees` keeps `RenderTree.build(Map.get(layouts, tag), tag, resource_config, opts)`. Add four keys to the returned configuration: `artifacts`, `used` and `generate`, taken from `Map.get(plan.resolved, resource_config_name, %{artifacts: %{live_view: nil, form_component: nil, show_component: nil}, used: [], generate: []})`, and `modules`: `%{caller: caller, module: resource_module, web: find_web_module(caller), context: resource_config.context}`, the map `build_resource_layouts/3` builds today. `auix_configurations/0` returns the four keys for every resource with a schema. Every reader of a configuration takes its keys by name (`parsed_opts`, `resource_config`, `layout_trees`), so no reader changes.
+    - Delete `put_missing_show/1` (three clauses, with its comment and `@spec`); `Artifacts.plan/1` owns it.
+    - `build_resource_layouts/3`, first clause: bind `modules`, `artifacts`, `used` and `generate` from the configuration, and delete the `web`, `resource_module` and `modules` computations of the body; the `Enum.each(modules, …)` line stays. Return `[]` when `resource_config.embedded?`. Otherwise reduce over `Enum.filter(layout_tags, &generate_tag?(&1, generate))` and pass `artifacts`, `used` and `generate` in the first argument of `generate_module/4`. New private function:
+      ```elixir
+      @spec generate_tag?(atom(), [atom()]) :: boolean()
+      defp generate_tag?(:index, generate), do: :live_view in generate
+      defp generate_tag?(:form, generate), do: :form_component in generate
+      defp generate_tag?(:show, generate), do: :show_component in generate
+      defp generate_tag?(_tag, _generate), do: true
+      ```
+    - `generate_module/4`: add `|> Map.put(:artifacts, layout.artifacts) |> Map.put(:used, layout.used) |> Map.put(:generate, layout.generate)` before the template call.
+    - `@moduledoc`: add a `## Generated modules` section before `## Key Features`, stating: the default names (`:<schema>_index` for the LiveView, `:<schema>_form_component`, `:<schema>_show_component`); `module_name:` on `edit_layout` and `show_layout`; `live_view resource, module_name: name`; `use: name` and what it checks; `@auix_modules` with `auix_module/1`; `auix_modules/0`, which lists generated and imported modules; `generate:`; `generate: []` with `use:` lines for a module that only declares pairings, a LiveView written by hand included. Add to `## Key Constraints`: `Two generated modules with one name, or two names for one module, do not compile.`, `A resource created for an embedded field generates no modules.` and `Two modules that import from each other do not compile.`
+    - Contract change for a custom template (`Aurora.Uix.Template.generate_module/1`): the map it receives gains `artifacts`, `used` and `generate`, and the callback is no longer invoked for a `:form` tag without `:form_component` in `generate`, a `:show` tag without `:show_component`, an `:index` tag without `:live_view`, and any tag of an embedded resource.
+12. Basic template — modified.
+    - `lib/aurora_uix/templates/basic/modules_generator.ex`: add the public function (new: `grep -rn 'component_opts' lib test` prints nothing), with `@doc` and `@spec component_opts(map()) :: map()`:
+      ```elixir
+      def component_opts(parsed_opts) do
+        cleaned_parsed_opts = remove_omitted_fields(parsed_opts)
+
+        one2many_preload =
+          cleaned_parsed_opts
+          |> Helpers.extract_association_preload()
+          |> Map.get(:one_to_many_association, [])
+
+        one2many_rendered? =
+          cleaned_parsed_opts
+          |> Map.get(:layout_tree)
+          |> Node.fields()
+          |> Enum.any?(&(&1.key in one2many_preload))
+
+        Map.put(cleaned_parsed_opts, :one2many_rendered?, one2many_rendered?)
+      end
+      ```
+      Add `alias Aurora.Uix.Layout.Node` and `alias Aurora.Uix.Templates.Basic.Helpers`. `module_name/2` stays, unchanged; no library code calls it after this section.
+    - `generators/form_generator.ex`: `parsed_opts = ModulesGenerator.component_opts(parsed_opts)` replaces the `cleaned_parsed_opts`, `one2many_preload`, `one2many_rendered?` and `parsed_opts = Map.put(…)` computations; `field_labels` reads `parsed_opts`; `form_component = parsed_opts.artifacts.form_component`; `handler_module = ModulesGenerator.handler_module(parsed_opts, FormHandler)`. Delete the aliases that become unused (`Aurora.Uix.Layout.Node`).
+    - `generators/show_component_generator.ex`: the same replacement; `show_component = parsed_opts.artifacts.show_component`. Delete the unused `Node` alias.
+    - `generators/index_generator.ex`: `index_module = parsed_opts.artifacts.live_view`.
+    - `lib/aurora_uix/templates/basic/helpers.ex`: add the public function (new: `grep -rn 'component_binding' lib test` prints nothing), with `@doc` (`## Parameters`, `## Returns`) and `@spec`. It returns the options a component runs with to serve `resource_name` of the module whose `auix_configurations/0` returned `configurations`. This one function serves the generated LiveView (next item) and a component given the input `resource` (UI-5, UI-7):
+      ```elixir
+      @spec component_binding(map(), atom(), :form | :show) :: map()
+      def component_binding(configurations, resource_name, layout_type) do
+        configuration = Map.fetch!(configurations, resource_name)
+
+        configuration.parsed_opts
+        |> Map.merge(Map.take(configuration, [:modules, :artifacts, :used, :generate]))
+        |> Map.merge(%{
+          configurations: configurations,
+          resource_name: resource_name,
+          layout_type: layout_type,
+          layout_tree: Map.fetch!(configuration.layout_trees, layout_type)
+        })
+        |> ModulesGenerator.component_opts()
+      end
+      ```
+      Add `alias Aurora.Uix.Templates.Basic.ModulesGenerator`. The merged keys are the ones `generate_module/4` of `create_ui.ex` puts in the options of a module it generates (step 11). Load guarantee: `auix.configurations` of a generated module and `auix_configurations/0` of its declaring module are the same map (`preload_configurations` in `ui_code/5`); `configurations[name]` carries `parsed_opts` with `:preload` (`build_resource_preload_option/2`), `layout_trees`, and `modules`, `artifacts`, `used`, `generate` (step 11).
+    - `lib/aurora_uix/templates/basic/handlers/index_impl.ex`: in `auix_mount/3`, `form_component = auix.artifacts.form_component` and `show_component = auix.artifacts.show_component`. `assign_live_component/1`: the `:show` clause assigns `auix.artifacts.show_component` to `:live_component` and `live_component_binding(auix, :show_component, :show)` to `:live_component_binding`; the other clause assigns `auix.artifacts.form_component` and `live_component_binding(auix, :form_component, :form)`. New private function (`grep -rn 'live_component_binding' lib test` prints nothing):
+      ```elixir
+      # A component this module generated already holds these options.
+      @spec live_component_binding(map(), atom(), :form | :show) :: map()
+      defp live_component_binding(%{used: used} = auix, kind, layout_type) do
+        if kind in used,
+          do: BasicHelpers.component_binding(auix.configurations, auix.resource_name, layout_type),
+          else: %{}
+      end
+      ```
+      Load guarantee: `auix.used`, `auix.configurations` and `auix.resource_name` come from the LiveView's compiled options (`generate_module/4`, step 11). Delete the module-level `alias Aurora.Uix.Templates.Basic.ModulesGenerator`; the alias inside the `__using__/1` quote stays, because host handlers compiled with it may call the module.
+    - `lib/aurora_uix/templates/basic/renderers/index_renderer.ex`: in the `<.live_component>` of the modal, the `auix` attribute becomes `Map.merge(Map.get(@auix, :live_component_binding, %{}), %{entity: …})`, the second map being today's literal map, unchanged. A component the module generated receives the same assigns as today.
+    - How a used component takes the resource: the hosted `update/2` clause of both component generators assigns the incoming `auix` first, and `Helpers.assign_parsed_opts/2` (`Map.merge(parsed_opts, existing)`) lets the keys already in the socket win over the compiled ones. The generators need no other change.
+13. `lib/aurora_uix/helpers/route_helper.ex`, `auix_live_resources/3` — modified. Read `live_view = opts |> Keyword.get(:live_view, :index) |> live_view_alias(module)` and use `unquote(live_view)` in place of the five `unquote(module).Index`. New private function:
+    ```elixir
+    # The same alias `unquote(module).Index` builds, for a LiveView of any name.
+    @spec live_view_alias(atom(), Macro.t()) :: Macro.t()
+    defp live_view_alias(name, module) when is_atom(name) do
+      {:__aliases__, [alias: false],
+       [module, name |> Atom.to_string() |> Macro.camelize() |> String.to_atom()]}
+    end
+    ```
+    The atom is built from a literal the router source gives. `@doc`: add `:live_view` to the options (`` `:live_view` (atom()) - The name given to the LiveView with a `live_view` line. Defaults to `:index`. ``) and one example with `live_view: :compact_products` expanding to `MyApp.UserLive.CompactProducts`.
+14. Test modules of `test/cases_live/named_modules_test.exs`, in this order:
+    ```elixir
+    defmodule Aurora.UixWeb.Test.NamedModulesForms do
+      use Aurora.Uix
+
+      alias Aurora.Uix.Guides.Inventory
+      alias Aurora.Uix.Guides.Inventory.Product
+      alias Aurora.Uix.Guides.Inventory.ProductLocation
+
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
+
+      auix_create_ui generate: [:form_component, :show_component] do
+        edit_layout :product, module_name: :reference_form do
+          inline([:reference, :name])
+        end
+      end
+    end
+
+    defmodule Aurora.UixWeb.Test.NamedModulesHost do
+      use Aurora.Uix
+
+      alias Aurora.UixWeb.Test.NamedModulesForms
+
+      @auix_resource_metadata %{
+        product_location: NamedModulesForms.auix_resource(:product_location)
+      }
+      @auix_modules %{location_form: NamedModulesForms.auix_module(:reference_form)}
+
+      auix_create_ui generate: [] do
+        edit_layout(:product_location, use: :location_form)
+      end
+    end
+
+    defmodule Aurora.UixWeb.Test.NamedModulesTest do
+      use Aurora.UixWeb.Test.UICase, :phoenix_case
+      use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+
+      alias Aurora.Uix.Guides.Inventory
+      alias Aurora.Uix.Guides.Inventory.ProductLocation
+      alias Aurora.UixWeb.Test.NamedModulesForms
+
+      @auix_modules %{reference_form: NamedModulesForms.auix_module(:reference_form)}
+
+      auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
+
+      auix_create_ui do
+        edit_layout(:product_location, use: :reference_form)
+        live_view(:product_location, module_name: :locations)
+      end
+
+      # the tests of the AC-11, AC-12, AC-16, AC-17 and AC-18 rows
+    end
+    ```
+15. Edge cases. A resource without a schema takes no entry and generates nothing, as today. `auix_create_ui for: :a` plans only `:a`. A layout brought in with `include:` keeps its `module_name:` and its `use:`; the name resolves in the including module. A module without `auix_create_ui` defines neither `auix_modules/0` nor `auix_module/1`. Two modules that import an entry from each other do not compile, because each needs the other compiled first; the same holds for `@auix_resource_metadata`. `generate: []` defines no module and still runs every check of `use:`; with it `Artifacts.plan/1` collects no name in step 4 and skips step 7. An entry imported from a module that imported it is the same map. In step 14, `NamedModulesForms` also generates the default form and show components of `:product_location`; no test reads them.
+16. Components: none new. Theme: none. `dt/1` strings: none.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/artifacts_test.exs test/cases/create_ui_validation_test.exs test/cases_live/named_modules_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/embeds_one_test.exs test/cases_live/ash_embeds_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+4. The grep of AC-14 prints what the AC states
+<!-- section:UI-4:end -->
+<!-- section:UI-5:start -->
+### UI-5 — UI · generators and handlers · standalone Form and Show components
+Depends on: UI-4
+
+#### Documentation references
+- `guides/core/components.md § Inputs`, `§ Outputs`, `§ Events`
+- `guides/core/liveview.md § Form/Edit Handler Hook (LiveComponent)`, `§ Show Handler Hook (LiveComponent)`
+
+#### Implementation details
+
+A form component and a show component work in two ways, decided by the assigns of each `update/2`:
+
+| Way | Assigns | Behaviour |
+|---|---|---|
+| **hosted** | `auix` holds `entity` and `routing_stack` (what `renderers/index_renderer.ex` passes) | unchanged: the component navigates under the routes of the LiveView that hosts it |
+| **embedded** | anything else | the component loads its record from its inputs and reports intents; it never navigates |
+
+`auix.notify` exists only in an embedded component; every clause added below selects on it. An **intent** is the message `{Aurora.Uix, component_id, intent}`. Layout types covered: `:form`, `:show`; `:index` is untouched. Backend-agnostic: records are read through `Aurora.Uix.Integration.Crud`.
+
+The input `resource` is an atom of the LiveView that renders the component. In a component socket, `socket.view` is that LiveView. The component reads `socket.view.auix_configurations()`, checks that the pairing declared there (UI-4) names the component, and takes its options from `Helpers.component_binding/3`. A component given no `resource` serves the resource it was generated for. An instance keeps the resource of its first update. A hosted component takes no `resource`: the generated LiveView passes the binding through `auix` (UI-4).
+
+##### Acceptance criteria
+- [ ] AC-1: an embedded form given `action: :new` renders the inputs of its layout, and a valid submit sends the intent `{:saved, entity}` to the host and pushes no patch and no navigation
+- [ ] AC-2: an embedded form given `entity_id` renders that record's values with `action` `:edit`; given a different `entity_id` in a later update, it renders the other record
+- [ ] AC-3: an embedded show given `entity_id` renders the record; its back action sends `{:closed}` and its edit action sends `{:open, :edit, id}`, where `id` is the value the DOM carries
+- [ ] AC-4: the event `auix_request_close` sent to an embedded form without unsaved changes sends `{:closed}`
+- [ ] AC-5: an embedded form and an embedded show render no record navigator
+- [ ] AC-6: error path. `Helpers.assign_component_inputs/3` raises `ArgumentError` for a show component given neither `entity` nor `entity_id`
+- [ ] AC-7: `Helpers.report_intent/2` sends `{Aurora.Uix, id, intent}` to a pid given as `notify`, and calls `send_update/3` with `auix_intent: {Aurora.Uix, id, intent}` for a `{module, id}` given as `notify`
+- [ ] AC-8: the same components on the Ash backend: an embedded form given `action: :new` sends `{:saved, entity}`, and an embedded show sends `{:closed}`
+- [ ] AC-9: hosted components behave as before: the tests of UI-1, UI-2 and UI-4 pass with their files unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only the files this section creates, and `mix test` green)
+- [ ] AC-10: an embedded form given `resource: :product_location`, rendered by a LiveView written by hand that declares `edit_layout :product_location, use: :location_form`, renders the record of `entity_id` in the inputs `product_location[reference]` and `product_location[name]`, renders no input `product_location[type]`, and a submit updates the product location and sends `{:saved, entity}`
+- [ ] AC-11: error paths of `resource`. `Helpers.resource_binding/4` raises `ArgumentError` when the rendering LiveView declares no `auix_create_ui` (message contains `declares no auix_create_ui`), when the atom is no resource of that LiveView (`unknown resource :nope`), when that LiveView pairs the resource with another module (`does not pair`), and when an instance is given another resource after its first update (`already serves`)
+- [ ] AC-12: `Helpers.resource_binding/4` returns the binding with `_resource: :product_location` for a declared pairing, `%{_resource: nil}` on the first update of a component given no `resource`, and `%{}` on a later update that repeats the resource or carries none
+
+##### Test ports
+- No route. A hand-written LiveView, `Aurora.UixWeb.Test.ComponentHostLive`, mounted with `Phoenix.LiveViewTest.live_isolated/3`. Its session key `"components"` lists the components to render; it shows every intent it receives as `#auix-host-intents li[data-component][data-intent][data-value]`.
+- Observable: `has_element?/2` on `#auix-product-form input[name='product[reference]']`, `div[name='auix-show-navigate-back'] a`, `a[name='auix-edit-product']`, and on the intent list.
+- Direct calls of the helpers on a bare socket for AC-6 and AC-7.
+- No route. A second LiveView written by hand, `Aurora.UixWeb.Test.ComponentsPairedHostLive` (Modules & components step 11), mounted with `live_isolated/3`. It declares one pairing and renders the paired form with `resource={:product_location}` · layout type `:form` · observable: `has_element?/2` on `#auix-product_location-form input[name='product_location[reference]']` and on `#auix-paired-saved[data-component]`.
+- Direct calls of `Helpers.resource_binding/4` on a bare socket whose `view` is a LiveView of the test files, for AC-11 and AC-12.
+
+##### Red tests
+`Host` is `Aurora.UixWeb.Test.ComponentHostLive`. `mount_components(conn, components)` is a private function of each test file: `live_isolated(conn, Host, session: %{"components" => components})`. `T` is the test module of the file.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1 | new file (`ls test/cases_live \| grep components_` prints nothing). Module `Aurora.UixWeb.Test.ComponentsFormShowTest`, the two `use` lines of `test/cases_live/separated_single_resource_ui_test.exs`, `auix_resource_metadata(:product, context: Inventory, schema: Product)`, `auix_create_ui()` | `delete_all_inventory_data()`; `mount_components(conn, [%{module: T.Product.FormComponent, id: "f1", props: %{action: :new}}])` | `test/cases_live/components_form_show_test.exs` | `"an embedded form saves and reports"` | `has_element?(view, "#auix-product-form input[name='product[reference]']")`; `view \|> form("#auix-product-form", product: %{reference: "emb-1", name: "Embedded", quantity_initial: 1}) \|> render_submit()`; `has_element?(view, "#auix-host-intents li[data-component='f1'][data-intent='saved']")`; `has_element?(view, "#auix-host")`, which proves the view is still alive |
+| AC-2 | add to same | `delete_all_inventory_data()`; `create_sample_products(2)`; `[first, second] = Aurora.Uix.Repo.all(Product)`; mount with `props: %{entity_id: first.id}` | same | `"an embedded form loads the record of its entity_id"` | `has_element?(view, "input[name='product[reference]'][value='#{first.reference}']")`; `send(view.pid, {:set_components, [%{module: T.Product.FormComponent, id: "f1", props: %{entity_id: second.id}}]})`; `has_element?(view, "input[name='product[reference]'][value='#{second.reference}']")` |
+| AC-3 | add to same | `delete_all_inventory_data()`; `create_sample_products(1)`; `[product] = Aurora.Uix.Repo.all(Product)`; mount `%{module: T.Product.ShowComponent, id: "s1", props: %{entity_id: product.id}}` | same | `"an embedded show reports close and edit"` | `view \|> element("div[name='auix-show-navigate-back'] a") \|> render_click()`; `has_element?(view, "#auix-host-intents li[data-component='s1'][data-intent='closed']")`; `view \|> element("a[name='auix-edit-product']") \|> render_click()`; `has_element?(view, "#auix-host-intents li[data-component='s1'][data-intent='open'][data-value='edit:#{product.id}']")` |
+| AC-4 | add to same | mount the form of AC-1 | same | `"closing an embedded form reports closed"` | `view \|> with_target("#auix-host > [data-phx-component]") \|> render_click("auix_request_close", %{})`, the drive `request_close/2` of `test/cases_live/form_discard_guard_test.exs` uses; `has_element?(view, "#auix-host-intents li[data-component='f1'][data-intent='closed']")` |
+| AC-5 | add to same | mounts of AC-2 and AC-3 | same | `"embedded components have no record navigator"` | `refute has_element?(view, ".auix-record-navigator-bar")` for both |
+| AC-6, AC-7 | new file (`ls test/cases/templates/basic` lists `helpers_actor_test.exs` and `helpers_navigation_test.exs`). Module `Aurora.Uix.Templates.Basic.HelpersIntentTest`, `use ExUnit.Case, async: true` | `socket = %Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, id: "c1", auix: %{notify: self()}}}` | `test/cases/templates/basic/helpers_intent_test.exs` | `"report_intent/2 reaches a pid and a component"`; `"a show component needs a record"` | `Helpers.report_intent(socket, {:closed})`; `assert_receive {Aurora.Uix, "c1", {:closed}}`; with `notify: {SomeComponent, "parent"}`: `assert_receive {:phoenix, :send_update, {{SomeComponent, "parent"}, %{id: "parent", auix_intent: {Aurora.Uix, "c1", {:closed}}}}}`. `assert_raise ArgumentError, fn -> Helpers.assign_component_inputs(%Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, id: "s1", auix: %{}}}, %{id: "s1"}, :show) end` |
+| AC-8 | new file. Module `Aurora.UixWeb.Test.AshComponentsFormShowTest`, resource `auix_resource_metadata(:author, ash_resource: Aurora.Uix.Guides.Blog.Author)`, `auix_create_ui()` | `delete_all_blog_data()`; `[author] = create_sample_authors(1)`; form mounted with `props: %{action: :new}`, show with `props: %{entity_id: author.id}` | `test/cases_live/ash_components_form_show_test.exs` | `"embedded form and show on Ash"` | form: `view \|> form("#auix-author-form", author: %{name: "Ada", email: "ada@example.com"}) \|> render_submit()`; `has_element?(view, "#auix-host-intents li[data-intent='saved']")`. Show: click on `div[name='auix-show-navigate-back'] a`; `has_element?(view, "#auix-host-intents li[data-intent='closed']")` |
+| AC-10 | add to `test/cases_live/components_form_show_test.exs`. Two top-level modules before the test module, see Modules & components step 11 | `delete_all_inventory_data()`; `create_sample_product_locations(1)`; `[location] = Aurora.Uix.Repo.all(ProductLocation)`; `{:ok, view, _html} = live_isolated(conn, Aurora.UixWeb.Test.ComponentsPairedHostLive, session: %{"entity_id" => location.id})` | same | `"a paired form serves a resource of the LiveView that renders it"` | `has_element?(view, "#auix-product_location-form input[name='product_location[reference]'][value='#{location.reference}']")`; `has_element?(view, "input[name='product_location[name]']")`; `refute has_element?(view, "input[name='product_location[type]']")`; `view \|> form("#auix-product_location-form", product_location: %{name: "Renamed"}) \|> render_submit()`; `Aurora.Uix.Repo.get!(ProductLocation, location.id).name == "Renamed"`; `has_element?(view, "#auix-paired-saved[data-component='location-form']")` |
+| AC-11 | add to same | `H` is `Aurora.Uix.Templates.Basic.Helpers`, `Paired` is `Aurora.UixWeb.Test.ComponentsPairedHostLive`, `Views` is `Aurora.UixWeb.Test.ComponentsPairedViews`, `Form` is `Views.Product.ReferenceForm`. `first = fn view -> %Phoenix.LiveView.Socket{view: view, assigns: %{__changed__: %{}}} end`; `later = fn view, resource -> %Phoenix.LiveView.Socket{view: view, assigns: %{__changed__: %{}, auix: %{_resource: resource}}} end` | same | `"resource is checked against the LiveView that renders the component"` | `assert_raise ArgumentError, ~r/declares no auix_create_ui/, fn -> H.resource_binding(first.(Host), %{id: "c", resource: :product_location}, Form, :form) end` (`Host` calls no `use Aurora.Uix`); `~r/unknown resource :nope/` for `H.resource_binding(first.(Paired), %{id: "c", resource: :nope}, Form, :form)`; `~r/does not pair/` for `H.resource_binding(first.(Paired), %{id: "c", resource: :product_location}, Views.ProductLocation.FormComponent, :form)`; `~r/already serves/` for `H.resource_binding(later.(Paired, :product_location), %{id: "c", resource: :product}, Form, :form)` |
+| AC-12 | add to same | the names of the AC-11 row | same | `"resource_binding/4 binds once"` | `%{_resource: :product_location, resource_name: :product_location, layout_type: :form} = H.resource_binding(first.(Paired), %{id: "c", resource: :product_location}, Form, :form)`; `H.resource_binding(first.(Paired), %{id: "c"}, Form, :form) == %{_resource: nil}`; `H.resource_binding(later.(Paired, :product_location), %{id: "c", resource: :product_location}, Form, :form) == %{}`; `H.resource_binding(later.(Paired, :product_location), %{id: "c"}, Form, :form) == %{}` |
+
+##### Modules & components
+1. `lib/aurora_uix/templates/basic/helpers.ex` — four new public functions (`grep -rnE 'assign_component_inputs|resource_binding|bind_resource|component_kind|report_intent|report_open|auix_open|auix_intent' lib test` prints nothing), each with `@doc` (`## Parameters`, `## Returns`) and `@spec`. Place them directly after `assign_parsed_opts/2`.
+   - `@spec assign_component_inputs(Socket.t(), map(), :form | :show) :: Socket.t()`. Reads `action`, `entity`, `entity_id` and `notify` from the assigns map with `Map.get/2`. Steps:
+     1. `action`: the given one; without one, `:show` for `:show`, `:new` for a form given neither `entity` nor `entity_id`, `:edit` for a form given one of them.
+     2. `inputs = {action, entity, entity_id}`. When `socket.assigns.auix[:_inputs] == inputs`, return the socket with only `auix.notify` reassigned.
+     3. Otherwise load the record: the given `entity`; else, for `entity_id`, `apply_get_function(auix.get_function, entity_id, socket |> backend_socket_opts(auix.get_function) |> Keyword.put(:preload, auix.preload))`; else, for a form, `apply_new_function(auix.new_function, %{}, socket |> backend_socket_opts(auix.new_function) |> Keyword.put(:preload, auix.preload))`, the call `IndexImpl.apply_action/2` makes for `:new`. A show component with neither input, and a `nil` record, raise `ArgumentError` with the message `"component #{inspect(socket.assigns.id)} needs a record: give it entity or an entity_id that exists"`. The show check runs before any backend call.
+     4. Assign `:action` (plain assign) and, in `auix`: `entity`, `_inputs`, `notify` (`Map.get(assigns, :notify, self())`), `routing_stack` (`Stack.new()`), `pagination` (`nil`), `item_index` (`-1`). Remove the keys `:form`, `:_form_dirty?`, `:_discard_confirm_open?` and `:_sections` from `auix`, so the handler rebuilds them for the new record.
+   - `@spec report_intent(Socket.t(), tuple()) :: Socket.t()`. Builds `message = {Aurora.Uix, socket.assigns.id, intent}`; for `auix.notify` a pid, `send(pid, message)`; for `{module, id}`, `send_update(module, id: id, auix_intent: message)`. Returns the socket.
+   - `@spec report_open(Socket.t(), map()) :: Socket.t()`. Takes the params of the event `"auix_open"`: `%{"action" => "show" | "edit" | "new"}` and an optional `"id"`. Maps the action with three explicit clauses to `:show`, `:edit`, `:new` and calls `report_intent(socket, {:open, action, Map.get(params, "id")})`. Another action raises `FunctionClauseError`.
+   - `resource_binding/4`, with its two private functions placed under `## PRIVATE`. It returns the map a component merges into `auix` before its compiled options: the binding of the input `resource`, resolved once, on the first update of the instance.
+     ```elixir
+     @spec resource_binding(Socket.t(), map(), module(), :form | :show) :: map()
+     def resource_binding(socket, assigns, component, layout_type) do
+       given = Map.get(assigns, :resource)
+
+       case socket.assigns |> Map.get(:auix, %{}) |> Map.fetch(:_resource) do
+         :error ->
+           given
+           |> bind_resource(socket.view, component, layout_type)
+           |> Map.put(:_resource, given)
+
+         {:ok, bound} when is_nil(given) or given == bound ->
+           %{}
+
+         {:ok, bound} ->
+           raise ArgumentError,
+                 "component #{inspect(assigns.id)} already serves #{inspect(bound)}; " <>
+                   "give #{inspect(given)} a component with its own id"
+       end
+     end
+
+     @spec bind_resource(atom() | nil, module(), module(), :form | :show) :: map()
+     defp bind_resource(nil, _view, _component, _layout_type), do: %{}
+
+     defp bind_resource(resource, view, component, layout_type) do
+       if not function_exported?(view, :auix_configurations, 0) do
+         raise ArgumentError,
+               "#{inspect(view)} declares no auix_create_ui; it renders #{inspect(component)} " <>
+                 "with resource: #{inspect(resource)}, which is resolved there"
+       end
+
+       configurations = view.auix_configurations()
+       kind = component_kind(layout_type)
+
+       case Map.fetch(configurations, resource) do
+         {:ok, %{artifacts: %{^kind => ^component}}} ->
+           component_binding(configurations, resource, layout_type)
+
+         {:ok, _configuration} ->
+           raise ArgumentError,
+                 "#{inspect(view)} does not pair #{inspect(resource)} with #{inspect(component)}; " <>
+                   "declare it in its auix_create_ui with use:"
+
+         :error ->
+           raise ArgumentError, "unknown resource #{inspect(resource)} in #{inspect(view)}"
+       end
+     end
+
+     @spec component_kind(:form | :show) :: atom()
+     defp component_kind(:form), do: :form_component
+     defp component_kind(:show), do: :show_component
+     ```
+     `socket.view` is the LiveView that renders the component: `Phoenix.LiveView.Diff.configure_socket_for_component/3` replaces `assigns` and `private` of the socket and keeps `view`. The LiveView is running, so its module is loaded when `function_exported?/3` reads it. A LiveView that generated the component for that resource itself passes the same check. `send_update/3` assigns carry no `resource` and return `%{}`. Load guarantee: `configurations[resource].artifacts` exists for every configuration (`build_configurations/4`, UI-4 step 11).
+2. `generators/form_generator.ex` — modified. Inside the generated module add `defp auix_parsed_opts, do: unquote(Macro.escape(parsed_opts))` and call `auix_parsed_opts()` in the existing clause in place of the inline escape. Add a second `update/2` clause after it:
+   ```elixir
+   def update(assigns, socket) do
+     merged_auix =
+       socket.assigns
+       |> Map.get(:auix, %{})
+       |> Map.merge(Map.get(assigns, :auix, %{}))
+       |> Map.merge(Helpers.resource_binding(socket, assigns, __MODULE__, :form))
+
+     socket =
+       socket
+       |> assign(Map.put(assigns, :auix, merged_auix))
+       |> Helpers.assign_parsed_opts(auix_parsed_opts())
+       |> Helpers.assign_actor_to_auix()
+       |> Helpers.assign_component_inputs(assigns, :form)
+
+     assigns
+     |> Map.put(:auix, Map.take(socket.assigns.auix, [:entity, :routing_stack]))
+     |> unquote(handler_module).update(socket)
+   end
+   ```
+   The handler receives the assigns shape `FormImpl.auix_update/2` matches today, so a host handler that overrides `auix_update/2` runs unchanged. The binding of `resource` enters `auix` before `Helpers.assign_parsed_opts/2`, which keeps every key already in `auix`; the compiled options fill what a binding leaves out, and `assign_component_inputs/3` then loads the record with the `get_function` of the bound resource. `__MODULE__` is the generated component.
+3. `generators/show_component_generator.ex` — the same two edits, with `:show` in `resource_binding/4` and in `assign_component_inputs/3`, and without the `assign_actor_to_auix/1` line the hosted clause does not have either.
+4. `handlers/form_impl.ex` — modified.
+   - In the quote of `__using__/1`, replace `FormImpl.notify_parent({:saved, entity})` with `FormImpl.report_saved(socket, entity)`.
+   - New public function, after `notify_parent/1` (`grep -rn 'report_saved' lib test` prints nothing): `@spec report_saved(Socket.t(), struct()) :: :ok`. First clause, head `%{assigns: %{auix: %{notify: _notify}}} = socket`: calls `report_intent(socket, {:saved, entity})` and returns `:ok`. Second clause: `notify_parent({:saved, entity})`. `notify_parent/1` stays public and unchanged.
+   - `conditional_route_back/3`: new first clause `def conditional_route_back(%{assigns: %{auix: %{notify: _notify}}} = socket, _action, _one2many_rendered?), do: socket`.
+   - `auix_handle_event("auix_route_back", _params, socket)`: new clause before the existing one, head `%{assigns: %{auix: %{notify: _notify}}} = socket`, returning `{:noreply, report_intent(socket, {:closed})}`.
+   - `route_back_from_close/1`: new first clause with the same head, returning `report_intent(socket, {:closed})`.
+5. `handlers/show_component_impl.ex` — two new clauses of `auix_handle_event/3`, placed before the clause that raises: `"auix_route_back"` with the head `%{assigns: %{auix: %{notify: _notify}}} = socket`, returning `{:noreply, report_intent(socket, {:closed})}`; and `"auix_open"`, returning `{:noreply, report_open(socket, params)}`. A hosted show never receives them: its back and edit actions carry no target and reach the LiveView.
+6. `actions/show_component.ex` — modified. `edit_header_action/1`: new first clause on `%{auix: %{notify: _notify}} = assigns` rendering `<.auix_link phx-click="auix_open" phx-value-action="edit" phx-value-id={BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>` around the same `<.button>`. `back_footer_action/1`: new first clause on the same pattern rendering the same `div[name='auix-show-navigate-back']` with `<.auix_back phx-target={@auix._myself}>`. `auix_link/1` and `auix_back/1` pass `phx-target` through (UI-3, AC-7).
+7. `components/components.ex`, `record_navigator?/2` — new first clause `def record_navigator?(%{pagination: nil}, _position), do: false`. Callers: `renderers/form_renderer.ex` and `renderers/show_component_renderer.ex`, both passing `@auix`; a hosted component always carries a `%Pagination{}` there, set by `update_streams/1` of the index handler (`handlers/index_impl.ex` on `main`, `handlers/index_list.ex` once UI-6 is merged).
+8. `renderers/fields/one_to_many.ex` — modified, so a form embedded outside the routes still renders its child lists. Second `render/1` head: replace `auix: %{uri_path: uri_path} = auix` with `auix: auix`, and bind `uri_path = Map.get(auix, :uri_path)` as the first line of the body. `set_related_uri_path/3`: new first clause `defp set_related_uri_path(related_parsed_opts, _parsed_opts, nil), do: related_parsed_opts`. `set_related_new_link/1`: new last clause `defp set_related_new_link(related_parsed_opts), do: related_parsed_opts`.
+9. `actions/one_to_many.ex` — `add_new_child/1`, `show_child_action/1`, `edit_child_action/1` and `delete_child_action/1` each get a new first clause on `%{auix: %{notify: _notify}} = assigns` returning `~H""`: an embedded parent has no child routes to go to.
+10. `test/support/app_web/component_host_live.ex` — new (`grep -rn 'ComponentHostLive' lib test` prints nothing). `@moduledoc`, `@doc` and `@spec` in the style of `test/support/app_web/routes_helper.ex`.
+    ```elixir
+    defmodule Aurora.UixWeb.Test.ComponentHostLive do
+      use Aurora.UixWeb.Test, :live_view
+
+      @impl true
+      def mount(_params, session, socket) do
+        {:ok,
+         socket
+         |> assign(:components, Map.get(session, "components", []))
+         |> assign(:intents, [])}
+      end
+
+      @impl true
+      def render(assigns) do
+        ~H"""
+        <div id="auix-host">
+          <.live_component
+            :for={component <- @components}
+            module={component.module}
+            id={component.id}
+            {component.props}
+          />
+          <ul id="auix-host-intents">
+            <li
+              :for={{component_id, intent} <- @intents}
+              data-component={component_id}
+              data-intent={elem(intent, 0)}
+              data-value={intent_value(intent)}
+            >
+            </li>
+          </ul>
+        </div>
+        """
+      end
+
+      @impl true
+      def handle_info({Aurora.Uix, component_id, intent}, socket),
+        do: {:noreply, update(socket, :intents, &(&1 ++ [{component_id, intent}]))}
+
+      def handle_info({:set_components, components}, socket),
+        do: {:noreply, assign(socket, :components, components)}
+
+      defp intent_value({:open, action, id}), do: "#{action}:#{id}"
+      defp intent_value({:page, page}), do: "#{page}"
+      defp intent_value({:deleted, ids}), do: Enum.join(ids, ",")
+      defp intent_value({:saved, entity}), do: "#{Map.get(entity, :id)}"
+      defp intent_value({:closed}), do: ""
+    end
+    ```
+    The LiveView has no catch-all `handle_info/2` clause: a message a component must not send fails the test that caused it. It calls no `use Aurora.Uix`: the AC-11 row reads it as a LiveView that declares no `auix_create_ui`.
+11. Top-level modules of `test/cases_live/components_form_show_test.exs`, before the test module, in this order (`grep -rn 'ComponentsPaired' lib test` prints nothing):
+    ```elixir
+    defmodule Aurora.UixWeb.Test.ComponentsPairedViews do
+      use Aurora.Uix
+
+      alias Aurora.Uix.Guides.Inventory
+      alias Aurora.Uix.Guides.Inventory.Product
+      alias Aurora.Uix.Guides.Inventory.ProductLocation
+
+      auix_resource_metadata(:product, context: Inventory, schema: Product)
+      auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)
+
+      auix_create_ui generate: [:form_component, :show_component] do
+        edit_layout :product, module_name: :reference_form do
+          inline([:reference, :name])
+        end
+      end
+    end
+
+    defmodule Aurora.UixWeb.Test.ComponentsPairedHostLive do
+      use Aurora.UixWeb.Test, :live_view
+      use Aurora.Uix
+
+      alias Aurora.UixWeb.Test.ComponentsPairedViews
+
+      @auix_resource_metadata %{
+        product_location: ComponentsPairedViews.auix_resource(:product_location)
+      }
+      @auix_modules %{location_form: ComponentsPairedViews.auix_module(:reference_form)}
+
+      auix_create_ui generate: [] do
+        edit_layout(:product_location, use: :location_form)
+      end
+
+      @impl true
+      def mount(_params, session, socket) do
+        {:ok,
+         socket
+         |> assign(:entity_id, Map.fetch!(session, "entity_id"))
+         |> assign(:saved, nil)}
+      end
+
+      @impl true
+      def render(assigns) do
+        ~H"""
+        <div id="auix-paired-host">
+          <.live_component
+            module={auix_module(:location_form).module}
+            id="location-form"
+            resource={:product_location}
+            entity_id={@entity_id}
+          />
+          <p id="auix-paired-saved" data-component={@saved}></p>
+        </div>
+        """
+      end
+
+      @impl true
+      def handle_info({Aurora.Uix, component_id, {:saved, _entity}}, socket),
+        do: {:noreply, assign(socket, :saved, component_id)}
+    end
+    ```
+    `ComponentsPairedViews` generates `Product.ReferenceForm`, and the default `ProductLocation.FormComponent` the AC-11 row names as the other module. The host imports the resource and the component under its own atoms and generates nothing.
+12. Unchanged on purpose. `renderers/index_renderer.ex` keeps the modal and passes the hosted assigns, so the LiveView keeps receiving `{FormImpl, {:saved, entity}}` in `auix_handle_info/2`. `renderers/form_renderer.ex` keeps its ids: two embedded forms of one resource on one page share `auix-<module>-form` (see Out of Scope). An embedded form has no close control of its own; `auix_request_close` and `auix_route_back` are the events a host action sends to it.
+13. Components: none new. Theme: none. `dt/1` strings: none.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases_live/components_form_show_test.exs test/cases_live/ash_components_form_show_test.exs test/cases/templates/basic/helpers_intent_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/handler_hooks_form_test.exs test/cases_live/handler_hooks_show_test.exs test/cases_live/association_one2many_ui_actions_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+<!-- section:UI-5:end -->
+<!-- section:UI-6:start -->
+### UI-6 — UI · handlers · extract the list engine
+Depends on: UI-4
+
+#### Documentation references
+- `guides/core/liveview.md § Index Handler Hook (LiveView)`, `§ Working with Streams`, `§ Scoping the Index Query at Runtime`, `§ Index commands`
+- `guides/customization/custom_actions.md` (the bulk-action recipe, which sends list events to the LiveView)
+
+#### Implementation details
+
+The list logic of `Aurora.Uix.Templates.Basic.Handlers.IndexImpl` moves, unchanged, into one module that works on any socket: `Aurora.Uix.Templates.Basic.Handlers.IndexList`. `IndexImpl` keeps its callbacks, its routing and its reactions to an open record, and calls the engine. No markup, no event name, no `auix` key and no URL changes. Layout type covered: `:index`. The engine is backend-agnostic: it reads and deletes through `Aurora.Uix.Integration.Crud`, as the code it receives does.
+
+##### Acceptance criteria
+- [ ] AC-1: `IndexList.events/0` returns the nine event names `"filter-toggle"`, `"filters-clear"`, `"filters-submit"`, `"index-sort"`, `"index-sort-direction"`, `"index-layout-change"`, `"selected-toggle_all"`, `"selected-cancel_toggle_all"`, `"selected-delete_all"`
+- [ ] AC-2: `IndexList.previous_page/1` returns `1` for page `1` and `page - 1` above it; `IndexList.next_page/1` returns `pages_count` on the last page and `page + 1` below it
+- [ ] AC-3: error path. `IndexList.handle_event/3` raises `FunctionClauseError` for an event name that is not in `events/0`
+- [ ] AC-4: `IndexList.where_conditions/1` returns `[]` for `nil`, the list for a list, the pairs of a map, and a one-element list for a single condition
+- [ ] AC-5: no test file changes and the suite passes: the index keeps every documented behaviour (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only `test/cases/templates/basic/index_list_test.exs`, and `mix test` green)
+- [ ] AC-6: `IndexImpl` holds no list logic of its own (mechanical — no red test; verified by `grep -cE 'defp (load_items|load_page|read_items|update_streams|prepare_query_options|assign_filters|assign_index_fields|assign_selected_states|refresh_current_page|get_selected_filters)\b' lib/aurora_uix/templates/basic/handlers/index_impl.ex` returning `0`)
+
+##### Test ports
+- Pure functions of `IndexList`, called directly in `test/cases/templates/basic/index_list_test.exs`.
+- The LiveView behaviour is observed through the existing `test/cases_live/` files, unchanged: `selected_test.exs`, `selected_bulk_action_test.exs`, `sortable_columns_test.exs`, `sort_disabled_test.exs`, `where_filter_layout_test.exs`, `pages_bar_test.exs`, `infinity_scroll_test.exs`, `load_items_options_test.exs`, `events_test.exs`, `handler_hooks_index_test.exs` and their `ash_*` counterparts.
+
+##### Red tests
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1 | new file (`ls test/cases/templates/basic \| grep index_list` prints nothing). Module `Aurora.Uix.Templates.Basic.IndexListTest`, `use ExUnit.Case, async: true` | none | `test/cases/templates/basic/index_list_test.exs` | `"events/0 lists the list events"` | `IndexList.events() == [the nine names, in the order of AC-1]` |
+| AC-2 | add to same | none | same | `"previous_page/1 and next_page/1 stay inside the pages"` | `IndexList.previous_page(%{page: 1}) == 1`; `IndexList.previous_page(%{page: 3}) == 2`; `IndexList.next_page(%{page: 3, pages_count: 3}) == 3`; `IndexList.next_page(%{page: 2, pages_count: 3}) == 3` |
+| AC-3 | add to same | `socket = %Phoenix.LiveView.Socket{assigns: %{__changed__: %{}, auix: %{}}}` | same | `"handle_event/3 takes only list events"` | `assert_raise FunctionClauseError, fn -> IndexList.handle_event("delete", %{}, socket) end` |
+| AC-4 | add to same | none | same | `"where_conditions/1 flattens a where"` | `IndexList.where_conditions(nil) == []`; `IndexList.where_conditions([{:a, 1}]) == [{:a, 1}]`; `IndexList.where_conditions(%{a: 1}) == [a: 1]`; `IndexList.where_conditions({:a, :lt, 2}) == [{:a, :lt, 2}]` |
+
+##### Modules & components
+1. `Aurora.Uix.Templates.Basic.Handlers.IndexList` at `lib/aurora_uix/templates/basic/handlers/index_list.ex` — new (`grep -rn 'IndexList' lib test` prints nothing). `use Aurora.Uix.GettextResolver` is not needed: the engine renders no text. Imports and aliases: `import Aurora.Uix.Integration.Crud`, `import Aurora.Uix.Templates.Basic.Helpers`, `import Phoenix.Component`, `import Phoenix.LiveView`; aliases `Aurora.Uix.Event`, `Aurora.Uix.Events`, `Aurora.Uix.Filter`, `Aurora.Uix.Layout.Helpers, as: LayoutHelpers`, `Aurora.Uix.Layout.Options, as: LayoutOptions`, `Aurora.Uix.Selection`, `Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers`, `Phoenix.LiveView.Socket`. `@moduledoc` first paragraph: `The list of an index: loading, streams, filters, sort, pagination, selection and bulk actions, for a LiveView socket and for a LiveComponent socket.` `## Key Features`: the nine list events; the two async tasks; page loading; `Aurora.Uix.Event` handling. `## Key Constraints`: it never navigates and never reads `live_action`; it expects the `auix` keys `IndexImpl.auix_mount/3` sets; backend-agnostic.
+2. Moved from `index_impl.ex` into `index_list.ex`, bodies and comments verbatim: the module attribute `@allowed_query_options` with its comment, and the private functions `resource_schema/1`, `publish_deleted/2`, `unselect_deleted/2`, `delete_selected/4`, `prepare_initial_pagination/2`, `load_page/2`, `load_items/2`, `layout_query_options/1`, `resource_query_opts/1`, `refresh_current_page/1`, `prepare_query_options/1`, `where_conditions/1`, `merge_preload/2`, `maybe_put_preload/2`, `maybe_put_sort/2`, `apply_sort/2`, `sortable_field/2`, `flip/1`, `next_sort/2`, `read_items/2`, `update_streams/1`, `update_alternate_streams/3`, `merge_extra_option/2`, `merge_option/2`, `assign_layout_options/1`, `assign_index_fields/1`, `drop_upload_sort/1`, `assign_selected_states/1`, `assign_async_selected_toggle_all/2`, `assign_async_delete_all/1`, `assign_filters/1`, `assign_filters_selected_count/1`, `update_filter/3`, `get_selected_filters/1`, `in_values/1`, `escape/1`, `previous_page/1`, `next_page/1`, `get_page_items_id/1`.
+3. Of those, these become public (`def`, with `@doc` and the existing `@spec`): `resource_schema/1`, `load_page/2`, `load_items/2` (keeping its default argument), `refresh_current_page/1`, `where_conditions/1`, `previous_page/1`, `next_page/1`. The others stay private.
+4. New public functions of `IndexList`, each with `@doc` and `@spec`:
+   - `@spec events() :: [binary()]` — the list of AC-1, held in a module attribute `@events`.
+   - `@spec init(Socket.t(), map(), (Socket.t() -> Socket.t())) :: Socket.t()`:
+     ```elixir
+     def init(%{assigns: %{auix: auix}} = socket, params, prepare) do
+       socket
+       |> assign_auix(:filters_enabled?, false)
+       |> assign_auix(:filters_where, [])
+       |> assign_auix(:sort, nil)
+       |> assign_auix(:selection, Selection.new())
+       |> assign_auix(:enable_viewport?, true)
+       |> assign_auix(:list_function_selected, auix.list_function_paginated)
+       |> assign_auix(:reset_stream?, true)
+       |> assign_auix(:empty_list?, true)
+       |> assign_layout_options()
+       |> prepare.()
+       |> assign_index_fields()
+       |> assign_filters()
+       |> prepare_initial_pagination(params)
+       |> load_items()
+     end
+     ```
+     `prepare` runs where `IndexActions.set_actions/1` runs today: after the layout options, before the index fields.
+   - `@spec handle_event(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` — the clauses of `IndexImpl.auix_handle_event/3` for the nine events, moved verbatim and in their order: `"filter-toggle"`, `"filters-clear"`, `"filters-submit"`, the `sort_disabled?` clause with its guard, the three `"index-sort"` clauses, `"index-sort-direction"`, the seven `"index-layout-change"` clauses, `"selected-toggle_all"`, `"selected-cancel_toggle_all"`, `"selected-delete_all"`. It has no catch-all clause.
+   - `@spec handle_async(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}` — the two clauses of `IndexImpl.auix_handle_async/3`, verbatim.
+   - `@spec delete(Socket.t(), term()) :: {Socket.t(), list()}` — the body of the `"delete"` clause that takes only `"id"`, without the flash: it reads and deletes the record, publishes the deletion, and returns `{socket |> stream_delete(auix.source_key, entity) |> assign_selected_states() |> refresh_current_page(), [id_value]}`, where `id_value` is `BasicHelpers.primary_key_value(entity, auix.primary_key)`.
+   - `@spec apply_event(Socket.t(), Event.t()) :: Socket.t()` — `socket |> unselect_deleted(event) |> assign_selected_states() |> refresh_current_page()`.
+   - `@spec reset_selection(Socket.t()) :: Socket.t()` — `socket |> assign_auix(:selection, Selection.new()) |> assign_selected_states() |> refresh_current_page()`.
+   - `@spec paginate(Socket.t(), integer(), integer() | nil) :: Socket.t()` — the two clauses of `IndexImpl.paginate/3` without `live_action: :index` in their heads and without `assign_auix(:entity, nil)`: the first, with the guard `when is_nil(items_per_page) or items_per_page == per_page`, returns `socket |> load_page(page) |> assign_selected_states()`; the second is today's second clause.
+5. `lib/aurora_uix/templates/basic/handlers/index_impl.ex` — modified.
+   - Add `alias Aurora.Uix.Templates.Basic.Handlers.IndexList` and the module attribute `@list_events IndexList.events()`.
+   - `auix_mount/3`: keep `subscribe_to_changes/1` and the assigns of `:form_component`, `:show_component`, `:index_form_id` and `:item_index`; replace every other step of the pipeline with `|> IndexList.init(params, &IndexActions.set_actions/1)` as the last step.
+   - `auix_handle_event/3`: the `"delete"` clause that takes only `"id"` becomes `{socket, _ids} = IndexList.delete(socket, id)` followed by `{:noreply, put_flash(socket, :info, dt("Item deleted successfully"))}`; its head keeps `%{assigns: %{auix: _auix, streams: _streams}} = socket`. Replace the clauses of the nine events with one clause, at the position of the `"filter-toggle"` clause: `def auix_handle_event(event, params, socket) when event in @list_events, do: IndexList.handle_event(event, params, socket)`. In the `"auix_route_back"` clause, `load_items()` becomes `IndexList.load_items()`. In the pagination clauses, `previous_page/1` and `next_page/1` become `IndexList.previous_page/1` and `IndexList.next_page/1`. In `"read_indexed_entry"`, `load_page/2` becomes `IndexList.load_page/2`.
+   - `auix_handle_info/2`: the `{:saved, _}` clause and the `{Events, :refresh}` clause call `IndexList.refresh_current_page/1`; the `%Event{}` clause becomes `socket |> IndexList.apply_event(event) |> react_to_open_entity(event)`; the `{Events, :reset_selection}` clause becomes `IndexList.reset_selection(socket)`.
+   - `auix_handle_async/3`: one clause, `def auix_handle_async(task, result, socket), do: IndexList.handle_async(task, result, socket)`.
+   - `paginate/3` stays private with both heads, `live_action: :index` included. The first keeps its guard and becomes `socket |> IndexList.paginate(page, items_per_page) |> assign_auix(:entity, nil)`; the second becomes `IndexList.paginate(socket, page, items_per_page)`.
+   - `subscribe_to_changes/1` calls `IndexList.resource_schema/1`.
+   - Stay in `IndexImpl`, unchanged: the behaviour callbacks, `__using__/1`, `auix_handle_params/3`, the `"delete"` clause with `get_function` and `delete_function`, the `auix_route_forward` clauses, the pagination clauses, `"read_indexed_entry"`, `apply_action/2`, `publish_child_deleted/1`, `react_to_open_entity/2`, `react_to_change/4`, `assign_live_component/1`, `assign_index_routing_stack/2`, `record_action/1`.
+   - Delete `import Phoenix.Component` and the aliases `Aurora.Uix.Filter`, `Aurora.Uix.Layout.Helpers, as: LayoutHelpers`, `Aurora.Uix.Layout.Options, as: LayoutOptions` and `Aurora.Uix.Selection`: every function that used them has moved.
+   - `@moduledoc`: add the `## Key Constraints` line `The list itself is run by Aurora.Uix.Templates.Basic.Handlers.IndexList.`
+6. Kept host patterns. A layout tree changed in `mount/3` before `super`, and `auix.load_items_options`: the moved `load_items/2` reads both at every rebuild (`load_items_options_test.exs`, unchanged). An untargeted list event reaches `auix_handle_event/3`, where a host clause placed before `super` still sees it first (`selected_bulk_action_test.exs`, unchanged). `stream_insert/4` from an `IndexImpl` handler (`guides/core/liveview.md § Accessing Streams in Handler Hooks`): the engine creates the streams with `stream/4` on the socket it is given, the LiveView socket, under the same names (`auix.source_key`), so the call keeps its target; no test file drives this pattern.
+7. Edge cases. An event name outside `events/0` given to `IndexList.handle_event/3` raises `FunctionClauseError` (AC-3); `IndexImpl` never forwards one, because of its guard. The catch-all `auix_handle_info/2` clause stays in `IndexImpl`.
+8. Components: none. Theme: none. `dt/1` strings: none new; `"Item deleted successfully"` stays in `IndexImpl`.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/templates/basic/index_list_test.exs test/cases_live/selected_test.exs test/cases_live/selected_bulk_action_test.exs test/cases_live/sortable_columns_test.exs test/cases_live/where_filter_layout_test.exs test/cases_live/pages_bar_test.exs test/cases_live/infinity_scroll_test.exs test/cases_live/load_items_options_test.exs test/cases_live/events_test.exs test/cases_live/handler_hooks_index_test.exs test/cases_live/navigation_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+4. The grep of AC-6 returns `0`
+<!-- section:UI-6:end -->
+<!-- section:UI-7:start -->
+### UI-7 — UI · generators and handlers · `.IndexComponent` and `IndexComponentImpl`
+Depends on: UI-5, UI-6
+
+#### Documentation references
+- `guides/core/components.md § Embedding a component`, `§ Inputs`, `§ Outputs`, `§ Events`, `§ Several instances on one page`
+- `guides/core/liveview.md § Generated Module Structure`, `§ Targeting the Component`
+
+#### Implementation details
+
+`index_columns` produces a fourth kind of artifact, `:index_component`: a LiveComponent that runs the list engine of UI-6 on its own socket. The generated `.Index` LiveView keeps its own list and does not render the component. Every instance derives its DOM ids, its stream ids and its event target from its component `id`, so several instances share a page. Given the input `resource`, an instance serves that resource of the LiveView that renders it, as the form and the show component do (UI-5). Layout type covered: `:index`; `:form` and `:show` are untouched. Backend-agnostic.
+
+A LiveComponent is needed here: the list holds state that survives a re-render (streams, selection, filters, page) and receives its own events.
+
+##### Acceptance criteria
+- [ ] AC-1: a module with one resource and `auix_create_ui()` defines `<Module>.Product.IndexComponent`, registered as `:product_index_component` with `kind: :index_component`; `index_columns :product, [:reference], module_name: :index_compact` defines `<Module>.Product.IndexCompact` instead; `generate: [:index_component]` defines the index component and no `.Index`, `.FormComponent`, `.ShowComponent`
+- [ ] AC-2: `index_columns :product_location, use: :index_compact` gives `:product_location` the columns of the used layout in this module (`auix_configurations().product_location.layout_trees.index` lists `:reference` and `:name`), defines no `<Module>.ProductLocation.IndexComponent`, and still defines `<Module>.ProductLocation.Index`
+- [ ] AC-3: error paths. `index_columns :product, use: :nope` fails compilation with `unknown module :nope in use:`; `index_columns :product, [:name], use: :product_index_component` fails with `use: takes no field list and no other option`
+- [ ] AC-4: an embedded index given `where` lists only the matching records, in rows whose DOM id is `<component id>-<stream name>-<record id>`
+- [ ] AC-5: two instances of one index component on one page are isolated: moving one to its second page changes its rows, leaves the rows of the other, and sends `{:page, 2}` under the id of the first only
+- [ ] AC-6: an embedded index reports: the show action of a row sends `{:open, :show, id}`, the new action sends `{:open, :new, nil}`, the delete action deletes the record, removes its row and sends `{:deleted, [id]}`
+- [ ] AC-7: the `page` input opens the list on that page, and `options: [sort_disabled?: true]` removes the sort controls of that instance only
+- [ ] AC-8: an `%Aurora.Uix.Event{}` given to an instance with `send_update/3` (`auix_event:`) makes it re-read its page with its own scope
+- [ ] AC-9: empty path. An embedded index whose `where` matches nothing renders `.auix-items-table-empty` and no row
+- [ ] AC-10: `component_handler_module:` on `index_columns` sets the handler of the component; a handler that overrides `auix_handle_event/3` receives the event before the default clauses
+- [ ] AC-11: the Ash backend: an embedded index of `:author` lists the authors and its delete action sends `{:deleted, [id]}`
+- [ ] AC-12: the markup of the generated LiveView does not change, and `@auix._myself` is `nil` there: no test file of the LiveView changes (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only `test/cases/create_ui_validation_test.exs`, `test/cases_live/components_index_test.exs` and `test/cases_live/ash_components_index_test.exs`, and `mix test` green)
+- [ ] AC-13: an embedded index given `resource: :product_location`, rendered by a LiveView written by hand that declares `index_columns :product_location, use: :location_list`, lists the product locations in rows whose DOM id is `<component id>-product_locations-<record id>`, with the columns of the used layout: a row shows the reference of its record and not its type
+- [ ] AC-14: error path. `Helpers.resource_binding/4` with `:index` raises `ArgumentError` (message contains `does not pair`) for an index component the rendering LiveView does not pair with the resource
+
+##### Test ports
+- No route. `Aurora.UixWeb.Test.ComponentHostLive` (UI-5) with `live_isolated/3`.
+- No route. `Aurora.UixWeb.Test.ComponentsIndexPairedHostLive`, a LiveView written by hand that declares one pairing, with `live_isolated/3` · layout type `:index` · observable: `has_element?/2` and `has_element?/3` on `#locations tr[id='locations-product_locations-<record id>']`.
+- Observable: `has_element?/2` on `#<id> tr[id='<id>-products-<record id>']`, `#<id> .auix-items-table-empty`, `#<id> button[name='auix-sort-reference']`, and on `#auix-host-intents li[data-component][data-intent][data-value]`.
+- Compile-time behaviour through `compile/1` of `test/cases/create_ui_validation_test.exs`.
+
+##### Red tests
+`Host`, `mount_components/2` and `T` as in UI-5. `C` is `T.Product.IndexComponent`. The products of a test are `delete_all_inventory_data()`, `create_sample_products(10, :test)` and `products = Product |> Aurora.Uix.Repo.all() |> Enum.sort_by(& &1.reference)`; `p(n)` is `Enum.at(products, n - 1)`, whose reference is `"item_test-<nn>"`. The test module declares `auix_resource_metadata(:product, context: Inventory, schema: Product)` and `auix_create_ui do index_columns(:product, [:reference, :name], pagination_items_per_page: 5) end`. `row(id, product)` is the selector `"##{id} tr[id='#{id}-products-#{product.id}']"`.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1 | amend `test/cases/create_ui_validation_test.exs` `"every generated module has a registry entry"` and `"an embedded resource generates no modules"` (UI-4): add `:product_index_component`, and `:user_index_component`, to the expected key lists. Add to the same file | `compile/1` with the three bodies of AC-1 | same | `"index_columns generates an index component"` | `mod.auix_module(:product_index_component) \|> Map.take([:module, :kind]) == %{module: Module.concat(mod, Product.IndexComponent), kind: :index_component}`; with `module_name: :index_compact`: `Code.ensure_loaded?(Module.concat(mod, Product.IndexCompact))` and `refute Code.ensure_loaded?(Module.concat(mod, Product.IndexComponent))`; with `generate: [:index_component]`: the component is loaded, and `Product.Index`, `Product.FormComponent`, `Product.ShowComponent` are not |
+| AC-2 | add to same | body starts with `auix_resource_metadata :product_location, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.ProductLocation`, then `auix_create_ui do` / `index_columns :product, [:reference, :name], module_name: :index_compact` / `index_columns :product_location, use: :index_compact` / `end` | same | `"use: gives a resource the index layout of another"` | `Enum.map(mod.auix_configurations().product_location.layout_trees.index.children, & &1.key) == [:reference, :name]`; `refute Code.ensure_loaded?(Module.concat(mod, ProductLocation.IndexComponent))`; `Code.ensure_loaded?(Module.concat(mod, ProductLocation.Index))` |
+| AC-3 | add to same | the two bodies of AC-3 | same | `"use: on index_columns rejects what it cannot take"` | two `assert_raise DslError, regex, …` |
+| AC-4 | new file (`ls test/cases_live \| grep components_index` prints nothing). Module `Aurora.UixWeb.Test.ComponentsIndexTest` | `mount_components(conn, [%{module: C, id: "low", props: %{where: [{:reference, :lt, "item_test-04"}]}}])` | `test/cases_live/components_index_test.exs` | `"an embedded index lists its scope"` | `has_element?(view, row("low", p(1)))`; `has_element?(view, row("low", p(3)))`; `refute has_element?(view, row("low", p(4)))` |
+| AC-5 | add to same | two components: `"a"` with the `where` of AC-4, `"b"` without props | same | `"two instances keep their own page"` | `view \|> element("#b div[name$='-xl2'] a[name='auix-pages_bar_page-2']") \|> render_click()`; `has_element?(view, row("b", p(6)))`; `refute has_element?(view, row("b", p(1)))`; `has_element?(view, row("a", p(1)))`; `has_element?(view, "#auix-host-intents li[data-component='b'][data-intent='page'][data-value='2']")`; `refute has_element?(view, "#auix-host-intents li[data-component='a']")` |
+| AC-6 | add to same | one component `"a"` without props | same | `"an embedded index reports open and delete"` | click `row("a", p(1)) <> " td.auix-items-table-action-cell a[name='auix-show-product']"`: intent `[data-intent='open'][data-value='show:#{p(1).id}']`; click `"#a a[name='auix-new-product']"`: intent `[data-intent='open'][data-value='new:']`; click `row("a", p(2)) <> " td.auix-items-table-action-cell a[name='auix-delete-product']"`: `refute has_element?(view, row("a", p(2)))`, intent `[data-intent='deleted'][data-value='#{p(2).id}']`, `Aurora.Uix.Repo.get(Product, p(2).id) == nil` |
+| AC-7 | add to same | `"a"` with `props: %{page: 2}`; `"b"` with `props: %{options: [sort_disabled?: true]}` | same | `"an instance takes its page and its options"` | `has_element?(view, row("a", p(6)))`; `refute has_element?(view, row("a", p(1)))`; `has_element?(view, "#a button[name='auix-sort-reference']")`; `refute has_element?(view, "#b button[name='auix-sort-reference']")` |
+| AC-8 | add to same | `create_sample_products(3, :test)` in place of ten; `"a"` without props; then `{:ok, added} = Aurora.Uix.Repo.insert(%Product{reference: "item_test-9", name: "Added"})` | same | `"an event refreshes an instance"` | `refute has_element?(view, row("a", added))`; `Phoenix.LiveView.send_update(view.pid, C, id: "a", auix_event: %Aurora.Uix.Event{schema: Product, action: :created, ids: [added.id]})`; `has_element?(view, row("a", added))` |
+| AC-9 | add to same | `"a"` with `props: %{where: [{:reference, "none"}]}` | same | `"an embedded index with no record says so"` | `has_element?(view, "#a .auix-items-table-empty")`; `refute has_element?(view, "#a tr[id^='a-products-']")` |
+| AC-10 | add to same. A second pair of top-level modules in the file, before the test module: `Aurora.UixWeb.Test.ComponentsIndexHandler` (`use Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`; one clause `def auix_handle_event("ping", _params, socket), do: {:noreply, Aurora.Uix.Templates.Basic.Helpers.report_intent(socket, {:page, 99})}`, then `def auix_handle_event(event, params, socket), do: super(event, params, socket)`) and `Aurora.UixWeb.Test.ComponentsIndexHandled` (`use Aurora.Uix`, `:product`, `auix_create_ui generate: [:index_component] do index_columns(:product, [:reference], component_handler_module: Aurora.UixWeb.Test.ComponentsIndexHandler) end`) | mount `%{module: Aurora.UixWeb.Test.ComponentsIndexHandled.Product.IndexComponent, id: "h", props: %{}}` | same | `"component_handler_module sets the handler of the component"` | `view \|> with_target("#h") \|> render_click("ping", %{})` (`#h` is the root of the component); `has_element?(view, "#auix-host-intents li[data-component='h'][data-intent='page'][data-value='99']")` |
+| AC-11 | new file. Module `Aurora.UixWeb.Test.AshComponentsIndexTest`, `auix_resource_metadata(:author, ash_resource: Aurora.Uix.Guides.Blog.Author)`, `auix_create_ui()` | `delete_all_blog_data()`; `[author \| _] = create_sample_authors(2)`; mount `%{module: T.Author.IndexComponent, id: "a", props: %{}}` | `test/cases_live/ash_components_index_test.exs` | `"an embedded index on Ash"` | `has_element?(view, "#a tr[id='a-authors-#{author.id}']")`; click its `td.auix-items-table-action-cell a[name='auix-delete-author']`; `has_element?(view, "#auix-host-intents li[data-component='a'][data-intent='deleted'][data-value='#{author.id}']")` |
+| AC-13 | add to `test/cases_live/components_index_test.exs`. A third pair of top-level modules in the file, before the test module (`grep -rnE 'ComponentsIndexViews\|ComponentsIndexPaired' lib test` prints nothing). `Aurora.UixWeb.Test.ComponentsIndexViews`: `use Aurora.Uix`; `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)`; `auix_create_ui generate: [:index_component] do index_columns(:product, [:reference, :name], module_name: :index_compact) end`. `Aurora.UixWeb.Test.ComponentsIndexPairedHostLive`: `use Aurora.UixWeb.Test, :live_view`; `use Aurora.Uix`; `@auix_resource_metadata %{product_location: Aurora.UixWeb.Test.ComponentsIndexViews.auix_resource(:product_location)}`; `@auix_modules %{location_list: Aurora.UixWeb.Test.ComponentsIndexViews.auix_module(:index_compact)}`; `auix_create_ui generate: [] do index_columns(:product_location, use: :location_list) end`; `def mount(_params, _session, socket), do: {:ok, socket}`; `render/1` with the template `<div id="auix-paired-host"><.live_component module={auix_module(:location_list).module} id="locations" resource={:product_location} /></div>`; no `handle_info/2` | `delete_all_inventory_data()`; `create_sample_product_locations(2)`; `[first \| _] = locations = Aurora.Uix.Repo.all(ProductLocation)`; `{:ok, view, _html} = live_isolated(conn, Aurora.UixWeb.Test.ComponentsIndexPairedHostLive)`; `location_row = fn location -> "#locations tr[id='locations-product_locations-#{location.id}']" end` | same | `"a paired index serves a resource of the LiveView that renders it"` | `Enum.all?(locations, &has_element?(view, location_row.(&1)))`; `has_element?(view, location_row.(first), first.reference)`; `refute has_element?(view, location_row.(first), first.type)` |
+| AC-14 | add to same | `socket = %Phoenix.LiveView.Socket{view: Aurora.UixWeb.Test.ComponentsIndexPairedHostLive, assigns: %{__changed__: %{}}}` | same | `"an index component is checked against the pairing"` | `assert_raise ArgumentError, ~r/does not pair/, fn -> Aurora.Uix.Templates.Basic.Helpers.resource_binding(socket, %{id: "x", resource: :product_location}, C, :index) end` (`C` is the index component of `:product` in the test module, which the host does not pair) |
+
+##### Modules & components
+1. The registry gains the kind (edits of the code of UI-4).
+   - `lib/aurora_uix/layout/artifacts.ex`: `kind()` and `kinds/0` gain `:index_component` (`[:live_view, :index_component, :form_component, :show_component]`). `plan/1`: the pairs of step 4 gain `{:index, :index_component}`; step 6 handles `:index` first, then `:form`, then `:show`, with the same rules (`use:` substitution, entry, kind check), and a `nil` index layout takes `RenderTree.default(:index, resource, opts)` for its entry; `resolved.artifacts` gains `index_component`.
+   - `lib/aurora_uix/layout/create_ui.ex`: the default `artifacts` map of `build_configurations/4` gains `index_component: nil`; `generate_tag?(:index, generate)` becomes `:live_view in generate or :index_component in generate`. `@moduledoc` `## Generated modules`: add `:<schema>_index_component` and `component_handler_module:`.
+   - `lib/aurora_uix/layout/node/index.ex`: add `module_name: nil`, `use: nil` and `component_handler_module: nil` to `defstruct` after `handler_module: nil`, and to `@type t()`.
+   - `lib/aurora_uix/layout/create_ui/dsl.ex`: the `generate` list of `@ui_schema` gains `:index_component`. `typed_keys(:index, handler_key)` returns `[:renderers, :order_by, :where, :module_name, :use, :component_handler_module, handler_key]`. `container_opts/2` adds `component_handler_module: typed[:component_handler_module]` to its map. `index_columns` has no block and no entity option, so Spark hands `index_columns :r, use: :x` over as the column list `[use: :x]`; a new first clause of `build_node/1` reads it, and the existing clause rejects `use:` among the options:
+     ```elixir
+     def build_node(%Node.Index{children: [use: name], options: []} = index) when is_atom(name),
+       do: {:ok, %{index | children: [], use: name}}
+
+     def build_node(%Node.Index{} = index) do
+       with {:ok, columns} <- field_nodes(index.children),
+            {:ok, container} <- container_opts(index.options, :index),
+            :ok <- validate_index_naming(container) do
+         {:ok, struct(%{index | children: columns}, container)}
+       end
+     end
+     ```
+     with the new private `validate_index_naming/1` (`@spec validate_index_naming(map()) :: :ok | {:error, binary()}`): `{:error, "use: takes no field list and no other option"}` when `container.use` is not `nil`, `:ok` otherwise. `@moduledoc` `## Key Constraints`: add `` A resource field named `use` cannot be the only column of `index_columns`. ``
+   - `lib/aurora_uix/templates/basic/helpers.ex`: the binding functions take `:index`. `component_binding/3` (UI-4) and `resource_binding/4`, `bind_resource/4`, `component_kind/1` (UI-5): `:form | :show` becomes `:index | :form | :show` in the four `@spec`s. `component_kind/1` gains the first clause `defp component_kind(:index), do: :index_component`. In `component_binding/3` the last step `|> ModulesGenerator.component_opts()` becomes `|> binding_opts(layout_type)`, with the new private function (`grep -rn 'binding_opts' lib test` prints nothing):
+     ```elixir
+     # The options each generator compiles into its module.
+     @spec binding_opts(map(), :index | :form | :show) :: map()
+     defp binding_opts(opts, :index), do: ModulesGenerator.remove_omitted_fields(opts)
+     defp binding_opts(opts, _layout_type), do: ModulesGenerator.component_opts(opts)
+     ```
+     `IndexGenerator.generate_module/1` applies `ModulesGenerator.remove_omitted_fields/1` alone to the options it compiles; the form and show generators apply `component_opts/1`. Load guarantee: `configurations[resource].artifacts.index_component` is filled by `Artifacts.plan/1` (first item of this step), also under `generate: []`.
+2. `Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl` at `lib/aurora_uix/templates/basic/handlers/index_component_impl.ex` — new (`grep -rnE 'IndexComponentImpl|Handlers\.IndexComponent\b' lib test` prints nothing). Shape of `handlers/show_component_impl.ex`: callbacks `auix_update/2`, `auix_handle_event/3` and `auix_handle_async/3` (`@callback auix_handle_async(task :: atom(), result :: term(), socket :: Socket.t()) :: {:noreply, Socket.t()}`); `__using__/1` defines `update/2`, `handle_event/3` and `handle_async/3` delegating to them, `defdelegate`s the three to `IndexComponentImpl`, and ends with `defoverridable LiveComponent` and `defoverridable` of the three. Imports `Aurora.Uix.Templates.Basic.Helpers` and `Phoenix.LiveView`; aliases `Aurora.Uix.Event`, `Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions`, `Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`, `Aurora.Uix.Templates.Basic.Handlers.IndexList`, `Aurora.Uix.Templates.Basic.Renderers.IndexRenderer`, `Phoenix.LiveComponent`, `Phoenix.LiveView.Socket`. `@moduledoc` with `## Key Features` (the list engine on a component socket; inputs; intents; per-instance ids) and `## Key Constraints` (never navigates; events arrive through `@auix._myself`; `Aurora.Uix.Event`s arrive through `update/2`).
+   - `auix_update/2`, three clauses.
+     1. `%{auix_event: %Event{} = event}` with a socket whose `auix` has `:_inputs`: `{:ok, IndexList.apply_event(socket, event)}`.
+     2. `%{auix_event: _event}` otherwise: `{:ok, socket}`.
+     3. Any other assigns: `inputs = Map.take(assigns, [:where, :order_by, :parent, :page, :options])`. When `socket.assigns.auix[:_inputs] == inputs`, return `{:ok, assign_auix(socket, :notify, Map.get(assigns, :notify, self()))}`. Otherwise run the initialisation below and return `{:ok, socket}`.
+   - Initialisation, in this order, with `id = socket.assigns.id` and `first? = not Map.has_key?(socket.assigns.auix, :_inputs)`:
+     1. `assign_auix/3` of `:_inputs` (`inputs`), `:_myself` (`socket.assigns.myself`), `:_instance` (`id`), `:notify` (`Map.get(assigns, :notify, self())`), `:index_form_id` (`"auix-index-form-#{id}"`), `:entity` (`nil`), `:item_index` (`-1`).
+     2. `assign_auix_new(:_base_layout_tree, auix.layout_tree)`: the layout tree as compiled, kept once.
+     3. The instance layout tree, assigned to `:layout_tree`: `struct(base, %{where: where, order_by: Map.get(inputs, :order_by) || base.order_by, options: Keyword.merge(base.options, Map.get(inputs, :options, []))})`, where `scope` is the parent condition (`[{key, value}]` for `parent: {key, value}`, `[]` without) followed by `IndexList.where_conditions(Map.get(inputs, :where))`, and `where` is `base.where` for an empty `scope` and `IndexList.where_conditions(base.where || resource_config.where) ++ scope` otherwise; `resource_config` is `auix.configurations[auix.resource_name].resource_config`. Load guarantee: `Layout.Options` reads every index option from `auix.layout_tree.options`, and `IndexList.load_items/2` reads `where` and `order_by` from `auix.layout_tree`.
+     4. `IndexList.init(socket, %{"page" => to_string(Map.get(inputs, :page, 1))}, prepare)`, where `prepare` calls `IndexActions.set_actions/1` and then, when `first?`, `Phoenix.LiveView.stream_configure/3` for every stream name — `auix.source_key`, and `"#{auix.source_key}__#{suffix}"` for each suffix of `auix.layout_options.alternate_streams_suffixes` — with `dom_id: &"#{id}-#{name}-#{&1.id}"`. A stream is configured once, before its first `stream/4`.
+     5. Every field of `auix.index_fields` gets `html_id: "#{id}-#{field.html_id}"`, so the filter inputs of two instances differ.
+     6. `render_with(&IndexRenderer.render_component/1)`.
+   - `auix_handle_event/3`, clauses in this order: `event in @list_events` (`@list_events IndexList.events()`) delegates to `IndexList.handle_event/3`; `"auix_open"` returns `{:noreply, report_open(socket, params)}`; `"delete"` with `%{"id" => id}` runs `{socket, ids} = IndexList.delete(socket, id)` and returns `{:noreply, report_intent(socket, {:deleted, ids})}`; `"pagination_to_page"` with `%{"page" => page}` runs `IndexList.paginate(socket, String.to_integer(page), nil)` and reports `{:page, page}` with the integer; `"pagination_previous"` and `"pagination_next"` follow `IndexImpl`: with `auix.layout_options.pagination_disabled?` true, and with the param `"pagination_disabled?"`, they run `IndexList.paginate(socket, pagination.page - 1, Map.get(params, "items_per_page"))` (`+ 1` for next) and report nothing; otherwise they paginate to `IndexList.previous_page(pagination)` (`next_page/1` for next) and report `{:page, page}`; a last clause raises `"Event not handled. event: #{inspect(event)}. params: #{inspect(params)}"`, as `ShowComponentImpl` does.
+   - `auix_handle_async/3`: for `:auix_selection_delete_all` with `{:ok, ids} = result`, run `{:noreply, socket} = IndexList.handle_async(:auix_selection_delete_all, result, socket)` and return `{:noreply, report_intent(socket, {:deleted, ids})}`; every other call delegates to `IndexList.handle_async/3`.
+3. `Aurora.Uix.Templates.Basic.Handlers.IndexComponent` at `lib/aurora_uix/templates/basic/handlers/index_component.ex` — new, the default handler: `@moduledoc` in the form of `handlers/show_component.ex` and `use Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`.
+4. `generators/index_generator.ex` — modified. `generate_module/1` returns a block of up to two modules: the LiveView, unchanged, when `:live_view in parsed_opts.generate`, and the component when `:index_component in parsed_opts.generate`. The component handler is `Map.get(parsed_opts.layout_tree, :component_handler_module) || IndexComponentHandler` (alias `Aurora.Uix.Templates.Basic.Handlers.IndexComponent, as: IndexComponentHandler`).
+   ```elixir
+   defmodule unquote(parsed_opts.artifacts.index_component) do
+     @moduledoc false
+
+     use unquote(parsed_opts.modules.web), :live_component
+
+     @impl true
+     def update(assigns, socket) do
+       merged_auix =
+         socket.assigns
+         |> Map.get(:auix, %{})
+         |> Map.merge(Map.get(assigns, :auix, %{}))
+         |> Map.merge(Helpers.resource_binding(socket, assigns, __MODULE__, :index))
+
+       socket
+       |> assign(assigns |> Map.delete(:auix_event) |> Map.put(:auix, merged_auix))
+       |> Helpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+       |> Helpers.assign_actor_to_auix()
+       |> then(&unquote(component_handler).update(assigns, &1))
+     end
+
+     @impl true
+     def handle_event(event, params, socket),
+       do: unquote(component_handler).handle_event(event, params, socket)
+
+     @impl true
+     def handle_async(task, result, socket),
+       do: unquote(component_handler).handle_async(task, result, socket)
+   end
+   ```
+   The binding of `resource` enters `auix` before `Helpers.assign_parsed_opts/2`, as in the form and the show component (UI-5, step 2). An update that carries `auix_event` carries no `resource`, and `resource_binding/4` returns `%{}` for it.
+5. `renderers/index_renderer.ex` — modified. The list moves into a function component both renderers call; the LiveView markup stays the same.
+   - New public function component `index_list/1` (`grep -rnE 'index_list\b|render_component\b' lib` prints nothing): `attr(:auix, :map, required: true)`, `attr(:id, :string, required: true)`, `attr(:streams, :any, required: true)`. It computes `default_show_function` from `assigns.auix.index_row_actions`, as `render/1` does today, and renders the markup of `render/1` from `<div class="auix-index-actions">` through the closing tag of `<div name="auix-index-footer-actions">`, with three changes: `<.auix_items id={@id} … streams={@streams}>`; `phx-target={@auix[:_myself]}` on `<.auix_simple_form>`; and `_myself: @auix[:_myself]` added to the map given to `auix_items` as `auix`.
+   - `render/1`: drops the `default_show_function` computation and replaces the moved markup with `<.index_list auix={@auix} id={"auix-table-#{@auix.uri_path_id}-index"} streams={@auix.layout_options.get_streams.(assigns)} />`. The hook div, the header, the flashes and the modal stay.
+   - New public `render_component/1` (`@spec render_component(map()) :: Rendered.t()`):
+     ```heex
+     <div id={@id} class="auix-index-container" name="auix-index-component">
+       <.index_list auix={@auix} id={"auix-table-#{@id}-index"} streams={@auix.layout_options.get_streams.(assigns)} />
+     </div>
+     ```
+     `auix-index-container` is an existing class of `themes/base.ex`.
+   - Selectors the tests assert on: `#<id>` (component root), `#auix-table-<id>-index` (table body), `tr[id='<id>-<stream>-<record id>']`.
+6. Event targets. `phx-target={nil}` renders no attribute, so each edit leaves the LiveView markup as it is. New public helpers in `templates/basic/helpers.ex` (`grep -rnE 'target_opts|instance_dom_id' lib test` prints nothing), with `@doc` and `@spec`:
+   ```elixir
+   @spec target_opts(map(), keyword()) :: keyword()
+   def target_opts(%{_myself: target}, opts) when not is_nil(target),
+     do: Keyword.put(opts, :target, target)
+
+   def target_opts(_auix, opts), do: opts
+
+   @spec instance_dom_id(map(), binary()) :: binary()
+   def instance_dom_id(%{_instance: instance}, base) when not is_nil(instance),
+     do: "#{base}-#{instance}"
+
+   def instance_dom_id(%{module: module}, base), do: "#{base}-#{module}"
+   ```
+   - `components/components.ex`: `auix_items_table/1`, `<tbody>`: add `phx-target={@auix[:_myself]}`. `auix_items_card/1`: the two `JS.push(…)` calls take their options through `BasicHelpers.target_opts(@auix, loading: true, value: %{…})`. `pages_selection/1`: new `attr(:target, :any, default: nil)` and `phx-target={@target}` on its seven `<a>` elements. `table_column_sort/1`: `phx-target={@auix[:_myself]}` on the `<button>`.
+   - `actions/index.ex`: `remove_row_action/1`: `JS.push("delete", BasicHelpers.target_opts(@auix, value: %{id: row_info_id(@auix)}))`. Add `phx-target={@auix[:_myself]}` to the two buttons of `selected_uncheck_all_action/1`, the two of `selected_check_all_action/1`, the two `<a>` of `toggle_filters_action/1`, the `<.form>` and the `<.button>` of `sort_header_action/1`, and the buttons of `clear_filters_action/1` and `submit_filters_action/1`. `pagination_action/1`: `target={@auix[:_myself]}` on its four `<.pages_selection>`. Ids: `selected_delete_all_action/1` uses `id={BasicHelpers.instance_dom_id(@auix, "auix-delete-all-button")}`; `sort_header_action/1` uses `BasicHelpers.instance_dom_id(@auix, "auix-sort-form")` and `BasicHelpers.instance_dom_id(@auix, "auix-sort-key")`. `ConfirmButton` already targets `uix_id_selector(@auix.index_form_id)`.
+   - `actions/index.ex`, actions that navigate in the LiveView and report in a component. New first clause on `%{auix: %{notify: _notify}} = assigns` for `show_row_action/1`, `edit_row_action/1` and `new_header_action/1`. Each renders the same element with the same `name`, `class` and inner content, with `phx-click="auix_open"`, `phx-value-action` (`"show"`, `"edit"`, `"new"`), `phx-value-id={row_info_id(@auix)}` for the two row actions, and `phx-target={@auix._myself}`, and without `patch`.
+   - `handlers/index_impl.ex`, `auix_mount/3`: add `|> assign_auix(:_myself, nil)` before `IndexList.init/3`, so an action shared by both reads `@auix._myself` in the LiveView too.
+7. Markup changes and the tests that drive them. In the LiveView no selector, `name`, `id` and label changes: `grep -rn 'auix-sort-form\|auix-sort-key\|auix-delete-all-button\|auix-index-form' test` lists the tests that use those ids, and each id keeps its value because `auix._instance` is absent there. The component markup is new.
+8. Edge cases. Inputs that do not change between two updates leave the list as it is (selection, page and filters survive a re-render of the host). A changed input re-initialises the list: filters, sort and selection start again. `send_update/3` to a component that left the page logs a warning in LiveView and raises nothing. A resource whose records have no `id` field cannot be embedded: the stream id reads `id`, as the default stream id does. An instance keeps the resource of its first update; `resource_binding/4` raises for another one (UI-5, AC-11).
+9. Components: `index_list/1` (contract in step 5). Theme: none. `dt/1` strings: none.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/create_ui_validation_test.exs test/cases_live/components_index_test.exs test/cases_live/ash_components_index_test.exs test/cases_live/selected_test.exs test/cases_live/sortable_columns_test.exs test/cases_live/pages_bar_test.exs test/cases_live/where_filter_layout_test.exs test/cases_live/create_ui_actions_index_test.exs test/cases_live/navigation_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+<!-- section:UI-7:end -->
+<!-- section:UI-8:start -->
+### UI-8 — UI · live · `Aurora.Uix.Live.ComponentHooks`
+Depends on: UI-7
+
+#### Documentation references
+- `guides/core/components.md § Live updates`, `§ Embedding a component`
+- `guides/core/liveview.md § Reacting to Data Changes`
+
+#### Implementation details
+
+An `on_mount` hook for a hand-written LiveView. The index components of the LiveView register with it; it subscribes to the `Aurora.Uix.Events` topic of each schema they list and forwards every `%Aurora.Uix.Event{}` to them through `send_update/3`. The generated `.Index` LiveView does not use it: it subscribes on its own (`IndexImpl.subscribe_to_changes/1`). Layout type covered: `:index`. Backend-agnostic.
+
+##### Acceptance criteria
+- [ ] AC-1: in a LiveView mounted with the hook, an `Aurora.Uix.Events.created/2` published by another process adds the record to an embedded index, with no code in the host
+- [ ] AC-2: the same event reaches every registered instance: two instances with different scopes each re-read with their own scope
+- [ ] AC-3: without the hook the instance does not change when the event is published
+- [ ] AC-4: the hook consumes the events of registered schemas only: a message that is not an `%Aurora.Uix.Event{}` of a registered schema reaches the host's `handle_info/2`
+- [ ] AC-5: error path. `ComponentHooks.register/2` in a process without the hook returns `:ok` and subscribes to nothing
+
+##### Test ports
+- No route. `Aurora.UixWeb.Test.ComponentHostLive` with `live_isolated/3`; the session key `"hooks"` set to `true` mounts the hook.
+- Observable: `has_element?/2` on the rows of the instances and on `#auix-host-other li[data-message]`.
+
+##### Red tests
+Names as in UI-7. Events are published from the test process with `Aurora.Uix.Events.created(record)`.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1, AC-2 | new file (`ls test/cases_live \| grep component_hooks` prints nothing). Module `Aurora.UixWeb.Test.ComponentHooksTest`, resource and layout of the UI-7 test module | `delete_all_inventory_data()`; `create_sample_products(3, :test)`; `live_isolated(conn, Host, session: %{"hooks" => true, "components" => [%{module: C, id: "a", props: %{}}, %{module: C, id: "b", props: %{where: [{:reference, :lt, "item_test-2"}]}}]})`; `{:ok, added} = Aurora.Uix.Repo.insert(%Product{reference: "item_test-0", name: "Added"})`; `Aurora.Uix.Events.created(added)`; `_ = :sys.get_state(view.pid)`, so the event is handled before the assertions render | `test/cases_live/component_hooks_test.exs` | `"the hook forwards events to every instance"` | `has_element?(view, "#a tr[id='a-products-#{added.id}']")`; `has_element?(view, "#b tr[id='b-products-#{added.id}']")` (`"item_test-0"` is below `"item_test-2"`) |
+| AC-3 | add to same | the same mount without `"hooks"`, one instance `"a"` | same | `"without the hook nothing is forwarded"` | after the publish and `_ = :sys.get_state(view.pid)`: `refute has_element?(view, "#a tr[id='a-products-#{added.id}']")` |
+| AC-4 | add to same | mount with `"hooks" => true` and instance `"a"`; `send(view.pid, {:other, "x"})` | same | `"other messages reach the host"` | `has_element?(view, "#auix-host-other li[data-message='x']")` |
+| AC-5 | new file. Module `Aurora.Uix.Live.ComponentHooksTest`, `use ExUnit.Case, async: true` | none | `test/cases/component_hooks_test.exs` | `"register/2 without the hook does nothing"` | `ComponentHooks.register(%Phoenix.LiveComponent.CID{cid: 1}, Aurora.Uix.Guides.Inventory.Product) == :ok`; `Process.get({ComponentHooks, :instances}) == nil` |
+
+##### Modules & components
+1. `Aurora.Uix.Live.ComponentHooks` at `lib/aurora_uix/live/component_hooks.ex` — new (`grep -rn 'ComponentHooks' lib test` prints nothing; `ls lib/aurora_uix/live` fails: the directory is new). Aliases `Aurora.Uix.Event`, `Aurora.Uix.Events`, `Phoenix.LiveComponent.CID`, `Phoenix.LiveView.Socket`. `@moduledoc` first paragraph: `on_mount hook that forwards Aurora.Uix.Events to the index components of a hand-written LiveView.` `## Key Features`: one subscription per schema; forwarding with `send_update/3`; no code in the host. `## Key Constraints`: the registry lives in the process dictionary of the LiveView; a component that left the page stays registered, and LiveView ignores the update sent to it; the generated `.Index` LiveView does not use the hook.
+   ```elixir
+   @key {__MODULE__, :instances}
+
+   @spec on_mount(atom(), map(), map(), Socket.t()) :: {:cont, Socket.t()}
+   def on_mount(:default, _params, _session, socket) do
+     Process.put(@key, %{})
+     {:cont, Phoenix.LiveView.attach_hook(socket, :auix_component_events, :handle_info, &forward/2)}
+   end
+
+   @spec register(CID.t(), module()) :: :ok
+   def register(%CID{} = cid, schema) do
+     case Process.get(@key) do
+       nil ->
+         :ok
+
+       instances ->
+         unless Map.has_key?(instances, schema), do: :ok = Events.subscribe(schema)
+         Process.put(@key, Map.update(instances, schema, [cid], &Enum.uniq([cid | &1])))
+         :ok
+     end
+   end
+
+   @spec forward(term(), Socket.t()) :: {:cont | :halt, Socket.t()}
+   defp forward(%Event{schema: schema} = event, socket) do
+     case Map.get(Process.get(@key, %{}), schema) do
+       nil ->
+         {:cont, socket}
+
+       cids ->
+         Enum.each(cids, &Phoenix.LiveView.send_update(&1, %{auix_event: event}))
+         {:halt, socket}
+     end
+   end
+
+   defp forward(_message, socket), do: {:cont, socket}
+   ```
+   Both public functions get a `@doc` with `## Parameters` and `## Returns`. Above `@key`, one comment: `# A LiveComponent runs in the process of its LiveView and cannot reach the LiveView's socket; the process dictionary is the one place both can read.`
+2. `handlers/index_component_impl.ex` (UI-7) — in the initialisation, after step 5 and before `render_with/2`, when `first?` and `connected?(socket)`: `ComponentHooks.register(socket.assigns.myself, IndexList.resource_schema(socket.assigns.auix))`. Add `alias Aurora.Uix.Live.ComponentHooks`. `IndexList.resource_schema/1` is public since UI-6.
+3. `test/support/app_web/component_host_live.ex` (UI-5) — modified. `mount/3`: assign `:other` to `[]`; when `Map.get(session, "hooks")` is `true`, replace the socket with the one `{:cont, socket} = Aurora.Uix.Live.ComponentHooks.on_mount(:default, %{}, session, socket)` returns. `render/1`: add `<ul id="auix-host-other"><li :for={message <- @other} data-message={message}></li></ul>` inside `#auix-host`. New clauses of `handle_info/2`: `{:other, message}` appends to `:other`; `%Aurora.Uix.Event{}` appends `"event"` to `:other`, so an event the hook does not consume is visible.
+4. Edge cases. `Events.subscribe/1` returns `:ok` without subscribing when no `:pubsub_server` is configured; the hook then forwards nothing and the components still work. A component of a schema registers once per instance; a second registration of the same instance is ignored by `Enum.uniq/1`.
+5. Components: none. Theme: none. `dt/1` strings: none.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases_live/component_hooks_test.exs test/cases/component_hooks_test.exs test/cases_live/components_index_test.exs test/cases_live/events_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+<!-- section:UI-8:end -->
+<!-- section:UI-9:start -->
+### UI-9 — UI · renderers · one-to-many list through the index component
+Depends on: UI-8
+
+#### Documentation references
+- `guides/core/components.md § One-to-many lists`
+- `guides/core/layouts.md` (the `order_by` and `where` options of a one-to-many field)
+
+#### Implementation details
+
+The rows of a one-to-many field are held and rendered by the index component of the related resource, the module the registry resolves for `field.data.resource` in the module of the parent. The query leaves `render/1`: the component runs it when its inputs change. The list looks and acts as before: the same header, columns, actions, `name` attributes and container id; the actions still navigate to the routes of the related resource; filters, selection, sort and paging are off, and no option turns them on. Layout types covered: `:form` and `:show` (where a one-to-many field renders). Both backends are covered, because the renderer reads only the normalized field (`field.data.resource`, `field.data.related_key`, `field.data.owner_key`).
+
+##### Acceptance criteria
+- [ ] AC-1: the rows container `#auix-one_to_many-<parent module>__<field>-<layout type>` is rendered by the index component of the related resource and keeps its id and its class `auix-one-to-many-container`
+- [ ] AC-2: every existing one-to-many test passes with its file unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test/cases_live/association_one2many_ui_layout_test.exs test/cases_live/association_one2many_ui_actions_test.exs test/cases_live/where_one2many_test.exs test/cases_live/ash_where_one2many_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/handler_hooks_show_test.exs test/cases_live/manual_trees_test.exs test/cases_live/manual_layouts_test.exs test/cases_live/manual_resource_test.exs test/cases_live/manual_ui_test.exs` printing nothing, and `mix test` green)
+- [ ] AC-3: a field whose `resource:` names another resource on the same schema lists the columns of that resource's index layout, and its show action navigates to the routes of the schema
+- [ ] AC-4: the child list takes the module the registry resolves for the related resource: `auix_configurations().product_compact.artifacts.index_component`
+- [ ] AC-5: error path. A one-to-many field whose related resource has no index component in the module raises `ArgumentError` when it renders, with a message that names the field and the fix
+- [ ] AC-6: `OneToMany.load_rows/1` returns the preloaded rows for a field without `where` and `order_by`, and `[]` for an association that is not loaded
+- [ ] AC-7: the related list is not queried inside `render/1` (mechanical — no red test; verified by `grep -n 'apply_list_function' lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` printing one line, inside `load_rows/1`)
+
+##### Test ports
+- Routes registered in `test/support/app_web/routes.ex` with `RoutesHelper.register_crud/2`, directly after the registration of UI-4: `RoutesHelper.register_crud(OneToManyComponentTest.Product, "one-to-many-component-products")` and `RoutesHelper.register_crud(OneToManyComponentTest.ProductLocation, "one-to-many-component-product_locations")` · layout types `:form`, `:show` · observable: `has_element?/2` on `#auix-one_to_many-product_location__products-show[data-phx-component]`.
+- `OneToMany.load_rows/1` called directly for AC-6.
+
+##### Red tests
+The test module `Aurora.UixWeb.Test.OneToManyComponentTest` declares, in this order: `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_compact, context: Inventory, schema: Product)`; `auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do field(:products, resource: :product_compact) end`; and
+```elixir
+auix_create_ui do
+  index_columns(:product_compact, [:reference, :name], module_name: :index_compact)
+  edit_layout(:product_compact, use: :product_form_component)
+  show_layout(:product_compact, use: :product_show_component)
+  live_view(:product_compact, module_name: :compact_products)
+
+  show_layout :product_location do
+    stacked([:reference, :name, :products])
+  end
+end
+```
+Data: `delete_all_inventory_data()`, then one location with two products, created with `Aurora.Uix.Repo.insert/1` (`%ProductLocation{reference: "loc", name: "Loc", type: "t"}`, then two `%Product{reference: …, name: …, product_location_id: location.id}`). `L` is `"/one-to-many-component-product_locations"`.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1, AC-3 | new file (`ls test/cases_live \| grep one_to_many_component` prints nothing) | `{:ok, view, _html} = live(conn, "#{L}/#{location.id}/show")` | `test/cases_live/one_to_many_component_test.exs` | `"the child list is an index component of the related resource"` | `has_element?(view, "#auix-one_to_many-product_location__products-show.auix-one-to-many-container[data-phx-component]")`; `has_element?(view, "div[name='auix-one_to_many-product_location'] th[name='auix-column-label']", "Reference")`; `refute has_element?(view, "div[name='auix-one_to_many-product_location'] th[name='auix-column-label']", "Description")`; `{:error, {:live_redirect, %{to: to}}} = view \|> element("a[name='auix-show-product_location__product-#{product.id}']") \|> render_click()`; `String.starts_with?(to, "/one-to-many-component-products/#{product.id}/show")` |
+| AC-4 | add to same | none | same | `"the registry names the module of the child list"` | `T.auix_configurations().product_compact.artifacts.index_component == T.Product.IndexCompact` |
+| AC-5 | new file (`ls test/cases/templates/basic \| grep one_to_many` prints nothing). Module `Aurora.Uix.Templates.Basic.OneToManyRowsTest`, `use ExUnit.Case, async: true`, alias `Aurora.Uix.Templates.Basic.Renderers.OneToMany` | `assigns = %{field: %{type: :one_to_many_association, key: :products, data: %{resource: :product}}, auix: %{configurations: %{product: %{artifacts: %{index_component: nil}}}}}` | `test/cases/templates/basic/one_to_many_rows_test.exs` | `"a one-to-many list needs the index component of its resource"` | `assert_raise ArgumentError, ~r/the one-to-many field :products needs an index component for :product/, fn -> OneToMany.render(assigns) end` |
+| AC-6 | add to same | `one_to_many = %{field: %{key: :products}, auix: %{entity: %{products: [%{id: 1}]}, layout_tree: %{order_by: nil, where: nil}}}` | `test/cases/templates/basic/one_to_many_rows_test.exs` | `"load_rows/1 takes the preloaded rows"` | `OneToMany.load_rows(one_to_many) == [%{id: 1}]`; with `entity: %{products: %Ecto.Association.NotLoaded{}}`: `== []`; with `entity: nil`: `== []` |
+
+##### Modules & components
+1. `lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` — modified.
+   - `render/1`, second clause: after the existing assigns pipeline, drop `|> apply_options()`. Resolve the module: `component = get_in(auix.configurations, [data.resource, :artifacts, :index_component])`; when it is `nil`, `raise ArgumentError, "the one-to-many field #{inspect(field.key)} needs an index component for #{inspect(data.resource)}; add :index_component to generate:, or name one with use: on its index_columns"`. These two statements are the first of the clause body, before `parsed_opts` is read. Put `component` and `socket_opts` (`BasicHelpers.backend_socket_opts(assigns, related_parsed_opts.list_function)`) in the assigns. Load guarantee: `configurations[name].artifacts` is written by `build_configurations/4` (UI-4) for every resource with a schema, and holds `index_component` since UI-7.
+   - In the template, replace the `<div id={"auix-one_to_many-…"} class={@auix.association.related_class}>` element and the `<.auix_items>` inside it with:
+     ```heex
+     <.live_component
+       module={@component}
+       id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
+       one_to_many={%{auix: @auix, field: @field, socket_opts: @socket_opts}}
+     />
+     ```
+     The header and the footer stay. `live_component/1` is already imported: `use Aurora.Uix.CoreComponentsImporter` imports `Phoenix.Component`.
+   - New public function component `child_rows/1` (`grep -rnE 'child_rows|load_rows' lib test` prints nothing), `@spec child_rows(map()) :: Phoenix.LiveView.Rendered.t()`, taking the assigns `auix` (the parent `auix` with `association` and the one-to-many actions), `field` and `rows` (a list). It has no `attr` declaration, because the module imports `Phoenix.Component` and does not `use` it; its `@doc` lists the three assigns. Its body is the removed `<.auix_items>` element, unchanged except `streams={@rows}`.
+   - New public `load_rows/1` (`@spec load_rows(map()) :: list()`), taking the `one_to_many` map. It holds the logic of `apply_options/1` and `maybe_apply_where/1` and returns the list instead of writing it into `auix.entity`: it first reads `Map.get(auix.layout_tree, :order_by)` and `Map.get(auix.layout_tree, :where)`; when both are `nil` it returns the preloaded rows without reading anything else; when an owner key is `nil` (`Enum.map(auix.primary_key, &Map.get(auix.entity, &1))`) it returns the preloaded rows too; otherwise it returns `apply_list_function(list_function, [{:where, where} | query_opts] ++ one_to_many.socket_opts) |> BasicHelpers.list_entries()`, with `where` and `query_opts` built as today by `merge_keys/3` and `merge_custom_where/2`. The preloaded rows are `Map.get(auix.entity || %{}, field.key)` when that value is a list, and `[]` otherwise (an association that is not loaded, a `nil` entity). Delete `apply_options/1` and `maybe_apply_where/1`.
+2. `handlers/index_component_impl.ex` (UI-7) — a new first clause of `auix_update/2` for the assigns `%{one_to_many: one_to_many}`:
+   - `key = {Map.get(one_to_many.auix.entity || %{}, one_to_many.field.key), Map.get(one_to_many.auix.layout_tree, :where), Map.get(one_to_many.auix.layout_tree, :order_by)}`.
+   - When `socket.assigns[:one_to_many_key] != key`, assign `:rows` to `OneToMany.load_rows(one_to_many)` and `:one_to_many_key` to `key`. Always assign `:one_to_many`.
+   - Return `{:ok, render_with(socket, &IndexRenderer.render_child/1)}`. The clause calls none of the list functions: this instance has no streams, no filters and no selection.
+   - Add `alias Aurora.Uix.Templates.Basic.Renderers.OneToMany`.
+   - Reload rule: a delete of a child, a save of a child and a change of the parent all make the LiveView re-read the parent (`push_patch/2` to the current path, `handle_params/3`, `apply_action/2`), so the preloaded value of the field changes and the key with it.
+3. `renderers/index_renderer.ex` — new public `render_child/1` (`grep -rn 'render_child' lib` prints nothing; `@spec render_child(map()) :: Rendered.t()`):
+   ```heex
+   <div id={@id} class="auix-one-to-many-container">
+     <OneToMany.child_rows auix={@one_to_many.auix} field={@one_to_many.field} rows={@rows} />
+   </div>
+   ```
+   Add `alias Aurora.Uix.Templates.Basic.Renderers.OneToMany`. `auix-one-to-many-container` is the class the removed `<div>` carried through `related_class`.
+4. The generated component module (UI-7, `generators/index_generator.ex`) needs no change: its `update/2` passes every assign to the handler.
+5. Markup changes and the tests that drive them. `grep -rln 'auix-one_to_many' test` lists eight files: `association_one2many_ui_layout_test.exs`, `association_one2many_ui_actions_test.exs`, `ash_where_one2many_test.exs`, `handler_hooks_show_test.exs`, `manual_trees_test.exs`, `manual_layouts_test.exs`, `manual_resource_test.exs` and `manual_ui_test.exs`, all in `test/cases_live/`. The container keeps its id and class and gains `data-phx-component`; `div[name='auix-one_to_many-<parent>']`, `a[name='auix-new-<parent>__<field>-form']` and the row action names are rendered by the same functions as before. No test changes its drive.
+6. Events. The row and header actions stay untargeted: `auix_route_forward` and `delete` (with `get_function` and `delete_function`) reach the LiveView and `IndexImpl.auix_handle_event/3`, as today. An embedded parent (UI-5) renders no default child action.
+7. Unchanged on purpose: `actions/one_to_many.ex`; `set_related_uri_path/3`, so two resources on one schema share the routes of that schema; the columns, read from `BasicHelpers.layout_children(configurations, field.data.resource, :index)` — with `use:` on the related resource's `index_columns`, that layout is the used one (UI-7, AC-2).
+8. Edge cases. `field.data.resource == nil` keeps the first `render/1` clause, which renders nothing. A parent that is not saved yet has a `nil` owner key and lists its preloaded rows.
+9. Components: `child_rows/1` (contract in step 1). Theme: none. `dt/1` strings: none.
+
+##### Green tests
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases_live/one_to_many_component_test.exs test/cases/templates/basic/one_to_many_rows_test.exs test/cases/create_ui_validation_test.exs test/cases_live/association_one2many_ui_layout_test.exs test/cases_live/association_one2many_ui_actions_test.exs test/cases_live/where_one2many_test.exs test/cases_live/ash_where_one2many_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs`)
+2. `mix test` — full suite green (review-issue runs this; code-issue runs
+   only this section's test files)
+3. `mix compile --warnings-as-errors` clean
+4. The grep of AC-7 prints one line
+<!-- section:UI-9:end -->
+<!-- section:DOC-3:start -->
+### DOC-3 — Documentation · component guides and CHANGELOG after UI-4 to UI-9
+Depends on: UI-9
+
+#### Documentation references
+- `CHANGELOG.md § [0.2.1]`
+- `guides/advanced/advanced_usage.md § Single vs Multiple Resources`, `§ Introspecting generated UI modules`
+- `guides/core/components.md` (every section)
+- `guides/core/liveview.md § Module Generation with auix_create_ui`, `§ Generated Module Structure`, `§ Using Generated Modules with Routes`, `§ Specifying Handler Hooks in Layout DSL`, `§ Navigation`
+- `guides/whats_new/0.2.1.md`
+
+#### Implementation details
+
+The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 to UI-9 deliver. Four statements of the merged guides are false after them and are corrected: the generated `.Index` LiveView hosts the index component; a component never navigates in any host; a one-to-many field can turn filters, selection, sort and paging on; 0.2.1 has no breaking change. The section also documents named modules and the pairing a LiveView written by hand declares, and fixes the samples that no longer compile. It edits documentation files only.
+
+##### CHANGELOG.md
+1. § `## [0.2.1]` › `### Added` — replace the entry `- **Reusable components**`, from that line through the line `  - New guide: Reusable Components.`, with, verbatim:
+   ```
+   - **Reusable components**
+     - `auix_create_ui` generates an `IndexComponent` next to `FormComponent` and `ShowComponent`. The three
+       components can be embedded in any LiveView. The generated `Index` LiveView keeps its list, routes,
+       handler hooks and behaviour.
+     - An embedded component never navigates: it reports what the user asked for to its parent, and the parent
+       decides. `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView
+       (`@auix.navigation`), which patches and navigates as before.
+     - Every generated module has a name in its `auix_create_ui` module. `module_name:` on a layout names its
+       component, a `live_view` line names the LiveView, and `auix_modules/0` and `auix_module/1` return them,
+       with the modules imported through `@auix_modules`. `use:` on a layout takes a component generated in
+       another module for a resource of this module. A LiveView you write declares the same pairing and gives
+       the component its `resource`.
+     - `auix_create_ui generate:` chooses which kinds of module are generated; leaving out `:live_view`
+       generates the components alone.
+     - `auix_live_resources/3` takes `live_view:` to route to a renamed LiveView.
+     - `component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`
+       (`IndexComponentImpl`).
+     - `Aurora.Uix.Live.ComponentHooks` forwards `Aurora.Uix.Events` to the components of a hand-written LiveView.
+     - A one-to-many list is an embedded `IndexComponent`; its columns come from the resource the field names
+       with `resource:`.
+     - New guide: Reusable Components.
+   ```
+2. § `## [0.2.1]` — insert a new `### Changed` subsection directly above `### Build`, verbatim:
+   ```
+   ### Changed
+
+   - **Generated module names (breaking)**
+     - Two generated modules with the same name in one `auix_create_ui` module are a compile-time error.
+       Before, the second definition silently replaced the first. It happens when two resources of the module
+       share a schema: give one of them `module_name:` on its layouts, `use:`, and a `live_view` line.
+     - A resource created for an embedded field (`:<parent>__<field>`) generates no modules. The
+       `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent` modules are gone; nothing
+       rendered them.
+   ```
+
+##### guides/advanced/advanced_usage.md
+1. § Single vs Multiple Resources, sample **Single Schema with Multiple Representations** — replace the two lines
+   ```
+   @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+   @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
+   ```
+   with, verbatim:
+   ```
+   # In the admin view:
+   @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+
+   # In the customer view:
+   @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
+   ```
+   and insert this paragraph directly after the closing fence of that sample, followed by one blank line, verbatim:
+   ```
+   Both resources share the `Product` schema. A view that imports both gives one of them its own module names;
+   see [Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
+   ```
+2. § Introspecting generated UI modules — replace `exposes two introspection functions` with `exposes three introspection functions`, and append this list item after the `auix_configurations/0` item and its code block, verbatim:
+   ````markdown
+   - **`auix_modules/0`** — returns the generated and the imported modules by name: the module, its kind and the fields its layout places. `auix_module/1` returns one of them.
+
+     ```elixir
+     MyAppWeb.Products.Index.auix_modules()
+     ```
+   ````
+
+##### guides/core/components.md
+1. Introduction — replace the sentence `` `auix_create_ui` generates three LiveComponents for each resource, and one LiveView that hosts them: `` with `` `auix_create_ui` generates three LiveComponents for each resource, and one LiveView: ``, and replace the table row of `.Index` with, verbatim:
+   ```
+   | `.Index` | LiveView | Lists the records, owns the routes and opens the form and the show view in a modal |
+   ```
+2. § Inputs — replace the row of `resource` with `` | `resource` | all | A resource of the LiveView that renders the component, an atom. Defaults to the resource the module was generated for; see [Naming and reusing generated modules](#naming-and-reusing-generated-modules) | ``. Replace the row of `parent` with `` | `parent` | index | `{key, value}`: the owner key and its value, for a list of children | ``. Insert this row directly after the row of `page`: `` | `options` | index | A keyword list of index layout options for this instance | ``. Replace the paragraph that starts `An index instance may also override` with, verbatim:
+   ```
+   `options` overrides the index layout options (pagination, filters, selection, sort) for one instance. An
+   option it leaves out takes the value the layout declares.
+   ```
+3. § Outputs — replace the sentence `A component sends these in every host. It never patches, navigates or reads the URL.` with, verbatim:
+   ```
+   An embedded component sends these, and never patches, navigates or reads the URL. A form and a show view
+   opened by the generated `.Index` LiveView navigate under its routes instead.
+   ```
+4. § Events — replace the first two sentences of the section (from `Every event of a component carries` through `the index, the form and the show view.`) with, verbatim:
+   ```
+   Every event of an embedded component carries `phx-target`, so it never reaches the host LiveView.
+   `@auix._myself` holds the target in the index component, the form and the show view. It is `nil` in the
+   generated `.Index` LiveView, whose list events carry no target.
+   ```
+5. § Navigation — replace the first paragraph (it starts `A component does not know how it is used.`) and the second (it starts `` The generated `.Index` LiveView is one such parent. ``) with, verbatim:
+   ```
+   An embedded component does not know how it is used. It reports what the user asked for, and its parent
+   decides what that means: render a form, assign a selected record, change the URL, or nothing.
+
+   The generated `.Index` LiveView does not go through intents. The form and the show view it opens patch and
+   navigate under its routes, with the routing stack in `?routing_stack=`. Its URLs are the ones it always had.
+   `Aurora.Uix.Navigation` computes each path.
+   ```
+6. § Live updates — append to the paragraph that starts `` `on_mount Aurora.Uix.Live.ComponentHooks` does this ``, as its last sentence: `` The generated `.Index` LiveView subscribes on its own and does not use the hook. ``
+7. Insert a new section directly above `## One-to-many lists`, verbatim:
+   ````markdown
+   ## Naming and reusing generated modules
+
+   Every generated module has a name, an atom, in the module that declares it:
+
+   | Module | Default name | Named with |
+   |---|---|---|
+   | `.IndexComponent` | `:<schema>_index_component` | `module_name:` on `index_columns` |
+   | `.FormComponent` | `:<schema>_form_component` | `module_name:` on `edit_layout` |
+   | `.ShowComponent` | `:<schema>_show_component` | `module_name:` on `show_layout` |
+   | `.Index` | `:<schema>_index` | a `live_view` line |
+
+   `<schema>` is the last part of the schema module, in snake case. A name you give is also the last part of
+   the module:
+
+   ```elixir
+   auix_create_ui do
+     index_columns :product, [:reference, :name], module_name: :index_compact
+     live_view :product, module_name: :catalog
+   end
+
+   # MyAppWeb.ProductViews.Product.IndexCompact and MyAppWeb.ProductViews.Product.Catalog
+   ```
+
+   `auix_modules/0` returns the modules of a views module by name, the generated ones and the imported ones,
+   and `auix_module/1` returns one: the module, its kind and the fields its layout places.
+
+   A layout can take a component instead of generating one. `use:` names it; the line has no field list, no
+   block and no other option:
+
+   ```elixir
+   defmodule MyAppWeb.LocationViews do
+     use Aurora.Uix
+
+     alias MyAppWeb.ProductViews
+
+     @auix_resource_metadata %{product_compact: ProductViews.auix_resource(:product_compact)}
+     @auix_modules %{index_compact: ProductViews.auix_module(:index_compact)}
+
+     auix_create_ui do
+       index_columns :product_compact, use: :index_compact
+     end
+   end
+   ```
+
+   `@auix_modules` imports a module under a name of your choice. `use:` also takes a name declared in the same
+   views module. The component then serves the resource of the line: its kind must match the layout, and the
+   resource must have every field the component's layout places. The two resources may have different schemas.
+   A LiveView cannot be used this way.
+
+   A LiveView you write declares its pairings the same way, and generates nothing. With
+   `edit_layout :product, module_name: :reference_form` declared in `MyAppWeb.ProductViews`:
+
+   ```elixir
+   defmodule MyAppWeb.LocationLive do
+     use MyAppWeb, :live_view
+     use Aurora.Uix
+
+     alias MyAppWeb.ProductViews
+
+     @auix_resource_metadata %{product_location: ProductViews.auix_resource(:product_location)}
+     @auix_modules %{reference_form: ProductViews.auix_module(:reference_form)}
+
+     auix_create_ui generate: [] do
+       edit_layout :product_location, use: :reference_form
+     end
+
+     def render(assigns) do
+       ~H"""
+       <.live_component
+         module={auix_module(:reference_form).module}
+         id="location-form"
+         resource={:product_location}
+         entity_id={@id}
+       />
+       """
+     end
+   end
+   ```
+
+   The component looks `resource` up in the LiveView that renders it. It raises `ArgumentError` in three
+   cases: that LiveView has no `auix_create_ui`; it has no such resource; it pairs the resource with another
+   module. Without `resource` a component serves the resource it was generated for. A component keeps its
+   resource: give another resource a component with its own `id`.
+
+   Two generated modules with one name do not compile. This happens when two resources of a views module share
+   a schema; give one of them `module_name:`, `use:` and a `live_view` line. Two views modules that import from
+   each other do not compile either.
+
+   Route to a renamed LiveView with `live_view:`:
+
+   ```elixir
+   auix_live_resources("/catalog", MyAppWeb.ProductViews.Product, live_view: :catalog)
+   ```
+   ````
+8. § One-to-many lists — replace the first paragraph (it starts `A one-to-many field renders an`) with, verbatim:
+   ```
+   A one-to-many field renders an `IndexComponent` scoped to the parent record. In the generated LiveView it
+   looks and acts as before: its new, show and edit actions navigate to the child resource's routes. The list
+   has no filters, selection, sort and paging.
+   ```
+   and replace the `auix_create_ui do … end` block of the sample (its last four lines) with, verbatim:
+   ```
+   auix_create_ui do
+     index_columns :product_compact, [:reference, :name], module_name: :index_compact
+     edit_layout :product_compact, use: :product_form_component
+     show_layout :product_compact, use: :product_show_component
+     live_view :product_compact, module_name: :compact_products
+   end
+   ```
+   and insert this paragraph directly after the closing fence of the sample, verbatim:
+   ```
+   `:product` and `:product_compact` share a schema, so `:product_compact` names its index component and its
+   LiveView, and reuses the form and the show component of `:product`.
+   ```
+9. § Design decisions — replace item 3 and item 6 with, verbatim (the numbers stay):
+   ```
+   3. **Embedded components report, parents decide.** A component has no navigation mode. Embedded, it sends
+      intents and its parent decides. Opened by the generated `.Index` LiveView, a form and a show view
+      navigate under its routes.
+   ```
+   ```
+   6. **The LiveView owns the URL.** No embedded component reads or writes it, so any number of instances
+      share a page.
+   ```
+
+##### guides/core/liveview.md
+1. § Module Generation with `auix_create_ui` — in the fenced module tree, replace the line of `Overview.Product.Index` with, verbatim:
+   ```
+   ├── Overview.Product.Index            # LiveView - Lists the records, owns the routes
+   ```
+2. § Generated Module Structure — replace the list item that starts `- Holds the list state the Index LiveView delegates to it` with, verbatim:
+   ```
+   - Holds the state of an embedded list: streams, filters, sort, pagination and selection
+   ```
+3. § Using Generated Modules with Routes — append to the end of the section, after the `only:` / `except:` sample, preceded by one blank line, verbatim:
+   ````markdown
+   A LiveView renamed with a `live_view` line is routed with `live_view:`:
+
+   ```elixir
+   auix_live_resources("/catalog", Overview.Product, live_view: :catalog)
+   ```
+   ````
+4. § Specifying Handler Hooks in Layout DSL — append after the closing fence of the sample, preceded by one blank line, verbatim:
+   ```
+   `component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`. It implements
+   `Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`: `auix_update/2`, `auix_handle_event/3` and
+   `auix_handle_async/3`.
+   ```
+5. § Navigation — replace the paragraph that starts `The generated LiveView navigates with a patch` with, verbatim:
+   ```
+   The generated LiveView navigates with a patch for a change within the view, a navigate for another view,
+   and the routing stack in `?routing_stack=` so that back returns to where the user came from. An embedded
+   component never navigates: it reports to the LiveView that hosts it; see
+   [Reusable Components](components.md).
+   ```
+
+##### guides/whats_new/0.2.1.md
+1. Introduction — replace the sentence `0.2.1 has no breaking change.` with, verbatim:
+   ```
+   0.2.1 has two compile-time changes that can stop a module from compiling; see
+   [Upgrading from 0.2.0](#upgrading-from-0-2-0).
+   ```
+2. § Reusable components — replace the six list items (from the item that starts `` - The generated `Index` LiveView hosts `` through the item `` - A one-to-many list is an embedded `IndexComponent`. ``) with, verbatim:
+   ```
+   - The generated `Index` LiveView keeps its list, routes, handler hooks and modal.
+   - `generate:` on `auix_create_ui` chooses the kinds of module; leave out `:live_view` to get the components
+     alone.
+   - An embedded component never navigates. It tells its parent what the user asked for, and the parent decides.
+     `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView.
+   - Every generated module has a name: `module_name:` and `live_view` set it, `use:` takes a component
+     generated in another module. A LiveView you write declares the same pairing and gives the component its
+     `resource`.
+   - `on_mount Aurora.Uix.Live.ComponentHooks` keeps embedded components up to date with `Aurora.Uix.Events`.
+   - A one-to-many list is an embedded `IndexComponent`.
+   ```
+3. § Upgrading from 0.2.0 — replace the paragraph that starts `No change is required.` with, verbatim:
+   ```
+   Two cases need a change:
+
+   - A views module with two resources on one schema no longer compiles: their generated modules had the same
+     names, and one silently replaced the other. Give one resource `module_name:` on its layouts, `use:` and a
+     `live_view` line; see
+     [Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
+   - A resource created for an embedded field generates no modules. Remove any reference to
+     `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent`.
+
+   `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and `@auix[:index_new_link]` stay readable; a
+   handler that assigned one of them directly now changes navigation with `auix_route_forward/2` and
+   `auix_route_back/1`.
+   ```
+
+##### Unchanged on purpose
+1. `guides/advanced/advanced_usage.md § Single vs Multiple Resources`, sample **Multiple Schemas in Same Context**: its view imports `:product_admin` and `:category_admin`, which have different schemas, so no name collides. The samples of § Example Use Cases import one resource per view.
+2. `guides/core/liveview.md § Targeting the Component`: `@auix._myself` exists in the index after UI-7 (`nil` in the LiveView) and an untargeted event still reaches `auix_handle_event/3`.
+3. `guides/core/components.md § Embedding a component`, `§ Several instances on one page`, `§ Generating the components alone`: true after UI-7 and UI-8.
+4. `guides/core/components.md § Design decisions`, items 1, 2, 4 and 5: true after UI-9.
+5. `README.md`: `prepare-release` updates its What's New link.
+
+##### Acceptance criteria
+- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+      issue-link suffix (mechanical — no red test; verified by
+      `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+      (its AC ticks) (mechanical — no red test; verified by
+      `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
+      `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-458-enriched-spec.md`)
+- [ ] AC-3: `CHANGELOG.md § [0.2.1]` states both breaking changes under `### Changed` and no longer says the LiveView hosts the components (mechanical — no red test; verified by `grep -c 'Generated module names (breaking)' CHANGELOG.md` returning `1`, `grep -c 'silently replaced the first' CHANGELOG.md` returning `1`, `grep -c 'generates no modules' CHANGELOG.md` returning `1` and `grep -c 'LiveView hosts them' CHANGELOG.md` returning `0`)
+- [ ] AC-4: `guides/core/components.md` has the section Naming and reusing generated modules, and keeps the input `resource` (mechanical — no red test; verified by `grep -c '^## ' guides/core/components.md` returning `11`, `grep -c '^## Naming and reusing generated modules$' guides/core/components.md` returning `1` and `grep -c '^| `resource` | all | A resource of the LiveView that renders the component' guides/core/components.md` returning `1`)
+- [ ] AC-5: `guides/core/components.md` says an embedded component reports and the generated LiveView navigates, and promises no opt-in for one-to-many lists (mechanical — no red test; verified by `grep -c 'A component sends these in every host' guides/core/components.md` returning `0`, `grep -c 'is one such parent' guides/core/components.md` returning `0`, `grep -c 'unless the field turns them on' guides/core/components.md` returning `0` and `grep -c 'does not go through intents' guides/core/components.md` returning `1`)
+- [ ] AC-6: the one-to-many sample of `guides/core/components.md` names the modules of `:product_compact` (mechanical — no red test; verified by `grep -c 'live_view :product_compact, module_name: :compact_products' guides/core/components.md` returning `1` and `grep -c 'edit_layout :product_compact, use: :product_form_component' guides/core/components.md` returning `1`)
+- [ ] AC-7: `guides/core/liveview.md` documents `live_view:` on routes and `component_handler_module:`, and no longer says the Index LiveView delegates its list (mechanical — no red test; verified by `grep -c 'live_view: :catalog' guides/core/liveview.md` returning `1`, `grep -c 'component_handler_module:' guides/core/liveview.md` returning `1`, `grep -c 'delegates to it' guides/core/liveview.md` returning `0` and `grep -c 'Hosts the components' guides/core/liveview.md` returning `0`)
+- [ ] AC-8: `guides/whats_new/0.2.1.md` announces the two compile-time changes (mechanical — no red test; verified by `grep -c 'has no breaking change' guides/whats_new/0.2.1.md` returning `0`, `grep -c 'No change is required' guides/whats_new/0.2.1.md` returning `0` and `grep -c 'generates no modules' guides/whats_new/0.2.1.md` returning `1`)
+- [ ] AC-9: `guides/advanced/advanced_usage.md` imports the two product resources in two views and documents `auix_modules/0` (mechanical — no red test; verified by `grep -c '^# In the customer view:$' guides/advanced/advanced_usage.md` returning `1` and `grep -c 'auix_modules/0' guides/advanced/advanced_usage.md` returning `1`)
+- [ ] AC-10: `guides/core/components.md` shows a LiveView written by hand that declares a pairing and passes `resource` (mechanical — no red test; verified by `grep -c 'auix_create_ui generate: \[\] do' guides/core/components.md` returning `1`, `grep -c 'resource={:product_location}' guides/core/components.md` returning `1` and `grep -c 'A component keeps its resource' guides/core/components.md` returning `1`)
+
+##### Green checks
+1. `mix consistency` clean (code-issue); `mix test` — full suite green
+   (review-issue runs the suite)
+<!-- section:DOC-3:end -->
 
 ---
 
 ### Out of Scope
-- Steps 4–7 of the issue (standalone Form/Show that report intents, `.IndexComponent` and `IndexComponentImpl`, `Aurora.Uix.Live.ComponentHooks`, one-to-many through `.IndexComponent`, the `generate:` option) and step 8. They are added to this spec as new sections once UI-3 is merged. `DOC-1` already documents their contract.
-- The embedded-component and multiple-instance rows of the navigation test matrix. They need the components of steps 4 and 5.
-- A one-to-many field whose `resource:` names an alternate resource on the same schema. Its navigation test is added with step 6.
+- Step 8 of the issue: editing the children of a one-to-many list in place.
+- Filters, selection, sort and paging in a one-to-many list, and a field option that turns them on. The list ships with them off.
+- The generated `.Index` LiveView rendering `.IndexComponent` for its list, as the issue's decision 1 proposed. The LiveView keeps its own list state and runs the list engine of UI-6 itself, so `stream_insert/4` in an `IndexImpl` handler, `auix.load_items_options` and untargeted list events keep working.
+- Intents from a form and a show view opened by the generated `.Index` LiveView. They keep navigating in place; only embedded components report.
+- The `navigation: :url | :local` and `base_path` inputs of the issue. A component has no navigation mode.
+- A `views` input that names another module to resolve `resource` in. `resource` resolves in the LiveView that renders the component.
+- Changing the resource of a mounted component. An instance keeps the resource of its first update and raises for another one.
+- A new public function for a host to build a binding by hand. A host declares the pairing and passes `resource`.
+- Two embedded forms, and two embedded show views, of one resource on one page. Their inner DOM ids derive from the resource (`auix-<module>-form`). Several instances are supported for the index component.
+- `Aurora.Uix.Live.ComponentHooks` in the generated `.Index` LiveView, as the issue proposed. That LiveView subscribes on its own. Unregistering a component that left the page: LiveView ignores an update sent to it.
+- Two views modules that import generated modules from each other. They do not compile, as two modules that import resources from each other do not; UI-4 and DOC-3 document it.
+- Modules for a resource created for an embedded field. UI-4 removes them.
+- An Ash run of the list engine unit tests of UI-6 and of the hook tests of UI-8. Both are backend-agnostic; the Ash list behaviour is covered by the existing `ash_*` LiveView tests and by UI-7.
 - Direct load of a `/new` URL. `uri_path` keeps its `/new` suffix there today, so a save patches back to `/new`, and a new parent with a child list redirects to `/new/<id>/edit`. UI-1 does not assert that path, UI-3 reproduces today's parsing, and the fix belongs to a separate issue.
 - New tests for `guides/customization/*`. Custom actions, predefined renderers and theming keep their existing tests; a routing-component override has no navigation test.
 - An Ash run of the handler-hook tests of UI-2. The handler behaviours, event targets and message delivery they exercise are backend-agnostic.
