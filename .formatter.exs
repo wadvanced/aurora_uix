@@ -31,6 +31,7 @@ spark_locals_without_parens = [
   fields: 1,
   fields: 2,
   filterable?: 1,
+  generate: 1,
   generated?: 1,
   group: 1,
   group: 2,
@@ -42,6 +43,8 @@ spark_locals_without_parens = [
   index_columns: 2,
   index_columns: 3,
   index_columns: 4,
+  index_live: 1,
+  index_live: 2,
   index_renderer: 1,
   inline: 0,
   inline: 1,
@@ -49,6 +52,7 @@ spark_locals_without_parens = [
   label: 1,
   layout_opts: 1,
   length: 1,
+  module_name: 1,
   name: 1,
   omitted: 1,
   option: 2,
@@ -86,6 +90,7 @@ spark_locals_without_parens = [
   type: 1,
   upload: 0,
   upload: 1,
+  use: 1,
   where: 1
 ]
 
