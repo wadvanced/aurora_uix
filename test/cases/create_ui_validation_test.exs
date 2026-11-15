@@ -144,4 +144,229 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     assert %Node.Field{key: :reference, overrides: %{readonly: true}} = reference
     assert %Node.Field{key: :product_location_id, path: [:name]} = location
   end
+
+  test "every generated module has a registry entry" do
+    mod = compiled_ui("  auix_create_ui()\n")
+    form = Module.concat(mod, Product.FormComponent)
+    index = Module.concat(mod, Product.Index)
+
+    assert mod.auix_modules() == %{
+             product_form_component: form,
+             product_index: index,
+             product_show_component: Module.concat(mod, Product.ShowComponent)
+           }
+
+    assert mod.auix_module(:product_form_component) == form
+    assert mod.auix_module(:nope) == nil
+    assert form.auix_kind() == :form_component
+    assert :reference in form.auix_fields()
+    assert %Node.Form{resource: nil} = form.auix_layout()
+    assert index.auix_kind() == :index_live
+    assert index.auix_fields() == []
+    assert index.auix_layout() == nil
+  end
+
+  test "module_name names the component of its layout" do
+    mod =
+      compiled_ui("""
+        auix_create_ui do
+          edit_layout :product, module_name: :reference_form do
+            inline [:reference, :name]
+          end
+        end
+      """)
+
+    form = mod.auix_module(:reference_form)
+    assert form == Module.concat(mod, Product.ReferenceForm)
+    assert form.auix_fields() == [:reference, :name]
+    refute mod |> Module.concat(Product.FormComponent) |> Code.ensure_loaded?()
+  end
+
+  test "an index_live line names the live view" do
+    mod =
+      compiled_ui("""
+        auix_create_ui do
+          index_live :product, module_name: :catalog
+        end
+      """)
+
+    assert mod.auix_module(:catalog) == Module.concat(mod, Product.Catalog)
+    assert mod.auix_module(:catalog).auix_kind() == :index_live
+    refute mod |> Module.concat(Product.Index) |> Code.ensure_loaded?()
+  end
+
+  test "generate chooses the kinds of module" do
+    mod = compiled_ui("  auix_create_ui generate: [:form_component, :show_component]\n")
+
+    refute mod |> Module.concat(Product.Index) |> Code.ensure_loaded?()
+
+    assert Enum.all?(mod.auix_modules(), fn {_name, module} ->
+             module.auix_kind() != :index_live
+           end)
+  end
+
+  test "two resources on one schema need their own module names" do
+    body = """
+      auix_resource_metadata :product_compact,
+        context: Aurora.Uix.Guides.Inventory,
+        schema: Aurora.Uix.Guides.Inventory.Product
+
+      auix_create_ui()
+    """
+
+    assert_raise DslError, ~r/module name :product_form_component is taken more than once/, fn ->
+      compile(body)
+    end
+  end
+
+  test "two names for one module fail compilation" do
+    body = """
+      auix_resource_metadata :product_compact,
+        context: Aurora.Uix.Guides.Inventory,
+        schema: Aurora.Uix.Guides.Inventory.Product
+
+      auix_create_ui do
+        edit_layout :product_compact, module_name: :form_component do
+          inline [:name]
+        end
+
+        show_layout :product_compact, module_name: :compact_show do
+          inline [:name]
+        end
+
+        index_live :product_compact, module_name: :compact
+      end
+    """
+
+    assert_raise DslError, ~r/would be generated twice/, fn -> compile(body) end
+  end
+
+  test "use: rejects what it cannot take" do
+    assert_raise DslError, ~r/unknown module :nope in use:/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: :nope
+        end
+      """)
+    end
+
+    assert_raise DslError, ~r/use: :product_show_component names :show_component/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: :product_show_component
+        end
+      """)
+    end
+
+    assert_raise DslError, ~r/names :index_live/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: :product_index
+        end
+      """)
+    end
+
+    assert_raise DslError,
+                 ~r/unknown fields \[:description\] for resource :product_location in use:/,
+                 fn ->
+                   compile("""
+                     auix_resource_metadata :product_location,
+                       context: Aurora.Uix.Guides.Inventory,
+                       schema: Aurora.Uix.Guides.Inventory.ProductLocation
+
+                     auix_create_ui do
+                       edit_layout :product, module_name: :described do
+                         inline [:reference, :description]
+                       end
+
+                       edit_layout :product_location, use: :described
+                     end
+                   """)
+                 end
+
+    assert_raise DslError, ~r/unknown module Enum in use:/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: Enum
+        end
+      """)
+    end
+  end
+
+  test "use: takes no do block" do
+    assert_raise DslError, ~r/use: takes no do block/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: :product_form_component do
+            inline [:name]
+          end
+        end
+      """)
+    end
+  end
+
+  test "use: takes no other option" do
+    assert_raise DslError, ~r/use: takes no other option/, fn ->
+      compile("""
+        auix_create_ui do
+          edit_layout :product, use: :product_form_component, module_name: :other
+        end
+      """)
+    end
+  end
+
+  test "a live view needs its form and show components" do
+    assert_raise DslError,
+                 ~r/the live view of :product needs a form component and a show component/,
+                 fn -> compile("  auix_create_ui generate: [:index_live]\n") end
+  end
+
+  test "an embedded resource generates no modules" do
+    mod =
+      compiled_ui("""
+        auix_resource_metadata :user,
+          context: Aurora.Uix.Guides.Accounts,
+          schema: Aurora.Uix.Guides.Accounts.User
+
+        auix_create_ui()
+      """)
+
+    assert mod.auix_modules() |> Map.keys() |> Enum.sort() == [
+             :product_form_component,
+             :product_index,
+             :product_show_component,
+             :user_form_component,
+             :user_index,
+             :user_show_component
+           ]
+
+    refute mod |> Module.concat(Profile.Index) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Profile.FormComponent) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Profile.ShowComponent) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Email.Index) |> Code.ensure_loaded?()
+    assert Map.has_key?(mod.auix_configurations(), :user__profile)
+    assert Map.has_key?(mod.auix_configurations(), :user__emails)
+  end
+
+  test "an imported module must be a registry entry" do
+    assert_raise DslError,
+                 ~r/@auix_modules entry :reference_form is not a generated module/,
+                 fn ->
+                   compile("""
+                     @auix_modules %{reference_form: nil}
+
+                     auix_create_ui()
+                   """)
+                 end
+  end
+
+  @spec compiled_ui(binary()) :: module()
+  defp compiled_ui(body) do
+    {mod, _binary} =
+      body
+      |> compile()
+      |> Enum.find(fn {m, _} -> function_exported?(m, :auix_modules, 0) end)
+
+    mod
+  end
 end

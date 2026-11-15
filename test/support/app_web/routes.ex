@@ -513,6 +513,12 @@ defmodule Aurora.UixWeb.Test.Routes do
           NavigationTest.Product,
           except: [:new, :edit]
         )
+
+        RouteHelper.auix_live_resources(
+          "/named-modules-locations",
+          NamedModulesTest.ProductLocation,
+          index_live: :locations
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

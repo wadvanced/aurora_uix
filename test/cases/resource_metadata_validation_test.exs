@@ -69,4 +69,80 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataValidationTest do
       """)
     end
   end
+
+  test "a declared resource links its associations to imported resources" do
+    meta = compile_meta()
+
+    imports =
+      "@auix_resource_metadata %{product_transaction: #{inspect(meta)}.auix_resource(:product_transaction), product_location: #{inspect(meta)}.auix_resource(:product_location)}"
+
+    declare =
+      "auix_resource_metadata :catalog_product, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.Product"
+
+    for body <- [declare <> "\n" <> imports, imports <> "\n" <> declare] do
+      [{mod, _}] = compile(body)
+      fields = mod.auix_resource(:catalog_product).fields
+      assert fields.product_transactions.data.resource == :product_transaction
+      assert fields.product_location_id.data.resource == :product_location
+      assert fields.product_location_id.html_type == :select
+    end
+  end
+
+  test "a declared Ash resource links its associations to imported resources" do
+    meta = compile_meta()
+
+    [{mod, _}] =
+      compile("""
+        auix_resource_metadata :article, ash_resource: Aurora.Uix.Guides.Blog.Post
+        @auix_resource_metadata %{author: #{inspect(meta)}.auix_resource(:author)}
+      """)
+
+    assert mod.auix_resource(:article).fields.author.data.resource == :author
+  end
+
+  test "a declared resource wins, and a module without imports is unchanged" do
+    meta = compile_meta()
+
+    imports =
+      "@auix_resource_metadata %{product_transaction: #{inspect(meta)}.auix_resource(:product_transaction), product_location: #{inspect(meta)}.auix_resource(:product_location)}"
+
+    declare =
+      "auix_resource_metadata :catalog_product, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.Product"
+
+    local =
+      "auix_resource_metadata :local_location, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.ProductLocation"
+
+    [{local_mod, _}] = compile(Enum.join([imports, declare, local], "\n"))
+
+    assert local_mod.auix_resource(:catalog_product).fields.product_location_id.data.resource ==
+             :local_location
+
+    [{skipped_mod, _}] = compile("@auix_resource_metadata %{nope: nil}\n" <> declare)
+
+    assert skipped_mod.auix_resource(:catalog_product).fields.product_transactions.data.resource ==
+             nil
+
+    [{plain_mod, _}] = compile(declare)
+
+    assert plain_mod.auix_resource(:catalog_product).fields.product_transactions.data.resource ==
+             nil
+  end
+
+  @spec compile_meta() :: module()
+  defp compile_meta do
+    [{meta, _}] =
+      compile("""
+        auix_resource_metadata :product_transaction,
+          context: Aurora.Uix.Guides.Inventory,
+          schema: Aurora.Uix.Guides.Inventory.ProductTransaction
+
+        auix_resource_metadata :product_location,
+          context: Aurora.Uix.Guides.Inventory,
+          schema: Aurora.Uix.Guides.Inventory.ProductLocation
+
+        auix_resource_metadata :author, ash_resource: Aurora.Uix.Guides.Blog.Author
+      """)
+
+    meta
+  end
 end
