@@ -22,6 +22,7 @@ defmodule Aurora.Uix.RouteHelper do
   - `opts` (Keyword.t()) - Options:
     * `:only` (list(atom())) - Generate only the specified actions. Valid actions: `:index`, `:new`, `:edit`, `:show`, `:show_edit`.
     * `:except` (list(atom())) - Exclude the specified actions from generation.
+    * `:index_live` (atom()) - The name given to the LiveView with an `index_live` line. Defaults to `:index`.
 
   ## Returns
   Macro.t() - Quoted expression expanding to `live/3` route definitions.
@@ -59,30 +60,44 @@ defmodule Aurora.Uix.RouteHelper do
   live "/users/:id/show", MyApp.UserLive.Index, :show
   live "/users/:id/show-edit", MyApp.UserLive.Index, :show_edit
   ```
+
+  Route to a LiveView named with `index_live :user, module_name: :compact_products`:
+  ```elixir
+  auix_live_resources("/users", MyApp.UserLive, index_live: :compact_products)
+
+  # Expands to:
+  live "/users", MyApp.UserLive.CompactProducts, :index
+  live "/users/new", MyApp.UserLive.CompactProducts, :new
+  live "/users/:id/edit", MyApp.UserLive.CompactProducts, :edit
+  live "/users/:id/show", MyApp.UserLive.CompactProducts, :show
+  live "/users/:id/show-edit", MyApp.UserLive.CompactProducts, :show_edit
+  ```
   """
   @spec auix_live_resources(binary(), module(), keyword()) :: Macro.t()
   defmacro auix_live_resources(path, module, opts \\ []) do
+    index_live = opts |> Keyword.get(:index_live, :index) |> index_live_alias(module)
+
     quotes =
       [
         {:index,
          quote do
-           live("#{unquote(path)}", unquote(module).Index, :index)
+           live("#{unquote(path)}", unquote(index_live), :index)
          end},
         {:new,
          quote do
-           live("#{unquote(path)}/new", unquote(module).Index, :new)
+           live("#{unquote(path)}/new", unquote(index_live), :new)
          end},
         {:edit,
          quote do
-           live("#{unquote(path)}/:id/edit", unquote(module).Index, :edit)
+           live("#{unquote(path)}/:id/edit", unquote(index_live), :edit)
          end},
         {:show,
          quote do
-           live("#{unquote(path)}/:id/show", unquote(module).Index, :show)
+           live("#{unquote(path)}/:id/show", unquote(index_live), :show)
          end},
         {:show_edit,
          quote do
-           live("#{unquote(path)}/:id/show-edit", unquote(module).Index, :show_edit)
+           live("#{unquote(path)}/:id/show-edit", unquote(index_live), :show_edit)
          end}
       ]
       |> filter_only(opts[:only])
@@ -95,6 +110,14 @@ defmodule Aurora.Uix.RouteHelper do
   end
 
   ## PRIVATE
+
+  # The same alias `unquote(module).Index` builds, for a LiveView of any name.
+  @spec index_live_alias(atom(), Macro.t()) :: Macro.t()
+  defp index_live_alias(name, module) when is_atom(name) do
+    {:__aliases__, [alias: false],
+     [module, name |> Atom.to_string() |> Macro.camelize() |> String.to_atom()]}
+  end
+
   @spec filter_only(list(), list() | nil) :: list()
   defp filter_only(quotes, only) when is_list(only),
     do: Enum.filter(quotes, &(elem(&1, 0) in only))

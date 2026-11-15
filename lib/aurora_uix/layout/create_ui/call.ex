@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Call do
 
   ## Key Constraints
   - `layout_opts` holds the options given before a block. `renderers`,
-    `default_fields_layout` and `include` hold the options of a call without a block.
+    `default_fields_layout`, `include` and `generate` hold the options of a call without a block.
   """
 
   defstruct kind: nil,
@@ -16,7 +16,9 @@ defmodule Aurora.Uix.Layout.CreateUI.Call do
             renderers: nil,
             default_fields_layout: nil,
             include: nil,
+            generate: nil,
             children: [],
+            index_lives: [],
             __spark_metadata__: nil
 
   @type t() :: %__MODULE__{
@@ -25,7 +27,9 @@ defmodule Aurora.Uix.Layout.CreateUI.Call do
           renderers: map() | nil,
           default_fields_layout: :stacked | :inline | nil,
           include: module() | [module()] | nil,
+          generate: [atom()] | nil,
           children: [Aurora.Uix.Layout.Node.layout()],
+          index_lives: [Aurora.Uix.Layout.CreateUI.IndexLive.t()],
           __spark_metadata__: term()
         }
 end

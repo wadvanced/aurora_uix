@@ -41,7 +41,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
-  alias Aurora.Uix.Templates.Basic.ModulesGenerator
   alias Aurora.Uix.Templates.Basic.Renderer
   alias Aurora.Uix.Templates.ThemeHelper
 
@@ -231,8 +230,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec auix_mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def auix_mount(params, _session, %{assigns: %{auix: auix}} = socket) do
-    form_component = ModulesGenerator.module_name(auix, ".FormComponent")
-    show_component = ModulesGenerator.module_name(auix, ".ShowComponent")
+    form_component = auix.artifacts.form_component
+    show_component = auix.artifacts.show_component
 
     index_form_id = "auix-index-form-#{auix.module}-#{auix.layout_type}"
 
@@ -1392,15 +1391,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @spec assign_live_component(Socket.t()) :: Socket.t()
   defp assign_live_component(%{assigns: %{auix: auix, live_action: :show}} = socket) do
-    auix
-    |> ModulesGenerator.module_name(".ShowComponent")
-    |> then(&assign_auix(socket, :live_component, &1))
+    socket
+    |> assign_auix(:live_component, auix.artifacts.show_component)
+    |> assign_auix(:live_component_binding, live_component_binding(auix, :show_component, :show))
   end
 
   defp assign_live_component(%{assigns: %{auix: auix}} = socket) do
-    auix
-    |> ModulesGenerator.module_name(".FormComponent")
-    |> then(&assign_auix(socket, :live_component, &1))
+    socket
+    |> assign_auix(:live_component, auix.artifacts.form_component)
+    |> assign_auix(:live_component_binding, live_component_binding(auix, :form_component, :form))
+  end
+
+  # A component this module generated already holds these options.
+  @spec live_component_binding(map(), atom(), :form | :show) :: map()
+  defp live_component_binding(%{used: used} = auix, kind, layout_type) do
+    if kind in used,
+      do: BasicHelpers.component_binding(auix.configurations, auix.resource_name, layout_type),
+      else: %{}
   end
 
   @spec update_filter(Socket.t(), binary(), map()) :: Socket.t()

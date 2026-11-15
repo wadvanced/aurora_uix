@@ -4,7 +4,8 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
 
   ## Key Features
   - `section/0` is the top-level section holding `auix_create_ui` and `auix_create_layout`, with
-    the layouts (`index_columns`, `edit_layout`, `show_layout`), the sub-layouts (`inline`,
+    the layouts (`index_columns`, `edit_layout`, `show_layout`), the `index_live` lines of
+    `auix_create_ui`, the sub-layouts (`inline`,
     `stacked`, `group`, `sections`, `section`) and `field` nested in them.
   - Every layout entity builds its `Aurora.Uix.Layout.Node` struct directly. `build_node/1`, the
     transform of every layout entity, validates the node's fields and options and puts them in
@@ -24,6 +25,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.CreateUI.Call
+  alias Aurora.Uix.Layout.CreateUI.IndexLive
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.Options
   alias Aurora.Uix.Layout.ResourceMetadata.Dsl, as: ResourceMetadataDsl
@@ -79,6 +81,10 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
       type: {:or, [:atom, {:list, :atom}]},
       doc:
         "Modules whose layouts (`auix_layouts/0`) this call uses. The module's own layouts replace included ones for the same resource and layout type."
+    ],
+    generate: [
+      type: {:list, {:in, [:index_live, :form_component, :show_component]}},
+      doc: "The kinds of module to generate. Defaults to all of them."
     ]
   ]
 
@@ -201,7 +207,13 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     transform: {__MODULE__, :build_node, []},
     schema: [
       resource: [type: :atom, required: true, doc: "The resource."],
-      layout_opts: [type: :keyword_list, default: [], as: :options, doc: "Layout options."]
+      layout_opts: [type: :keyword_list, default: [], as: :options, doc: "Layout options."],
+      module_name: [type: :atom, doc: "Names the generated component."],
+      use: [
+        type: :atom,
+        doc:
+          "Takes a component instead of generating one: a name of the registry or a generated module. No block, no other option."
+      ]
     ]
   }
 
@@ -215,6 +227,17 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
 
   @layouts [@index_columns, @edit_layout, @show_layout]
 
+  @index_live %Entity{
+    name: :index_live,
+    describe: "Names the LiveView of a resource.",
+    target: IndexLive,
+    args: [:resource],
+    schema: [
+      resource: [type: :atom, required: true, doc: "The resource."],
+      module_name: [type: :atom, required: true, doc: "The name of the LiveView."]
+    ]
+  }
+
   # Without a block, keyword options reach the entity as options rather than as `layout_opts`.
   # `for` is left out there: an option named after a special form can't be imported.
   @create_ui %Entity{
@@ -222,7 +245,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     describe: "Generates the index, form and show LiveViews of the module's resources.",
     target: Call,
     args: [{:optional, :layout_opts, []}],
-    entities: [children: @layouts],
+    entities: [children: @layouts, index_lives: [@index_live]],
     auto_set_fields: [kind: :auix_create_ui],
     schema: [
       {:layout_opts, [type: :keyword_list, keys: @ui_schema, default: [], doc: "Options."]}
@@ -312,8 +335,14 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     layout_type = if module == Node.Form, do: :form, else: :show
 
     with :ok <- reject_sections_entries(layout.children),
-         {:ok, container} <- container_opts(layout.options, layout_type) do
-      {:ok, struct(layout, container)}
+         {:ok, container} <- container_opts(layout.options, layout_type),
+         :ok <- validate_naming(layout, container) do
+      {:ok,
+       struct(layout, %{
+         container
+         | module_name: container.module_name || layout.module_name,
+           use: layout.use
+       })}
     end
   end
 
@@ -411,6 +440,8 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
        %{
          renderers: typed[:renderers],
          handler_module: typed[handler_key],
+         module_name: typed[:module_name],
+         use: typed[:use],
          order_by: typed[:order_by],
          where: typed[:where],
          actions: actions,
@@ -446,7 +477,16 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
 
   @spec typed_keys(atom(), atom()) :: [atom()]
   defp typed_keys(:index, handler_key), do: [:renderers, :order_by, :where, handler_key]
-  defp typed_keys(_layout_type, handler_key), do: [:renderers, handler_key]
+  defp typed_keys(_layout_type, handler_key), do: [:renderers, :module_name, :use, handler_key]
+
+  @spec validate_naming(Node.layout(), map()) :: :ok | {:error, binary()}
+  defp validate_naming(layout, %{use: nil}), do: validate_use_options(layout)
+  defp validate_naming(_layout, _container), do: {:error, "use: takes no do block"}
+
+  @spec validate_use_options(Node.layout()) :: :ok | {:error, binary()}
+  defp validate_use_options(%{use: nil}), do: :ok
+  defp validate_use_options(%{module_name: nil}), do: :ok
+  defp validate_use_options(_layout), do: {:error, "use: takes no other option"}
 
   # A form layout also used as the show layout carries the show's handler module.
   @spec option_names(atom()) :: [atom()]

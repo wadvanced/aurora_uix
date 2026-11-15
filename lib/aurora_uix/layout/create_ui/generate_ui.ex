@@ -48,7 +48,10 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
         requires = Enum.map(includes, &quote(do: require(unquote(&1))))
 
         module
-        |> CreateUI.ui_code(layouts, resources, opts)
+        |> CreateUI.ui_code(layouts, resources, opts, %{
+          index_lives: ui.index_lives,
+          imported: imported_modules(module)
+        })
         |> then(&{:ok, Transformer.eval(dsl_state, [], [requires, &1])})
 
       _several ->
@@ -65,6 +68,14 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
 
   defp layouts_only(layouts, dsl_state),
     do: {:ok, Transformer.eval(dsl_state, [], CreateUI.layouts_code(layouts))}
+
+  # The modules a module imports by writing `@auix_modules` by hand.
+  @spec imported_modules(module()) :: map()
+  defp imported_modules(module) do
+    module
+    |> Module.get_attribute(:auix_modules, [])
+    |> Enum.reduce(%{}, &Map.merge(&2, &1))
+  end
 
   # The declared resources, plus any a module writes to `@auix_resource_metadata` by hand.
   @spec resources(map(), module()) :: map()

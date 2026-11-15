@@ -29,6 +29,7 @@ defmodule Aurora.Uix.Resource do
   - `resolved?` (`boolean`) - `false` while the resource is only declared; `true` once
     `resolve/1` has filled the defaults (`type: :ctx`) and resolved every field. Resolution
     in `Aurora.Uix.Layout.ResourceMetadata` sets it after parsing the schema.
+  - `embedded?` (`boolean`) - `true` for a resource the library created for an embedded field.
 
   ## Key Features
   - Gives each resource option its own key; only backend-owned options share a keyword list.
@@ -59,6 +60,7 @@ defmodule Aurora.Uix.Resource do
     fields: %{},
     fields_order: [],
     resolved?: false,
+    embedded?: false,
     __spark_metadata__: nil
   ]
 
@@ -78,6 +80,7 @@ defmodule Aurora.Uix.Resource do
           fields: %{optional(atom() | tuple()) => Field.t()},
           fields_order: list(),
           resolved?: boolean(),
+          embedded?: boolean(),
           __spark_metadata__: term()
         }
 

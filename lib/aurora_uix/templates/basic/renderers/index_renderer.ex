@@ -138,13 +138,13 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             action={@live_action}
             {BasicHelpers.actor_assign_prop(@auix, assigns)}
             auix={
-              %{entity: @auix.entity,
+              Map.merge(Map.get(@auix, :live_component_binding, %{}), %{entity: @auix.entity,
                 routing_stack: @auix.routing_stack,
                 uri_path: @auix.uri_path,
                 _close_path: @auix[:_current_path],
                 one_to_many_related_key: @auix[:one_to_many_related_key],
                 pagination: @auix.pagination,
-                item_index: @auix.item_index}
+                item_index: @auix.item_index})
             }
           />
         </div>

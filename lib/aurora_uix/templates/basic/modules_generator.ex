@@ -10,9 +10,11 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   and ShowGenerator.
   """
 
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Templates.Basic.Generators.FormGenerator
   alias Aurora.Uix.Templates.Basic.Generators.IndexGenerator
   alias Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator
+  alias Aurora.Uix.Templates.Basic.Helpers
   require Logger
 
   @doc """
@@ -83,6 +85,35 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
     |> Map.get(:fields, %{})
     |> Enum.reject(& &1.omitted)
     |> then(&Map.put(parsed_options, :fields, &1))
+  end
+
+  @doc """
+  Returns the options a form or show component runs with: the omitted fields removed and
+  `one2many_rendered?` set.
+
+  ## Parameters
+  - `parsed_opts` (map()) - Generation options with `fields` and `layout_tree`.
+
+  ## Returns
+  `map()` - The options, with `one2many_rendered?` telling whether the layout places a
+  one-to-many field.
+  """
+  @spec component_opts(map()) :: map()
+  def component_opts(parsed_opts) do
+    cleaned_parsed_opts = remove_omitted_fields(parsed_opts)
+
+    one2many_preload =
+      cleaned_parsed_opts
+      |> Helpers.extract_association_preload()
+      |> Map.get(:one_to_many_association, [])
+
+    one2many_rendered? =
+      cleaned_parsed_opts
+      |> Map.get(:layout_tree)
+      |> Node.fields()
+      |> Enum.any?(&(&1.key in one2many_preload))
+
+    Map.put(cleaned_parsed_opts, :one2many_rendered?, one2many_rendered?)
   end
 
   @doc """

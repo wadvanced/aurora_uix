@@ -78,6 +78,31 @@ defmodule Aurora.Uix.Layout.CreateUI do
   The resource metadata field options, plus `order_by` and `where` for one-to-many fields and
   the action options of association fields.
 
+  ## Generated modules
+
+  Every generated module is a named artifact. By default the LiveView of a resource is named
+  `:<schema>_index`, and its components `:<schema>_form_component` and
+  `:<schema>_show_component`, where `<schema>` is the underscored last segment of the schema
+  module. `module_name:` on `edit_layout` and `show_layout` names the generated component, and
+  is the last segment of the module as given. An `index_live resource, module_name: name` line
+  names the LiveView.
+
+  `edit_layout resource, use: name` (or `show_layout`) takes a component instead of generating
+  one. `name` is a name of the registry, or a generated module itself: the value
+  `auix_module/1` of another module returns. It checks that the name exists, that it names a
+  component of the layout's kind, and that the resource has every field its layout places. A
+  module imports modules of another one with
+  `@auix_modules %{name => OtherViews.auix_module(:their_name)}`; `auix_modules/0` maps the
+  names of the generated and the imported modules to the modules, and `auix_module/1` returns
+  one of them by name.
+
+  Every generated module exposes `auix_kind/0`, `auix_fields/0` (the keys of the fields its
+  layout places) and `auix_layout/0` (the layout it was generated from).
+
+  `generate:` chooses the kinds of module to generate (`:index_live`, `:form_component`,
+  `:show_component`). `generate: []` with `use:` lines suits a module that only declares
+  pairings, a LiveView written by hand included.
+
   ## Key Features
   - Compile-time validation of fields and options, with the offending line.
   - Generates the LiveView modules, plus `auix_layouts/0`, `auix_configurations/0` and
@@ -88,6 +113,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - A field list holding only `key: options` pairs or association paths is read as options;
     write those fields with `field` in a block.
   - One `auix_create_ui` per module, and one layout per resource and layout type in it.
+  - Two generated modules with one name, or two names for one module, do not compile.
+  - A resource created for an embedded field generates no modules.
+  - Two modules that import from each other do not compile.
   """
 
   use Spark.Dsl.Extension,
@@ -96,6 +124,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Field
+  alias Aurora.Uix.Layout.Artifacts
   alias Aurora.Uix.Layout.CreateUI.Call
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.RenderTree
@@ -179,7 +208,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec ui_opts(Call.t()) :: keyword()
   def ui_opts(%Call{} = call) do
     call
-    |> Map.take([:renderers, :default_fields_layout, :include])
+    |> Map.take([:renderers, :default_fields_layout, :include, :generate])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> then(&Keyword.merge(call.layout_opts, &1))
   end
@@ -219,20 +248,42 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - `declared_layouts` ([Node.layout()]) - The layouts.
   - `resources` (map()) - The resolved resources by name.
   - `opts` (keyword()) - The `auix_create_ui` options.
+  - `artifacts` (map()) - `index_lives`, the `index_live` lines of the call, and `imported`,
+    the modules the module imports with `@auix_modules`.
 
   ## Returns
-  `Macro.t()` - The generated LiveView modules and `auix_layouts/0`, `auix_configurations/0` and
-  `auix_preloads/0`.
+  `Macro.t()` - The generated LiveView modules and `auix_layouts/0`, `auix_configurations/0`,
+  `auix_preloads/0`, `auix_modules/0` and `auix_module/1`.
   """
-  @spec ui_code(module(), [Node.layout()], map(), keyword()) :: Macro.t()
-  def ui_code(module, declared_layouts, resources, opts) do
-    configurations =
+  @spec ui_code(module(), [Node.layout()], map(), keyword(), map()) :: Macro.t()
+  def ui_code(module, declared_layouts, resources, opts, artifacts) do
+    resources =
       resources
       |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end)
       |> filter_resources(opts[:for])
+      |> Map.new()
+
+    layouts =
+      Map.new(resources, fn {name, _resource} ->
+        {name, resource_layouts(declared_layouts, name)}
+      end)
+
+    plan =
+      Artifacts.plan(%{
+        caller: module,
+        resources: resources,
+        layouts: layouts,
+        index_lives: artifacts.index_lives,
+        imported: artifacts.imported,
+        generate: Keyword.get(opts, :generate, Artifacts.kinds()),
+        opts: opts
+      })
+
+    configurations =
+      resources
       |> Enum.reduce(
         [],
-        &[build_configurations(module, &1, declared_layouts, opts) | &2]
+        &[build_configurations(module, &1, plan, opts) | &2]
       )
       |> Enum.reject(&is_nil/1)
       |> Map.new()
@@ -251,6 +302,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
       unquote(modules)
 
       unquote(layouts_code(declared_layouts))
+
+      unquote(Artifacts.functions_code(plan.modules))
 
       @doc false
       @spec auix_configurations() :: map()
@@ -346,12 +399,19 @@ defmodule Aurora.Uix.Layout.CreateUI do
     )
   end
 
+  @spec resource_layouts([Node.layout()], atom()) :: map()
+  defp resource_layouts(declared_layouts, name) do
+    declared_layouts
+    |> Enum.filter(&(&1.resource == name))
+    |> Map.new(&{layout_type(&1), &1})
+  end
+
   # Builds the configuration for a single resource.
-  @spec build_configurations(module(), {atom(), map()}, list(), keyword()) :: map() | nil
+  @spec build_configurations(module(), {atom(), map()}, map(), keyword()) :: map() | nil
   defp build_configurations(
          caller,
          {resource_config_name, resource_config},
-         declared_layouts,
+         plan,
          opts
        ) do
     resource_module = Map.get(resource_config, :schema)
@@ -368,11 +428,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
       layout_tags = Module.get_attribute(caller, :auix_layout_tags)
 
-      layouts =
-        declared_layouts
-        |> Enum.filter(&(&1.resource == resource_config_name))
-        |> Map.new(&{layout_type(&1), &1})
-        |> put_missing_show()
+      layouts = Map.fetch!(plan.layouts, resource_config_name)
 
       layout_trees =
         Map.new(layout_tags, fn tag ->
@@ -400,15 +456,29 @@ defmodule Aurora.Uix.Layout.CreateUI do
         end)
 
       {resource_config_name,
-       %{
-         resource_config_name: resource_config_name,
-         resource_config: resource_config,
-         layout_tags: layout_tags,
-         parsed_opts: parsed_opts,
-         layout_trees: layout_trees,
-         template: template,
-         html_type_renderers: html_type_renderers
-       }}
+       Map.merge(
+         %{
+           resource_config_name: resource_config_name,
+           resource_config: resource_config,
+           layout_tags: layout_tags,
+           parsed_opts: parsed_opts,
+           layout_trees: layout_trees,
+           template: template,
+           html_type_renderers: html_type_renderers,
+           modules: %{
+             caller: caller,
+             module: resource_module,
+             web: find_web_module(caller),
+             context: resource_config.context
+           }
+         },
+         Map.get(plan.resolved, resource_config_name, %{
+           artifacts: %{index_live: nil, form_component: nil, show_component: nil},
+           used: [],
+           generate: [],
+           exposed_layouts: %{}
+         })
+       )}
     end
   end
 
@@ -416,20 +486,6 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp layout_type(%Node.Index{}), do: :index
   defp layout_type(%Node.Form{}), do: :form
   defp layout_type(%Node.Show{}), do: :show
-
-  # Without a show layout, the show view reuses the form layout and its `show_handler_module`.
-  @spec put_missing_show(map()) :: map()
-  defp put_missing_show(%{show: _show} = layouts), do: layouts
-
-  defp put_missing_show(%{form: form} = layouts) do
-    form
-    |> Map.from_struct()
-    |> Map.put(:handler_module, Keyword.get(form.options, :show_handler_module))
-    |> then(&struct(Node.Show, &1))
-    |> then(&Map.put(layouts, :show, &1))
-  end
-
-  defp put_missing_show(layouts), do: layouts
 
   # Builds the resource-specific layouts.
   @spec build_resource_layouts(tuple(), map(), module()) :: list()
@@ -440,40 +496,53 @@ defmodule Aurora.Uix.Layout.CreateUI do
             layout_tags: layout_tags,
             parsed_opts: parsed_opts,
             layout_trees: layout_trees,
-            template: template
+            template: template,
+            modules: modules,
+            artifacts: artifacts,
+            used: used,
+            generate: generate,
+            exposed_layouts: exposed_layouts
           }},
          configurations,
-         caller
+         _caller
        ) do
-    web = find_web_module(caller)
-
-    resource_module = Map.get(resource_config, :schema)
-
-    modules = %{
-      caller: caller,
-      module: resource_module,
-      web: web,
-      context: resource_config.context
-    }
-
     Enum.each(modules, fn {_, module} -> Code.ensure_compiled(module) end)
 
-    Enum.reduce(
-      layout_tags,
-      [],
-      &[
-        generate_module(
-          %{modules: modules, layout_type: &1, layout_tree: Map.fetch!(layout_trees, &1)},
-          configurations,
-          parsed_opts,
-          template
-        )
-        | &2
-      ]
-    )
+    if resource_config.embedded? do
+      []
+    else
+      layout_tags
+      |> Enum.filter(&generate_tag?(&1, generate))
+      |> Enum.reduce(
+        [],
+        &[
+          generate_module(
+            %{
+              modules: modules,
+              layout_type: &1,
+              layout_tree: Map.fetch!(layout_trees, &1),
+              artifacts: artifacts,
+              used: used,
+              generate: generate,
+              exposed_layouts: exposed_layouts
+            },
+            configurations,
+            parsed_opts,
+            template
+          )
+          | &2
+        ]
+      )
+    end
   end
 
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
+
+  @spec generate_tag?(atom(), [atom()]) :: boolean()
+  defp generate_tag?(:index, generate), do: :index_live in generate
+  defp generate_tag?(:form, generate), do: :form_component in generate
+  defp generate_tag?(:show, generate), do: :show_component in generate
+  defp generate_tag?(_tag, _generate), do: true
 
   # Generates a single UI module.
   @spec generate_module(map(), map(), map(), module()) :: Macro.t()
@@ -484,6 +553,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
     |> Map.put(:layout_tree, layout.layout_tree)
     |> Map.put(:resource_name, layout.layout_tree.resource)
     |> Map.put(:layout_type, layout.layout_type)
+    |> Map.put(:artifacts, layout.artifacts)
+    |> Map.put(:used, layout.used)
+    |> Map.put(:generate, layout.generate)
+    |> Map.put(:exposed_layouts, layout.exposed_layouts)
     |> then(&template.generate_module(&1))
   end
 

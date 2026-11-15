@@ -38,6 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Navigation
   alias Aurora.Uix.Stack
+  alias Aurora.Uix.Templates.Basic.ModulesGenerator
 
   alias Phoenix.LiveView.Socket
 
@@ -292,6 +293,38 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     |> Map.get(:auix, %{})
     |> then(&Map.merge(parsed_opts, &1))
     |> then(&assign(socket, :auix, &1))
+  end
+
+  @doc """
+  Returns the options a component runs with to serve a resource of the module whose
+  `auix_configurations/0` returned `configurations`.
+
+  The generated LiveView passes them to a component it takes with `use:`, so the component
+  renders and saves the LiveView's resource.
+
+  ## Parameters
+  - `configurations` (map()) - The `auix_configurations/0` of the declaring module.
+  - `resource_name` (atom()) - The resource the component serves.
+  - `layout_type` (:form | :show) - The layout type of the component.
+
+  ## Returns
+  `map()` - The resource's parsed options with `modules`, `artifacts`, `used`, `generate`,
+  `configurations`, `resource_name`, `layout_type` and `layout_tree`. Raises `KeyError` for a
+  resource the configurations lack.
+  """
+  @spec component_binding(map(), atom(), :form | :show) :: map()
+  def component_binding(configurations, resource_name, layout_type) do
+    configuration = Map.fetch!(configurations, resource_name)
+
+    configuration.parsed_opts
+    |> Map.merge(Map.take(configuration, [:modules, :artifacts, :used, :generate]))
+    |> Map.merge(%{
+      configurations: configurations,
+      resource_name: resource_name,
+      layout_type: layout_type,
+      layout_tree: Map.fetch!(configuration.layout_trees, layout_type)
+    })
+    |> ModulesGenerator.component_opts()
   end
 
   @doc """

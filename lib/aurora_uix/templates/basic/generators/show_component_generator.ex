@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Layout.Node
+  alias Aurora.Uix.Layout.Artifacts
   alias Aurora.Uix.Templates.Basic.Handlers.ShowComponent, as: ShowComponentHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -30,31 +30,23 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_type: :show} = parsed_opts) do
-    cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
+    parsed_opts = parsed_opts |> Artifacts.put_defaults() |> ModulesGenerator.component_opts()
 
-    show_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".ShowComponent")
-    handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, ShowComponentHandler)
-
-    one2many_preload =
-      cleaned_parsed_opts
-      |> Helpers.extract_association_preload()
-      |> Map.get(:one_to_many_association, [])
-
-    one2many_rendered? =
-      cleaned_parsed_opts
-      |> Map.get(:layout_tree)
-      |> Node.fields()
-      |> Enum.filter(&(&1.key in one2many_preload))
-      |> Enum.empty?()
-      |> Kernel.not()
-
-    parsed_opts = Map.put(cleaned_parsed_opts, :one2many_rendered?, one2many_rendered?)
+    show_component = parsed_opts.artifacts.show_component
+    handler_module = ModulesGenerator.handler_module(parsed_opts, ShowComponentHandler)
 
     quote do
       defmodule unquote(show_component) do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_component
+
+        unquote(
+          Artifacts.module_code(
+            :show_component,
+            Map.fetch!(parsed_opts.exposed_layouts, :show_component)
+          )
+        )
 
         @impl true
         def update(%{auix: %{entity: entity, routing_stack: routing_stack}} = assigns, socket) do

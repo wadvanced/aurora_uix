@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Layout.Node
+  alias Aurora.Uix.Layout.Artifacts
   alias Aurora.Uix.Templates.Basic.Handlers.Form, as: FormHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -32,10 +32,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_type: :form} = parsed_opts) do
-    cleaned_parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
+    parsed_opts = parsed_opts |> Artifacts.put_defaults() |> ModulesGenerator.component_opts()
 
     field_labels =
-      cleaned_parsed_opts
+      parsed_opts
       |> Map.get(:fields, [])
       |> Enum.map(& &1.label)
       |> Enum.filter(&is_binary/1)
@@ -61,23 +61,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
         quote do: nil
       end
 
-    form_component = ModulesGenerator.module_name(cleaned_parsed_opts, ".FormComponent")
-    handler_module = ModulesGenerator.handler_module(cleaned_parsed_opts, FormHandler)
-
-    one2many_preload =
-      cleaned_parsed_opts
-      |> Helpers.extract_association_preload()
-      |> Map.get(:one_to_many_association, [])
-
-    one2many_rendered? =
-      cleaned_parsed_opts
-      |> Map.get(:layout_tree)
-      |> Node.fields()
-      |> Enum.filter(&(&1.key in one2many_preload))
-      |> Enum.empty?()
-      |> Kernel.not()
-
-    parsed_opts = Map.put(cleaned_parsed_opts, :one2many_rendered?, one2many_rendered?)
+    form_component = parsed_opts.artifacts.form_component
+    handler_module = ModulesGenerator.handler_module(parsed_opts, FormHandler)
 
     quote do
       defmodule unquote(form_component) do
@@ -85,6 +70,13 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
 
         use unquote(parsed_opts.modules.web), :live_component
         use Aurora.Uix.GettextResolver
+
+        unquote(
+          Artifacts.module_code(
+            :form_component,
+            Map.fetch!(parsed_opts.exposed_layouts, :form_component)
+          )
+        )
 
         unquote(extract_function)
 
