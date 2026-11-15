@@ -14,7 +14,7 @@ This spec covers the whole epic: the documented component contract, the test sui
 | UI-2 | UI | handlers · handler-hook tests for the documented callbacks, in the existing `handler_hooks_*` test files (no library change) | DOC-1 | federico/458-ui-2-compatibility-suite | test: cover the documented handler hooks (#458 · UI-2) |
 | UI-3 | UI | handlers · extract `Aurora.Uix.Navigation` (`base_path`) as a pure data module; socket layer in `Aurora.Uix.Templates.Basic.Helpers` | UI-1, UI-2 | federico/458-ui-3-navigation-module | refactor: extract Aurora.Uix.Navigation (#458 · UI-3) |
 | DOC-2 | Documentation | `guides/core/components.md` § Navigation, `guides/core/liveview.md` § Navigation, `guides/whats_new/0.2.1.md` § Upgrading from 0.2.0 (the pure `Aurora.Uix.Navigation` API of UI-3) | UI-3 | federico/458-doc-2-navigation-guides | docs: navigation guides match the pure Aurora.Uix.Navigation (#458 · DOC-2) |
-| UI-4 | UI | layout · generated modules as named artifacts: `Aurora.Uix.Layout.Artifacts`, `module_name:`, `use:`, `live_view`, `generate:`, `auix_modules/0`, `auix_module/1` (generated and imported modules), pairings declared with `generate: []`, `Helpers.component_binding/3`, name collisions as compile errors, no modules for embedded resources, `live_view:` on `auix_live_resources/3` | UI-3 | federico/458-ui-4-named-artifacts | feat: generated modules are named artifacts (#458 · UI-4) |
+| UI-4 | UI | layout · generated modules as named artifacts: `Aurora.Uix.Layout.Artifacts`, `module_name:`, `use:` (a registry name or a generated module), `index_live`, `generate:`, `auix_modules/0`, `auix_module/1` (name to module, generated and imported), `auix_kind/0`, `auix_fields/0` and `auix_layout/0` on every generated module, pairings declared with `generate: []`, `Helpers.component_binding/3`, name collisions as compile errors, no modules for embedded resources, associations of a declared resource linked to the resources the module imports, `index_live:` on `auix_live_resources/3` | UI-3 | federico/458-ui-4-named-artifacts | feat: generated modules are named artifacts (#458 · UI-4) |
 | UI-5 | UI | generators and handlers · standalone Form and Show components: inputs (`resource` resolved in the rendering LiveView), intents, `Aurora.UixWeb.Test.ComponentHostLive` | UI-4 | federico/458-ui-5-standalone-form-show | feat: standalone form and show components (#458 · UI-5) |
 | UI-6 | UI | handlers · extract the list engine `Handlers.IndexList` (no behaviour change) | UI-4 | federico/458-ui-6-index-list-engine | refactor: extract the index list engine (#458 · UI-6) |
 | UI-7 | UI | generators and handlers · `.IndexComponent`, `IndexComponentImpl`, kind `:index_component`, the `resource` input, per-instance ids and event targets | UI-5, UI-6 | federico/458-ui-7-index-component | feat: IndexComponent and IndexComponentImpl (#458 · UI-7) |
@@ -1005,41 +1005,46 @@ Depends on: UI-3
 
 #### Implementation details
 
-Every module `auix_create_ui` generates becomes a named **artifact**: one registry entry per generated module, kept by the declaring module. A module also lists the entries it imports with `@auix_modules`, under the atoms it gives them. Kinds in this section: `:form_component` (from `edit_layout`), `:show_component` (from `show_layout`) and `:live_view` (from `auix_create_ui` itself). UI-7 adds `:index_component`. Layout types covered: `:form`, `:show`; `:index` keeps generating the LiveView. Everything here is backend-agnostic: no `Ecto.*` and no `Ash.*` module is referenced.
+Every module `auix_create_ui` generates becomes a named **artifact**: the declaring module keeps a registry that maps an atom to the generated module. A module also lists the modules it imports with `@auix_modules`, under the atoms it gives them. Every generated module describes itself with three functions: `auix_kind/0`, `auix_fields/0` and `auix_layout/0`. Kinds in this section: `:form_component` (from `edit_layout`), `:show_component` (from `show_layout`) and `:index_live` (the index LiveView, from `auix_create_ui` itself). UI-7 adds `:index_component`. Layout types covered: `:form`, `:show`; `:index` keeps generating the LiveView. Everything here is backend-agnostic: no `Ecto.*` and no `Ash.*` module is referenced.
 
-Terms used below. **Hint**: the last segment of a resource's schema module (`"Product"`), the middle segment of every generated module name. **Entry**: the map `%{module: module(), kind: atom(), fields: [atom()], layout: Node.layout() | nil}`; it holds no resource. **Target resource**: a resource of the module that has a schema, passes `for:` and has `embedded?: false`.
+Terms used below. **Hint**: the last segment of a resource's schema module (`"Product"`), the middle segment of every generated module name. **Entry**: the map `%{module: module(), kind: atom(), fields: [atom()], layout: Node.layout() | nil}` that `Artifacts.plan/1` keeps for a module while it plans; it holds no resource, and the registry keeps only its `module`. **Target resource**: a resource of the module that has a schema, passes `for:` and has `embedded?: false`.
 
-A **pairing** is a `use:` line: it gives a resource of the module a component generated in another module. Every module that calls `use Aurora.Uix` declares pairings, a LiveView written by hand included. That LiveView imports its resources with `@auix_resource_metadata` and its components with `@auix_modules`, each under an atom of its own, and writes `auix_create_ui generate: [] do edit_layout :product_location, use: :location_form end`. `generate: []` generates no module and keeps every check of `use:`. `Helpers.component_binding/3` turns a pairing into the options the component runs with: the generated LiveView calls it in this section, and a component given the input `resource` calls it in UI-5 and UI-7. No resource struct is passed by hand.
+A **pairing** is a `use:` line: it gives a resource of the module a component generated elsewhere. `use:` takes a name of the registry of the module, default names included, and it takes a generated module itself: the value `auix_module/1` of another module returns. The checks of `use:` run at compile time. Every module that calls `use Aurora.Uix` declares pairings, a LiveView written by hand included. That LiveView declares its resources, and imports the others with `@auix_resource_metadata`, and writes `auix_create_ui generate: [] do edit_layout :product_location, use: ProductViews.auix_module(:reference_form) end`. `generate: []` generates no module and keeps every check of `use:`. `@auix_modules` gives an imported module a name in the registry of the importing module; a pairing does not need it. `Helpers.component_binding/3` turns a pairing into the options the component runs with: the generated LiveView calls it in this section, and a component given the input `resource` calls it in UI-5 and UI-7. No resource struct is passed by hand.
 
 Two changes break code that compiled before. Both surface at compile time, and DOC-3 lists both in the CHANGELOG:
 - two artifacts with the same name raise `Spark.Error.DslError`, and so do two artifacts that resolve to the same module;
 - a resource created for an embedded field generates no modules.
 
+One change is not breaking and is visible to an existing host: a resource declared in a module links its associations to the resources that module imports with `@auix_resource_metadata`, as it links them to the resources declared beside it (step 17). Before, such an association had `data.resource == nil`, so a many-to-one rendered a plain input and a one-to-many rendered nothing. A module that imports nothing is untouched. DOC-3 lists the change in the CHANGELOG.
+
 ##### Acceptance criteria
-- [ ] AC-1: `Artifacts.module_name(MyApp.Views, "Product", :index_compact)` returns `MyApp.Views.Product.IndexCompact`; `Artifacts.default_name("ProductLocation", :form_component)` returns `:product_location_form_component`; `Artifacts.default_name("Product", :live_view)` returns `:product_index`; `Artifacts.schema_hint(Aurora.Uix.Guides.Inventory.Product)` returns `"Product"`
-- [ ] AC-2: a module with one resource `:product` and `auix_create_ui()` defines `<Module>.Product.Index`, `<Module>.Product.FormComponent` and `<Module>.Product.ShowComponent`, and `auix_modules/0` returns a map with exactly the keys `:product_index`, `:product_form_component`, `:product_show_component`; the entry of `:product_form_component` is `%{module: <Module>.Product.FormComponent, kind: :form_component, fields: fields, layout: %Node.Form{resource: nil}}` with `:reference in fields`; `auix_module(:product_form_component)` returns that entry and `auix_module(:nope)` returns `nil`
-- [ ] AC-3: `edit_layout :product, module_name: :reference_form do … end` defines `<Module>.Product.ReferenceForm`, defines no `<Module>.Product.FormComponent`, and registers the entry under `:reference_form`
-- [ ] AC-4: `live_view :product, module_name: :catalog` inside `auix_create_ui` defines `<Module>.Product.Catalog` as the LiveView, defines no `<Module>.Product.Index`, and registers it under `:catalog` with `kind: :live_view`, `fields: []`, `layout: nil`
-- [ ] AC-5: `auix_create_ui generate: [:form_component, :show_component]` defines no `<Module>.Product.Index`; `auix_modules/0` has no entry of kind `:live_view`
+- [ ] AC-1: `Artifacts.module_name(MyApp.Views, "Product", :index_compact)` returns `MyApp.Views.Product.IndexCompact`; `Artifacts.default_name("ProductLocation", :form_component)` returns `:product_location_form_component`; `Artifacts.default_name("Product", :index_live)` returns `:product_index`; `Artifacts.schema_hint(Aurora.Uix.Guides.Inventory.Product)` returns `"Product"`
+- [ ] AC-2: a module with one resource `:product` and `auix_create_ui()` defines `<Module>.Product.Index`, `<Module>.Product.FormComponent` and `<Module>.Product.ShowComponent`, and `auix_modules/0` returns exactly `%{product_index: <Module>.Product.Index, product_form_component: <Module>.Product.FormComponent, product_show_component: <Module>.Product.ShowComponent}`; `auix_module(:product_form_component)` returns `<Module>.Product.FormComponent` and `auix_module(:nope)` returns `nil`; `<Module>.Product.FormComponent` exposes `auix_kind/0` returning `:form_component`, `auix_fields/0` returning a list that holds `:reference`, and `auix_layout/0` returning a `%Node.Form{resource: nil}`; `<Module>.Product.Index` exposes `auix_kind/0` returning `:index_live`, `auix_fields/0` returning `[]` and `auix_layout/0` returning `nil`
+- [ ] AC-3: `edit_layout :product, module_name: :reference_form do … end` defines `<Module>.Product.ReferenceForm`, the name as given with no suffix added, defines no `<Module>.Product.FormComponent`, and registers the module under `:reference_form`
+- [ ] AC-4: `index_live :product, module_name: :catalog` inside `auix_create_ui` defines `<Module>.Product.Catalog` as the LiveView, defines no `<Module>.Product.Index`, and registers the module under `:catalog`; its `auix_kind/0` returns `:index_live`
+- [ ] AC-5: `auix_create_ui generate: [:form_component, :show_component]` defines no `<Module>.Product.Index`; no module of `auix_modules/0` has the kind `:index_live`
 - [ ] AC-6: two declared resources on one schema with default names fail compilation with `Spark.Error.DslError` whose message contains `module name :product_form_component is taken more than once`
 - [ ] AC-7: two artifacts that resolve to one module under different names (`edit_layout :product_compact, module_name: :form_component do … end` next to the default form of `:product`) fail compilation with a message containing `would be generated twice`
-- [ ] AC-8: error paths of `use:`. Each fails compilation with `Spark.Error.DslError`: an atom that is neither declared nor imported (`unknown module :nope in use:`); an entry of another kind (`use: :product_show_component names a show_component`); a `live_view` entry (`names a live_view`); an entry whose layout places a field the resource lacks (`unknown fields [:description] for resource :product_location in use:`); `use:` with a `do` block (`use: takes no do block`); `use:` with `module_name:` (`use: takes no other option`)
-- [ ] AC-9: `generate: [:live_view]` fails compilation with a message containing `the live view of :product needs a form component and a show component`
+- [ ] AC-8: error paths of `use:`. Each fails compilation with `Spark.Error.DslError`: an atom that is neither a name of the registry nor a generated module (`unknown module :nope in use:`, `unknown module Enum in use:`); a module of another kind (`use: :product_show_component names :show_component`); an index LiveView (`names :index_live`); a module whose layout places a field the resource lacks (`unknown fields [:description] for resource :product_location in use:`); `use:` with a `do` block (`use: takes no do block`); `use:` with `module_name:` (`use: takes no other option`)
+- [ ] AC-9: `generate: [:index_live]` fails compilation with a message containing `the live view of :product needs a form component and a show component`
 - [ ] AC-10: a module whose resource has embedded fields (`:user` on `Aurora.Uix.Guides.Accounts.User`) defines no `<Module>.Profile.Index`, `<Module>.Profile.FormComponent`, `<Module>.Profile.ShowComponent`, `<Module>.Email.Index`; `the keys of `auix_modules/0` that start with `user` are exactly `:user_index`, `:user_form_component`, `:user_show_component`, none starts with `profile` and none with `email`; `auix_configurations/0` still has the keys `:user__profile` and `:user__emails`
 - [ ] AC-11: a form component generated in one module and imported with `@auix_modules` serves a resource of another schema in the importing module: with `edit_layout :product_location, use: :reference_form`, the form the generated LiveView opens has the inputs `product_location[reference]` and `product_location[name]`, has no input `product_location[type]`, and saving it updates the product location; the importing module defines no `<Module>.ProductLocation.FormComponent`
-- [ ] AC-12: `auix_live_resources(path, module, live_view: :locations)` routes the five actions to `<module>.Locations`; without the option the routes point to `<module>.Index`
-- [ ] AC-13: an `@auix_modules` value that is not an entry (`%{reference_form: nil}`) fails compilation with a message containing `@auix_modules entry :reference_form is not a generated module`
+- [ ] AC-12: `auix_live_resources(path, module, index_live: :locations)` routes the five actions to `<module>.Locations`; without the option the routes point to `<module>.Index`
+- [ ] AC-13: an `@auix_modules` value that is not a generated module (`%{reference_form: nil}`) fails compilation with a message containing `@auix_modules entry :reference_form is not a generated module`
 - [ ] AC-14: no runtime code rebuilds a generated module name (mechanical — no red test; verified by `grep -rn 'ModulesGenerator.module_name' lib` printing only the `def module_name` documentation example lines of `lib/aurora_uix/templates/basic/modules_generator.ex`)
-- [ ] AC-15: every existing test passes with its file unchanged, and `lib/aurora_uix_web/routes.ex` is unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test lib/aurora_uix_web` listing only `test/cases/artifacts_test.exs`, `test/cases/create_ui_validation_test.exs`, `test/cases_live/named_modules_test.exs` and `test/support/app_web/routes.ex`, and `mix test` green)
-- [ ] AC-16: `auix_modules/0` and `auix_module/1` return an imported entry under the atom the importing module gave it: in the importing module of AC-11, `auix_module(:reference_form)` equals `NamedModulesForms.auix_module(:reference_form)`, and `auix_modules/0` has the key `:reference_form`
-- [ ] AC-17: a module declares a pairing and generates nothing: with an imported resource `:product_location`, an imported entry `:location_form` and `auix_create_ui generate: [] do edit_layout :product_location, use: :location_form end`, `auix_modules/0` has exactly the key `:location_form`; `auix_configurations().product_location` has `artifacts.form_component` equal to the imported module and `used` equal to `[:form_component]`; no `<Module>.ProductLocation.FormComponent`, `<Module>.ProductLocation.ShowComponent` and `<Module>.ProductLocation.Index` is defined
+- [ ] AC-15: every existing test passes with its file unchanged, and `lib/aurora_uix_web/routes.ex` is unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test lib/aurora_uix_web` listing only `test/cases/artifacts_test.exs`, `test/cases/create_ui_validation_test.exs`, `test/cases/resource_metadata_validation_test.exs`, `test/cases_live/named_modules_test.exs` and `test/support/app_web/routes.ex`, and `mix test` green)
+- [ ] AC-16: `auix_modules/0` and `auix_module/1` return an imported module under the atom the importing module gave it: in the importing module of AC-11, `auix_module(:reference_form)` returns `NamedModulesForms.Product.ReferenceForm`, and `auix_modules/0` has the key `:reference_form`
+- [ ] AC-17: a module declares a pairing with a generated module and generates nothing: with an imported resource `:product_location`, no `@auix_modules`, and `auix_create_ui generate: [] do edit_layout :product_location, use: NamedModulesForms.auix_module(:reference_form) end`, `auix_modules/0` returns `%{}`; `auix_configurations().product_location` has `artifacts.form_component` equal to `NamedModulesForms.Product.ReferenceForm` and `used` equal to `[:form_component]`; no `<Module>.ProductLocation.FormComponent`, `<Module>.ProductLocation.ShowComponent` and `<Module>.ProductLocation.Index` is defined
 - [ ] AC-18: `Helpers.component_binding/3` returns the options of a pairing: for the module of AC-17, `component_binding(auix_configurations(), :product_location, :form)` has `resource_name: :product_location`, `layout_type: :form`, `modules.caller` equal to the module, `artifacts.form_component` equal to the imported module, and a `layout_tree` of `:product_location` that places `:reference` and `:name`; error path: a resource the configurations lack raises `KeyError`
+- [ ] AC-19: a resource declared in a module links its associations to the resources the module imports: with `:catalog_product` declared on `Aurora.Uix.Guides.Inventory.Product` and `:product_transaction` and `:product_location` imported with `@auix_resource_metadata`, `auix_resource(:catalog_product).fields` has `data.resource` equal to `:product_transaction` for `:product_transactions` and to `:product_location` for `:product_location_id`, with `html_type: :select` for `:product_location_id`; the result is the same with the attribute written before the declaration and after it; on the Ash backend, `:article` declared on `Aurora.Uix.Guides.Blog.Post` with `:author` imported has `data.resource` equal to `:author` for `:author`
+- [ ] AC-20: error and degraded paths of the link. A resource declared beside an imported one on the same schema wins: with `:product_location` imported and `:local_location` declared on the same schema, `data.resource` of `:product_location_id` is `:local_location`. An `@auix_resource_metadata` value that is not a resource (`%{nope: nil}`) is skipped and the module compiles. A module that imports nothing keeps `data.resource == nil` for an association whose related schema it does not declare
 
 ##### Test ports
 - Compile-time behaviour: `Code.compile_string/1` through the private `compile/1` of `test/cases/create_ui_validation_test.exs`. Its header declares `:product`; a test that needs more resources declares them at the start of the body it passes.
 - Pure functions of `Aurora.Uix.Layout.Artifacts`, called directly.
 - `Aurora.UixWeb.Test.NamedModulesHost` (Modules & components step 14), a module that declares one pairing and generates nothing: its `auix_modules/0` and `auix_configurations/0`, and `Helpers.component_binding/3`, called directly.
-- Routes under `"/named-modules-locations"` registered in `test/support/app_web/routes.ex`, inside the quote of `load_test_routes/0`, directly after the `"/navigation-except-products"` registration, as `RouteHelper.auix_live_resources("/named-modules-locations", NamedModulesTest.ProductLocation, live_view: :locations)`. `RoutesHelper.register_crud/2` always routes to `Index`, and this route exercises `live_view:`, as the `only:` and `except:` routes of UI-1 exercise theirs · layout types `:index`, `:form` · observable: `has_element?/2` on `input[name='product_location[reference]']`.
+- Routes under `"/named-modules-locations"` registered in `test/support/app_web/routes.ex`, inside the quote of `load_test_routes/0`, directly after the `"/navigation-except-products"` registration, as `RouteHelper.auix_live_resources("/named-modules-locations", NamedModulesTest.ProductLocation, index_live: :locations)`. `RoutesHelper.register_crud/2` always routes to `Index`, and this route exercises `index_live:`, as the `only:` and `except:` routes of UI-1 exercise theirs · layout types `:index`, `:form` · observable: `has_element?/2` on `input[name='product_location[reference]']`.
+- Compile-time behaviour of the resources: `Code.compile_string/1` through the private `compile/1` of `test/cases/resource_metadata_validation_test.exs`, called twice in a test: first for the module that declares the resources to import, then for the module that imports them. `auix_resource/1` of the second module is read directly. No database.
 
 ##### Red tests
 `Artifacts` is `Aurora.Uix.Layout.Artifacts`. `mod` is the module returned by `compile/1` that exports `auix_modules/0`: `{mod, _} = Enum.find(compiled, fn {m, _} -> function_exported?(m, :auix_modules, 0) end)`. `P` is `Aurora.Uix.Guides.Inventory.Product`, `I` is `Aurora.Uix.Guides.Inventory`.
@@ -1047,55 +1052,79 @@ Two changes break code that compiled before. Both surface at compile time, and D
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
 | AC-1 | new file (`ls test/cases \| grep -i artifact` prints nothing). Module `Aurora.Uix.Test.ArtifactsTest`, `use ExUnit.Case, async: true` | none | `test/cases/artifacts_test.exs` | `"names are built from the caller, the schema hint and the atom"` | the four equalities of AC-1 |
-| AC-2 | add to `test/cases/create_ui_validation_test.exs` | `compile("  auix_create_ui()\n")` | same | `"every generated module has a registry entry"` | `mod.auix_modules() \|> Map.keys() \|> Enum.sort() == [:product_form_component, :product_index, :product_show_component]`; `%{module: m, kind: :form_component, fields: fields, layout: %Node.Form{resource: nil}} = mod.auix_module(:product_form_component)`; `m == Module.concat(mod, Product.FormComponent)`; `:reference in fields`; `mod.auix_module(:nope) == nil`; `Code.ensure_loaded?(Module.concat(mod, Product.Index))` |
-| AC-3 | add to same | body: `auix_create_ui do` / `edit_layout :product, module_name: :reference_form do` / `inline [:reference, :name]` / `end` / `end` | same | `"module_name names the component of its layout"` | `mod.auix_module(:reference_form).module == Module.concat(mod, Product.ReferenceForm)`; `mod.auix_module(:reference_form).fields == [:reference, :name]`; `refute Code.ensure_loaded?(Module.concat(mod, Product.FormComponent))` |
-| AC-4 | add to same | body: `auix_create_ui do` / `live_view :product, module_name: :catalog` / `end` | same | `"a live_view line names the live view"` | `mod.auix_module(:catalog) == %{module: Module.concat(mod, Product.Catalog), kind: :live_view, fields: [], layout: nil}`; `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))` |
-| AC-5 | add to same | `compile("  auix_create_ui generate: [:form_component, :show_component]\n")` | same | `"generate chooses the kinds of module"` | `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))`; `Enum.all?(mod.auix_modules(), fn {_name, entry} -> entry.kind != :live_view end)` |
+| AC-2 | add to `test/cases/create_ui_validation_test.exs` | `compile("  auix_create_ui()\n")` | same | `"every generated module has a registry entry"` | `form = Module.concat(mod, Product.FormComponent)`; `index = Module.concat(mod, Product.Index)`; `mod.auix_modules() == %{product_form_component: form, product_index: index, product_show_component: Module.concat(mod, Product.ShowComponent)}`; `mod.auix_module(:product_form_component) == form`; `mod.auix_module(:nope) == nil`; `form.auix_kind() == :form_component`; `:reference in form.auix_fields()`; `%Node.Form{resource: nil} = form.auix_layout()`; `index.auix_kind() == :index_live`; `index.auix_fields() == []`; `index.auix_layout() == nil` |
+| AC-3 | add to same | body: `auix_create_ui do` / `edit_layout :product, module_name: :reference_form do` / `inline [:reference, :name]` / `end` / `end` | same | `"module_name names the component of its layout"` | `form = mod.auix_module(:reference_form)`; `form == Module.concat(mod, Product.ReferenceForm)`; `form.auix_fields() == [:reference, :name]`; `refute Code.ensure_loaded?(Module.concat(mod, Product.FormComponent))` |
+| AC-4 | add to same | body: `auix_create_ui do` / `index_live :product, module_name: :catalog` / `end` | same | `"an index_live line names the live view"` | `mod.auix_module(:catalog) == Module.concat(mod, Product.Catalog)`; `mod.auix_module(:catalog).auix_kind() == :index_live`; `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))` |
+| AC-5 | add to same | `compile("  auix_create_ui generate: [:form_component, :show_component]\n")` | same | `"generate chooses the kinds of module"` | `refute Code.ensure_loaded?(Module.concat(mod, Product.Index))`; `Enum.all?(mod.auix_modules(), fn {_name, module} -> module.auix_kind() != :index_live end)` |
 | AC-6 | add to same | body starts with `auix_resource_metadata :product_compact, context: I, schema: P` (full module names), then `auix_create_ui()` | same | `"two resources on one schema need their own module names"` | `assert_raise DslError, ~r/module name :product_form_component is taken more than once/, fn -> compile(body) end` |
-| AC-7 | add to same | body as AC-6, with `auix_create_ui do` / `edit_layout :product_compact, module_name: :form_component do` / `inline [:name]` / `end` / `show_layout :product_compact, module_name: :compact_show do` / `inline [:name]` / `end` / `live_view :product_compact, module_name: :compact` / `end` | same | `"two names for one module fail compilation"` | `assert_raise DslError, ~r/would be generated twice/, fn -> compile(body) end` |
-| AC-8 | add to same | four bodies, none rejected by `build_node/1`. (a) `edit_layout :product, use: :nope`. (b) `edit_layout :product, use: :product_show_component`. (c) `edit_layout :product, use: :product_index`. (d) body starts with `auix_resource_metadata :product_location, context: I, schema: Aurora.Uix.Guides.Inventory.ProductLocation`, then `auix_create_ui do` / `edit_layout :product, module_name: :described do` / `inline [:reference, :description]` / `end` / `edit_layout :product_location, use: :described` / `end` | same | `"use: rejects what it cannot take"` | one `assert_raise DslError, regex, fn -> … end` per body, with the first four messages of AC-8 in that order |
+| AC-7 | add to same | body as AC-6, with `auix_create_ui do` / `edit_layout :product_compact, module_name: :form_component do` / `inline [:name]` / `end` / `show_layout :product_compact, module_name: :compact_show do` / `inline [:name]` / `end` / `index_live :product_compact, module_name: :compact` / `end` | same | `"two names for one module fail compilation"` | `assert_raise DslError, ~r/would be generated twice/, fn -> compile(body) end` |
+| AC-8 | add to same | five bodies, none rejected by `build_node/1`. (a) `edit_layout :product, use: :nope`. (b) `edit_layout :product, use: :product_show_component`. (c) `edit_layout :product, use: :product_index`. (d) body starts with `auix_resource_metadata :product_location, context: I, schema: Aurora.Uix.Guides.Inventory.ProductLocation`, then `auix_create_ui do` / `edit_layout :product, module_name: :described do` / `inline [:reference, :description]` / `end` / `edit_layout :product_location, use: :described` / `end`. (e) `edit_layout :product, use: Enum` | same | `"use: rejects what it cannot take"` | one `assert_raise DslError, regex, fn -> … end` per body: (a) `~r/unknown module :nope in use:/`; (b) `~r/use: :product_show_component names :show_component/`; (c) `~r/names :index_live/`; (d) `~r/unknown fields \[:description\] for resource :product_location in use:/`; (e) `~r/unknown module Enum in use:/` |
 | AC-8 | add to same | one body, the only `compile/1` call of its test: `edit_layout :product, use: :product_form_component do` / `inline [:name]` / `end`. `build_node/1` rejects it. After a `build_node/1` rejection Spark leaves `:recursive_builder_path` set in the process dictionary (`deps/spark/lib/spark/dsl/extension/entity.ex` `setup/6`), and every later `compile/1` call of the same test raises `RuntimeError` | same | `"use: takes no do block"` | `assert_raise DslError, ~r/use: takes no do block/, fn -> compile(body) end` |
 | AC-8 | add to same | one body, the only `compile/1` call of its test, for the reason of the row above: `edit_layout :product, use: :product_form_component, module_name: :other` | same | `"use: takes no other option"` | `assert_raise DslError, ~r/use: takes no other option/, fn -> compile(body) end` |
-| AC-9 | add to same | `compile("  auix_create_ui generate: [:live_view]\n")` | same | `"a live view needs its form and show components"` | `assert_raise DslError, ~r/the live view of :product needs a form component and a show component/, …` |
+| AC-9 | add to same | `compile("  auix_create_ui generate: [:index_live]\n")` | same | `"a live view needs its form and show components"` | `assert_raise DslError, ~r/the live view of :product needs a form component and a show component/, …` |
 | AC-10 | add to same | body starts with `auix_resource_metadata :user, context: Aurora.Uix.Guides.Accounts, schema: Aurora.Uix.Guides.Accounts.User`, then `auix_create_ui()` | same | `"an embedded resource generates no modules"` | `mod.auix_modules() \|> Map.keys() \|> Enum.sort() == [:product_form_component, :product_index, :product_show_component, :user_form_component, :user_index, :user_show_component]`; `refute Code.ensure_loaded?(Module.concat(mod, Profile.Index))`; the same for `Profile.FormComponent`, `Profile.ShowComponent`, `Email.Index`; `Map.has_key?(mod.auix_configurations(), :user__profile)`; `Map.has_key?(mod.auix_configurations(), :user__emails)` |
 | AC-11, AC-12 | new file (`ls test/cases_live \| grep named_modules` prints nothing) | two top-level modules in the file, see Modules & components step 14; `delete_all_inventory_data()`; `create_sample_product_locations(1)`; `[location] = Aurora.Uix.Repo.all(ProductLocation)`; `live(conn, "/named-modules-locations/#{location.id}/edit")` | `test/cases_live/named_modules_test.exs` | `"a used form component serves the resource of its host"` | `has_element?(view, "#auix-product_location-form input[name='product_location[reference]']")`; the same for `[name]`; `refute has_element?(view, "input[name='product_location[type]']")`; `view \|> form("#auix-product_location-form", product_location: %{name: "Renamed"}) \|> render_submit()`; `Aurora.Uix.Repo.get!(ProductLocation, location.id).name == "Renamed"`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.FormComponent)`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.Index)`; `Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesTest.ProductLocation.Locations)` |
 | AC-13 | add to `test/cases/create_ui_validation_test.exs` | body: `@auix_modules %{reference_form: nil}` then `auix_create_ui()` | same | `"an imported module must be a registry entry"` | `assert_raise DslError, ~r/@auix_modules entry :reference_form is not a generated module/, …` |
-| AC-16 | add to `test/cases_live/named_modules_test.exs` | none; `T` is the test module, `Forms` is `Aurora.UixWeb.Test.NamedModulesForms` | same | `"an imported module is in the registry of its importer"` | `T.auix_module(:reference_form) == Forms.auix_module(:reference_form)`; `Map.has_key?(T.auix_modules(), :reference_form)` |
-| AC-17 | add to same | none; `PairingHost` is `Aurora.UixWeb.Test.NamedModulesHost` | same | `"a module declares a pairing without generating modules"` | `Map.keys(PairingHost.auix_modules()) == [:location_form]`; `configuration = PairingHost.auix_configurations().product_location`; `configuration.artifacts.form_component == Forms.Product.ReferenceForm`; `configuration.used == [:form_component]`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesHost.ProductLocation.FormComponent)`; the same for `ProductLocation.ShowComponent` and `ProductLocation.Index` |
+| AC-16 | add to `test/cases_live/named_modules_test.exs` | none; `T` is the test module, `Forms` is `Aurora.UixWeb.Test.NamedModulesForms` | same | `"an imported module is in the registry of its importer"` | `T.auix_module(:reference_form) == Forms.Product.ReferenceForm`; `Map.has_key?(T.auix_modules(), :reference_form)` |
+| AC-17 | add to same | none; `PairingHost` is `Aurora.UixWeb.Test.NamedModulesHost` | same | `"a module declares a pairing without generating modules"` | `PairingHost.auix_modules() == %{}`; `configuration = PairingHost.auix_configurations().product_location`; `configuration.artifacts.form_component == Forms.Product.ReferenceForm`; `configuration.used == [:form_component]`; `refute Code.ensure_loaded?(Aurora.UixWeb.Test.NamedModulesHost.ProductLocation.FormComponent)`; the same for `ProductLocation.ShowComponent` and `ProductLocation.Index` |
 | AC-18 | add to same | `binding = Aurora.Uix.Templates.Basic.Helpers.component_binding(PairingHost.auix_configurations(), :product_location, :form)` | same | `"component_binding/3 builds the options of a pairing"` | `%{resource_name: :product_location, layout_type: :form, modules: %{caller: PairingHost}, artifacts: %{form_component: module}, layout_tree: %Aurora.Uix.Layout.Node.Form{resource: :product_location} = tree} = binding`; `module == Forms.Product.ReferenceForm`; `tree \|> Aurora.Uix.Layout.Node.fields() \|> Enum.map(& &1.key) == [:reference, :name]`; `assert_raise KeyError, fn -> Aurora.Uix.Templates.Basic.Helpers.component_binding(PairingHost.auix_configurations(), :nope, :form) end` |
+| AC-19 | add to `test/cases/resource_metadata_validation_test.exs` (the file has no `describe`; add the tests at its end) | `[{meta, _}] = compile(meta_body)`, where `meta_body` declares `auix_resource_metadata :product_transaction, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.ProductTransaction`, the same for `:product_location` on `ProductLocation`, and `auix_resource_metadata :author, ash_resource: Aurora.Uix.Guides.Blog.Author`. `imports = "@auix_resource_metadata %{product_transaction: #{inspect(meta)}.auix_resource(:product_transaction), product_location: #{inspect(meta)}.auix_resource(:product_location)}"`; `declare = "auix_resource_metadata :catalog_product, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.Product"`. Two bodies: `declare` then `imports`, and `imports` then `declare`; `[{mod, _}] = compile(body)` for each | same | `"a declared resource links its associations to imported resources"` | for both bodies: `fields = mod.auix_resource(:catalog_product).fields`; `fields.product_transactions.data.resource == :product_transaction`; `fields.product_location_id.data.resource == :product_location`; `fields.product_location_id.html_type == :select` |
+| AC-19 | add to same | `meta` as above; body: `auix_resource_metadata :article, ash_resource: Aurora.Uix.Guides.Blog.Post` then `@auix_resource_metadata %{author: #{inspect(meta)}.auix_resource(:author)}` | same | `"a declared Ash resource links its associations to imported resources"` | `mod.auix_resource(:article).fields.author.data.resource == :author` |
+| AC-20 | add to same | `meta` as above. (a) body: `imports`, `declare`, then `auix_resource_metadata :local_location, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.ProductLocation`. (b) body: `@auix_resource_metadata %{nope: nil}` then `declare`. (c) body: `declare` alone | same | `"a declared resource wins, and a module without imports is unchanged"` | (a) `mod.auix_resource(:catalog_product).fields.product_location_id.data.resource == :local_location`; (b) the module compiles and `mod.auix_resource(:catalog_product).fields.product_transactions.data.resource == nil`; (c) `mod.auix_resource(:catalog_product).fields.product_transactions.data.resource == nil` |
 
 ##### Modules & components
-1. `Aurora.Uix.Layout.Artifacts` at `lib/aurora_uix/layout/artifacts.ex` — new (`grep -rnE 'Layout\.Artifacts|auix_modules|auix_module\b|schema_hint' lib test` prints nothing). Aliases, alphabetical: `Aurora.Uix.Layout.CreateUI.LiveView`, `Aurora.Uix.Layout.Node`, `Aurora.Uix.Layout.RenderTree`, `Aurora.Uix.Resource`, `Spark.Error.DslError`. `@moduledoc` first paragraph: `Names the modules auix_create_ui generates and keeps their registry.` `## Key Features`: one naming function for every generated module; one entry per generated module, with the imported entries beside them; `use:` substitution; collision detection. `## Key Constraints`: an entry holds no resource; the schema hint only names, it never restricts reuse; pure, it defines no module itself. Public functions, each with `@doc` (`## Parameters`, `## Returns`) and `@spec`:
-   - `@type kind() :: :live_view | :form_component | :show_component`, `@type entry() :: %{module: module(), kind: kind(), fields: [atom()], layout: Node.layout() | nil}`.
-   - `kinds/0` returns `[:live_view, :form_component, :show_component]`.
+1. `Aurora.Uix.Layout.Artifacts` at `lib/aurora_uix/layout/artifacts.ex` — new (`grep -rnE 'Layout\.Artifacts|auix_modules|auix_module\b|schema_hint|def auix_(kind|fields|layout)\b|module_code' lib test` prints nothing). Aliases, alphabetical: `Aurora.Uix.Layout.CreateUI.IndexLive`, `Aurora.Uix.Layout.Node`, `Aurora.Uix.Layout.RenderTree`, `Aurora.Uix.Resource`, `Spark.Error.DslError`. `@moduledoc` first paragraph: `Names the modules auix_create_ui generates and keeps their registry.` `## Key Features`: one naming function for every generated module; a registry from name to module, with the imported modules beside the generated ones; the three functions every generated module describes itself with; `use:` substitution; collision detection. `## Key Constraints`: the registry holds modules, never a resource; the schema hint only names, it never restricts reuse; pure, it defines no module itself. Public functions, each with `@doc` (`## Parameters`, `## Returns`) and `@spec`:
+   - `@type kind() :: :index_live | :form_component | :show_component`, `@type entry() :: %{module: module(), kind: kind(), fields: [atom()], layout: Node.layout() | nil}`.
+   - `kinds/0` returns `[:index_live, :form_component, :show_component]`.
    - `schema_hint(schema)` returns `schema |> Module.split() |> List.last()`.
-   - `module_name(caller, schema_hint, name)` returns `Module.concat([caller, schema_hint, name |> Atom.to_string() |> Macro.camelize()])`.
-   - `default_name(schema_hint, kind)` returns `String.to_atom("#{Macro.underscore(schema_hint)}_index")` for `:live_view` and `String.to_atom("#{Macro.underscore(schema_hint)}_#{kind}")` for a component kind. The atom is built at compile time from a schema module name.
-   - `functions_code(entries)` returns the quote that defines `auix_modules/0` (returns `entries`, escaped) and `auix_module/1` (one clause per name, then `def auix_module(_), do: nil`), in the shape of `ResourceMetadata.resource_functions_code/1` in `lib/aurora_uix/layout/resource_metadata.ex`. It puts no module attribute.
+   - `module_name(caller, schema_hint, name)` returns `Module.concat([caller, schema_hint, name |> Atom.to_string() |> Macro.camelize()])`. The name is the last segment as given: no suffix is added.
+   - `default_name(schema_hint, kind)` returns `String.to_atom("#{Macro.underscore(schema_hint)}_index")` for `:index_live` and `String.to_atom("#{Macro.underscore(schema_hint)}_#{kind}")` for a component kind. The atom is built at compile time from a schema module name.
+   - `functions_code(modules)`, `@spec functions_code(%{atom() => module()}) :: Macro.t()`, returns the quote that defines `auix_modules/0` (returns `modules`, a map from name to module) and `auix_module/1` (one clause per name that returns the module, then `def auix_module(_), do: nil`), in the shape of `ResourceMetadata.resource_functions_code/1` in `lib/aurora_uix/layout/resource_metadata.ex`. It puts no module attribute.
+   - `module_code(kind, layout)`, `@spec module_code(kind(), Node.layout() | nil) :: Macro.t()`, returns the quote every generated module evaluates in its body. It defines the three functions a generated module exposes:
+     ```elixir
+     def module_code(kind, layout) do
+       fields = layout |> List.wrap() |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq()
+
+       quote do
+         @doc false
+         @spec auix_kind() :: atom()
+         def auix_kind, do: unquote(kind)
+
+         @doc false
+         @spec auix_fields() :: [atom()]
+         def auix_fields, do: unquote(fields)
+
+         @doc false
+         @spec auix_layout() :: struct() | nil
+         def auix_layout, do: unquote(Macro.escape(layout))
+       end
+     end
+     ```
+     `auix_kind/0` is the kind of the module. `auix_layout/0` is the layout the module was generated from, as written and not built, with `resource: nil`; it is `nil` for the index LiveView. `auix_fields/0` is the keys of the fields that layout places; it is `[]` for the index LiveView. `Node.fields/1` of `lib/aurora_uix/layout/node.ex` takes a list.
    - `plan(input)` — see step 2.
-2. `Artifacts.plan/1`. `@spec plan(map()) :: %{layouts: map(), resolved: map(), entries: %{atom() => entry()}}`. Input keys: `caller` (module), `resources` (`%{name => Resource.t()}`, already filtered by `for:`), `layouts` (`%{name => %{index: layout | nil, form: layout | nil, show: layout | nil}}`, the declared layouts as written), `live_views` (`[LiveView.t()]`), `imported` (`%{atom => entry}`), `generate` (`[kind]`), `opts` (the `auix_create_ui` options). It raises `DslError` with `module: caller` and `path: [:auix_create_ui]` for every error below. Algorithm:
-   1. Imported entries. Every value of `imported` matches `%{module: m, kind: k, fields: f}` with `is_atom(m)` and `is_list(f)`; otherwise raise `"@auix_modules entry #{inspect(name)} is not a generated module; take it from auix_module/1"`.
+2. `Artifacts.plan/1`. `@spec plan(map()) :: %{layouts: map(), resolved: map(), modules: %{atom() => module()}}`. Input keys: `caller` (module), `resources` (`%{name => Resource.t()}`, already filtered by `for:`), `layouts` (`%{name => %{index: layout | nil, form: layout | nil, show: layout | nil}}`, the declared layouts as written), `index_lives` (`[IndexLive.t()]`), `imported` (`%{atom => module}`), `generate` (`[kind]`), `opts` (the `auix_create_ui` options). It raises `DslError` with `module: caller` and `path: [:auix_create_ui]` for every error below. A **generated module** is an atom `m` for which `match?({:module, _}, Code.ensure_compiled(m)) and function_exported?(m, :auix_kind, 0)` is `true`; its entry is `%{module: m, kind: m.auix_kind(), fields: m.auix_fields(), layout: m.auix_layout()}`. `Code.ensure_compiled/1` waits for a module that is still compiling, so the three calls run on a compiled module. Algorithm:
+   1. Imported modules. Every value of `imported` is a generated module; otherwise raise `"@auix_modules entry #{inspect(name)} is not a generated module; take it from auix_module/1"`.
    2. Targets. A resource is a target when `resource.schema != nil and not resource.embedded?`. Targets are visited in the order of `Enum.sort_by(resources, &elem(&1, 0))`. `hint = schema_hint(resource.schema)`.
-   3. `live_view` lines. A line naming a resource that is not a target raises `"unknown resource #{inspect(line.resource)}"`; two lines for one resource raise `"#{inspect(resource)} has more than one live_view line"`; a line while `:live_view not in generate` raises `"live_view #{inspect(resource)} needs :live_view in generate:"`.
-   4. Names. For every target and every pair `{:form, :form_component}`, `{:show, :show_component}` whose kind is in `generate` and whose declared layout has `use: nil`: `segment = layout.module_name || kind` (a `nil` layout gives `kind`), `name = layout.module_name || default_name(hint, kind)`, `module = module_name(caller, hint, segment)`. For every target, when `:live_view in generate`: `segment = line.module_name || :index`, `name = line.module_name || default_name(hint, :live_view)`. Collect `{name, kind, resource_name, module}`.
-   5. Collisions, checked on the collection of step 4 before anything else is resolved. Names are checked in `Enum.sort/1` order and the first offending one is reported. A name collected twice, and a collected name that is also a key of `imported`, raise `"module name #{inspect(name)} is taken more than once (#{owners}); set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with a live_view line"`, where `owners` is the resource names of the name, inspected and joined with `", "`, plus the text `@auix_modules` for an imported name. Two different names with one module raise `"#{inspect(module)} would be generated twice, as #{inspect(name_a)} and #{inspect(name_b)}; set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with a live_view line"`.
+   3. `index_live` lines. A line naming a resource that is not a target raises `"unknown resource #{inspect(line.resource)}"`; two lines for one resource raise `"#{inspect(resource)} has more than one index_live line"`; a line while `:index_live not in generate` raises `"index_live #{inspect(resource)} needs :index_live in generate:"`.
+   4. Names. For every target and every pair `{:form, :form_component}`, `{:show, :show_component}` whose kind is in `generate` and whose declared layout has `use: nil`: `segment = layout.module_name || kind` (a `nil` layout gives `kind`), `name = layout.module_name || default_name(hint, kind)`, `module = module_name(caller, hint, segment)`. For every target, when `:index_live in generate`: `segment = line.module_name || :index`, `name = line.module_name || default_name(hint, :index_live)`. Collect `{name, kind, resource_name, module}`.
+   5. Collisions, checked on the collection of step 4 before anything else is resolved. Names are checked in `Enum.sort/1` order and the first offending one is reported. A name collected twice, and a collected name that is also a key of `imported`, raise `"module name #{inspect(name)} is taken more than once (#{owners}); set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with an index_live line"`, where `owners` is the resource names of the name, inspected and joined with `", "`, plus the text `@auix_modules` for an imported name. Two different names with one module raise `"#{inspect(module)} would be generated twice, as #{inspect(name_a)} and #{inspect(name_b)}; set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with an index_live line"`.
    6. Layouts and entries, for `:form` first and then `:show`, for every resource of `resources` (targets and non-targets). Within one layout type, every layout with `use: nil` is handled, and its entry built, before any layout with `use:`, so a `use:` finds an entry whatever the order of the resources:
       - a declared layout with `use: nil` is the effective layout;
       - a declared layout with `use: name` on a non-target raises `"use: is not available for #{inspect(resource_name)}, an embedded resource"`;
-      - a declared layout with `use: name` on a target resolves `name` in `imported` first, then in the entries of this module. No match raises `"unknown module #{inspect(name)} in use:; declare it with module_name: or import it with @auix_modules"` when the name is not in the collection of step 4 either, and `"use: #{inspect(name)} names a #{found_kind}; the #{layout_type} layout of #{inspect(resource_name)} takes a #{kind}"` when the name is known with another kind. A match of another kind raises that same second message. A field of `entry.fields` that is not a key of `resource.fields` raises `"unknown fields #{inspect(missing)} for resource #{inspect(resource_name)} in use: #{inspect(name)}"`. The effective layout is `%{entry.layout | resource: resource_name}`; the resolved module is `entry.module`; the kind is added to the resource's `used` list;
+      - a declared layout with `use: name` on a target resolves `name` to an entry, first match: a key of `imported` gives the entry of the generated module `imported[name]`; a name of the entries of this module gives that entry; a generated module gives its entry. No match raises `"unknown module #{inspect(name)} in use:; declare it with module_name:, import it with @auix_modules, or give the module auix_module/1 returns"` when the name is not in the collection of step 4 either, and `"use: #{inspect(name)} names #{inspect(found_kind)}; the #{layout_type} layout of #{inspect(resource_name)} takes #{inspect(kind)}"` when the name is known with another kind. An entry of another kind raises that same second message. A field of `entry.fields` that is not a key of `resource.fields` raises `"unknown fields #{inspect(missing)} for resource #{inspect(resource_name)} in use: #{inspect(name)}"`. The effective layout is `%{entry.layout | resource: resource_name}`; the resolved module is `entry.module`; the kind is added to the resource's `used` list;
       - no declared `:show` layout and an effective `:form` layout: the effective `:show` layout is the form copied into a `%Node.Show{}` — `form |> Map.from_struct() |> Map.merge(%{handler_module: Keyword.get(form.options, :show_handler_module), module_name: nil, use: nil}) |> then(&struct(Node.Show, &1))`. This is `put_missing_show/1`, moved here from `lib/aurora_uix/layout/create_ui.ex`;
       - otherwise the effective layout is `nil` (the default layout).
       For a target whose kind is in `generate` and is not used, add the entry `name => %{module: module, kind: kind, fields: fields, layout: %{written | resource: nil}}`, where `written` is the effective layout, and `RenderTree.default(layout_type, resource, opts)` for a `nil` one, and `fields` is `written |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq()`. The `:index` layout of every resource is passed through unchanged.
-   7. Live views. For every target with `:live_view in generate`: both `form_component` and `show_component` resolve to a module, otherwise raise `"the live view of #{inspect(resource_name)} needs a form component and a show component; add :form_component and :show_component to generate:, or name them with use:"`. Add the entry `name => %{module: module, kind: :live_view, fields: [], layout: nil}`.
-   8. Result. `layouts`: `%{resource_name => %{index: layout | nil, form: layout | nil, show: layout | nil}}` with the effective layouts, for every resource. `resolved`: for every target, `%{artifacts: %{live_view: module | nil, form_component: module | nil, show_component: module | nil}, used: [kind], generate: [kind]}`, where `generate` lists the kinds this module generates for the resource (in `generate:`, and not used). `entries`: `Map.merge(imported, generated)`, where `generated` is the entries of steps 6 and 7; step 5 leaves no name in both. `auix_modules/0` and `auix_module/1` therefore return an imported entry under the atom the importing module gave it.
-3. `Aurora.Uix.Layout.CreateUI.LiveView` at `lib/aurora_uix/layout/create_ui/live_view.ex` — new (`grep -rn 'CreateUI.LiveView' lib test` prints nothing). `defstruct resource: nil, module_name: nil, __spark_metadata__: nil`, `@type t()`, `@moduledoc` with `## Key Features` (one `live_view` line of `auix_create_ui`: the resource and the name of its LiveView) and `## Key Constraints` (it names a module; it is not a layout and has no fields).
+   7. Live views. For every target with `:index_live in generate`: both `form_component` and `show_component` resolve to a module, otherwise raise `"the live view of #{inspect(resource_name)} needs a form component and a show component; add :form_component and :show_component to generate:, or name them with use:"`. Add the entry `name => %{module: module, kind: :index_live, fields: [], layout: nil}`.
+   8. Result. `layouts`: `%{resource_name => %{index: layout | nil, form: layout | nil, show: layout | nil}}` with the effective layouts, for every resource. `resolved`: for every target, `%{artifacts: %{index_live: module | nil, form_component: module | nil, show_component: module | nil}, used: [kind], generate: [kind], exposed_layouts: %{kind => layout}}`, where `generate` lists the kinds this module generates for the resource (in `generate:`, and not used), and `exposed_layouts` holds, for each component kind in that list, the `layout` of its entry: the value its generated module returns from `auix_layout/0`. `modules`: `Map.merge(imported, generated)`, where `generated` maps every name of the entries of steps 6 and 7 to its `module`; step 5 leaves no name in both. `auix_modules/0` and `auix_module/1` therefore return an imported module under the atom the importing module gave it. A module named directly in `use:` gets no name and is not in `modules`.
+3. `Aurora.Uix.Layout.CreateUI.IndexLive` at `lib/aurora_uix/layout/create_ui/index_live.ex` — new (`grep -rn 'CreateUI.IndexLive' lib test` prints nothing). `defstruct resource: nil, module_name: nil, __spark_metadata__: nil`, `@type t()`, `@moduledoc` with `## Key Features` (one `index_live` line of `auix_create_ui`: the resource and the name of its LiveView) and `## Key Constraints` (it names a module; it is not a layout and has no fields).
 4. `lib/aurora_uix/layout/node/form.ex` and `lib/aurora_uix/layout/node/show.ex` — modified. Add `module_name: nil` and `use: nil` to `defstruct`, directly after `handler_module: nil`, and `module_name: atom() | nil`, `use: atom() | nil` to `@type t()`. Add one line to `## Key Features`: `` `module_name` names the generated component; `use` names the component taken instead of generating one. ``
-5. `lib/aurora_uix/layout/create_ui/call.ex` — modified. Add `generate: nil` after `include: nil` and `live_views: []` after `children: []` in `defstruct`; add `generate: [atom()] | nil` and `live_views: [Aurora.Uix.Layout.CreateUI.LiveView.t()]` to `@type t()`; extend the `## Key Constraints` sentence to list `generate` with `renderers`, `default_fields_layout` and `include`.
+5. `lib/aurora_uix/layout/create_ui/call.ex` — modified. Add `generate: nil` after `include: nil` and `index_lives: []` after `children: []` in `defstruct`; add `generate: [atom()] | nil` and `index_lives: [Aurora.Uix.Layout.CreateUI.IndexLive.t()]` to `@type t()`; extend the `## Key Constraints` sentence to list `generate` with `renderers`, `default_fields_layout` and `include`.
 6. `lib/aurora_uix/layout/create_ui/dsl.ex` — modified.
-   - `@ui_schema`: append `generate: [type: {:list, {:in, [:live_view, :form_component, :show_component]}}, doc: "The kinds of module to generate. Defaults to all of them."]`.
-   - `@edit_layout` schema: append `module_name: [type: :atom, doc: "Names the generated component."]` and `use: [type: :atom, doc: "Takes a component of the registry instead of generating one. No block, no other option."]`. `@show_layout` is built from `@edit_layout` and takes both. Spark reads the keywords of a layout line without a block as entity options, so these two keys carry `edit_layout :r, use: :x`; a line with a block carries its keywords in `layout_opts`.
-   - New entity, defined before `@create_ui` (`grep -n 'live_view' lib/aurora_uix/layout/create_ui/dsl.ex` prints nothing): `@live_view %Entity{name: :live_view, describe: "Names the LiveView of a resource.", target: Aurora.Uix.Layout.CreateUI.LiveView, args: [:resource], schema: [resource: [type: :atom, required: true, doc: "The resource."], module_name: [type: :atom, required: true, doc: "The name of the LiveView."]]}`. Alias `Aurora.Uix.Layout.CreateUI.LiveView` in alphabetical position.
-   - `@create_ui`: `entities: [children: @layouts, live_views: [@live_view]]`. `@create_layout` is unchanged.
+   - `@ui_schema`: append `generate: [type: {:list, {:in, [:index_live, :form_component, :show_component]}}, doc: "The kinds of module to generate. Defaults to all of them."]`.
+   - `@edit_layout` schema: append `module_name: [type: :atom, doc: "Names the generated component."]` and `use: [type: :atom, doc: "Takes a component instead of generating one: a name of the registry or a generated module. No block, no other option."]`. `@show_layout` is built from `@edit_layout` and takes both. Spark reads the keywords of a layout line without a block as entity options, so these two keys carry `edit_layout :r, use: :x`; a line with a block carries its keywords in `layout_opts`.
+   - New entity, defined before `@create_ui` (`grep -n 'index_live' lib/aurora_uix/layout/create_ui/dsl.ex` prints nothing): `@index_live %Entity{name: :index_live, describe: "Names the LiveView of a resource.", target: Aurora.Uix.Layout.CreateUI.IndexLive, args: [:resource], schema: [resource: [type: :atom, required: true, doc: "The resource."], module_name: [type: :atom, required: true, doc: "The name of the LiveView."]]}`. Alias `Aurora.Uix.Layout.CreateUI.IndexLive` in alphabetical position.
+   - `@create_ui`: `entities: [children: @layouts, index_lives: [@index_live]]`. `@create_layout` is unchanged.
    - `typed_keys/2`, second clause (`_layout_type`): return `[:renderers, :module_name, :use, handler_key]`. The `:index` clause is unchanged, so `module_name:` and `use:` on `index_columns` stay unknown options until UI-7.
    - `container_opts/2`: add `module_name: typed[:module_name]` and `use: typed[:use]` to the returned map.
    - `build_node(%module{} = layout) when module in [Node.Form, Node.Show]`: after `container_opts/2` succeeds, add the step `:ok <- validate_naming(layout, container)` and build the node as `struct(layout, %{container | module_name: container.module_name || layout.module_name, use: layout.use})`. New private function (`grep -rn 'validate_naming' lib` prints nothing):
@@ -1111,7 +1140,7 @@ Two changes break code that compiled before. Both surface at compile time, and D
      defp validate_naming(_layout, _container), do: :ok
      ```
    - `build_node(%Node.Index{})`: unchanged. `struct/2` ignores the two new keys of the container map.
-   - `@moduledoc` `## Key Features`: add `live_view` to the entities the section holds.
+   - `@moduledoc` `## Key Features`: add `index_live` to the entities the section holds.
 7. `lib/aurora_uix/resource.ex` — modified. Add `embedded?: false` to `defstruct` after `resolved?: false`, `embedded?: boolean()` to `@type t()`, and the `@moduledoc` line `` - `embedded?` (`boolean`) - `true` for a resource the library created for an embedded field. ``
 8. `lib/aurora_uix/layout/resource_metadata.ex`, `add_embedded_resources/1` — modified. The parsers prepend the resources they create, so the created ones are the head of the result:
    ```elixir
@@ -1131,7 +1160,7 @@ Two changes break code that compiled before. Both surface at compile time, and D
    ```
    Load guarantee: `embedded_resource/2` of `lib/aurora_uix/integration/ctx/fields_parser.ex` and of `lib/aurora_uix/integration/ash/fields_parser.ex` both return `[%Resource{…} | result]` from `embedded_resource_config/3`. A resource the host declares under the same name stays `embedded?: false` and wins in `resolve_resources/1`, because `Map.new/1` keeps the last pair. No parser file changes.
 9. `lib/aurora_uix/uix.ex`, `__using__/1` — add `Module.register_attribute(__MODULE__, :auix_modules, accumulate: true)` directly after the `:auix_resource_metadata` registration.
-10. `lib/aurora_uix/layout/create_ui/generate_ui.ex` — modified. In the `[ui]` branch call `CreateUI.ui_code(layouts, resources, opts, %{live_views: ui.live_views, imported: imported_modules(module)})`. New private function (`grep -rn 'imported_modules' lib` prints nothing):
+10. `lib/aurora_uix/layout/create_ui/generate_ui.ex` — modified. In the `[ui]` branch call `CreateUI.ui_code(layouts, resources, opts, %{index_lives: ui.index_lives, imported: imported_modules(module)})`. New private function (`grep -rn 'imported_modules' lib` prints nothing):
     ```elixir
     # The modules a module imports by writing `@auix_modules` by hand.
     @spec imported_modules(module()) :: map()
@@ -1143,20 +1172,20 @@ Two changes break code that compiled before. Both surface at compile time, and D
     ```
 11. `lib/aurora_uix/layout/create_ui.ex` — modified.
     - `ui_opts/1`: `Map.take([:renderers, :default_fields_layout, :include, :generate])`.
-    - `ui_code/4` becomes `ui_code/5`: `@spec ui_code(module(), [Node.layout()], map(), keyword(), map()) :: Macro.t()`, fifth parameter `artifacts` (`%{live_views: list(), imported: map()}`), documented in `@doc`. Its only caller is `GenerateUI.transform/1` (step 10). New body order: (a) `resources = resources |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end) |> filter_resources(opts[:for]) |> Map.new()`; (b) `layouts = Map.new(resources, fn {name, _resource} -> {name, resource_layouts(declared_layouts, name)} end)`, with the new private `resource_layouts/2` returning `declared_layouts |> Enum.filter(&(&1.resource == name)) |> Map.new(&{layout_type(&1), &1})`; (c) `plan = Artifacts.plan(%{caller: module, resources: resources, layouts: layouts, live_views: artifacts.live_views, imported: artifacts.imported, generate: Keyword.get(opts, :generate, Artifacts.kinds()), opts: opts})`; (d) `configurations` built as today from `resources`, passing `plan` to `build_configurations/4` in place of `declared_layouts`; (e) the rest as today. Add `unquote(Artifacts.functions_code(plan.entries))` to the returned quote, directly after `unquote(layouts_code(declared_layouts))`.
-    - `build_configurations/4`: the third parameter is the plan. Replace the `layouts = declared_layouts |> … |> put_missing_show()` block with `layouts = Map.fetch!(plan.layouts, resource_config_name)`; `layout_trees` keeps `RenderTree.build(Map.get(layouts, tag), tag, resource_config, opts)`. Add four keys to the returned configuration: `artifacts`, `used` and `generate`, taken from `Map.get(plan.resolved, resource_config_name, %{artifacts: %{live_view: nil, form_component: nil, show_component: nil}, used: [], generate: []})`, and `modules`: `%{caller: caller, module: resource_module, web: find_web_module(caller), context: resource_config.context}`, the map `build_resource_layouts/3` builds today. `auix_configurations/0` returns the four keys for every resource with a schema. Every reader of a configuration takes its keys by name (`parsed_opts`, `resource_config`, `layout_trees`), so no reader changes.
+    - `ui_code/4` becomes `ui_code/5`: `@spec ui_code(module(), [Node.layout()], map(), keyword(), map()) :: Macro.t()`, fifth parameter `artifacts` (`%{index_lives: list(), imported: map()}`), documented in `@doc`. Its only caller is `GenerateUI.transform/1` (step 10). New body order: (a) `resources = resources |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end) |> filter_resources(opts[:for]) |> Map.new()`; (b) `layouts = Map.new(resources, fn {name, _resource} -> {name, resource_layouts(declared_layouts, name)} end)`, with the new private `resource_layouts/2` returning `declared_layouts |> Enum.filter(&(&1.resource == name)) |> Map.new(&{layout_type(&1), &1})`; (c) `plan = Artifacts.plan(%{caller: module, resources: resources, layouts: layouts, index_lives: artifacts.index_lives, imported: artifacts.imported, generate: Keyword.get(opts, :generate, Artifacts.kinds()), opts: opts})`; (d) `configurations` built as today from `resources`, passing `plan` to `build_configurations/4` in place of `declared_layouts`; (e) the rest as today. Add `unquote(Artifacts.functions_code(plan.modules))` to the returned quote, directly after `unquote(layouts_code(declared_layouts))`.
+    - `build_configurations/4`: the third parameter is the plan. Replace the `layouts = declared_layouts |> … |> put_missing_show()` block with `layouts = Map.fetch!(plan.layouts, resource_config_name)`; `layout_trees` keeps `RenderTree.build(Map.get(layouts, tag), tag, resource_config, opts)`. Add five keys to the returned configuration: `artifacts`, `used`, `generate` and `exposed_layouts`, taken from `Map.get(plan.resolved, resource_config_name, %{artifacts: %{index_live: nil, form_component: nil, show_component: nil}, used: [], generate: [], exposed_layouts: %{}})`, and `modules`: `%{caller: caller, module: resource_module, web: find_web_module(caller), context: resource_config.context}`, the map `build_resource_layouts/3` builds today. `auix_configurations/0` returns the five keys for every resource with a schema. Every reader of a configuration takes its keys by name (`parsed_opts`, `resource_config`, `layout_trees`), so no reader changes.
     - Delete `put_missing_show/1` (three clauses, with its comment and `@spec`); `Artifacts.plan/1` owns it.
-    - `build_resource_layouts/3`, first clause: bind `modules`, `artifacts`, `used` and `generate` from the configuration, and delete the `web`, `resource_module` and `modules` computations of the body; the `Enum.each(modules, …)` line stays. Return `[]` when `resource_config.embedded?`. Otherwise reduce over `Enum.filter(layout_tags, &generate_tag?(&1, generate))` and pass `artifacts`, `used` and `generate` in the first argument of `generate_module/4`. New private function:
+    - `build_resource_layouts/3`, first clause: bind `modules`, `artifacts`, `used`, `generate` and `exposed_layouts` from the configuration, and delete the `web`, `resource_module` and `modules` computations of the body; the `Enum.each(modules, …)` line stays. Return `[]` when `resource_config.embedded?`. Otherwise reduce over `Enum.filter(layout_tags, &generate_tag?(&1, generate))` and pass `artifacts`, `used`, `generate` and `exposed_layouts` in the first argument of `generate_module/4`. New private function:
       ```elixir
       @spec generate_tag?(atom(), [atom()]) :: boolean()
-      defp generate_tag?(:index, generate), do: :live_view in generate
+      defp generate_tag?(:index, generate), do: :index_live in generate
       defp generate_tag?(:form, generate), do: :form_component in generate
       defp generate_tag?(:show, generate), do: :show_component in generate
       defp generate_tag?(_tag, _generate), do: true
       ```
-    - `generate_module/4`: add `|> Map.put(:artifacts, layout.artifacts) |> Map.put(:used, layout.used) |> Map.put(:generate, layout.generate)` before the template call.
-    - `@moduledoc`: add a `## Generated modules` section before `## Key Features`, stating: the default names (`:<schema>_index` for the LiveView, `:<schema>_form_component`, `:<schema>_show_component`); `module_name:` on `edit_layout` and `show_layout`; `live_view resource, module_name: name`; `use: name` and what it checks; `@auix_modules` with `auix_module/1`; `auix_modules/0`, which lists generated and imported modules; `generate:`; `generate: []` with `use:` lines for a module that only declares pairings, a LiveView written by hand included. Add to `## Key Constraints`: `Two generated modules with one name, or two names for one module, do not compile.`, `A resource created for an embedded field generates no modules.` and `Two modules that import from each other do not compile.`
-    - Contract change for a custom template (`Aurora.Uix.Template.generate_module/1`): the map it receives gains `artifacts`, `used` and `generate`, and the callback is no longer invoked for a `:form` tag without `:form_component` in `generate`, a `:show` tag without `:show_component`, an `:index` tag without `:live_view`, and any tag of an embedded resource.
+    - `generate_module/4`: add `|> Map.put(:artifacts, layout.artifacts) |> Map.put(:used, layout.used) |> Map.put(:generate, layout.generate) |> Map.put(:exposed_layouts, layout.exposed_layouts)` before the template call.
+    - `@moduledoc`: add a `## Generated modules` section before `## Key Features`, stating: the default names (`:<schema>_index` for the LiveView, `:<schema>_form_component`, `:<schema>_show_component`); `module_name:` on `edit_layout` and `show_layout`, used as the last segment of the module as given; `index_live resource, module_name: name`; `use:` with a name of the registry and with a generated module, and what it checks; `@auix_modules` with `auix_module/1`; `auix_modules/0`, which maps the names of the generated and the imported modules to the modules; `auix_kind/0`, `auix_fields/0` and `auix_layout/0` of a generated module; `generate:`; `generate: []` with `use:` lines for a module that only declares pairings, a LiveView written by hand included. Add to `## Key Constraints`: `Two generated modules with one name, or two names for one module, do not compile.`, `A resource created for an embedded field generates no modules.` and `Two modules that import from each other do not compile.`
+    - Contract change for a custom template (`Aurora.Uix.Template.generate_module/1`): the map it receives gains `artifacts`, `used`, `generate` and `exposed_layouts`, and the callback is no longer invoked for a `:form` tag without `:form_component` in `generate`, a `:show` tag without `:show_component`, an `:index` tag without `:index_live`, and any tag of an embedded resource. A module a custom template generates evaluates `Artifacts.module_code/2` in its body; without the three functions, `@auix_modules` and `use:` reject it (step 2).
 12. Basic template — modified.
     - `lib/aurora_uix/templates/basic/modules_generator.ex`: add the public function (new: `grep -rn 'component_opts' lib test` prints nothing), with `@doc` and `@spec component_opts(map()) :: map()`:
       ```elixir
@@ -1178,9 +1207,10 @@ Two changes break code that compiled before. Both surface at compile time, and D
       end
       ```
       Add `alias Aurora.Uix.Layout.Node` and `alias Aurora.Uix.Templates.Basic.Helpers`. `module_name/2` stays, unchanged; no library code calls it after this section.
-    - `generators/form_generator.ex`: `parsed_opts = ModulesGenerator.component_opts(parsed_opts)` replaces the `cleaned_parsed_opts`, `one2many_preload`, `one2many_rendered?` and `parsed_opts = Map.put(…)` computations; `field_labels` reads `parsed_opts`; `form_component = parsed_opts.artifacts.form_component`; `handler_module = ModulesGenerator.handler_module(parsed_opts, FormHandler)`. Delete the aliases that become unused (`Aurora.Uix.Layout.Node`).
-    - `generators/show_component_generator.ex`: the same replacement; `show_component = parsed_opts.artifacts.show_component`. Delete the unused `Node` alias.
-    - `generators/index_generator.ex`: `index_module = parsed_opts.artifacts.live_view`.
+    - `generators/form_generator.ex`: `parsed_opts = ModulesGenerator.component_opts(parsed_opts)` replaces the `cleaned_parsed_opts`, `one2many_preload`, `one2many_rendered?` and `parsed_opts = Map.put(…)` computations; `field_labels` reads `parsed_opts`; `form_component = parsed_opts.artifacts.form_component`; `handler_module = ModulesGenerator.handler_module(parsed_opts, FormHandler)`. In the generated module, directly after the line `use Aurora.Uix.GettextResolver`, add `unquote(Artifacts.module_code(:form_component, Map.fetch!(parsed_opts.exposed_layouts, :form_component)))`. Add `alias Aurora.Uix.Layout.Artifacts`. Delete the aliases that become unused (`Aurora.Uix.Layout.Node`).
+    - `generators/show_component_generator.ex`: the same replacement; `show_component = parsed_opts.artifacts.show_component`. In the generated module, directly after the line `use unquote(parsed_opts.modules.web), :live_component`, add `unquote(Artifacts.module_code(:show_component, Map.fetch!(parsed_opts.exposed_layouts, :show_component)))`. Add `alias Aurora.Uix.Layout.Artifacts`. Delete the unused `Node` alias.
+    - `generators/index_generator.ex`: `index_module = parsed_opts.artifacts.index_live`. In the generated module, directly after the line `use unquote(parsed_opts.modules.web), :live_view`, add `unquote(Artifacts.module_code(:index_live, nil))`. Add `alias Aurora.Uix.Layout.Artifacts`.
+    - Load guarantee for the three generators: `parsed_opts.exposed_layouts` holds the kind of every component this module generates for the resource (`Artifacts.plan/1`, step 2, item 8), and `generate_module/4` of `create_ui.ex` is called only for those kinds (`generate_tag?/2`, step 11).
     - `lib/aurora_uix/templates/basic/helpers.ex`: add the public function (new: `grep -rn 'component_binding' lib test` prints nothing), with `@doc` (`## Parameters`, `## Returns`) and `@spec`. It returns the options a component runs with to serve `resource_name` of the module whose `auix_configurations/0` returned `configurations`. This one function serves the generated LiveView (next item) and a component given the input `resource` (UI-5, UI-7):
       ```elixir
       @spec component_binding(map(), atom(), :form | :show) :: map()
@@ -1198,7 +1228,7 @@ Two changes break code that compiled before. Both surface at compile time, and D
         |> ModulesGenerator.component_opts()
       end
       ```
-      Add `alias Aurora.Uix.Templates.Basic.ModulesGenerator`. The merged keys are the ones `generate_module/4` of `create_ui.ex` puts in the options of a module it generates (step 11). Load guarantee: `auix.configurations` of a generated module and `auix_configurations/0` of its declaring module are the same map (`preload_configurations` in `ui_code/5`); `configurations[name]` carries `parsed_opts` with `:preload` (`build_resource_preload_option/2`), `layout_trees`, and `modules`, `artifacts`, `used`, `generate` (step 11).
+      Add `alias Aurora.Uix.Templates.Basic.ModulesGenerator`. The merged keys are the ones `generate_module/4` of `create_ui.ex` puts in the options of a module it generates (step 11), without `exposed_layouts`, which no runtime code reads. Load guarantee: `auix.configurations` of a generated module and `auix_configurations/0` of its declaring module are the same map (`preload_configurations` in `ui_code/5`); `configurations[name]` carries `parsed_opts` with `:preload` (`build_resource_preload_option/2`), `layout_trees`, and `modules`, `artifacts`, `used`, `generate` (step 11).
     - `lib/aurora_uix/templates/basic/handlers/index_impl.ex`: in `auix_mount/3`, `form_component = auix.artifacts.form_component` and `show_component = auix.artifacts.show_component`. `assign_live_component/1`: the `:show` clause assigns `auix.artifacts.show_component` to `:live_component` and `live_component_binding(auix, :show_component, :show)` to `:live_component_binding`; the other clause assigns `auix.artifacts.form_component` and `live_component_binding(auix, :form_component, :form)`. New private function (`grep -rn 'live_component_binding' lib test` prints nothing):
       ```elixir
       # A component this module generated already holds these options.
@@ -1212,16 +1242,16 @@ Two changes break code that compiled before. Both surface at compile time, and D
       Load guarantee: `auix.used`, `auix.configurations` and `auix.resource_name` come from the LiveView's compiled options (`generate_module/4`, step 11). Delete the module-level `alias Aurora.Uix.Templates.Basic.ModulesGenerator`; the alias inside the `__using__/1` quote stays, because host handlers compiled with it may call the module.
     - `lib/aurora_uix/templates/basic/renderers/index_renderer.ex`: in the `<.live_component>` of the modal, the `auix` attribute becomes `Map.merge(Map.get(@auix, :live_component_binding, %{}), %{entity: …})`, the second map being today's literal map, unchanged. A component the module generated receives the same assigns as today.
     - How a used component takes the resource: the hosted `update/2` clause of both component generators assigns the incoming `auix` first, and `Helpers.assign_parsed_opts/2` (`Map.merge(parsed_opts, existing)`) lets the keys already in the socket win over the compiled ones. The generators need no other change.
-13. `lib/aurora_uix/helpers/route_helper.ex`, `auix_live_resources/3` — modified. Read `live_view = opts |> Keyword.get(:live_view, :index) |> live_view_alias(module)` and use `unquote(live_view)` in place of the five `unquote(module).Index`. New private function:
+13. `lib/aurora_uix/helpers/route_helper.ex`, `auix_live_resources/3` — modified. Read `index_live = opts |> Keyword.get(:index_live, :index) |> index_live_alias(module)` and use `unquote(index_live)` in place of the five `unquote(module).Index`. New private function:
     ```elixir
     # The same alias `unquote(module).Index` builds, for a LiveView of any name.
-    @spec live_view_alias(atom(), Macro.t()) :: Macro.t()
-    defp live_view_alias(name, module) when is_atom(name) do
+    @spec index_live_alias(atom(), Macro.t()) :: Macro.t()
+    defp index_live_alias(name, module) when is_atom(name) do
       {:__aliases__, [alias: false],
        [module, name |> Atom.to_string() |> Macro.camelize() |> String.to_atom()]}
     end
     ```
-    The atom is built from a literal the router source gives. `@doc`: add `:live_view` to the options (`` `:live_view` (atom()) - The name given to the LiveView with a `live_view` line. Defaults to `:index`. ``) and one example with `live_view: :compact_products` expanding to `MyApp.UserLive.CompactProducts`.
+    The atom is built from a literal the router source gives. `@doc`: add `:index_live` to the options (`` `:index_live` (atom()) - The name given to the LiveView with an `index_live` line. Defaults to `:index`. ``) and one example with `index_live: :compact_products` expanding to `MyApp.UserLive.CompactProducts`.
 14. Test modules of `test/cases_live/named_modules_test.exs`, in this order:
     ```elixir
     defmodule Aurora.UixWeb.Test.NamedModulesForms do
@@ -1249,10 +1279,9 @@ Two changes break code that compiled before. Both surface at compile time, and D
       @auix_resource_metadata %{
         product_location: NamedModulesForms.auix_resource(:product_location)
       }
-      @auix_modules %{location_form: NamedModulesForms.auix_module(:reference_form)}
 
       auix_create_ui generate: [] do
-        edit_layout(:product_location, use: :location_form)
+        edit_layout(:product_location, use: NamedModulesForms.auix_module(:reference_form))
       end
     end
 
@@ -1270,17 +1299,35 @@ Two changes break code that compiled before. Both surface at compile time, and D
 
       auix_create_ui do
         edit_layout(:product_location, use: :reference_form)
-        live_view(:product_location, module_name: :locations)
+        index_live(:product_location, module_name: :locations)
       end
 
       # the tests of the AC-11, AC-12, AC-16, AC-17 and AC-18 rows
     end
     ```
-15. Edge cases. A resource without a schema takes no entry and generates nothing, as today. `auix_create_ui for: :a` plans only `:a`. A layout brought in with `include:` keeps its `module_name:` and its `use:`; the name resolves in the including module. A module without `auix_create_ui` defines neither `auix_modules/0` nor `auix_module/1`. Two modules that import an entry from each other do not compile, because each needs the other compiled first; the same holds for `@auix_resource_metadata`. `generate: []` defines no module and still runs every check of `use:`; with it `Artifacts.plan/1` collects no name in step 4 and skips step 7. An entry imported from a module that imported it is the same map. In step 14, `NamedModulesForms` also generates the default form and show components of `:product_location`; no test reads them.
+15. Edge cases. A resource without a schema takes no entry and generates nothing, as today. `auix_create_ui for: :a` plans only `:a`. A layout brought in with `include:` keeps its `module_name:` and its `use:`; the name resolves in the including module. A module without `auix_create_ui` defines neither `auix_modules/0` nor `auix_module/1`. Two modules that import a generated module from each other do not compile, because each needs the other compiled first; the same holds for `@auix_resource_metadata`. `generate: []` defines no module and still runs every check of `use:`; with it `Artifacts.plan/1` collects no name in step 4 and skips step 7. A module imported from a module that imported it is the same module. `NamedModulesHost` (step 14) names its component by the module and has an empty registry; `NamedModulesTest` imports the same module with `@auix_modules` under a name. In step 14, `NamedModulesForms` also generates the default form and show components of `:product_location`; no test reads them.
 16. Components: none new. Theme: none. `dt/1` strings: none.
+17. Associations of a declared resource link to imported resources. No public function is added and no parser file changes.
+    - `lib/aurora_uix/layout/resource_metadata.ex`, `resolve_resources/1` becomes `resolve_resources/2`: `@spec resolve_resources([Resource.t()], [{atom(), Resource.t()}]) :: %{atom() => Resource.t()}`. The second parameter `imported` gets its line in `## Parameters`: `` - `imported` ([{atom(), Resource.t()}]) - Resources the module imports, by name. They are lookup candidates for the associations of `resources`; they are not resolved again and not returned. `` In the body, the line `|> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed)) end)` becomes `|> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed ++ imported)) end)`. Nothing else in the function changes.
+    - How the link is made, unchanged: `resolve_fields/2` hands its list to `parse_associations/4` of the backend parser, and the private `field_resource/2` of `lib/aurora_uix/integration/ctx/fields_parser.ex` and of `lib/aurora_uix/integration/ash/fields_parser.ex` takes the first `{name, resource}` pair whose `resource.schema` is the related schema. The declared resources come first in `parsed ++ imported`, so a declared resource wins over an imported one on the same schema. `configure_many_to_one_selectors/1` then gives the owner key of a linked many-to-one `html_type: :select`. The field option `resource:` keeps overriding the match.
+    - `lib/aurora_uix/layout/resource_metadata/resolve_resources.ex`, `transform/1`, the only caller: `|> ResourceMetadata.resolve_resources()` becomes `|> ResourceMetadata.resolve_resources(imported_resources(module))`. New private function (`grep -rn 'imported_resources' lib test` prints nothing), with `alias Aurora.Uix.Resource` added in alphabetical position:
+      ```elixir
+      # The resources a module imports by writing `@auix_resource_metadata` by hand.
+      @spec imported_resources(module()) :: [{atom(), Resource.t()}]
+      defp imported_resources(module) do
+        module
+        |> Module.get_attribute(:auix_resource_metadata, [])
+        |> Enum.flat_map(&Map.to_list/1)
+        |> Enum.filter(&match?({_name, %Resource{}}, &1))
+        |> Enum.sort_by(&elem(&1, 0))
+      end
+      ```
+      The attribute accumulates (`lib/aurora_uix/uix.ex`, `__using__/1`), and the transformer runs once the module body is read, so the attribute is found in both positions: written before the declarations, and written after them. `GenerateUI.resources/2` reads the same attribute the same way. The transformer itself writes the attribute only later, in the code of `ResourceMetadata.resource_functions_code/1`, so the list holds the hand-written imports alone. The `[] ->` branch of `transform/1` is unchanged: a module that declares no resource resolves nothing.
+    - `@moduledoc` of `ResolveResources`, `## Key Features`: add `` - Links the associations of the declared resources to the resources the module imports with `@auix_resource_metadata`, after the declared ones. ``
+    - Consumers of the new link. The linked field carries the name of the imported resource in `data.resource`, and that resource is in `auix_configurations/0` of the module, because `GenerateUI.resources/2` merges the imports into the resources it generates from. The many-to-one and one-to-many renderers read it there, as they do for a declared resource. An imported resource keeps the links it was resolved with in its own module.
 
 ##### Green tests
-1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/artifacts_test.exs test/cases/create_ui_validation_test.exs test/cases_live/named_modules_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/embeds_one_test.exs test/cases_live/ash_embeds_test.exs`)
+1. The red tests above pass, unmodified (code-issue runs these, targeted: `mix test test/cases/artifacts_test.exs test/cases/create_ui_validation_test.exs test/cases/resource_metadata_validation_test.exs test/cases_live/named_modules_test.exs test/cases_live/navigation_test.exs test/cases_live/ash_navigation_test.exs test/cases_live/embeds_one_test.exs test/cases_live/ash_embeds_test.exs`)
 2. `mix test` — full suite green (review-issue runs this; code-issue runs
    only this section's test files)
 3. `mix compile --warnings-as-errors` clean
@@ -1317,7 +1364,7 @@ The input `resource` is an atom of the LiveView that renders the component. In a
 - [ ] AC-7: `Helpers.report_intent/2` sends `{Aurora.Uix, id, intent}` to a pid given as `notify`, and calls `send_update/3` with `auix_intent: {Aurora.Uix, id, intent}` for a `{module, id}` given as `notify`
 - [ ] AC-8: the same components on the Ash backend: an embedded form given `action: :new` sends `{:saved, entity}`, and an embedded show sends `{:closed}`
 - [ ] AC-9: hosted components behave as before: the tests of UI-1, UI-2 and UI-4 pass with their files unchanged (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only the files this section creates, and `mix test` green)
-- [ ] AC-10: an embedded form given `resource: :product_location`, rendered by a LiveView written by hand that declares `edit_layout :product_location, use: :location_form`, renders the record of `entity_id` in the inputs `product_location[reference]` and `product_location[name]`, renders no input `product_location[type]`, and a submit updates the product location and sends `{:saved, entity}`
+- [ ] AC-10: an embedded form given `resource: :product_location`, rendered by a LiveView written by hand that declares `edit_layout :product_location, use: ComponentsPairedViews.auix_module(:reference_form)`, renders the record of `entity_id` in the inputs `product_location[reference]` and `product_location[name]`, renders no input `product_location[type]`, and a submit updates the product location and sends `{:saved, entity}`
 - [ ] AC-11: error paths of `resource`. `Helpers.resource_binding/4` raises `ArgumentError` when the rendering LiveView declares no `auix_create_ui` (message contains `declares no auix_create_ui`), when the atom is no resource of that LiveView (`unknown resource :nope`), when that LiveView pairs the resource with another module (`does not pair`), and when an instance is given another resource after its first update (`already serves`)
 - [ ] AC-12: `Helpers.resource_binding/4` returns the binding with `_resource: :product_location` for a declared pairing, `%{_resource: nil}` on the first update of a component given no `resource`, and `%{}` on a later update that repeats the resource or carries none
 
@@ -1520,10 +1567,9 @@ The input `resource` is an atom of the LiveView that renders the component. In a
       @auix_resource_metadata %{
         product_location: ComponentsPairedViews.auix_resource(:product_location)
       }
-      @auix_modules %{location_form: ComponentsPairedViews.auix_module(:reference_form)}
 
       auix_create_ui generate: [] do
-        edit_layout(:product_location, use: :location_form)
+        edit_layout(:product_location, use: ComponentsPairedViews.auix_module(:reference_form))
       end
 
       @impl true
@@ -1539,7 +1585,7 @@ The input `resource` is an atom of the LiveView that renders the component. In a
         ~H"""
         <div id="auix-paired-host">
           <.live_component
-            module={auix_module(:location_form).module}
+            module={ComponentsPairedViews.auix_module(:reference_form)}
             id="location-form"
             resource={:product_location}
             entity_id={@entity_id}
@@ -1554,7 +1600,7 @@ The input `resource` is an atom of the LiveView that renders the component. In a
         do: {:noreply, assign(socket, :saved, component_id)}
     end
     ```
-    `ComponentsPairedViews` generates `Product.ReferenceForm`, and the default `ProductLocation.FormComponent` the AC-11 row names as the other module. The host imports the resource and the component under its own atoms and generates nothing.
+    `ComponentsPairedViews` generates `Product.ReferenceForm`, and the default `ProductLocation.FormComponent` the AC-11 row names as the other module. The host imports the resource, names the component by its module in `use:` and in `render/1`, needs no `@auix_modules`, and generates nothing.
 12. Unchanged on purpose. `renderers/index_renderer.ex` keeps the modal and passes the hosted assigns, so the LiveView keeps receiving `{FormImpl, {:saved, entity}}` in `auix_handle_info/2`. `renderers/form_renderer.ex` keeps its ids: two embedded forms of one resource on one page share `auix-<module>-form` (see Out of Scope). An embedded form has no close control of its own; `auix_request_close` and `auix_route_back` are the events a host action sends to it.
 13. Components: none new. Theme: none. `dt/1` strings: none.
 
@@ -1666,7 +1712,7 @@ Depends on: UI-5, UI-6
 A LiveComponent is needed here: the list holds state that survives a re-render (streams, selection, filters, page) and receives its own events.
 
 ##### Acceptance criteria
-- [ ] AC-1: a module with one resource and `auix_create_ui()` defines `<Module>.Product.IndexComponent`, registered as `:product_index_component` with `kind: :index_component`; `index_columns :product, [:reference], module_name: :index_compact` defines `<Module>.Product.IndexCompact` instead; `generate: [:index_component]` defines the index component and no `.Index`, `.FormComponent`, `.ShowComponent`
+- [ ] AC-1: a module with one resource and `auix_create_ui()` defines `<Module>.Product.IndexComponent`, registered as `:product_index_component`, whose `auix_kind/0` returns `:index_component`; `index_columns :product, [:reference], module_name: :index_compact` defines `<Module>.Product.IndexCompact` instead, whose `auix_fields/0` returns `[:reference]`; `generate: [:index_component]` defines the index component and no `.Index`, `.FormComponent`, `.ShowComponent`
 - [ ] AC-2: `index_columns :product_location, use: :index_compact` gives `:product_location` the columns of the used layout in this module (`auix_configurations().product_location.layout_trees.index` lists `:reference` and `:name`), defines no `<Module>.ProductLocation.IndexComponent`, and still defines `<Module>.ProductLocation.Index`
 - [ ] AC-3: error paths. `index_columns :product, use: :nope` fails compilation with `unknown module :nope in use:`; `index_columns :product, [:name], use: :product_index_component` fails with `use: takes no field list and no other option`
 - [ ] AC-4: an embedded index given `where` lists only the matching records, in rows whose DOM id is `<component id>-<stream name>-<record id>`
@@ -1678,7 +1724,7 @@ A LiveComponent is needed here: the list holds state that survives a re-render (
 - [ ] AC-10: `component_handler_module:` on `index_columns` sets the handler of the component; a handler that overrides `auix_handle_event/3` receives the event before the default clauses
 - [ ] AC-11: the Ash backend: an embedded index of `:author` lists the authors and its delete action sends `{:deleted, [id]}`
 - [ ] AC-12: the markup of the generated LiveView does not change, and `@auix._myself` is `nil` there: no test file of the LiveView changes (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only `test/cases/create_ui_validation_test.exs`, `test/cases_live/components_index_test.exs` and `test/cases_live/ash_components_index_test.exs`, and `mix test` green)
-- [ ] AC-13: an embedded index given `resource: :product_location`, rendered by a LiveView written by hand that declares `index_columns :product_location, use: :location_list`, lists the product locations in rows whose DOM id is `<component id>-product_locations-<record id>`, with the columns of the used layout: a row shows the reference of its record and not its type
+- [ ] AC-13: an embedded index given `resource: :product_location`, rendered by a LiveView written by hand that declares `index_columns :product_location, use: ComponentsIndexViews.auix_module(:index_compact)`, lists the product locations in rows whose DOM id is `<component id>-product_locations-<record id>`, with the columns of the used layout: a row shows the reference of its record and not its type
 - [ ] AC-14: error path. `Helpers.resource_binding/4` with `:index` raises `ArgumentError` (message contains `does not pair`) for an index component the rendering LiveView does not pair with the resource
 
 ##### Test ports
@@ -1692,7 +1738,7 @@ A LiveComponent is needed here: the list holds state that survives a re-render (
 
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
-| AC-1 | amend `test/cases/create_ui_validation_test.exs` `"every generated module has a registry entry"` and `"an embedded resource generates no modules"` (UI-4): add `:product_index_component`, and `:user_index_component`, to the expected key lists. Add to the same file | `compile/1` with the three bodies of AC-1 | same | `"index_columns generates an index component"` | `mod.auix_module(:product_index_component) \|> Map.take([:module, :kind]) == %{module: Module.concat(mod, Product.IndexComponent), kind: :index_component}`; with `module_name: :index_compact`: `Code.ensure_loaded?(Module.concat(mod, Product.IndexCompact))` and `refute Code.ensure_loaded?(Module.concat(mod, Product.IndexComponent))`; with `generate: [:index_component]`: the component is loaded, and `Product.Index`, `Product.FormComponent`, `Product.ShowComponent` are not |
+| AC-1 | amend `test/cases/create_ui_validation_test.exs` `"every generated module has a registry entry"` and `"an embedded resource generates no modules"` (UI-4): add `product_index_component: Module.concat(mod, Product.IndexComponent)` to the expected map of the first, and `:product_index_component` and `:user_index_component` to the expected key list of the second. Add to the same file | `compile/1` with the three bodies of AC-1 | same | `"index_columns generates an index component"` | `mod.auix_module(:product_index_component) == Module.concat(mod, Product.IndexComponent)`; `mod.auix_module(:product_index_component).auix_kind() == :index_component`; with `module_name: :index_compact`: `mod.auix_module(:index_compact) == Module.concat(mod, Product.IndexCompact)`, `mod.auix_module(:index_compact).auix_fields() == [:reference]` and `refute Code.ensure_loaded?(Module.concat(mod, Product.IndexComponent))`; with `generate: [:index_component]`: the component is loaded, and `Product.Index`, `Product.FormComponent`, `Product.ShowComponent` are not |
 | AC-2 | add to same | body starts with `auix_resource_metadata :product_location, context: Aurora.Uix.Guides.Inventory, schema: Aurora.Uix.Guides.Inventory.ProductLocation`, then `auix_create_ui do` / `index_columns :product, [:reference, :name], module_name: :index_compact` / `index_columns :product_location, use: :index_compact` / `end` | same | `"use: gives a resource the index layout of another"` | `Enum.map(mod.auix_configurations().product_location.layout_trees.index.children, & &1.key) == [:reference, :name]`; `refute Code.ensure_loaded?(Module.concat(mod, ProductLocation.IndexComponent))`; `Code.ensure_loaded?(Module.concat(mod, ProductLocation.Index))` |
 | AC-3 | add to same | the two bodies of AC-3 | same | `"use: on index_columns rejects what it cannot take"` | two `assert_raise DslError, regex, …` |
 | AC-4 | new file (`ls test/cases_live \| grep components_index` prints nothing). Module `Aurora.UixWeb.Test.ComponentsIndexTest` | `mount_components(conn, [%{module: C, id: "low", props: %{where: [{:reference, :lt, "item_test-04"}]}}])` | `test/cases_live/components_index_test.exs` | `"an embedded index lists its scope"` | `has_element?(view, row("low", p(1)))`; `has_element?(view, row("low", p(3)))`; `refute has_element?(view, row("low", p(4)))` |
@@ -1703,15 +1749,15 @@ A LiveComponent is needed here: the list holds state that survives a re-render (
 | AC-9 | add to same | `"a"` with `props: %{where: [{:reference, "none"}]}` | same | `"an embedded index with no record says so"` | `has_element?(view, "#a .auix-items-table-empty")`; `refute has_element?(view, "#a tr[id^='a-products-']")` |
 | AC-10 | add to same. A second pair of top-level modules in the file, before the test module: `Aurora.UixWeb.Test.ComponentsIndexHandler` (`use Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`; one clause `def auix_handle_event("ping", _params, socket), do: {:noreply, Aurora.Uix.Templates.Basic.Helpers.report_intent(socket, {:page, 99})}`, then `def auix_handle_event(event, params, socket), do: super(event, params, socket)`) and `Aurora.UixWeb.Test.ComponentsIndexHandled` (`use Aurora.Uix`, `:product`, `auix_create_ui generate: [:index_component] do index_columns(:product, [:reference], component_handler_module: Aurora.UixWeb.Test.ComponentsIndexHandler) end`) | mount `%{module: Aurora.UixWeb.Test.ComponentsIndexHandled.Product.IndexComponent, id: "h", props: %{}}` | same | `"component_handler_module sets the handler of the component"` | `view \|> with_target("#h") \|> render_click("ping", %{})` (`#h` is the root of the component); `has_element?(view, "#auix-host-intents li[data-component='h'][data-intent='page'][data-value='99']")` |
 | AC-11 | new file. Module `Aurora.UixWeb.Test.AshComponentsIndexTest`, `auix_resource_metadata(:author, ash_resource: Aurora.Uix.Guides.Blog.Author)`, `auix_create_ui()` | `delete_all_blog_data()`; `[author \| _] = create_sample_authors(2)`; mount `%{module: T.Author.IndexComponent, id: "a", props: %{}}` | `test/cases_live/ash_components_index_test.exs` | `"an embedded index on Ash"` | `has_element?(view, "#a tr[id='a-authors-#{author.id}']")`; click its `td.auix-items-table-action-cell a[name='auix-delete-author']`; `has_element?(view, "#auix-host-intents li[data-component='a'][data-intent='deleted'][data-value='#{author.id}']")` |
-| AC-13 | add to `test/cases_live/components_index_test.exs`. A third pair of top-level modules in the file, before the test module (`grep -rnE 'ComponentsIndexViews\|ComponentsIndexPaired' lib test` prints nothing). `Aurora.UixWeb.Test.ComponentsIndexViews`: `use Aurora.Uix`; `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)`; `auix_create_ui generate: [:index_component] do index_columns(:product, [:reference, :name], module_name: :index_compact) end`. `Aurora.UixWeb.Test.ComponentsIndexPairedHostLive`: `use Aurora.UixWeb.Test, :live_view`; `use Aurora.Uix`; `@auix_resource_metadata %{product_location: Aurora.UixWeb.Test.ComponentsIndexViews.auix_resource(:product_location)}`; `@auix_modules %{location_list: Aurora.UixWeb.Test.ComponentsIndexViews.auix_module(:index_compact)}`; `auix_create_ui generate: [] do index_columns(:product_location, use: :location_list) end`; `def mount(_params, _session, socket), do: {:ok, socket}`; `render/1` with the template `<div id="auix-paired-host"><.live_component module={auix_module(:location_list).module} id="locations" resource={:product_location} /></div>`; no `handle_info/2` | `delete_all_inventory_data()`; `create_sample_product_locations(2)`; `[first \| _] = locations = Aurora.Uix.Repo.all(ProductLocation)`; `{:ok, view, _html} = live_isolated(conn, Aurora.UixWeb.Test.ComponentsIndexPairedHostLive)`; `location_row = fn location -> "#locations tr[id='locations-product_locations-#{location.id}']" end` | same | `"a paired index serves a resource of the LiveView that renders it"` | `Enum.all?(locations, &has_element?(view, location_row.(&1)))`; `has_element?(view, location_row.(first), first.reference)`; `refute has_element?(view, location_row.(first), first.type)` |
+| AC-13 | add to `test/cases_live/components_index_test.exs`. A third pair of top-level modules in the file, before the test module (`grep -rnE 'ComponentsIndexViews\|ComponentsIndexPaired' lib test` prints nothing). `Aurora.UixWeb.Test.ComponentsIndexViews`: `use Aurora.Uix`; `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_location, context: Inventory, schema: ProductLocation)`; `auix_create_ui generate: [:index_component] do index_columns(:product, [:reference, :name], module_name: :index_compact) end`. `Aurora.UixWeb.Test.ComponentsIndexPairedHostLive`: `use Aurora.UixWeb.Test, :live_view`; `use Aurora.Uix`; `@auix_resource_metadata %{product_location: Aurora.UixWeb.Test.ComponentsIndexViews.auix_resource(:product_location)}`; `auix_create_ui generate: [] do index_columns(:product_location, use: Aurora.UixWeb.Test.ComponentsIndexViews.auix_module(:index_compact)) end`; `def mount(_params, _session, socket), do: {:ok, socket}`; `render/1` with the template `<div id="auix-paired-host"><.live_component module={Aurora.UixWeb.Test.ComponentsIndexViews.auix_module(:index_compact)} id="locations" resource={:product_location} /></div>`; no `handle_info/2` | `delete_all_inventory_data()`; `create_sample_product_locations(2)`; `[first \| _] = locations = Aurora.Uix.Repo.all(ProductLocation)`; `{:ok, view, _html} = live_isolated(conn, Aurora.UixWeb.Test.ComponentsIndexPairedHostLive)`; `location_row = fn location -> "#locations tr[id='locations-product_locations-#{location.id}']" end` | same | `"a paired index serves a resource of the LiveView that renders it"` | `Enum.all?(locations, &has_element?(view, location_row.(&1)))`; `has_element?(view, location_row.(first), first.reference)`; `refute has_element?(view, location_row.(first), first.type)` |
 | AC-14 | add to same | `socket = %Phoenix.LiveView.Socket{view: Aurora.UixWeb.Test.ComponentsIndexPairedHostLive, assigns: %{__changed__: %{}}}` | same | `"an index component is checked against the pairing"` | `assert_raise ArgumentError, ~r/does not pair/, fn -> Aurora.Uix.Templates.Basic.Helpers.resource_binding(socket, %{id: "x", resource: :product_location}, C, :index) end` (`C` is the index component of `:product` in the test module, which the host does not pair) |
 
 ##### Modules & components
 1. The registry gains the kind (edits of the code of UI-4).
-   - `lib/aurora_uix/layout/artifacts.ex`: `kind()` and `kinds/0` gain `:index_component` (`[:live_view, :index_component, :form_component, :show_component]`). `plan/1`: the pairs of step 4 gain `{:index, :index_component}`; step 6 handles `:index` first, then `:form`, then `:show`, with the same rules (`use:` substitution, entry, kind check), and a `nil` index layout takes `RenderTree.default(:index, resource, opts)` for its entry; `resolved.artifacts` gains `index_component`.
-   - `lib/aurora_uix/layout/create_ui.ex`: the default `artifacts` map of `build_configurations/4` gains `index_component: nil`; `generate_tag?(:index, generate)` becomes `:live_view in generate or :index_component in generate`. `@moduledoc` `## Generated modules`: add `:<schema>_index_component` and `component_handler_module:`.
+   - `lib/aurora_uix/layout/artifacts.ex`: `kind()` and `kinds/0` gain `:index_component` (`[:index_live, :index_component, :form_component, :show_component]`). `plan/1`: the pairs of step 4 gain `{:index, :index_component}`; step 6 handles `:index` first, then `:form`, then `:show`, with the same rules (`use:` substitution, entry, kind check), and a `nil` index layout takes `RenderTree.default(:index, resource, opts)` for its entry; `resolved.artifacts` gains `index_component`, and `resolved.exposed_layouts` holds the kind `:index_component` for a resource this module generates the index component for.
+   - `lib/aurora_uix/layout/create_ui.ex`: the default `artifacts` map of `build_configurations/4` gains `index_component: nil`; `generate_tag?(:index, generate)` becomes `:index_live in generate or :index_component in generate`. `@moduledoc` `## Generated modules`: add `:<schema>_index_component` and `component_handler_module:`.
    - `lib/aurora_uix/layout/node/index.ex`: add `module_name: nil`, `use: nil` and `component_handler_module: nil` to `defstruct` after `handler_module: nil`, and to `@type t()`.
-   - `lib/aurora_uix/layout/create_ui/dsl.ex`: the `generate` list of `@ui_schema` gains `:index_component`. `typed_keys(:index, handler_key)` returns `[:renderers, :order_by, :where, :module_name, :use, :component_handler_module, handler_key]`. `container_opts/2` adds `component_handler_module: typed[:component_handler_module]` to its map. `index_columns` has no block and no entity option, so Spark hands `index_columns :r, use: :x` over as the column list `[use: :x]`; a new first clause of `build_node/1` reads it, and the existing clause rejects `use:` among the options:
+   - `lib/aurora_uix/layout/create_ui/dsl.ex`: the `generate` list of `@ui_schema` gains `:index_component`. `typed_keys(:index, handler_key)` returns `[:renderers, :order_by, :where, :module_name, :use, :component_handler_module, handler_key]`. `container_opts/2` adds `component_handler_module: typed[:component_handler_module]` to its map. `index_columns` has no block and no entity option, so Spark hands `index_columns :r, use: :x` over as the column list `[use: :x]`; a new first clause of `build_node/1` reads it, and the existing clause rejects `use:` among the options. `name` takes the two forms `use:` takes on `edit_layout` (UI-4, step 2): a name of the registry, and a generated module. Spark evaluates the value, so `use: Views.auix_module(:index_compact)` arrives as the module:
      ```elixir
      def build_node(%Node.Index{children: [use: name], options: []} = index) when is_atom(name),
        do: {:ok, %{index | children: [], use: name}}
@@ -1748,12 +1794,19 @@ A LiveComponent is needed here: the list holds state that survives a re-render (
    - `auix_handle_event/3`, clauses in this order: `event in @list_events` (`@list_events IndexList.events()`) delegates to `IndexList.handle_event/3`; `"auix_open"` returns `{:noreply, report_open(socket, params)}`; `"delete"` with `%{"id" => id}` runs `{socket, ids} = IndexList.delete(socket, id)` and returns `{:noreply, report_intent(socket, {:deleted, ids})}`; `"pagination_to_page"` with `%{"page" => page}` runs `IndexList.paginate(socket, String.to_integer(page), nil)` and reports `{:page, page}` with the integer; `"pagination_previous"` and `"pagination_next"` follow `IndexImpl`: with `auix.layout_options.pagination_disabled?` true, and with the param `"pagination_disabled?"`, they run `IndexList.paginate(socket, pagination.page - 1, Map.get(params, "items_per_page"))` (`+ 1` for next) and report nothing; otherwise they paginate to `IndexList.previous_page(pagination)` (`next_page/1` for next) and report `{:page, page}`; a last clause raises `"Event not handled. event: #{inspect(event)}. params: #{inspect(params)}"`, as `ShowComponentImpl` does.
    - `auix_handle_async/3`: for `:auix_selection_delete_all` with `{:ok, ids} = result`, run `{:noreply, socket} = IndexList.handle_async(:auix_selection_delete_all, result, socket)` and return `{:noreply, report_intent(socket, {:deleted, ids})}`; every other call delegates to `IndexList.handle_async/3`.
 3. `Aurora.Uix.Templates.Basic.Handlers.IndexComponent` at `lib/aurora_uix/templates/basic/handlers/index_component.ex` — new, the default handler: `@moduledoc` in the form of `handlers/show_component.ex` and `use Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`.
-4. `generators/index_generator.ex` — modified. `generate_module/1` returns a block of up to two modules: the LiveView, unchanged, when `:live_view in parsed_opts.generate`, and the component when `:index_component in parsed_opts.generate`. The component handler is `Map.get(parsed_opts.layout_tree, :component_handler_module) || IndexComponentHandler` (alias `Aurora.Uix.Templates.Basic.Handlers.IndexComponent, as: IndexComponentHandler`).
+4. `generators/index_generator.ex` — modified. `generate_module/1` returns a block of up to two modules: the LiveView, unchanged, when `:index_live in parsed_opts.generate`, and the component when `:index_component in parsed_opts.generate`. The component handler is `Map.get(parsed_opts.layout_tree, :component_handler_module) || IndexComponentHandler` (alias `Aurora.Uix.Templates.Basic.Handlers.IndexComponent, as: IndexComponentHandler`).
    ```elixir
    defmodule unquote(parsed_opts.artifacts.index_component) do
      @moduledoc false
 
      use unquote(parsed_opts.modules.web), :live_component
+
+     unquote(
+       Artifacts.module_code(
+         :index_component,
+         Map.fetch!(parsed_opts.exposed_layouts, :index_component)
+       )
+     )
 
      @impl true
      def update(assigns, socket) do
@@ -1779,7 +1832,7 @@ A LiveComponent is needed here: the list holds state that survives a re-render (
        do: unquote(component_handler).handle_async(task, result, socket)
    end
    ```
-   The binding of `resource` enters `auix` before `Helpers.assign_parsed_opts/2`, as in the form and the show component (UI-5, step 2). An update that carries `auix_event` carries no `resource`, and `resource_binding/4` returns `%{}` for it.
+   The binding of `resource` enters `auix` before `Helpers.assign_parsed_opts/2`, as in the form and the show component (UI-5, step 2). An update that carries `auix_event` carries no `resource`, and `resource_binding/4` returns `%{}` for it. `Artifacts.module_code/2` (UI-4, step 1) gives the component `auix_kind/0`, `auix_fields/0` (its columns) and `auix_layout/0` (its `%Node.Index{}` as written, `resource: nil`); `Aurora.Uix.Layout.Artifacts` is aliased in the generator since UI-4.
 5. `renderers/index_renderer.ex` — modified. The list moves into a function component both renderers call; the LiveView markup stays the same.
    - New public function component `index_list/1` (`grep -rnE 'index_list\b|render_component\b' lib` prints nothing): `attr(:auix, :map, required: true)`, `attr(:id, :string, required: true)`, `attr(:streams, :any, required: true)`. It computes `default_show_function` from `assigns.auix.index_row_actions`, as `render/1` does today, and renders the markup of `render/1` from `<div class="auix-index-actions">` through the closing tag of `<div name="auix-index-footer-actions">`, with three changes: `<.auix_items id={@id} … streams={@streams}>`; `phx-target={@auix[:_myself]}` on `<.auix_simple_form>`; and `_myself: @auix[:_myself]` added to the map given to `auix_items` as `auix`.
    - `render/1`: drops the `default_show_function` computation and replaces the moved markup with `<.index_list auix={@auix} id={"auix-table-#{@auix.uri_path_id}-index"} streams={@auix.layout_options.get_streams.(assigns)} />`. The hook div, the header, the flashes and the modal stay.
@@ -1928,13 +1981,13 @@ The rows of a one-to-many field are held and rendered by the index component of 
 - `OneToMany.load_rows/1` called directly for AC-6.
 
 ##### Red tests
-The test module `Aurora.UixWeb.Test.OneToManyComponentTest` declares, in this order: `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_compact, context: Inventory, schema: Product)`; `auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation do field(:products, resource: :product_compact) end`; and
+The test module `Aurora.UixWeb.Test.OneToManyComponentTest` declares, in this order: `auix_resource_metadata(:product, context: Inventory, schema: Product)`; `auix_resource_metadata(:product_compact, context: Inventory, schema: Product)`; `auix_resource_metadata :product_location do … end` whose block holds the three lines `context(Inventory)`, `schema(ProductLocation)` and `field(:products, resource: :product_compact)`; and
 ```elixir
 auix_create_ui do
   index_columns(:product_compact, [:reference, :name], module_name: :index_compact)
   edit_layout(:product_compact, use: :product_form_component)
   show_layout(:product_compact, use: :product_show_component)
-  live_view(:product_compact, module_name: :compact_products)
+  index_live(:product_compact, module_name: :compact_products)
 
   show_layout :product_location do
     stacked([:reference, :name, :products])
@@ -1981,7 +2034,7 @@ Data: `delete_all_inventory_data()`, then one location with two products, create
 5. Markup changes and the tests that drive them. `grep -rln 'auix-one_to_many' test` lists eight files: `association_one2many_ui_layout_test.exs`, `association_one2many_ui_actions_test.exs`, `ash_where_one2many_test.exs`, `handler_hooks_show_test.exs`, `manual_trees_test.exs`, `manual_layouts_test.exs`, `manual_resource_test.exs` and `manual_ui_test.exs`, all in `test/cases_live/`. The container keeps its id and class and gains `data-phx-component`; `div[name='auix-one_to_many-<parent>']`, `a[name='auix-new-<parent>__<field>-form']` and the row action names are rendered by the same functions as before. No test changes its drive.
 6. Events. The row and header actions stay untargeted: `auix_route_forward` and `delete` (with `get_function` and `delete_function`) reach the LiveView and `IndexImpl.auix_handle_event/3`, as today. An embedded parent (UI-5) renders no default child action.
 7. Unchanged on purpose: `actions/one_to_many.ex`; `set_related_uri_path/3`, so two resources on one schema share the routes of that schema; the columns, read from `BasicHelpers.layout_children(configurations, field.data.resource, :index)` — with `use:` on the related resource's `index_columns`, that layout is the used one (UI-7, AC-2).
-8. Edge cases. `field.data.resource == nil` keeps the first `render/1` clause, which renders nothing. A parent that is not saved yet has a `nil` owner key and lists its preloaded rows.
+8. Edge cases. `field.data.resource == nil` keeps the first `render/1` clause, which renders nothing. A parent that is not saved yet has a `nil` owner key and lists its preloaded rows. `auix_resource_metadata` takes its options and a `do` block only apart: `auix_resource_metadata :r, context: C, schema: S do … end` does not compile (`undefined function auix_resource_metadata/3`), so the test module declares `:product_location` in the block form.
 9. Components: `child_rows/1` (contract in step 1). Theme: none. `dt/1` strings: none.
 
 ##### Green tests
@@ -2017,13 +2070,13 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
        decides. `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView
        (`@auix.navigation`), which patches and navigates as before.
      - Every generated module has a name in its `auix_create_ui` module. `module_name:` on a layout names its
-       component, a `live_view` line names the LiveView, and `auix_modules/0` and `auix_module/1` return them,
-       with the modules imported through `@auix_modules`. `use:` on a layout takes a component generated in
-       another module for a resource of this module. A LiveView you write declares the same pairing and gives
-       the component its `resource`.
-     - `auix_create_ui generate:` chooses which kinds of module are generated; leaving out `:live_view`
+       component, an `index_live` line names the index LiveView, and `auix_modules/0` and `auix_module/1`
+       return the modules, with the modules imported through `@auix_modules`. `use:` on a layout takes a
+       component generated elsewhere for a resource of this module. A LiveView you write attaches the
+       components it needs the same way and gives each one its `resource`.
+     - `auix_create_ui generate:` chooses which kinds of module are generated; leaving out `:index_live`
        generates the components alone.
-     - `auix_live_resources/3` takes `live_view:` to route to a renamed LiveView.
+     - `auix_live_resources/3` takes `index_live:` to route to a renamed LiveView.
      - `component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`
        (`IndexComponentImpl`).
      - `Aurora.Uix.Live.ComponentHooks` forwards `Aurora.Uix.Events` to the components of a hand-written LiveView.
@@ -2038,10 +2091,14 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    - **Generated module names (breaking)**
      - Two generated modules with the same name in one `auix_create_ui` module are a compile-time error.
        Before, the second definition silently replaced the first. It happens when two resources of the module
-       share a schema: give one of them `module_name:` on its layouts, `use:`, and a `live_view` line.
+       share a schema: give one of them `module_name:` on its layouts, `use:`, and an `index_live` line.
      - A resource created for an embedded field (`:<parent>__<field>`) generates no modules. The
        `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent` modules are gone; nothing
        rendered them.
+   - **Associations to imported resources**
+     - A resource declared in a module links its associations to the resources the module imports with
+       `@auix_resource_metadata`, as it does to the resources declared beside it. A form or a show view that
+       places such a field now shows its select or its list; before, the field had no related resource.
    ```
 
 ##### guides/advanced/advanced_usage.md
@@ -2065,7 +2122,7 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    ```
 2. § Introspecting generated UI modules — replace `exposes two introspection functions` with `exposes three introspection functions`, and append this list item after the `auix_configurations/0` item and its code block, verbatim:
    ````markdown
-   - **`auix_modules/0`** — returns the generated and the imported modules by name: the module, its kind and the fields its layout places. `auix_module/1` returns one of them.
+   - **`auix_modules/0`** — maps the names of the generated and the imported modules to the modules. `auix_module/1` returns one of them. A generated module tells its kind with `auix_kind/0` and the fields its layout places with `auix_fields/0`.
 
      ```elixir
      MyAppWeb.Products.Index.auix_modules()
@@ -2111,72 +2168,295 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
 
    | Module | Default name | Named with |
    |---|---|---|
+   | `.Index` | `:<schema>_index` | an `index_live` line |
    | `.IndexComponent` | `:<schema>_index_component` | `module_name:` on `index_columns` |
    | `.FormComponent` | `:<schema>_form_component` | `module_name:` on `edit_layout` |
    | `.ShowComponent` | `:<schema>_show_component` | `module_name:` on `show_layout` |
-   | `.Index` | `:<schema>_index` | a `live_view` line |
 
-   `<schema>` is the last part of the schema module, in snake case. A name you give is also the last part of
-   the module:
+   `<schema>` is the last part of the schema module, in snake case. A name you give is the last part of the
+   module, as you wrote it: no suffix is added. `auix_modules/0` returns the modules by name, and
+   `auix_module/1` returns one. A generated module tells its kind with `auix_kind/0` and the fields its
+   layout places with `auix_fields/0`.
 
-   ```elixir
-   auix_create_ui do
-     index_columns :product, [:reference, :name], module_name: :index_compact
-     live_view :product, module_name: :catalog
-   end
+   The examples share three schemas. `Product` has many `ProductTransaction` (`:product_transactions`, a
+   one-to-many) and belongs to a `ProductLocation` (`:product_location_id`, a many-to-one).
 
-   # MyAppWeb.ProductViews.Product.IndexCompact and MyAppWeb.ProductViews.Product.Catalog
-   ```
-
-   `auix_modules/0` returns the modules of a views module by name, the generated ones and the imported ones,
-   and `auix_module/1` returns one: the module, its kind and the fields its layout places.
-
-   A layout can take a component instead of generating one. `use:` names it; the line has no field list, no
-   block and no other option:
+   ### One module
 
    ```elixir
-   defmodule MyAppWeb.LocationViews do
+   defmodule MyAppWeb.InventoryViews do
      use Aurora.Uix
 
-     alias MyAppWeb.ProductViews
+     alias MyApp.Inventory
+     alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
 
-     @auix_resource_metadata %{product_compact: ProductViews.auix_resource(:product_compact)}
-     @auix_modules %{index_compact: ProductViews.auix_module(:index_compact)}
+     auix_resource_metadata :product, context: Inventory, schema: Product
+     auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
 
      auix_create_ui do
-       index_columns :product_compact, use: :index_compact
+       index_columns :product, [:reference, :name]
+
+       edit_layout :product do
+         inline [:reference, :name]
+         stacked [:product_location_id, :product_transactions]
+       end
+
+       index_columns :product_transaction, [:type, :quantity, :cost]
+       index_columns :product_location, [:reference, :name]
      end
    end
    ```
 
-   `@auix_modules` imports a module under a name of your choice. `use:` also takes a name declared in the same
-   views module. The component then serves the resource of the line: its kind must match the layout, and the
-   resource must have every field the component's layout places. The two resources may have different schemas.
-   A LiveView cannot be used this way.
+   Every resource with a schema generates its four modules, also without a layout line. The modules, under
+   `MyAppWeb.InventoryViews`:
 
-   A LiveView you write declares its pairings the same way, and generates nothing. With
-   `edit_layout :product, module_name: :reference_form` declared in `MyAppWeb.ProductViews`:
+   | Name | Module |
+   |---|---|
+   | `:product_index` | `Product.Index` |
+   | `:product_index_component` | `Product.IndexComponent` |
+   | `:product_form_component` | `Product.FormComponent` |
+   | `:product_show_component` | `Product.ShowComponent` |
+   | `:product_transaction_index` | `ProductTransaction.Index` |
+   | `:product_transaction_index_component` | `ProductTransaction.IndexComponent` |
+   | `:product_transaction_form_component` | `ProductTransaction.FormComponent` |
+   | `:product_transaction_show_component` | `ProductTransaction.ShowComponent` |
+   | `:product_location_index` | `ProductLocation.Index` |
+   | `:product_location_index_component` | `ProductLocation.IndexComponent` |
+   | `:product_location_form_component` | `ProductLocation.FormComponent` |
+   | `:product_location_show_component` | `ProductLocation.ShowComponent` |
+
+   The transactions list in the product form is rendered by `ProductTransaction.IndexComponent`. Each
+   association finds its resource by the schema it relates to, so neither field needs `resource:`.
+
+   ### Resources in one module, the UI in another
 
    ```elixir
-   defmodule MyAppWeb.LocationLive do
+   defmodule MyAppWeb.InventoryMetadata do
+     use Aurora.Uix
+
+     alias MyApp.Inventory
+     alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
+
+     auix_resource_metadata :product, context: Inventory, schema: Product
+     auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
+   end
+
+   defmodule MyAppWeb.InventoryViews do
+     use Aurora.Uix
+
+     alias MyAppWeb.InventoryMetadata
+
+     @auix_resource_metadata InventoryMetadata.auix_resources()
+
+     auix_create_ui do
+       index_columns :product, [:reference, :name]
+
+       edit_layout :product do
+         inline [:reference, :name]
+         stacked [:product_location_id, :product_transactions]
+       end
+
+       index_columns :product_transaction, [:type, :quantity, :cost]
+       index_columns :product_location, [:reference, :name]
+     end
+   end
+   ```
+
+   `InventoryMetadata` generates no module. `InventoryViews` generates the twelve modules of the first
+   example, under the same names. The resources can also be imported one by one:
+   `@auix_resource_metadata %{product: InventoryMetadata.auix_resource(:product)}`.
+
+   ### Reusing components from another views module
+
+   ```elixir
+   defmodule MyAppWeb.ProductViews do
+     use Aurora.Uix
+
+     alias MyApp.Inventory
+     alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
+
+     auix_resource_metadata :product, context: Inventory, schema: Product
+     auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
+
+     auix_create_ui do
+       index_columns :product, [:reference, :name]
+
+       # Without module_name: the name is :product_form_component and the module Product.FormComponent.
+       edit_layout :product, module_name: :product_form do
+         inline [:reference, :name]
+         stacked [:product_location_id, :product_transactions]
+       end
+
+       index_columns :product_transaction, [:type, :quantity, :cost]
+       index_columns :product_location, [:reference, :name]
+     end
+   end
+
+   defmodule MyAppWeb.CatalogViews do
+     use Aurora.Uix
+
+     alias MyApp.Inventory
+     alias MyApp.Inventory.Product
+     alias MyAppWeb.ProductViews
+
+     auix_resource_metadata :catalog_product, context: Inventory, schema: Product
+
+     @auix_resource_metadata %{
+       product_transaction: ProductViews.auix_resource(:product_transaction),
+       product_location: ProductViews.auix_resource(:product_location)
+     }
+     @auix_modules %{
+       catalog_form: ProductViews.auix_module(:product_form),
+       transactions_list: ProductViews.auix_module(:product_transaction_index_component)
+     }
+
+     auix_create_ui do
+       index_columns :catalog_product, [:name]
+       edit_layout :catalog_product, use: :catalog_form
+       index_columns :product_transaction, use: :transactions_list
+       index_columns :product_location, [:name]
+     end
+   end
+   ```
+
+   `ProductViews` generates the twelve modules of the first example, except that the product form is
+   `:product_form`, the module `Product.ProductForm`.
+
+   `:catalog_product` links its associations to the two resources `CatalogViews` imports, so the reused form
+   shows its location select and its transactions list. The list is rendered by `:transactions_list`.
+
+   `@auix_modules` imports a module under a name of your choice, and `use:` takes it for the resource of its
+   line instead of generating one. A `use:` line has no field list, no block and no other option. `CatalogViews`
+   imports `:catalog_form` and `:transactions_list`, and generates, under `MyAppWeb.CatalogViews`:
+
+   | Name | Module |
+   |---|---|
+   | `:product_index` | `Product.Index` |
+   | `:product_index_component` | `Product.IndexComponent` |
+   | `:product_show_component` | `Product.ShowComponent` |
+   | `:product_transaction_index` | `ProductTransaction.Index` |
+   | `:product_transaction_form_component` | `ProductTransaction.FormComponent` |
+   | `:product_transaction_show_component` | `ProductTransaction.ShowComponent` |
+   | `:product_location_index` | `ProductLocation.Index` |
+   | `:product_location_index_component` | `ProductLocation.IndexComponent` |
+   | `:product_location_form_component` | `ProductLocation.FormComponent` |
+   | `:product_location_show_component` | `ProductLocation.ShowComponent` |
+
+   Two rules are checked when the module compiles: the kind of the component matches the layout line, and
+   the resource has every field the layout of the component places. The two resources may have different
+   schemas. A LiveView cannot be taken this way. Two views modules that import from each other do not
+   compile.
+
+   ### Two resources on one schema
+
+   ```elixir
+   defmodule MyAppWeb.InventoryViews do
+     use Aurora.Uix
+
+     alias MyApp.Inventory
+     alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
+
+     auix_resource_metadata :product do
+       context Inventory
+       schema Product
+       field :product_transactions, resource: :product_transaction_compact
+     end
+
+     auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+
+     auix_resource_metadata :product_transaction_compact do
+       context Inventory
+       schema ProductTransaction
+       field :cost, readonly: true
+     end
+
+     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
+
+     auix_create_ui do
+       index_columns :product, [:reference, :name]
+
+       edit_layout :product do
+         inline [:reference, :name]
+         stacked [:product_location_id, :product_transactions]
+       end
+
+       index_columns :product_transaction, [:type, :quantity, :cost, :inserted_at]
+
+       edit_layout :product_transaction do
+         inline [:type, :quantity, :cost]
+         stacked [:product_id]
+       end
+
+       show_layout :product_transaction do
+         inline [:type, :quantity, :cost]
+       end
+
+       index_columns :product_transaction_compact, [:type, :quantity], module_name: :transactions_compact
+       edit_layout :product_transaction_compact, use: :product_transaction_form_component
+       show_layout :product_transaction_compact, use: :product_transaction_show_component
+       index_live :product_transaction_compact, module_name: :compact_transactions
+
+       index_columns :product_location, [:reference, :name]
+     end
+   end
+   ```
+
+   The module generates the twelve modules of the first example, and two more:
+
+   | Name | Module |
+   |---|---|
+   | `:transactions_compact` | `ProductTransaction.TransactionsCompact` |
+   | `:compact_transactions` | `ProductTransaction.CompactTransactions`, the LiveView |
+
+   Two generated modules with one name do not compile. `:product_transaction` and
+   `:product_transaction_compact` describe the same schema, so the second one names its index component and
+   its LiveView, and takes the form and the show view of the first with `use:`, by their default names. The
+   transactions list in the product form is `ProductTransaction.TransactionsCompact`: the `resource:` option
+   of the field says which of the two resources the list shows. A field needs `resource:` only then.
+
+   `auix_resource_metadata` takes its options on the line, or a block that holds them with the field
+   options. It does not take both.
+
+   ### In a LiveView you write
+
+   A LiveView you write attaches the components it needs with `auix_create_ui`, and generates nothing with
+   `generate: []`. `use:` takes the module that `auix_module/1` of the other views module returns, so the
+   LiveView needs no `@auix_modules`. With `MyAppWeb.ProductViews` from the example above:
+
+   ```elixir
+   defmodule MyAppWeb.ProductReviewLive do
      use MyAppWeb, :live_view
      use Aurora.Uix
 
+     alias MyApp.Inventory
+     alias MyApp.Inventory.{Product, ProductLocation, ProductTransaction}
      alias MyAppWeb.ProductViews
 
-     @auix_resource_metadata %{product_location: ProductViews.auix_resource(:product_location)}
-     @auix_modules %{reference_form: ProductViews.auix_module(:reference_form)}
+     auix_resource_metadata :product_review do
+       context Inventory
+       schema Product
+       field :reference, readonly: true
+     end
+
+     auix_resource_metadata :product_transaction, context: Inventory, schema: ProductTransaction
+     auix_resource_metadata :product_location, context: Inventory, schema: ProductLocation
 
      auix_create_ui generate: [] do
-       edit_layout :product_location, use: :reference_form
+       edit_layout :product_review, use: ProductViews.auix_module(:product_form)
+       index_columns :product_transaction, use: ProductViews.auix_module(:product_transaction_index_component)
      end
+
+     def mount(%{"id" => id}, _session, socket), do: {:ok, assign(socket, :id, id)}
 
      def render(assigns) do
        ~H"""
        <.live_component
-         module={auix_module(:reference_form).module}
-         id="location-form"
-         resource={:product_location}
+         module={ProductViews.auix_module(:product_form)}
+         id="product-review-form"
+         resource={:product_review}
          entity_id={@id}
        />
        """
@@ -2184,19 +2464,23 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    end
    ```
 
-   The component looks `resource` up in the LiveView that renders it. It raises `ArgumentError` in three
-   cases: that LiveView has no `auix_create_ui`; it has no such resource; it pairs the resource with another
-   module. Without `resource` a component serves the resource it was generated for. A component keeps its
+   The LiveView generates no module. `resource` is a name: the component looks it up in the LiveView that
+   renders it, and serves it with the layout its `use:` line attached. It raises `ArgumentError` in three
+   cases: that LiveView has no `auix_create_ui`; it has no such resource; it attaches another module to the
+   resource. Without `resource` a component serves the resource it was generated for. A component keeps its
    resource: give another resource a component with its own `id`.
 
-   Two generated modules with one name do not compile. This happens when two resources of a views module share
-   a schema; give one of them `module_name:`, `use:` and a `live_view` line. Two views modules that import from
-   each other do not compile either.
+   `:product_review` describes `Product` with its own field options. The second `use:` line attaches the
+   index component that lists the transactions inside the form.
 
-   Route to a renamed LiveView with `live_view:`:
+   ### Routes
+
+   Route to a renamed LiveView with `index_live:`:
 
    ```elixir
-   auix_live_resources("/catalog", MyAppWeb.ProductViews.Product, live_view: :catalog)
+   auix_live_resources("/compact-transactions", MyAppWeb.InventoryViews.ProductTransaction,
+     index_live: :compact_transactions
+   )
    ```
    ````
 8. § One-to-many lists — replace the first paragraph (it starts `A one-to-many field renders an`) with, verbatim:
@@ -2205,20 +2489,13 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    looks and acts as before: its new, show and edit actions navigate to the child resource's routes. The list
    has no filters, selection, sort and paging.
    ```
-   and replace the `auix_create_ui do … end` block of the sample (its last four lines) with, verbatim:
+   and replace the rest of the section, from the paragraph that starts `The list takes its columns` through the closing fence of its sample, with, verbatim:
    ```
-   auix_create_ui do
-     index_columns :product_compact, [:reference, :name], module_name: :index_compact
-     edit_layout :product_compact, use: :product_form_component
-     show_layout :product_compact, use: :product_show_component
-     live_view :product_compact, module_name: :compact_products
-   end
+   The list takes its columns from the index layout of the resource the field shows. When two resources
+   describe the schema of the children, `resource:` on the field says which one; see
+   [Two resources on one schema](#two-resources-on-one-schema).
    ```
-   and insert this paragraph directly after the closing fence of the sample, verbatim:
-   ```
-   `:product` and `:product_compact` share a schema, so `:product_compact` names its index component and its
-   LiveView, and reuses the form and the show component of `:product`.
-   ```
+   The sample on `main` is removed: it gives `auix_resource_metadata` options and a `do` block together, which does not compile, and the example of step 7 replaces it.
 9. § Design decisions — replace item 3 and item 6 with, verbatim (the numbers stay):
    ```
    3. **Embedded components report, parents decide.** A component has no navigation mode. Embedded, it sends
@@ -2228,6 +2505,10 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    ```
    6. **The LiveView owns the URL.** No embedded component reads or writes it, so any number of instances
       share a page.
+   ```
+10. § Generating the components alone — replace the line `` `[:live_view, :index_component, :form_component, :show_component]`. `` with, verbatim:
+   ```
+   `[:index_live, :index_component, :form_component, :show_component]`.
    ```
 
 ##### guides/core/liveview.md
@@ -2241,10 +2522,10 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    ```
 3. § Using Generated Modules with Routes — append to the end of the section, after the `only:` / `except:` sample, preceded by one blank line, verbatim:
    ````markdown
-   A LiveView renamed with a `live_view` line is routed with `live_view:`:
+   A LiveView renamed with an `index_live` line is routed with `index_live:`:
 
    ```elixir
-   auix_live_resources("/catalog", Overview.Product, live_view: :catalog)
+   auix_live_resources("/catalog", Overview.Product, index_live: :catalog)
    ```
    ````
 4. § Specifying Handler Hooks in Layout DSL — append after the closing fence of the sample, preceded by one blank line, verbatim:
@@ -2267,14 +2548,14 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    0.2.1 has two compile-time changes that can stop a module from compiling; see
    [Upgrading from 0.2.0](#upgrading-from-0-2-0).
    ```
-2. § Reusable components — replace the six list items (from the item that starts `` - The generated `Index` LiveView hosts `` through the item `` - A one-to-many list is an embedded `IndexComponent`. ``) with, verbatim:
+2. § Reusable components — replace the five list items (from the item that starts `` - The generated `Index` LiveView hosts `` through the item `` - A one-to-many list is an embedded `IndexComponent`. ``) with, verbatim:
    ```
    - The generated `Index` LiveView keeps its list, routes, handler hooks and modal.
-   - `generate:` on `auix_create_ui` chooses the kinds of module; leave out `:live_view` to get the components
+   - `generate:` on `auix_create_ui` chooses the kinds of module; leave out `:index_live` to get the components
      alone.
    - An embedded component never navigates. It tells its parent what the user asked for, and the parent decides.
      `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView.
-   - Every generated module has a name: `module_name:` and `live_view` set it, `use:` takes a component
+   - Every generated module has a name: `module_name:` and `index_live` set it, `use:` takes a component
      generated in another module. A LiveView you write declares the same pairing and gives the component its
      `resource`.
    - `on_mount Aurora.Uix.Live.ComponentHooks` keeps embedded components up to date with `Aurora.Uix.Events`.
@@ -2285,8 +2566,8 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
    Two cases need a change:
 
    - A views module with two resources on one schema no longer compiles: their generated modules had the same
-     names, and one silently replaced the other. Give one resource `module_name:` on its layouts, `use:` and a
-     `live_view` line; see
+     names, and one silently replaced the other. Give one resource `module_name:` on its layouts, `use:` and an
+     `index_live` line; see
      [Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
    - A resource created for an embedded field generates no modules. Remove any reference to
      `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent`.
@@ -2299,7 +2580,7 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
 ##### Unchanged on purpose
 1. `guides/advanced/advanced_usage.md § Single vs Multiple Resources`, sample **Multiple Schemas in Same Context**: its view imports `:product_admin` and `:category_admin`, which have different schemas, so no name collides. The samples of § Example Use Cases import one resource per view.
 2. `guides/core/liveview.md § Targeting the Component`: `@auix._myself` exists in the index after UI-7 (`nil` in the LiveView) and an untargeted event still reaches `auix_handle_event/3`.
-3. `guides/core/components.md § Embedding a component`, `§ Several instances on one page`, `§ Generating the components alone`: true after UI-7 and UI-8.
+3. `guides/core/components.md § Embedding a component`, `§ Several instances on one page`: true after UI-7 and UI-8. `§ Generating the components alone` keeps its sample and its first sentence.
 4. `guides/core/components.md § Design decisions`, items 1, 2, 4 and 5: true after UI-9.
 5. `README.md`: `prepare-release` updates its What's New link.
 
@@ -2314,11 +2595,14 @@ The section brings the documentation of DOC-1 and DOC-2 in line with what UI-4 t
 - [ ] AC-3: `CHANGELOG.md § [0.2.1]` states both breaking changes under `### Changed` and no longer says the LiveView hosts the components (mechanical — no red test; verified by `grep -c 'Generated module names (breaking)' CHANGELOG.md` returning `1`, `grep -c 'silently replaced the first' CHANGELOG.md` returning `1`, `grep -c 'generates no modules' CHANGELOG.md` returning `1` and `grep -c 'LiveView hosts them' CHANGELOG.md` returning `0`)
 - [ ] AC-4: `guides/core/components.md` has the section Naming and reusing generated modules, and keeps the input `resource` (mechanical — no red test; verified by `grep -c '^## ' guides/core/components.md` returning `11`, `grep -c '^## Naming and reusing generated modules$' guides/core/components.md` returning `1` and `grep -c '^| `resource` | all | A resource of the LiveView that renders the component' guides/core/components.md` returning `1`)
 - [ ] AC-5: `guides/core/components.md` says an embedded component reports and the generated LiveView navigates, and promises no opt-in for one-to-many lists (mechanical — no red test; verified by `grep -c 'A component sends these in every host' guides/core/components.md` returning `0`, `grep -c 'is one such parent' guides/core/components.md` returning `0`, `grep -c 'unless the field turns them on' guides/core/components.md` returning `0` and `grep -c 'does not go through intents' guides/core/components.md` returning `1`)
-- [ ] AC-6: the one-to-many sample of `guides/core/components.md` names the modules of `:product_compact` (mechanical — no red test; verified by `grep -c 'live_view :product_compact, module_name: :compact_products' guides/core/components.md` returning `1` and `grep -c 'edit_layout :product_compact, use: :product_form_component' guides/core/components.md` returning `1`)
-- [ ] AC-7: `guides/core/liveview.md` documents `live_view:` on routes and `component_handler_module:`, and no longer says the Index LiveView delegates its list (mechanical — no red test; verified by `grep -c 'live_view: :catalog' guides/core/liveview.md` returning `1`, `grep -c 'component_handler_module:' guides/core/liveview.md` returning `1`, `grep -c 'delegates to it' guides/core/liveview.md` returning `0` and `grep -c 'Hosts the components' guides/core/liveview.md` returning `0`)
+- [ ] AC-6: `guides/core/components.md § One-to-many lists` points to the example of two resources on one schema and holds no sample of its own (mechanical — no red test; verified by `grep -c 'Two resources on one schema](#two-resources-on-one-schema)' guides/core/components.md` returning `1`, `grep -c ':product_compact' guides/core/components.md` returning `0` and `grep -c 'index_live :product_transaction_compact, module_name: :compact_transactions' guides/core/components.md` returning `1`)
+- [ ] AC-7: `guides/core/liveview.md` documents `index_live:` on routes and `component_handler_module:`, and no longer says the Index LiveView delegates its list (mechanical — no red test; verified by `grep -c 'index_live: :catalog' guides/core/liveview.md` returning `1`, `grep -c 'component_handler_module:' guides/core/liveview.md` returning `1`, `grep -c 'delegates to it' guides/core/liveview.md` returning `0` and `grep -c 'Hosts the components' guides/core/liveview.md` returning `0`)
 - [ ] AC-8: `guides/whats_new/0.2.1.md` announces the two compile-time changes (mechanical — no red test; verified by `grep -c 'has no breaking change' guides/whats_new/0.2.1.md` returning `0`, `grep -c 'No change is required' guides/whats_new/0.2.1.md` returning `0` and `grep -c 'generates no modules' guides/whats_new/0.2.1.md` returning `1`)
 - [ ] AC-9: `guides/advanced/advanced_usage.md` imports the two product resources in two views and documents `auix_modules/0` (mechanical — no red test; verified by `grep -c '^# In the customer view:$' guides/advanced/advanced_usage.md` returning `1` and `grep -c 'auix_modules/0' guides/advanced/advanced_usage.md` returning `1`)
-- [ ] AC-10: `guides/core/components.md` shows a LiveView written by hand that declares a pairing and passes `resource` (mechanical — no red test; verified by `grep -c 'auix_create_ui generate: \[\] do' guides/core/components.md` returning `1`, `grep -c 'resource={:product_location}' guides/core/components.md` returning `1` and `grep -c 'A component keeps its resource' guides/core/components.md` returning `1`)
+- [ ] AC-10: `guides/core/components.md` shows a LiveView written by hand that attaches its components with `auix_create_ui` and passes `resource` (mechanical — no red test; verified by `grep -c 'auix_create_ui generate: \[\] do' guides/core/components.md` returning `1`, `grep -c 'edit_layout :product_review, use: ProductViews.auix_module(:product_form)' guides/core/components.md` returning `1`, `grep -c 'resource={:product_review}' guides/core/components.md` returning `1` and `grep -c 'A component keeps its resource' guides/core/components.md` returning `1`)
+- [ ] AC-11: `guides/core/components.md` holds the five examples and the routes sample, every one with its generated modules (mechanical — no red test; verified by `grep -c '^### ' guides/core/components.md` returning `6`, `grep -c '^defmodule MyAppWeb\.' guides/core/components.md` returning `8` and `grep -c ':compact_transactions' guides/core/components.md` returning `3`)
+- [ ] AC-12: no sample of `guides/core/components.md` gives `auix_resource_metadata` options and a block together, none places `field` inside `auix_create_ui`, and the kind is `:index_live` (mechanical — no red test; verified by `grep -cE 'auix_resource_metadata :[a-z_]+, .* do$' guides/core/components.md` returning `0`, `grep -c '\[:live_view' guides/core/components.md` returning `0` and `grep -c '\[:index_live, :index_component, :form_component, :show_component\]' guides/core/components.md` returning `1`)
+- [ ] AC-13: `CHANGELOG.md § [0.2.1]` states that a declared resource links its associations to imported resources (mechanical — no red test; verified by `grep -c 'Associations to imported resources' CHANGELOG.md` returning `1`), and `guides/core/components.md` says so for the reused form (mechanical — no red test; verified by `grep -c 'links its associations to the two resources' guides/core/components.md` returning `1`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
