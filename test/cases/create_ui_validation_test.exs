@@ -1,6 +1,7 @@
 defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
   use ExUnit.Case, async: true
 
+  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Layout.Node
   alias Spark.Error.DslError
 
@@ -358,6 +359,53 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
                      auix_create_ui()
                    """)
                  end
+  end
+
+  test "names are built from the caller, the schema hint and the atom" do
+    assert CreateUI.module_name(MyApp.Views, "Product", :index_compact) ==
+             MyApp.Views.Product.IndexCompact
+
+    assert CreateUI.default_name("ProductLocation", :form_component) ==
+             :product_location_form_component
+
+    assert CreateUI.default_name("Product", :index_live) == :product_index
+    assert CreateUI.schema_hint(Aurora.Uix.Guides.Inventory.Product) == "Product"
+  end
+
+  test "options built by hand take the default artifacts" do
+    tree = %Aurora.Uix.Layout.Node.Form{
+      resource: :product,
+      children: [%Aurora.Uix.Layout.Node.Field{key: :reference}]
+    }
+
+    show = %Aurora.Uix.Layout.Node.Show{resource: :product}
+
+    options = %{
+      layout_type: :form,
+      layout_tree: tree,
+      modules: %{caller: MyApp.Views},
+      module_name: "Product"
+    }
+
+    defaults = CreateUI.put_defaults(options)
+
+    assert %{
+             index_live: MyApp.Views.Product.Index,
+             form_component: MyApp.Views.Product.FormComponent,
+             show_component: MyApp.Views.Product.ShowComponent
+           } = defaults.artifacts
+
+    assert defaults.used == []
+    assert defaults.generate == CreateUI.kinds()
+    assert defaults.exposed_layouts == %{form_component: %{tree | resource: nil}}
+
+    assert CreateUI.put_defaults(%{options | layout_type: :show, layout_tree: show}).exposed_layouts ==
+             %{show_component: %{show | resource: nil}}
+
+    assert CreateUI.put_defaults(defaults) == defaults
+
+    kept = options |> Map.put(:artifacts, %{form_component: Enum}) |> CreateUI.put_defaults()
+    assert kept.artifacts == %{form_component: Enum}
   end
 
   @spec compiled_ui(binary()) :: module()
