@@ -28,8 +28,10 @@ defmodule Aurora.UixWeb.Test.AshComponentsFormShowTest do
         %{module: __MODULE__.Author.ShowComponent, id: "s1", props: %{entity_id: author.id}}
       ])
 
-    show |> element("div[name='auix-show-navigate-back'] a") |> render_click()
-    assert has_element?(show, "#auix-host-intents li[data-intent='closed']")
+    assert has_element?(
+             show,
+             "div.auix-show-container input[name='name'][value='#{author.name}']"
+           )
   end
 
   @spec mount_components(Plug.Conn.t(), list(map())) :: tuple()
