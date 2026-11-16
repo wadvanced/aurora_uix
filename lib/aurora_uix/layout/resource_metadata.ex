@@ -78,7 +78,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `module` (module()) - The module declaring it, for error reporting.
 
   ## Returns
-  `Aurora.Uix.Resource.t()` - The declared resource, ready for `resolve_resources/1`.
+  `Aurora.Uix.Resource.t()` - The declared resource, ready for `resolve_resources/2`.
 
   Raises `Spark.Error.DslError` for a context resource without `:context` or invalid
   `:backend_opts`.
@@ -190,28 +190,33 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   ## Parameters
   - `resources` (list(Resource.t())) - Prepared resources, latest declaration first.
+  - `imported` ([{atom(), Resource.t()}]) - Resources the module imports, by name. They are lookup candidates for the associations of `resources`; they are not resolved again and not returned.
 
   ## Returns
   `map()` - Resolved resources by name.
   """
-  @spec resolve_resources([Resource.t()]) :: %{atom() => Resource.t()}
-  def resolve_resources(resources) do
+  @spec resolve_resources([Resource.t()], [{atom(), Resource.t()}]) :: %{atom() => Resource.t()}
+  def resolve_resources(resources, imported) do
     resources
     |> add_embedded_resources()
     |> Enum.map(&parse_fields/1)
-    |> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed)) end)
+    |> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed ++ imported)) end)
     |> Map.new()
   end
 
   @spec add_embedded_resources([Resource.t()]) :: [Resource.t()]
   defp add_embedded_resources(resources) do
-    resources
-    |> Enum.reject(&is_nil(&1.schema))
-    |> Enum.reduce(resources, fn resource, result ->
-      resource.type
-      |> LayoutHelpers.get_fields_parser_module()
-      |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
-    end)
+    with_embedded =
+      resources
+      |> Enum.reject(&is_nil(&1.schema))
+      |> Enum.reduce(resources, fn resource, result ->
+        resource.type
+        |> LayoutHelpers.get_fields_parser_module()
+        |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
+      end)
+
+    {created, declared} = Enum.split(with_embedded, length(with_embedded) - length(resources))
+    Enum.map(created, &struct(&1, %{embedded?: true})) ++ declared
   end
 
   @spec parse_fields(Resource.t()) :: {atom(), Resource.t()}

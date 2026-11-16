@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
 
   """
 
+  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Templates.Basic.Handlers.Index, as: IndexHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -30,9 +31,10 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_type: :index} = parsed_opts) do
-    parsed_opts = ModulesGenerator.remove_omitted_fields(parsed_opts)
+    parsed_opts =
+      parsed_opts |> CreateUI.put_defaults() |> ModulesGenerator.remove_omitted_fields()
 
-    index_module = ModulesGenerator.module_name(parsed_opts, ".Index")
+    index_module = parsed_opts.artifacts.index_live
     handler_module = ModulesGenerator.handler_module(parsed_opts, IndexHandler)
 
     quote do
@@ -40,6 +42,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
         @moduledoc false
 
         use unquote(parsed_opts.modules.web), :live_view
+
+        unquote(CreateUI.module_code(:index_live, nil))
 
         @impl true
         def mount(params, session, socket) do
