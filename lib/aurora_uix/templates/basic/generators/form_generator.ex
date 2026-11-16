@@ -80,6 +80,8 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
 
         unquote(extract_function)
 
+        defp auix_parsed_opts, do: unquote(Macro.escape(parsed_opts))
+
         @impl true
         def update(
               %{auix: %{entity: _entity, routing_stack: _routing_stack} = incoming_auix} =
@@ -90,9 +92,28 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
 
           socket
           |> assign(Map.put(assigns, :auix, merged_auix))
-          |> Helpers.assign_parsed_opts(unquote(Macro.escape(parsed_opts)))
+          |> Helpers.assign_parsed_opts(auix_parsed_opts())
           |> Helpers.assign_actor_to_auix()
           |> then(&unquote(handler_module).update(assigns, &1))
+        end
+
+        def update(assigns, socket) do
+          merged_auix =
+            socket.assigns
+            |> Map.get(:auix, %{})
+            |> Map.merge(Map.get(assigns, :auix, %{}))
+            |> Map.merge(Helpers.resource_binding(socket, assigns, __MODULE__, :form))
+
+          socket =
+            socket
+            |> assign(Map.put(assigns, :auix, merged_auix))
+            |> Helpers.assign_parsed_opts(auix_parsed_opts())
+            |> Helpers.assign_actor_to_auix()
+            |> Helpers.assign_component_inputs(assigns, :form)
+
+          assigns
+          |> Map.put(:auix, Map.take(socket.assigns.auix, [:entity, :routing_stack]))
+          |> unquote(handler_module).update(socket)
         end
 
         @impl true

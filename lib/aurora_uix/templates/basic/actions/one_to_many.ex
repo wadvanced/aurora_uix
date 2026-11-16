@@ -67,6 +67,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec add_new_child(map()) :: Rendered.t()
+  def add_new_child(%{auix: %{notify: _notify}} = assigns), do: ~H""
+
   def add_new_child(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.auix_link :if={@auix[:layout_type] == :form
@@ -90,6 +92,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec show_child_action(map()) :: Rendered.t()
+  def show_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
+
   def show_child_action(assigns) do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
@@ -109,6 +113,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec edit_child_action(map()) :: Rendered.t()
+  def edit_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
+
   def edit_child_action(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
@@ -130,6 +136,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   Phoenix.LiveView.Rendered.t() - Rendered link component.
   """
   @spec delete_child_action(map()) :: Rendered.t()
+  def delete_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
+
   def delete_child_action(%{auix: %{layout_type: :form}} = assigns) do
     ~H"""
       <.link

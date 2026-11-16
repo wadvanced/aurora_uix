@@ -41,9 +41,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   def render(
         %{
           field: %{type: :one_to_many_association, data: data} = field,
-          auix: %{uri_path: uri_path} = auix
+          auix: auix
         } = assigns
       ) do
+    uri_path = Map.get(auix, :uri_path)
     parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
 
     related_fields =
@@ -194,7 +195,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
     merge_keys(owner_keys, related_keys, [{related_key, owner_key} | result])
   end
 
-  @spec set_related_uri_path(map(), map(), binary()) :: map()
+  @spec set_related_uri_path(map(), map(), binary() | nil) :: map()
+  defp set_related_uri_path(related_parsed_opts, _parsed_opts, nil), do: related_parsed_opts
+
   defp set_related_uri_path(
          %{source: related_source} = related_parsed_opts,
          %{source: source} = _parsed_optsi,
@@ -209,6 +212,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   defp set_related_new_link(%{uri_path: uri_path} = related_parsed_opts) do
     Map.put(related_parsed_opts, :index_new_link, "/#{uri_path}/new")
   end
+
+  defp set_related_new_link(related_parsed_opts), do: related_parsed_opts
 
   @spec display_value(term() | nil, binary() | nil) :: String.t()
   defp display_value(nil, _key), do: ""
