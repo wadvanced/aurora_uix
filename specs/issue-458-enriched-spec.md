@@ -2492,12 +2492,12 @@ Depends on: UI-4
 - The engine is backend-agnostic: it reads and deletes through `Aurora.Uix.Integration.Crud`, as the code it receives does.
 
 ##### Acceptance criteria
-- [ ] AC-1: `IndexList.events/0` returns the nine event names `"filter-toggle"`, `"filters-clear"`, `"filters-submit"`, `"index-sort"`, `"index-sort-direction"`, `"index-layout-change"`, `"selected-toggle_all"`, `"selected-cancel_toggle_all"`, `"selected-delete_all"`
-- [ ] AC-2: `IndexList.previous_page/1` returns `1` for page `1` and `page - 1` above it; `IndexList.next_page/1` returns `pages_count` on the last page and `page + 1` below it
-- [ ] AC-3: error path. `IndexList.handle_event/3` raises `FunctionClauseError` for an event name that is not in `events/0`
-- [ ] AC-4: `IndexList.where_conditions/1` returns `[]` for `nil`, the list for a list, the pairs of a map, and a one-element list for a single condition
-- [ ] AC-5: no test file changes and the suite passes: the index keeps every documented behaviour (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only `test/cases/templates/basic/index_list_test.exs`, and `mix test` green)
-- [ ] AC-6: `IndexImpl` holds no list logic of its own (mechanical — no red test; verified by `grep -cE 'defp (load_items|load_page|read_items|update_streams|prepare_query_options|assign_filters|assign_index_fields|assign_selected_states|refresh_current_page|get_selected_filters)\b' lib/aurora_uix/templates/basic/handlers/index_impl.ex` returning `0`)
+- [x] AC-1: `IndexList.events/0` returns the nine event names `"filter-toggle"`, `"filters-clear"`, `"filters-submit"`, `"index-sort"`, `"index-sort-direction"`, `"index-layout-change"`, `"selected-toggle_all"`, `"selected-cancel_toggle_all"`, `"selected-delete_all"`
+- [x] AC-2: `IndexList.previous_page/1` returns `1` for page `1` and `page - 1` above it; `IndexList.next_page/1` returns `pages_count` on the last page and `page + 1` below it
+- [x] AC-3: error path. `IndexList.handle_event/3` raises `FunctionClauseError` for an event name that is not in `events/0`
+- [x] AC-4: `IndexList.where_conditions/1` returns `[]` for `nil`, the list for a list, the pairs of a map, and a one-element list for a single condition
+- [x] AC-5: no test file changes and the suite passes: the index keeps every documented behaviour (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- test` listing only `test/cases/templates/basic/index_list_test.exs`, and `mix test` green)
+- [x] AC-6: `IndexImpl` holds no list logic of its own (mechanical — no red test; verified by `grep -cE 'defp (load_items|load_page|read_items|update_streams|prepare_query_options|assign_filters|assign_index_fields|assign_selected_states|refresh_current_page|get_selected_filters)\b' lib/aurora_uix/templates/basic/handlers/index_impl.ex` returning `0`)
 
 ##### Test ports
 - Pure functions of `IndexList`, called directly in `test/cases/templates/basic/index_list_test.exs`.
