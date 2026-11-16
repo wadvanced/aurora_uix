@@ -145,6 +145,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
     {:noreply, BasicHelpers.download_upload(socket, field)}
   end
 
+  def auix_handle_event(
+        "auix_route_back",
+        _params,
+        %{assigns: %{auix: %{notify: _notify}}} = socket
+      ),
+      do: {:noreply, report_intent(socket, {:closed})}
+
+  def auix_handle_event("auix_open", params, socket), do: {:noreply, report_open(socket, params)}
+
   def auix_handle_event(event, params, _socket) do
     raise "Event not handled. event: #{inspect(event)}. params: #{inspect(params)}"
   end

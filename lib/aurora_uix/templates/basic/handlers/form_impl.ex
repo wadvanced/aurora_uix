@@ -103,7 +103,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
         with {:ok, consumed_params} <- FormImpl.auix_consume_uploads(socket, entity_params),
              {:ok, entity} <- save_entity(socket, consumed_params) do
-          FormImpl.notify_parent({:saved, entity})
+          FormImpl.report_saved(socket, entity)
           FormImpl.publish_saved(action, entity)
 
           get_opts =
@@ -118,11 +118,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
           {:noreply,
            socket
-           |> clear_flash()
-           |> put_flash(:info, "#{auix.name} updated successfully")
+           |> FormImpl.put_saved_flash()
            |> assign(:action, :edit)
-           |> assign_auix(:entity, new_entity)
-           |> FormImpl.conditional_route_back(action, auix.one2many_rendered?)}
+           |> assign_auix(:entity, new_entity)}
         else
           {:error, %Ecto.Changeset{} = changeset} ->
             {:noreply,
@@ -287,7 +285,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   end
 
   def auix_handle_event("auix_route_back", _params, socket) do
-    {:noreply, auix_route_back(socket)}
+    {:noreply, route_back_from_close(socket)}
   end
 
   def auix_handle_event("auix_cancel_upload", %{"field" => field, "ref" => ref}, socket) do
@@ -358,6 +356,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   For `:new` actions in one-to-many contexts, redirects to edit mode of the created entity.
   Otherwise, navigates back in the routing stack.
+  The generated LiveView routes after a save itself; this function stays for host handlers that call it.
 
   ## Parameters
   - `socket` (Socket.t()) - Current socket with auix assigns.
@@ -399,6 +398,53 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   """
   @spec notify_parent(tuple()) :: :ok
   def notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  @doc """
+  Reports a save of the form to its parent.
+
+  An embedded form reports the intent `{:saved, entity}` to `auix.notify`. A hosted form first
+  sends `{FormImpl, {:saved, entity}}` with `notify_parent/1`, on which the LiveView re-reads its
+  page, then reports the intent, on which the LiveView navigates.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The form component socket.
+  - `entity` (struct()) - The saved record.
+
+  ## Returns
+  `:ok`
+  """
+  @spec report_saved(Socket.t(), struct()) :: :ok
+  def report_saved(%{assigns: %{auix: %{notify: _notify}}} = socket, entity) do
+    report_intent(socket, {:saved, entity})
+    :ok
+  end
+
+  def report_saved(socket, entity) do
+    notify_parent({:saved, entity})
+    report_intent(socket, {:saved, entity})
+    :ok
+  end
+
+  @doc """
+  Puts the flash of a successful save.
+
+  An embedded form shows its own info flash. A hosted form only clears its flash: the generated
+  LiveView puts the info flash when it navigates, so the page holds one `#flash-info`.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The form component socket.
+
+  ## Returns
+  `Socket.t()` - The socket with its flash updated.
+  """
+  @spec put_saved_flash(Socket.t()) :: Socket.t()
+  def put_saved_flash(%{assigns: %{auix: %{notify: _notify}}} = socket) do
+    socket
+    |> clear_flash()
+    |> put_flash(:info, "#{socket.assigns.auix.name} updated successfully")
+  end
+
+  def put_saved_flash(socket), do: clear_flash(socket)
 
   @doc """
   Publishes the saved record on its schema's topic, skipping the calling LiveView.
@@ -481,11 +527,15 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   defp request_close(socket, _auix), do: route_back_from_close(socket)
 
-  # The component auix deliberately carries no `_current_path` (its presence changes save routing);
-  # the close path is supplied separately and applied only for this back navigation.
+  # An embedded form reports to its parent. A hosted form also hands its flash to the LiveView,
+  # which pushes the route and cannot read the flash of a component.
   @spec route_back_from_close(Socket.t()) :: Socket.t()
-  defp route_back_from_close(%{assigns: %{auix: auix}} = socket) do
-    auix_route_back_from(socket, Map.get(auix, :_close_path, ""))
+  defp route_back_from_close(%{assigns: %{auix: %{notify: _notify}}} = socket),
+    do: report_intent(socket, {:closed})
+
+  defp route_back_from_close(socket) do
+    notify_parent({:flash, socket.assigns.flash})
+    report_intent(socket, {:closed})
   end
 
   @spec maybe_allow_uploads(Socket.t(), map()) :: Socket.t()

@@ -142,20 +142,72 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
 
     {:ok, child, _html} = live(conn, to)
 
-    {:error, {:live_redirect, %{to: saved_to}}} =
+    saved =
       child
       |> form("#auix-product_transaction-form",
         product_transaction: %{quantity: "3", type: "in", cost: 1.5}
       )
       |> render_submit()
 
+    assert is_binary(saved)
+    {saved_to, _flash} = assert_redirect(child)
+
     assert NavigationHelper.decode_route(saved_to) == back
 
     {:ok, close_child, _html} = live(conn, to)
 
-    {:error, {:live_redirect, %{to: closed_to}}} =
+    closed =
       request_close(close_child, "#auix-product_transaction-new-modal [data-phx-component]")
 
+    assert is_binary(closed)
+    {closed_to, _flash} = assert_redirect(close_child)
+
+    assert NavigationHelper.decode_route(closed_to) == back
+  end
+
+  test "the flash of a form follows the redirect of the LiveView", %{conn: conn} do
+    id = with_transactions_id()
+    {:ok, view, _html} = live(conn, "#{@p}/#{id}/edit")
+
+    {:error, {:live_redirect, %{to: to}}} =
+      view
+      |> element("a[name='auix-new-product__product_transactions-form']")
+      |> render_click()
+
+    back = {"#{@p}/#{id}/edit", %{}, [{:patch, @p}]}
+
+    {:ok, child, _html} = live(conn, to)
+
+    saved =
+      child
+      |> form("#auix-product_transaction-form",
+        product_transaction: %{quantity: "3", type: "in", cost: 1.5}
+      )
+      |> render_submit()
+
+    assert is_binary(saved)
+
+    assert saved
+           |> LazyHTML.from_document()
+           |> LazyHTML.query("#flash-info")
+           |> Enum.count() == 0
+
+    {_saved_to, saved_flash} = assert_redirect(child)
+    assert saved_flash["info"] =~ "updated successfully"
+
+    {:ok, failed, _html} = live(conn, to)
+
+    failed
+    |> form("#auix-product_transaction-form",
+      product_transaction: %{quantity: "-1", type: "in", cost: 1.5}
+    )
+    |> render_submit()
+
+    assert has_element?(failed, "#auix-product_transaction-new-modal")
+    closed = request_close(failed, "#auix-product_transaction-new-modal [data-phx-component]")
+    assert is_binary(closed)
+    {closed_to, closed_flash} = assert_redirect(failed)
+    assert Map.has_key?(closed_flash, "error")
     assert NavigationHelper.decode_route(closed_to) == back
   end
 
@@ -200,12 +252,15 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
     click(view, "a[name='auix-new-product']")
     assert_patch(view)
 
-    {:error, {:live_redirect, %{to: to}}} =
+    saved =
       view
       |> form("#auix-product-form",
         product: %{reference: ref, name: "n", description: "d", quantity_initial: 1.0}
       )
       |> render_submit()
+
+    assert is_binary(saved)
+    {to, _flash} = assert_redirect(view)
 
     [%{id: new_id}] = Inventory.list_products(where: [reference: ref])
 
