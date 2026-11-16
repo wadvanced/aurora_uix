@@ -239,6 +239,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       |> assign_auix(:show_component, show_component)
       |> assign_auix(:index_form_id, index_form_id)
       |> assign_auix(:item_index, -1)
+      |> assign_auix(:_myself, nil)
       |> IndexList.init(params, &IndexActions.set_actions/1)
     }
   end
@@ -625,15 +626,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     Enum.reduce(flash, clear_flash(socket), fn {kind, message}, acc ->
       put_flash(acc, kind, message)
     end)
-  end
-
-  @spec resource_schema(map()) :: module()
-  defp resource_schema(%{configurations: configurations, resource_name: resource_name}) do
-    get_in(configurations, [
-      Access.key!(resource_name),
-      Access.key!(:resource_config),
-      Access.key!(:schema)
-    ])
   end
 
   @spec subscribe_to_changes(Socket.t()) :: Socket.t()

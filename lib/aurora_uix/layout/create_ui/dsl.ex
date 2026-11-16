@@ -17,6 +17,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     so options of a host's `:layout_options_parsers` are accepted.
   - A field list holding only `key: options` pairs is read by Spark as the sub-layout's
     options; such fields are written with `field`.
+  - A resource field named `use` cannot be the only column of `index_columns`.
   - Spark writes the arguments into the node as given: a field list into `fields`, field
     options into `overrides` and layout options into `options`. `build_node/1` turns them into
     the node's final shape, so only built nodes leave this module.
@@ -83,7 +84,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
         "Modules whose layouts (`auix_layouts/0`) this call uses. The module's own layouts replace included ones for the same resource and layout type."
     ],
     generate: [
-      type: {:list, {:in, [:index_live, :form_component, :show_component]}},
+      type: {:list, {:in, [:index_live, :index_component, :form_component, :show_component]}},
       doc: "The kinds of module to generate. Defaults to all of them."
     ]
   ]
@@ -324,9 +325,13 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     end
   end
 
+  def build_node(%Node.Index{children: [use: name], options: []} = index) when is_atom(name),
+    do: {:ok, %{index | children: [], use: name}}
+
   def build_node(%Node.Index{} = index) do
     with {:ok, columns} <- field_nodes(index.children),
-         {:ok, container} <- container_opts(index.options, :index) do
+         {:ok, container} <- container_opts(index.options, :index),
+         :ok <- validate_index_naming(container) do
       {:ok, struct(%{index | children: columns}, container)}
     end
   end
@@ -442,6 +447,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
          handler_module: typed[handler_key],
          module_name: typed[:module_name],
          use: typed[:use],
+         component_handler_module: typed[:component_handler_module],
          order_by: typed[:order_by],
          where: typed[:where],
          actions: actions,
@@ -476,8 +482,24 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
   end
 
   @spec typed_keys(atom(), atom()) :: [atom()]
-  defp typed_keys(:index, handler_key), do: [:renderers, :order_by, :where, handler_key]
+  defp typed_keys(:index, handler_key),
+    do: [
+      :renderers,
+      :order_by,
+      :where,
+      :module_name,
+      :use,
+      :component_handler_module,
+      handler_key
+    ]
+
   defp typed_keys(_layout_type, handler_key), do: [:renderers, :module_name, :use, handler_key]
+
+  @spec validate_index_naming(map()) :: :ok | {:error, binary()}
+  defp validate_index_naming(%{use: nil}), do: :ok
+
+  defp validate_index_naming(_container),
+    do: {:error, "use: takes no field list and no other option"}
 
   @spec validate_naming(Node.layout(), map()) :: :ok | {:error, binary()}
   defp validate_naming(layout, %{use: nil}), do: validate_use_options(layout)
