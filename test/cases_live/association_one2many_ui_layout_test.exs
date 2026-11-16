@@ -95,16 +95,17 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
     |> element("a[name='auix-new-product']")
     |> render_click()
 
-    {:ok, created_product_view, _html} =
-      view
-      |> form("#auix-product-form", %{
-        "product[reference]" => "#{unique_id}",
-        "product[name]" => "name-#{unique_id}",
-        "product[description]" => "test item",
-        "product[quantity_initial]" => 345.67
-      })
-      |> render_submit()
-      |> follow_redirect(conn)
+    view
+    |> form("#auix-product-form", %{
+      "product[reference]" => "#{unique_id}",
+      "product[name]" => "name-#{unique_id}",
+      "product[description]" => "test item",
+      "product[quantity_initial]" => 345.67
+    })
+    |> render_submit()
+
+    {path, _flash} = assert_redirect(view)
+    {:ok, created_product_view, _html} = live(conn, path)
 
     product_id =
       unique_id
@@ -181,15 +182,16 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
                |> LazyHTML.attribute("readonly") != []
 
         # Fill and submit new transaction form
-        {:ok, new_view, _html} =
-          new_view
-          |> form("#auix-product_transaction-form", %{
-            "product_transaction[quantity]" => "#{transaction.quantity}",
-            "product_transaction[type]" => transaction.type,
-            "product_transaction[cost]" => transaction.cost
-          })
-          |> render_submit()
-          |> follow_redirect(conn)
+        new_view
+        |> form("#auix-product_transaction-form", %{
+          "product_transaction[quantity]" => "#{transaction.quantity}",
+          "product_transaction[type]" => transaction.type,
+          "product_transaction[cost]" => transaction.cost
+        })
+        |> render_submit()
+
+        {path, _flash} = assert_redirect(new_view)
+        {:ok, new_view, _html} = live(conn, path)
 
         new_view
       end)
@@ -237,15 +239,16 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
              "#{product_id}"
 
     # Submit edited transaction
-    {:ok, submitted_view, _html} =
-      edit_view
-      |> form("#auix-product_transaction-form", %{
-        "product_transaction[quantity]" => "444",
-        "product_transaction[type]" => "out",
-        "product_transaction[cost]" => 11.5
-      })
-      |> render_submit()
-      |> follow_redirect(conn)
+    edit_view
+    |> form("#auix-product_transaction-form", %{
+      "product_transaction[quantity]" => "444",
+      "product_transaction[type]" => "out",
+      "product_transaction[cost]" => 11.5
+    })
+    |> render_submit()
+
+    {path, _flash} = assert_redirect(edit_view)
+    {:ok, submitted_view, _html} = live(conn, path)
 
     # Verify changes are reflected
     assert has_element?(

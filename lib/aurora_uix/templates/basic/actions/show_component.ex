@@ -58,6 +58,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
 
   """
   @spec edit_header_action(map()) :: Rendered.t()
+  def edit_header_action(%{auix: %{notify: _notify}} = assigns) do
+    ~H"""
+      <.auix_link phx-click="auix_open" phx-value-action="edit" phx-value-id={BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>
+        <.button>{dt(@auix.layout_options.edit_action_label)}</.button>
+      </.auix_link>
+    """
+  end
+
   def edit_header_action(assigns) do
     ~H"""
       <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show-edit"} name={"auix-edit-#{@auix.module}"}>
@@ -77,6 +85,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   Rendered.t() - The rendered "back" action link.
   """
   @spec back_footer_action(map()) :: Rendered.t()
+  def back_footer_action(%{auix: %{notify: _notify}} = assigns) do
+    ~H"""
+      <div name="auix-show-navigate-back">
+        <.auix_back phx-target={@auix._myself}>{dt(@auix.layout_options.back_action_label)}</.auix_back>
+      </div>
+    """
+  end
+
   def back_footer_action(assigns) do
     ~H"""
       <div name="auix-show-navigate-back">

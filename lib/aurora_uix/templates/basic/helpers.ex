@@ -296,6 +296,135 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
+  Loads the record of a form or show component from its inputs and assigns it to `auix`.
+
+  Reads `action`, `entity`, `entity_id` and `notify` from `assigns`. The record is the given
+  `entity`; else the record of `entity_id`; else, for a form, a new record. The record is reloaded
+  only when the inputs change.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The component socket, with its compiled options in `auix`.
+  - `assigns` (map()) - The assigns of the component's `update/2`.
+  - `layout_type` (:form | :show) - The layout type of the component.
+
+  ## Returns
+  `Socket.t()` - The socket with `:action` assigned and, in `auix`, `entity`, `_inputs`,
+  `notify`, `routing_stack`, `pagination` and `item_index`. Raises `ArgumentError` for a show
+  component given neither `entity` nor `entity_id`, and for a record that does not exist.
+  """
+  @spec assign_component_inputs(Socket.t(), map(), :form | :show) :: Socket.t()
+  def assign_component_inputs(socket, assigns, layout_type) do
+    entity = Map.get(assigns, :entity)
+    entity_id = Map.get(assigns, :entity_id)
+    notify = Map.get(assigns, :notify, self())
+    action = component_action(Map.get(assigns, :action), layout_type, entity, entity_id)
+    inputs = {action, entity, entity_id}
+
+    if socket.assigns.auix[:_inputs] == inputs do
+      assign_auix(socket, :notify, notify)
+    else
+      record = load_component_record(socket, layout_type, entity, entity_id)
+
+      auix =
+        socket.assigns.auix
+        |> Map.drop([:form, :_form_dirty?, :_discard_confirm_open?, :_sections])
+        |> Map.merge(%{
+          entity: record,
+          _inputs: inputs,
+          notify: notify,
+          routing_stack: Stack.new(),
+          pagination: nil,
+          item_index: -1
+        })
+
+      socket
+      |> assign(:action, action)
+      |> assign(:auix, auix)
+    end
+  end
+
+  @doc """
+  Reports an intent of a component to its parent.
+
+  The message is `{Aurora.Uix, component_id, intent}`. It is sent to `auix.notify`: a pid
+  receives it as a message, a `{module, id}` component receives it through `send_update/3` as
+  `auix_intent`. A component without `auix.notify` reports to the LiveView process.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The component socket.
+  - `intent` (tuple()) - The intent, e.g. `{:saved, entity}` or `{:closed}`.
+
+  ## Returns
+  `Socket.t()` - The socket, unchanged.
+  """
+  @spec report_intent(Socket.t(), tuple()) :: Socket.t()
+  def report_intent(socket, intent) do
+    message = {Aurora.Uix, socket.assigns.id, intent}
+
+    case Map.get(socket.assigns.auix, :notify, self()) do
+      pid when is_pid(pid) -> send(pid, message)
+      {module, id} -> send_update(module, id: id, auix_intent: message)
+    end
+
+    socket
+  end
+
+  @doc """
+  Reports the intent `{:open, action, id}` from the params of the event `"auix_open"`.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The component socket.
+  - `params` (map()) - `%{"action" => "show" | "edit" | "new"}` and an optional `"id"`.
+
+  ## Returns
+  `Socket.t()` - The socket, unchanged. Raises `FunctionClauseError` for another action.
+  """
+  @spec report_open(Socket.t(), map()) :: Socket.t()
+  def report_open(socket, params) do
+    action = open_action(Map.fetch!(params, "action"))
+    report_intent(socket, {:open, action, Map.get(params, "id")})
+  end
+
+  @doc """
+  Returns the binding of the input `resource` a component merges into `auix` before its compiled
+  options.
+
+  The binding is resolved once, on the first update of the instance, in the LiveView that renders
+  the component (`socket.view`). That LiveView must pair the resource with the component.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The component socket.
+  - `assigns` (map()) - The assigns of the component's `update/2`, with an optional `resource`.
+  - `component` (module()) - The generated component.
+  - `layout_type` (:form | :show) - The layout type of the component.
+
+  ## Returns
+  `map()` - On the first update, the binding with `_resource` (only `%{_resource: nil}` without
+  `resource`); on a later update, `%{}`. Raises `ArgumentError` when the LiveView declares no
+  `auix_create_ui`, does not know the resource or does not pair it with the component, and when
+  an instance is given another resource after its first update.
+  """
+  @spec resource_binding(Socket.t(), map(), module(), :form | :show) :: map()
+  def resource_binding(socket, assigns, component, layout_type) do
+    given = Map.get(assigns, :resource)
+
+    case socket.assigns |> Map.get(:auix, %{}) |> Map.fetch(:_resource) do
+      :error ->
+        given
+        |> bind_resource(socket.view, component, layout_type)
+        |> Map.put(:_resource, given)
+
+      {:ok, bound} when is_nil(given) or given == bound ->
+        %{}
+
+      {:ok, bound} ->
+        raise ArgumentError,
+              "component #{inspect(assigns.id)} already serves #{inspect(bound)}; " <>
+                "give #{inspect(given)} a component with its own id"
+    end
+  end
+
+  @doc """
   Returns the options a component runs with to serve a resource of the module whose
   `auix_configurations/0` returned `configurations`.
 
@@ -1402,6 +1531,88 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   def download_upload(socket, _field_str), do: socket
 
   ## PRIVATE
+
+  @spec component_action(atom() | nil, :form | :show, term(), term()) :: atom()
+  defp component_action(nil, :show, _entity, _entity_id), do: :show
+  defp component_action(nil, :form, nil, nil), do: :new
+  defp component_action(nil, :form, _entity, _entity_id), do: :edit
+  defp component_action(action, _layout_type, _entity, _entity_id), do: action
+
+  @spec load_component_record(Socket.t(), :form | :show, struct() | nil, term()) :: struct()
+  defp load_component_record(socket, :show, nil, nil), do: raise_missing_record(socket)
+
+  defp load_component_record(_socket, _layout_type, entity, _entity_id) when entity != nil,
+    do: entity
+
+  defp load_component_record(%{assigns: %{auix: auix}} = socket, _layout_type, nil, entity_id)
+       when entity_id != nil do
+    opts =
+      socket
+      |> backend_socket_opts(auix.get_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    auix.get_function
+    |> apply_get_function(entity_id, opts)
+    |> ensure_component_record(socket)
+  end
+
+  defp load_component_record(%{assigns: %{auix: auix}} = socket, :form, nil, nil) do
+    opts =
+      socket
+      |> backend_socket_opts(auix.new_function)
+      |> Keyword.put(:preload, auix.preload)
+
+    auix.new_function
+    |> apply_new_function(%{}, opts)
+    |> ensure_component_record(socket)
+  end
+
+  @spec ensure_component_record(struct() | nil, Socket.t()) :: struct()
+  defp ensure_component_record(nil, socket), do: raise_missing_record(socket)
+  defp ensure_component_record(record, _socket), do: record
+
+  @spec raise_missing_record(Socket.t()) :: no_return()
+  defp raise_missing_record(socket) do
+    raise ArgumentError,
+          "component #{inspect(socket.assigns.id)} needs a record: " <>
+            "give it entity or an entity_id that exists"
+  end
+
+  @spec open_action(binary()) :: :show | :edit | :new
+  defp open_action("show"), do: :show
+  defp open_action("edit"), do: :edit
+  defp open_action("new"), do: :new
+
+  @spec bind_resource(atom() | nil, module(), module(), :form | :show) :: map()
+  defp bind_resource(nil, _view, _component, _layout_type), do: %{}
+
+  defp bind_resource(resource, view, component, layout_type) do
+    if not function_exported?(view, :auix_configurations, 0) do
+      raise ArgumentError,
+            "#{inspect(view)} declares no auix_create_ui; it renders #{inspect(component)} " <>
+              "with resource: #{inspect(resource)}, which is resolved there"
+    end
+
+    configurations = view.auix_configurations()
+    kind = component_kind(layout_type)
+
+    case Map.fetch(configurations, resource) do
+      {:ok, %{artifacts: %{^kind => ^component}}} ->
+        component_binding(configurations, resource, layout_type)
+
+      {:ok, _configuration} ->
+        raise ArgumentError,
+              "#{inspect(view)} does not pair #{inspect(resource)} with #{inspect(component)}; " <>
+                "declare it in its auix_create_ui with use:"
+
+      :error ->
+        raise ArgumentError, "unknown resource #{inspect(resource)} in #{inspect(view)}"
+    end
+  end
+
+  @spec component_kind(:form | :show) :: atom()
+  defp component_kind(:form), do: :form_component
+  defp component_kind(:show), do: :show_component
 
   @spec invoke_upload_callback(function(), Socket.t(), term(), atom()) :: term()
   defp invoke_upload_callback(fun, socket, value, key) do

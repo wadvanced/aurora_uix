@@ -94,8 +94,11 @@ defmodule Aurora.UixWeb.Test.AshNavigationTest do
 
     {:ok, child, _html} = live(conn, to)
 
-    {:error, {:live_redirect, %{to: closed_to}}} =
-      request_close(child, "#auix-post-new-modal [data-phx-component]")
+    closed =
+      request_close(child, "#auix-post-new-modal [data-phx-component]:has(> #auix-post-form)")
+
+    assert is_binary(closed)
+    {closed_to, _flash} = assert_redirect(child)
 
     assert NavigationHelper.decode_route(closed_to) == {"#{@p}/#{id}/edit", %{}, [{:patch, @p}]}
   end

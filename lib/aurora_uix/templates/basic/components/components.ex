@@ -628,6 +628,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       false
   """
   @spec record_navigator?(map(), atom()) :: boolean()
+  def record_navigator?(%{pagination: nil}, _position), do: false
+
   def record_navigator?(%{layout_options: %{record_navigator: positions}}, position)
       when is_list(positions), do: position in positions
 

@@ -39,6 +39,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Uix.Navigation
   alias Aurora.Uix.Selection
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
   alias Aurora.Uix.Templates.Basic.Handlers.IndexImpl
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
@@ -677,6 +678,27 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> refresh_current_page()}
   end
 
+  def auix_handle_info({FormImpl, {:flash, flash}}, socket),
+    do: {:noreply, assign_auix(socket, :_form_flash, flash)}
+
+  def auix_handle_info(
+        {Aurora.Uix, _component_id, {:saved, entity}},
+        %{assigns: %{auix: auix, live_action: action}} = socket
+      ) do
+    {:noreply,
+     socket
+     |> clear_flash()
+     |> put_flash(:info, "#{auix.name} updated successfully")
+     |> route_after_save(entity, action)}
+  end
+
+  def auix_handle_info({Aurora.Uix, _component_id, {:closed}}, %{assigns: %{auix: auix}} = socket) do
+    {:noreply,
+     socket
+     |> put_form_flash(Map.get(auix, :_form_flash, %{}))
+     |> auix_route_back_from(Map.get(auix, :_current_path) || "")}
+  end
+
   def auix_handle_info(_input, socket) do
     {:noreply, socket}
   end
@@ -824,6 +846,29 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   ## PRIVATE
+
+  # Mirrors `FormImpl.conditional_route_back/3`. The navigation of the form has no current path,
+  # hence the empty one.
+  @spec route_after_save(Socket.t(), struct(), atom()) :: Socket.t()
+  defp route_after_save(%{assigns: %{auix: auix}} = socket, entity, :new) do
+    binding = BasicHelpers.component_binding(auix.configurations, auix.resource_name, :form)
+
+    if binding.one2many_rendered?,
+      do:
+        auix_route_back_to_edit(socket, BasicHelpers.primary_key_value(entity, auix.primary_key)),
+      else: auix_route_back_from(socket, "")
+  end
+
+  defp route_after_save(socket, _entity, _action), do: auix_route_back_from(socket, "")
+
+  # A redirect carries the flash put in the same callback, so the flash of the form is put here.
+  @spec put_form_flash(Socket.t(), map()) :: Socket.t()
+  defp put_form_flash(socket, flash) do
+    Enum.reduce(flash, clear_flash(socket), fn {kind, message}, acc ->
+      put_flash(acc, kind, message)
+    end)
+  end
+
   @spec resource_schema(map()) :: module()
   defp resource_schema(%{configurations: configurations, resource_name: resource_name}) do
     get_in(configurations, [
