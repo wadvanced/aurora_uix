@@ -2782,11 +2782,11 @@ Depends on: UI-7
 - Layout type covered: `:index`. Backend-agnostic.
 
 ##### Acceptance criteria
-- [ ] AC-1: in a LiveView mounted with the hook, an `Aurora.Uix.Events.created/2` published by another process adds the record to an embedded index, with no code in the host
-- [ ] AC-2: the same event reaches every registered instance: two instances with different scopes each re-read with their own scope
-- [ ] AC-3: without the hook the instance does not change when the event is published
-- [ ] AC-4: the hook consumes the events of registered schemas only: a message that is not an `%Aurora.Uix.Event{}` of a registered schema reaches the host's `handle_info/2`
-- [ ] AC-5: error path. `ComponentHooks.register/2` in a process without the hook returns `:ok` and subscribes to nothing
+- [x] AC-1: in a LiveView mounted with the hook, an `Aurora.Uix.Events.created/2` published by another process adds the record to an embedded index, with no code in the host
+- [x] AC-2: the same event reaches every registered instance: two instances with different scopes each re-read with their own scope
+- [x] AC-3: without the hook the instance does not change when the event is published
+- [x] AC-4: the hook consumes the events of registered schemas only: a message that is not an `%Aurora.Uix.Event{}` of a registered schema reaches the host's `handle_info/2`
+- [x] AC-5: error path. `ComponentHooks.register/2` in a process without the hook returns `:ok` and subscribes to nothing
 
 ##### Test ports
 - No route. `Aurora.UixWeb.Test.ComponentHostLive` with `live_isolated/3`; the session key `"hooks"` set to `true` mounts the hook.

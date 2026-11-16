@@ -26,6 +26,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   import Phoenix.LiveView
 
   alias Aurora.Uix.Event
+  alias Aurora.Uix.Live.ComponentHooks
   alias Aurora.Uix.Templates.Basic.Actions.Index, as: IndexActions
   alias Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl
   alias Aurora.Uix.Templates.Basic.Handlers.IndexList
@@ -232,8 +233,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
       &prepare(&1, id, first?)
     )
     |> assign_instance_field_ids(id)
+    |> register_for_events(first?)
     |> render_with(&IndexRenderer.render_component/1)
   end
+
+  @spec register_for_events(Socket.t(), boolean()) :: Socket.t()
+  defp register_for_events(socket, true) do
+    if connected?(socket),
+      do:
+        ComponentHooks.register(
+          socket.assigns.myself,
+          IndexList.resource_schema(socket.assigns.auix)
+        )
+
+    socket
+  end
+
+  defp register_for_events(socket, false), do: socket
 
   @spec assign_instance_layout_tree(Socket.t(), map()) :: Socket.t()
   defp assign_instance_layout_tree(%{assigns: %{auix: auix}} = socket, inputs) do
