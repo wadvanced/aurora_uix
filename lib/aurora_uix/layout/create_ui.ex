@@ -248,7 +248,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   A default name is a new atom that no source spells, such as `:product_form_component`, so
   `String.to_existing_atom/1` cannot build it. It is built at compile time from a schema module
   name, as `Aurora.Uix.Layout.Helpers.field_embedded_resource/2` builds the name of an embedded
-  resource.
+  resource. The call runs only while the declaring module compiles, on the last segment of a
+  schema module the host declared, and creates at most three atoms per resource (four after
+  UI-7).
 
   ## Parameters
   - `schema_hint` (binary()) - The schema hint, see `schema_hint/1`.
