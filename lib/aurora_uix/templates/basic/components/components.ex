@@ -222,6 +222,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
+          phx-target={@auix[:_myself]}
           phx-viewport-top={if @auix[:enable_viewport?], do: @auix.layout_options.pagination_disabled? && "pagination_previous"}
           phx-viewport-bottom={if @auix[:enable_viewport?], do: @auix.layout_options.pagination_disabled? && "pagination_next"}
           class="auix-items-table-body"
@@ -309,8 +310,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
       <div id={"#{@id}-mobile"}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          phx-viewport-top={if @auix[:enable_viewport?], do: JS.push("pagination_previous", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
-          phx-viewport-bottom={if @auix[:enable_viewport?], do: JS.push("pagination_next", loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load})}
+          phx-viewport-top={if @auix[:enable_viewport?], do: JS.push("pagination_previous", BasicHelpers.target_opts(@auix, loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load}))}
+          phx-viewport-bottom={if @auix[:enable_viewport?], do: JS.push("pagination_next", BasicHelpers.target_opts(@auix, loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load}))}
           class="auix-items-card-list"
         >
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 
@@ -515,6 +516,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   attr(:pagination, :map, required: true)
   attr(:pages_bar_range_offset, :integer, required: true)
   attr(:selected_in_page, :map, default: %{})
+  attr(:target, :any, default: nil)
   attr(:host_components, :any)
   @spec pages_selection(map()) :: Rendered.t()
   def pages_selection(%{host_components: nil} = assigns) do
@@ -525,13 +527,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
       <div class="auix-pagination-bar">
-        <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
+        <a :if={@pagination.page > 1} name="auix-pages_bar_page-previous" phx-click="pagination_to_page" phx-target={@target} phx-value-page={@pages_start_index}><.icon name="hero-chevron-left" /></a>
         <%= if @pages_start_index > 1 do %>
-          <a name="auix-pages_bar_page-first" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={1}>
+          <a name="auix-pages_bar_page-first" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-target={@target} phx-value-page={1}>
             <span>1</span>
             <.selected_count selected_in_page={@selected_in_page} page={1} />
           </a>
-          <a name="auix-pages_bar_page-left" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_left_index}>
+          <a name="auix-pages_bar_page-left" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-target={@target} phx-value-page={@pages_left_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={1} to={@pages_start_index} />
           </a>
@@ -545,7 +547,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </div>
           <% else %>
-            <a name={"auix-pages_bar_page-#{page_index}"} class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={page_index}>
+            <a name={"auix-pages_bar_page-#{page_index}"} class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-target={@target} phx-value-page={page_index}>
               <span>{page_index}</span>
               <.selected_count selected_in_page={@selected_in_page} page={page_index} />
             </a>
@@ -553,16 +555,16 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         </div>
 
         <%= if @pages_end_index < @pagination.pages_count do %>
-          <a name="auix-pages_bar_page-right" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pages_right_index}>
+          <a name="auix-pages_bar_page-right" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-target={@target} phx-value-page={@pages_right_index}>
             <span>...</span>
             <.selected_count selected_in_page={@selected_in_page} from={@pages_end_index} to={@pagination.pages_count} />
           </a>
-          <a name="auix-pages_bar_page-last" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-value-page={@pagination.pages_count}>
+          <a name="auix-pages_bar_page-last" class="auix-pagination-bar-link" phx-click="pagination_to_page" phx-target={@target} phx-value-page={@pagination.pages_count}>
             <span>{@pagination.pages_count}</span>
             <.selected_count selected_in_page={@selected_in_page} page={@pagination.pages_count} />
           </a>
         <% end %>
-        <a name="auix-pages_bar_page-next" :if={@pagination.page < @pagination.pages_count} phx-click="pagination_to_page" phx-value-page={@pages_end_index}><.icon name="hero-chevron-right"/></a>
+        <a name="auix-pages_bar_page-next" :if={@pagination.page < @pagination.pages_count} phx-click="pagination_to_page" phx-target={@target} phx-value-page={@pages_end_index}><.icon name="hero-chevron-right"/></a>
       </div>
     """
   end
@@ -666,7 +668,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
     ~H"""
     <button type="button" class="auix-items-table-header-sort" name={"auix-sort-#{@col.field.key}"}
-      phx-click="index-sort" phx-value-key={@col.field.key}>
+      phx-click="index-sort" phx-value-key={@col.field.key} phx-target={@auix[:_myself]}>
       <.table_column_label auix={@auix} label={@col.label} />
       <.icon name={@icon} class="auix-icon-size-4" />
     </button>

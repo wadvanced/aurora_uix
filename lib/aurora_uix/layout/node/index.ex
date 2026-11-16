@@ -19,6 +19,9 @@ defmodule Aurora.Uix.Layout.Node.Index do
             renderers: nil,
             actions: [],
             handler_module: nil,
+            module_name: nil,
+            use: nil,
+            component_handler_module: nil,
             options: [],
             __spark_metadata__: nil
 
@@ -31,6 +34,9 @@ defmodule Aurora.Uix.Layout.Node.Index do
           renderers: map() | nil,
           actions: keyword(),
           handler_module: module() | nil,
+          module_name: atom() | nil,
+          use: atom() | nil,
+          component_handler_module: module() | nil,
           options: keyword(),
           __spark_metadata__: term()
         }

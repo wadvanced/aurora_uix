@@ -154,6 +154,7 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     assert mod.auix_modules() == %{
              product_form_component: form,
              product_index: index,
+             product_index_component: Module.concat(mod, Product.IndexComponent),
              product_show_component: Module.concat(mod, Product.ShowComponent)
            }
 
@@ -235,6 +236,7 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
           inline [:name]
         end
 
+        index_columns :product_compact, [:name], module_name: :index_compact
         index_live :product_compact, module_name: :compact
       end
     """
@@ -335,9 +337,11 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     assert mod.auix_modules() |> Map.keys() |> Enum.sort() == [
              :product_form_component,
              :product_index,
+             :product_index_component,
              :product_show_component,
              :user_form_component,
              :user_index,
+             :user_index_component,
              :user_show_component
            ]
 
@@ -347,6 +351,72 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     refute mod |> Module.concat(Email.Index) |> Code.ensure_loaded?()
     assert Map.has_key?(mod.auix_configurations(), :user__profile)
     assert Map.has_key?(mod.auix_configurations(), :user__emails)
+  end
+
+  test "index_columns generates an index component" do
+    mod = compiled_ui("  auix_create_ui()\n")
+
+    assert mod.auix_module(:product_index_component) == Module.concat(mod, Product.IndexComponent)
+    assert mod.auix_module(:product_index_component).auix_kind() == :index_component
+
+    named =
+      compiled_ui("""
+        auix_create_ui do
+          index_columns :product, [:reference], module_name: :index_compact
+        end
+      """)
+
+    assert named.auix_module(:index_compact) == Module.concat(named, Product.IndexCompact)
+    assert named.auix_module(:index_compact).auix_fields() == [:reference]
+    refute named |> Module.concat(Product.IndexComponent) |> Code.ensure_loaded?()
+
+    only = compiled_ui("  auix_create_ui generate: [:index_component]\n")
+
+    assert only |> Module.concat(Product.IndexComponent) |> Code.ensure_loaded?()
+    refute only |> Module.concat(Product.Index) |> Code.ensure_loaded?()
+    refute only |> Module.concat(Product.FormComponent) |> Code.ensure_loaded?()
+    refute only |> Module.concat(Product.ShowComponent) |> Code.ensure_loaded?()
+  end
+
+  test "use: gives a resource the index layout of another" do
+    mod =
+      compiled_ui("""
+        auix_resource_metadata :product_location,
+          context: Aurora.Uix.Guides.Inventory,
+          schema: Aurora.Uix.Guides.Inventory.ProductLocation
+
+        auix_create_ui do
+          index_columns :product, [:reference, :name], module_name: :index_compact
+          index_columns :product_location, use: :index_compact
+        end
+      """)
+
+    assert Enum.map(
+             mod.auix_configurations().product_location.layout_trees.index.children,
+             & &1.key
+           ) ==
+             [:reference, :name]
+
+    refute mod |> Module.concat(ProductLocation.IndexComponent) |> Code.ensure_loaded?()
+    assert mod |> Module.concat(ProductLocation.Index) |> Code.ensure_loaded?()
+  end
+
+  test "use: on index_columns rejects what it cannot take" do
+    assert_raise DslError, ~r/unknown module :nope in use:/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, use: :nope
+        end
+      """)
+    end
+
+    assert_raise DslError, ~r/use: takes no field list and no other option/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:name], use: :product_index_component
+        end
+      """)
+    end
   end
 
   test "an imported module must be a registry entry" do
@@ -379,6 +449,7 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     }
 
     show = %Aurora.Uix.Layout.Node.Show{resource: :product}
+    index = %Aurora.Uix.Layout.Node.Index{resource: :product}
 
     options = %{
       layout_type: :form,
@@ -401,6 +472,11 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
 
     assert CreateUI.put_defaults(%{options | layout_type: :show, layout_tree: show}).exposed_layouts ==
              %{show_component: %{show | resource: nil}}
+
+    assert defaults.artifacts.index_component == MyApp.Views.Product.IndexComponent
+
+    assert CreateUI.put_defaults(%{options | layout_type: :index, layout_tree: index}).exposed_layouts ==
+             %{index_component: %{index | resource: nil}}
 
     assert CreateUI.put_defaults(defaults) == defaults
 

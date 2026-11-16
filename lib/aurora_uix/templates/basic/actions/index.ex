@@ -78,6 +78,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   slot(:contents)
   @spec show_row_action(map()) :: Rendered.t()
+  def show_row_action(%{auix: %{notify: _notify}} = assigns) do
+    ~H"""
+      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="show" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-show-#{@auix.module}"}>
+        <%= if Map.get(assigns, :contents) == [] do %>
+          <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+        <% else %>
+          {render_slot(@contents)}
+        <% end %>
+      </.auix_link>
+    """
+  end
+
   def show_row_action(assigns) do
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"}>
@@ -104,6 +116,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   slot(:contents)
   @spec edit_row_action(map()) :: Rendered.t()
+  def edit_row_action(%{auix: %{notify: _notify}} = assigns) do
+    ~H"""
+      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="edit" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>
+        <%= if Map.get(assigns, :contents) == [] do %>
+          <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil" />
+        <% else %>
+          {render_slot(@contents)}
+        <% end %>
+      </.auix_link>
+    """
+  end
+
   def edit_row_action(assigns) do
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
@@ -136,7 +160,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   def remove_row_action(assigns) do
     ~H"""
       <.auix_link
-            phx-click={JS.push("delete", value: %{id: row_info_id(@auix)}) |> uix_hide(row_dom_selector(@auix))}
+            phx-click={JS.push("delete", BasicHelpers.target_opts(@auix, value: %{id: row_info_id(@auix)})) |> uix_hide(row_dom_selector(@auix))}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={dt("Are you sure?")}
           >
@@ -168,7 +192,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
     ~H"""
       <.live_component 
-        id={"auix-delete-all-button-#{@auix.module}"}
+        id={BasicHelpers.instance_dom_id(@auix, "auix-delete-all-button")}
         module={ConfirmButton}
         class={@selected_button_class}
         value={%{delete_all: true}}
@@ -217,7 +241,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="false"
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="false" phx-target={@auix[:_myself]}
         name={"auix-selected-uncheck_all-#{@auix.module}"}>
       {dt("Uncheck all")}
     </.button>
@@ -231,7 +255,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{dt("De-selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]}>{dt("De-selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
@@ -259,7 +283,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="true"
+    <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="true" phx-target={@auix[:_myself]}
         name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none}>
       {dt("Check all")}
     </.button>
@@ -273,7 +297,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all">{dt("Selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]}>{dt("Selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
     """
   end
 
@@ -322,6 +346,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Button link for creating new entities
   """
   @spec new_header_action(map()) :: Rendered.t()
+  def new_header_action(%{auix: %{notify: _notify}} = assigns) do
+    ~H"""
+    <.auix_link phx-click="auix_open" phx-value-action="new" phx-target={@auix._myself} name={"auix-new-#{@auix.module}"} role="button">
+      <.button>{dt(@auix.layout_options.new_action_label)}</.button>
+    </.auix_link>
+    """
+  end
+
   def new_header_action(assigns) do
     ~H"""
     <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"} role="button">
@@ -345,13 +377,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       <div :if={Map.get(@auix, :filters) != []} class="auix-button-toggle-filters-container">
         <div class="auix-button-toggle-filters-content">
           <%= if Map.get(@auix, :filters_enabled?) do %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
+            <a href="#" phx-click="filter-toggle" phx-target={@auix[:_myself]} name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
               <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive auix-icon-size-5", else: "auix-icon-info auix-icon-size-5"}/>
               <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
             </a>
             <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
           <% else %>
-            <a href="#" phx-click="filter-toggle" name="auix-filter_toggle_open" class="hero-funnel auix-icon-info auix-icon-size-5" />
+            <a href="#" phx-click="filter-toggle" phx-target={@auix[:_myself]} name="auix-filter_toggle_open" class="hero-funnel auix-icon-info auix-icon-size-5" />
             <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
 
           <% end %>
@@ -394,8 +426,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
     ~H"""
     <div :if={@sort_options != []} class="auix-index-sort-action" name={"auix-sort_action-#{@auix.module}"}>
-      <.form for={%{}} id={"auix-sort-form-#{@auix.module}"} phx-change="index-sort">
-        <.input type="select" id={"auix-sort-key-#{@auix.module}"} name="sort"
+      <.form for={%{}} id={BasicHelpers.instance_dom_id(@auix, "auix-sort-form")} phx-change="index-sort" phx-target={@auix[:_myself]}>
+        <.input type="select" id={BasicHelpers.instance_dom_id(@auix, "auix-sort-key")} name="sort"
             options={@sort_options}
             value={@sort_key}
             prompt={dt("Default order")}
@@ -405,6 +437,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
           name={"auix-sort_direction-#{@auix.module}"}
           disabled={is_nil(@auix.sort)}
           phx-click="index-sort-direction"
+          phx-target={@auix[:_myself]}
           aria-label={dt("Reverse sort direction")}>
         <.icon name={@sort_icon} />
       </.button>
@@ -431,7 +464,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
 
     ~H"""
-    <.button type="button" class={@filters_button_class} phx-click="filters-clear" name={"auix-filters_clear-#{@auix.module}"}>{dt("Clear Filters")}</.button>
+    <.button type="button" class={@filters_button_class} phx-click="filters-clear" phx-target={@auix[:_myself]} name={"auix-filters_clear-#{@auix.module}"}>{dt("Clear Filters")}</.button>
     """
   end
 
@@ -454,7 +487,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
 
     ~H"""
-    <.button type="button" class={@filters_button_class} phx-click="filters-submit" name={"auix-filters_submit-#{@auix.module}"}>{dt("Submit")}</.button>
+    <.button type="button" class={@filters_button_class} phx-click="filters-submit" phx-target={@auix[:_myself]} name={"auix-filters_submit-#{@auix.module}"}>{dt("Submit")}</.button>
     """
   end
 
@@ -501,22 +534,26 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         <div class="auix-pagination-breakpoint-xl2" name={"auix-pages_bar-#{@auix.source}-xl2"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl2)}
-              selected_in_page={@auix.selection.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}
+              target={@auix[:_myself]}/>
         </div>
         <div class="auix-pagination-breakpoint-xl" name={"auix-pages_bar-#{@auix.source}-xl"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :xl)}
-              selected_in_page={@auix.selection.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}
+              target={@auix[:_myself]}/>
         </div>
         <div class="auix-pagination-breakpoint-lg " name={"auix-pages_bar-#{@auix.source}-lg"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :lg)}
-              selected_in_page={@auix.selection.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}
+              target={@auix[:_myself]}/>
         </div>
         <div class="auix-pagination-breakpoint-md" name={"auix-pages_bar-#{@auix.source}-md"}>
           <.pages_selection pagination={@auix.pagination}
               pages_bar_range_offset={@auix.layout_options.pages_bar_range_offset.(nil, :md)}
-              selected_in_page={@auix.selection.selected_in_page}/>
+              selected_in_page={@auix.selection.selected_in_page}
+              target={@auix[:_myself]}/>
         </div>
       </div>
     """

@@ -81,14 +81,15 @@ defmodule Aurora.Uix.Layout.CreateUI do
   ## Generated modules
 
   Every generated module is a named artifact. By default the LiveView of a resource is named
-  `:<schema>_index`, and its components `:<schema>_form_component` and
-  `:<schema>_show_component`, where `<schema>` is the underscored last segment of the schema
-  module. `module_name:` on `edit_layout` and `show_layout` names the generated component, and
-  is the last segment of the module as given. An `index_live resource, module_name: name` line
-  names the LiveView.
+  `:<schema>_index`, and its components `:<schema>_index_component`, `:<schema>_form_component`
+  and `:<schema>_show_component`, where `<schema>` is the underscored last segment of the schema
+  module. `module_name:` on `index_columns`, `edit_layout` and `show_layout` names the generated
+  component, and is the last segment of the module as given. An
+  `index_live resource, module_name: name` line names the LiveView. `component_handler_module:`
+  on `index_columns` sets the handler of the index component.
 
-  `edit_layout resource, use: name` (or `show_layout`) takes a component instead of generating
-  one. `name` is a name of the registry, or a generated module itself: the value
+  `index_columns resource, use: name`, `edit_layout resource, use: name` (or `show_layout`) takes
+  a component instead of generating one. `name` is a name of the registry, or a generated module itself: the value
   `auix_module/1` of another module returns. It checks that the name exists, that it names a
   component of the layout's kind, and that the resource has every field its layout places. A
   module imports modules of another one with
@@ -99,8 +100,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   Every generated module exposes `auix_kind/0`, `auix_fields/0` (the keys of the fields its
   layout places) and `auix_layout/0` (the layout it was generated from).
 
-  `generate:` chooses the kinds of module to generate (`:index_live`, `:form_component`,
-  `:show_component`). `generate: []` with `use:` lines suits a module that only declares
+  `generate:` chooses the kinds of module to generate (`:index_live`, `:index_component`,
+  `:form_component`, `:show_component`). `generate: []` with `use:` lines suits a module that only declares
   pairings, a LiveView written by hand included.
 
   ## Key Features
@@ -134,9 +135,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Template
   alias Spark.Error.DslError
 
-  @type kind() :: :index_live | :form_component | :show_component
+  @type kind() :: :index_live | :index_component | :form_component | :show_component
 
-  @component_kinds [form: :form_component, show: :show_component]
+  @component_kinds [index: :index_component, form: :form_component, show: :show_component]
 
   @collision_hint "set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with an index_live line"
 
@@ -209,10 +210,10 @@ defmodule Aurora.Uix.Layout.CreateUI do
   None.
 
   ## Returns
-  `[kind()]` - `[:index_live, :form_component, :show_component]`.
+  `[kind()]` - `[:index_live, :index_component, :form_component, :show_component]`.
   """
   @spec kinds() :: [kind()]
-  def kinds, do: [:index_live, :form_component, :show_component]
+  def kinds, do: [:index_live, :index_component, :form_component, :show_component]
 
   @doc """
   Returns the schema hint: the last segment of a schema module, the middle segment of every
@@ -249,8 +250,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   `String.to_existing_atom/1` cannot build it. It is built at compile time from a schema module
   name, as `Aurora.Uix.Layout.Helpers.field_embedded_resource/2` builds the name of an embedded
   resource. The call runs only while the declaring module compiles, on the last segment of a
-  schema module the host declared, and creates at most three atoms per resource (four after
-  UI-7).
+  schema module the host declared, and creates at most four atoms per resource.
 
   ## Parameters
   - `schema_hint` (binary()) - The schema hint, see `schema_hint/1`.
@@ -699,6 +699,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
     %{
       index_live: module_name(caller, hint, :index),
+      index_component: module_name(caller, hint, :index_component),
       form_component: module_name(caller, hint, :form_component),
       show_component: module_name(caller, hint, :show_component)
     }
@@ -710,6 +711,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   defp default_exposed_layouts(%{layout_type: :show} = options),
     do: %{show_component: %{options.layout_tree | resource: nil}}
+
+  defp default_exposed_layouts(%{layout_type: :index} = options),
+    do: %{index_component: %{options.layout_tree | resource: nil}}
 
   defp default_exposed_layouts(_options), do: %{}
 
@@ -895,7 +899,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
       declared = resource_layouts(layouts, resource_name)
 
       complete? =
-        Enum.all?(@component_kinds, fn {layout_type, kind} ->
+        @component_kinds
+        |> Keyword.take([:form, :show])
+        |> Enum.all?(fn {layout_type, kind} ->
           using?(Map.get(declared, layout_type)) or
             Enum.any?(names, &match?({_name, ^kind, ^resource_name, _module}, &1))
         end)
@@ -910,7 +916,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Replaces every `use:` layout by the layout of the component it names, bound to the resource
-  # of the line. Forms go first: a missing show layout is a copy of the form.
+  # of the line. Indexes go first, then forms: a missing show layout is a copy of the form.
   @spec used_layouts([Node.layout()], map()) :: [Node.layout()]
   defp used_layouts(layouts, context) do
     Enum.reduce(@component_kinds, layouts, fn component_kind, layouts ->
@@ -1052,7 +1058,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
     %{
       artifacts:
-        %{index_live: nil, form_component: nil, show_component: nil}
+        %{index_live: nil, index_component: nil, form_component: nil, show_component: nil}
         |> Map.merge(generated)
         |> Map.merge(used),
       used: Enum.filter([:form_component, :show_component], &Map.has_key?(used, &1)),
@@ -1113,7 +1119,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp build_resource_layouts(%{}, _configurations, _caller), do: []
 
   @spec generate_tag?(atom(), [atom()]) :: boolean()
-  defp generate_tag?(:index, generate), do: :index_live in generate
+  defp generate_tag?(:index, generate),
+    do: :index_live in generate or :index_component in generate
+
   defp generate_tag?(:form, generate), do: :form_component in generate
   defp generate_tag?(:show, generate), do: :show_component in generate
   defp generate_tag?(_tag, _generate), do: true

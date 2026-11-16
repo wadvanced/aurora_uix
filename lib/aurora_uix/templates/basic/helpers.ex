@@ -396,7 +396,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   - `socket` (Socket.t()) - The component socket.
   - `assigns` (map()) - The assigns of the component's `update/2`, with an optional `resource`.
   - `component` (module()) - The generated component.
-  - `layout_type` (:form | :show) - The layout type of the component.
+  - `layout_type` (:index | :form | :show) - The layout type of the component.
 
   ## Returns
   `map()` - On the first update, the binding with `_resource` (only `%{_resource: nil}` without
@@ -404,7 +404,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   `auix_create_ui`, does not know the resource or does not pair it with the component, and when
   an instance is given another resource after its first update.
   """
-  @spec resource_binding(Socket.t(), map(), module(), :form | :show) :: map()
+  @spec resource_binding(Socket.t(), map(), module(), :index | :form | :show) :: map()
   def resource_binding(socket, assigns, component, layout_type) do
     given = Map.get(assigns, :resource)
 
@@ -434,14 +434,14 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Parameters
   - `configurations` (map()) - The `auix_configurations/0` of the declaring module.
   - `resource_name` (atom()) - The resource the component serves.
-  - `layout_type` (:form | :show) - The layout type of the component.
+  - `layout_type` (:index | :form | :show) - The layout type of the component.
 
   ## Returns
   `map()` - The resource's parsed options with `modules`, `artifacts`, `used`, `generate`,
   `configurations`, `resource_name`, `layout_type` and `layout_tree`. Raises `KeyError` for a
   resource the configurations lack.
   """
-  @spec component_binding(map(), atom(), :form | :show) :: map()
+  @spec component_binding(map(), atom(), :index | :form | :show) :: map()
   def component_binding(configurations, resource_name, layout_type) do
     configuration = Map.fetch!(configurations, resource_name)
 
@@ -453,8 +453,39 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       layout_type: layout_type,
       layout_tree: Map.fetch!(configuration.layout_trees, layout_type)
     })
-    |> ModulesGenerator.component_opts()
+    |> binding_opts(layout_type)
   end
+
+  @doc """
+  Adds the event target of a component instance to the options of a `JS.push/2`.
+
+  ## Parameters
+  - `auix` (map()) - The `auix` assigns; `_myself` is the target of a component instance, `nil`
+    or absent in a LiveView.
+  - `opts` (keyword()) - The options of `JS.push/2`.
+
+  ## Returns
+  `keyword()` - `opts` with `:target` when `auix` carries a target, else `opts` unchanged.
+  """
+  @spec target_opts(map(), keyword()) :: keyword()
+  def target_opts(%{_myself: nil}, opts), do: opts
+  def target_opts(%{_myself: target}, opts), do: Keyword.put(opts, :target, target)
+  def target_opts(_auix, opts), do: opts
+
+  @doc """
+  Returns a DOM id unique to a component instance, or to the module in a LiveView.
+
+  ## Parameters
+  - `auix` (map()) - The `auix` assigns; `_instance` is the id of a component instance.
+  - `base` (binary()) - The base of the id.
+
+  ## Returns
+  `binary()` - `"<base>-<instance>"` in a component instance, `"<base>-<module>"` otherwise.
+  """
+  @spec instance_dom_id(map(), binary()) :: binary()
+  def instance_dom_id(%{_instance: nil, module: module}, base), do: "#{base}-#{module}"
+  def instance_dom_id(%{_instance: instance}, base), do: "#{base}-#{instance}"
+  def instance_dom_id(%{module: module}, base), do: "#{base}-#{module}"
 
   @doc """
   Assigns a value to the auix assigns map in the socket.
@@ -1583,7 +1614,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   defp open_action("edit"), do: :edit
   defp open_action("new"), do: :new
 
-  @spec bind_resource(atom() | nil, module(), module(), :form | :show) :: map()
+  @spec bind_resource(atom() | nil, module(), module(), :index | :form | :show) :: map()
   defp bind_resource(nil, _view, _component, _layout_type), do: %{}
 
   defp bind_resource(resource, view, component, layout_type) do
@@ -1610,9 +1641,15 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     end
   end
 
-  @spec component_kind(:form | :show) :: atom()
+  @spec component_kind(:index | :form | :show) :: atom()
+  defp component_kind(:index), do: :index_component
   defp component_kind(:form), do: :form_component
   defp component_kind(:show), do: :show_component
+
+  # The options each generator compiles into its module.
+  @spec binding_opts(map(), :index | :form | :show) :: map()
+  defp binding_opts(opts, :index), do: ModulesGenerator.remove_omitted_fields(opts)
+  defp binding_opts(opts, _layout_type), do: ModulesGenerator.component_opts(opts)
 
   @spec invoke_upload_callback(function(), Socket.t(), term(), atom()) :: term()
   defp invoke_upload_callback(fun, socket, value, key) do
