@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Layout.Artifacts
+  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Templates.Basic.Handlers.ShowComponent, as: ShowComponentHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -30,7 +30,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_type: :show} = parsed_opts) do
-    parsed_opts = parsed_opts |> Artifacts.put_defaults() |> ModulesGenerator.component_opts()
+    parsed_opts = parsed_opts |> CreateUI.put_defaults() |> ModulesGenerator.component_opts()
 
     show_component = parsed_opts.artifacts.show_component
     handler_module = ModulesGenerator.handler_module(parsed_opts, ShowComponentHandler)
@@ -42,7 +42,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
         use unquote(parsed_opts.modules.web), :live_component
 
         unquote(
-          Artifacts.module_code(
+          CreateUI.module_code(
             :show_component,
             Map.fetch!(parsed_opts.exposed_layouts, :show_component)
           )

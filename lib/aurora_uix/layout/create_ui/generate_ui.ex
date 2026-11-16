@@ -43,15 +43,14 @@ defmodule Aurora.Uix.Layout.CreateUI.GenerateUI do
         included = CreateUI.included_layouts(includes, module)
         layouts = CreateUI.collect_layouts(calls, included, module)
         :ok = CreateUI.validate_layouts(layouts, resources, module)
+        naming = %{index_lives: ui.index_lives, imported: imported_modules(module)}
+        :ok = CreateUI.validate_modules(module, layouts, resources, opts, naming)
 
         # The included layouts are read at compile time, so the module recompiles with them.
         requires = Enum.map(includes, &quote(do: require(unquote(&1))))
 
         module
-        |> CreateUI.ui_code(layouts, resources, opts, %{
-          index_lives: ui.index_lives,
-          imported: imported_modules(module)
-        })
+        |> CreateUI.ui_code(layouts, resources, opts, naming)
         |> then(&{:ok, Transformer.eval(dsl_state, [], [requires, &1])})
 
       _several ->

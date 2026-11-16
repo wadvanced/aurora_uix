@@ -75,7 +75,7 @@ defmodule Aurora.Uix.RouteHelper do
   """
   @spec auix_live_resources(binary(), module(), keyword()) :: Macro.t()
   defmacro auix_live_resources(path, module, opts \\ []) do
-    index_live = opts |> Keyword.get(:index_live, :index) |> index_live_alias(module)
+    index_live = opts |> Keyword.get(:index_live, :index) |> index_live_module(module)
 
     quotes =
       [
@@ -111,11 +111,14 @@ defmodule Aurora.Uix.RouteHelper do
 
   ## PRIVATE
 
-  # The same alias `unquote(module).Index` builds, for a LiveView of any name.
-  @spec index_live_alias(atom(), Macro.t()) :: Macro.t()
-  defp index_live_alias(name, module) when is_atom(name) do
-    {:__aliases__, [alias: false],
-     [module, name |> Atom.to_string() |> Macro.camelize() |> String.to_atom()]}
+  # The module `unquote(module).Index` names, for a LiveView of any name.
+  @spec index_live_module(atom(), Macro.t()) :: Macro.t()
+  defp index_live_module(name, module) when is_atom(name) do
+    segment = name |> Atom.to_string() |> Macro.camelize()
+
+    quote do
+      Module.concat(unquote(module), unquote(segment))
+    end
   end
 
   @spec filter_only(list(), list() | nil) :: list()

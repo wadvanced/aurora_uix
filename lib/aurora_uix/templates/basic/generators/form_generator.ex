@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   - Integrates with Aurora UIX context and helpers
   """
 
-  alias Aurora.Uix.Layout.Artifacts
+  alias Aurora.Uix.Layout.CreateUI
   alias Aurora.Uix.Templates.Basic.Handlers.Form, as: FormHandler
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.Uix.Templates.Basic.ModulesGenerator
@@ -32,7 +32,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   """
   @spec generate_module(map()) :: Macro.t()
   def generate_module(%{layout_type: :form} = parsed_opts) do
-    parsed_opts = parsed_opts |> Artifacts.put_defaults() |> ModulesGenerator.component_opts()
+    parsed_opts = parsed_opts |> CreateUI.put_defaults() |> ModulesGenerator.component_opts()
 
     field_labels =
       parsed_opts
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
         use Aurora.Uix.GettextResolver
 
         unquote(
-          Artifacts.module_code(
+          CreateUI.module_code(
             :form_component,
             Map.fetch!(parsed_opts.exposed_layouts, :form_component)
           )

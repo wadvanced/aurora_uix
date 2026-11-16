@@ -124,8 +124,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Field
-  alias Aurora.Uix.Layout.Artifacts
   alias Aurora.Uix.Layout.CreateUI.Call
+  alias Aurora.Uix.Layout.CreateUI.IndexLive
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.RenderTree
   alias Aurora.Uix.Parser
@@ -133,6 +133,12 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Resource
   alias Aurora.Uix.Template
   alias Spark.Error.DslError
+
+  @type kind() :: :index_live | :form_component | :show_component
+
+  @component_kinds [form: :form_component, show: :show_component]
+
+  @collision_hint "set module_name: on the layout of one of them, reuse a module with use:, or rename a live view with an index_live line"
 
   @doc """
   Collects the layouts of the `auix_create_ui` and `auix_create_layout` calls of a module.
@@ -197,6 +203,151 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   @doc """
+  Returns the kinds of module `auix_create_ui` generates.
+
+  ## Parameters
+  None.
+
+  ## Returns
+  `[kind()]` - `[:index_live, :form_component, :show_component]`.
+  """
+  @spec kinds() :: [kind()]
+  def kinds, do: [:index_live, :form_component, :show_component]
+
+  @doc """
+  Returns the schema hint: the last segment of a schema module, the middle segment of every
+  generated module name.
+
+  ## Parameters
+  - `schema` (module()) - The schema module of a resource.
+
+  ## Returns
+  `binary()` - The hint, e.g. `"Product"`.
+  """
+  @spec schema_hint(module()) :: binary()
+  def schema_hint(schema), do: schema |> Module.split() |> List.last()
+
+  @doc """
+  Builds the name of a generated module.
+
+  ## Parameters
+  - `caller` (module()) - The declaring module.
+  - `schema_hint` (binary()) - The schema hint, see `schema_hint/1`.
+  - `name` (atom()) - The last segment, camelized as given: no suffix is added.
+
+  ## Returns
+  `module()` - e.g. `MyApp.Views.Product.IndexCompact`.
+  """
+  @spec module_name(module(), binary(), atom()) :: module()
+  def module_name(caller, schema_hint, name),
+    do: Module.concat([caller, schema_hint, name |> Atom.to_string() |> Macro.camelize()])
+
+  @doc """
+  Returns the default registry name of a generated module.
+
+  A default name is a new atom that no source spells, such as `:product_form_component`, so
+  `String.to_existing_atom/1` cannot build it. It is built at compile time from a schema module
+  name, as `Aurora.Uix.Layout.Helpers.field_embedded_resource/2` builds the name of an embedded
+  resource.
+
+  ## Parameters
+  - `schema_hint` (binary()) - The schema hint, see `schema_hint/1`.
+  - `kind` (kind()) - The kind of module.
+
+  ## Returns
+  `atom()` - `:<schema>_index` for a LiveView, `:<schema>_<kind>` for a component.
+  """
+  @spec default_name(binary(), kind()) :: atom()
+  def default_name(schema_hint, :index_live),
+    do: String.to_atom("#{Macro.underscore(schema_hint)}_index")
+
+  def default_name(schema_hint, kind),
+    do: String.to_atom("#{Macro.underscore(schema_hint)}_#{kind}")
+
+  @doc """
+  Returns the code defining `auix_modules/0` and `auix_module/1`.
+
+  ## Parameters
+  - `modules` (%{atom() => module()}) - The registry: generated and imported modules by name.
+
+  ## Returns
+  `Macro.t()` - The function definitions.
+  """
+  @spec modules_code(%{atom() => module()}) :: Macro.t()
+  def modules_code(modules) do
+    module_functions = Enum.map(modules, &module_function/1)
+
+    quote do
+      @doc """
+      Gets the generated and imported modules by name.
+      """
+      @spec auix_modules() :: %{atom() => module()}
+      def auix_modules do
+        unquote(Macro.escape(modules))
+      end
+
+      unquote(module_functions)
+
+      def auix_module(_), do: nil
+    end
+  end
+
+  @doc """
+  Returns the code every generated module evaluates in its body: `auix_kind/0`, `auix_fields/0`
+  and `auix_layout/0`.
+
+  ## Parameters
+  - `kind` (kind()) - The kind of the module.
+  - `layout` (Node.layout() | nil) - The layout the module is generated from, as written, with
+    `resource: nil`; `nil` for the index LiveView.
+
+  ## Returns
+  `Macro.t()` - The function definitions.
+  """
+  @spec module_code(kind(), Node.layout() | nil) :: Macro.t()
+  def module_code(kind, layout) do
+    fields = layout |> List.wrap() |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq()
+
+    quote do
+      @doc false
+      @spec auix_kind() :: atom()
+      def auix_kind, do: unquote(kind)
+
+      @doc false
+      @spec auix_fields() :: [atom()]
+      def auix_fields, do: unquote(fields)
+
+      @doc false
+      @spec auix_layout() :: struct() | nil
+      def auix_layout, do: unquote(Macro.escape(layout))
+    end
+  end
+
+  @doc """
+  Fills the `artifacts`, `used`, `generate` and `exposed_layouts` keys of the options of a
+  generator, each one only when the options lack it.
+
+  `ui_code/5` fills the four keys for every module `auix_create_ui` generates, and those options
+  are returned as they are. Options built by hand take the module names the generators built
+  before named artifacts.
+
+  ## Parameters
+  - `options` (map()) - The options of a generator: `layout_type`, `layout_tree`,
+    `modules.caller` and `module_name` (the schema hint).
+
+  ## Returns
+  `map()` - The options with the four keys.
+  """
+  @spec put_defaults(map()) :: map()
+  def put_defaults(options) do
+    options
+    |> Map.put_new_lazy(:artifacts, fn -> default_artifacts(options) end)
+    |> Map.put_new(:used, [])
+    |> Map.put_new(:generate, kinds())
+    |> Map.put_new_lazy(:exposed_layouts, fn -> default_exposed_layouts(options) end)
+  end
+
+  @doc """
   Returns the options of an `auix_create_ui` call.
 
   ## Parameters
@@ -241,6 +392,31 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   @doc """
+  Checks the names of the modules `auix_create_ui` generates and the modules a module imports.
+
+  ## Parameters
+  - `module` (module()) - The declaring module, for error reporting.
+  - `layouts` ([Node.layout()]) - The declared layouts.
+  - `resources` (map()) - The resources by name.
+  - `opts` (keyword()) - The `auix_create_ui` options.
+  - `naming` (map()) - `%{index_lives: [IndexLive.t()], imported: %{atom() => module()}}`: the
+    `index_live` lines of the call and the modules the module imports with `@auix_modules`.
+
+  ## Returns
+  `:ok`, or raises `Spark.Error.DslError` on an invalid import, an invalid `index_live` line, a
+  name collision or a live view without its components.
+  """
+  @spec validate_modules(module(), [Node.layout()], map(), keyword(), map()) :: :ok
+  def validate_modules(module, layouts, resources, opts, naming) do
+    :ok = validate_imported(naming.imported, module)
+    :ok = validate_index_lives(module, resources, opts, naming)
+
+    names = module_names(module, layouts, resources, opts, naming)
+    :ok = validate_collisions(names, naming.imported, module)
+    validate_live_views(names, layouts, module)
+  end
+
+  @doc """
   Returns the code generating the UI of a module.
 
   ## Parameters
@@ -248,34 +424,29 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - `declared_layouts` ([Node.layout()]) - The layouts.
   - `resources` (map()) - The resolved resources by name.
   - `opts` (keyword()) - The `auix_create_ui` options.
-  - `artifacts` (map()) - `index_lives`, the `index_live` lines of the call, and `imported`,
-    the modules the module imports with `@auix_modules`.
+  - `naming` (map()) - The map `validate_modules/5` takes: `index_lives`, the `index_live` lines
+    of the call, and `imported`, the modules the module imports with `@auix_modules`.
 
   ## Returns
   `Macro.t()` - The generated LiveView modules and `auix_layouts/0`, `auix_configurations/0`,
   `auix_preloads/0`, `auix_modules/0` and `auix_module/1`.
   """
   @spec ui_code(module(), [Node.layout()], map(), keyword(), map()) :: Macro.t()
-  def ui_code(module, declared_layouts, resources, opts, artifacts) do
+  def ui_code(module, declared_layouts, resources, opts, naming) do
     resources =
       resources
       |> Map.new(fn {name, resource} -> {name, Resource.resolve(resource)} end)
       |> filter_resources(opts[:for])
       |> Map.new()
 
-    layouts =
-      Map.new(resources, fn {name, _resource} ->
-        {name, resource_layouts(declared_layouts, name)}
-      end)
+    names = module_names(module, declared_layouts, resources, opts, naming)
 
-    plan =
-      Artifacts.plan(%{
+    layouts =
+      used_layouts(declared_layouts, %{
         caller: module,
         resources: resources,
-        layouts: layouts,
-        index_lives: artifacts.index_lives,
-        imported: artifacts.imported,
-        generate: Keyword.get(opts, :generate, Artifacts.kinds()),
+        names: names,
+        imported: naming.imported,
         opts: opts
       })
 
@@ -283,10 +454,16 @@ defmodule Aurora.Uix.Layout.CreateUI do
       resources
       |> Enum.reduce(
         [],
-        &[build_configurations(module, &1, plan, opts) | &2]
+        &[build_configurations(module, &1, layouts, names, opts) | &2]
       )
       |> Enum.reject(&is_nil/1)
       |> Map.new()
+
+    registry =
+      Map.merge(
+        naming.imported,
+        Map.new(names, fn {name, _kind, _resource_name, generated} -> {name, generated} end)
+      )
 
     resource_preloads = extract_resource_preloads(configurations)
 
@@ -303,7 +480,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
       unquote(layouts_code(declared_layouts))
 
-      unquote(Artifacts.functions_code(plan.modules))
+      unquote(modules_code(registry))
 
       @doc false
       @spec auix_configurations() :: map()
@@ -407,11 +584,13 @@ defmodule Aurora.Uix.Layout.CreateUI do
   end
 
   # Builds the configuration for a single resource.
-  @spec build_configurations(module(), {atom(), map()}, map(), keyword()) :: map() | nil
+  @spec build_configurations(module(), {atom(), map()}, [Node.layout()], list(), keyword()) ::
+          map() | nil
   defp build_configurations(
          caller,
          {resource_config_name, resource_config},
-         plan,
+         declared_layouts,
+         names,
          opts
        ) do
     resource_module = Map.get(resource_config, :schema)
@@ -428,7 +607,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
 
       layout_tags = Module.get_attribute(caller, :auix_layout_tags)
 
-      layouts = Map.fetch!(plan.layouts, resource_config_name)
+      layouts = declared_layouts |> resource_layouts(resource_config_name) |> put_missing_show()
 
       layout_trees =
         Map.new(layout_tags, fn tag ->
@@ -472,12 +651,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
              context: resource_config.context
            }
          },
-         Map.get(plan.resolved, resource_config_name, %{
-           artifacts: %{index_live: nil, form_component: nil, show_component: nil},
-           used: [],
-           generate: [],
-           exposed_layouts: %{}
-         })
+         resource_modules({resource_config_name, resource_config}, layouts, names, opts)
        )}
     end
   end
@@ -486,6 +660,404 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defp layout_type(%Node.Index{}), do: :index
   defp layout_type(%Node.Form{}), do: :form
   defp layout_type(%Node.Show{}), do: :show
+
+  # Without a show layout, the show view reuses the form layout and its `show_handler_module`.
+  @spec put_missing_show(map()) :: map()
+  defp put_missing_show(%{show: _show} = layouts), do: layouts
+
+  defp put_missing_show(%{form: form} = layouts) do
+    form
+    |> Map.from_struct()
+    |> Map.merge(%{
+      handler_module: Keyword.get(form.options, :show_handler_module),
+      module_name: nil,
+      use: nil
+    })
+    |> then(&struct(Node.Show, &1))
+    |> then(&Map.put(layouts, :show, &1))
+  end
+
+  defp put_missing_show(layouts), do: layouts
+
+  @spec module_function({atom(), module()}) :: Macro.t()
+  defp module_function({name, module}) do
+    quote do
+      @doc """
+      Gets a generated or imported module by name.
+      """
+      @spec auix_module(atom()) :: module() | nil
+      def auix_module(unquote(name)), do: unquote(module)
+    end
+  end
+
+  @spec default_artifacts(map()) :: %{kind() => module()}
+  defp default_artifacts(options) do
+    caller = options.modules.caller
+    hint = options.module_name
+
+    %{
+      index_live: module_name(caller, hint, :index),
+      form_component: module_name(caller, hint, :form_component),
+      show_component: module_name(caller, hint, :show_component)
+    }
+  end
+
+  @spec default_exposed_layouts(map()) :: %{kind() => Node.layout()}
+  defp default_exposed_layouts(%{layout_type: :form} = options),
+    do: %{form_component: %{options.layout_tree | resource: nil}}
+
+  defp default_exposed_layouts(%{layout_type: :show} = options),
+    do: %{show_component: %{options.layout_tree | resource: nil}}
+
+  defp default_exposed_layouts(_options), do: %{}
+
+  @spec raise_naming_error(module(), binary()) :: no_return()
+  defp raise_naming_error(module, message),
+    do: raise(DslError, module: module, path: [:auix_create_ui], message: message)
+
+  # The resources `auix_create_ui` generates modules for, by name.
+  @spec targets(map(), keyword()) :: [{atom(), Resource.t()}]
+  defp targets(resources, opts) do
+    resources
+    |> filter_resources(opts[:for])
+    |> Enum.filter(fn {_name, resource} -> target?(resource) end)
+    |> Enum.sort_by(&elem(&1, 0))
+  end
+
+  @spec target?(Resource.t()) :: boolean()
+  defp target?(resource), do: resource.schema != nil and not resource.embedded?
+
+  # `Code.ensure_compiled/1` waits for a module that is still compiling.
+  @spec generated_module?(term()) :: boolean()
+  defp generated_module?(module) when is_atom(module) and not is_nil(module),
+    do:
+      match?({:module, _}, Code.ensure_compiled(module)) and
+        function_exported?(module, :auix_kind, 0)
+
+  defp generated_module?(_module), do: false
+
+  @spec using?(Node.layout() | nil) :: boolean()
+  defp using?(nil), do: false
+  defp using?(%{use: nil}), do: false
+  defp using?(_layout), do: true
+
+  @spec layout_module_name(Node.layout() | nil) :: atom() | nil
+  defp layout_module_name(nil), do: nil
+  defp layout_module_name(layout), do: layout.module_name
+
+  @spec validate_imported(map(), module()) :: :ok
+  defp validate_imported(imported, module) do
+    Enum.each(imported, fn {name, imported_module} ->
+      if not generated_module?(imported_module),
+        do:
+          raise_naming_error(
+            module,
+            "@auix_modules entry #{inspect(name)} is not a generated module; take it from auix_module/1"
+          )
+    end)
+  end
+
+  @spec validate_index_lives(module(), map(), keyword(), map()) :: :ok
+  defp validate_index_lives(module, resources, opts, naming) do
+    target_names = resources |> targets(opts) |> Enum.map(&elem(&1, 0))
+    generate = Keyword.get(opts, :generate, kinds())
+
+    _seen =
+      Enum.reduce(naming.index_lives, [], fn line, seen ->
+        cond do
+          line.resource not in target_names ->
+            raise_naming_error(module, "unknown resource #{inspect(line.resource)}")
+
+          line.resource in seen ->
+            raise_naming_error(
+              module,
+              "#{inspect(line.resource)} has more than one index_live line"
+            )
+
+          :index_live not in generate ->
+            raise_naming_error(
+              module,
+              "index_live #{inspect(line.resource)} needs :index_live in generate:"
+            )
+
+          true ->
+            [line.resource | seen]
+        end
+      end)
+
+    :ok
+  end
+
+  # The names of the modules this module generates: `{name, kind, resource_name, module}`.
+  @spec module_names(module(), [Node.layout()], map(), keyword(), map()) ::
+          [{atom(), kind(), atom(), module()}]
+  defp module_names(module, layouts, resources, opts, naming) do
+    generate = Keyword.get(opts, :generate, kinds())
+
+    resources
+    |> targets(opts)
+    |> Enum.flat_map(fn {resource_name, resource} ->
+      hint = schema_hint(resource.schema)
+      declared = resource_layouts(layouts, resource_name)
+
+      components =
+        @component_kinds
+        |> Enum.filter(fn {layout_type, kind} ->
+          kind in generate and not using?(Map.get(declared, layout_type))
+        end)
+        |> Enum.map(fn {layout_type, kind} ->
+          given = declared |> Map.get(layout_type) |> layout_module_name()
+
+          {given || default_name(hint, kind), kind, resource_name,
+           module_name(module, hint, given || kind)}
+        end)
+
+      components ++ index_live_names(module, {resource_name, hint}, naming.index_lives, generate)
+    end)
+  end
+
+  @spec index_live_names(module(), {atom(), binary()}, [IndexLive.t()], [kind()]) ::
+          [{atom(), kind(), atom(), module()}]
+  defp index_live_names(module, {resource_name, hint}, index_lives, generate) do
+    if :index_live in generate do
+      given =
+        index_lives
+        |> Enum.find(&(&1.resource == resource_name))
+        |> layout_module_name()
+
+      [
+        {given || default_name(hint, :index_live), :index_live, resource_name,
+         module_name(module, hint, given || :index)}
+      ]
+    else
+      []
+    end
+  end
+
+  @spec validate_collisions(list(), map(), module()) :: :ok
+  defp validate_collisions(names, imported, module) do
+    by_name = Enum.group_by(names, &elem(&1, 0))
+
+    by_name
+    |> Map.keys()
+    |> Enum.sort()
+    |> Enum.each(&validate_name(&1, Map.fetch!(by_name, &1), imported, module))
+
+    _seen =
+      names
+      |> Enum.sort_by(&elem(&1, 0))
+      |> Enum.reduce(%{}, &validate_module(&1, &2, module))
+
+    :ok
+  end
+
+  @spec validate_name(atom(), list(), map(), module()) :: :ok
+  defp validate_name(name, rows, imported, module) do
+    owners = Enum.map(rows, &inspect(elem(&1, 2)))
+    imported? = Map.has_key?(imported, name)
+
+    if length(owners) > 1 or imported? do
+      owners_text =
+        if imported?,
+          do: Enum.join(owners, ", ") <> ", @auix_modules",
+          else: Enum.join(owners, ", ")
+
+      raise_naming_error(
+        module,
+        "module name #{inspect(name)} is taken more than once (#{owners_text}); #{@collision_hint}"
+      )
+    end
+
+    :ok
+  end
+
+  @spec validate_module(tuple(), map(), module()) :: map()
+  defp validate_module({name, _kind, _resource_name, generated}, seen, module) do
+    case Map.fetch(seen, generated) do
+      {:ok, other_name} ->
+        raise_naming_error(
+          module,
+          "#{inspect(generated)} would be generated twice, as #{inspect(other_name)} and #{inspect(name)}; #{@collision_hint}"
+        )
+
+      :error ->
+        Map.put(seen, generated, name)
+    end
+  end
+
+  @spec validate_live_views(list(), [Node.layout()], module()) :: :ok
+  defp validate_live_views(names, layouts, module) do
+    names
+    |> Enum.filter(fn {_name, kind, _resource_name, _module} -> kind == :index_live end)
+    |> Enum.each(fn {_name, _kind, resource_name, _module} ->
+      declared = resource_layouts(layouts, resource_name)
+
+      complete? =
+        Enum.all?(@component_kinds, fn {layout_type, kind} ->
+          using?(Map.get(declared, layout_type)) or
+            Enum.any?(names, &match?({_name, ^kind, ^resource_name, _module}, &1))
+        end)
+
+      if not complete?,
+        do:
+          raise_naming_error(
+            module,
+            "the live view of #{inspect(resource_name)} needs a form component and a show component; add :form_component and :show_component to generate:, or name them with use:"
+          )
+    end)
+  end
+
+  # Replaces every `use:` layout by the layout of the component it names, bound to the resource
+  # of the line. Forms go first: a missing show layout is a copy of the form.
+  @spec used_layouts([Node.layout()], map()) :: [Node.layout()]
+  defp used_layouts(layouts, context) do
+    Enum.reduce(@component_kinds, layouts, fn component_kind, layouts ->
+      Enum.map(layouts, &used_layout(&1, component_kind, layouts, context))
+    end)
+  end
+
+  @spec used_layout(Node.layout(), {atom(), kind()}, [Node.layout()], map()) :: Node.layout()
+  defp used_layout(%{use: nil} = layout, _component_kind, _layouts, _context), do: layout
+
+  defp used_layout(%{use: name} = layout, {layout_type, _kind} = component_kind, layouts, context) do
+    case {layout_type(layout), Map.fetch(context.resources, layout.resource)} do
+      {^layout_type, {:ok, resource}} ->
+        component =
+          used_component(name, component_kind, {layout.resource, resource}, layouts, context)
+
+        %{component.layout | resource: layout.resource, module_name: nil, use: component.module}
+
+      _other ->
+        layout
+    end
+  end
+
+  defp used_layout(layout, _component_kind, _layouts, _context), do: layout
+
+  @spec used_component(atom(), {atom(), kind()}, {atom(), Resource.t()}, [Node.layout()], map()) ::
+          map()
+  defp used_component(name, {layout_type, kind}, {resource_name, resource}, layouts, context) do
+    if not target?(resource),
+      do:
+        raise_naming_error(
+          context.caller,
+          "use: is not available for #{inspect(resource_name)}, an embedded resource"
+        )
+
+    component =
+      case find_component(name, layouts, context) do
+        %{kind: ^kind} = component ->
+          component
+
+        nil ->
+          raise_naming_error(
+            context.caller,
+            "unknown module #{inspect(name)} in use:; declare it with module_name:, import it with @auix_modules, or give the module auix_module/1 returns"
+          )
+
+        other ->
+          raise_naming_error(
+            context.caller,
+            "use: #{inspect(name)} names #{inspect(other.kind)}; the #{layout_type} layout of #{inspect(resource_name)} takes #{inspect(kind)}"
+          )
+      end
+
+    missing = Enum.reject(component.fields, &Map.has_key?(resource.fields, &1))
+
+    if missing != [],
+      do:
+        raise_naming_error(
+          context.caller,
+          "unknown fields #{inspect(missing)} for resource #{inspect(resource_name)} in use: #{inspect(name)}"
+        )
+
+    component
+  end
+
+  # The component a `use:` names: imported, generated by this module, or a generated module.
+  @spec find_component(atom(), [Node.layout()], map()) :: map() | nil
+  defp find_component(name, layouts, context) do
+    own = Enum.find(context.names, &(elem(&1, 0) == name))
+
+    cond do
+      Map.has_key?(context.imported, name) ->
+        context.imported |> Map.fetch!(name) |> module_component()
+
+      own != nil ->
+        own_component(own, layouts, context)
+
+      generated_module?(name) ->
+        module_component(name)
+
+      true ->
+        nil
+    end
+  end
+
+  @spec module_component(module()) :: map()
+  defp module_component(module),
+    do: %{
+      module: module,
+      kind: module.auix_kind(),
+      fields: module.auix_fields(),
+      layout: module.auix_layout()
+    }
+
+  @spec own_component(tuple(), [Node.layout()], map()) :: map()
+  defp own_component({_name, :index_live, _resource_name, module}, _layouts, _context),
+    do: %{module: module, kind: :index_live, fields: [], layout: nil}
+
+  defp own_component({_name, kind, resource_name, module}, layouts, context) do
+    {layout_type, ^kind} = List.keyfind(@component_kinds, kind, 1)
+
+    layout =
+      layouts
+      |> resource_layouts(resource_name)
+      |> put_missing_show()
+      |> Map.get(layout_type)
+      |> exposed_layout(layout_type, Map.fetch!(context.resources, resource_name), context.opts)
+
+    fields = layout |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq()
+    %{module: module, kind: kind, fields: fields, layout: layout}
+  end
+
+  # The layout a generated component returns from `auix_layout/0`.
+  @spec exposed_layout(Node.layout() | nil, atom(), Resource.t(), keyword()) :: Node.layout()
+  defp exposed_layout(nil, layout_type, resource, opts),
+    do: %{RenderTree.default(layout_type, resource, opts) | resource: nil}
+
+  defp exposed_layout(layout, _layout_type, _resource, _opts), do: %{layout | resource: nil}
+
+  # The modules of one resource: generated here, or taken with `use:`.
+  @spec resource_modules({atom(), Resource.t()}, map(), list(), keyword()) :: map()
+  defp resource_modules({resource_name, resource}, layouts, names, opts) do
+    generated =
+      names
+      |> Enum.filter(fn {_name, _kind, owner, _module} -> owner == resource_name end)
+      |> Map.new(fn {_name, kind, _owner, module} -> {kind, module} end)
+
+    used =
+      @component_kinds
+      |> Enum.filter(fn {layout_type, _kind} -> using?(Map.get(layouts, layout_type)) end)
+      |> Map.new(fn {layout_type, kind} -> {kind, Map.fetch!(layouts, layout_type).use} end)
+
+    exposed_layouts =
+      @component_kinds
+      |> Enum.filter(fn {_layout_type, kind} -> Map.has_key?(generated, kind) end)
+      |> Map.new(fn {layout_type, kind} ->
+        {kind, exposed_layout(Map.get(layouts, layout_type), layout_type, resource, opts)}
+      end)
+
+    %{
+      artifacts:
+        %{index_live: nil, form_component: nil, show_component: nil}
+        |> Map.merge(generated)
+        |> Map.merge(used),
+      used: Enum.filter([:form_component, :show_component], &Map.has_key?(used, &1)),
+      generate: Enum.filter(kinds(), &Map.has_key?(generated, &1)),
+      exposed_layouts: exposed_layouts
+    }
+  end
 
   # Builds the resource-specific layouts.
   @spec build_resource_layouts(tuple(), map(), module()) :: list()
