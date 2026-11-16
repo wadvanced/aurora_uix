@@ -5,7 +5,6 @@
     Aurora.Uix.Guides.Accounts.User.Email,
     Aurora.Uix.Guides.Accounts.User.Profile,
     Aurora.Uix.GettextResolver,
-    Aurora.Uix.Layout.Artifacts,
     Aurora.Uix.Layout.CreateUI,
     Aurora.Uix.Layout.Options,
     Aurora.Uix.Layout.ResourceMetadata,
