@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Includes responsive pagination controls with multiple breakpoints
   - Offers filter management actions (clear/submit)
   - Offers a card-view sort control (a select of default order plus the sortable fields, and a direction switch)
+  - Every button and link action takes its icon from the layout's `action_icons:` option (defaults in `Aurora.Uix.Action.default_icons/1`); below the `sm` breakpoint a text button shows only its icon
 
   ## Key Constraints
 
@@ -79,10 +80,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(%{auix: %{notify: _notify}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
+
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="show" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-show-#{@auix.module}"}>
         <%= if Map.get(assigns, :contents) == [] do %>
-          <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-info" />
         <% else %>
           {render_slot(@contents)}
         <% end %>
@@ -91,10 +94,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   def show_row_action(assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
+
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"}>
         <%= if Map.get(assigns, :contents) == [] do %>
-          <.icon class="auix-icon-size-5 auix-icon-info" name="hero-eye" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-info" />
         <% else %>
           {render_slot(@contents)}
         <% end %>
@@ -117,10 +122,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(%{auix: %{notify: _notify}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
+
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="edit" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>
         <%= if Map.get(assigns, :contents) == [] do %>
-          <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-safe" />
         <% else %>
           {render_slot(@contents)}
         <% end %>
@@ -129,10 +136,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   def edit_row_action(assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
+
     ~H"""
       <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
         <%= if Map.get(assigns, :contents) == [] do %>
-          <.icon class="auix-icon-size-5 auix-icon-safe" name="hero-pencil" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-safe" />
         <% else %>
           {render_slot(@contents)}
         <% end %>
@@ -158,6 +167,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec remove_row_action(map()) :: Rendered.t()
   def remove_row_action(assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_delete))
+
     ~H"""
       <.auix_link
             phx-click={JS.push("delete", BasicHelpers.target_opts(@auix, value: %{id: row_info_id(@auix)})) |> uix_hide(row_dom_selector(@auix))}
@@ -165,7 +176,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
             data-confirm={dt("Are you sure?")}
           >
         <%= if Map.get(assigns, :contents) == [] do %>
-          <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-danger" />
         <% else %>
           {render_slot(@contents)}
         <% end %>
@@ -188,19 +199,23 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
           assigns
       )
       when toggle_all_mode == :none and selected_count > 0 do
-    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+    assigns =
+      assigns
+      |> Map.put(:selected_button_class, @selected_button_class)
+      |> put_action(:default_selected_delete_all, dt("Delete selected"))
 
     ~H"""
       <.live_component 
         id={BasicHelpers.instance_dom_id(@auix, "auix-delete-all-button")}
         module={ConfirmButton}
         class={@selected_button_class}
+        title={@title}
         value={%{delete_all: true}}
         event="selected-delete_all"
         target={uix_id_selector(@auix.index_form_id)}
       >
         <:content>
-          {dt("Delete selected")} <span class="auix-button-badge">{@auix.selection.selected_count}</span>
+          <.action_content icon={@icon} label={@label} /> <span class="auix-button-badge">{@auix.selection.selected_count}</span>
         </:content>
 
         <:confirm_message>
@@ -238,12 +253,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
           assigns
       )
       when toggle_all_mode == :none and selected_count > 0 do
-    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+    assigns =
+      assigns
+      |> Map.put(:selected_button_class, @selected_button_class)
+      |> put_action(:default_selected_uncheck_all, dt("Uncheck all"))
 
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="false" phx-target={@auix[:_myself]}
-        name={"auix-selected-uncheck_all-#{@auix.module}"}>
-      {dt("Uncheck all")}
+        name={"auix-selected-uncheck_all-#{@auix.module}"} title={@title} aria-label={@title}>
+      <.action_content icon={@icon} label={@label} />
     </.button>
     """
   end
@@ -252,10 +270,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
       )
       when toggle_all_mode == :uncheck do
-    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+    assigns =
+      assigns
+      |> Map.put(:selected_button_class, @selected_button_class)
+      |> put_action(
+        :default_selected_uncheck_all,
+        dt("De-selecting all items. Selection is disabled for a while... Click to cancel")
+      )
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]}>{dt("De-selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]} title={@title} aria-label={@title}><.action_content icon={@icon} label={@label} /></.button>
     """
   end
 
@@ -280,12 +304,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         } = assigns
       )
       when toggle_all_mode == :none and selected_count < entries_count do
-    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+    assigns =
+      assigns
+      |> Map.put(:selected_button_class, @selected_button_class)
+      |> put_action(:default_selected_check_all, dt("Check all"))
 
     ~H"""
     <.button type="button" class={@selected_button_class} phx-click="selected-toggle_all" phx-value-state="true" phx-target={@auix[:_myself]}
-        name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none}>
-      {dt("Check all")}
+        name={"auix-selected_check_all-#{@auix.module}"} disabled={@auix.selection.toggle_all_mode != :none} title={@title} aria-label={@title}>
+      <.action_content icon={@icon} label={@label} />
     </.button>
     """
   end
@@ -294,10 +321,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
         %{auix: %{selection: %{toggle_all_mode: toggle_all_mode}}} = assigns
       )
       when toggle_all_mode == :check do
-    assigns = Map.put(assigns, :selected_button_class, @selected_button_class)
+    assigns =
+      assigns
+      |> Map.put(:selected_button_class, @selected_button_class)
+      |> put_action(
+        :default_selected_check_all,
+        dt("Selecting all items. Selection is disabled for a while... Click to cancel")
+      )
 
     ~H"""
-    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]}>{dt("Selecting all items. Selection is disabled for a while... Click to cancel")}</.button>
+    <.button type="button" class={@selected_button_class} phx-click="selected-cancel_toggle_all" phx-target={@auix[:_myself]} title={@title} aria-label={@title}><.action_content icon={@icon} label={@label} /></.button>
     """
   end
 
@@ -347,17 +380,21 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec new_header_action(map()) :: Rendered.t()
   def new_header_action(%{auix: %{notify: _notify}} = assigns) do
+    assigns = put_action(assigns, :default_new, dt(assigns.auix.layout_options.new_action_label))
+
     ~H"""
-    <.auix_link phx-click="auix_open" phx-value-action="new" phx-target={@auix._myself} name={"auix-new-#{@auix.module}"} role="button">
-      <.button>{dt(@auix.layout_options.new_action_label)}</.button>
+    <.auix_link phx-click="auix_open" phx-value-action="new" phx-target={@auix._myself} name={"auix-new-#{@auix.module}"} role="button" title={@title} aria-label={@title}>
+      <.button><.action_content icon={@icon} label={@label} /></.button>
     </.auix_link>
     """
   end
 
   def new_header_action(assigns) do
+    assigns = put_action(assigns, :default_new, dt(assigns.auix.layout_options.new_action_label))
+
     ~H"""
-    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"} role="button">
-      <.button>{dt(@auix.layout_options.new_action_label)}</.button>
+    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"} role="button" title={@title} aria-label={@title}>
+      <.button><.action_content icon={@icon} label={@label} /></.button>
     </.auix_link>
     """
   end
@@ -373,17 +410,19 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec toggle_filters_action(map()) :: Rendered.t()
   def toggle_filters_action(assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_toggle_filters))
+
     ~H"""
       <div :if={Map.get(@auix, :filters) != []} class="auix-button-toggle-filters-container">
         <div class="auix-button-toggle-filters-content">
           <%= if Map.get(@auix, :filters_enabled?) do %>
             <a href="#" phx-click="filter-toggle" phx-target={@auix[:_myself]} name="auix-filter_toggle_close" class="auix-button-toggle-filters-close-link">
-              <.icon name="hero-funnel" class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive auix-icon-size-5", else: "auix-icon-info auix-icon-size-5"}/>
+              <.action_icon icon={@icon} class={if @auix.filters_selected_count > 0, do: "auix-icon-inactive auix-icon-size-5", else: "auix-icon-info auix-icon-size-5"} />
               <.icon name="hero-x-mark" class="auix-icon-size-3 auix-vertical-align-super"/>
             </a>
             <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
           <% else %>
-            <a href="#" phx-click="filter-toggle" phx-target={@auix[:_myself]} name="auix-filter_toggle_open" class="hero-funnel auix-icon-info auix-icon-size-5" />
+            <a href="#" phx-click="filter-toggle" phx-target={@auix[:_myself]} name="auix-filter_toggle_open"><.action_icon icon={@icon} class="auix-icon-info auix-icon-size-5" /></a>
             <div :if={@auix.filters_selected_count > 0} class="auix-button-badge">{@auix.filters_selected_count}</div>
 
           <% end %>
@@ -461,10 +500,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec clear_filters_action(map()) :: Rendered.t()
   def clear_filters_action(%{auix: %{filters_enabled?: true}} = assigns) do
-    assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
+    assigns =
+      assigns
+      |> Map.put(:filters_button_class, @filters_button_class)
+      |> put_action(:default_clear, dt("Clear Filters"))
 
     ~H"""
-    <.button type="button" class={@filters_button_class} phx-click="filters-clear" phx-target={@auix[:_myself]} name={"auix-filters_clear-#{@auix.module}"}>{dt("Clear Filters")}</.button>
+    <.button type="button" class={@filters_button_class} phx-click="filters-clear" phx-target={@auix[:_myself]} name={"auix-filters_clear-#{@auix.module}"} title={@title} aria-label={@title}><.action_content icon={@icon} label={@label} /></.button>
     """
   end
 
@@ -484,10 +526,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   """
   @spec submit_filters_action(map()) :: Rendered.t()
   def submit_filters_action(%{auix: %{filters_enabled?: true}} = assigns) do
-    assigns = Map.put(assigns, :filters_button_class, @filters_button_class)
+    assigns =
+      assigns
+      |> Map.put(:filters_button_class, @filters_button_class)
+      |> put_action(:default_submit, dt("Submit"))
 
     ~H"""
-    <.button type="button" class={@filters_button_class} phx-click="filters-submit" phx-target={@auix[:_myself]} name={"auix-filters_submit-#{@auix.module}"}>{dt("Submit")}</.button>
+    <.button type="button" class={@filters_button_class} phx-click="filters-submit" phx-target={@auix[:_myself]} name={"auix-filters_submit-#{@auix.module}"} title={@title} aria-label={@title}><.action_content icon={@icon} label={@label} /></.button>
     """
   end
 
@@ -610,6 +655,20 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   defp add_default_footer_actions(socket),
     do:
       Actions.add_actions(socket, :index_footer_actions, default_pagination: &pagination_action/1)
+
+  # The icon of an index default action: the layout's `action_icons:` entry, else its default.
+  @spec resolve_icon(map(), atom()) :: atom() | binary()
+  defp resolve_icon(assigns, action_name),
+    do: Actions.icon(assigns, assigns.auix.layout_options.action_icons, :index, action_name)
+
+  # Puts the icon, the label and the title of an index default action in the assigns.
+  @spec put_action(map(), atom(), term()) :: map()
+  defp put_action(assigns, action_name, label) do
+    assigns
+    |> Map.put(:icon, resolve_icon(assigns, action_name))
+    |> Map.put(:label, label)
+    |> Map.put(:title, Actions.label_title(label))
+  end
 
   # The id comes from the same :row_id function that renders the row.
   @spec row_dom_selector(map()) :: String.t()

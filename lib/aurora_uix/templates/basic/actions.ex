@@ -84,6 +84,44 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
     |> Enum.reduce(assigns, &modify_action(&1, &2, actions))
   end
 
+  @doc """
+  Resolves the icon of a default action.
+
+  ## Parameters
+  - `assigns` (map()) - The assigns the action renders with; a function icon receives them.
+  - `icons` (keyword()) - The `action_icons:` entries that apply, by action name.
+  - `action_group` (atom()) - The group of the action, such as `:index`.
+  - `action_name` (atom()) - The default action, such as `:default_new`.
+
+  ## Returns
+  `atom() | binary()` - The entry of `icons`, the result of a function entry, else the default
+  icon of `Aurora.Uix.Action.default_icon/2`.
+  """
+  @spec icon(map(), keyword(), atom(), atom()) :: atom() | binary()
+  def icon(assigns, icons, action_group, action_name) do
+    case Keyword.get(icons, action_name) do
+      nil -> Action.default_icon(action_group, action_name)
+      icon when is_function(icon, 1) -> icon.(assigns)
+      icon -> icon
+    end
+  end
+
+  @doc """
+  Returns the text a default action puts in its `title` and `aria-label`.
+
+  ## Parameters
+  - `label` (term()) - The action's label: a binary, an atom, `nil`, a rendered template.
+
+  ## Returns
+  `binary() | nil` - The label as text; `nil` for `nil` and for a rendered template, so the
+  attributes are left out.
+  """
+  @spec label_title(term()) :: binary() | nil
+  def label_title(nil), do: nil
+  def label_title(label) when is_binary(label), do: label
+  def label_title(label) when is_atom(label), do: Atom.to_string(label)
+  def label_title(_label), do: nil
+
   ## PRIVATE
 
   # Handles individual action modification based on the actions specification map.

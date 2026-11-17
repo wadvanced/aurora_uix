@@ -39,6 +39,16 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     end
   end
 
+  test "an index action_icons key that is not a button or link action fails compilation" do
+    assert_raise DslError,
+                 ~r/index layout: unknown options \[:default_sort\], valid options are: \[:default_row_show,/,
+                 fn ->
+                   compile(
+                     "  auix_create_ui do\n    index_columns :product, [:reference], action_icons: [default_sort: \"hero-bolt\"]\n  end\n"
+                   )
+                 end
+  end
+
   test "a layout option of the wrong type fails compilation" do
     assert_raise DslError,
                  ~r/index layout: expected :pagination_items_per_page option to match/,

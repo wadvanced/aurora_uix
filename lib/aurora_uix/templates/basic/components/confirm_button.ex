@@ -28,6 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
   * `:accept_message` - Slot for the accept button label
   * `:cancel_message` - Slot for the cancel button label
   * `:target` - Event target (defaults to `:myself`)
+  * `:title` - Text for the main button's `title` and `aria-label` (defaults to `nil`: no attribute)
   * `:class` - CSS class for the main button (defaults to
     `"auix-confirm-button--show-action"`)
   * `:accept_button_class` - CSS class for accept button (defaults to
@@ -75,6 +76,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
      |> assign(:cancel_message, Map.get(assigns, :cancel_message))
      |> assign(:target, Map.get(assigns, :target, :myself))
      |> assign(:class, Map.get(assigns, :class, "auix-confirm-button--show-action"))
+     |> assign(:title, Map.get(assigns, :title))
      |> assign(
        :accept_button_class,
        Map.get(assigns, :accept_button_class, "auix-confirm-button--accept-action")
@@ -90,7 +92,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
   def render(assigns) do
     ~H"""
       <div id={@id} class="auix-confirm-button--container">
-        <.button type={@type} class={@class} phx-click="show-modal" phx-target={@myself}>
+        <.button type={@type} class={@class} phx-click="show-modal" phx-target={@myself} title={@title} aria-label={@title}>
           <%= if @content do %>
             {render_slot(@content)}
           <% end %>

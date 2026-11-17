@@ -399,6 +399,48 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   }
   """)
 
+  rule(:auix_action_icon, """
+  /* auix-action-icon */
+  .auix-action-icon {
+    display: none;
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-action-icon {
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+  """)
+
+  rule(:auix_action_label, """
+  /* auix-action-label */
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-action-label {
+      display: none;
+    }
+  }
+  """)
+
+  rule(:auix_action_icon_image, """
+  /* auix-action-icon-image */
+  .auix-action-icon-image {
+    display: inline-block;
+    vertical-align: middle;
+    object-fit: contain;
+  }
+  """)
+
+  rule(:auix_action_icon_text, """
+  /* auix-action-icon-text */
+  .auix-action-icon-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  """)
+
   rule(:auix_button_toggle_filters_container, """
   .auix-button-toggle-filters-container {
     border: none;
