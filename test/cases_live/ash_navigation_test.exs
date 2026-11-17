@@ -56,7 +56,10 @@ defmodule Aurora.UixWeb.Test.AshNavigationTest do
              {"#{@p}/#{id}/show-edit", %{},
               [{:patch, "#{@p}/#{id}/show"}, {:patch, @p}, {:patch, @p}]}
 
-    request_close(view, "#auix-author-show_edit-modal [data-phx-component]")
+    request_close(
+      view,
+      "#auix-author-show_edit-modal [data-phx-component]:has(> #auix-author-form)"
+    )
 
     assert decoded_patch(view) == {"#{@p}/#{id}/show", %{}, [{:patch, @p}, {:patch, @p}]}
 
@@ -69,7 +72,7 @@ defmodule Aurora.UixWeb.Test.AshNavigationTest do
     id: id
   } do
     {:ok, view, _html} = live(conn, "#{@p}/#{id}/edit")
-    request_close(view, "#auix-author-edit-modal [data-phx-component]")
+    request_close(view, "#auix-author-edit-modal [data-phx-component]:has(> #auix-author-form)")
     assert decoded_patch(view) == {@p, %{}, []}
 
     {:ok, show_view, _html} = live(conn, "#{@p}/#{id}/show")

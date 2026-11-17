@@ -44,6 +44,15 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
           auix: auix
         } = assigns
       ) do
+    component = get_in(auix.configurations, [data.resource, :artifacts, :index_component])
+
+    if is_nil(component),
+      do:
+        raise(
+          ArgumentError,
+          "the one-to-many field #{inspect(field.key)} needs an index component for #{inspect(data.resource)}; add :index_component to generate:, or name one with use: on its index_columns"
+        )
+
     uri_path = Map.get(auix, :uri_path)
     parsed_opts = get_in(auix.configurations, [auix.resource_name, :parsed_opts])
 
@@ -75,7 +84,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       |> put_in([:auix, :association, :owner_key], field.data.owner_key)
       |> put_in([:auix, :association, :parsed_opts], parsed_opts)
       |> OneToManyActions.set_actions()
-      |> apply_options()
+      |> Map.put(:component, component)
+      |> Map.put(
+        :socket_opts,
+        BasicHelpers.backend_socket_opts(assigns, related_parsed_opts.list_function)
+      )
 
     ~H"""
     <div class="auix-one-to-many-field" name={"auix-one_to_many-#{@auix.association.parsed_opts.module}"}>
@@ -88,22 +101,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
             </div>
         </.label>
       </div>
-      <div id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"} class={@auix.association.related_class}>
-        <.auix_items
-          id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
-          first_column_not_checkbox?={true}    
-          auix={%{filters: %{}, source_key: @auix.source_key,
-            layout_options: %{pagination_disabled?: false, infinite_scroll_items_load: nil}}}
-          streams={get_in(@auix, [:entity, Access.key!(@field.key)])}
-        >
-          <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={dt(related_field.label)} field={related_field}>
-            {display_value(entity, related_field.key)}
-          </:col>
-          <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
-              {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
-          </:action>
-        </.auix_items>
-      </div>
+      <.live_component
+        module={@component}
+        id={"auix-one_to_many-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
+        one_to_many={%{auix: @auix, field: @field, socket_opts: @socket_opts}}
+      />
       <div class="auix-one-to-many-footer">
         <div class="auix-one-to-many-footer-actions" name="auix-one_to_many-footer_actions">
           <%= for %{function_component: action} <- @auix.one_to_many_footer_actions do %>
@@ -124,50 +126,98 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
     |> Enum.map(&%{label: &1.field.label, key: &1.field.key, type: &1.field.type})
   end
 
-  @spec apply_options(map()) :: map()
-  defp apply_options(%{auix: %{layout_tree: layout_tree}} = assigns) do
-    query_opts =
-      [order_by: Map.get(layout_tree, :order_by), where: Map.get(layout_tree, :where)]
-      |> Enum.reject(&is_nil(elem(&1, 1)))
-      |> Enum.reverse()
+  @doc """
+  Renders the rows of a one-to-many list: the table of the related records with their row
+  actions.
 
-    if query_opts == [],
-      do: assigns,
-      else:
-        assigns |> put_in([:auix, :association, :query_opts], query_opts) |> maybe_apply_where()
+  ## Parameters
+  - `assigns` (map()) - Assigns containing:
+    * `:auix` (map()) - The parent `auix`, with `association` and the one-to-many actions.
+    * `:field` (map()) - The one-to-many field.
+    * `:rows` (list()) - The related records to list.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - The rendered rows.
+  """
+  @spec child_rows(map()) :: Phoenix.LiveView.Rendered.t()
+  def child_rows(assigns) do
+    ~H"""
+    <.auix_items
+      id={"#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}
+      first_column_not_checkbox?={true}    
+      auix={%{filters: %{}, source_key: @auix.source_key,
+        layout_options: %{pagination_disabled?: false, infinite_scroll_items_load: nil}}}
+      streams={@rows}
+    >
+      <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={dt(related_field.label)} field={related_field}>
+        {display_value(entity, related_field.key)}
+      </:col>
+      <:action :let={entity} :for={%{function_component: action} <- @auix.one_to_many_row_actions}>
+          {action.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
+      </:action>
+    </.auix_items>
+    """
   end
 
-  @spec maybe_apply_where(map()) :: map()
-  defp maybe_apply_where(
-         %{
-           auix: %{association: %{query_opts: query_opts} = association, entity: entity} = auix,
-           field: field
-         } = assigns
-       ) do
-    owner_keys = Enum.map(auix.primary_key, &Map.get(entity, &1))
+  @doc """
+  Loads the rows of a one-to-many list.
+
+  Without `where` and `order_by` on the field, or for a parent whose owner key is not set yet,
+  the rows are the preloaded value of the field. Otherwise the related list function is queried
+  with the owner keys, the field's `where` and its `order_by`.
+
+  ## Parameters
+  - `one_to_many` (map()) - Map containing:
+    * `:auix` (map()) - The parent `auix`, with `entity`, `layout_tree`, `primary_key` and
+      `association`.
+    * `:field` (map()) - The one-to-many field.
+    * `:socket_opts` (keyword()) - Backend options for the list function.
+
+  ## Returns
+  list() - The related records.
+  """
+  @spec load_rows(map()) :: list()
+  def load_rows(%{auix: auix, field: field} = one_to_many) do
+    order_by = Map.get(auix.layout_tree, :order_by)
+    custom_where = Map.get(auix.layout_tree, :where)
+
+    if is_nil(order_by) and is_nil(custom_where) do
+      preloaded_rows(auix.entity, field.key)
+    else
+      query_rows(one_to_many, order_by, custom_where)
+    end
+  end
+
+  @spec query_rows(map(), term() | nil, term() | nil) :: list()
+  defp query_rows(%{auix: auix, field: field} = one_to_many, order_by, custom_where) do
+    owner_keys = Enum.map(auix.primary_key, &Map.get(auix.entity, &1))
 
     if Enum.any?(owner_keys, &is_nil/1) do
-      assigns
+      preloaded_rows(auix.entity, field.key)
     else
-      {custom_where, query_opts} = Keyword.pop(query_opts, :where)
-      list_function = association.related_parsed_opts.list_function
-      socket_opts = BasicHelpers.backend_socket_opts(assigns, list_function)
+      query_opts = if is_nil(order_by), do: [], else: [order_by: order_by]
+      list_function = auix.association.related_parsed_opts.list_function
 
       owner_keys
-      |> merge_keys(association.related_key)
+      |> merge_keys(auix.association.related_key)
       |> merge_custom_where(custom_where)
       |> then(
         &apply_list_function(
           list_function,
-          [{:where, &1} | query_opts] ++ socket_opts
+          [{:where, &1} | query_opts] ++ one_to_many.socket_opts
         )
       )
       |> BasicHelpers.list_entries()
-      |> then(&put_in(assigns, [:auix, :entity, Access.key!(field.key)], &1))
     end
   end
 
-  defp maybe_apply_where(assigns), do: assigns
+  @spec preloaded_rows(map() | nil, atom()) :: list()
+  defp preloaded_rows(entity, key) do
+    case Map.get(entity || %{}, key) do
+      rows when is_list(rows) -> rows
+      _not_loaded -> []
+    end
+  end
 
   @spec merge_custom_where(list(), term() | nil) :: list()
   defp merge_custom_where(related_where, nil), do: related_where

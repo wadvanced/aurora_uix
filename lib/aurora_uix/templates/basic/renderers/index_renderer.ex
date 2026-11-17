@@ -22,6 +22,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
@@ -78,6 +79,27 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           />
         </div>
       </.modal>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders the rows of a one-to-many list held by an index component.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns containing:
+    * `:id` (binary()) - The component id, also the id of the rows container.
+    * `:one_to_many` (map()) - The parent `auix` and the one-to-many field.
+    * `:rows` (list()) - The related records to list.
+
+  ## Returns
+  Rendered.t() - The rows container.
+  """
+  @spec render_child(map()) :: Rendered.t()
+  def render_child(assigns) do
+    ~H"""
+    <div id={@id} class="auix-one-to-many-container">
+      <OneToMany.child_rows auix={@one_to_many.auix} field={@one_to_many.field} rows={@rows} />
     </div>
     """
   end

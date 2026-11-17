@@ -23,6 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   """
 
   import Aurora.Uix.Templates.Basic.Helpers
+  import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView
 
   alias Aurora.Uix.Event
@@ -31,6 +32,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   alias Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl
   alias Aurora.Uix.Templates.Basic.Handlers.IndexList
   alias Aurora.Uix.Templates.Basic.Renderers.IndexRenderer
+  alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
   alias Phoenix.LiveComponent
   alias Phoenix.LiveView.Socket
 
@@ -122,6 +124,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   An update whose inputs equal the previous ones only takes the new `notify`, so the selection,
   the page and the filters survive a re-render of the host.
 
+  An update carrying `one_to_many` renders the rows of a one-to-many list instead: the rows are
+  reloaded only when the preloaded value of the field, its `where` or its `order_by` change.
+
   ## Parameters
   - `assigns` (map()) - The assigns of the component's `update/2`: the inputs, or `auix_event`.
   - `socket` (Socket.t()) - The component socket, with its compiled options in `auix`.
@@ -130,6 +135,26 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   `{:ok, Socket.t()}` - The updated socket.
   """
   @spec auix_update(map(), Socket.t()) :: {:ok, Socket.t()}
+  def auix_update(%{one_to_many: one_to_many}, socket) do
+    key =
+      {Map.get(one_to_many.auix.entity || %{}, one_to_many.field.key),
+       Map.get(one_to_many.auix.layout_tree, :where),
+       Map.get(one_to_many.auix.layout_tree, :order_by)}
+
+    socket =
+      if socket.assigns[:one_to_many_key] != key,
+        do:
+          socket
+          |> assign(:rows, OneToMany.load_rows(one_to_many))
+          |> assign(:one_to_many_key, key),
+        else: socket
+
+    socket
+    |> assign(:one_to_many, one_to_many)
+    |> render_with(&IndexRenderer.render_child/1)
+    |> then(&{:ok, &1})
+  end
+
   def auix_update(%{auix_event: %Event{} = event}, %{assigns: %{auix: %{_inputs: _}}} = socket),
     do: {:ok, IndexList.apply_event(socket, event)}
 
