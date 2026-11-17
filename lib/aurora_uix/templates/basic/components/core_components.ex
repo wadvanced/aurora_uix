@@ -653,6 +653,72 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   resolve_component_for(:icon)
 
+  @doc """
+  Renders the icon of an action.
+
+  The icon is told apart by its text: a name starting with `hero-` is a
+  [Heroicon](https://heroicons.com), a text starting with `/` or `http` is an image URL, and any
+  other text, such as `"←"`, is shown as it is. An atom is read as its text.
+
+  ## Examples
+
+      <.action_icon icon="hero-plus" class="auix-icon-size-button" />
+      <.action_icon icon="/images/archive.svg" class="auix-icon-size-5" />
+      <.action_icon icon="←" />
+  """
+  attr(:icon, :any,
+    required: true,
+    doc: "a hero icon name (atom, string), an image URL, a character"
+  )
+
+  attr(:class, :string, default: nil, doc: "classes added to the icon, such as its size")
+  attr(:host_components, :any)
+
+  @spec action_icon(map) :: Rendered.t()
+  def action_icon(%{host_components: nil} = assigns) do
+    icon = to_string(assigns.icon)
+    assigns = assigns |> assign(:icon_text, icon) |> assign(:icon_kind, icon_kind(icon))
+
+    ~H"""
+    <.icon :if={@icon_kind == :hero} name={@icon_text} class={@class} />
+    <img :if={@icon_kind == :url} src={@icon_text} alt="" class={["auix-action-icon-image", @class]} />
+    <span :if={@icon_kind == :text} class={["auix-action-icon-text", @class]}>{@icon_text}</span>
+    """
+  end
+
+  resolve_component_for(:action_icon)
+
+  @doc """
+  Renders the content of an action button: its icon and its label.
+
+  From the `sm` breakpoint up the label shows and the icon hides; below it only the icon shows.
+  With `icon_always?`, the icon shows at every width and only the label hides below the
+  breakpoint. Put the label on the button as `title` and `aria-label` too, so it stays available
+  when it hides.
+
+  ## Examples
+
+      <.button title="Archive" aria-label="Archive">
+        <.action_content icon="hero-archive-box" label="Archive" />
+      </.button>
+  """
+  attr(:icon, :any, required: true, doc: "the icon, as `action_icon/1` takes it")
+  attr(:label, :any, required: true, doc: "the label")
+  attr(:icon_always?, :boolean, default: false, doc: "shows the icon at every width")
+  attr(:icon_class, :string, default: "auix-icon-size-button", doc: "classes added to the icon")
+  attr(:host_components, :any)
+
+  @spec action_content(map) :: Rendered.t()
+  def action_content(%{host_components: nil} = assigns) do
+    ~H"""
+    <span :if={not @icon_always?} class="auix-action-icon"><.action_icon icon={@icon} class={@icon_class} /></span>
+    <.action_icon :if={@icon_always?} icon={@icon} class={@icon_class} />
+    <span class="auix-action-label">{@label}</span>
+    """
+  end
+
+  resolve_component_for(:action_content)
+
   ## JS Commands
 
   @doc """
@@ -821,4 +887,11 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   end
 
   defp maybe_log_copyable_warning(_assigns), do: :ok
+
+  # How `action_icon/1` shows an icon: a Heroicon, an image, the text itself.
+  @spec icon_kind(binary()) :: :hero | :url | :text
+  defp icon_kind("hero-" <> _name), do: :hero
+  defp icon_kind("/" <> _path), do: :url
+  defp icon_kind("http" <> _url), do: :url
+  defp icon_kind(_text), do: :text
 end

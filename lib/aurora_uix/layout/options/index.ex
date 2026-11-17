@@ -38,6 +38,13 @@ defmodule Aurora.Uix.Layout.Options.Index do
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
       `Aurora.Uix.Layout.Options.parse_value/1`).
     - Default: `"New {name}"`, where `{name}` is the resource name.
+  * `:action_icons` - The icons of the default actions, by action name. Below the `sm`
+    breakpoint a default action button shows only its icon.
+    - Accepts a keyword list. A key is a default action that renders a button or a link (see
+      `Aurora.Uix.Action.default_icons/1`); an unknown key fails compilation. A value is a hero
+      icon name (atom, `"hero-*"` string), an image URL (`"/…"`, `"http…"`), a character, a named
+      function of arity 1 receiving the action's assigns.
+    - Default: `[]` (every action keeps its default icon).
   * `:preload` - Associations the index list loads besides the ones the layout renders, e.g.
     `[:category, posts: :author]`. It replaces the resource's `preload` for this layout.
     - Accepts a `list()`.
@@ -49,12 +56,14 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   use Aurora.Uix.Layout.Options, layout_type: :index
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   # A text, or a function of the assigns rendering it.
   @title {:or, [nil, :string, {:fun, 1}]}
   # A text, a function returning it, or a function of the assigns.
   @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
+  @action_icons {:keyword_list, Action.icons_schema(:index)}
 
   option(:pagination_disabled?, {:or, [:boolean, {:fun, 1}]})
   option(:sort_disabled?, {:or, [:boolean, {:fun, 1}]})
@@ -68,6 +77,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
   option(:pagination_items_per_page, {:or, [:pos_integer, {:fun, 1}]})
   option(:new_action_label, @label)
   option(:alternate_streams_suffixes, {:or, [{:list, :string}, {:fun, 1}]})
+  option(:action_icons, @action_icons)
 
   @default_pages_bar_range_offset 2
   @default_items_per_page 40
@@ -182,6 +192,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   defp get_default(%{auix: %{layout_type: :index}}, :alternate_streams_suffixes),
     do: {:ok, ["mobile"]}
+
+  defp get_default(%{auix: %{layout_type: :index}}, :action_icons), do: {:ok, []}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

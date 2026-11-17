@@ -6,6 +6,7 @@ defmodule Aurora.Uix.Action do
 
     * Encapsulates an action's name and its function component.
     * Provides flexible constructors for different input types.
+    * Holds the default icon of each default action that renders a button or a link (`default_icons/1`) and the schema of the `action_icons:` layout option (`icons_schema/1`).
 
   ## Key Constraints
 
@@ -128,6 +129,39 @@ defmodule Aurora.Uix.Action do
     }
   }
 
+  # The default icon of each default action that renders a button or a link. A key here is a
+  # valid `action_icons:` key of its group; a group without keys has no entry.
+  @default_icons %{
+    index: [
+      default_row_show: "hero-eye",
+      default_row_edit: "hero-pencil",
+      default_row_delete: "hero-trash",
+      default_selected_uncheck_all: "hero-x-circle",
+      default_selected_delete_all: "hero-trash",
+      default_selected_check_all: "hero-check-circle",
+      default_toggle_filters: "hero-funnel",
+      default_clear: "hero-x-mark",
+      default_submit: "hero-magnifying-glass",
+      default_new: "hero-plus"
+    ],
+    form: [default_save: "hero-check"],
+    show: [default_edit: "hero-pencil", default_back: "hero-arrow-left"],
+    one_to_many: [
+      default_new: "hero-plus",
+      default_row_show: "hero-eye",
+      default_row_edit: "hero-pencil",
+      default_row_delete: "hero-trash"
+    ],
+    embeds_many: [
+      default_header_enable_add_entry: "hero-plus",
+      default_footer_enable_add_entry: "hero-plus",
+      default_add_entry: "hero-plus",
+      default_remove_entry: "hero-trash"
+    ]
+  }
+
+  @icon_type {:or, [:atom, :string, {:fun, 1}]}
+
   @doc """
   Creates a new action from a name and a function component.
 
@@ -219,4 +253,49 @@ defmodule Aurora.Uix.Action do
   """
   @spec available_actions(atom()) :: map()
   def available_actions(action_group), do: Map.get(@actions, action_group)
+
+  @doc """
+  Retrieves the default icons of an action group.
+
+  ## Parameters
+  - `action_group` (atom()) - The group, such as `:index` or `:embeds_many`.
+
+  ## Returns
+  `keyword()` - The default icon of each default action of the group that renders a button or a
+  link, by action name. `[]` for a group without one, such as `:many_to_many`.
+  """
+  @spec default_icons(atom()) :: keyword()
+  def default_icons(action_group), do: Map.get(@default_icons, action_group, [])
+
+  @doc """
+  Retrieves the default icon of one default action.
+
+  ## Parameters
+  - `action_group` (atom()) - The group, such as `:index`.
+  - `action_name` (atom()) - The default action, such as `:default_new`.
+
+  ## Returns
+  `binary()` - A `hero-*` icon name. Raises `KeyError` for an action without a default icon.
+  """
+  @spec default_icon(atom(), atom()) :: binary()
+  def default_icon(action_group, action_name),
+    do: action_group |> default_icons() |> Keyword.fetch!(action_name)
+
+  @doc """
+  Retrieves the `Spark.Options` schema of a group's `action_icons:` keys.
+
+  ## Parameters
+  - `action_group` (atom()) - The group, such as `:index`.
+
+  ## Returns
+  `keyword()` - One entry per key of `default_icons/1`. A value is a hero icon name (atom,
+  `"hero-*"` string), an image URL, a character, a function of arity 1 receiving the action's
+  assigns.
+  """
+  @spec icons_schema(atom()) :: keyword()
+  def icons_schema(action_group) do
+    action_group
+    |> default_icons()
+    |> Enum.map(fn {action_name, _icon} -> {action_name, [type: @icon_type]} end)
+  end
 end
