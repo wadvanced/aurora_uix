@@ -292,7 +292,7 @@ resources by name, so the view refers to the resource by that name.
 
 ### Introspecting generated UI modules
 
-Every module produced by `auix_create_ui` exposes two introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
+Every module produced by `auix_create_ui` exposes three introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
 
 - **`auix_layouts/0`** — returns the layouts as you defined them, before the build (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
 
@@ -304,6 +304,12 @@ Every module produced by `auix_create_ui` exposes two introspection functions th
 
   ```elixir
   MyAppWeb.Products.Index.auix_configurations()
+  ```
+
+- **`auix_modules/0`** — maps the names of the generated and the imported modules to the modules. `auix_module/1` returns one of them. A generated module tells its kind with `auix_kind/0` and the fields its layout places with `auix_fields/0`.
+
+  ```elixir
+  MyAppWeb.Products.Index.auix_modules()
   ```
 
 ### Recommended Project Structure
@@ -498,9 +504,15 @@ end
 # In your views:
 alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
 
+# In the admin view:
 @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+
+# In the customer view:
 @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
 ```
+
+Both resources share the `Product` schema. A view that imports both gives one of them its own module names;
+see [Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
 
 **Multiple Schemas in Same Context:**
 ```elixir
