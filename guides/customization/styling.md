@@ -495,6 +495,10 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-sections-tab-button` | Section/tab navigation button | `--auix-padding-minimal`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-border-width-thick`, `--auix-border-radius-default` |
 | `.auix-items-table-header-sort` | Sortable index column header button (label + direction arrow) | `--auix-gap-minimal` |
 | `.auix-index-sort-action` | Card-view sort control in the index header actions (field select plus direction switch button); hidden from the `md` breakpoint up, where the column headers sort | `--auix-gap-minimal` |
+| `.auix-action-icon` | Icon of a default action button (`<.action_content>`); hidden from the `sm` breakpoint up, shown below it | Structural only |
+| `.auix-action-label` | Label of a default action button (`<.action_content>`); hidden below the `sm` breakpoint | Structural only |
+| `.auix-action-icon-image` | An action icon given as an image URL (`<.action_icon>`) | Structural only |
+| `.auix-action-icon-text` | An action icon given as a character (`<.action_icon>`) | Structural only |
 
 ### Scoping example
 

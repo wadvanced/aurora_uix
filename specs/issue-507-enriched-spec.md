@@ -181,21 +181,21 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-507-enriched-spec.md`)
-- [ ] AC-3: `guides/customization/custom_actions.md § Action Icons` reads as prescribed, between
+- [x] AC-3: `guides/customization/custom_actions.md § Action Icons` reads as prescribed, between
       § Configuring Actions via Layout DSL and § Action Handlers (mechanical — no red test; verified by
       `grep -n -E '^## (Configuring Actions via Layout DSL|Action Icons|Action Handlers)$' guides/customization/custom_actions.md`
       printing the three headings in that order, and `grep -c 'default_remove_entry' guides/customization/custom_actions.md` printing `1`)
-- [ ] AC-4: `guides/core/layouts.md` documents `:action_icons` in § Index Layout Options, § Form Layout
+- [x] AC-4: `guides/core/layouts.md` documents `:action_icons` in § Index Layout Options, § Form Layout
       Options, § Show Layout Options and § Field-Level Options (mechanical — no red test; verified by
       `grep -c '^- `:action_icons`' guides/core/layouts.md` printing `4`)
-- [ ] AC-5: `guides/customization/styling.md § Class reference` lists the four new classes
+- [x] AC-5: `guides/customization/styling.md § Class reference` lists the four new classes
       (mechanical — no red test; verified by
       `grep -c -E '^\| `\.auix-action-(icon|label|icon-image|icon-text)`' guides/customization/styling.md` printing `4`)
 

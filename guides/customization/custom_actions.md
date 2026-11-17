@@ -323,6 +323,107 @@ end
 For complete worked examples of customizing index, form, and show actions inside layouts,
 see [Layout System → Actions: Customizing Buttons & Links](../core/layouts.md#actions-customizing-buttons--links).
 
+## Action Icons
+
+Every default action that renders a button or a link has an icon. Below the `sm` breakpoint
+(640px wide) a default action button shows only its icon; its label stays on the button as
+`title` and `aria-label`. From 641px up nothing changes: a text button shows its label, and an
+icon action, such as a row action, shows its icon.
+
+`action_icons:` changes the icon of a default action. The action keeps its function component,
+its events and its label. The keys are the default action names of the layout:
+
+```elixir
+index_columns :product, [:name],
+  action_icons: [default_new: :"hero-sparkles", default_selected_delete_all: "hero-archive-box-x-mark"]
+
+edit_layout :product, action_icons: [default_save: "hero-check"] do
+  stacked [:reference, :name]
+end
+
+show_layout :product, action_icons: [default_back: "←"] do
+  stacked [:reference, :name]
+end
+```
+
+An icon is told apart by its value:
+
+| Value | Renders |
+|---|---|
+| an atom such as `:"hero-sparkles"`, a string starting with `hero-` | the Heroicon of that name |
+| a string starting with `/` or `http` | an image with that URL |
+| any other string, such as `"←"` | the text itself |
+| a named function of arity 1, such as `&MyAppWeb.Icons.new_icon/1` | the icon it returns for the action's assigns |
+
+The keys and their default icons:
+
+| Layout | Key | Default icon |
+|---|---|---|
+| `index_columns` | `:default_row_show` | `hero-eye` |
+| `index_columns` | `:default_row_edit` | `hero-pencil` |
+| `index_columns` | `:default_row_delete` | `hero-trash` |
+| `index_columns` | `:default_selected_uncheck_all` | `hero-x-circle` |
+| `index_columns` | `:default_selected_delete_all` | `hero-trash` |
+| `index_columns` | `:default_selected_check_all` | `hero-check-circle` |
+| `index_columns` | `:default_toggle_filters` | `hero-funnel` |
+| `index_columns` | `:default_clear` | `hero-x-mark` |
+| `index_columns` | `:default_submit` | `hero-magnifying-glass` |
+| `index_columns` | `:default_new` | `hero-plus` |
+| `edit_layout` | `:default_save` | `hero-check` |
+| `show_layout` | `:default_edit` | `hero-pencil` |
+| `show_layout` | `:default_back` | `hero-arrow-left` |
+| one-to-many field | `:default_new` | `hero-plus` |
+| one-to-many field | `:default_row_show` | `hero-eye` |
+| one-to-many field | `:default_row_edit` | `hero-pencil` |
+| one-to-many field | `:default_row_delete` | `hero-trash` |
+| embeds-many field | `:default_header_enable_add_entry` | `hero-plus` |
+| embeds-many field | `:default_footer_enable_add_entry` | `hero-plus` |
+| embeds-many field | `:default_add_entry` | `hero-plus` |
+| embeds-many field | `:default_remove_entry` | `hero-trash` |
+
+`:default_toggle_all_selected`, `:default_sort` and `:default_pagination` are not keys: they
+render a checkbox, a select and a pager. Many-to-many and multi-select fields have no keys: their
+only default action is the `:default_toggle_all` checkbox. An unknown key fails compilation, and
+the error lists the valid keys of the layout. **Delete selected** keeps its count badge when only
+its icon shows.
+
+One-to-many and embeds-many fields take `action_icons:` in their field options, next to the
+action operations of [Association Actions](#association-actions):
+
+```elixir
+edit_layout :product do
+  stacked([
+    :name,
+    product_transactions: [action_icons: [default_new: "hero-sparkles"]]
+  ])
+end
+```
+
+### Custom actions on mobile
+
+Aurora UIX cannot know the names of your custom actions, so it resolves no icon for them and
+their markup stays the same at every width. To make a custom button follow the breakpoint, render
+its content with `<.action_content>` from the core components, and put its label on the button as
+`title` and `aria-label`:
+
+```elixir
+defmodule MyAppWeb.ProductActions do
+  use Aurora.Uix.CoreComponentsImporter
+
+  def archive_action(assigns) do
+    ~H"""
+    <.button type="button" phx-click="archive" title="Archive" aria-label="Archive">
+      <.action_content icon="hero-archive-box" label="Archive" />
+    </.button>
+    """
+  end
+end
+```
+
+`<.action_content>` shows its `label` from 641px up and its `icon` below. With
+`icon_always?={true}` it shows the icon at every width and hides only the label below the
+breakpoint. `<.action_icon icon={...} />` renders an icon value alone, as the table above reads it.
+
 ## Action Handlers
 
 Action handlers are simple function components that receive an `assigns` map containing:
