@@ -3428,8 +3428,8 @@ The section also:
    The LiveView generates no module. `resource` is a name: the component looks it up in the LiveView that
    renders it, and serves it with the layout its `use:` line attached. It raises `ArgumentError` in three
    cases: that LiveView has no `auix_create_ui`; it has no such resource; it attaches another module to the
-   resource. Without `resource` a component serves the resource it was generated for. A component keeps its
-   resource: give another resource a component with its own `id`.
+   resource. Without `resource` a component serves the resource it was generated for.
+   A component keeps its resource: give another resource a component with its own `id`.
 
    `:product_review` describes `Product` with its own field options. The second `use:` line attaches the
    index component that lists the transactions inside the form.
