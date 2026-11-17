@@ -6,17 +6,44 @@
 
 - **Reusable components**
   - `auix_create_ui` generates an `IndexComponent` next to `FormComponent` and `ShowComponent`. The three
-    components can be embedded in any LiveView; the generated `Index` LiveView hosts them and keeps its
-    routes, handler hooks and behaviour.
+    components can be embedded in any LiveView. The generated `Index` LiveView keeps its list, routes,
+    handler hooks and behaviour.
   - A component never navigates: it reports what the user asked for to its parent, and the parent decides.
     `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView (`@auix.navigation`),
     which patches and navigates as before.
-  - `auix_create_ui generate:` chooses which modules are generated; leaving out `:live_view` generates the
-    components alone.
+  - Every generated module has a name in its `auix_create_ui` module. `module_name:` on a layout names its
+    component, an `index_live` line names the index LiveView, and `auix_modules/0` and `auix_module/1`
+    return the modules, with the modules imported through `@auix_modules`. `use:` on a layout takes a
+    component generated elsewhere for a resource of this module. A LiveView you write attaches the
+    components it needs the same way and gives each one its `resource`.
+  - `auix_create_ui generate:` chooses which kinds of module are generated; leaving out `:index_live`
+    generates the components alone.
+  - `auix_live_resources/3` takes `index_live:` to route to a renamed LiveView.
+  - `component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`
+    (`IndexComponentImpl`).
   - `Aurora.Uix.Live.ComponentHooks` forwards `Aurora.Uix.Events` to the components of a hand-written LiveView.
   - A one-to-many list is an embedded `IndexComponent`; its columns come from the resource the field names
     with `resource:`.
   - New guide: Reusable Components.
+
+### Changed
+
+- **Generated module names (breaking)**
+  - Two generated modules with the same name in one `auix_create_ui` module are a compile-time error.
+    Before, the second definition silently replaced the first. It happens when two resources of the module
+    share a schema: give one of them `module_name:` on its layouts, `use:`, and an `index_live` line.
+  - A resource created for an embedded field (`:<parent>__<field>`) generates no modules. The
+    `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent` modules are gone; nothing
+    rendered them.
+- **Associations to imported resources**
+  - A resource declared in a module links its associations to the resources the module imports with
+    `@auix_resource_metadata`, as it does to the resources declared beside it. A form or a show view that
+    places such a field now shows its select or its list; before, the field had no related resource.
+- **Form navigation in LiveView tests**
+  - The generated `Index` LiveView navigates after its form saves and after it closes; the form only
+    reports. Nothing changes in the browser: the URLs, the routing stack and the flash are the same. In a
+    LiveView test the redirect is no longer the result of the form event: replace
+    `render_submit() |> follow_redirect(conn)` with `render_submit()` followed by `assert_redirect(view)`.
 
 ### Build
 

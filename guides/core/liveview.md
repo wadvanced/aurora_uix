@@ -16,7 +16,7 @@ The `auix_create_ui/0` macro generates a complete set of modules for your resour
 
 ```
 Overview.Product                      # Parent module (generated)
-├── Overview.Product.Index            # LiveView - Hosts the components, owns the routes
+├── Overview.Product.Index            # LiveView - Lists the records, owns the routes
 ├── Overview.Product.IndexComponent   # LiveComponent - Handles the list
 ├── Overview.Product.FormComponent    # LiveComponent - Handles create/edit forms
 └── Overview.Product.ShowComponent    # LiveComponent - Handles detail view display
@@ -33,7 +33,7 @@ Overview.Product                      # Parent module (generated)
 - Implements LiveView callbacks: `mount/3`, `handle_params/3`, `handle_event/3`, `handle_info/2`, `handle_async/3`
 
 **IndexComponent Module** (`Overview.Product.IndexComponent`) - LiveComponent:
-- Holds the list state the Index LiveView delegates to it: streams, filters, sort, pagination and selection
+- Holds the state of an embedded list: streams, filters, sort, pagination and selection
 - Can be embedded in any LiveView; see [Reusable Components](components.md)
 
 **FormComponent Module** (`Overview.Product.FormComponent`) - LiveComponent:
@@ -80,6 +80,12 @@ auix_live_resources("/", Overview.Product, only: [:index, :show])
 
 # Hide delete capability
 auix_live_resources("/", Overview.Product, except: [:delete])
+```
+
+A LiveView renamed with an `index_live` line is routed with `index_live:`:
+
+```elixir
+auix_live_resources("/catalog", Overview.Product, index_live: :catalog)
 ```
 
 ## Customizing Behavior
@@ -441,6 +447,10 @@ defmodule MyAppWeb.ProductViews do
   end
 end
 ```
+
+`component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`. It implements
+`Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl`: `auix_update/2`, `auix_handle_event/3` and
+`auix_handle_async/3`.
 
 ### Advanced: Overriding Phoenix Callbacks
 
