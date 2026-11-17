@@ -394,6 +394,21 @@ defmodule Aurora.UixWeb.Test.Routes do
           "embeds-many-"
         )
 
+        RoutesHelper.register_crud(
+          ActionIconsFieldsTest.Product,
+          "action-icons-fields-products"
+        )
+
+        RoutesHelper.register_crud(
+          ActionIconsFieldsTest.ProductTransaction,
+          "action-icons-fields-product_transactions"
+        )
+
+        RoutesHelper.register_crud(
+          ActionIconsFieldsTest.User,
+          "action-icons-fields-users"
+        )
+
         RoutesHelper.register_user_crud(
           BrowserEmbedsManyTest,
           "browser-embeds-many-"
