@@ -123,6 +123,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
     sections: [__MODULE__.Dsl.section()],
     transformers: [__MODULE__.GenerateUI]
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.CreateUI.Call
@@ -388,7 +389,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
             message: "unknown resource #{inspect(layout.resource)}"
 
         resource ->
-          validate_fields(layout, resource, module)
+          :ok = validate_fields(layout, resource, module)
+          validate_action_icons(layout, resource, module)
       end
     end)
   end
@@ -555,6 +557,40 @@ defmodule Aurora.Uix.Layout.CreateUI do
             "unknown fields #{inspect(Enum.map(unknown, & &1.key))} for resource #{inspect(resource.name)}"
     end
   end
+
+  # A field's `action_icons:` keys are the default actions of its own type, which the layout DSL
+  # does not know when it reads the field.
+  @spec validate_action_icons(Node.layout(), Resource.t(), module()) :: :ok
+  defp validate_action_icons(layout, resource, module) do
+    layout
+    |> Node.fields()
+    |> Enum.reject(&(&1.action_icons == []))
+    |> Enum.each(&validate_field_action_icons(&1, resource, layout, module))
+  end
+
+  @spec validate_field_action_icons(Node.Field.t(), Resource.t(), Node.layout(), module()) :: :ok
+  defp validate_field_action_icons(field_node, resource, layout, module) do
+    group =
+      resource.fields |> Map.fetch!(field_node.key) |> Map.fetch!(:type) |> field_action_group()
+
+    schema = [action_icons: [type: {:keyword_list, Action.icons_schema(group)}]]
+
+    case Spark.Options.validate([action_icons: field_node.action_icons], schema) do
+      {:ok, _validated} ->
+        :ok
+
+      {:error, error} ->
+        raise DslError,
+          module: module,
+          path: [:auix_create_ui, layout_type(layout), layout.resource],
+          message: "field #{inspect(field_node.key)}: #{Exception.message(error)}"
+    end
+  end
+
+  @spec field_action_group(atom()) :: atom()
+  defp field_action_group(:one_to_many_association), do: :one_to_many
+  defp field_action_group(:embeds_many), do: :embeds_many
+  defp field_action_group(_type), do: :none
 
   # Filters resource configurations based on the :for option.
   @spec filter_resources(map(), nil | atom() | list()) :: map()

@@ -46,6 +46,11 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
                            where: [
                              type: :any,
                              doc: "For one-to-many fields: filter of the related entries."
+                           ],
+                           action_icons: [
+                             type: :keyword_list,
+                             doc:
+                               "For one-to-many and embeds-many fields: the icons of the field's default actions."
                            ]
                          ] ++
                          Enum.map(
@@ -419,6 +424,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
       key: key,
       overrides: if(overrides == [], do: nil, else: struct(%Field{key: key}, overrides)),
       actions: Keyword.take(opts, @field_action_names),
+      action_icons: Keyword.get(opts, :action_icons, []),
       order_by: Keyword.get(opts, :order_by),
       where: Keyword.get(opts, :where)
     }

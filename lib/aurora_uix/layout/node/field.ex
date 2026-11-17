@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Layout.Node.Field do
 
   ## Key Constraints
   - `field` is `nil` until `Aurora.Uix.Layout.RenderTree` builds the layout.
-  - `actions`, `order_by` and `where` apply to association fields.
+  - `actions`, `action_icons`, `order_by` and `where` apply to association fields.
   - `__spark_metadata__` is only used while the layout DSL builds the node.
   """
 
@@ -20,6 +20,7 @@ defmodule Aurora.Uix.Layout.Node.Field do
             overrides: nil,
             field: nil,
             actions: [],
+            action_icons: [],
             order_by: nil,
             where: nil,
             __spark_metadata__: nil
@@ -30,6 +31,7 @@ defmodule Aurora.Uix.Layout.Node.Field do
           overrides: Aurora.Uix.Field.t() | nil,
           field: Aurora.Uix.Field.t() | nil,
           actions: keyword(),
+          action_icons: keyword(),
           order_by: term(),
           where: term(),
           __spark_metadata__: term()

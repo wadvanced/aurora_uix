@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     - Adds default actions for headers, footers, and rows in one-to-many association tables.
     - Integrates with the Aurora UIX action modification pipeline.
     - Provides helpers for rendering "new", "show", "edit", and "delete" child links in form layouts.
+    - The new, show, edit and delete actions take their icons from the field's `action_icons:` option.
 
   ## Key Constraints
 
@@ -70,12 +71,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   def add_new_child(%{auix: %{notify: _notify}} = assigns), do: ~H""
 
   def add_new_child(%{auix: %{layout_type: :form}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_new))
+
     ~H"""
       <.auix_link :if={@auix[:layout_type] == :form
             && BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key) != nil}
           navigate={"#{@auix.association.related_parsed_opts.index_new_link}?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
           name={"auix-new-#{@auix.association.parsed_opts.module}__#{@field.key}-#{@auix.layout_type}"}>
-        <.icon name="hero-plus" class="auix-icon-size-button"/>
+        <.action_icon icon={@icon} class="auix-icon-size-button" />
       </.auix_link>
     """
   end
@@ -95,10 +98,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   def show_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
 
   def show_child_action(assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
+
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
         name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
-          <.icon name="hero-eye" class="auix-icon-info"/>
+          <.action_icon icon={@icon} class="auix-icon-info" />
       </.auix_link>
     """
   end
@@ -116,10 +121,12 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   def edit_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
 
   def edit_child_action(%{auix: %{layout_type: :form}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
+
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
-          <.icon name="hero-pencil" class="auix-icon-safe"/>
+          <.action_icon icon={@icon} class="auix-icon-safe" />
       </.auix_link>
     """
   end
@@ -139,6 +146,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   def delete_child_action(%{auix: %{notify: _notify}} = assigns), do: ~H""
 
   def delete_child_action(%{auix: %{layout_type: :form}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_delete))
+
     ~H"""
       <.link
         phx-click={JS.push("delete",
@@ -151,7 +160,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
         name={"auix-delete-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
         data-confirm="Are you sure?"
       >
-        <.icon name="hero-trash" class="auix-icon-danger"/>
+        <.action_icon icon={@icon} class="auix-icon-danger" />
       </.link>
     """
   end
@@ -159,6 +168,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   def delete_child_action(assigns), do: ~H""
 
   ## PRIVATE
+
+  # The icon of a one-to-many default action: the field's `action_icons:` entry, else its default.
+  @spec resolve_icon(map(), atom()) :: atom() | binary()
+  defp resolve_icon(assigns, action_name) do
+    icons = Map.get(assigns.auix.layout_tree, :action_icons, [])
+    Actions.icon(assigns, icons, :one_to_many, action_name)
+  end
 
   @spec add_default_row_actions(map()) :: map()
   defp add_default_row_actions(assigns) do
