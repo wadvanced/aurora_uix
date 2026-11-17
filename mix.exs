@@ -243,12 +243,12 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.36"},
+      {:ash, "~> 3.37"},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_postgres, "~> 2.15"},
+      {:ash_postgres, "~> 2.16"},
       {:aurora_ctx, "~> 0.1.11"},
       {:accessible, "~> 0.3"},
-      {:bandit, "~> 1.13"},
+      {:bandit, "~> 1.15"},
       {:css_parser, "~> 0.1"},
       {:ecto_sql, "~> 3.14"},
       {:gettext, "~> 1.0"},
@@ -263,7 +263,7 @@ defmodule Aurora.Uix.MixProject do
        runtime: false},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.7"},
-      {:phoenix_html, "~> 4.3"},
+      {:phoenix_html, "~> 4.4"},
       {:phoenix_live_dashboard, "~> 0.9"},
       {:phoenix_live_view, "~> 1.2"},
       {:phoenix_live_reload, "~> 1.7", only: :dev},
@@ -281,9 +281,9 @@ defmodule Aurora.Uix.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.23", only: :dev, runtime: false},
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
-      {:image, "~> 0.72", only: :test},
+      {:image, "~> 0.73", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
-      {:sourceror, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:sourceror, "~> 1.13", only: [:dev, :test], runtime: false},
       {:wallaby, "~> 0.31", only: :test, runtime: false}
     ]
   end

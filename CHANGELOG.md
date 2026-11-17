@@ -28,6 +28,16 @@
 
 ### Changed
 
+- **Updated Dependencies**
+  - ash: 3.36.1 -> 3.37.6
+  - ash_phoenix: 2.3.25 -> 2.3.26
+  - ash_postgres: 2.15.1 -> 2.16.0
+  - bandit: 1.13.1 -> 1.15.0
+  - dialyxir: 1.4.8 -> 1.4.9
+  - image: 0.72.0 -> 0.73.0
+  - lazy_html: 0.1.13 -> 0.1.14
+  - phoenix_html: 4.3.0 -> 4.4.0
+  - sourceror: 1.12.4 -> 1.13.0
 - **Generated module names (breaking)**
   - Two generated modules with the same name in one `auix_create_ui` module are a compile-time error.
     Before, the second definition silently replaced the first. It happens when two resources of the module
