@@ -519,6 +519,16 @@ defmodule Aurora.UixWeb.Test.Routes do
           NamedModulesTest.ProductLocation,
           index_live: :locations
         )
+
+        RoutesHelper.register_crud(
+          OneToManyComponentTest.Product,
+          "one-to-many-component-products"
+        )
+
+        RoutesHelper.register_crud(
+          OneToManyComponentTest.ProductLocation,
+          "one-to-many-component-product_locations"
+        )
       end
 
     ## You can create a file test/cases_live/-local-demo_test.exs

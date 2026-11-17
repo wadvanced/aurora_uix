@@ -63,7 +63,7 @@ defmodule Aurora.UixWeb.Test.HandlerHooksShowTest do
     {:ok, view, _html} = live(conn, "/handler-hooks-show-products/#{product.id}/show")
 
     view
-    |> with_target("#auix-product-show-modal [data-phx-component]")
+    |> with_target("#auix-product-show-modal [data-phx-component]:has(> .auix-show-container)")
     |> render_click("hooks_back", %{})
 
     patched_uri = view |> assert_patch() |> URI.parse()

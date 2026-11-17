@@ -58,7 +58,10 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
              {"#{@p}/#{id}/show-edit", %{},
               [{:patch, "#{@p}/#{id}/show"}, {:patch, @p}, {:patch, @p}]}
 
-    request_close(view, "#auix-product-show_edit-modal [data-phx-component]")
+    request_close(
+      view,
+      "#auix-product-show_edit-modal [data-phx-component]:has(> #auix-product-form)"
+    )
 
     assert decoded_patch(view) == {"#{@p}/#{id}/show", %{}, [{:patch, @p}, {:patch, @p}]}
 
@@ -72,7 +75,7 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
     {:ok, view, _html} = live(conn, @p)
     click(view, "a[name='auix-new-product']")
     assert_patch(view)
-    request_close(view, "#auix-product-new-modal [data-phx-component]")
+    request_close(view, "#auix-product-new-modal [data-phx-component]:has(> #auix-product-form)")
     assert decoded_patch(view) == {@p, %{}, [{:patch, @p}]}
 
     {:ok, edit_view, _html} = live(conn, @p)
@@ -92,7 +95,7 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
     id = first_product_id(create_sample_products(3, :test), "id_test-1")
 
     {:ok, view, _html} = live(conn, "#{@p}/#{id}/edit")
-    request_close(view, "#auix-product-edit-modal [data-phx-component]")
+    request_close(view, "#auix-product-edit-modal [data-phx-component]:has(> #auix-product-form)")
     assert decoded_patch(view) == {@p, %{}, []}
 
     {:ok, save_view, _html} = live(conn, "#{@p}/#{id}/edit")
@@ -115,7 +118,7 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
 
     {:ok, view, _html} = live(conn, "#{@p}/#{id}/edit")
     view |> form("#auix-product-form", product: %{name: "Dirty"}) |> render_change()
-    request_close(view, "#auix-product-edit-modal [data-phx-component]")
+    request_close(view, "#auix-product-edit-modal [data-phx-component]:has(> #auix-product-form)")
 
     assert has_element?(view, "#auix-product-discard-confirm-modal")
     assert has_element?(view, "#auix-product-edit-modal")
@@ -302,7 +305,7 @@ defmodule Aurora.UixWeb.Test.NavigationTest do
     click(view, "a[name='auix-new-product']")
     assert decoded_patch(view) == {"#{@p}/new", %{}, index_entries(4)}
 
-    request_close(view, "#auix-product-new-modal [data-phx-component]")
+    request_close(view, "#auix-product-new-modal [data-phx-component]:has(> #auix-product-form)")
     assert decoded_patch(view) == {@p, %{}, index_entries(3)}
   end
 

@@ -351,7 +351,7 @@ defmodule Aurora.UixWeb.Test.EventsTest do
   @spec request_close(term()) :: binary()
   defp request_close(view) do
     view
-    |> with_target("#auix-product-edit-modal [data-phx-component]")
+    |> with_target("#auix-product-edit-modal [data-phx-component]:has(> #auix-product-form)")
     |> render_click("auix_request_close", %{})
   end
 end
