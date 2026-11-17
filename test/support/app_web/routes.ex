@@ -274,6 +274,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "association-one_to_many-actions-"
         )
 
+        RoutesHelper.register_crud(
+          ActionIconsIndexTest.Product,
+          "action-icons-index-products"
+        )
+
         RoutesHelper.register_product_crud(
           LoadItemsOptionsTest,
           "load-items-options-"

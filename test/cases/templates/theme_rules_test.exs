@@ -28,6 +28,13 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
     end
   end
 
+  describe "action icon rules" do
+    test "hide the label and show the icon below the sm breakpoint" do
+      assert Base.rule(:auix_action_icon) =~ "@media (max-width: 640px)"
+      assert Base.rule(:auix_action_label) =~ "@media (max-width: 640px)"
+    end
+  end
+
   describe "theme DSL" do
     test "a local rule replaces an included one and keeps its place" do
       theme =
