@@ -313,6 +313,7 @@ index_columns :product, [:reference, :name, :price],
 - `:pagination_disabled?` — Disable pagination (default: `false`)
 - `:sort_disabled?` — Turn off user sorting: no sortable column headers, no sort control in the card view, and the `"index-sort"` event is ignored. `:order_by` still applies. Accepts a boolean or an arity-1 function of the assigns (default: `false`)
 - `:new_action_label` — Label for the "new" action button (default: `"New {name}"`)
+- `:action_icons` — The icons of the default actions, by action name, such as `[default_new: "hero-sparkles"]`. Below the 640px breakpoint a default action button shows only its icon (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 - `:preload` — Associations the list loads besides the ones the layout renders, such as `[:category, posts: :author]`. It replaces the resource's `preload` for this layout (see [Index Query Options](resource_metadata.md#index-query-options))
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
 - `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
@@ -338,6 +339,7 @@ end
 - `:new_title` — Title for create form (default: `"New {name}"`)
 - `:new_subtitle` — Subtitle for create form (default: `"Creates a new '{name}' record in your database"`)
 - `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
+- `:action_icons` — The icon of the save action, such as `[default_save: "hero-check"]` (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 - `:unsaved_changes_guard_disabled?` — When `true`, closing the form modal with unsaved changes closes it without asking for confirmation (default: `false`, the guard is on)
 
 #### Show Layout Options
@@ -358,6 +360,7 @@ end
 - `:page_subtitle` — Subtitle (default: `"Details"`)
 - `:edit_action_label` — Label for the edit action button (default: `"Edit {name}"`)
 - `:back_action_label` — Label for the back action (default: `"Back to {title}"`)
+- `:action_icons` — The icons of the edit and back actions, such as `[default_back: "←"]` (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 
 ### Dynamic Titles & Subtitles
 
@@ -425,6 +428,7 @@ those fields with `field`, as above. A list that also holds a plain field works:
 - `:placeholder` — Placeholder text
 - `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (one with an `upload` block) never offers one, even with `sortable?: true`
 - `:option_label` — For select/radio fields
+- `:action_icons` — For one-to-many and embeds-many fields: the icons of the field's default actions (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`
 does not cover:

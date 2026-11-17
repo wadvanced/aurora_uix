@@ -25,6 +25,19 @@
   - A one-to-many list is an embedded `IndexComponent`; its columns come from the resource the field names
     with `resource:`.
   - New guide: Reusable Components.
+- **Action icons**
+  - Every default action that renders a button or a link has an icon. Below the 640px breakpoint a
+    default action button shows only its icon, with its label as `title` and `aria-label`; from 641px
+    up nothing changes. Delete selected keeps its count badge.
+  - `action_icons:` on `index_columns`, `edit_layout` and `show_layout`, and on one-to-many and
+    embeds-many fields, changes the icon of a default action by name. An icon is a Heroicon name, an
+    image URL, a character, or a named function of the action's assigns returning one of those. An
+    unknown key fails compilation and lists the valid keys.
+  - The row actions (show, edit, delete) take their icons from `action_icons:` too.
+  - `<.action_content>` and `<.action_icon>` in the core components let a custom action follow the
+    same breakpoint.
+  - New theme classes `auix-action-icon`, `auix-action-label`, `auix-action-icon-image` and
+    `auix-action-icon-text`: re-run `mix auix.gen.stylesheet` after upgrading.
 
 ### Changed
 
