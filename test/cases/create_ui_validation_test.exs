@@ -367,6 +367,10 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
       """)
 
     assert named.auix_module(:index_compact) == Module.concat(named, Product.IndexCompact)
+
+    assert named.auix_configurations().product.artifacts.index_component ==
+             Module.concat(named, Product.IndexCompact)
+
     assert named.auix_module(:index_compact).auix_fields() == [:reference]
     refute named |> Module.concat(Product.IndexComponent) |> Code.ensure_loaded?()
 

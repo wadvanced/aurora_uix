@@ -6,7 +6,6 @@ defmodule Aurora.UixWeb.Test.OneToManyComponentTest do
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Repo
-  alias Aurora.UixWeb.Test.OneToManyComponentTest, as: T
 
   auix_resource_metadata(:product, context: Inventory, schema: Product)
   auix_resource_metadata(:product_compact, context: Inventory, schema: Product)
@@ -69,10 +68,5 @@ defmodule Aurora.UixWeb.Test.OneToManyComponentTest do
       |> render_click()
 
     assert String.starts_with?(to, "/one-to-many-component-products/#{product.id}/show")
-  end
-
-  test "the registry names the module of the child list" do
-    assert T.auix_configurations().product_compact.artifacts.index_component ==
-             T.Product.IndexCompact
   end
 end
