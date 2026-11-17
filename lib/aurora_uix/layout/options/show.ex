@@ -28,10 +28,17 @@ defmodule Aurora.Uix.Layout.Options.Show do
   * `:record_navigator` - Controls the display position of the record navigation bar.
     - Accepts an `atom()` (`:top`, `:bottom`) or a list of atoms `[:top, :bottom]`.
     - Default: `[:top, :bottom]` - Shows the record navigation bar at both top and bottom.
+
+  * `:action_icons` - The icons of the edit and back actions: `[default_edit: icon, default_back: icon]`.
+    Below the `sm` breakpoint the edit button and the back link show only their icons.
+    - Accepts a keyword list; an unknown key fails compilation. An icon takes the values of
+      `Aurora.Uix.Layout.Options.Index`'s `:action_icons`.
+    - Default: `[]` (edit keeps `hero-pencil`, back keeps `hero-arrow-left`).
   """
 
   use Aurora.Uix.Layout.Options, layout_type: :show
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   # A text, or a function of the assigns rendering it.
@@ -39,12 +46,14 @@ defmodule Aurora.Uix.Layout.Options.Show do
   # A text, a function returning it, or a function of the assigns.
   @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
   @record_navigator {:or, [:atom, {:list, :atom}, {:fun, 1}]}
+  @action_icons {:keyword_list, Action.icons_schema(:show)}
 
   option(:page_title, @title)
   option(:page_subtitle, @title)
   option(:edit_action_label, @label)
   option(:back_action_label, @label)
   option(:record_navigator, @record_navigator)
+  option(:action_icons, @action_icons)
 
   ## PRIVATE
 
@@ -70,6 +79,8 @@ defmodule Aurora.Uix.Layout.Options.Show do
 
   defp get_default(_assigns, :record_navigator),
     do: {:ok, [:top, :bottom]}
+
+  defp get_default(_assigns, :action_icons), do: {:ok, []}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end

@@ -109,6 +109,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   Renders a styled back navigation link with an arrow icon.
 
   ## Attributes
+  - icon - The icon before the content (default `"hero-arrow-left"`)
   - rest - Additional HTML attributes for the anchor tag
 
   ## Slots
@@ -118,6 +119,12 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   Phoenix LiveView rendered content
   """
   attr(:host_components, :any)
+
+  attr(:icon, :any,
+    default: "hero-arrow-left",
+    doc: "the icon before the content, as `action_icon/1` takes it"
+  )
+
   attr(:rest, :global, include: ~w(download hreflang referrerpolicy rel target type))
   slot(:inner_block, required: true)
   @spec auix_back(map()) :: Rendered.t()
@@ -130,7 +137,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
         class="auix-back-link"
         {@rest}
       >
-        <.icon name="hero-arrow-left" class="auix-icon-size-3" />
+        <.action_icon icon={@icon} class="auix-icon-size-3" />
         {render_slot(@inner_block)}
       </a>
     </div>

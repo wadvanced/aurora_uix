@@ -36,11 +36,18 @@ defmodule Aurora.Uix.Layout.Options.Form do
     - Accepts a `boolean()`.
     - Default: `false` - Closing the modal with unsaved changes asks the user to confirm.
 
+  * `:action_icons` - The icon of the save action: `[default_save: icon]`. Below the `sm`
+    breakpoint the save button shows only its icon.
+    - Accepts a keyword list; an unknown key fails compilation. The icon takes the values of
+      `Aurora.Uix.Layout.Options.Index`'s `:action_icons`.
+    - Default: `[]` (the save action keeps `hero-check`).
+
   For additional option behaviors and rendering details, see `Aurora.Uix.Layout.Options`.
   """
 
   use Aurora.Uix.Layout.Options, layout_type: :form
 
+  alias Aurora.Uix.Action
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
 
   # A text, or a function of the assigns rendering it.
@@ -48,6 +55,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
   # A text, a function returning it, or a function of the assigns.
   @label {:or, [nil, :string, :atom, {:fun, 0}, {:fun, 1}]}
   @record_navigator {:or, [:atom, {:list, :atom}, {:fun, 1}]}
+  @action_icons {:keyword_list, Action.icons_schema(:form)}
 
   option(:edit_title, @title)
   option(:edit_subtitle, @title)
@@ -56,6 +64,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
   option(:save_action_label, @label)
   option(:record_navigator, @record_navigator)
   option(:unsaved_changes_guard_disabled?, {:or, [:boolean, {:fun, 1}]})
+  option(:action_icons, @action_icons)
 
   ## PRIVATE
 
@@ -83,6 +92,8 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   defp get_default(_assigns, :unsaved_changes_guard_disabled?),
     do: {:ok, false}
+
+  defp get_default(_assigns, :action_icons), do: {:ok, []}
 
   defp get_default(_assigns, option), do: {:not_found, option}
 end
