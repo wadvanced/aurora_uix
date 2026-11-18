@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Layout.RenderTree do
   - Gives every node an id derived from the resource, the layout type and its position, so ids
     are the same on every compile.
   - Computes the tab state of `sections` and `section` nodes.
+  - Resolves the field nodes of an index card and leaves its nodes without ids.
 
   ## Key Constraints
   - The input and the output are the same node structs; only this module fills `id`, the
@@ -53,7 +54,8 @@ defmodule Aurora.Uix.Layout.RenderTree do
       layout
       | id: container_id(resource, :index),
         resource: resource.name,
-        children: Enum.map(layout.children, &field_node(&1, resource))
+        children: Enum.map(layout.children, &field_node(&1, resource)),
+        card: card(layout.card, resource)
     }
   end
 
@@ -146,6 +148,29 @@ defmodule Aurora.Uix.Layout.RenderTree do
   @spec field_node(Node.Field.t(), Resource.t()) :: Node.Field.t()
   defp field_node(%Node.Field{} = field_node, resource),
     do: %{field_node | field: resolve_field(field_node, resource)}
+
+  @spec card(Node.Card.t() | nil, Resource.t()) :: Node.Card.t() | nil
+  defp card(nil, _resource), do: nil
+
+  defp card(%Node.Card{} = card, resource) do
+    %{
+      card
+      | title: card_text(card.title, resource),
+        subtitle: card_text(card.subtitle, resource),
+        children: Enum.map(card.children, &card_node(&1, resource))
+    }
+  end
+
+  @spec card_text(Node.Card.text(), Resource.t()) :: Node.Card.text()
+  defp card_text(%Node.Field{} = field, resource), do: field_node(field, resource)
+  defp card_text(text, _resource), do: text
+
+  # No id: a card renders once per row, and a positional id would repeat in the DOM.
+  @spec card_node(Node.t(), Resource.t()) :: Node.t()
+  defp card_node(%Node.Field{} = field, resource), do: field_node(field, resource)
+
+  defp card_node(%{children: children} = node, resource),
+    do: %{node | children: Enum.map(children, &card_node(&1, resource))}
 
   @spec node(Node.t(), binary(), Resource.t()) :: Node.t()
   defp node(%Node.Field{} = field, _id, resource), do: field_node(field, resource)

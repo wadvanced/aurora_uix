@@ -4,8 +4,8 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
 
   ## Key Features
   - `section/0` is the top-level section holding `auix_create_ui` and `auix_create_layout`, with
-    the layouts (`index_columns`, `edit_layout`, `show_layout`), the `index_live` lines of
-    `auix_create_ui`, the sub-layouts (`inline`,
+    the layouts (`index_columns`, `edit_layout`, `show_layout`), the `card` of `index_columns`,
+    the `index_live` lines of `auix_create_ui`, the sub-layouts (`inline`,
     `stacked`, `group`, `sections`, `section`) and `field` nested in them.
   - Every layout entity builds its `Aurora.Uix.Layout.Node` struct directly. `build_node/1`, the
     transform of every layout entity, validates the node's fields and options and puts them in
@@ -18,6 +18,8 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
   - A field list holding only `key: options` pairs is read by Spark as the sub-layout's
     options; such fields are written with `field`.
   - A resource field named `use` cannot be the only column of `index_columns`.
+  - `index_columns` is the macro of `Aurora.Uix.Layout.CreateUI.IndexColumns` over the
+    `auix_index_columns` entity.
   - Spark writes the arguments into the node as given: a field list into `fields`, field
     options into `overrides` and layout options into `options`. `build_node/1` turns them into
     the node's final shape, so only built nodes leave this module.
@@ -26,6 +28,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
   alias Aurora.Uix.Action
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.CreateUI.Call
+  alias Aurora.Uix.Layout.CreateUI.IndexColumns
   alias Aurora.Uix.Layout.CreateUI.IndexLive
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.Options
@@ -174,13 +177,42 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     ]
   }
 
+  @card_text {:or, [:atom, :string, {:fun, 1}]}
+
+  @card_schema [
+    title: [type: @card_text, doc: "The title: a field, a text or a function of the assigns."],
+    subtitle: [type: @card_text, doc: "The subtitle; takes what `title` takes."],
+    show_on: [
+      type: {:in, [:mobile, :all]},
+      doc:
+        "`:mobile` shows the cards below the `md` breakpoint; `:all` shows them at every breakpoint, without the table."
+    ]
+  ]
+
+  # `sections` and `section` are listed so that a card holding them reaches `build_node/1`,
+  # which rejects them.
+  @card %Entity{
+    name: :card,
+    describe: "The card of an index: a title, a subtitle and a body of sub-layouts.",
+    target: Node.Card,
+    args: [{:optional, :card_opts, []}],
+    entities: [children: [@inline, @stacked, @group, @sections, @section, @field]],
+    transform: {__MODULE__, :build_node, []},
+    schema: [
+      {:card_opts, [type: :keyword_list, keys: @card_schema, default: [], doc: "Options."]}
+      | @card_schema
+    ]
+  }
+
   @sub_layouts [@inline, @stacked, @group, @sections, @section, @field]
 
   @index_columns %Entity{
-    name: :index_columns,
+    name: :auix_index_columns,
     describe: "The columns and options of a resource's index.",
     target: Node.Index,
     args: [:resource, :columns, {:optional, :layout_opts, []}],
+    entities: [card: [@card]],
+    singleton_entity_keys: [:card],
     transform: {__MODULE__, :build_node, []},
     schema: [
       resource: [type: :atom, required: true, doc: "The resource."],
@@ -252,6 +284,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     target: Call,
     args: [{:optional, :layout_opts, []}],
     entities: [children: @layouts, index_lives: [@index_live]],
+    imports: [IndexColumns],
     auto_set_fields: [kind: :auix_create_ui],
     schema: [
       {:layout_opts, [type: :keyword_list, keys: @ui_schema, default: [], doc: "Options."]}
@@ -265,6 +298,7 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
       "Declares layouts for the module's `auix_create_ui`, or for other modules to include.",
     target: Call,
     entities: [children: @layouts],
+    imports: [IndexColumns],
     auto_set_fields: [kind: :auix_create_layout]
   }
 
@@ -330,14 +364,31 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     end
   end
 
-  def build_node(%Node.Index{children: [use: name], options: []} = index) when is_atom(name),
-    do: {:ok, %{index | children: [], use: name}}
+  def build_node(%Node.Index{children: [use: name], options: [], card: nil} = index)
+      when is_atom(name),
+      do: {:ok, %{index | children: [], use: name}}
 
   def build_node(%Node.Index{} = index) do
     with {:ok, columns} <- field_nodes(index.children),
+         {:ok, columns} <- card_columns(columns, index.card),
          {:ok, container} <- container_opts(index.options, :index),
          :ok <- validate_index_naming(container) do
       {:ok, struct(%{index | children: columns}, container)}
+    end
+  end
+
+  def build_node(%Node.Card{} = card) do
+    if sections?(card.children) do
+      {:error, "card takes no sections"}
+    else
+      {:ok,
+       %{
+         card
+         | title: card_text(card_opt(card, :title)),
+           subtitle: card_text(card_opt(card, :subtitle)),
+           show_on: card_opt(card, :show_on) || :mobile,
+           card_opts: []
+       }}
     end
   end
 
@@ -366,6 +417,48 @@ defmodule Aurora.Uix.Layout.CreateUI.Dsl do
     with :ok <- reject_sections_entries(children),
          {:ok, field_nodes} <- field_nodes(fields) do
       {:ok, %{sub_layout | children: children ++ field_nodes, fields: []}}
+    end
+  end
+
+  # A card written without a block sets the top-level key, a card with a block sets `card_opts`.
+  @spec card_opt(Node.Card.t(), atom()) :: term()
+  defp card_opt(card, key), do: Keyword.get(card.card_opts, key, Map.fetch!(card, key))
+
+  @spec card_text(term()) :: Node.Card.text()
+  defp card_text(nil), do: nil
+  defp card_text(key) when is_atom(key), do: %Node.Field{key: key}
+  defp card_text(text), do: text
+
+  @spec sections?([Node.t()]) :: boolean()
+  defp sections?(nodes), do: Enum.any?(nodes, &node_sections?/1)
+
+  @spec node_sections?(Node.t()) :: boolean()
+  defp node_sections?(%Node.Field{}), do: false
+  defp node_sections?(%module{}) when module in [Node.Sections, Node.Section], do: true
+  defp node_sections?(%{children: children}), do: sections?(children)
+
+  @spec card_columns([Node.Field.t()], Node.Card.t() | nil) ::
+          {:ok, [Node.Field.t()]} | {:error, binary()}
+  defp card_columns(columns, nil), do: {:ok, columns}
+
+  defp card_columns([], card) do
+    {:ok,
+     card
+     |> Node.fields()
+     |> Enum.uniq_by(& &1.key)
+     |> Enum.map(&%Node.Field{key: &1.key, path: &1.path})}
+  end
+
+  defp card_columns(columns, card) do
+    column_keys = Enum.map(columns, & &1.key)
+
+    case card |> Node.fields() |> Enum.map(& &1.key) |> Enum.uniq() |> Kernel.--(column_keys) do
+      [] ->
+        {:ok, columns}
+
+      added ->
+        {:error,
+         "card fields #{inspect(added)} are not index columns; a card may reorder and omit columns, not add them"}
     end
   end
 

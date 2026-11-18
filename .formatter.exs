@@ -8,9 +8,16 @@ spark_locals_without_parens = [
   auix_create_ui: 0,
   auix_create_ui: 1,
   auix_create_ui: 2,
+  auix_index_columns: 2,
+  auix_index_columns: 3,
+  auix_index_columns: 4,
   auix_resource_metadata: 1,
   auix_resource_metadata: 2,
   backend_opts: 1,
+  card: 0,
+  card: 1,
+  card: 2,
+  card_opts: 1,
   consume: 1,
   context: 1,
   data: 1,
@@ -40,9 +47,6 @@ spark_locals_without_parens = [
   html_type: 1,
   include: 1,
   include: 2,
-  index_columns: 2,
-  index_columns: 3,
-  index_columns: 4,
   index_live: 1,
   index_live: 2,
   index_renderer: 1,
@@ -81,11 +85,13 @@ spark_locals_without_parens = [
   show_layout: 1,
   show_layout: 2,
   show_layout: 3,
+  show_on: 1,
   show_renderer: 1,
   sortable?: 1,
   stacked: 0,
   stacked: 1,
   stacked: 2,
+  subtitle: 1,
   title: 1,
   type: 1,
   upload: 0,
@@ -94,10 +100,14 @@ spark_locals_without_parens = [
   where: 1
 ]
 
+# `index_columns` is a macro over the `auix_index_columns` entity, so `mix spark.formatter`
+# does not list it.
+auix_locals_without_parens = [index_columns: 2, index_columns: 3, index_columns: 4]
+
 [
   import_deps: [:ash],
-  locals_without_parens: spark_locals_without_parens,
-  export: [locals_without_parens: spark_locals_without_parens],
+  locals_without_parens: spark_locals_without_parens ++ auix_locals_without_parens,
+  export: [locals_without_parens: spark_locals_without_parens ++ auix_locals_without_parens],
   inputs: [
     "{mix,.formatter}.exs",
     ".doctor.exs",
