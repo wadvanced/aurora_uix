@@ -8,6 +8,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   - Generates links using assigns context for entity and module information.
   - Supplies helpers to add all default header and footer actions to assigns.
   - Supports dynamic modification of actions via layout tree options.
+  - The edit and back actions take their icons from the layout's `action_icons:` option; below the `sm` breakpoint they show only their icons.
 
   ## Key Constraints
 
@@ -59,17 +60,23 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   """
   @spec edit_header_action(map()) :: Rendered.t()
   def edit_header_action(%{auix: %{notify: _notify}} = assigns) do
+    assigns =
+      put_action(assigns, :default_edit, dt(assigns.auix.layout_options.edit_action_label))
+
     ~H"""
-      <.auix_link phx-click="auix_open" phx-value-action="edit" phx-value-id={BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>
-        <.button>{dt(@auix.layout_options.edit_action_label)}</.button>
+      <.auix_link phx-click="auix_open" phx-value-action="edit" phx-value-id={BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"} title={@title} aria-label={@title}>
+        <.button><.action_content icon={@icon} label={@label} /></.button>
       </.auix_link>
     """
   end
 
   def edit_header_action(assigns) do
+    assigns =
+      put_action(assigns, :default_edit, dt(assigns.auix.layout_options.edit_action_label))
+
     ~H"""
-      <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show-edit"} name={"auix-edit-#{@auix.module}"}>
-        <.button>{dt(@auix.layout_options.edit_action_label)}</.button>
+      <.auix_link patch={"/#{@auix.uri_path}/#{BasicHelpers.primary_key_value(@auix.entity, @auix.primary_key)}/show-edit"} name={"auix-edit-#{@auix.module}"} title={@title} aria-label={@title}>
+        <.button><.action_content icon={@icon} label={@label} /></.button>
       </.auix_link>
     """
   end
@@ -86,22 +93,40 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   """
   @spec back_footer_action(map()) :: Rendered.t()
   def back_footer_action(%{auix: %{notify: _notify}} = assigns) do
+    assigns =
+      put_action(assigns, :default_back, dt(assigns.auix.layout_options.back_action_label))
+
     ~H"""
       <div name="auix-show-navigate-back">
-        <.auix_back phx-target={@auix._myself}>{dt(@auix.layout_options.back_action_label)}</.auix_back>
+        <.auix_back phx-target={@auix._myself} icon={@icon} title={@title} aria-label={@title}><span class="auix-action-label">{@label}</span></.auix_back>
       </div>
     """
   end
 
   def back_footer_action(assigns) do
+    assigns =
+      put_action(assigns, :default_back, dt(assigns.auix.layout_options.back_action_label))
+
     ~H"""
       <div name="auix-show-navigate-back">
-        <.auix_back>{dt(@auix.layout_options.back_action_label)}</.auix_back>
+        <.auix_back icon={@icon} title={@title} aria-label={@title}><span class="auix-action-label">{@label}</span></.auix_back>
       </div>
     """
   end
 
   ## PRIVATE
+
+  # Puts the icon, the label and the title of a show default action in the assigns.
+  @spec put_action(map(), atom(), term()) :: map()
+  defp put_action(assigns, action_name, label) do
+    assigns
+    |> Map.put(
+      :icon,
+      Actions.icon(assigns, assigns.auix.layout_options.action_icons, :show, action_name)
+    )
+    |> Map.put(:label, label)
+    |> Map.put(:title, Actions.label_title(label))
+  end
 
   @spec add_default_header_actions(Socket.t()) :: Socket.t()
   defp add_default_header_actions(socket) do

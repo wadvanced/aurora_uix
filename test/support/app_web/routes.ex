@@ -264,6 +264,11 @@ defmodule Aurora.UixWeb.Test.Routes do
           "create-ui-actions-form-"
         )
 
+        RoutesHelper.register_crud(
+          ActionIconsFormShowTest.Product,
+          "action-icons-form-show-products"
+        )
+
         RoutesHelper.register_product_crud(
           GettextDomainTest,
           "gettext-domain-"

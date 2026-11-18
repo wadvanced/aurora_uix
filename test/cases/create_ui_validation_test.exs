@@ -61,6 +61,20 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
                  end
   end
 
+  test "a form action_icons key of another layout fails compilation" do
+    assert_raise DslError,
+                 ~r/form layout: unknown options \[:default_back\], valid options are: \[:default_save\]/,
+                 fn ->
+                   compile("""
+                     auix_create_ui do
+                       edit_layout :product, action_icons: [default_back: "←"] do
+                         inline [:reference]
+                       end
+                     end
+                   """)
+                 end
+  end
+
   test "an index layout preload of the wrong type fails compilation" do
     assert_raise DslError, ~r/invalid value for :preload option: expected list/, fn ->
       compile("""
