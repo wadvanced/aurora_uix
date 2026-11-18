@@ -505,12 +505,17 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-items-card-list` | List of index cards | `--auix-gap-large` |
 | `.auix-items-card-item-content` | One index card | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
 | `.auix-items-card-item-group` | Card header: checkbox and heading | `--auix-gap-large`, `--auix-padding-default` |
+| `.auix-items-card-select` | Checkbox slot of the card header | Structural only |
+| `.auix-items-card-heading` | Title and subtitle column of the card header | `--auix-gap-minimal` |
 | `.auix-items-card-title` | Card title | `--auix-font-size-subtitle`, `--auix-font-weight-bold` |
 | `.auix-items-card-subtitle` | Card subtitle | `--auix-font-size-caption`, `--auix-color-text-tertiary` |
 | `.auix-items-card-item` | Card body | `--auix-gap-default`, `--auix-padding-default` |
 | `.auix-items-card-item-fieldset` | One `label · value` row of a card | `--auix-items-card-label-width`, `--auix-gap-large` |
 | `.auix-items-card-actions` | Card footer bar of row actions; `space-between` separates the leading and trailing groups | `--auix-border-width-default`, `--auix-color-border-primary`, `--auix-padding-small`, `--auix-padding-minimal` |
+| `.auix-items-card-actions-leading` | Leading group of the footer bar: the destructive row actions | `--auix-gap-default` |
+| `.auix-items-card-actions-trailing` | Trailing group of the footer bar: the other row actions and the ⋮ menu | `--auix-gap-default` |
 | `.auix-items-card-action` | One row action in the footer bar | `--auix-touch-target-size` |
+| `.auix-items-card-menu` | ⋮ menu toggle at the end of the footer bar | `--auix-touch-target-size` |
 | `.auix-items-card-menu-list` | Overflow menu of the footer bar (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
 | `.auix-items-cards` | Card container shown at every breakpoint (`show_on: :all`); lays the cards out as a grid | `--auix-items-card-min-width`, `--auix-gap-large` |
 | `.auix-index-sort-action--always` | Keeps the card-view sort control visible from the `md` breakpoint up (`show_on: :all`) | Structural only |
