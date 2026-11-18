@@ -205,6 +205,9 @@ rules-level overrides win over it.
 | `--auix-input-height-default` | `1rem` | Minimum input field height |
 | `--auix-button-height-default` | `2em` | Minimum button height |
 | `--auix-hidden-element-size` | `1px` | Visually-hidden element dimensions |
+| `--auix-touch-target-size` | `2.75rem` | Minimum width and height of a row action in a card footer |
+| `--auix-items-card-label-width` | `7.25rem` | Width of the label column of a card `label · value` row |
+| `--auix-items-card-min-width` | `17.5rem` | Minimum card width in the card grid (`show_on: :all`) |
 | `--auix-focus-outline-width` | `2px` | Focus outline width |
 | `--auix-icon-size-base` | `0.25rem` | Base unit for icon size calculations |
 | `--auix-icon-size-button` | `var(--auix-icon-size-4)` | Icon size inside buttons |
@@ -499,6 +502,18 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-action-label` | Label of a default action button (`<.action_content>`); hidden below the `sm` breakpoint | Structural only |
 | `.auix-action-icon-image` | An action icon given as an image URL (`<.action_icon>`) | Structural only |
 | `.auix-action-icon-text` | An action icon given as a character (`<.action_icon>`) | Structural only |
+| `.auix-items-card-list` | List of index cards | `--auix-gap-large` |
+| `.auix-items-card-item-content` | One index card | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
+| `.auix-items-card-item-group` | Card header: checkbox and heading | `--auix-gap-large`, `--auix-padding-default` |
+| `.auix-items-card-title` | Card title | `--auix-font-size-subtitle`, `--auix-font-weight-bold` |
+| `.auix-items-card-subtitle` | Card subtitle | `--auix-font-size-caption`, `--auix-color-text-tertiary` |
+| `.auix-items-card-item` | Card body | `--auix-gap-default`, `--auix-padding-default` |
+| `.auix-items-card-item-fieldset` | One `label · value` row of a card | `--auix-items-card-label-width`, `--auix-gap-large` |
+| `.auix-items-card-actions` | Card footer bar of row actions; `space-between` separates the leading and trailing groups | `--auix-border-width-default`, `--auix-color-border-primary`, `--auix-padding-small`, `--auix-padding-minimal` |
+| `.auix-items-card-action` | One row action in the footer bar | `--auix-touch-target-size` |
+| `.auix-items-card-menu-list` | Overflow menu of the footer bar (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
+| `.auix-items-cards` | Card container shown at every breakpoint (`show_on: :all`); lays the cards out as a grid | `--auix-items-card-min-width`, `--auix-gap-large` |
+| `.auix-index-sort-action--always` | Keeps the card-view sort control visible from the `md` breakpoint up (`show_on: :all`) | Structural only |
 
 ### Scoping example
 

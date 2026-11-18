@@ -38,6 +38,23 @@
     same breakpoint.
   - New theme classes `auix-action-icon`, `auix-action-label`, `auix-action-icon-image` and
     `auix-action-icon-text`: re-run `mix auix.gen.stylesheet` after upgrading.
+- **Index cards**
+  - `index_columns` takes a `do` block with one `card`. A card has a `title:`, a `subtitle:` and a
+    body built with `inline`, `stacked`, `group` and `field`. A title is a field, a text, or a named
+    function of the assigns.
+  - `show_on: :all` on the card replaces the table with a responsive grid of cards at every
+    breakpoint. The card sort control and the filter cards then show at every breakpoint too.
+  - The field list stays the source of the table columns, the sort and the filters. A card may
+    reorder and omit columns; a card field that is not a column fails compilation. With a card and
+    no field list, the card fields are the columns.
+  - Without a `card`, the card is derived: the first column is the title, the others follow as
+    `label · value` rows.
+  - Row actions sit in a footer bar below the card body. Destructive actions take the leading edge,
+    the others the trailing edge. From the fourth action on, actions move into a ⋮ menu.
+  - `destructive?: true` marks a row action as destructive:
+    `add_row_action: {:archive, &archive_action/1, destructive?: true}`. `:default_row_delete` is
+    destructive by default.
+  - The default row actions carry their label as `title` and `aria-label`.
 
 ### Changed
 
@@ -67,6 +84,19 @@
     reports. Nothing changes in the browser: the URLs, the routing stack and the flash are the same. In a
     LiveView test the redirect is no longer the result of the form event: replace
     `render_submit() |> follow_redirect(conn)` with `render_submit()` followed by `assert_redirect(view)`.
+- **Index card styling (CSS class changes)**
+  - The mobile list is a list of bordered cards. The stripes are gone: the classes
+    `auix-items-card-item-content--even` and `auix-items-card-item-content--odd` no longer exist.
+  - `auix-items-card-item-content` is the card, `auix-items-card-item-group` its header,
+    `auix-items-card-item` its body, `auix-items-card-item-fieldset` one `label · value` row and
+    `auix-items-card-actions` its footer bar.
+  - Card values are no longer italic.
+  - New theme classes `auix-items-card-list`, `auix-items-card-select`, `auix-items-card-heading`,
+    `auix-items-card-title`, `auix-items-card-subtitle`, `auix-items-card-actions-leading`,
+    `auix-items-card-actions-trailing`, `auix-items-card-action`, `auix-items-card-menu`,
+    `auix-items-card-menu-list`, `auix-items-cards` and `auix-index-sort-action--always`, and new
+    variables `--auix-items-card-label-width`, `--auix-items-card-min-width` and
+    `--auix-touch-target-size`: re-run `mix auix.gen.stylesheet` after upgrading.
 
 ### Build
 

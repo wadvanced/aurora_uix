@@ -10,7 +10,7 @@ The layout system gives you full control over UI structure. By default, Aurora U
 
 Each layout type determines how your resource's fields are presented:
 
-- **`index_columns`** — Selects which fields appear in the list (table) view and their order. Takes a list of field names.
+- **`index_columns`** — Selects which fields appear in the list (table) view and their order. Takes a list of field names, and a `do` block with a `card` that lays out the card view (see [Index Cards](#index-cards)).
 - **`edit_layout`** — Controls how fields are arranged when creating or editing a resource. Renders input fields with metadata options like `placeholder` and `required`.
 - **`show_layout`** — Specifies read-only detail view layout using the same resource metadata but rendered as static values.
 
@@ -317,6 +317,59 @@ index_columns :product, [:reference, :name, :price],
 - `:preload` — Associations the list loads besides the ones the layout renders, such as `[:category, posts: :author]`. It replaces the resource's `preload` for this layout (see [Index Query Options](resource_metadata.md#index-query-options))
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
 - `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
+
+#### Index Cards
+
+Below the 768px breakpoint the index shows one card per record instead of a table row. Without
+any configuration the card is derived from the columns: the first column is the title, and the
+others follow as `label · value` rows.
+
+A `card` inside the `do` block of `index_columns` lays the card out:
+
+```elixir
+index_columns :product, [:reference, :name, :msrp, :status, :quantity_at_hand] do
+  card title: :name, subtitle: :reference, show_on: :all do
+    inline [:msrp, :status]
+    group "Stock", [:quantity_at_hand]
+  end
+end
+```
+
+**Card options:**
+- `:title` — The card title: a field, a text, or a named function of arity 1. The function receives the assigns, with the record in `assigns.entity`
+- `:subtitle` — A second line under the title; takes the same values as `:title`
+- `:show_on` — `:mobile` (default) shows the cards below the 768px breakpoint and the table from it up. `:all` shows the cards at every breakpoint, as a responsive grid, and renders no table
+
+The card body takes `inline`, `stacked`, `group` and `field`. `sections` is not allowed in a
+card. Options given to a field inside the card apply to the card only:
+
+```elixir
+index_columns :product, [:reference, :name, :quantity_at_hand] do
+  card title: :name do
+    field :quantity_at_hand, label: "On hand"
+  end
+end
+```
+
+The selection checkbox and the row actions belong to the card frame: the checkbox opens the
+header, and the row actions fill a footer bar (see
+[Custom Actions › Row actions in cards](../customization/custom_actions.md#row-actions-in-cards)).
+
+The field list is the single source of fields for the table columns, the data loading, the sort
+and the filters:
+
+| Declared | Columns, sort and filters | Card |
+|---|---|---|
+| field list | the list | derived |
+| field list and `card` | the list | as declared; it may reorder and omit columns, and may not add one (compile-time error) |
+| `card` | the card fields: title, subtitle, then the body in order | as declared |
+| neither | the default columns | derived |
+
+A column the card omits stays sortable and filterable. With `show_on: :all` the table headers are
+gone, so the card sort control and the filter cards show at every breakpoint.
+
+A call with a `card` and no field list takes its options after an empty list:
+`index_columns :product, [], page_title: "Products" do ... end`.
 
 #### Form Layout Options
 

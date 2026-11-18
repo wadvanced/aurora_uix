@@ -193,24 +193,24 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-508-enriched-spec.md`)
-- [ ] AC-3: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
+- [x] AC-3: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
       verified by `grep -n '^#### Index Cards' guides/core/layouts.md` returning one line and
       `grep -c 'show_on' guides/core/layouts.md` returning at least 3)
-- [ ] AC-4: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
+- [x] AC-4: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
       (mechanical — no red test; verified by
       `grep -n '^### Row actions in cards' guides/customization/custom_actions.md` returning one line
       and `grep -c 'destructive?' guides/customization/custom_actions.md` returning at least 4)
-- [ ] AC-5: `guides/customization/overriding_components.md` describes `auix_items_card/1` as the
+- [x] AC-5: `guides/customization/overriding_components.md` describes `auix_items_card/1` as the
       card view (mechanical — no red test; verified by
       `grep -c 'footer bar of row actions' guides/customization/overriding_components.md` returning 1)
-- [ ] AC-6: `guides/customization/styling.md` lists the new variables and classes (mechanical — no
+- [x] AC-6: `guides/customization/styling.md` lists the new variables and classes (mechanical — no
       red test; verified by `grep -c 'auix-items-card' guides/customization/styling.md` returning 13
       and `grep -c 'auix-touch-target-size' guides/customization/styling.md` returning 2)
 

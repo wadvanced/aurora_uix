@@ -13,6 +13,7 @@ Actions are defined as `Aurora.Uix.Action` structs with:
 
 - `:name` — unique identifier for the action (atom or binary)
 - `:function_component` — a function (arity 1) that receives assigns and returns rendered output
+- `:destructive?` — `true` for an action that destroys data. Index cards place destructive row actions at the leading edge of their footer bar (default `false`; `true` for `:default_row_delete`)
 
 Actions are organized into **action groups** specific to each layout type. Each group represents a location where actions are rendered (headers, footers, rows, etc.). To customize a group you write an **operation key** as a layout option — the key tells Aurora UIX both which group to target and what to do (add, insert, replace, or remove). The same key name (e.g. `add_header_action`) targets a different internal group depending on which layout macro you are inside.
 
@@ -292,7 +293,7 @@ remove_footer_action: :default_back
 remove_selected_action: :default_selected_delete_all
 ```
 
-All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name).
+All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name). A row action also takes options as a third element: `{action_name, &function/1, destructive?: true}`.
 
 ## Configuring Actions via Layout DSL
 
@@ -423,6 +424,25 @@ end
 `<.action_content>` shows its `label` from 641px up and its `icon` below. With
 `icon_always?={true}` it shows the icon at every width and hides only the label below the
 breakpoint. `<.action_icon icon={...} />` renders an icon value alone, as the table above reads it.
+
+### Row actions in cards
+
+In the card view the row actions fill a footer bar below the card body. Destructive actions sit
+at the leading edge and the others at the trailing edge; the bar mirrors in right-to-left
+layouts. The first three row actions show in the bar. From the fourth on, actions move into a ⋮
+menu at the end of the bar.
+
+`:default_row_delete` is destructive. Mark your own action with `destructive?: true`:
+
+```elixir
+index_columns :product, [:reference, :name],
+  add_row_action: {:archive, &MyAppWeb.ProductActions.archive_action/1, destructive?: true}
+```
+
+An action that replaces `:default_row_delete` stays destructive unless it says
+`destructive?: false`. Each action in the bar gets a 44px touch target. The default row actions
+carry their label as `title` and `aria-label`; give your own action both, as
+[Custom actions on mobile](#custom-actions-on-mobile) shows.
 
 ## Action Handlers
 
