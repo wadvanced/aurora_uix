@@ -11,6 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
     - Adds default actions for headers, footers, and rows in embeds-many association tables.
     - Integrates with the Aurora UIX action modification pipeline.
     - Provides helpers for rendering "new", "show", "edit", and "delete" child links in form layouts.
+    - The add-entry and remove-entry actions take their icons from the field's `action_icons:` option; below the `sm` breakpoint the add-entry buttons show only their icons.
 
   ## Key Constraints
 
@@ -65,10 +66,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   """
   @spec header_enable_add_entry(map()) :: Rendered.t()
   def header_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_header_enable_add_entry))
+      |> Map.put(:label, dt("Add new entry"))
+
     ~H"""
-      <.button class="auix-button--alt" type="button" phx-click="toggle-add-embeds" phx-target={@target}>
-        <.icon name="hero-plus" class="auix-icon-size-button"/> 
-        <span>{dt("Add new entry")}</span>
+      <.button class="auix-button--alt" type="button" phx-click="toggle-add-embeds" phx-target={@target} title={@label} aria-label={@label}>
+        <.action_content icon={@icon} label={@label} icon_always?={true} />
       </.button>
     """
   end
@@ -89,11 +94,15 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   """
   @spec footer_enable_add_entry(map()) :: Rendered.t()
   def footer_enable_add_entry(%{auix: %{layout_type: :form}} = assigns) do
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_footer_enable_add_entry))
+      |> Map.put(:label, dt("Add new entry"))
+
     ~H"""
       <%= if Enum.count(@auix.form[@field.key].value) > 0 do %>
-        <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target}>
-          <.icon name="hero-plus" class="auix-icon-size-button" />
-          <span>{dt("Add new entry")}</span>
+        <.button type="button" class="auix-button--alt" phx-click="toggle-add-embeds" phx-target={@target} title={@label} aria-label={@label}>
+          <.action_content icon={@icon} label={@label} icon_always?={true} />
         </.button>
       <% end %>
     """
@@ -114,13 +123,16 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def add_entry(%{auix: %{layout_type: :form, new_entry_form: new_entry_form}} = assigns) do
     disabled = Map.get(new_entry_form, :errors) != [] or Map.get(new_entry_form, :action) == nil
 
-    assigns = Map.put(assigns, :disabled, disabled)
+    assigns =
+      assigns
+      |> Map.put(:disabled, disabled)
+      |> Map.put(:icon, resolve_icon(assigns, :default_add_entry))
+      |> Map.put(:label, dt("Add"))
 
     ~H"""
       <.button type="submit" class="auix-button--alt" form={@form_id} phx-target={@target}
-          disabled={@disabled}>
-        <.icon name="hero-plus" class="auix-icon-size-button" />
-        <span>{dt("Add")}</span>
+          disabled={@disabled} title={@label} aria-label={@label}>
+        <.action_content icon={@icon} label={@label} icon_always?={true} />
       </.button>
     """
   end
@@ -139,6 +151,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @spec remove_entry(map()) :: Rendered.t()
 
   def remove_entry(%{auix: %{layout_type: :form}} = assigns) do
+    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_remove_entry))
+
     ~H"""
       <.live_component 
         id={"auix-remove-button-#{@entry_index}"}
@@ -149,7 +163,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
         target={@target}
       >
         <:content>
-          <.icon class="auix-icon-size-5 auix-icon-danger" name="hero-trash" />
+          <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-danger" />
         </:content>
 
         <:confirm_message>
@@ -166,6 +180,11 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   def remove_entry(assigns), do: ~H""
 
   ## PRIVATE
+
+  # The icon of an embeds-many default action: the field's `action_icons:` entry, else its default.
+  @spec resolve_icon(map(), atom()) :: atom() | binary()
+  defp resolve_icon(assigns, action_name),
+    do: Actions.icon(assigns, assigns.auix.embeds_many_action_icons, :embeds_many, action_name)
 
   @spec add_default_header_actions(map()) :: map()
   defp add_default_header_actions(assigns) do

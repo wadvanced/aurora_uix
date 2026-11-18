@@ -94,6 +94,10 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
      |> maybe_assign_actor(assigns.auix)
      |> assign_new_embeds_many_form()
      |> assign_auix_new(:enable_add_embeds, false)
+     |> assign_auix(
+       :embeds_many_action_icons,
+       Map.get(assigns.auix.layout_tree, :action_icons, [])
+     )
      |> assign_auix(:layout_tree, layout_tree)
      |> assign_auix(:resource_name, embed_resource_name)
      |> assign_auix(:primary_key, primary_key)

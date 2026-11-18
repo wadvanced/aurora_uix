@@ -97,6 +97,26 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     end
   end
 
+  test "a one-to-many field rejects an action_icons key of another field type" do
+    assert_raise DslError,
+                 ~r/field :product_transactions: unknown options \[:default_add_entry\], valid options are: \[:default_new, :default_row_show, :default_row_edit, :default_row_delete\]/,
+                 fn ->
+                   compile(
+                     "  auix_create_ui do\n    edit_layout :product do\n      inline [:reference, product_transactions: [action_icons: [default_add_entry: \"hero-plus\"]]]\n    end\n  end\n"
+                   )
+                 end
+  end
+
+  test "a many-to-many field takes no action_icons key" do
+    assert_raise DslError,
+                 ~r/field :suppliers: unknown options \[:default_toggle_all\], valid options are: \[\]/,
+                 fn ->
+                   compile(
+                     "  auix_create_ui do\n    edit_layout :product do\n      inline [:reference, suppliers: [action_icons: [default_toggle_all: \"hero-check\"]]]\n    end\n  end\n"
+                   )
+                 end
+  end
+
   test "a layout for an undeclared resource fails compilation" do
     assert_raise DslError, ~r/unknown resource :category/, fn ->
       compile("""
