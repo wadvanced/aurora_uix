@@ -391,10 +391,10 @@ Depends on: DOC-1
 Layout types: the marker lives on every `%Aurora.Uix.Action{}`; only the row-action groups (`:index_row_actions`, `:one_to_many_row_actions`) read it, in UI-3. No markup changes here.
 
 ##### Acceptance criteria
-- [ ] AC-1: `Action.new({:archive, fun})` has `destructive?: false`; `Action.new({:archive, fun, destructive?: true})` has `destructive?: true`
-- [ ] AC-2: `Action.new({:default_row_delete, fun})` and `Action.new(:default_row_delete, fun)` have `destructive?: true`; `Action.new({:default_row_delete, fun, destructive?: false})` has `destructive?: false`
-- [ ] AC-3: Given a layout tree with `actions: [add_row_action: {:archive, fun, destructive?: true}, replace_row_action: {:default_row_delete, other_fun}]`, `Actions.modify_actions/2` leaves `:index_row_actions` with a destructive `:archive` and a `:default_row_delete` that is still destructive and holds `other_fun`
-- [ ] AC-4: `Action.new({:archive, fun, destroys: true})` raises `ArgumentError`
+- [x] AC-1: `Action.new({:archive, fun})` has `destructive?: false`; `Action.new({:archive, fun, destructive?: true})` has `destructive?: true`
+- [x] AC-2: `Action.new({:default_row_delete, fun})` and `Action.new(:default_row_delete, fun)` have `destructive?: true`; `Action.new({:default_row_delete, fun, destructive?: false})` has `destructive?: false`
+- [x] AC-3: Given a layout tree with `actions: [add_row_action: {:archive, fun, destructive?: true}, replace_row_action: {:default_row_delete, other_fun}]`, `Actions.modify_actions/2` leaves `:index_row_actions` with a destructive `:archive` and a `:default_row_delete` that is still destructive and holds `other_fun`
+- [x] AC-4: `Action.new({:archive, fun, destroys: true})` raises `ArgumentError`
 
 ##### Test ports
 - No route. Unit port: `Aurora.Uix.Action.new/1`, `new/2` and `Aurora.Uix.Templates.Basic.Actions.modify_actions/2` on a plain assigns map `%{auix: %{layout_tree: %{actions: […]}, index_row_actions: […]}}`.

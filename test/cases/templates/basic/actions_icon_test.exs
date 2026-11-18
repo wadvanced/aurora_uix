@@ -31,4 +31,42 @@ defmodule Aurora.Uix.Templates.Basic.ActionsIconTest do
     assigns = %{}
     assert Actions.label_title(~H"<b>New</b>") == nil
   end
+
+  test "new/1 and new/2 set destructive?" do
+    fun = &__MODULE__.name_icon/1
+
+    assert %Action{destructive?: false} = Action.new({:archive, fun})
+    assert %Action{destructive?: true} = Action.new({:archive, fun, destructive?: true})
+    assert %Action{destructive?: true} = Action.new({:default_row_delete, fun})
+    assert %Action{destructive?: true} = Action.new(:default_row_delete, fun)
+
+    assert %Action{destructive?: false} =
+             Action.new({:default_row_delete, fun, destructive?: false})
+
+    assert_raise ArgumentError, fn -> Action.new({:archive, fun, destroys: true}) end
+  end
+
+  test "row action operations carry destructive?" do
+    fun = &__MODULE__.name_icon/1
+    other = &Actions.label_title/1
+
+    assigns = %{
+      auix: %{
+        layout_tree: %{
+          actions: [
+            add_row_action: {:archive, fun, destructive?: true},
+            replace_row_action: {:default_row_delete, other}
+          ]
+        },
+        index_row_actions: [Action.new(:default_row_delete, fun)]
+      }
+    }
+
+    result = Actions.modify_actions(assigns, Action.available_actions(:index))
+
+    assert [
+             %Action{name: :default_row_delete, destructive?: true, function_component: ^other},
+             %Action{name: :archive, destructive?: true}
+           ] = result.auix.index_row_actions
+  end
 end
