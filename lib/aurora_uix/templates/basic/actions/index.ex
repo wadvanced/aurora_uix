@@ -80,10 +80,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec show_row_action(map()) :: Rendered.t()
   def show_row_action(%{auix: %{notify: _notify}} = assigns) do
-    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_row_show))
+      |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Show")))
 
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="show" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-show-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="show" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-show-#{@auix.module}"} title={@title} aria-label={@title}>
         <%= if Map.get(assigns, :contents) == [] do %>
           <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-info" />
         <% else %>
@@ -94,10 +97,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   def show_row_action(assigns) do
-    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_row_show))
+      |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Show")))
 
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/show"} name={"auix-show-#{@auix.module}"} title={@title} aria-label={@title}>
         <%= if Map.get(assigns, :contents) == [] do %>
           <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-info" />
         <% else %>
@@ -122,10 +128,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec edit_row_action(map()) :: Rendered.t()
   def edit_row_action(%{auix: %{notify: _notify}} = assigns) do
-    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_row_edit))
+      |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Edit")))
 
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="edit" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" phx-click="auix_open" phx-value-action="edit" phx-value-id={row_info_id(@auix)} phx-target={@auix._myself} name={"auix-edit-#{@auix.module}"} title={@title} aria-label={@title}>
         <%= if Map.get(assigns, :contents) == [] do %>
           <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-safe" />
         <% else %>
@@ -136,10 +145,13 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   def edit_row_action(assigns) do
-    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_row_edit))
+      |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Edit")))
 
     ~H"""
-      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"}>
+      <.auix_link class="auix-index-row-action" href="#" patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"} name={"auix-edit-#{@auix.module}"} title={@title} aria-label={@title}>
         <%= if Map.get(assigns, :contents) == [] do %>
           <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-safe" />
         <% else %>
@@ -167,13 +179,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   slot(:contents)
   @spec remove_row_action(map()) :: Rendered.t()
   def remove_row_action(assigns) do
-    assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_delete))
+    assigns =
+      assigns
+      |> Map.put(:icon, resolve_icon(assigns, :default_row_delete))
+      |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Delete")))
 
     ~H"""
       <.auix_link
             phx-click={JS.push("delete", BasicHelpers.target_opts(@auix, value: %{id: row_info_id(@auix)})) |> uix_hide(row_dom_selector(@auix))}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={dt("Are you sure?")}
+            title={@title}
+            aria-label={@title}
           >
         <%= if Map.get(assigns, :contents) == [] do %>
           <.action_icon icon={@icon} class="auix-icon-size-5 auix-icon-danger" />

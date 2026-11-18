@@ -445,16 +445,16 @@ Depends on: UI-2
 Layout types: `:index`, and the one-to-many list (`:form` and `:show` parents), which renders through the same `auix_items/1`. The card content is the derived one: first non-checkbox column as title, the others as `label · value` rows. UI-4 adds the declared content.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `index_columns(:product, [:reference, :name, :quantity_at_hand])`, each card `[name='auix-card']` has the checkbox inside `.auix-items-card-select`, the reference inside `[name='auix-card-title']`, and two `.auix-items-card-item-fieldset` rows inside `[name='auix-card-body']` whose labels are `Name` and `Quantity At Hand`
-- [ ] AC-2: With the three default row actions, `[name='auix-card-actions-leading']` holds `a[name='auix-delete-product']`, `[name='auix-card-actions-trailing']` holds `a[name='auix-show-product']` and `a[name='auix-edit-product']`, and the card has no `[name='auix-card-menu']`
-- [ ] AC-3: The default row actions carry `title` and `aria-label`: `Show`, `Edit`, `Delete`
-- [ ] AC-4: Given `insert_row_action: {:archive, &archive_action/1, destructive?: true}` and `add_row_action: {:copy, &copy_action/1}`, the leading group holds the archive action, the trailing group holds show and edit, and `[name='auix-card-menu-list']` holds delete and copy
-- [ ] AC-5: The menu toggle `button[name='auix-card-menu-toggle']` has `aria-label='More actions'` and `aria-expanded='false'`
-- [ ] AC-6: The menu opens on a tap of the toggle, moves focus to its first action and closes on a tap outside it (manual — no red test; verified by `iex -S mix run test/start_test_server.exs`, opening `/index-card-actions-products` at a 390px viewport)
-- [ ] AC-7: With no products, the card container shows `No items to show` and no `[name='auix-card']`
-- [ ] AC-8: No card element carries `auix-items-card-item-content--even` nor `auix-items-card-item-content--odd`, and `Base.rule(:auix_items_card_item_value)` has no `font-style`
-- [ ] AC-9: The footer bar uses no physical side: `Base.rule(:auix_items_card_actions)` contains `justify-content: space-between`, and neither it nor `Base.rule(:auix_items_card_menu_list)` contains `left` nor `right`
-- [ ] AC-10: The one-to-many list passes `destructive?` for each row action (mechanical — no red test; verified by `rg -n "destructive\?=\{action.destructive\?\}" lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` returning one line)
+- [x] AC-1: Given `index_columns(:product, [:reference, :name, :quantity_at_hand])`, each card `[name='auix-card']` has the checkbox inside `.auix-items-card-select`, the reference inside `[name='auix-card-title']`, and two `.auix-items-card-item-fieldset` rows inside `[name='auix-card-body']` whose labels are `Name` and `Quantity At Hand`
+- [x] AC-2: With the three default row actions, `[name='auix-card-actions-leading']` holds `a[name='auix-delete-product']`, `[name='auix-card-actions-trailing']` holds `a[name='auix-show-product']` and `a[name='auix-edit-product']`, and the card has no `[name='auix-card-menu']`
+- [x] AC-3: The default row actions carry `title` and `aria-label`: `Show`, `Edit`, `Delete`
+- [x] AC-4: Given `insert_row_action: {:archive, &archive_action/1, destructive?: true}` and `add_row_action: {:copy, &copy_action/1}`, the leading group holds the archive action, the trailing group holds show and edit, and `[name='auix-card-menu-list']` holds delete and copy
+- [x] AC-5: The menu toggle `button[name='auix-card-menu-toggle']` has `aria-label='More actions'` and `aria-expanded='false'`
+- [x] AC-6: The menu opens on a tap of the toggle, moves focus to its first action and closes on a tap outside it (manual — no red test; verified by `iex -S mix run test/start_test_server.exs`, opening `/index-card-actions-products` at a 390px viewport)
+- [x] AC-7: With no products, the card container shows `No items to show` and no `[name='auix-card']`
+- [x] AC-8: No card element carries `auix-items-card-item-content--even` nor `auix-items-card-item-content--odd`, and `Base.rule(:auix_items_card_item_value)` has no `font-style`
+- [x] AC-9: The footer bar uses no physical side: `Base.rule(:auix_items_card_actions)` contains `justify-content: space-between`, and neither it nor `Base.rule(:auix_items_card_menu_list)` contains `left` nor `right`
+- [x] AC-10: The one-to-many list passes `destructive?` for each row action (mechanical — no red test; verified by `rg -n "destructive\?=\{action.destructive\?\}" lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex` returning one line)
 
 ##### Test ports
 - Route `"/index-card-frame-products"` registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud(IndexCardFrameTest.Product, "index-card-frame-products")` · layout type `:index` · observable: `has_element?/2` under `#auix-table-index-card-frame-products-index-mobile`

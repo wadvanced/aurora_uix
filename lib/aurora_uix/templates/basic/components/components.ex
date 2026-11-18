@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   - `auix_simple_form/1` — form wrapper with Aurora UIX layout classes.
   - `auix_items/1` — responsive table/card switcher for collection views.
   - `auix_items_table/1` — desktop table view for collections.
-  - `auix_items_card/1` — mobile card view for collections.
+  - `auix_items_card/1` — card view for collections: header, body and a footer bar of row actions.
   - `pages_selection/1` — pagination bar with page numbers and selection counts.
   - `record_navigator_bar/1` — previous/next record navigation for form/show views.
 
@@ -124,7 +124,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot(:filter_element, doc: "The filter elements to display")
 
-  slot(:action, doc: "the slot for showing user actions in the last table column")
+  slot :action, doc: "the slot for showing user actions" do
+    attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
+  end
 
   @spec auix_items(map) :: Rendered.t()
   def auix_items(%{host_components: nil} = assigns) do
@@ -254,6 +256,12 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @doc ~S"""
   Renders a list of cards with generic styling.
 
+  Each card has a header (the selection checkbox and the first non-checkbox column as its
+  title), a body of `label · value` rows for the remaining columns, and a footer bar of row
+  actions. An `:action` entry with `destructive?: true` sits at the leading edge of the bar,
+  the others at the trailing edge; the bar holds the first three actions and the rest open
+  from an overflow menu.
+
   ## Examples
 
       <.auix_items_card id="users" rows={@users}>
@@ -296,7 +304,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   slot(:filter_element, doc: "The filter elements to display")
 
-  slot(:action, doc: "the slot for showing user actions in the last table column")
+  slot :action, doc: "the slot for showing user actions" do
+    attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
+  end
 
   @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(%{host_components: nil} = assigns) do
@@ -314,27 +324,27 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           phx-viewport-bottom={if @auix[:enable_viewport?], do: JS.push("pagination_next", BasicHelpers.target_opts(@auix, loading: true, value: %{pagination_disabled?: true, items_per_page: @auix.layout_options.infinite_scroll_items_load}))}
           class="auix-items-card-list"
         >
-        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} 
-            class={if even?(row), do: "auix-items-card-item-content--even", else: "auix-items-card-item-content--odd"}>
+        <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item-content" name="auix-card">
           <%= if Enum.at(@col, 0) != nil do %>
             <div class="auix-items-card-item-group">
-              <div :if={!@first_column_not_checkbox?} class="auix-items-card-item--clickable">
+              <div :if={!@first_column_not_checkbox?} class="auix-items-card-select">
                 {render_slot(Enum.at(@col, 0), @row_item.(row))}
               </div>
-              <div class="auix-items-card-item">
-                <div :for={col <- get_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
-                  <div class="auix-items-card-item-label">{dt(col.label)}</div>
-                  <div class="auix-items-card-item-value" name="auix-column-value">
-                    {render_slot(col, @row_item.(row))}
-                  </div>
+              <div class="auix-items-card-heading">
+                <div :for={col <- title_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-title" name="auix-card-title">
+                  {render_slot(col, @row_item.(row))}
                 </div>
               </div>
             </div>
-            <div :if={@action != []} class="auix-items-card-actions">
-                <div :for={action <- @action}>
-                  {render_slot(action, @row_item.(row))}
+            <div class="auix-items-card-item" name="auix-card-body">
+              <div :for={col <- body_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
+                <div class="auix-items-card-item-label">{dt(col.label)}</div>
+                <div class="auix-items-card-item-value" name="auix-column-value">
+                  {render_slot(col, @row_item.(row))}
                 </div>
+              </div>
             </div>
+            <.card_actions :if={@action != []} action={@action} row={@row_item.(row)} />
           <% end %>
         </div>
       </div>
@@ -838,16 +848,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     |> put_in([:auix, :empty_list?], Enum.empty?(rows))
   end
 
-  # Determines if a row should use even styling based on _even? flag in entity
-  @spec even?(tuple() | term()) :: boolean()
-  defp even?({_id, entity}) do
-    entity
-    |> Kernel.||(%{})
-    |> Map.get(:_even?, false)
-  end
-
-  defp even?(_), do: false
-
   # Returns column list, optionally removing first column if it's a checkbox
   @spec get_cols(list(), boolean()) :: list()
   defp get_cols([], _first_column_not_checkbox?), do: []
@@ -855,6 +855,75 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   defp get_cols(cols, true = _first_column_not_checkbox?), do: cols
 
   defp get_cols(cols, _first_column_not_checkbox), do: List.delete_at(cols, 0)
+
+  # Returns the column that titles a card
+  @spec title_cols(list(), boolean()) :: list()
+  defp title_cols(cols, first_column_not_checkbox?),
+    do: cols |> get_cols(first_column_not_checkbox?) |> Enum.take(1)
+
+  # Returns the columns rendered as label · value rows in a card body
+  @spec body_cols(list(), boolean()) :: list()
+  defp body_cols(cols, first_column_not_checkbox?),
+    do: cols |> get_cols(first_column_not_checkbox?) |> Enum.drop(1)
+
+  # Renders a card footer bar: destructive actions at the leading edge, the others at the
+  # trailing edge, and every action past the third in an overflow menu
+  attr(:action, :list, required: true, doc: "the :action slot entries")
+  attr(:row, :any, required: true, doc: "the mapped row")
+
+  @spec card_actions(map()) :: Rendered.t()
+  defp card_actions(assigns) do
+    {bar, overflow} = Enum.split(assigns.action, 3)
+    {leading, trailing} = Enum.split_with(bar, &(Map.get(&1, :destructive?, false) == true))
+
+    assigns =
+      assigns
+      |> assign(:leading, leading)
+      |> assign(:trailing, trailing)
+      |> assign(:overflow, overflow)
+
+    ~H"""
+    <div class="auix-items-card-actions" name="auix-card-actions">
+      <div class="auix-items-card-actions-leading" name="auix-card-actions-leading">
+        <div :for={action <- @leading} class="auix-items-card-action">{render_slot(action, @row)}</div>
+      </div>
+      <div class="auix-items-card-actions-trailing" name="auix-card-actions-trailing">
+        <div :for={action <- @trailing} class="auix-items-card-action">{render_slot(action, @row)}</div>
+        <div :if={@overflow != []} class="auix-items-card-menu" name="auix-card-menu"
+            phx-click={toggle_card_menu()} phx-click-away={hide_card_menu()}>
+          <.button type="button" class="auix-button--iconized" name="auix-card-menu-toggle"
+              title={dt("More actions")} aria-label={dt("More actions")} aria-haspopup="menu" aria-expanded="false">
+            <.icon name="hero-ellipsis-vertical" />
+          </.button>
+          <div class="auix-items-card-menu-list" name="auix-card-menu-list" role="menu">
+            <div :for={action <- @overflow} class="auix-items-card-action">{render_slot(action, @row)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # Opens or closes a card's overflow menu, addressed relative to the menu element
+  @spec toggle_card_menu() :: JS.t()
+  defp toggle_card_menu do
+    %JS{}
+    |> JS.toggle(to: {:inner, "[name='auix-card-menu-list']"}, display: "flex")
+    |> JS.toggle_attribute({"aria-expanded", "true", "false"},
+      to: {:inner, "[name='auix-card-menu-toggle']"}
+    )
+    |> JS.focus_first(to: {:inner, "[name='auix-card-menu-list']"})
+  end
+
+  # Closes a card's overflow menu, addressed relative to the menu element
+  @spec hide_card_menu() :: JS.t()
+  defp hide_card_menu do
+    %JS{}
+    |> JS.hide(to: {:inner, "[name='auix-card-menu-list']"})
+    |> JS.set_attribute({"aria-expanded", "false"},
+      to: {:inner, "[name='auix-card-menu-toggle']"}
+    )
+  end
 
   # Renders previous navigation icon, handling first page/item boundary conditions
   attr(:pagination, :map, default: %{})
