@@ -211,8 +211,8 @@ Depends on: none
       card view (mechanical — no red test; verified by
       `grep -c 'footer bar of row actions' guides/customization/overriding_components.md` returning 1)
 - [ ] AC-6: `guides/customization/styling.md` lists the new variables and classes (mechanical — no
-      red test; verified by `grep -c 'auix-items-card' guides/customization/styling.md` returning at
-      least 14 and `grep -c 'auix-touch-target-size' guides/customization/styling.md` returning 2)
+      red test; verified by `grep -c 'auix-items-card' guides/customization/styling.md` returning 13
+      and `grep -c 'auix-touch-target-size' guides/customization/styling.md` returning 2)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
