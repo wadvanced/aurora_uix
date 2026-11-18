@@ -17,6 +17,13 @@ defmodule Aurora.UixWeb.RenderTreeTest do
         section("Prices", [:msrp], default: true)
       end
     end
+
+    index_columns :product, [:reference, :name, :msrp] do
+      card title: :name, subtitle: :reference, show_on: :all do
+        inline [:msrp]
+        field :name, label: "Product name"
+      end
+    end
   end
 
   setup do
@@ -46,5 +53,24 @@ defmodule Aurora.UixWeb.RenderTreeTest do
     assert %Node.Sections{index: 1, tabs: [quantities, prices]} = Enum.at(form.children, 1)
     assert {quantities.active?, quantities.tab_index} == {false, 1}
     assert {prices.active?, prices.tab_index} == {true, 2}
+  end
+
+  test "a card carries resolved field nodes and no ids" do
+    index = __MODULE__.auix_configurations().product.layout_trees.index
+
+    assert %Node.Card{
+             show_on: :all,
+             title: %Node.Field{key: :name, field: %{label: title_label}},
+             subtitle: %Node.Field{key: :reference},
+             children: [
+               %Node.Inline{id: nil},
+               %Node.Field{key: :name, field: %{label: "Product name"}}
+             ]
+           } = index.card
+
+    refute title_label == "Product name"
+
+    name_column = Enum.find(index.children, &(&1.key == :name))
+    assert name_column.field.label != "Product name"
   end
 end

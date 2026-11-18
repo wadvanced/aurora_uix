@@ -532,6 +532,114 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     assert kept.artifacts == %{form_component: Enum}
   end
 
+  test "a card without a field list gives the columns" do
+    mod =
+      compiled_ui("""
+        auix_create_ui do
+          index_columns :product do
+            card title: :name, subtitle: :reference do
+              stacked [:msrp, :name]
+            end
+          end
+        end
+      """)
+
+    assert Enum.map(mod.auix_configurations().product.layout_trees.index.children, & &1.key) ==
+             [:name, :reference, :msrp]
+  end
+
+  test "a card field outside the field list fails compilation" do
+    assert_raise DslError, ~r/card fields \[:msrp\] are not index columns/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:reference, :name] do
+            card title: :name do
+              stacked [:msrp]
+            end
+          end
+        end
+      """)
+    end
+  end
+
+  test "sections in a card fails compilation" do
+    assert_raise DslError, ~r/card takes no sections/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:name] do
+            card do
+              sections do
+                section "A", [:name]
+              end
+            end
+          end
+        end
+      """)
+    end
+  end
+
+  test "sections under a card sub-layout fails compilation" do
+    assert_raise DslError, ~r/card takes no sections/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:name] do
+            card do
+              inline do
+                sections do
+                  section "A", [:name]
+                end
+              end
+            end
+          end
+        end
+      """)
+    end
+  end
+
+  test "index_columns without a block keeps its options and its pair-only field list" do
+    with_options =
+      compiled_ui("""
+        auix_create_ui do
+          index_columns :product, [:reference], page_title: "Products"
+        end
+      """)
+
+    assert [%Node.Index{options: [page_title: "Products"]}] = with_options.auix_layouts()
+
+    pair_only =
+      compiled_ui("""
+        auix_create_ui do
+          index_columns :product, [name: [label: "Product"]]
+        end
+      """)
+
+    assert [%Node.Index{children: [%Node.Field{key: :name, overrides: %{label: "Product"}}]}] =
+             pair_only.auix_layouts()
+  end
+
+  test "an unknown show_on fails compilation" do
+    assert_raise DslError, ~r/show_on/, fn ->
+      compile("""
+        auix_create_ui do
+          index_columns :product, [:name] do
+            card show_on: :desktop
+          end
+        end
+      """)
+    end
+  end
+
+  test "an index without a card has none" do
+    mod =
+      compiled_ui("""
+        auix_create_ui do
+          index_columns :product, [:reference]
+        end
+      """)
+
+    assert mod.auix_configurations().product.layout_trees.index.card == nil
+  end
+
   @spec compiled_ui(binary()) :: module()
   defp compiled_ui(body) do
     {mod, _binary} =
