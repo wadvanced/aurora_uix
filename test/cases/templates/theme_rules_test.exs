@@ -35,6 +35,17 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
     end
   end
 
+  describe "card footer rules" do
+    test "use no physical side" do
+      assert Base.rule(:auix_items_card_actions) =~ "justify-content: space-between"
+
+      for rule <- [Base.rule(:auix_items_card_actions), Base.rule(:auix_items_card_menu_list)] do
+        refute rule =~ "left"
+        refute rule =~ "right"
+      end
+    end
+  end
+
   describe "theme DSL" do
     test "a local rule replaces an included one and keeps its place" do
       theme =

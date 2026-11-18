@@ -499,6 +499,8 @@ defmodule Aurora.UixWeb.Test.Routes do
           "ash-sortable-columns-authors"
         )
 
+        RoutesHelper.register_crud(IndexCardFrameTest.Product, "index-card-frame-products")
+        RoutesHelper.register_crud(IndexCardActionsTest.Product, "index-card-actions-products")
         RoutesHelper.register_crud(SortDisabledTest.Product, "sort-disabled-products")
 
         RoutesHelper.register_crud(
