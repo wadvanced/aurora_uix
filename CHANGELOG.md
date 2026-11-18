@@ -38,6 +38,12 @@
     same breakpoint.
   - New theme classes `auix-action-icon`, `auix-action-label`, `auix-action-icon-image` and
     `auix-action-icon-text`: re-run `mix auix.gen.stylesheet` after upgrading.
+- **Index cards**
+  - `index_columns` takes a `do` block with one `card`: a title, a subtitle and a body built with
+    `inline`, `stacked`, `group` and `field`. `show_on: :all` shows the cards at every breakpoint
+    instead of the table (Layouts guide, "Index Cards").
+  - Row actions sit in a footer bar below the card body, and `destructive?: true` marks a row
+    action as destructive (Custom Actions guide, "Row actions in cards").
 
 ### Changed
 
@@ -67,6 +73,11 @@
     reports. Nothing changes in the browser: the URLs, the routing stack and the flash are the same. In a
     LiveView test the redirect is no longer the result of the form event: replace
     `render_submit() |> follow_redirect(conn)` with `render_submit()` followed by `assert_redirect(view)`.
+- **Index card styling (CSS class changes)**
+  - The mobile list is a list of bordered cards, with no stripes and no italic values.
+  - Removed: `auix-items-card-item-content--even` and `auix-items-card-item-content--odd`.
+  - The other `auix-items-card-*` classes are restyled and new ones are added (Styling guide,
+    "Class reference"): re-run `mix auix.gen.stylesheet` after upgrading.
 
 ### Build
 
