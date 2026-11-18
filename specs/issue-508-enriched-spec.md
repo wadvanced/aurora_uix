@@ -36,38 +36,19 @@ Depends on: none
 1. § `## [0.2.1]` › `### Added` — insert verbatim after the last line of the `- **Action icons**` entry:
    ```
    - **Index cards**
-     - `index_columns` takes a `do` block with one `card`. A card has a `title:`, a `subtitle:` and a
-       body built with `inline`, `stacked`, `group` and `field`. A title is a field, a text, or a named
-       function of the assigns.
-     - `show_on: :all` on the card replaces the table with a responsive grid of cards at every
-       breakpoint. The card sort control and the filter cards then show at every breakpoint too.
-     - The field list stays the source of the table columns, the sort and the filters. A card may
-       reorder and omit columns; a card field that is not a column fails compilation. With a card and
-       no field list, the card fields are the columns.
-     - Without a `card`, the card is derived: the first column is the title, the others follow as
-       `label · value` rows.
-     - Row actions sit in a footer bar below the card body. Destructive actions take the leading edge,
-       the others the trailing edge. From the fourth action on, actions move into a ⋮ menu.
-     - `destructive?: true` marks a row action as destructive:
-       `add_row_action: {:archive, &archive_action/1, destructive?: true}`. `:default_row_delete` is
-       destructive by default.
-     - The default row actions carry their label as `title` and `aria-label`.
+     - `index_columns` takes a `do` block with one `card`: a title, a subtitle and a body built with
+       `inline`, `stacked`, `group` and `field`. `show_on: :all` shows the cards at every breakpoint
+       instead of the table (Layouts guide, "Index Cards").
+     - Row actions sit in a footer bar below the card body, and `destructive?: true` marks a row
+       action as destructive (Custom Actions guide, "Row actions in cards").
    ```
 2. § `## [0.2.1]` › `### Changed` — insert verbatim as the last entry of the section:
    ```
    - **Index card styling (CSS class changes)**
-     - The mobile list is a list of bordered cards. The stripes are gone: the classes
-       `auix-items-card-item-content--even` and `auix-items-card-item-content--odd` no longer exist.
-     - `auix-items-card-item-content` is the card, `auix-items-card-item-group` its header,
-       `auix-items-card-item` its body, `auix-items-card-item-fieldset` one `label · value` row and
-       `auix-items-card-actions` its footer bar.
-     - Card values are no longer italic.
-     - New theme classes `auix-items-card-list`, `auix-items-card-select`, `auix-items-card-heading`,
-       `auix-items-card-title`, `auix-items-card-subtitle`, `auix-items-card-actions-leading`,
-       `auix-items-card-actions-trailing`, `auix-items-card-action`, `auix-items-card-menu`,
-       `auix-items-card-menu-list`, `auix-items-cards` and `auix-index-sort-action--always`, and new
-       variables `--auix-items-card-label-width`, `--auix-items-card-min-width` and
-       `--auix-touch-target-size`: re-run `mix auix.gen.stylesheet` after upgrading.
+     - The mobile list is a list of bordered cards, with no stripes and no italic values.
+     - Removed: `auix-items-card-item-content--even` and `auix-items-card-item-content--odd`.
+     - The other `auix-items-card-*` classes are restyled and new ones are added (Styling guide,
+       "Class reference"): re-run `mix auix.gen.stylesheet` after upgrading.
    ```
 
 ##### guides/core/layouts.md
@@ -181,12 +162,17 @@ Depends on: none
    | `.auix-items-card-list` | List of index cards | `--auix-gap-large` |
    | `.auix-items-card-item-content` | One index card | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
    | `.auix-items-card-item-group` | Card header: checkbox and heading | `--auix-gap-large`, `--auix-padding-default` |
+   | `.auix-items-card-select` | Checkbox slot of the card header | Structural only |
+   | `.auix-items-card-heading` | Title and subtitle column of the card header | `--auix-gap-minimal` |
    | `.auix-items-card-title` | Card title | `--auix-font-size-subtitle`, `--auix-font-weight-bold` |
    | `.auix-items-card-subtitle` | Card subtitle | `--auix-font-size-caption`, `--auix-color-text-tertiary` |
    | `.auix-items-card-item` | Card body | `--auix-gap-default`, `--auix-padding-default` |
    | `.auix-items-card-item-fieldset` | One `label · value` row of a card | `--auix-items-card-label-width`, `--auix-gap-large` |
    | `.auix-items-card-actions` | Card footer bar of row actions; `space-between` separates the leading and trailing groups | `--auix-border-width-default`, `--auix-color-border-primary`, `--auix-padding-small`, `--auix-padding-minimal` |
+   | `.auix-items-card-actions-leading` | Leading group of the footer bar: the destructive row actions | `--auix-gap-default` |
+   | `.auix-items-card-actions-trailing` | Trailing group of the footer bar: the other row actions and the ⋮ menu | `--auix-gap-default` |
    | `.auix-items-card-action` | One row action in the footer bar | `--auix-touch-target-size` |
+   | `.auix-items-card-menu` | ⋮ menu toggle at the end of the footer bar | `--auix-touch-target-size` |
    | `.auix-items-card-menu-list` | Overflow menu of the footer bar (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
    | `.auix-items-cards` | Card container shown at every breakpoint (`show_on: :all`); lays the cards out as a grid | `--auix-items-card-min-width`, `--auix-gap-large` |
    | `.auix-index-sort-action--always` | Keeps the card-view sort control visible from the `md` breakpoint up (`show_on: :all`) | Structural only |
@@ -211,8 +197,8 @@ Depends on: none
       card view (mechanical — no red test; verified by
       `grep -c 'footer bar of row actions' guides/customization/overriding_components.md` returning 1)
 - [ ] AC-6: `guides/customization/styling.md` lists the new variables and classes (mechanical — no
-      red test; verified by `grep -c 'auix-items-card' guides/customization/styling.md` returning 13
-      and `grep -c 'auix-touch-target-size' guides/customization/styling.md` returning 2)
+      red test; verified by `grep -c 'auix-items-card' guides/customization/styling.md` returning 18
+      and `grep -c 'auix-touch-target-size' guides/customization/styling.md` returning 3)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
