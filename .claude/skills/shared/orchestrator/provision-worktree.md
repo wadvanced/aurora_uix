@@ -7,7 +7,7 @@ One worktree per section, from its first spawn until `merge-pr` retires it. Path
 Parallel sections must never share a database or a port, which is why each gets its own
 checkout and, through `scripts/test_pg.sh`, its own PostgreSQL instance.
 
-**One section at a time** — create, then copy, as one unit. Spawns are batched;
+**One section at a time** — create, copy, then prepare, as one unit. Spawns are batched;
 provisioning is not. **Idempotent** — a path already in `git worktree list` is skipped
 whole, keeping its `_build`.
 
@@ -46,13 +46,33 @@ checkout is derived from the worktree itself, so no allocation or ledger exists:
 
 | What | Derived how |
 |---|---|
-| Test database server | the worktree's private PostgreSQL instance under `/tmp/aurora_uix_pg/` (override `AURORA_UIX_TEST_PG`), created by `scripts/test_pg.sh ensure` on the first `mix test`; a Unix socket, no TCP port |
+| Test database server | the worktree's private PostgreSQL instance under `/tmp/aurora_uix_pg/` (override `AURORA_UIX_TEST_PG`), started by `scripts/test_pg.sh ensure`; a Unix socket, no TCP port |
 | Wallaby `base_url` and endpoint port | derived per checkout by the test config, so two worktrees running `mix test` never collide on `4001` |
 
 The instance lifecycle is `scripts/test_pg.sh` (`ensure`, `status`, `psql`, `stop`,
-`destroy`, `sweep`, `stop-idle`, `destroy-all`); this agent never calls it — `mix test`
-does. It is skipped on CI. Releasing needs no bookkeeping: `merge-pr` retires the
-worktree and runs `scripts/test_pg.sh sweep`.
+`destroy`, `sweep`, `stop-idle`, `destroy-all`). It is skipped on CI. Releasing needs no
+bookkeeping: `merge-pr` retires the worktree and runs `scripts/test_pg.sh sweep`.
+
+## 3. Prepare
+
+A fresh instance has no database, and `priv/static/assets` is gitignored, so a new
+worktree cannot pass the suite until both exist. `mix test` creates neither. Without
+the database, every DB-backed test waits for a connection until it hits `queue_timeout`,
+which turns a run of about 30 seconds into about 30 minutes. Without the assets,
+LiveView never connects in Wallaby and every `test/browser_cases/` test fails. Run this
+in the worktree, only when the worktree was just created:
+
+```bash
+(cd "$WT" &&
+  scripts/test_pg.sh ensure &&
+  MIX_ENV=test mix ecto.create --quiet &&
+  MIX_ENV=test mix ecto.migrate --quiet &&
+  mix assets.build)
+```
+
+A failure here sets the row's `note: blocked: provision-failed: <step>`, drops the section
+from `M.batch`, and the run carries on with the rest. A section whose worktree is not
+ready is never spawned.
 
 Announce per section: `<SEC-ID> — worktree .claude/worktrees/section-<n>-<sec>`
 
