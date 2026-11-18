@@ -5,6 +5,7 @@ defmodule Aurora.Uix.Action do
   ## Key Features
 
     * Encapsulates an action's name and its function component.
+    * Marks an action as destructive (`destructive?`); `:default_row_delete` is destructive unless the layout says otherwise.
     * Provides flexible constructors for different input types.
     * Holds the default icon of each default action that renders a button or a link (`default_icons/1`) and the schema of the `action_icons:` layout option (`icons_schema/1`).
 
@@ -15,12 +16,15 @@ defmodule Aurora.Uix.Action do
 
   """
 
-  defstruct [:name, :function_component]
+  defstruct [:name, :function_component, destructive?: false]
 
   @type t() :: %__MODULE__{
           name: binary(),
-          function_component: function()
+          function_component: function(),
+          destructive?: boolean()
         }
+
+  @destructive_actions [:default_row_delete]
 
   @actions %{
     index: %{
@@ -173,38 +177,57 @@ defmodule Aurora.Uix.Action do
   ## Returns
 
   `Aurora.Uix.Action.t()` - An action struct with the given name and function component.
+  `:default_row_delete` is destructive (`destructive?: true`); any other name is not.
 
   ## Examples
 
       iex> Aurora.Uix.Action.new("save", fn -> :ok end)
-      %Aurora.Uix.Action{name: "save", function_component: #Function<...>}
+      %Aurora.Uix.Action{name: "save", function_component: #Function<...>, destructive?: false}
 
   """
   @spec new(atom(), function()) :: t()
   def new(name, function_component) do
-    %__MODULE__{name: name, function_component: function_component}
+    %__MODULE__{
+      name: name,
+      function_component: function_component,
+      destructive?: name in @destructive_actions
+    }
   end
 
   @doc """
-  Creates a new action from a tuple containing the name and function component.
+  Creates a new action from a tuple containing the name, the function component and, optionally,
+  options.
 
   ## Parameters
 
-    - `{name, function_component}` ({binary(), function()}) - Tuple with the action name and function.
+    - `{name, function_component}` ({atom(), function()}) - Tuple with the action name and function.
+    - `{name, function_component, opts}` ({atom(), function(), keyword()}) - The same, with options
+      as a third element:
+      * `:destructive?` (boolean()) - Marks the action as destructive. Defaults to `true` for
+        `:default_row_delete`, which is destructive by default, and to `false` otherwise.
 
   ## Returns
 
   `Aurora.Uix.Action.t()` - An action struct with the given name and function component.
+  Raises `ArgumentError` on an unknown option.
 
   ## Examples
 
       iex> Aurora.Uix.Action.new({"delete", fn -> :deleted end})
-      %Aurora.Uix.Action{name: "delete", function_component: #Function<...>}
+      %Aurora.Uix.Action{name: "delete", function_component: #Function<...>, destructive?: false}
 
   """
-  @spec new({binary(), function()}) :: t()
-  def new({name, function_component}) do
-    %__MODULE__{name: name, function_component: function_component}
+  @spec new({atom(), function()} | {atom(), function(), keyword()}) :: t()
+  def new({name, function_component}), do: new(name, function_component)
+
+  def new({name, function_component, opts}) when is_list(opts) do
+    opts = Keyword.validate!(opts, destructive?: name in @destructive_actions)
+
+    %__MODULE__{
+      name: name,
+      function_component: function_component,
+      destructive?: opts[:destructive?]
+    }
   end
 
   @doc """
