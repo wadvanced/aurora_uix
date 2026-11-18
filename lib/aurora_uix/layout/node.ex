@@ -27,6 +27,7 @@ defmodule Aurora.Uix.Layout.Node do
           | Node.Sections.t()
           | Node.Section.t()
           | Node.Field.t()
+          | Node.Card.t()
 
   @doc """
   Lists the field nodes of a tree, in document order.
@@ -40,5 +41,9 @@ defmodule Aurora.Uix.Layout.Node do
   @spec fields(t() | [t()]) :: [Node.Field.t()]
   def fields(nodes) when is_list(nodes), do: Enum.flat_map(nodes, &fields/1)
   def fields(%Node.Field{} = field), do: [field]
+
+  def fields(%Node.Card{title: title, subtitle: subtitle, children: children}),
+    do: fields(Enum.filter([title, subtitle], &is_struct(&1, Node.Field)) ++ children)
+
   def fields(%{children: children}), do: fields(children)
 end

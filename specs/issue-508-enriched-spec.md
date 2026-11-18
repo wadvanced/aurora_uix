@@ -221,15 +221,15 @@ Facts this section builds on:
 - Spark 2.7.10 keeps the entity nesting state in the process dictionary (`deps/spark/lib/spark/dsl/extension/entity.ex` `setup/6`, key `:recursive_builder_path`) and restores it in `handle/6`. A `card` whose `build_node/1` returns `{:error, _}` raises before the `handle/6` of `auix_index_columns` and `auix_create_ui` run, so the state stays set in that process and the next compilation there raises `RuntimeError`. Each ExUnit test runs in its own process: a test that expects a card to fail compilation calls `compile/1` once and compiles nothing after it.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `index_columns :product, [:reference, :name, :msrp] do card title: :name, subtitle: :reference, show_on: :all do inline [:msrp] end end`, the built index tree has `card: %Node.Card{show_on: :all}` whose `title` and `subtitle` are `%Node.Field{}` nodes with a resolved `field`, and whose children are `[%Node.Inline{id: nil}]`
-- [ ] AC-2: Given a card with `field :name, label: "Product name"` and the column `:name`, the card field node's `field.label` is `"Product name"` and the column's `field.label` is not
-- [ ] AC-3: Given `index_columns :product do card title: :name, subtitle: :reference do stacked [:msrp, :name] end end`, the columns are `[:name, :reference, :msrp]`
-- [ ] AC-4: Given a field list and a card that places a field outside the list, compilation fails with `card fields [:msrp] are not index columns; a card may reorder and omit columns, not add them`
-- [ ] AC-5: Given a card holding `sections`, directly and inside an `inline`, compilation fails with `card takes no sections`
-- [ ] AC-6: Given `index_columns :product, [:reference], page_title: "Products"` and `index_columns :product, [name: [label: "Product"]]`, both without a block, compilation succeeds; the first keeps `options: [page_title: "Products"]`, the second has one column `:name` whose override label is `"Product"`
-- [ ] AC-7: Given `card show_on: :desktop`, compilation fails with a message naming `show_on`
-- [ ] AC-8: Given a field list and no card, the built index tree has `card: nil`
-- [ ] AC-9: `.formatter.exs` keeps `index_columns` free of parentheses (mechanical — no red test; verified by `mix format --check-formatted` on a tree that contains `index_columns :product, [:name]` without parentheses, which `test/cases/render_tree_test.exs` does after this section)
+- [x] AC-1: Given `index_columns :product, [:reference, :name, :msrp] do card title: :name, subtitle: :reference, show_on: :all do inline [:msrp] end end`, the built index tree has `card: %Node.Card{show_on: :all}` whose `title` and `subtitle` are `%Node.Field{}` nodes with a resolved `field`, and whose children are `[%Node.Inline{id: nil}]`
+- [x] AC-2: Given a card with `field :name, label: "Product name"` and the column `:name`, the card field node's `field.label` is `"Product name"` and the column's `field.label` is not
+- [x] AC-3: Given `index_columns :product do card title: :name, subtitle: :reference do stacked [:msrp, :name] end end`, the columns are `[:name, :reference, :msrp]`
+- [x] AC-4: Given a field list and a card that places a field outside the list, compilation fails with `card fields [:msrp] are not index columns; a card may reorder and omit columns, not add them`
+- [x] AC-5: Given a card holding `sections`, directly and inside an `inline`, compilation fails with `card takes no sections`
+- [x] AC-6: Given `index_columns :product, [:reference], page_title: "Products"` and `index_columns :product, [name: [label: "Product"]]`, both without a block, compilation succeeds; the first keeps `options: [page_title: "Products"]`, the second has one column `:name` whose override label is `"Product"`
+- [x] AC-7: Given `card show_on: :desktop`, compilation fails with a message naming `show_on`
+- [x] AC-8: Given a field list and no card, the built index tree has `card: nil`
+- [x] AC-9: `.formatter.exs` keeps `index_columns` free of parentheses (mechanical — no red test; verified by `mix format --check-formatted` on a tree that contains `index_columns :product, [:name]` without parentheses, which `test/cases/render_tree_test.exs` does after this section)
 
 ##### Test ports
 - No route. Compile-time port: `compile/1` and `compiled_ui/1` of `test/cases/create_ui_validation_test.exs`, then `mod.auix_layouts()` (layouts as written) and `mod.auix_configurations().product.layout_trees.index` (built tree).

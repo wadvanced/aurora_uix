@@ -46,8 +46,9 @@ defmodule Aurora.Uix.Layout.CreateUI do
   one resource and layout type, the module's own layout replaces an included one.
 
   ## Layouts
-  - `index_columns resource, fields, options` - the index columns and options. See
-    `Aurora.Uix.Layout.Options.Index`; `order_by` and `where` set the listed entries.
+  - `index_columns resource, fields, options do card ... end` - the index columns and options,
+    and the card of the card view. See `Aurora.Uix.Layout.Options.Index` and
+    `Aurora.Uix.Layout.Node.Card`; `order_by` and `where` set the listed entries.
   - `edit_layout resource, options do ... end` - the form layout. See
     `Aurora.Uix.Layout.Options.Form`.
   - `show_layout resource, options do ... end` - the show layout. See

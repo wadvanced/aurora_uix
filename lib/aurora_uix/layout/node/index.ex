@@ -4,6 +4,7 @@ defmodule Aurora.Uix.Layout.Node.Index do
 
   ## Key Features
   - `children` holds one `Aurora.Uix.Layout.Node.Field` per column.
+  - `card` holds the card layout, `nil` when the layout declares none.
   - The layout macro builds it; `Aurora.Uix.Layout.RenderTree` fills `id` and the fields.
 
   ## Key Constraints
@@ -14,6 +15,7 @@ defmodule Aurora.Uix.Layout.Node.Index do
   defstruct id: nil,
             resource: nil,
             children: [],
+            card: nil,
             order_by: nil,
             where: nil,
             renderers: nil,
@@ -29,6 +31,7 @@ defmodule Aurora.Uix.Layout.Node.Index do
           id: binary() | nil,
           resource: atom(),
           children: [Aurora.Uix.Layout.Node.Field.t()],
+          card: Aurora.Uix.Layout.Node.Card.t() | nil,
           order_by: term(),
           where: term(),
           renderers: map() | nil,
