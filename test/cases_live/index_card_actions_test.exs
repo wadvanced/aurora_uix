@@ -61,6 +61,7 @@ defmodule Aurora.UixWeb.Test.IndexCardActionsTest do
            )
 
     refute has_element?(view, "#{m} [name='auix-card-show']")
+    refute has_element?(view, "#{m} [name='auix-card-menu-list'] a[name='auix-show-product']")
 
     assert has_element?(
              view,

@@ -146,14 +146,21 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUIActionsTest do
              "#{c} > [name='auix-card-show']:first-child a[name^='auix-show-product__product_transaction-']"
            )
 
-    assert has_element?(view, "#{c} [name='auix-card-menu-actions'] a", "Custom edit")
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name^='auix-show-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a",
+             "Custom edit"
+           )
 
     assert has_element?(
              view,
              "#{c} [name='auix-card-menu-destructive'] a[name^='auix-delete-product__product_transaction-']"
            )
-
-    refute has_element?(view, "#{c} [name='auix-card-menu-list'] a[name^='auix-show-product__']")
   end
 
   test "Test footer actions", %{conn: conn} do

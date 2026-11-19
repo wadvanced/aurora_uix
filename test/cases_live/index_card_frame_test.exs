@@ -66,15 +66,18 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-menu-actions'] a[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name='auix-show-product'][title='Show'][aria-label='Show']"
+             )
+
+      assert has_element?(
+               view,
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
              )
 
       assert has_element?(
                view,
                "#{m} [name='auix-card-menu-destructive'] a[name='auix-delete-product'][title='Delete'][aria-label='Delete']"
              )
-
-      refute has_element?(view, "#{m} [name='auix-card-menu-list'] a[name='auix-show-product']")
     end
 
     test "tapping a card runs its show action", %{view: view, products: products} do
