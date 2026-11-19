@@ -383,7 +383,7 @@ The keys and their default icons:
 | embeds-many field | `:default_remove_entry` | `hero-trash` |
 
 `:default_toggle_all_selected`, `:default_sort` and `:default_pagination` are not keys: they
-render a checkbox, a select and a pager. Many-to-many and multi-select fields have no keys: their
+render a checkbox, a sort control with fixed icons and a pager. Many-to-many and multi-select fields have no keys: their
 only default action is the `:default_toggle_all` checkbox. An unknown key fails compilation, and
 the error lists the valid keys of the layout. **Delete selected** keeps its count badge when only
 its icon shows.

@@ -29,6 +29,9 @@
   or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
 - **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
   guide, "Class reference").
+- **Card-view sort control on phones (CSS class changes)**: below the `sm` breakpoint the sort
+  control is one icon button with a menu of the sort fields and directions (Layouts guide, "Index
+  Cards"; Styling guide, "Class reference").
 
 ### Build
 
