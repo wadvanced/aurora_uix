@@ -205,7 +205,7 @@ rules-level overrides win over it.
 | `--auix-input-height-default` | `1rem` | Minimum input field height |
 | `--auix-button-height-default` | `2em` | Minimum button height |
 | `--auix-hidden-element-size` | `1px` | Visually-hidden element dimensions |
-| `--auix-touch-target-size` | `2.75rem` | Minimum width and height of the card ⋮ menu toggle and of each menu item |
+| `--auix-touch-target-size` | `2.75rem` | Minimum width and height of the card ⋮ menu toggle, of the sort menu button and of each menu item |
 | `--auix-items-card-label-width` | `7.25rem` | Width of the label column of a card `label · value` row |
 | `--auix-items-card-min-width` | `17.5rem` | Minimum card width in the card grid (`show_on: :all`) |
 | `--auix-focus-outline-width` | `2px` | Focus outline width |
@@ -497,7 +497,14 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-horizontal-divider` | Horizontal rule separator | `--auix-border-width-default`, `--auix-color-horizontal-divider`, `--auix-margin-default` |
 | `.auix-sections-tab-button` | Section/tab navigation button | `--auix-padding-minimal`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-border-width-thick`, `--auix-border-radius-default` |
 | `.auix-items-table-header-sort` | Sortable index column header button (label + direction arrow) | `--auix-gap-minimal` |
-| `.auix-index-sort-action` | Card-view sort control in the index header actions (field select plus direction switch button); hidden from the `md` breakpoint up, where the column headers sort | `--auix-gap-minimal` |
+| `.auix-index-sort-action` | Card-view sort control in the index header actions: the field select and direction switch from the `sm` breakpoint up, the sort menu below it; hidden from the `md` breakpoint up, where the column headers sort | Structural only |
+| `.auix-index-sort-select` | Field select plus direction switch button of the card-view sort control; shown from the `sm` breakpoint up | `--auix-gap-minimal`, `--auix-font-size-caption`, `--auix-font-weight-bold` |
+| `.auix-index-sort-menu` | Icon button and menu of the card-view sort control; shown below the `sm` breakpoint | `--auix-touch-target-size` |
+| `.auix-index-sort-menu-toggle--active` | Sort menu button while a field sort is on | `--auix-color-icon-info`, `--auix-color-bg-secondary` |
+| `.auix-index-sort-menu-list` | Sort menu, opening below its button (hidden until toggled) | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-shadow-md` |
+| `.auix-index-sort-menu-group` | One group of the sort menu: the fields, then the directions below a divider | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary` |
+| `.auix-index-sort-menu-item` | One option of the sort menu; a check marks the active field and the active direction | `--auix-gap-default`, `--auix-touch-target-size`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-color-bg-hover`, `--auix-color-text-inactive` |
+| `.auix-index-sort-menu-check--off` | Check of an inactive sort menu option, kept invisible so the labels line up | Structural only |
 | `.auix-action-icon` | Icon of a default action button (`<.action_content>`); hidden from the `sm` breakpoint up, shown below it | Structural only |
 | `.auix-action-label` | Label of a default action button (`<.action_content>`); hidden below the `sm` breakpoint | Structural only |
 | `.auix-action-icon-image` | An action icon given as an image URL (`<.action_icon>`) | Structural only |

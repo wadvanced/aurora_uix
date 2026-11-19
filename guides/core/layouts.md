@@ -369,6 +369,11 @@ and the filters:
 A column the card omits stays sortable and filterable. With `show_on: :all` the table headers are
 gone, so the card sort control and the filter cards show at every breakpoint.
 
+The card sort control is a field select and a direction switch. Below the 640px breakpoint it is
+one icon button instead: its menu lists "Default order" and the sortable fields, then "Ascending"
+and "Descending", and checks the active field and direction. The button is highlighted while a
+field sort is on.
+
 A call with a `card` and no field list takes its options after an empty list:
 `index_columns :product, [], page_title: "Products" do ... end`.
 

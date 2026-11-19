@@ -527,8 +527,8 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"filter-toggle"` - Toggle filters panel
 - `"filters-clear"` - Clear all filters
 - `"filters-submit"` - Apply filters
-- `"index-sort"` - Sort the index. Sent by the sortable column headers with the field `"key"`: each click moves the sort through ascending, descending and back to the backend order. The card view's sort select instead sends `"sort"` as a field key, or `""` to return to the backend order; a newly chosen field keeps the current direction. Ignored when the layout option `sort_disabled?` is `true`
-- `"index-sort-direction"` - Reverse the direction of the active sort; sent by the card view's direction switch, a no-op without an active sort and ignored when `sort_disabled?` is `true`
+- `"index-sort"` - Sort the index. Sent by the sortable column headers with the field `"key"`: each click moves the sort through ascending, descending and back to the backend order. The card view's sort select and sort menu instead send `"sort"` as a field key, or `""` to return to the backend order; a newly chosen field keeps the current direction. Ignored when the layout option `sort_disabled?` is `true`
+- `"index-sort-direction"` - Change the direction of the active sort. The card view's direction switch sends no parameter and reverses it; the card view's sort menu sends `"direction"` as `"asc"` or `"desc"` and sets it, and any other value is ignored. A no-op without an active sort, and ignored when `sort_disabled?` is `true`
 - `"index-layout-change"` - Handles filter-form changes and row selection (matched via
   the `_target` field, e.g. `"selected_check__"` / `"selected_in_page__"` prefixes)
 - `"selected-toggle_all"` - Select all matching rows across the whole result set (async)

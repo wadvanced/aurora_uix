@@ -75,25 +75,25 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: `CHANGELOG.md` is unchanged: the issue owes no CHANGELOG entry (mechanical — no red
+- [x] AC-1: `CHANGELOG.md` is unchanged: the issue owes no CHANGELOG entry (mechanical — no red
       test; verified by `git diff --name-only origin/main...HEAD -- CHANGELOG.md` printing nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-515-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md` carries no sort-control entry (mechanical — no red test; verified by
+- [x] AC-3: `CHANGELOG.md` carries no sort-control entry (mechanical — no red test; verified by
       `grep -c 'Card-view sort control on phones' CHANGELOG.md` returning 0)
-- [ ] AC-4: `guides/core/layouts.md § Index Cards` describes the sort menu (mechanical — no red test;
+- [x] AC-4: `guides/core/layouts.md § Index Cards` describes the sort menu (mechanical — no red test;
       verified by `grep -c 'one icon button instead: its menu lists' guides/core/layouts.md`
       returning 1)
-- [ ] AC-5: `guides/core/liveview.md § Built-in Events` documents the `"direction"` parameter
+- [x] AC-5: `guides/core/liveview.md § Built-in Events` documents the `"direction"` parameter
       (mechanical — no red test; verified by `grep -c 'sort menu sends' guides/core/liveview.md`
       returning 1 and `grep -c 'sort select and sort menu instead send' guides/core/liveview.md`
       returning 1)
-- [ ] AC-6: `guides/customization/custom_actions.md § Action Icons` reads as prescribed (mechanical —
+- [x] AC-6: `guides/customization/custom_actions.md § Action Icons` reads as prescribed (mechanical —
       no red test; verified by `grep -c 'a sort control with fixed icons and a pager' guides/customization/custom_actions.md`
       returning 1 and `grep -c 'a select and a pager' guides/customization/custom_actions.md` returning 0)
-- [ ] AC-7: `guides/customization/styling.md` lists the sort menu classes (mechanical — no red test;
+- [x] AC-7: `guides/customization/styling.md` lists the sort menu classes (mechanical — no red test;
       verified by `grep -c 'auix-index-sort-' guides/customization/styling.md` returning 9 and
       `grep -c 'of the sort menu button and of each menu item' guides/customization/styling.md`
       returning 1)
