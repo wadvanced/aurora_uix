@@ -1304,12 +1304,27 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-items-card-item-content {
     display: flex;
     flex-direction: column;
+    position: relative;
     border-width: var(--auix-border-width-default);
     border-style: var(--auix-border-style-default);
     border-color: var(--auix-color-border-primary);
     border-radius: var(--auix-border-radius-default);
     background-color: var(--auix-color-bg-default);
     color: var(--auix-color-items-card-item-content-text);
+  }
+  """)
+
+  rule(:auix_items_card_show, """
+  .auix-items-card-show {
+    position: absolute;
+    inset: 0;
+  }
+
+  .auix-items-card-show > * {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
   }
   """)
 
@@ -1364,20 +1379,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   }
   """)
 
-  rule(:auix_items_card_actions, """
-  .auix-items-card-actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    border-top-width: var(--auix-border-width-default);
-    border-top-style: var(--auix-border-style-default);
-    border-top-color: var(--auix-color-border-primary);
-    padding-block: var(--auix-padding-small);
-    padding-inline: var(--auix-padding-minimal);
-  }
-  """)
-
   rule(:auix_items_card_list, """
   .auix-items-card-list {
     display: flex;
@@ -1388,7 +1389,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_items_card_select, """
   .auix-items-card-select {
+    position: relative;
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
+    height: var(--auix-line-height-relaxed);
+  }
+
+  .auix-items-card-select .auix-fieldset {
+    padding: 0;
+    gap: 0;
+  }
+
+  .auix-items-card-select .auix-checkbox {
+    margin: 0;
   }
   """)
 
@@ -1396,6 +1410,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-items-card-heading {
     display: flex;
     flex-direction: column;
+    flex: 1;
     gap: var(--auix-gap-minimal);
     min-width: 0;
   }
@@ -1405,6 +1420,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-items-card-title {
     font-size: var(--auix-font-size-subtitle);
     font-weight: var(--auix-font-weight-bold);
+    line-height: var(--auix-line-height-relaxed);
   }
   """)
 
@@ -1415,46 +1431,21 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   }
   """)
 
-  rule(:auix_items_card_actions_leading, """
-  .auix-items-card-actions-leading {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--auix-gap-default);
-  }
-  """)
-
-  rule(:auix_items_card_actions_trailing, """
-  .auix-items-card-actions-trailing {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--auix-gap-default);
-  }
-  """)
-
-  rule(:auix_items_card_action, """
-  .auix-items-card-action,
-  .auix-items-card-action > a,
-  .auix-items-card-action > button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: var(--auix-touch-target-size);
-    min-height: var(--auix-touch-target-size);
-  }
-  """)
-
   rule(:auix_items_card_menu, """
   .auix-items-card-menu {
     position: relative;
     display: inline-flex;
+    flex-shrink: 0;
   }
 
   .auix-items-card-menu > button {
     min-width: var(--auix-touch-target-size);
     min-height: var(--auix-touch-target-size);
     justify-content: center;
+  }
+
+  .auix-items-card-menu:not(:has(.auix-items-card-menu-item > *)) {
+    display: none;
   }
   """)
 
@@ -1463,7 +1454,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     display: none;
     position: absolute;
     inset-inline-end: 0;
-    bottom: 100%;
+    top: 100%;
     z-index: 10;
     flex-direction: column;
     border-width: var(--auix-border-width-default);
@@ -1472,6 +1463,45 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     border-radius: var(--auix-border-radius-default);
     background-color: var(--auix-color-bg-default);
     box-shadow: var(--auix-shadow-md);
+  }
+  """)
+
+  rule(:auix_items_card_menu_group, """
+  .auix-items-card-menu-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auix-items-card-menu-group:not(:has(.auix-items-card-menu-item > *)) {
+    display: none;
+  }
+
+  .auix-items-card-menu-group:has(.auix-items-card-menu-item > *) + .auix-items-card-menu-group--destructive {
+    border-top-width: var(--auix-border-width-default);
+    border-top-style: var(--auix-border-style-default);
+    border-top-color: var(--auix-color-border-primary);
+  }
+  """)
+
+  rule(:auix_items_card_menu_group__destructive, """
+  .auix-items-card-menu-group--destructive {
+    color: var(--auix-color-icon-danger);
+  }
+  """)
+
+  rule(:auix_items_card_menu_item, """
+  .auix-items-card-menu-item,
+  .auix-items-card-menu-item > a,
+  .auix-items-card-menu-item > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--auix-touch-target-size);
+    min-height: var(--auix-touch-target-size);
+  }
+
+  .auix-items-card-menu-item:not(:has(> *)) {
+    display: none;
   }
   """)
 

@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   - `auix_simple_form/1` — form wrapper with Aurora UIX layout classes.
   - `auix_items/1` — responsive table/card switcher for collection views.
   - `auix_items_table/1` — desktop table view for collections.
-  - `auix_items_card/1` — card view for collections: header, body and a footer bar of row actions.
+  - `auix_items_card/1` — card view for collections: a header with a menu of row actions, a body, and the show action as the card's tap target.
   - `pages_selection/1` — pagination bar with page numbers and selection counts.
   - `record_navigator_bar/1` — previous/next record navigation for form/show views.
 
@@ -125,7 +125,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:filter_element, doc: "The filter elements to display")
 
   slot :action, doc: "the slot for showing user actions" do
-    attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
+    attr(:name, :atom, doc: "the action name; `:default_row_show` is a card's tap target")
+
+    attr(:destructive?, :boolean,
+      doc: "lists the action last in a card menu, in the danger color"
+    )
   end
 
   slot(:card_title, doc: "the card title; without it the first column is the title")
@@ -266,11 +270,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @doc ~S"""
   Renders a list of cards with generic styling.
 
-  Each card has a header (the selection checkbox and the first non-checkbox column as its
-  title), a body of `label · value` rows for the remaining columns, and a footer bar of row
-  actions. An `:action` entry with `destructive?: true` sits at the leading edge of the bar,
-  the others at the trailing edge; the bar holds the first three actions and the rest open
-  from an overflow menu.
+  Each card has a header (the selection checkbox, the first non-checkbox column as its title,
+  and a ⋮ menu) and a body of `label · value` rows for the remaining columns. The `:action`
+  entry named `:default_row_show` is stretched over the card, so tapping the card runs it; the
+  checkbox and the menu keep their own taps. The menu holds every other `:action` entry in
+  order, the entries with `destructive?: true` last.
 
   ## Examples
 
@@ -315,7 +319,11 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   slot(:filter_element, doc: "The filter elements to display")
 
   slot :action, doc: "the slot for showing user actions" do
-    attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
+    attr(:name, :atom, doc: "the action name; `:default_row_show` is a card's tap target")
+
+    attr(:destructive?, :boolean,
+      doc: "lists the action last in a card menu, in the danger color"
+    )
   end
 
   slot(:card_title, doc: "the card title; without it the first column is the title")
@@ -340,6 +348,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
         >
         <div :for={row <- @rows} id={@row_id && "#{@row_id.(row)}"} class="auix-items-card-item-content" name="auix-card">
           <%= if Enum.at(@col, 0) != nil do %>
+            <div :for={show <- show_actions(@action)} class="auix-items-card-show" name="auix-card-show">
+              {render_slot(show, @row_item.(row))}
+            </div>
             <div class="auix-items-card-item-group">
               <div :if={!@first_column_not_checkbox?} class="auix-items-card-select">
                 {render_slot(Enum.at(@col, 0), @row_item.(row))}
@@ -356,6 +367,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                   {render_slot(@card_subtitle, @row_item.(row))}
                 </div>
               </div>
+              <.card_menu :if={menu_actions(@action) != []} action={menu_actions(@action)} row={@row_item.(row)} />
             </div>
             <div class="auix-items-card-item" name="auix-card-body">
               <%= if @card_body != [] do %>
@@ -369,7 +381,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                 </div>
               <% end %>
             </div>
-            <.card_actions :if={@action != []} action={@action} row={@row_item.(row)} />
           <% end %>
         </div>
       </div>
@@ -891,38 +902,42 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   defp body_cols(cols, first_column_not_checkbox?),
     do: cols |> get_cols(first_column_not_checkbox?) |> Enum.drop(1)
 
-  # Renders a card footer bar: destructive actions at the leading edge, the others at the
-  # trailing edge, and every action past the third in an overflow menu
-  attr(:action, :list, required: true, doc: "the :action slot entries")
+  # Returns the :action entry stretched over a card: the show action
+  @spec show_actions(list()) :: list()
+  defp show_actions(actions),
+    do: actions |> Enum.filter(&(Map.get(&1, :name) == :default_row_show)) |> Enum.take(1)
+
+  # Returns the :action entries of a card menu: every action but show
+  @spec menu_actions(list()) :: list()
+  defp menu_actions(actions), do: Enum.reject(actions, &(Map.get(&1, :name) == :default_row_show))
+
+  # Renders a card's row-action menu: the actions in order, then the destructive ones
+  attr(:action, :list, required: true, doc: "the :action slot entries of the menu")
   attr(:row, :any, required: true, doc: "the mapped row")
 
-  @spec card_actions(map()) :: Rendered.t()
-  defp card_actions(assigns) do
-    {bar, overflow} = Enum.split(assigns.action, 3)
-    {leading, trailing} = Enum.split_with(bar, &(Map.get(&1, :destructive?, false) == true))
+  @spec card_menu(map()) :: Rendered.t()
+  defp card_menu(assigns) do
+    {destructive, regular} =
+      Enum.split_with(assigns.action, &(Map.get(&1, :destructive?, false) == true))
 
     assigns =
       assigns
-      |> assign(:leading, leading)
-      |> assign(:trailing, trailing)
-      |> assign(:overflow, overflow)
+      |> assign(:regular, regular)
+      |> assign(:destructive, destructive)
 
     ~H"""
-    <div class="auix-items-card-actions" name="auix-card-actions">
-      <div class="auix-items-card-actions-leading" name="auix-card-actions-leading">
-        <div :for={action <- @leading} class="auix-items-card-action">{render_slot(action, @row)}</div>
-      </div>
-      <div class="auix-items-card-actions-trailing" name="auix-card-actions-trailing">
-        <div :for={action <- @trailing} class="auix-items-card-action">{render_slot(action, @row)}</div>
-        <div :if={@overflow != []} class="auix-items-card-menu" name="auix-card-menu"
-            phx-click={toggle_card_menu()} phx-click-away={hide_card_menu()}>
-          <.button type="button" class="auix-button--iconized" name="auix-card-menu-toggle"
-              title={dt("More actions")} aria-label={dt("More actions")} aria-haspopup="menu" aria-expanded="false">
-            <.icon name="hero-ellipsis-vertical" />
-          </.button>
-          <div class="auix-items-card-menu-list" name="auix-card-menu-list" role="menu">
-            <div :for={action <- @overflow} class="auix-items-card-action">{render_slot(action, @row)}</div>
-          </div>
+    <div class="auix-items-card-menu" name="auix-card-menu"
+        phx-click={toggle_card_menu()} phx-click-away={hide_card_menu()}>
+      <.button type="button" class="auix-button--iconized" name="auix-card-menu-toggle"
+          title={dt("More actions")} aria-label={dt("More actions")} aria-haspopup="menu" aria-expanded="false">
+        <.icon name="hero-ellipsis-vertical" />
+      </.button>
+      <div class="auix-items-card-menu-list" name="auix-card-menu-list" role="menu">
+        <div :if={@regular != []} class="auix-items-card-menu-group" name="auix-card-menu-actions">
+          <div :for={action <- @regular} class="auix-items-card-menu-item">{render_slot(action, @row)}</div>
+        </div>
+        <div :if={@destructive != []} class="auix-items-card-menu-group auix-items-card-menu-group--destructive" name="auix-card-menu-destructive">
+          <div :for={action <- @destructive} class="auix-items-card-menu-item">{render_slot(action, @row)}</div>
         </div>
       </div>
     </div>
