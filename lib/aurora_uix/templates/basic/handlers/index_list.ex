@@ -167,6 +167,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexList do
     end
   end
 
+  # Card view menu: "asc" or "desc" sets the direction of the active sort.
+  def handle_event(
+        "index-sort-direction",
+        %{"direction" => direction},
+        %{assigns: %{auix: auix}} = socket
+      ) do
+    case {auix.sort, to_direction(direction)} do
+      {nil, _direction} -> {:noreply, socket}
+      {_sort, nil} -> {:noreply, socket}
+      {sort, new_direction} -> {:noreply, apply_sort(socket, %{sort | direction: new_direction})}
+    end
+  end
+
   def handle_event("index-sort-direction", _params, %{assigns: %{auix: auix}} = socket) do
     case auix.sort do
       nil ->
@@ -707,6 +720,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexList do
   @spec flip(:asc | :desc) :: :asc | :desc
   defp flip(:asc), do: :desc
   defp flip(:desc), do: :asc
+
+  @spec to_direction(term()) :: :asc | :desc | nil
+  defp to_direction("asc"), do: :asc
+  defp to_direction("desc"), do: :desc
+  defp to_direction(_direction), do: nil
 
   @spec next_sort(map() | nil, atom()) :: map() | nil
   defp next_sort(%{key: key, direction: :asc}, key), do: %{key: key, direction: :desc}

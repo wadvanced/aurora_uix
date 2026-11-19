@@ -95,6 +95,45 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
     end
   end
 
+  describe "sort control rules" do
+    test "swap the select for the menu at the sm breakpoint" do
+      select = Base.rule(:auix_index_sort_select)
+
+      assert select =~ ~r/\.auix-index-sort-select \{\s*display: none;/
+
+      assert select =~
+               ~r/@media \(min-width: 640px\) \{\s*\.auix-index-sort-select \{\s*display: flex;/
+
+      assert Base.rule(:auix_index_sort_menu) =~
+               ~r/@media \(min-width: 640px\) \{\s*\.auix-index-sort-menu \{\s*display: none;/
+
+      action = Base.rule(:auix_index_sort_action)
+
+      assert action =~
+               ~r/@media \(min-width: 768px\) \{\s*\.auix-index-sort-action \{\s*display: none;/
+
+      refute action =~ "button"
+    end
+
+    test "the sort menu opens below its button and marks the active sort" do
+      list = Base.rule(:auix_index_sort_menu_list)
+
+      assert list =~ "top: 100%"
+      refute list =~ "bottom"
+      refute list =~ "left"
+      refute list =~ "right"
+
+      active = Base.rule(:auix_index_sort_menu_toggle__active)
+
+      assert active =~ ".auix-index-sort-menu > .auix-index-sort-menu-toggle--active"
+      assert active =~ "color: var(--auix-color-icon-info)"
+      assert Base.rule(:auix_index_sort_menu_check__off) =~ "visibility: hidden"
+
+      assert Base.rule(:auix_index_sort_menu_group) =~
+               ".auix-index-sort-menu-group + .auix-index-sort-menu-group"
+    end
+  end
+
   describe "theme DSL" do
     test "a local rule replaces an included one and keeps its place" do
       theme =

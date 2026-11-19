@@ -35,6 +35,7 @@ defmodule Aurora.UixWeb.Test.SortDisabledTest do
     render_click(view, "index-sort", %{"key" => "name"})
     render_click(view, "index-sort", %{"sort" => "name"})
     render_click(view, "index-sort-direction", %{})
+    render_click(view, "index-sort-direction", %{"direction" => "desc"})
 
     assert name_cells(view) == ["Charlie", "Alpha", "Bravo"]
     refute has_element?(view, "th[aria-sort]")
@@ -45,6 +46,7 @@ defmodule Aurora.UixWeb.Test.SortDisabledTest do
 
     refute has_element?(view, "#auix-sort-form-product")
     refute has_element?(view, "[name='auix-sort_action-product']")
+    refute has_element?(view, "[name='auix-sort_menu']")
   end
 
   test "an index without sortable fields renders no card sort control", %{conn: conn} do

@@ -1702,28 +1702,6 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       display: flex;
       flex-direction: row;
       align-items: stretch;
-      gap: var(--auix-gap-minimal);
-    }
-
-    .auix-index-sort-action form,
-    .auix-index-sort-action .auix-fieldset {
-      display: flex;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* The hero icon keeps its own 1.5rem box, so the switch drops its vertical padding and
-       stretches to the select height, matching the other header buttons. */
-    .auix-index-sort-action button {
-      padding-top: 0;
-      padding-bottom: 0;
-      justify-content: center;
-    }
-
-    .auix-index-sort-action .auix-select {
-      box-sizing: border-box;
-      font-size: var(--auix-font-size-caption);
-      font-weight: var(--auix-font-weight-bold);
     }
 
     @media (min-width: #{breakpoint(:md)}) {
@@ -1738,6 +1716,133 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       .auix-index-sort-action.auix-index-sort-action--always {
         display: flex;
       }
+    }
+  """)
+
+  rule(:auix_index_sort_select, """
+    .auix-index-sort-select {
+      display: none;
+      flex-direction: row;
+      align-items: stretch;
+      gap: var(--auix-gap-minimal);
+    }
+
+    .auix-index-sort-select form,
+    .auix-index-sort-select .auix-fieldset {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* The hero icon keeps its own 1.5rem box, so the switch drops its vertical padding and
+       stretches to the select height, matching the other header buttons. */
+    .auix-index-sort-select > button {
+      padding-top: 0;
+      padding-bottom: 0;
+      justify-content: center;
+    }
+
+    .auix-index-sort-select .auix-select {
+      box-sizing: border-box;
+      font-size: var(--auix-font-size-caption);
+      font-weight: var(--auix-font-weight-bold);
+    }
+
+    @media (min-width: #{breakpoint(:sm)}) {
+      .auix-index-sort-select {
+        display: flex;
+      }
+    }
+  """)
+
+  rule(:auix_index_sort_menu, """
+    .auix-index-sort-menu {
+      position: relative;
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+
+    .auix-index-sort-menu > button {
+      min-width: var(--auix-touch-target-size);
+      min-height: var(--auix-touch-target-size);
+      justify-content: center;
+    }
+
+    @media (min-width: #{breakpoint(:sm)}) {
+      .auix-index-sort-menu {
+        display: none;
+      }
+    }
+  """)
+
+  rule(:auix_index_sort_menu_toggle__active, """
+    .auix-index-sort-menu > .auix-index-sort-menu-toggle--active {
+      color: var(--auix-color-icon-info);
+      background-color: var(--auix-color-bg-secondary);
+    }
+  """)
+
+  rule(:auix_index_sort_menu_list, """
+    .auix-index-sort-menu-list {
+      display: none;
+      position: absolute;
+      inset-inline-end: 0;
+      top: 100%;
+      z-index: 10;
+      flex-direction: column;
+      min-width: max-content;
+      border-width: var(--auix-border-width-default);
+      border-style: var(--auix-border-style-default);
+      border-color: var(--auix-color-border-primary);
+      border-radius: var(--auix-border-radius-default);
+      background-color: var(--auix-color-bg-default);
+      box-shadow: var(--auix-shadow-md);
+    }
+  """)
+
+  rule(:auix_index_sort_menu_group, """
+    .auix-index-sort-menu-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .auix-index-sort-menu-group + .auix-index-sort-menu-group {
+      border-top-width: var(--auix-border-width-default);
+      border-top-style: var(--auix-border-style-default);
+      border-top-color: var(--auix-color-border-primary);
+    }
+  """)
+
+  rule(:auix_index_sort_menu_item, """
+    .auix-index-sort-menu-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--auix-gap-default);
+      min-height: var(--auix-touch-target-size);
+      padding-inline: var(--auix-padding-default);
+      border: none;
+      background-color: transparent;
+      color: inherit;
+      font-size: var(--auix-font-size-caption);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .auix-index-sort-menu-item:hover {
+      background-color: var(--auix-color-bg-hover);
+    }
+
+    .auix-index-sort-menu-item:disabled {
+      background-color: transparent;
+      color: var(--auix-color-text-inactive);
+      cursor: default;
+    }
+  """)
+
+  rule(:auix_index_sort_menu_check__off, """
+    .auix-index-sort-menu-check--off {
+      visibility: hidden;
     }
   """)
 

@@ -185,6 +185,28 @@ defmodule Aurora.UixWeb.Test.ComponentsIndexTest do
     refute has_element?(view, "#b button[name='auix-sort-reference']")
   end
 
+  test "the card sort menu sorts its own instance", %{conn: conn} do
+    sample_products(3)
+
+    {:ok, view, _html} =
+      mount_components(conn, [
+        %{module: C, id: "a", props: %{}},
+        %{module: C, id: "b", props: %{}}
+      ])
+
+    view |> element("#a button[name='auix-sort_menu_field-reference']") |> render_click()
+
+    assert has_element?(
+             view,
+             "#a button[name='auix-sort_menu_field-reference'][aria-checked='true']"
+           )
+
+    assert has_element?(
+             view,
+             "#b button[name='auix-sort_menu_field-reference'][aria-checked='false']"
+           )
+  end
+
   test "an event refreshes an instance", %{conn: conn} do
     sample_products(3)
     {:ok, view, _html} = mount_components(conn, [%{module: C, id: "a", props: %{}}])
