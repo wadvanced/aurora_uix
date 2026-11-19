@@ -4,12 +4,12 @@
 **Complexity:** normal
 
 ### Overview
-The card view's sort menu and the card ⋮ menu open through a theme rule on their toggle's `aria-expanded="true"`, not through an inline `display: flex` from `JS.toggle`, so a host rule can restyle either menu open. The rules that select the direction switch, the two menu toggles, a card menu item's action and a card's tap target by tag name now select them by an `auix-*` class: three new classes for the buttons, and the existing `auix-index-row-action` on every default row action, with the tag selectors kept as a fallback for host actions. The work is backend-agnostic action, component and theme code and covers Ash and Ecto resources alike.
+The card view's sort menu and the card ⋮ menu open through a theme rule on their toggle's `aria-expanded="true"`, not through an inline `display: flex` from `JS.toggle`, so a host rule can restyle either menu open. The rules that select the direction switch, the two menu toggles, a card menu item's action and a card's tap target by tag name now select them by an `auix-*` class: three new classes for the buttons, and the existing `auix-index-row-action` on every default row action, with the tag selectors kept as a fallback for host actions. The work is backend-agnostic action, component and theme code and covers Ash and Ecto resources alike. The issue owes no CHANGELOG entry: the menu open state and the new classes are a UI change, neither a feature nor a fix.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
-| DOC-1 | Documentation | CHANGELOG.md § [0.2.1] › Changed · guides/customization/custom_actions.md § Row actions in cards · guides/customization/styling.md § Class reference | none | federico/538-doc-1-theming-gaps | docs: theme-driven menus and classes for the sort control and index cards (#538 · DOC-1) |
+| DOC-1 | Documentation | guides/customization/custom_actions.md § Row actions in cards · guides/customization/styling.md § Class reference | none | federico/538-doc-1-theming-gaps | docs: theme-driven menus and classes for the sort control and index cards (#538 · DOC-1) |
 | UI-1 | UI | action + component + theme · sort control (`sort_header_action/1`), card menu (`card_menu/1`), default row actions (index, one-to-many) | DOC-1 | federico/538-ui-1-theming-gaps | feat: theme-driven menus and classes for the sort control and index cards (#538 · UI-1) |
 
 A section starts only when every dependency is **merged**. Independent
@@ -21,22 +21,12 @@ here.
 Depends on: none
 
 #### Documentation references
-- `CHANGELOG.md § [0.2.1]` › `### Changed`
 - `guides/customization/custom_actions.md § Row actions in cards`
 - `guides/customization/styling.md § Class reference`
 
 #### Implementation details
 
-##### CHANGELOG.md
-1. § `## [0.2.1]` › `### Changed` — after the bullet that starts `- **Index card styling (CSS class changes)**:` (it ends `guide, "Class reference").`), insert verbatim:
-   ```
-   - **Sort menu and card menu styling (CSS class changes)**: both menus open through a theme rule on
-     their toggle's `aria-expanded`, not an inline style, so a host rule can restyle them open. New
-     classes `auix-index-sort-select-direction`, `auix-index-sort-menu-toggle` and
-     `auix-items-card-menu-toggle`; every default row action carries `auix-index-row-action` (Styling
-     guide, "Class reference"). Re-run `mix auix.gen.stylesheet`: without the new rules neither menu
-     opens.
-   ```
+`CHANGELOG.md` is not edited: it stays byte for byte as on `origin/main`. The issue owes no CHANGELOG entry.
 
 ##### guides/customization/custom_actions.md
 1. § `Row actions in cards` — after the paragraph
@@ -97,9 +87,8 @@ All edits are rows of the table under § `Class reference`. Each replacement swa
    ```
 
 ##### Acceptance criteria
-- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
-      issue-link suffix (mechanical — no red test; verified by
-      `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
+- [x] AC-1: `CHANGELOG.md` is unchanged: the issue owes no CHANGELOG entry (mechanical — no red
+      test; verified by `git diff --name-only origin/main...HEAD -- CHANGELOG.md` printing nothing)
 - [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
@@ -271,6 +260,7 @@ This section adds classes and changes the JS command lists; it removes no class,
 ### Out of Scope
 - New `--auix-*` variables for `z-index`; the existing popups (`z-index: 10`, flash `50`) keep their literals.
 - `auix-inline-container` documentation.
+- A CHANGELOG entry: the menu open state and the new classes are a UI change, neither a feature nor a fix.
 - Styling `.auix-index-row-action` in the table view: its rule stays empty.
 - Adding `auix-index-row-action` to host row actions: a host action keeps its own markup and is styled through the tag fallbacks.
 - Parser, CRUD and guide schema changes: the work is backend-agnostic UI code, so no Ash nor Ecto section applies.
