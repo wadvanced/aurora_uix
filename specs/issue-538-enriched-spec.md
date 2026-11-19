@@ -97,16 +97,16 @@ All edits are rows of the table under § `Class reference`. Each replacement swa
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-538-enriched-spec.md`)
-- [ ] AC-3: `guides/customization/custom_actions.md § Row actions in cards` names the row action class (mechanical — no red test; verified by
+- [x] AC-3: `guides/customization/custom_actions.md § Row actions in cards` names the row action class (mechanical — no red test; verified by
       ``grep -c 'The default row actions carry the `auix-index-row-action` class' guides/customization/custom_actions.md`` returning 1)
-- [ ] AC-4: `guides/customization/styling.md § Class reference` lists the four classes and the open state (mechanical — no red test; verified by
+- [x] AC-4: `guides/customization/styling.md § Class reference` lists the four classes and the open state (mechanical — no red test; verified by
       ``grep -cE '^\| `\.(auix-index-sort-select-direction|auix-index-sort-menu-toggle|auix-items-card-menu-toggle|auix-index-row-action)` \|' guides/customization/styling.md`` returning 4 and
       ``grep -c 'has `aria-expanded="true"`' guides/customization/styling.md`` returning 2)
 

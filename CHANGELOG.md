@@ -29,6 +29,12 @@
   or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
 - **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
   guide, "Class reference").
+- **Sort menu and card menu styling (CSS class changes)**: both menus open through a theme rule on
+  their toggle's `aria-expanded`, not an inline style, so a host rule can restyle them open. New
+  classes `auix-index-sort-select-direction`, `auix-index-sort-menu-toggle` and
+  `auix-items-card-menu-toggle`; every default row action carries `auix-index-row-action` (Styling
+  guide, "Class reference"). Re-run `mix auix.gen.stylesheet`: without the new rules neither menu
+  opens.
 
 ### Build
 

@@ -447,6 +447,10 @@ An action that replaces `:default_row_delete` stays destructive unless it says
 their label as `title` and `aria-label`; give your own action both, as
 [Custom actions on mobile](#custom-actions-on-mobile) shows.
 
+The default row actions carry the `auix-index-row-action` class, which the card menu and the
+card's tap target style. Give your own action the class to style it the same way. Without it,
+the menu styles the action's top `a` and `button` elements, and the tap target its top element.
+
 ## Action Handlers
 
 Action handlers are simple function components that receive an `assigns` map containing:
