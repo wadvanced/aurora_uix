@@ -452,6 +452,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Renders the sort control for the index card view: a select of "Default order" (the backend
   order, no user sort) and the sortable index fields, plus a switch button that reverses the
   direction of the active sort. The switch is disabled while the default order is shown.
+  The control shows below the `md` breakpoint; with the card's `show_on: :all` it shows at
+  every breakpoint.
 
   The select emits `"index-sort"` with `"sort"` set to the field key (or `""`); the button
   emits `"index-sort-direction"`.
@@ -479,9 +481,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       |> Map.put(:sort_options, sort_options)
       |> Map.put(:sort_key, auix.sort && to_string(auix.sort.key))
       |> Map.put(:sort_icon, BasicHelpers.sort_icon(auix.sort && auix.sort.direction))
+      |> Map.put(:always?, match?(%{card: %{show_on: :all}}, auix.layout_tree))
 
     ~H"""
-    <div :if={@sort_options != []} class="auix-index-sort-action" name={"auix-sort_action-#{@auix.module}"}>
+    <div :if={@sort_options != []} class={["auix-index-sort-action", @always? && "auix-index-sort-action--always"]} name={"auix-sort_action-#{@auix.module}"}>
       <.form for={%{}} id={BasicHelpers.instance_dom_id(@auix, "auix-sort-form")} phx-change="index-sort" phx-target={@auix[:_myself]}>
         <.input type="select" id={BasicHelpers.instance_dom_id(@auix, "auix-sort-key")} name="sort"
             options={@sort_options}

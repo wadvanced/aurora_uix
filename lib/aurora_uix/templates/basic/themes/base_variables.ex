@@ -50,6 +50,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
     --auix-checkbox-group-max-height: 12rem;
     --auix-touch-target-size: 2.75rem;
     --auix-items-card-label-width: 7.25rem;
+    --auix-items-card-min-width: 17.5rem;
 
     --auix-hidden-element-size: 1px;
     --auix-focus-outline-width: 2px;

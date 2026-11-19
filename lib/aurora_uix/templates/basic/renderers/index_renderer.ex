@@ -11,6 +11,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   - Row click navigation
   - Entity field filtering
   - Integrates with Aurora UIX context and helpers
+  - Card view: the layout's `card`, else a card derived from the columns; `show_on: :all`
+    renders the cards alone
   """
 
   use Aurora.Uix.CoreComponentsImporter
@@ -19,9 +21,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
   import Aurora.Uix.Templates.Basic.Components
 
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Renderers
   alias Aurora.Uix.Templates.Basic.Components.FilteringComponents
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.Basic.Renderer
   alias Aurora.Uix.Templates.Basic.Renderers.OneToMany
 
   alias Phoenix.LiveView.JS
@@ -146,7 +150,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
         default_show_action -> Map.get(default_show_action, :function_component)
       end
 
-    assigns = Map.put(assigns, :default_show_function, default_show_function)
+    assigns =
+      assigns
+      |> Map.put(:default_show_function, default_show_function)
+      |> Map.put(:card, Map.get(assigns.auix.layout_tree, :card))
 
     ~H"""
     <div class="auix-index-actions">
@@ -180,6 +187,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             }}
         streams={@streams}
         row_id={Map.get(@auix.layout_options, :row_id)}
+        show_on={card_show_on(@card)}
       >
         <:filter_element :for={field <- @auix.index_fields} :let={infix}>
               <FilteringComponents.filter_field
@@ -200,6 +208,26 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
             )}
           <% end %>
         </:col>
+
+        <:card_title :if={@card} :let={{_id, entity} = row_info}>
+          <%= if @default_show_function do %>
+            {@default_show_function.(%{auix: Map.put(@auix, :row_info, row_info),
+              contents: [%{inner_block: fn _, _ ->
+                assigns = %{text: @card.title, entity: entity, auix: @auix}
+                ~H"<.card_text text={@text} entity={@entity} auix={@auix}/>" end}]}
+            )}
+          <% else %>
+            <.card_text text={@card.title} entity={entity} auix={@auix}/>
+          <% end %>
+        </:card_title>
+
+        <:card_subtitle :if={@card && @card.subtitle} :let={{_id, entity}}>
+          <.card_text text={@card.subtitle} entity={entity} auix={@auix}/>
+        </:card_subtitle>
+
+        <:card_body :if={@card} :let={{_id, entity}}>
+          <Renderer.render_inner_elements auix={card_auix(@auix, @card, entity)} />
+        </:card_body>
 
         <:action :let={row_info} :for={action <- @auix.index_row_actions} destructive?={action.destructive?}>
           {action.function_component.(%{auix: Map.put(@auix, :row_info, row_info)})}
@@ -230,6 +258,42 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     do: BasicHelpers.primary_key_value(entity, primary_key)
 
   defp entity_id(_auix), do: nil
+
+  @spec card_show_on(Node.Card.t() | nil) :: :mobile | :all
+  defp card_show_on(nil), do: :mobile
+  defp card_show_on(%Node.Card{show_on: show_on}), do: show_on
+
+  # A field title renders only when the field is an index column, so its value is loaded.
+  @spec card_text(map()) :: Rendered.t()
+  defp card_text(%{text: %Node.Field{field: field}, auix: auix} = assigns) do
+    if Enum.any?(auix.index_fields, &(&1.key == field.key)) do
+      ~H"<.field_value entity={@entity} field={@text.field} auix={@auix}/>"
+    else
+      ~H""
+    end
+  end
+
+  defp card_text(%{text: text} = assigns) when is_function(text, 1) do
+    ~H"{@text.(%{auix: Map.put(@auix, :entity, @entity), entity: @entity})}"
+  end
+
+  defp card_text(%{text: text} = assigns) when is_binary(text), do: ~H"{dt(@text)}"
+
+  defp card_text(assigns), do: ~H""
+
+  @spec card_auix(map(), Node.Card.t(), map()) :: map()
+  defp card_auix(auix, card, entity) do
+    Map.merge(auix, %{
+      layout_tree: card,
+      layout_type: :index,
+      entity: entity,
+      fields_to_reject: card_dropped_keys(auix, card)
+    })
+  end
+
+  @spec card_dropped_keys(map(), Node.Card.t()) :: [atom()]
+  defp card_dropped_keys(auix, card),
+    do: (card |> Node.fields() |> Enum.map(& &1.key)) -- Enum.map(auix.index_fields, & &1.key)
 
   # Resolves the field's renderer for the index layout and invokes it. `layout_type` is
   # stamped onto `auix` so renderers can pattern-match it uniformly.

@@ -1149,6 +1149,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     }
   """)
 
+  rule(:auix_items_cards, """
+    .auix-items-cards {
+      margin-top: 0;
+    }
+
+    .auix-items-cards .auix-items-card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--auix-items-card-min-width), 1fr));
+      gap: var(--auix-gap-large);
+    }
+  """)
+
   rule(:auix_items_table_container, """
     .auix-items-table-container {
       overflow-y: scroll;               
@@ -1318,6 +1330,12 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     flex: 1;
     gap: var(--auix-gap-default);
     padding: 0 var(--auix-padding-default) var(--auix-padding-default);
+  }
+
+  .auix-items-card-item .auix-inline-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: var(--auix-gap-large);
   }
   """)
 
@@ -1681,6 +1699,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     @media (min-width: #{breakpoint(:md)}) {
       .auix-index-sort-action {
         display: none;
+      }
+    }
+  """)
+
+  rule(:auix_index_sort_action__always, """
+    @media (min-width: #{breakpoint(:md)}) {
+      .auix-index-sort-action.auix-index-sort-action--always {
+        display: flex;
       }
     }
   """)
