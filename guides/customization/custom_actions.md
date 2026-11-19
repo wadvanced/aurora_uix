@@ -432,8 +432,8 @@ view, and the selection checkbox and the ⋮ menu keep their own taps. An action
 `:default_row_show` becomes the card's tap target; with `remove_row_action: :default_row_show`
 tapping the card opens nothing.
 
-The other row actions sit in a ⋮ menu at the end of the card header, in the order they are
-declared. Destructive actions go last, below a divider, in the danger color.
+Every row action, show included, sits in a ⋮ menu at the end of the card header, in the order
+they are declared. Destructive actions go last, below a divider, in the danger color.
 
 `:default_row_delete` is destructive. Mark your own action with `destructive?: true`:
 

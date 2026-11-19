@@ -5,6 +5,7 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Templates.Basic.Themes.Base
+  alias Aurora.UixWeb.Test.NavigationHelper
 
   @mobile "#auix-table-index-card-frame-products-index-mobile"
 
@@ -19,9 +20,9 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
   describe "card frame" do
     setup %{conn: conn} do
       delete_all_inventory_data()
-      create_sample_products(3, :test)
+      products = create_sample_products(3, :test)
       {:ok, view, _html} = live(conn, "/index-card-frame-products")
-      %{view: view}
+      %{view: view, products: products}
     end
 
     test "a card has a header, a body and labelled rows", %{view: view} do
@@ -53,25 +54,47 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
              )
     end
 
-    test "default row actions sit in the footer bar", %{view: view} do
+    test "default row actions sit in the header menu", %{view: view} do
       m = @mobile
 
+      refute has_element?(view, "#{m} [name='auix-card-actions']")
+
       assert has_element?(
                view,
-               "#{m} [name='auix-card-actions-leading'] a[name='auix-delete-product'][title='Delete'][aria-label='Delete']"
+               "#{m} [name='auix-card'] > .auix-items-card-item-group > .auix-items-card-select + .auix-items-card-heading + [name='auix-card-menu']"
              )
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-actions-trailing'] a[name='auix-show-product'][title='Show'][aria-label='Show']"
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name='auix-show-product'][title='Show'][aria-label='Show']"
              )
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-actions-trailing'] a[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
              )
 
-      refute has_element?(view, "#{m} [name='auix-card-menu']")
+      assert has_element?(
+               view,
+               "#{m} [name='auix-card-menu-destructive'] a[name='auix-delete-product'][title='Delete'][aria-label='Delete']"
+             )
+    end
+
+    test "tapping a card runs its show action", %{view: view, products: products} do
+      m = @mobile
+      id = products["id_test-1"].id
+
+      assert has_element?(
+               view,
+               "#{m} [name='auix-card'] > [name='auix-card-show']:first-child a[name='auix-show-product'][title='Show'][aria-label='Show']"
+             )
+
+      view
+      |> element("#{m} [name='auix-card-show'] a[phx-value-route_path$='/#{id}/show']")
+      |> render_click()
+
+      {path, _query, _stack} = view |> assert_patch() |> NavigationHelper.decode_route()
+      assert path == "/index-card-frame-products/#{id}/show"
     end
 
     test "an empty list shows no card", %{conn: conn} do

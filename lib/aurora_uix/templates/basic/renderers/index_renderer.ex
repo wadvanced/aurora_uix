@@ -229,7 +229,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           <Renderer.render_inner_elements auix={card_auix(@auix, @card, entity)} />
         </:card_body>
 
-        <:action :let={row_info} :for={action <- @auix.index_row_actions} destructive?={action.destructive?}>
+        <:action :let={row_info} :for={action <- @auix.index_row_actions} name={action.name} destructive?={action.destructive?}>
           {action.function_component.(%{auix: Map.put(@auix, :row_info, row_info)})}
         </:action>
 

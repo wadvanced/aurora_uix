@@ -152,7 +152,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
       <:col :let={entity} :for={related_field <- @auix.association.related_fields} label={dt(related_field.label)} field={related_field}>
         {display_value(entity, related_field.key)}
       </:col>
-      <:action :let={entity} :for={action <- @auix.one_to_many_row_actions} destructive?={action.destructive?}>
+      <:action :let={entity} :for={action <- @auix.one_to_many_row_actions} name={action.name} destructive?={action.destructive?}>
           {action.function_component.(%{auix: Map.put(@auix, :row_info, {BasicHelpers.primary_key_value(entity, @auix.primary_key), entity})})}
       </:action>
     </.auix_items>

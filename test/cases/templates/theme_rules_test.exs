@@ -36,13 +36,57 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
   end
 
   describe "card rules" do
-    test "use no physical side" do
-      assert Base.rule(:auix_items_card_actions) =~ "justify-content: space-between"
+    test "the card menu opens below its toggle and uses no physical side" do
+      rule = Base.rule(:auix_items_card_menu_list)
 
-      for rule <- [Base.rule(:auix_items_card_actions), Base.rule(:auix_items_card_menu_list)] do
-        refute rule =~ "left"
-        refute rule =~ "right"
-      end
+      assert rule =~ "top: 100%"
+      refute rule =~ "bottom"
+      refute rule =~ "left"
+      refute rule =~ "right"
+    end
+
+    test "hide a menu that renders nothing" do
+      assert Base.rule(:auix_items_card_menu_item) =~
+               ~r/\.auix-items-card-menu-item:not\(:has\(> \*\)\) \{\s*display: none;/
+
+      assert Base.rule(:auix_items_card_menu_group) =~
+               ~r/\.auix-items-card-menu-group:not\(:has\(\.auix-items-card-menu-item > \*\)\) \{\s*display: none;/
+
+      assert Base.rule(:auix_items_card_menu) =~
+               ~r/\.auix-items-card-menu:not\(:has\(\.auix-items-card-menu-item > \*\)\) \{\s*display: none;/
+    end
+
+    test "set the destructive group apart" do
+      assert Base.rule(:auix_items_card_menu_group__destructive) =~
+               "color: var(--auix-color-icon-danger)"
+
+      assert Base.rule(:auix_items_card_menu_group) =~
+               ".auix-items-card-menu-group:has(.auix-items-card-menu-item > *) + .auix-items-card-menu-group--destructive"
+    end
+
+    test "align the checkbox with the title" do
+      select = Base.rule(:auix_items_card_select)
+
+      assert select =~ "height: var(--auix-line-height-relaxed)"
+      assert select =~ ".auix-items-card-select .auix-fieldset"
+      assert select =~ ".auix-items-card-select .auix-checkbox"
+      assert Base.rule(:auix_items_card_title) =~ "line-height: var(--auix-line-height-relaxed)"
+    end
+
+    test "stretch the show action over the card" do
+      show = Base.rule(:auix_items_card_show)
+
+      assert show =~ "position: absolute"
+      assert show =~ "inset: 0"
+      assert Base.rule(:auix_items_card_item_content) =~ "position: relative"
+
+      for name <- [
+            :auix_items_card_actions,
+            :auix_items_card_actions_leading,
+            :auix_items_card_actions_trailing,
+            :auix_items_card_action
+          ],
+          do: assert(Base.rule(name) == "")
     end
 
     test "lay the card grid out responsively" do

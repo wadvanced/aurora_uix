@@ -126,6 +126,43 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUIActionsTest do
            ]
   end
 
+  test "Test row actions in child cards", %{conn: conn} do
+    delete_all_inventory_data()
+
+    product_id =
+      1
+      |> create_sample_products_with_transactions(3, :test)
+      |> List.first()
+      |> elem(1)
+      |> Map.get(:id)
+
+    {:ok, view, _html} =
+      live(conn, "/association-one_to_many-actions-products/#{product_id}/edit")
+
+    c = "div[name='auix-one_to_many-product'] [name='auix-card']"
+
+    assert has_element?(
+             view,
+             "#{c} > [name='auix-card-show']:first-child a[name^='auix-show-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name^='auix-show-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a",
+             "Custom edit"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-destructive'] a[name^='auix-delete-product__product_transaction-']"
+           )
+  end
+
   test "Test footer actions", %{conn: conn} do
     delete_all_inventory_data()
     # Create sample data with 1 product
