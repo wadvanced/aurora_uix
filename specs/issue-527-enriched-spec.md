@@ -9,7 +9,7 @@ Index cards lose their footer action bar. Tapping a card runs its show action, a
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
-| DOC-1 | Documentation | CHANGELOG.md § [0.2.1] › Added · guides/core/layouts.md § Index Cards · guides/customization/custom_actions.md § Understanding the Action System, § Row actions in cards · guides/customization/overriding_components.md § `:basic_components` · guides/customization/styling.md § Sizes & dimensions, § Class reference | none | federico/527-doc-1-card-header-menu | docs: index card header menu and tap to show (#527 · DOC-1) |
+| DOC-1 | Documentation | CHANGELOG.md § [0.2.1] · guides/core/layouts.md § Index Cards · guides/customization/custom_actions.md § Understanding the Action System, § Row actions in cards · guides/customization/overriding_components.md § `:basic_components` · guides/customization/styling.md § Sizes & dimensions, § Class reference | none | federico/527-doc-1-card-header-menu | docs: index card header menu and tap to show (#527 · DOC-1) |
 | UI-1 | UI | component + renderer + theme · card tap target, header ⋮ menu, checkbox alignment (`auix_items_card/1`) | DOC-1 | federico/527-ui-1-card-header-menu | feat: index card header menu and tap to show (#527 · UI-1) |
 
 A section starts only when every dependency is **merged**. Independent
@@ -21,7 +21,7 @@ here.
 Depends on: none
 
 #### Documentation references
-- `CHANGELOG.md § [0.2.1]` › `### Added`
+- `CHANGELOG.md § [0.2.1]`
 - `guides/core/layouts.md § Index Cards`
 - `guides/customization/custom_actions.md § Understanding the Action System`, `§ Row actions in cards`
 - `guides/customization/overriding_components.md § :basic_components — Aurora.Uix.Templates.Basic.Components`
@@ -30,17 +30,55 @@ Depends on: none
 #### Implementation details
 
 ##### CHANGELOG.md
-1. § `## [0.2.1]` › `### Added` › `- **Index cards**` — replace these two lines:
+1. § `## [0.2.1]` — replace every line from `## [0.2.1]` up to, and not including, the line
+   `## [0.2.0] - 2026-10-21` with the text below, verbatim, followed by one blank line. It
+   replaces every entry of the section, `### Added`, `### Changed` and `### Build`, with a short
+   one.
    ```
-     - Row actions sit in a footer bar below the card body, and `destructive?: true` marks a row
-       action as destructive (Custom Actions guide, "Row actions in cards").
+   ## [0.2.1]
+
+   ### Added
+
+   - **Reusable components**: `auix_create_ui` generates an `IndexComponent` next to `FormComponent`
+     and `ShowComponent`, and the three can be embedded in any LiveView (Reusable Components guide).
+   - **Action icons**: every default action that renders a button or a link has an icon; below the
+     640px breakpoint a default action button shows only its icon. `action_icons:` changes the icons
+     (Custom Actions guide, "Action Icons").
+   - **Index cards**: a `card` in the `do` block of `index_columns` lays out the index cards, and
+     `show_on: :all` shows them at every breakpoint (Layouts guide, "Index Cards"). Tapping a card
+     opens its show view; the other row actions sit in a ⋮ menu in the card header (Custom Actions
+     guide, "Row actions in cards").
+
+   ### Changed
+
+   - **Updated Dependencies**
+     - ash: 3.36.1 -> 3.37.6
+     - ash_phoenix: 2.3.25 -> 2.3.26
+     - ash_postgres: 2.15.1 -> 2.16.0
+     - bandit: 1.13.1 -> 1.15.0
+     - dialyxir: 1.4.8 -> 1.4.9
+     - image: 0.72.0 -> 0.73.0
+     - lazy_html: 0.1.13 -> 0.1.14
+     - phoenix_html: 4.3.0 -> 4.4.0
+     - sourceror: 1.12.4 -> 1.13.0
+   - **Generated module names (breaking)**: two generated modules with the same name in one
+     `auix_create_ui` module are a compile-time error, and a resource created for an embedded field
+     generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
+   - **Associations to imported resources**: a resource links its associations to the resources its
+     module imports with `@auix_resource_metadata` (Reusable Components guide, "Reusing components
+     from another views module").
+   - **Form navigation in LiveView tests**: the redirect after a form saves or closes comes from the
+     generated `Index` LiveView; assert it with `assert_redirect(view)` (What's New in 0.2.1,
+     "Upgrading from 0.2.0").
+   - **Index card styling (CSS class changes)**: the mobile list is a list of bordered cards, and
+     `auix-items-card-item-content--even` and `auix-items-card-item-content--odd` are removed
+     (Styling guide, "Class reference").
+
+   ### Build
+
+   - Claude Code cloud sessions restore a cached build at start. Dialyzer PLTs live in `priv/plts`.
    ```
-   with, verbatim:
-   ```
-     - Tapping a card opens its show view. The other row actions sit in a ⋮ menu in the card
-       header, and `destructive?: true` marks a row action as destructive: it goes last in the
-       menu, in the danger color (Custom Actions guide, "Row actions in cards").
-   ```
+2. Every line from `## [0.2.0] - 2026-10-21` to the end of the file stays byte for byte.
 
 ##### guides/core/layouts.md
 1. § `Index Cards` — replace the paragraph
@@ -134,31 +172,38 @@ Depends on: none
       ```
 
 ##### Acceptance criteria
-- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-527-enriched-spec.md`)
-- [x] AC-3: no index-card entry of `CHANGELOG.md` mentions a footer bar (mechanical — no red test;
-      verified by `grep -c 'footer bar' CHANGELOG.md` returning 0)
-- [x] AC-4: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
+- [ ] AC-3: `CHANGELOG.md § [0.2.1]` reads as prescribed: 43 lines, the nine dependency lines its
+      only sub-bullets, and no footer bar (mechanical — no red test; verified by
+      `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f' CHANGELOG.md | wc -l` returning 43, the
+      same `awk` piped to `grep -c '^  - '` returning 9, and `grep -c 'footer bar' CHANGELOG.md`
+      returning 0)
+- [ ] AC-4: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
       verified by `grep -c 'footer bar' guides/core/layouts.md` returning 0 and
       `grep -c '⋮ menu of row actions' guides/core/layouts.md` returning 1)
-- [x] AC-5: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
+- [ ] AC-5: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
       (mechanical — no red test; verified by
       `grep -c 'footer bar' guides/customization/custom_actions.md` returning 0 and
       `grep -c "the card's tap target" guides/customization/custom_actions.md` returning 1)
-- [x] AC-6: `guides/customization/overriding_components.md` describes the card menu and the tap
+- [ ] AC-6: `guides/customization/overriding_components.md` describes the card menu and the tap
       (mechanical — no red test; verified by
       `grep -c 'tapping a card runs its show action' guides/customization/overriding_components.md`
       returning 1)
-- [x] AC-7: `guides/customization/styling.md` lists the new classes and none of the footer ones
+- [ ] AC-7: `guides/customization/styling.md` lists the new classes and none of the footer ones
       (mechanical — no red test; verified by
       `grep -c 'auix-items-card-actions' guides/customization/styling.md` returning 0,
       `grep -c 'auix-items-card-menu-' guides/customization/styling.md` returning 4 and
       `grep -c 'auix-items-card-show' guides/customization/styling.md` returning 1)
+- [ ] AC-8: every released section of `CHANGELOG.md`, from `## [0.2.0] - 2026-10-21` to the end
+      of the file, is unchanged (mechanical — no red test; verified by
+      `diff <(git show origin/main:CHANGELOG.md | sed -n '/^## \[0.2.0\]/,$p') <(sed -n '/^## \[0.2.0\]/,$p' CHANGELOG.md)`
+      printing nothing)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
@@ -418,6 +463,7 @@ Facts this section builds on:
 ---
 
 ### Out of Scope
+- `CHANGELOG.md` sections of released versions, `[0.2.0]` and earlier: published history, left as they are.
 - Labels inside the ⋮ menu: an action renders there as its function component renders it.
 - The table view's row actions: they stay in the table's action cell.
 - Parser sections: the change is component, renderer and theme code over the action list, so it covers the Ash and the Ecto backend alike.
