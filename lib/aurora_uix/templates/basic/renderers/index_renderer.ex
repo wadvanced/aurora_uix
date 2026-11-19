@@ -201,8 +201,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
           <% end %>
         </:col>
 
-        <:action :let={row_info} :for={%{function_component: action} <- @auix.index_row_actions}>
-          {action.(%{auix: Map.put(@auix, :row_info, row_info)})}
+        <:action :let={row_info} :for={action <- @auix.index_row_actions} destructive?={action.destructive?}>
+          {action.function_component.(%{auix: Map.put(@auix, :row_info, row_info)})}
         </:action>
 
       </.auix_items>

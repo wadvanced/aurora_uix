@@ -181,7 +181,7 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
     |> render()
     |> LazyHTML.from_document()
     |> LazyHTML.query(
-      "#auix-table-sortable-columns-products-index-mobile .auix-items-card-item > div:nth-of-type(2) [name='auix-column-value']"
+      "#auix-table-sortable-columns-products-index-mobile .auix-items-card-item > div:nth-of-type(1) [name='auix-column-value']"
     )
     |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim()))
   end

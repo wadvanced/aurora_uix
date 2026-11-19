@@ -48,6 +48,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
 
     /* Caps a checkbox group so a long candidate list scrolls instead of stretching the form */
     --auix-checkbox-group-max-height: 12rem;
+    --auix-touch-target-size: 2.75rem;
+    --auix-items-card-label-width: 7.25rem;
 
     --auix-hidden-element-size: 1px;
     --auix-focus-outline-width: 2px;

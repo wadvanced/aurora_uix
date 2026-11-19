@@ -20,6 +20,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.RoutingComponents
   import Phoenix.Component, only: [sigil_H: 2, link: 1]
@@ -102,7 +103,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
 
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
-        name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
+        name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
+        title={dt("Show")} aria-label={dt("Show")}>
           <.action_icon icon={@icon} class="auix-icon-info" />
       </.auix_link>
     """
@@ -125,7 +127,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
 
     ~H"""
       <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
-      name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}>
+      name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
+      title={dt("Edit")} aria-label={dt("Edit")}>
           <.action_icon icon={@icon} class="auix-icon-safe" />
       </.auix_link>
     """
@@ -159,6 +162,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
           |> uix_hide(uix_id_selector(elem(@auix.row_info, 0)))}
         name={"auix-delete-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
         data-confirm="Are you sure?"
+        title={dt("Delete")}
+        aria-label={dt("Delete")}
       >
         <.action_icon icon={@icon} class="auix-icon-danger" />
       </.link>
