@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Supports dynamic modification of actions via layout tree options
   - Includes responsive pagination controls with multiple breakpoints
   - Offers filter management actions (clear/submit)
-  - Offers a card-view sort control (a select of default order plus the sortable fields, and a direction switch)
+  - Offers a card-view sort control (a select of default order plus the sortable fields, and a direction switch; below the `sm` breakpoint, one icon button with a menu of the fields and directions)
   - Every button and link action takes its icon from the layout's `action_icons:` option (defaults in `Aurora.Uix.Action.default_icons/1`); below the `sm` breakpoint a text button shows only its icon
 
   ## Key Constraints
@@ -449,14 +449,18 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
-  Renders the sort control for the index card view: a select of "Default order" (the backend
-  order, no user sort) and the sortable index fields, plus a switch button that reverses the
-  direction of the active sort. The switch is disabled while the default order is shown.
-  The control shows below the `md` breakpoint; with the card's `show_on: :all` it shows at
-  every breakpoint.
+  Renders the sort control for the index card view. From the `sm` breakpoint up it is a select
+  of "Default order" (the backend order, no user sort) and the sortable index fields, plus a
+  switch button that reverses the direction of the active sort; the switch is disabled while
+  the default order is shown. Below the `sm` breakpoint it is one icon button that opens a menu
+  of "Default order", the sortable fields, "Ascending" and "Descending": a check marks the
+  active field and direction, the directions are disabled while the default order is shown,
+  and the button is highlighted while a field sort is on. The control shows below the `md`
+  breakpoint; with the card's `show_on: :all` it shows at every breakpoint.
 
-  The select emits `"index-sort"` with `"sort"` set to the field key (or `""`); the button
-  emits `"index-sort-direction"`.
+  The select and the menu's field options emit `"index-sort"` with `"sort"` set to the field
+  key (`""` for "Default order"). The switch emits `"index-sort-direction"`; the menu's
+  direction options emit it with `"direction"` set to `"asc"` and `"desc"`.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
@@ -481,25 +485,69 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       |> Map.put(:sort_options, sort_options)
       |> Map.put(:sort_key, auix.sort && to_string(auix.sort.key))
       |> Map.put(:sort_icon, BasicHelpers.sort_icon(auix.sort && auix.sort.direction))
+      |> Map.put(:sort_direction, auix.sort && auix.sort.direction)
+      |> Map.put(:menu_toggle_class, sort_menu_toggle_class(auix.sort))
       |> Map.put(:always?, match?(%{card: %{show_on: :all}}, auix.layout_tree))
 
     ~H"""
     <div :if={@sort_options != []} class={["auix-index-sort-action", @always? && "auix-index-sort-action--always"]} name={"auix-sort_action-#{@auix.module}"}>
-      <.form for={%{}} id={BasicHelpers.instance_dom_id(@auix, "auix-sort-form")} phx-change="index-sort" phx-target={@auix[:_myself]}>
-        <.input type="select" id={BasicHelpers.instance_dom_id(@auix, "auix-sort-key")} name="sort"
-            options={@sort_options}
-            value={@sort_key}
-            prompt={dt("Default order")}
-            omit_label?={true} />
-      </.form>
-      <.button type="button" class="auix-button--alt"
-          name={"auix-sort_direction-#{@auix.module}"}
-          disabled={is_nil(@auix.sort)}
-          phx-click="index-sort-direction"
-          phx-target={@auix[:_myself]}
-          aria-label={dt("Reverse sort direction")}>
-        <.icon name={@sort_icon} />
-      </.button>
+      <div class="auix-index-sort-select">
+        <.form for={%{}} id={BasicHelpers.instance_dom_id(@auix, "auix-sort-form")} phx-change="index-sort" phx-target={@auix[:_myself]}>
+          <.input type="select" id={BasicHelpers.instance_dom_id(@auix, "auix-sort-key")} name="sort"
+              options={@sort_options}
+              value={@sort_key}
+              prompt={dt("Default order")}
+              omit_label?={true} />
+        </.form>
+        <.button type="button" class="auix-button--alt"
+            name={"auix-sort_direction-#{@auix.module}"}
+            disabled={is_nil(@auix.sort)}
+            phx-click="index-sort-direction"
+            phx-target={@auix[:_myself]}
+            aria-label={dt("Reverse sort direction")}>
+          <.icon name={@sort_icon} />
+        </.button>
+      </div>
+      <div class="auix-index-sort-menu" name="auix-sort_menu"
+          phx-click={toggle_sort_menu()} phx-click-away={hide_sort_menu()}>
+        <.button type="button" class={@menu_toggle_class} name="auix-sort_menu_toggle"
+            title={dt("Sort")} aria-label={dt("Sort")} aria-haspopup="menu" aria-expanded="false">
+          <.icon name="hero-arrows-up-down" />
+        </.button>
+        <div class="auix-index-sort-menu-list" name="auix-sort_menu_list" role="menu">
+          <div class="auix-index-sort-menu-group" role="group" aria-label={dt("Sort by")}>
+            <.button type="button" class="auix-index-sort-menu-item" name="auix-sort_menu_default"
+                role="menuitemradio" aria-checked={to_string(is_nil(@auix.sort))}
+                phx-click={push_sort_menu(@auix, "index-sort", %{sort: ""})}>
+              <.icon name="hero-check" class={sort_menu_check_class(is_nil(@auix.sort))} />
+              {dt("Default order")}
+            </.button>
+            <.button :for={{label, key} <- @sort_options} type="button" class="auix-index-sort-menu-item"
+                name={"auix-sort_menu_field-#{key}"}
+                role="menuitemradio" aria-checked={to_string(@sort_key == key)}
+                phx-click={push_sort_menu(@auix, "index-sort", %{sort: key})}>
+              <.icon name="hero-check" class={sort_menu_check_class(@sort_key == key)} />
+              {label}
+            </.button>
+          </div>
+          <div class="auix-index-sort-menu-group" role="group" aria-label={dt("Sort direction")}>
+            <.button type="button" class="auix-index-sort-menu-item" name="auix-sort_menu_direction-asc"
+                role="menuitemradio" aria-checked={to_string(@sort_direction == :asc)}
+                disabled={is_nil(@auix.sort)}
+                phx-click={push_sort_menu(@auix, "index-sort-direction", %{direction: "asc"})}>
+              <.icon name="hero-check" class={sort_menu_check_class(@sort_direction == :asc)} />
+              {dt("Ascending")}
+            </.button>
+            <.button type="button" class="auix-index-sort-menu-item" name="auix-sort_menu_direction-desc"
+                role="menuitemradio" aria-checked={to_string(@sort_direction == :desc)}
+                disabled={is_nil(@auix.sort)}
+                phx-click={push_sort_menu(@auix, "index-sort-direction", %{direction: "desc"})}>
+              <.icon name="hero-check" class={sort_menu_check_class(@sort_direction == :desc)} />
+              {dt("Descending")}
+            </.button>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
@@ -688,6 +736,47 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
     |> Map.put(:icon, resolve_icon(assigns, action_name))
     |> Map.put(:label, label)
     |> Map.put(:title, Actions.label_title(label))
+  end
+
+  # The class of the sort menu button; highlighted while a field sort is on
+  @spec sort_menu_toggle_class(map() | nil) :: binary()
+  defp sort_menu_toggle_class(nil), do: "auix-button--iconized"
+
+  defp sort_menu_toggle_class(_sort),
+    do: "auix-button--iconized auix-index-sort-menu-toggle--active"
+
+  # The class of a sort menu option's check; an inactive option keeps it invisible
+  @spec sort_menu_check_class(boolean()) :: binary() | nil
+  defp sort_menu_check_class(true), do: nil
+  defp sort_menu_check_class(false), do: "auix-index-sort-menu-check--off"
+
+  # Opens or closes the sort menu, addressed relative to the menu element
+  @spec toggle_sort_menu() :: JS.t()
+  defp toggle_sort_menu do
+    %JS{}
+    |> JS.toggle(to: {:inner, "[name='auix-sort_menu_list']"}, display: "flex")
+    |> JS.toggle_attribute({"aria-expanded", "true", "false"},
+      to: {:inner, "[name='auix-sort_menu_toggle']"}
+    )
+    |> JS.focus_first(to: {:inner, "[name='auix-sort_menu_list']"})
+  end
+
+  # Closes the sort menu, addressed relative to the menu element
+  @spec hide_sort_menu() :: JS.t()
+  defp hide_sort_menu do
+    %JS{}
+    |> JS.hide(to: {:inner, "[name='auix-sort_menu_list']"})
+    |> JS.set_attribute({"aria-expanded", "false"},
+      to: {:inner, "[name='auix-sort_menu_toggle']"}
+    )
+  end
+
+  # Pushes a sort event from a sort menu option, then runs the menu's own hide
+  @spec push_sort_menu(map(), binary(), map()) :: JS.t()
+  defp push_sort_menu(auix, event, value) do
+    event
+    |> JS.push(BasicHelpers.target_opts(auix, value: value))
+    |> JS.exec("phx-click-away", to: {:closest, "[name='auix-sort_menu']"})
   end
 
   # The id comes from the same :row_id function that renders the row.
