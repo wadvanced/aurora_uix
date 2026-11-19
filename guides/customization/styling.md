@@ -499,9 +499,11 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-items-table-header-sort` | Sortable index column header button (label + direction arrow) | `--auix-gap-minimal` |
 | `.auix-index-sort-action` | Card-view sort control in the index header actions: the field select and direction switch from the `sm` breakpoint up, the sort menu below it; hidden from the `md` breakpoint up, where the column headers sort | Structural only |
 | `.auix-index-sort-select` | Field select plus direction switch button of the card-view sort control; shown from the `sm` breakpoint up | `--auix-gap-minimal`, `--auix-font-size-caption`, `--auix-font-weight-bold` |
-| `.auix-index-sort-menu` | Icon button and menu of the card-view sort control; shown below the `sm` breakpoint | `--auix-touch-target-size` |
+| `.auix-index-sort-select-direction` | Direction switch button of the card-view sort control, stretched to the select height | Structural only |
+| `.auix-index-sort-menu` | Icon button and menu of the card-view sort control; shown below the `sm` breakpoint | Structural only |
+| `.auix-index-sort-menu-toggle` | Icon button that opens and closes the sort menu; its `aria-expanded` drives the open state | `--auix-touch-target-size` |
 | `.auix-index-sort-menu-toggle--active` | Sort menu button while a field sort is on | `--auix-color-icon-info`, `--auix-color-bg-secondary` |
-| `.auix-index-sort-menu-list` | Sort menu, opening below its button (hidden until toggled) | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-shadow-md` |
+| `.auix-index-sort-menu-list` | Sort menu, opening below its button; hidden until `.auix-index-sort-menu-toggle` has `aria-expanded="true"` | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-shadow-md` |
 | `.auix-index-sort-menu-group` | One group of the sort menu: the fields, then the directions below a divider | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary` |
 | `.auix-index-sort-menu-item` | One option of the sort menu; a check marks the active field and the active direction | `--auix-gap-default`, `--auix-touch-target-size`, `--auix-padding-default`, `--auix-font-size-caption`, `--auix-color-bg-hover`, `--auix-color-text-inactive` |
 | `.auix-index-sort-menu-check--off` | Check of an inactive sort menu option, kept invisible so the labels line up | Structural only |
@@ -511,7 +513,7 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-action-icon-text` | An action icon given as a character (`<.action_icon>`) | Structural only |
 | `.auix-items-card-list` | List of index cards | `--auix-gap-large` |
 | `.auix-items-card-item-content` | One index card; the show action is stretched over it | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
-| `.auix-items-card-show` | Tap target of a card: the show action, stretched over the card and transparent | Structural only |
+| `.auix-items-card-show` | Tap target of a card: the show action, stretched over the card and transparent; the action is matched as `.auix-index-row-action`, else as any child element | Structural only |
 | `.auix-items-card-item-group` | Card header: checkbox, heading and ⋮ menu | `--auix-gap-large`, `--auix-padding-default` |
 | `.auix-items-card-select` | Checkbox slot of the card header; centers the checkbox on the first line of the title | `--auix-line-height-relaxed` |
 | `.auix-items-card-heading` | Title and subtitle column of the card header | `--auix-gap-minimal` |
@@ -519,11 +521,13 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-items-card-subtitle` | Card subtitle | `--auix-font-size-caption`, `--auix-color-text-tertiary` |
 | `.auix-items-card-item` | Card body | `--auix-gap-default`, `--auix-padding-default` |
 | `.auix-items-card-item-fieldset` | One `label · value` row of a card | `--auix-items-card-label-width`, `--auix-gap-large` |
-| `.auix-items-card-menu` | ⋮ menu toggle at the end of the card header; hidden when no menu item renders | `--auix-touch-target-size` |
-| `.auix-items-card-menu-list` | Row-action menu of the card header, opening below the toggle (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
+| `.auix-items-card-menu` | ⋮ menu at the end of the card header: its toggle and its list; hidden when no menu item renders | Structural only |
+| `.auix-items-card-menu-toggle` | ⋮ button that opens and closes the card menu; its `aria-expanded` drives the open state | `--auix-touch-target-size` |
+| `.auix-items-card-menu-list` | Row-action menu of the card header, opening below the toggle; hidden until `.auix-items-card-menu-toggle` has `aria-expanded="true"` | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
 | `.auix-items-card-menu-group` | One group of the card menu: the row actions, then the destructive ones below a divider; hidden when none of its items renders | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary` |
 | `.auix-items-card-menu-group--destructive` | Destructive group of the card menu, in the danger color | `--auix-color-icon-danger` |
-| `.auix-items-card-menu-item` | One row action in the card menu; hidden when it renders nothing | `--auix-touch-target-size` |
+| `.auix-items-card-menu-item` | One row action in the card menu; hidden when it renders nothing. Its action gets the touch target as `.auix-index-row-action`, else as an `a` element, else as a `button` element | `--auix-touch-target-size` |
+| `.auix-index-row-action` | Every default row action link (index and one-to-many): a touch target in the card menu, and the card's tap target as the show action | `--auix-touch-target-size` |
 | `.auix-items-cards` | Card container shown at every breakpoint (`show_on: :all`); lays the cards out as a grid | `--auix-items-card-min-width`, `--auix-gap-large` |
 | `.auix-index-sort-action--always` | Keeps the card-view sort control visible from the `md` breakpoint up (`show_on: :all`) | Structural only |
 
