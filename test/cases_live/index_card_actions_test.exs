@@ -28,12 +28,13 @@ defmodule Aurora.UixWeb.Test.IndexCardActionsTest do
   # See section `Including cases_live tests in the test server` in the README.md file.
   auix_create_ui do
     index_columns(:product, [:reference, :name],
+      remove_row_action: :default_row_show,
       insert_row_action: {:archive, &__MODULE__.archive_action/1, destructive?: true},
       add_row_action: {:copy, &__MODULE__.copy_action/1}
     )
   end
 
-  test "extra row actions move into the menu", %{conn: conn} do
+  test "the menu lists the row actions in order, destructive last", %{conn: conn} do
     m = "#auix-table-index-card-actions-products-index-mobile"
     delete_all_inventory_data()
     create_sample_products(1, :test)
@@ -41,25 +42,29 @@ defmodule Aurora.UixWeb.Test.IndexCardActionsTest do
 
     assert has_element?(
              view,
-             "#{m} [name='auix-card-actions-leading'] a[name='auix-archive-product']"
+             "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name='auix-edit-product']"
            )
 
     assert has_element?(
              view,
-             "#{m} [name='auix-card-actions-trailing'] > .auix-items-card-action a[name='auix-show-product']"
+             "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a[name='auix-copy-product']"
            )
 
     assert has_element?(
              view,
-             "#{m} [name='auix-card-actions-trailing'] > .auix-items-card-action a[name='auix-edit-product']"
+             "#{m} [name='auix-card-menu-destructive'] > .auix-items-card-menu-item:nth-child(1) a[name='auix-archive-product']"
            )
-
-    assert has_element?(view, "#{m} [name='auix-card-menu-list'] a[name='auix-delete-product']")
-    assert has_element?(view, "#{m} [name='auix-card-menu-list'] a[name='auix-copy-product']")
 
     assert has_element?(
              view,
-             "#{m} button[name='auix-card-menu-toggle'][aria-label='More actions'][aria-expanded='false']"
+             "#{m} [name='auix-card-menu-destructive'] > .auix-items-card-menu-item:nth-child(2) a[name='auix-delete-product']"
+           )
+
+    refute has_element?(view, "#{m} [name='auix-card-show']")
+
+    assert has_element?(
+             view,
+             "#{m} .auix-items-card-item-group button[name='auix-card-menu-toggle'][aria-label='More actions'][aria-expanded='false']"
            )
   end
 end
