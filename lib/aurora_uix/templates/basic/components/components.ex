@@ -273,8 +273,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   Each card has a header (the selection checkbox, the first non-checkbox column as its title,
   and a ⋮ menu) and a body of `label · value` rows for the remaining columns. The `:action`
   entry named `:default_row_show` is stretched over the card, so tapping the card runs it; the
-  checkbox and the menu keep their own taps. The menu holds every other `:action` entry in
-  order, the entries with `destructive?: true` last.
+  checkbox and the menu keep their own taps. The menu holds every `:action` entry in order,
+  the entries with `destructive?: true` last.
 
   ## Examples
 
@@ -367,7 +367,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                   {render_slot(@card_subtitle, @row_item.(row))}
                 </div>
               </div>
-              <.card_menu :if={menu_actions(@action) != []} action={menu_actions(@action)} row={@row_item.(row)} />
+              <.card_menu :if={@action != []} action={@action} row={@row_item.(row)} />
             </div>
             <div class="auix-items-card-item" name="auix-card-body">
               <%= if @card_body != [] do %>
@@ -906,10 +906,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec show_actions(list()) :: list()
   defp show_actions(actions),
     do: actions |> Enum.filter(&(Map.get(&1, :name) == :default_row_show)) |> Enum.take(1)
-
-  # Returns the :action entries of a card menu: every action but show
-  @spec menu_actions(list()) :: list()
-  defp menu_actions(actions), do: Enum.reject(actions, &(Map.get(&1, :name) == :default_row_show))
 
   # Renders a card's row-action menu: the actions in order, then the destructive ones
   attr(:action, :list, required: true, doc: "the :action slot entries of the menu")
