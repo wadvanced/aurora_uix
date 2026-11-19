@@ -4,15 +4,10 @@
 
 ### Added
 
-- **Reusable components**: `auix_create_ui` generates an `IndexComponent` next to `FormComponent`
-  and `ShowComponent`, and the three can be embedded in any LiveView (Reusable Components guide).
-- **Action icons**: every default action that renders a button or a link has an icon; below the
-  640px breakpoint a default action button shows only its icon. `action_icons:` changes the icons
-  (Custom Actions guide, "Action Icons").
-- **Index cards**: a `card` in the `do` block of `index_columns` lays out the index cards, and
-  `show_on: :all` shows them at every breakpoint (Layouts guide, "Index Cards"). Tapping a card
-  opens its show view; the other row actions sit in a ⋮ menu in the card header (Custom Actions
-  guide, "Row actions in cards").
+- **Reusable components**: `IndexComponent`, `FormComponent` and `ShowComponent` can be embedded in
+  any LiveView (Reusable Components guide).
+- **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
+- **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
 
 ### Changed
 
@@ -26,18 +21,14 @@
   - lazy_html: 0.1.13 -> 0.1.14
   - phoenix_html: 4.3.0 -> 4.4.0
   - sourceror: 1.12.4 -> 1.13.0
-- **Generated module names (breaking)**: two generated modules with the same name in one
-  `auix_create_ui` module are a compile-time error, and a resource created for an embedded field
-  generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
-- **Associations to imported resources**: a resource links its associations to the resources its
-  module imports with `@auix_resource_metadata` (Reusable Components guide, "Reusing components
-  from another views module").
-- **Form navigation in LiveView tests**: the redirect after a form saves or closes comes from the
-  generated `Index` LiveView; assert it with `assert_redirect(view)` (What's New in 0.2.1,
-  "Upgrading from 0.2.0").
-- **Index card styling (CSS class changes)**: the mobile list is a list of bordered cards, and
-  `auix-items-card-item-content--even` and `auix-items-card-item-content--odd` are removed
-  (Styling guide, "Class reference").
+- **Generated module names (breaking)**: a duplicate generated module name fails compilation, and an
+  embedded field generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Associations to imported resources**: an association links to a resource imported with
+  `@auix_resource_metadata`.
+- **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves
+  or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
+  guide, "Class reference").
 
 ### Build
 
