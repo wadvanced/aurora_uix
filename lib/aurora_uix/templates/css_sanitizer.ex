@@ -68,6 +68,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
                         "background(|-[a-z-]+)",
                         "fill(|-[a-z-]+)",
                         "opacity",
+                        "object-fit",
                         # --- Lists ---
                         "list-style(|-[a-z-]+)",
                         # --- Flex and Grid---
