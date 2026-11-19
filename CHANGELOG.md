@@ -4,46 +4,10 @@
 
 ### Added
 
-- **Reusable components**
-  - `auix_create_ui` generates an `IndexComponent` next to `FormComponent` and `ShowComponent`. The three
-    components can be embedded in any LiveView. The generated `Index` LiveView keeps its list, routes,
-    handler hooks and behaviour.
-  - A component never navigates: it reports what the user asked for to its parent, and the parent decides.
-    `Aurora.Uix.Navigation` holds the navigation state of the generated LiveView (`@auix.navigation`),
-    which patches and navigates as before.
-  - Every generated module has a name in its `auix_create_ui` module. `module_name:` on a layout names its
-    component, an `index_live` line names the index LiveView, and `auix_modules/0` and `auix_module/1`
-    return the modules, with the modules imported through `@auix_modules`. `use:` on a layout takes a
-    component generated elsewhere for a resource of this module. A LiveView you write attaches the
-    components it needs the same way and gives each one its `resource`.
-  - `auix_create_ui generate:` chooses which kinds of module are generated; leaving out `:index_live`
-    generates the components alone.
-  - `auix_live_resources/3` takes `index_live:` to route to a renamed LiveView.
-  - `component_handler_module:` on `index_columns` sets the handler of the `IndexComponent`
-    (`IndexComponentImpl`).
-  - `Aurora.Uix.Live.ComponentHooks` forwards `Aurora.Uix.Events` to the components of a hand-written LiveView.
-  - A one-to-many list is an embedded `IndexComponent`; its columns come from the resource the field names
-    with `resource:`.
-  - New guide: Reusable Components.
-- **Action icons**
-  - Every default action that renders a button or a link has an icon. Below the 640px breakpoint a
-    default action button shows only its icon, with its label as `title` and `aria-label`; from 641px
-    up nothing changes. Delete selected keeps its count badge.
-  - `action_icons:` on `index_columns`, `edit_layout` and `show_layout`, and on one-to-many and
-    embeds-many fields, changes the icon of a default action by name. An icon is a Heroicon name, an
-    image URL, a character, or a named function of the action's assigns returning one of those. An
-    unknown key fails compilation and lists the valid keys.
-  - The row actions (show, edit, delete) take their icons from `action_icons:` too.
-  - `<.action_content>` and `<.action_icon>` in the core components let a custom action follow the
-    same breakpoint.
-  - New theme classes `auix-action-icon`, `auix-action-label`, `auix-action-icon-image` and
-    `auix-action-icon-text`: re-run `mix auix.gen.stylesheet` after upgrading.
-- **Index cards**
-  - `index_columns` takes a `do` block with one `card`: a title, a subtitle and a body built with
-    `inline`, `stacked`, `group` and `field`. `show_on: :all` shows the cards at every breakpoint
-    instead of the table (Layouts guide, "Index Cards").
-  - Row actions sit in a footer bar below the card body, and `destructive?: true` marks a row
-    action as destructive (Custom Actions guide, "Row actions in cards").
+- **Reusable components**: `IndexComponent`, `FormComponent` and `ShowComponent` can be embedded in
+  any LiveView (Reusable Components guide).
+- **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
+- **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
 
 ### Changed
 
@@ -57,33 +21,18 @@
   - lazy_html: 0.1.13 -> 0.1.14
   - phoenix_html: 4.3.0 -> 4.4.0
   - sourceror: 1.12.4 -> 1.13.0
-- **Generated module names (breaking)**
-  - Two generated modules with the same name in one `auix_create_ui` module are a compile-time error.
-    Before, the second definition silently replaced the first. It happens when two resources of the module
-    share a schema: give one of them `module_name:` on its layouts, `use:`, and an `index_live` line.
-  - A resource created for an embedded field (`:<parent>__<field>`) generates no modules. The
-    `<Module>.<EmbeddedSchema>.Index`, `.FormComponent` and `.ShowComponent` modules are gone; nothing
-    rendered them.
-- **Associations to imported resources**
-  - A resource declared in a module links its associations to the resources the module imports with
-    `@auix_resource_metadata`, as it does to the resources declared beside it. A form or a show view that
-    places such a field now shows its select or its list; before, the field had no related resource.
-- **Form navigation in LiveView tests**
-  - The generated `Index` LiveView navigates after its form saves and after it closes; the form only
-    reports. Nothing changes in the browser: the URLs, the routing stack and the flash are the same. In a
-    LiveView test the redirect is no longer the result of the form event: replace
-    `render_submit() |> follow_redirect(conn)` with `render_submit()` followed by `assert_redirect(view)`.
-- **Index card styling (CSS class changes)**
-  - The mobile list is a list of bordered cards, with no stripes and no italic values.
-  - Removed: `auix-items-card-item-content--even` and `auix-items-card-item-content--odd`.
-  - The other `auix-items-card-*` classes are restyled and new ones are added (Styling guide,
-    "Class reference"): re-run `mix auix.gen.stylesheet` after upgrading.
+- **Generated module names (breaking)**: a duplicate generated module name fails compilation, and an
+  embedded field generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Associations to imported resources**: an association links to a resource imported with
+  `@auix_resource_metadata`.
+- **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves
+  or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
+  guide, "Class reference").
 
 ### Build
 
-- Claude Code cloud sessions restore a cached build at start (`.claude/hooks/session-start.sh`,
-  `scripts/build_cache.sh`), so a new session skips the dependency compile and the dialyzer PLT build.
-  Dialyzer PLTs now live in `priv/plts`.
+- Claude Code cloud sessions restore a cached build at start. Dialyzer PLTs live in `priv/plts`.
 
 ## [0.2.0] - 2026-10-21
 

@@ -96,7 +96,7 @@ Aurora UIX-specific components for collection views and record navigation.
 | `auix_simple_form/1` | Form wrapper used in index layout forms |
 | `auix_items/1` | Responsive switcher: renders `auix_items_table` on desktop and `auix_items_card` on mobile; with `show_on={:all}` it renders `auix_items_card` alone |
 | `auix_items_table/1` | Desktop table view for collections with sorting, filtering, and actions |
-| `auix_items_card/1` | Card view for collections: one card per record with a header (checkbox, title, subtitle), a body, a footer bar of row actions, and the filter cards |
+| `auix_items_card/1` | Card view for collections: one card per record with a header (checkbox, title, subtitle, ⋮ menu of row actions) and a body, and the filter cards; tapping a card runs its show action |
 | `pages_selection/1` | Pagination bar with page numbers, ellipsis, and selected-item counts |
 | `record_navigator_bar/1` | Previous/next record navigation shown on form and show views |
 | `auix_checkbox_group/1` | Value-carrying checkbox group submitting under one array name (e.g. many-to-many form input) |
