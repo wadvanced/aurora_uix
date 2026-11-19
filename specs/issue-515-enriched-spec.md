@@ -4,12 +4,12 @@
 **Complexity:** normal
 
 ### Overview
-Below the `sm` breakpoint (640px) the card view's sort control is one icon button that opens a menu: "Default order", the sortable fields, then "Ascending" and "Descending". A check marks the active field and the active direction, and the button is highlighted while a field sort is on. From `sm` up the field select and the direction switch stay as they are. The work is backend-agnostic action, handler and theme code and covers Ash and Ecto resources alike.
+Below the `sm` breakpoint (640px) the card view's sort control is one icon button that opens a menu: "Default order", the sortable fields, then "Ascending" and "Descending". A check marks the active field and the active direction, and the button is highlighted while a field sort is on. From `sm` up the field select and the direction switch stay as they are. The work is backend-agnostic action, handler and theme code and covers Ash and Ecto resources alike. The issue owes no CHANGELOG entry: the sort menu is a UI change, neither a feature nor a fix.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
-| DOC-1 | Documentation | CHANGELOG.md § [0.2.1] · guides/core/layouts.md § Index Cards · guides/core/liveview.md § Built-in Events · guides/customization/custom_actions.md § Action Icons · guides/customization/styling.md § Sizes & dimensions, § Class reference | none | federico/515-doc-1-sort-menu | docs: icon sort menu for the mobile card view (#515 · DOC-1) |
+| DOC-1 | Documentation | guides/core/layouts.md § Index Cards · guides/core/liveview.md § Built-in Events · guides/customization/custom_actions.md § Action Icons · guides/customization/styling.md § Sizes & dimensions, § Class reference | none | federico/515-doc-1-sort-menu | docs: icon sort menu for the mobile card view (#515 · DOC-1) |
 | UI-1 | UI | action + handler + theme · card-view sort menu below `sm` (`sort_header_action/1`), `"index-sort-direction"` with `"direction"` | DOC-1 | federico/515-ui-1-sort-menu | feat: icon sort menu for the mobile card view (#515 · UI-1) |
 
 A section starts only when every dependency is **merged**. Independent
@@ -21,7 +21,6 @@ here.
 Depends on: none
 
 #### Documentation references
-- `CHANGELOG.md § [0.2.1]`
 - `guides/core/layouts.md § Index Cards`
 - `guides/core/liveview.md § Built-in Events`
 - `guides/customization/custom_actions.md § Action Icons`
@@ -29,14 +28,7 @@ Depends on: none
 
 #### Implementation details
 
-##### CHANGELOG.md
-1. § `## [0.2.1]` › `### Changed` — insert after the entry that starts `- **Index card styling (CSS class changes)**` (its two lines), before the blank line that precedes `### Build`, verbatim:
-   ```
-   - **Card-view sort control on phones (CSS class changes)**: below the `sm` breakpoint the sort
-     control is one icon button with a menu of the sort fields and directions (Layouts guide, "Index
-     Cards"; Styling guide, "Class reference").
-   ```
-2. Every line from `## [0.2.0] - 2026-10-21` to the end of the file stays byte for byte.
+`CHANGELOG.md` is not edited: it stays byte for byte as on `origin/main`. The issue owes no CHANGELOG entry.
 
 ##### guides/core/layouts.md
 1. § `Index Cards` — after the paragraph
@@ -83,18 +75,14 @@ Depends on: none
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
-      issue-link suffix (mechanical — no red test; verified by
-      `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
+- [ ] AC-1: `CHANGELOG.md` is unchanged: the issue owes no CHANGELOG entry (mechanical — no red
+      test; verified by `git diff --name-only origin/main...HEAD -- CHANGELOG.md` printing nothing)
 - [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-515-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md § [0.2.1]` carries the entry, and every released section is unchanged
-      (mechanical — no red test; verified by `grep -c 'Card-view sort control on phones' CHANGELOG.md`
-      returning 1 and
-      `diff <(git show origin/main:CHANGELOG.md | sed -n '/^## \[0.2.0\]/,$p') <(sed -n '/^## \[0.2.0\]/,$p' CHANGELOG.md)`
-      printing nothing)
+- [ ] AC-3: `CHANGELOG.md` carries no sort-control entry (mechanical — no red test; verified by
+      `grep -c 'Card-view sort control on phones' CHANGELOG.md` returning 0)
 - [ ] AC-4: `guides/core/layouts.md § Index Cards` describes the sort menu (mechanical — no red test;
       verified by `grep -c 'one icon button instead: its menu lists' guides/core/layouts.md`
       returning 1)
@@ -492,6 +480,7 @@ The select form and the direction switch move into a new `<div class="auix-index
 ---
 
 ### Out of Scope
+- A CHANGELOG entry: the sort menu is a UI change, neither a feature nor a fix.
 - The sort control from the `sm` breakpoint up: the field select and the direction switch keep their markup and behaviour.
 - The table view's sortable column headers.
 - An `action_icons:` key for the sort menu button: its icon is fixed, like the direction switch's.
