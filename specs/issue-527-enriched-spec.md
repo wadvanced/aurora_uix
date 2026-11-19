@@ -32,22 +32,17 @@ Depends on: none
 ##### CHANGELOG.md
 1. § `## [0.2.1]` — replace every line from `## [0.2.1]` up to, and not including, the line
    `## [0.2.0] - 2026-10-21` with the text below, verbatim, followed by one blank line. It
-   replaces every entry of the section, `### Added`, `### Changed` and `### Build`, with a short
-   one.
+   replaces every entry of the section, `### Added`, `### Changed` and `### Build`, with the change
+   alone and at most a pointer to its guide.
    ```
    ## [0.2.1]
 
    ### Added
 
-   - **Reusable components**: `auix_create_ui` generates an `IndexComponent` next to `FormComponent`
-     and `ShowComponent`, and the three can be embedded in any LiveView (Reusable Components guide).
-   - **Action icons**: every default action that renders a button or a link has an icon; below the
-     640px breakpoint a default action button shows only its icon. `action_icons:` changes the icons
-     (Custom Actions guide, "Action Icons").
-   - **Index cards**: a `card` in the `do` block of `index_columns` lays out the index cards, and
-     `show_on: :all` shows them at every breakpoint (Layouts guide, "Index Cards"). Tapping a card
-     opens its show view; the other row actions sit in a ⋮ menu in the card header (Custom Actions
-     guide, "Row actions in cards").
+   - **Reusable components**: `IndexComponent`, `FormComponent` and `ShowComponent` can be embedded in
+     any LiveView (Reusable Components guide).
+   - **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
+   - **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
 
    ### Changed
 
@@ -61,18 +56,14 @@ Depends on: none
      - lazy_html: 0.1.13 -> 0.1.14
      - phoenix_html: 4.3.0 -> 4.4.0
      - sourceror: 1.12.4 -> 1.13.0
-   - **Generated module names (breaking)**: two generated modules with the same name in one
-     `auix_create_ui` module are a compile-time error, and a resource created for an embedded field
-     generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
-   - **Associations to imported resources**: a resource links its associations to the resources its
-     module imports with `@auix_resource_metadata` (Reusable Components guide, "Reusing components
-     from another views module").
-   - **Form navigation in LiveView tests**: the redirect after a form saves or closes comes from the
-     generated `Index` LiveView; assert it with `assert_redirect(view)` (What's New in 0.2.1,
-     "Upgrading from 0.2.0").
-   - **Index card styling (CSS class changes)**: the mobile list is a list of bordered cards, and
-     `auix-items-card-item-content--even` and `auix-items-card-item-content--odd` are removed
-     (Styling guide, "Class reference").
+   - **Generated module names (breaking)**: a duplicate generated module name fails compilation, and an
+     embedded field generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
+   - **Associations to imported resources**: an association links to a resource imported with
+     `@auix_resource_metadata`.
+   - **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves
+     or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
+   - **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
+     guide, "Class reference").
 
    ### Build
 
@@ -179,9 +170,9 @@ Depends on: none
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-527-enriched-spec.md`)
-- [ ] AC-3: `CHANGELOG.md § [0.2.1]` reads as prescribed: 43 lines, the nine dependency lines its
+- [ ] AC-3: `CHANGELOG.md § [0.2.1]` reads as prescribed: 34 lines, the nine dependency lines its
       only sub-bullets, and no footer bar (mechanical — no red test; verified by
-      `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f' CHANGELOG.md | wc -l` returning 43, the
+      `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f' CHANGELOG.md | wc -l` returning 34, the
       same `awk` piped to `grep -c '^  - '` returning 9, and `grep -c 'footer bar' CHANGELOG.md`
       returning 0)
 - [ ] AC-4: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
@@ -464,6 +455,7 @@ Facts this section builds on:
 
 ### Out of Scope
 - `CHANGELOG.md` sections of released versions, `[0.2.0]` and earlier: published history, left as they are.
+- `AGENTS.md` and `CLAUDE.md`: agent guidance, outside the documentation set `DOC-1` edits.
 - Labels inside the ⋮ menu: an action renders there as its function component renders it.
 - The table view's row actions: they stay in the table's action cell.
 - Parser sections: the change is component, renderer and theme code over the action list, so it covers the Ash and the Ecto backend alike.
