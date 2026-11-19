@@ -501,6 +501,8 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_crud(IndexCardFrameTest.Product, "index-card-frame-products")
         RoutesHelper.register_crud(IndexCardActionsTest.Product, "index-card-actions-products")
+        RoutesHelper.register_crud(IndexCardContentTest.Product, "index-card-content-products")
+        RoutesHelper.register_crud(IndexCardGridTest.Product, "index-card-grid-products")
         RoutesHelper.register_crud(SortDisabledTest.Product, "sort-disabled-products")
 
         RoutesHelper.register_crud(

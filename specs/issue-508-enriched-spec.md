@@ -750,15 +750,15 @@ Layout types: `:index`. Card fields render with `layout_type: :index` through th
 Load guarantee: a card field is an index column (UI-1 `card_columns/2`), so its value is on the row entity the index list already loads; no query changes.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given `index_columns :product, [:reference, :name, :description, :quantity_at_hand] do card title: :name, subtitle: :reference do group "Stock" do field :quantity_at_hand, label: "On hand" end end end`, each card shows the name in `[name='auix-card-title']` inside the default show link, the reference in `[name='auix-card-subtitle']`, and a `.auix-group-container` titled `Stock` in `[name='auix-card-body']` holding one row labelled `On hand`
-- [ ] AC-2: In that layout the table header of the column still reads `Quantity At Hand`, and the card has no row for `Description`
-- [ ] AC-3: Given `card title: &card_title/1, subtitle: "Product"`, the title shows what the function returns for the row's entity and the subtitle shows `Product`
-- [ ] AC-4: Given `show_on: :all`, the page has no `[name='auix-items-table']`, the card container has the class `auix-items-cards`, and the sort control has the class `auix-index-sort-action--always`
-- [ ] AC-5: Given `show_on: :all` and the omitted column `:description`, the sort select offers `option[value='description']`
-- [ ] AC-6: Given the default `show_on`, the page has `[name='auix-items-table']`, the card container has the class `auix-items-mobile`, and the sort control lacks `auix-index-sort-action--always`
-- [ ] AC-7: Given a card that places `:product_location`, a column the index list drops as an association, the card body has no row for it and the page renders
-- [ ] AC-8: The card grid is responsive: `Base.rule(:auix_items_cards)` contains `repeat(auto-fill, minmax(var(--auix-items-card-min-width), 1fr))`
-- [ ] AC-9: An `inline` inside a card places its fields side by side below the `md` breakpoint (visual — no red test; verified by `iex -S mix run test/start_test_server.exs`, opening `/index-card-grid-products` at a 390px viewport)
+- [x] AC-1: Given `index_columns :product, [:reference, :name, :description, :quantity_at_hand] do card title: :name, subtitle: :reference do group "Stock" do field :quantity_at_hand, label: "On hand" end end end`, each card shows the name in `[name='auix-card-title']` inside the default show link, the reference in `[name='auix-card-subtitle']`, and a `.auix-group-container` titled `Stock` in `[name='auix-card-body']` holding one row labelled `On hand`
+- [x] AC-2: In that layout the table header of the column still reads `Quantity At Hand`, and the card has no row for `Description`
+- [x] AC-3: Given `card title: &card_title/1, subtitle: "Product"`, the title shows what the function returns for the row's entity and the subtitle shows `Product`
+- [x] AC-4: Given `show_on: :all`, the page has no `[name='auix-items-table']`, the card container has the class `auix-items-cards`, and the sort control has the class `auix-index-sort-action--always`
+- [x] AC-5: Given `show_on: :all` and the omitted column `:description`, the sort select offers `option[value='description']`
+- [x] AC-6: Given the default `show_on`, the page has `[name='auix-items-table']`, the card container has the class `auix-items-mobile`, and the sort control lacks `auix-index-sort-action--always`
+- [x] AC-7: Given a card that places `:product_location`, a column the index list drops as an association, the card body has no row for it and the page renders
+- [x] AC-8: The card grid is responsive: `Base.rule(:auix_items_cards)` contains `repeat(auto-fill, minmax(var(--auix-items-card-min-width), 1fr))`
+- [x] AC-9: An `inline` inside a card places its fields side by side below the `md` breakpoint (visual — no red test; verified by `iex -S mix run test/start_test_server.exs`, opening `/index-card-grid-products` at a 390px viewport)
 
 ##### Test ports
 - Route `"/index-card-content-products"` registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud(IndexCardContentTest.Product, "index-card-content-products")` · layout type `:index` · observable: `has_element?/2` under `#auix-table-index-card-content-products-index-mobile`

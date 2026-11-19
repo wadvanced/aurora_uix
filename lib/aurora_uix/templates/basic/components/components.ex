@@ -128,15 +128,25 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
   end
 
+  slot(:card_title, doc: "the card title; without it the first column is the title")
+  slot(:card_subtitle, doc: "the card subtitle")
+  slot(:card_body, doc: "the card body; without it the other columns are the body")
+
+  attr(:show_on, :atom,
+    default: :mobile,
+    values: [:mobile, :all],
+    doc: "`:all` renders the cards alone, at every breakpoint"
+  )
+
   @spec auix_items(map) :: Rendered.t()
   def auix_items(%{host_components: nil} = assigns) do
     ~H"""
-    <div class="auix-items-desktop">
+    <div :if={@show_on == :mobile} class="auix-items-desktop">
       {auix_items_table(assign_rows(assigns, @streams, @auix.source_key))}
     </div>
 
-    <div class="auix-items-mobile">
-      {assigns 
+    <div class={if @show_on == :all, do: "auix-items-cards", else: "auix-items-mobile"}>
+      {assigns
         |> assign_rows(@streams, @auix.source_key, "mobile")
         |> Map.put(:first_column_not_checkbox?, @first_column_not_checkbox?)
         |> auix_items_card}
@@ -308,6 +318,10 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     attr(:destructive?, :boolean, doc: "places the action at the leading edge of a card footer")
   end
 
+  slot(:card_title, doc: "the card title; without it the first column is the title")
+  slot(:card_subtitle, doc: "the card subtitle")
+  slot(:card_body, doc: "the card body; without it the other columns are the body")
+
   @spec auix_items_card(map()) :: Rendered.t()
   def auix_items_card(%{host_components: nil} = assigns) do
     ~H"""
@@ -331,18 +345,29 @@ defmodule Aurora.Uix.Templates.Basic.Components do
                 {render_slot(Enum.at(@col, 0), @row_item.(row))}
               </div>
               <div class="auix-items-card-heading">
-                <div :for={col <- title_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-title" name="auix-card-title">
-                  {render_slot(col, @row_item.(row))}
+                <%= if @card_title != [] do %>
+                  <div class="auix-items-card-title" name="auix-card-title">{render_slot(@card_title, @row_item.(row))}</div>
+                <% else %>
+                  <div :for={col <- title_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-title" name="auix-card-title">
+                    {render_slot(col, @row_item.(row))}
+                  </div>
+                <% end %>
+                <div :if={@card_subtitle != []} class="auix-items-card-subtitle" name="auix-card-subtitle">
+                  {render_slot(@card_subtitle, @row_item.(row))}
                 </div>
               </div>
             </div>
             <div class="auix-items-card-item" name="auix-card-body">
-              <div :for={col <- body_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
-                <div class="auix-items-card-item-label">{dt(col.label)}</div>
-                <div class="auix-items-card-item-value" name="auix-column-value">
-                  {render_slot(col, @row_item.(row))}
+              <%= if @card_body != [] do %>
+                {render_slot(@card_body, @row_item.(row))}
+              <% else %>
+                <div :for={col <- body_cols(@col, @first_column_not_checkbox?)} class="auix-items-card-item-fieldset">
+                  <div class="auix-items-card-item-label">{dt(col.label)}</div>
+                  <div class="auix-items-card-item-value" name="auix-column-value">
+                    {render_slot(col, @row_item.(row))}
+                  </div>
                 </div>
-              </div>
+              <% end %>
             </div>
             <.card_actions :if={@action != []} action={@action} row={@row_item.(row)} />
           <% end %>

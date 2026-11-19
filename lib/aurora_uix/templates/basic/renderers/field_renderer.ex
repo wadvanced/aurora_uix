@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   @moduledoc """
-  Renders a show/form field by resolving its renderer and invoking it.
+  Renders a show, form or index-card field by resolving its renderer and invoking it.
 
   The renderer to call is chosen by `Aurora.Uix.Renderers.resolve/3` from the field's
   slots and the current layout type; the default rendering (standard input, plus
@@ -9,6 +9,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   """
 
   use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Field
   alias Aurora.Uix.Layout.Node
@@ -38,6 +39,23 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
 
   @spec do_render(map()) :: Phoenix.LiveView.Rendered.t()
   defp do_render(%{field: %{omitted: true}} = assigns), do: ~H""
+
+  # A field of an index card: its label and its index value.
+  defp do_render(%{auix: %{layout_type: :index} = auix, field: field} = assigns) do
+    renderer = Renderers.resolve(field, :index, BasicHelpers.html_type_renderers(auix, :index))
+
+    assigns =
+      assigns
+      |> assign(:entity, auix.entity)
+      |> assign(:renderer, renderer)
+
+    ~H"""
+    <div class="auix-items-card-item-fieldset">
+      <div class="auix-items-card-item-label">{dt(@field.label)}</div>
+      <div class="auix-items-card-item-value" name="auix-column-value">{@renderer.(assigns)}</div>
+    </div>
+    """
+  end
 
   defp do_render(%{auix: %{layout_type: layout_type} = auix, field: field} = assigns) do
     tables = BasicHelpers.html_type_renderers(auix, layout_type)
