@@ -205,7 +205,7 @@ rules-level overrides win over it.
 | `--auix-input-height-default` | `1rem` | Minimum input field height |
 | `--auix-button-height-default` | `2em` | Minimum button height |
 | `--auix-hidden-element-size` | `1px` | Visually-hidden element dimensions |
-| `--auix-touch-target-size` | `2.75rem` | Minimum width and height of a row action in a card footer |
+| `--auix-touch-target-size` | `2.75rem` | Minimum width and height of the card ⋮ menu toggle and of each menu item |
 | `--auix-items-card-label-width` | `7.25rem` | Width of the label column of a card `label · value` row |
 | `--auix-items-card-min-width` | `17.5rem` | Minimum card width in the card grid (`show_on: :all`) |
 | `--auix-focus-outline-width` | `2px` | Focus outline width |
@@ -503,20 +503,20 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-action-icon-image` | An action icon given as an image URL (`<.action_icon>`) | Structural only |
 | `.auix-action-icon-text` | An action icon given as a character (`<.action_icon>`) | Structural only |
 | `.auix-items-card-list` | List of index cards | `--auix-gap-large` |
-| `.auix-items-card-item-content` | One index card | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
-| `.auix-items-card-item-group` | Card header: checkbox and heading | `--auix-gap-large`, `--auix-padding-default` |
-| `.auix-items-card-select` | Checkbox slot of the card header | Structural only |
+| `.auix-items-card-item-content` | One index card; the show action is stretched over it | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-color-bg-default`, `--auix-color-items-card-item-content-text` |
+| `.auix-items-card-show` | Tap target of a card: the show action, stretched over the card and transparent | Structural only |
+| `.auix-items-card-item-group` | Card header: checkbox, heading and ⋮ menu | `--auix-gap-large`, `--auix-padding-default` |
+| `.auix-items-card-select` | Checkbox slot of the card header; centers the checkbox on the first line of the title | `--auix-line-height-relaxed` |
 | `.auix-items-card-heading` | Title and subtitle column of the card header | `--auix-gap-minimal` |
-| `.auix-items-card-title` | Card title | `--auix-font-size-subtitle`, `--auix-font-weight-bold` |
+| `.auix-items-card-title` | Card title | `--auix-font-size-subtitle`, `--auix-font-weight-bold`, `--auix-line-height-relaxed` |
 | `.auix-items-card-subtitle` | Card subtitle | `--auix-font-size-caption`, `--auix-color-text-tertiary` |
 | `.auix-items-card-item` | Card body | `--auix-gap-default`, `--auix-padding-default` |
 | `.auix-items-card-item-fieldset` | One `label · value` row of a card | `--auix-items-card-label-width`, `--auix-gap-large` |
-| `.auix-items-card-actions` | Card footer bar of row actions; `space-between` separates the leading and trailing groups | `--auix-border-width-default`, `--auix-color-border-primary`, `--auix-padding-small`, `--auix-padding-minimal` |
-| `.auix-items-card-actions-leading` | Leading group of the footer bar: the destructive row actions | `--auix-gap-default` |
-| `.auix-items-card-actions-trailing` | Trailing group of the footer bar: the other row actions and the ⋮ menu | `--auix-gap-default` |
-| `.auix-items-card-action` | One row action in the footer bar | `--auix-touch-target-size` |
-| `.auix-items-card-menu` | ⋮ menu toggle at the end of the footer bar | `--auix-touch-target-size` |
-| `.auix-items-card-menu-list` | Overflow menu of the footer bar (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
+| `.auix-items-card-menu` | ⋮ menu toggle at the end of the card header; hidden when no menu item renders | `--auix-touch-target-size` |
+| `.auix-items-card-menu-list` | Row-action menu of the card header, opening below the toggle (hidden until toggled) | `--auix-color-bg-default`, `--auix-color-border-primary`, `--auix-border-radius-default`, `--auix-shadow-md` |
+| `.auix-items-card-menu-group` | One group of the card menu: the row actions, then the destructive ones below a divider; hidden when none of its items renders | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-border-primary` |
+| `.auix-items-card-menu-group--destructive` | Destructive group of the card menu, in the danger color | `--auix-color-icon-danger` |
+| `.auix-items-card-menu-item` | One row action in the card menu; hidden when it renders nothing | `--auix-touch-target-size` |
 | `.auix-items-cards` | Card container shown at every breakpoint (`show_on: :all`); lays the cards out as a grid | `--auix-items-card-min-width`, `--auix-gap-large` |
 | `.auix-index-sort-action--always` | Keeps the card-view sort control visible from the `md` breakpoint up (`show_on: :all`) | Structural only |
 

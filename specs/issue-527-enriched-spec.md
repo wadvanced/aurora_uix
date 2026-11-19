@@ -134,27 +134,27 @@ Depends on: none
       ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-527-enriched-spec.md`)
-- [ ] AC-3: no index-card entry of `CHANGELOG.md` mentions a footer bar (mechanical — no red test;
+- [x] AC-3: no index-card entry of `CHANGELOG.md` mentions a footer bar (mechanical — no red test;
       verified by `grep -c 'footer bar' CHANGELOG.md` returning 0)
-- [ ] AC-4: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
+- [x] AC-4: `guides/core/layouts.md § Index Cards` reads as prescribed (mechanical — no red test;
       verified by `grep -c 'footer bar' guides/core/layouts.md` returning 0 and
       `grep -c '⋮ menu of row actions' guides/core/layouts.md` returning 1)
-- [ ] AC-5: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
+- [x] AC-5: `guides/customization/custom_actions.md § Row actions in cards` reads as prescribed
       (mechanical — no red test; verified by
       `grep -c 'footer bar' guides/customization/custom_actions.md` returning 0 and
       `grep -c "the card's tap target" guides/customization/custom_actions.md` returning 1)
-- [ ] AC-6: `guides/customization/overriding_components.md` describes the card menu and the tap
+- [x] AC-6: `guides/customization/overriding_components.md` describes the card menu and the tap
       (mechanical — no red test; verified by
       `grep -c 'tapping a card runs its show action' guides/customization/overriding_components.md`
       returning 1)
-- [ ] AC-7: `guides/customization/styling.md` lists the new classes and none of the footer ones
+- [x] AC-7: `guides/customization/styling.md` lists the new classes and none of the footer ones
       (mechanical — no red test; verified by
       `grep -c 'auix-items-card-actions' guides/customization/styling.md` returning 0,
       `grep -c 'auix-items-card-menu-' guides/customization/styling.md` returning 4 and

@@ -351,8 +351,9 @@ index_columns :product, [:reference, :name, :quantity_at_hand] do
 end
 ```
 
-The selection checkbox and the row actions belong to the card frame: the checkbox opens the
-header, and the row actions fill a footer bar (see
+The selection checkbox and the row actions belong to the card frame. The header holds the
+checkbox, the title and subtitle, and a ⋮ menu of row actions; tapping the card opens the
+record's show view (see
 [Custom Actions › Row actions in cards](../customization/custom_actions.md#row-actions-in-cards)).
 
 The field list is the single source of fields for the table columns, the data loading, the sort

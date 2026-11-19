@@ -42,8 +42,9 @@
   - `index_columns` takes a `do` block with one `card`: a title, a subtitle and a body built with
     `inline`, `stacked`, `group` and `field`. `show_on: :all` shows the cards at every breakpoint
     instead of the table (Layouts guide, "Index Cards").
-  - Row actions sit in a footer bar below the card body, and `destructive?: true` marks a row
-    action as destructive (Custom Actions guide, "Row actions in cards").
+  - Tapping a card opens its show view. The other row actions sit in a ⋮ menu in the card
+    header, and `destructive?: true` marks a row action as destructive: it goes last in the
+    menu, in the danger color (Custom Actions guide, "Row actions in cards").
 
 ### Changed
 
