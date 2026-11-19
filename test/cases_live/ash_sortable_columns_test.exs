@@ -92,6 +92,22 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     assert has_element?(view, "button[name='auix-sort_direction-author'][disabled]")
   end
 
+  test "the card sort menu sorts, sets the direction and clears", %{conn: conn} do
+    view = prepare_sort_test(conn)
+
+    click_sort_menu(view, "auix-sort_menu_field-name")
+
+    assert mobile_name_cells(view) == ["Alpha", "Bravo", "Charlie"]
+
+    click_sort_menu(view, "auix-sort_menu_direction-desc")
+
+    assert mobile_name_cells(view) == ["Charlie", "Bravo", "Alpha"]
+
+    click_sort_menu(view, "auix-sort_menu_default")
+
+    assert mobile_name_cells(view) == ["Charlie", "Alpha", "Bravo"]
+  end
+
   test "a third header click returns to the backend order", %{conn: conn} do
     view = conn |> prepare_sort_test() |> click_sort(:name) |> click_sort(:name)
     assert name_cells(view) == ["Charlie", "Bravo", "Alpha"]
@@ -140,6 +156,15 @@ defmodule Aurora.UixWeb.Test.AshSortableColumnsTest do
     view
     |> form("#auix-sort-form-author", %{"sort" => sort})
     |> render_change()
+
+    view
+  end
+
+  @spec click_sort_menu(View.t(), binary()) :: View.t()
+  defp click_sort_menu(view, name) do
+    view
+    |> element("[name='auix-sort_action-author'] button[name='#{name}']")
+    |> render_click()
 
     view
   end
