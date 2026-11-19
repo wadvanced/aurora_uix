@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
     end
   end
 
-  describe "card footer rules" do
+  describe "card rules" do
     test "use no physical side" do
       assert Base.rule(:auix_items_card_actions) =~ "justify-content: space-between"
 
@@ -43,6 +43,11 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
         refute rule =~ "left"
         refute rule =~ "right"
       end
+    end
+
+    test "lay the card grid out responsively" do
+      assert Base.rule(:auix_items_cards) =~
+               "repeat(auto-fill, minmax(var(--auix-items-card-min-width), 1fr))"
     end
   end
 
