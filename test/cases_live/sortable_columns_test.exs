@@ -137,15 +137,29 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
 
     assert has_element?(
              view,
-             "#{m} .auix-index-sort-select button[name='auix-sort_direction-product']"
+             "#{m} .auix-index-sort-select > button.auix-index-sort-select-direction[name='auix-sort_direction-product']"
            )
 
     assert has_element?(
              view,
-             "#{m} [name='auix-sort_menu'] button[name='auix-sort_menu_toggle'][title='Sort'][aria-label='Sort'][aria-haspopup='menu'][aria-expanded='false'] span.hero-arrows-up-down"
+             "#{m} [name='auix-sort_menu'] > button.auix-index-sort-menu-toggle[name='auix-sort_menu_toggle'][title='Sort'][aria-label='Sort'][aria-haspopup='menu'][aria-expanded='false'] span.hero-arrows-up-down"
            )
 
     refute has_element?(view, "#{m} .auix-index-sort-menu-toggle--active")
+
+    assert has_element?(
+             view,
+             ~s(#{m} [name='auix-sort_menu'][phx-click*='"toggle_attr"'][phx-click*='"focus_first"'])
+           )
+
+    refute has_element?(view, ~s(#{m} [name='auix-sort_menu'][phx-click*='"toggle"']))
+
+    assert has_element?(
+             view,
+             ~s(#{m} [name='auix-sort_menu'][phx-click-away*='"set_attr"'])
+           )
+
+    refute has_element?(view, ~s(#{m} [name='auix-sort_menu'][phx-click-away*='"hide"']))
 
     assert has_element?(
              view,
@@ -189,7 +203,7 @@ defmodule Aurora.UixWeb.Test.SortableColumnsTest do
 
     assert has_element?(
              view,
-             "#{m} button[name='auix-sort_menu_toggle'].auix-index-sort-menu-toggle--active"
+             "#{m} button[name='auix-sort_menu_toggle'].auix-index-sort-menu-toggle.auix-index-sort-menu-toggle--active"
            )
 
     assert has_element?(

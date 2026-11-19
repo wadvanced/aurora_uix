@@ -66,18 +66,37 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a[name='auix-show-product'][title='Show'][aria-label='Show']"
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(1) a.auix-index-row-action[name='auix-show-product'][title='Show'][aria-label='Show']"
              )
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
+               "#{m} [name='auix-card-menu-actions'] > .auix-items-card-menu-item:nth-child(2) a.auix-index-row-action[name='auix-edit-product'][title='Edit'][aria-label='Edit']"
              )
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card-menu-destructive'] a[name='auix-delete-product'][title='Delete'][aria-label='Delete']"
+               "#{m} [name='auix-card-menu-destructive'] a.auix-index-row-action[name='auix-delete-product'][title='Delete'][aria-label='Delete']"
              )
+    end
+
+    test "the card menu opens through its toggle's aria-expanded", %{view: view} do
+      m = @mobile
+      menu = "#{m} [name='auix-card-menu']"
+
+      assert has_element?(
+               view,
+               "#{menu} > button.auix-items-card-menu-toggle[name='auix-card-menu-toggle'][aria-expanded='false']"
+             )
+
+      assert has_element?(
+               view,
+               ~s(#{menu}[phx-click*='"toggle_attr"'][phx-click*='"focus_first"'])
+             )
+
+      refute has_element?(view, ~s(#{menu}[phx-click*='"toggle"']))
+      assert has_element?(view, ~s(#{menu}[phx-click-away*='"set_attr"']))
+      refute has_element?(view, ~s(#{menu}[phx-click-away*='"hide"']))
     end
 
     test "tapping a card runs its show action", %{view: view, products: products} do
@@ -86,7 +105,7 @@ defmodule Aurora.UixWeb.Test.IndexCardFrameTest do
 
       assert has_element?(
                view,
-               "#{m} [name='auix-card'] > [name='auix-card-show']:first-child a[name='auix-show-product'][title='Show'][aria-label='Show']"
+               "#{m} [name='auix-card'] > [name='auix-card-show']:first-child > a.auix-index-row-action[name='auix-show-product'][title='Show'][aria-label='Show']"
              )
 
       view

@@ -4,6 +4,7 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
   alias Aurora.Uix.Templates.Basic.Themes.Base
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
   alias Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
+  alias Aurora.Uix.Templates.CssSanitizer
   alias Aurora.Uix.Templates.Theme.Rule
   alias Spark.Error.DslError
 
@@ -93,6 +94,17 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
       assert Base.rule(:auix_items_cards) =~
                "repeat(auto-fill, minmax(var(--auix-items-card-min-width), 1fr))"
     end
+
+    test "key the card actions on the row action class, tags as fallback" do
+      item = Base.rule(:auix_items_card_menu_item)
+      assert item =~ ".auix-items-card-menu-item > .auix-index-row-action"
+      assert item =~ ".auix-items-card-menu-item > a"
+      assert item =~ ".auix-items-card-menu-item > button"
+
+      show = Base.rule(:auix_items_card_show)
+      assert show =~ ".auix-items-card-show > .auix-index-row-action"
+      assert show =~ ".auix-items-card-show > *"
+    end
   end
 
   describe "sort control rules" do
@@ -131,6 +143,31 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
 
       assert Base.rule(:auix_index_sort_menu_group) =~
                ".auix-index-sort-menu-group + .auix-index-sort-menu-group"
+    end
+
+    test "select the toggles and the switch by class" do
+      for {name, selector} <- [
+            {:auix_items_card_menu, ".auix-items-card-menu > .auix-items-card-menu-toggle"},
+            {:auix_index_sort_menu, ".auix-index-sort-menu > .auix-index-sort-menu-toggle"},
+            {:auix_index_sort_select,
+             ".auix-index-sort-select > .auix-index-sort-select-direction"}
+          ] do
+        assert Base.rule(name) =~ selector
+        refute Base.rule(name) =~ "> button"
+      end
+    end
+
+    test "open both menus from the toggle's aria-expanded" do
+      for {name, base} <- [
+            {:auix_index_sort_menu_list, "auix-index-sort-menu"},
+            {:auix_items_card_menu_list, "auix-items-card-menu"}
+          ] do
+        rule = Base.rule(name)
+        open = ~s(.#{base}-toggle[aria-expanded="true"] ~ .#{base}-list)
+        assert rule =~ ~r/\.#{base}-list \{\s*display: none;/
+        assert rule =~ ~r/#{Regex.escape(open)} \{\s*display: flex;/
+        assert CssSanitizer.sanitize_css(rule) =~ "#{open} { display: flex; }"
+      end
     end
   end
 

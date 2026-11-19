@@ -75,6 +75,42 @@ defmodule Aurora.UixWeb.Test.AssociationOne2ManyUILayoutTest do
            |> Enum.map(&(&1 |> LazyHTML.text() |> String.trim())) == expected_result
   end
 
+  test "default child actions carry the row action class", %{conn: conn} do
+    delete_all_inventory_data()
+
+    product_id =
+      1
+      |> create_sample_products_with_transactions(3, :test)
+      |> List.first()
+      |> elem(1)
+      |> Map.get(:id)
+
+    {:ok, view, _html} =
+      live(conn, "/association/one_to_many/layout/products/#{product_id}/edit")
+
+    c = "div[name='auix-one_to_many-product'] [name='auix-card']"
+
+    assert has_element?(
+             view,
+             "#{c} > [name='auix-card-show']:first-child > a.auix-index-row-action[name^='auix-show-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] a.auix-index-row-action[name^='auix-show-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-actions'] a.auix-index-row-action[name^='auix-edit-product__product_transaction-']"
+           )
+
+    assert has_element?(
+             view,
+             "#{c} [name='auix-card-menu-destructive'] a.auix-index-row-action[name^='auix-delete-product__product_transaction-']"
+           )
+  end
+
   @spec visit_products_index(Plug.Conn.t()) :: {Plug.Conn.t(), Phoenix.LiveViewTest.View.t()}
   defp visit_products_index(conn) do
     {:ok, view, html} = live(conn, "/association/one_to_many/layout/products")
