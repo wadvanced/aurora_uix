@@ -1320,6 +1320,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     inset: 0;
   }
 
+  .auix-items-card-show > .auix-index-row-action,
   .auix-items-card-show > * {
     display: block;
     width: 100%;
@@ -1438,7 +1439,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     flex-shrink: 0;
   }
 
-  .auix-items-card-menu > button {
+  .auix-items-card-menu > .auix-items-card-menu-toggle {
     min-width: var(--auix-touch-target-size);
     min-height: var(--auix-touch-target-size);
     justify-content: center;
@@ -1463,6 +1464,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     border-radius: var(--auix-border-radius-default);
     background-color: var(--auix-color-bg-default);
     box-shadow: var(--auix-shadow-md);
+  }
+
+  .auix-items-card-menu-toggle[aria-expanded="true"] ~ .auix-items-card-menu-list {
+    display: flex;
   }
   """)
 
@@ -1491,6 +1496,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_items_card_menu_item, """
   .auix-items-card-menu-item,
+  .auix-items-card-menu-item > .auix-index-row-action,
   .auix-items-card-menu-item > a,
   .auix-items-card-menu-item > button {
     display: inline-flex;
@@ -1736,7 +1742,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
     /* The hero icon keeps its own 1.5rem box, so the switch drops its vertical padding and
        stretches to the select height, matching the other header buttons. */
-    .auix-index-sort-select > button {
+    .auix-index-sort-select > .auix-index-sort-select-direction {
       padding-top: 0;
       padding-bottom: 0;
       justify-content: center;
@@ -1762,7 +1768,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       flex-shrink: 0;
     }
 
-    .auix-index-sort-menu > button {
+    .auix-index-sort-menu > .auix-index-sort-menu-toggle {
       min-width: var(--auix-touch-target-size);
       min-height: var(--auix-touch-target-size);
       justify-content: center;
@@ -1797,6 +1803,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
       border-radius: var(--auix-border-radius-default);
       background-color: var(--auix-color-bg-default);
       box-shadow: var(--auix-shadow-md);
+    }
+
+    .auix-index-sort-menu-toggle[aria-expanded="true"] ~ .auix-index-sort-menu-list {
+      display: flex;
     }
   """)
 

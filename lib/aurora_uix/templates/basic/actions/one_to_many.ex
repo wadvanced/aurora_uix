@@ -102,7 +102,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_show))
 
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
+      <.auix_link class="auix-index-row-action" navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/show"}
         name={"auix-show-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
         title={dt("Show")} aria-label={dt("Show")}>
           <.action_icon icon={@icon} class="auix-icon-info" />
@@ -126,7 +126,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_edit))
 
     ~H"""
-      <.auix_link navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
+      <.auix_link class="auix-index-row-action" navigate={"/#{@auix.association.related_parsed_opts.uri_path}/#{elem(@auix.row_info, 0)}/edit?related_key=#{@auix.association.related_key}&parent_id=#{Map.get(@auix.entity, @auix.association.owner_key)}"}
       name={"auix-edit-#{@auix.association.parsed_opts.module}__#{@auix.association.related_parsed_opts.module}-#{elem(@auix.row_info, 0)}"}
       title={dt("Edit")} aria-label={dt("Edit")}>
           <.action_icon icon={@icon} class="auix-icon-safe" />
@@ -152,7 +152,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
     assigns = Map.put(assigns, :icon, resolve_icon(assigns, :default_row_delete))
 
     ~H"""
-      <.link
+      <.link class="auix-index-row-action"
         phx-click={JS.push("delete",
             value: %{id: elem(@auix.row_info, 0),
               context: @auix.association.related_resource_config.context,
