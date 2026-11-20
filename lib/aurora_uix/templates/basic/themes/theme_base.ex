@@ -58,10 +58,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     /* buttons */
     --auix-color-button-bg: var(--auix-color-bg-default--reverted);
     --auix-color-button-text: var(--auix-color-text-on-accent);
-    --auix-color-button-alt-text: var(--auix-color-text-tertiary);
-    --auix-color-button-alt-border: var(--auix-color-text-label);
-    --auix-color-button-alt-bg: var(--auix-color-bg-light);
-    --auix-color-button-iconized-bg-hover: var(--auix-color-bg-hover);
+    --auix-color-button-alt-text: var(--auix-color-text-label);
+    --auix-color-button-alt-border: var(--auix-color-border-primary);
+    --auix-color-button-alt-bg: var(--auix-color-bg-default);
+    --auix-color-button-iconized-bg-hover: var(--auix-color-bg-light);
+    --auix-color-button-disabled-bg: var(--auix-color-bg-light);
+    --auix-color-button-disabled-border: var(--auix-color-border-secondary);
+    --auix-color-button-disabled-text: var(--auix-color-text-tertiary);
+    --auix-color-button-danger-bg: var(--auix-color-icon-danger);
+    --auix-color-button-danger-bg-hover: var(--auix-color-bg-danger-hover);
+    --auix-color-button-danger-text: var(--auix-color-text-on-accent);
+
+    /* modal */
+    --auix-color-modal-close-border: var(--auix-color-border-secondary);
+    --auix-color-modal-close-text: var(--auix-color-text-secondary);
 
     /* tables */
     --auix-color-items-table-header-text: var(--auix-color-text-tertiary);

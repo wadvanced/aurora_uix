@@ -272,7 +272,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   attr(:class, :string,
     default: "auix-button",
-    doc: "color/variant class; one of auix-button, auix-button--alt, auix-index-all-action-button"
+    doc:
+      "color/variant class; one of auix-button, auix-button--alt, auix-button--danger, auix-index-all-action-button"
   )
 
   attr(:rest, :global, include: ~w(disabled form name value))

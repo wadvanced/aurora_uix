@@ -2619,16 +2619,16 @@ Layout types: `:index`, `:form`, `:show` (buttons and the modal appear in all th
    3. `@moduledoc`, `Constraints:` list — after the `resize` line UI-3 adds, add the line `  - content accepts only one quoted string whose body holds none of: quote, backslash, parenthesis, line break; any other value drops the declaration`.
 
 ##### Acceptance criteria
-- [ ] AC-1: Every `<.button>` is 40px tall with an 8px radius and 14px semibold text; a keyboard-focused button shows the focus border and the 3px halo.
-- [ ] AC-2: A primary button uses the primary fill; a secondary button (`auix-button--alt`, `auix-index-all-action-button`) is a white button with the primary border color; a disabled button of any variant uses the disabled fill, border and text; a submitting primary button dims and shows a spinner.
-- [ ] AC-3: Below `sm`, a button whose label is hidden (an action button) is a 44px square.
-- [ ] AC-4: The modal panel has a 16px radius, the close button sits at its top right, and below `sm` the modal floats with an 8px margin.
-- [ ] AC-5: Given a changed edit form at `/form-discard-guard-products/:id/edit`, when the user asks to close it, the "Discard changes" button of the confirmation renders as `button.auix-button--danger[name='auix-discard-changes']`.
-- [ ] AC-6: Given a clean edit form, closing it opens no confirmation, so no `.auix-button--danger` renders.
-- [ ] AC-7: The record pager is centered; each enabled arrow is a 32px target with a hover background, and a disabled arrow keeps its place.
-- [ ] AC-8: Buttons, the modal and the confirmation match the "Buttons" and "Unsaved-changes confirmation" boards and the desktop and mobile Form boards (visual — no red test; verified by the guide images reviewed in UI-7).
-- [ ] AC-9: The sanitized `auix-button` rule keeps the spinner box `.auix-button.phx-submit-loading::before` with its `content: "";`.
-- [ ] AC-10: The sanitizer keeps a `content` declaration whose value is one plain quoted string (`""`, `''`, `"*"`, `'a b'`), and drops a `content` declaration whose value is a function, a keyword, a backslash escape, two strings, a string holding a parenthesis, a string holding the other quote (`url(a.png)`, `attr(title)`, `counter(item)`, `image-set("a.png" 1x)`, `none`, `"\201C"`, `"a" "b"`, `"x(y)"`, `"a'b"`) while keeping the rule's other declarations; `justify-content`, `align-content` and `content-visibility` keep their values.
+- [x] AC-1: Every `<.button>` is 40px tall with an 8px radius and 14px semibold text; a keyboard-focused button shows the focus border and the 3px halo.
+- [x] AC-2: A primary button uses the primary fill; a secondary button (`auix-button--alt`, `auix-index-all-action-button`) is a white button with the primary border color; a disabled button of any variant uses the disabled fill, border and text; a submitting primary button dims and shows a spinner.
+- [x] AC-3: Below `sm`, a button whose label is hidden (an action button) is a 44px square.
+- [x] AC-4: The modal panel has a 16px radius, the close button sits at its top right, and below `sm` the modal floats with an 8px margin.
+- [x] AC-5: Given a changed edit form at `/form-discard-guard-products/:id/edit`, when the user asks to close it, the "Discard changes" button of the confirmation renders as `button.auix-button--danger[name='auix-discard-changes']`.
+- [x] AC-6: Given a clean edit form, closing it opens no confirmation, so no `.auix-button--danger` renders.
+- [x] AC-7: The record pager is centered; each enabled arrow is a 32px target with a hover background, and a disabled arrow keeps its place.
+- [x] AC-8: Buttons, the modal and the confirmation match the "Buttons" and "Unsaved-changes confirmation" boards and the desktop and mobile Form boards (visual — no red test; verified by the guide images reviewed in UI-7).
+- [x] AC-9: The sanitized `auix-button` rule keeps the spinner box `.auix-button.phx-submit-loading::before` with its `content: "";`.
+- [x] AC-10: The sanitizer keeps a `content` declaration whose value is one plain quoted string (`""`, `''`, `"*"`, `'a b'`), and drops a `content` declaration whose value is a function, a keyword, a backslash escape, two strings, a string holding a parenthesis, a string holding the other quote (`url(a.png)`, `attr(title)`, `counter(item)`, `image-set("a.png" 1x)`, `none`, `"\201C"`, `"a" "b"`, `"x(y)"`, `"a'b"`) while keeping the rule's other declarations; `justify-content`, `align-content` and `content-visibility` keep their values.
 
 ##### Test ports
 - Route `"/form-discard-guard-products"` (already registered via `register_crud/2`) · layout type `:form` · observable: `has_element?/2` on `#auix-product-discard-confirm-modal button.auix-button--danger[name='auix-discard-changes']`.
