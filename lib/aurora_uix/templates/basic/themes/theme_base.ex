@@ -34,17 +34,26 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     --auix-color-label-text: var(--auix-color-text-label);
     --auix-color-input-text: var(--auix-color-text-primary);
     --auix-color-input-border: var(--auix-color-border-primary);
-    --auix-color-input-border-focus: var(--auix-color-border-focus);
+    --auix-color-input-border-focus: var(--auix-color-focus-ring);
     --auix-color-input-border-error: var(--auix-color-error);
     --auix-color-textarea-text: var(--auix-color-text-primary);
     --auix-color-textarea-border: var(--auix-color-border-primary);
-    --auix-color-textarea-border-focus: var(--auix-color-border-focus);
+    --auix-color-textarea-border-focus: var(--auix-color-focus-ring);
     --auix-color-textarea-border-error: var(--auix-color-error);
     --auix-color-select-border: var(--auix-color-border-primary);
-    --auix-color-select-border-focus: var(--auix-color-border-focus);
+    --auix-color-select-border-focus: var(--auix-color-focus-ring);
     --auix-color-checkbox-text: var(--auix-color-text-primary);
     --auix-color-checkbox-border: var(--auix-color-border-primary);
-    --auix-color-checkbox-label-text: var(--auix-color-text-secondary);
+    --auix-color-checkbox-label-text: var(--auix-color-text-primary);
+    --auix-color-checkbox-accent: var(--auix-color-bg-default--reverted);
+    --auix-color-toggle-on: var(--auix-color-bg-default--reverted);
+    --auix-color-toggle-off: var(--auix-color-bg-disabled);
+    --auix-color-toggle-knob: var(--auix-color-bg-default);
+    --auix-color-input-bg: var(--auix-color-bg-default);
+    --auix-color-input-bg-disabled: var(--auix-color-bg-light);
+    --auix-color-input-bg-readonly: var(--auix-color-bg-hover);
+    --auix-color-input-border-disabled: var(--auix-color-border-secondary);
+    --auix-color-input-text-disabled: var(--auix-color-text-tertiary);
 
     /* buttons */
     --auix-color-button-bg: var(--auix-color-bg-default--reverted);
