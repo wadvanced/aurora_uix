@@ -44,7 +44,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
         click: "input[id^='auix-field-post-title-'][id$='#{post_id}--show']"
       ],
       desktop: [zoom: 0.80, center_crop_width: 600],
-      mobile: []
+      mobile: [zoom: 0.75, center_crop_width: 420]
     })
 
     # edit
@@ -54,7 +54,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
         click: "input[id^='auix-field-post-title-'][id$='#{post_id}--form']"
       ],
       desktop: [zoom: 0.75, center_crop_width: 600],
-      mobile: [zoom: 0.90]
+      mobile: [zoom: 0.75, center_crop_width: 420]
     })
   end
 end
