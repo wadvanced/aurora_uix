@@ -11,17 +11,38 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   # ---  BASE RULES --#
   rule(:_auix_button_default, """
   .auix-button-default {
-    display: flex;
+    box-sizing: border-box;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
+    gap: var(--auix-gap-medium);
+
+    height: var(--auix-control-height);
+    padding: 0 var(--auix-padding-panel);
 
     border-width: var(--auix-border-width-default);
     border-style: var(--auix-border-style-default);
-    border-radius: var(--auix-border-radius-small);
-    padding: var(--auix-padding-minimal);
+    border-radius: var(--auix-border-radius-default);
 
     font-size: var(--auix-font-size-caption);
     font-weight: var(--auix-font-weight-bold);
+    white-space: nowrap;
+  }
+
+  .auix-button-default:focus-visible {
+    outline: none;
+    border-color: var(--auix-color-focus-ring);
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-button-default:has(> .auix-action-icon) {
+      width: var(--auix-touch-target-size);
+      height: var(--auix-touch-target-size);
+      padding: 0;
+      border-radius: var(--auix-border-radius-nested);
+    }
   }
   """)
 
@@ -232,90 +253,140 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   """)
 
   rule(:auix_modal_box, """
-    .auix-modal-box {
-      position: absolute;
-      top: 0;
-      margin-left: auto;              
-      margin-right: auto;             
-    }
+  .auix-modal-box {
+    position: absolute;
+    top: var(--auix-padding-xl);
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: var(--auix-padding-xl);
+  }
 
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-modal-box {
+      top: var(--auix-margin-medium);
+      left: var(--auix-margin-medium);
+      right: var(--auix-margin-medium);
+      padding-bottom: var(--auix-margin-medium);
+    }
+  }
   """)
 
   rule(:auix_modal_box_content, """
   .auix-modal-box-content {
     display: flex;
     flex-direction: column;
-    gap: var(--auix-gap-default);
+    gap: var(--auix-gap-xl);
   }
   """)
 
   rule(:auix_modal_focus_wrap, """
+  .auix-modal-focus-wrap {
+    position: relative;
+
+    border-radius: var(--auix-border-radius-large);
+    background-color: var(--auix-color-bg-default);
+    padding: var(--auix-padding-container) var(--auix-padding-large) var(--auix-padding-large);
+
+    --auix-calc-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary);
+
+    box-shadow:
+      var(--auix-ring-offset-shadow),
+      var(--auix-ring-secondary),
+      var(--auix-calc-shadow);
+
+    border-width: var(--auix-border-width-default);
+
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
     .auix-modal-focus-wrap {
-
-      position: relative;            
-
-      border-radius: var(--auix-border-radius-large);
-      background-color: var(--auix-color-bg-default); 
-      padding: var(--auix-padding-xl); 
-
-      --auix-calc-shadow: var(--auix-shadow-lg), var(--auix-shadow-secondary);
-
-      box-shadow:
-        var(--auix-ring-offset-shadow),
-        var(--auix-ring-secondary),
-        var(--auix-calc-shadow);
-
-      border-width: var(--auix-border-width-default);
-
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 150ms;
+      padding: var(--auix-padding-medium) 0.875rem var(--auix-padding-container);
     }
+  }
   """)
 
   rule(:auix_modal_close_button_container, """
+  .auix-modal-close-button-container {
+    position: absolute;
+    top: var(--auix-padding-panel);
+    right: var(--auix-padding-panel);
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
     .auix-modal-close-button-container {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
+      top: var(--auix-margin-medium);
+      right: var(--auix-margin-medium);
     }
+  }
   """)
 
   rule(:auix_discard_confirm, """
   .auix-discard-confirm {
     display: flex;
     flex-direction: column;
-    gap: var(--auix-gap-default);
+    gap: var(--auix-gap-xl);
+    padding-right: calc(var(--auix-control-height-compact) + var(--auix-gap-medium));
   }
   """)
 
   rule(:auix_discard_confirm_message, """
   .auix-discard-confirm-message {
     font-size: var(--auix-font-size-caption);
+    line-height: var(--auix-line-height-default);
+    color: var(--auix-color-text-primary);
   }
   """)
 
   rule(:auix_discard_confirm_actions, """
   .auix-discard-confirm-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
-    gap: var(--auix-gap-default);
+    gap: var(--auix-gap-large);
   }
   """)
 
   rule(:auix_modal_close_button, """
-    .auix-modal-close-button {
-      display: flex;
-      padding: 0;
-      border-width: var(--auix-border-width-default);
-      border-radius: var(--auix-border-radius-small);
-      opacity: var(--auix-opacity-20);              
-    }
+  .auix-modal-close-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--auix-control-height-compact);
+    height: var(--auix-control-height-compact);
+    padding: 0;
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-color: var(--auix-color-modal-close-border);
+    border-radius: var(--auix-border-radius-default);
+    background-color: var(--auix-color-bg-default);
+    color: var(--auix-color-modal-close-text);
+    cursor: pointer;
+  }
 
-    .auix-modal-close-button:hover {
-      cursor: pointer;
-      opacity: var(--auix-opacity-40);              
+  .auix-modal-close-button:hover {
+    background-color: var(--auix-color-bg-light);
+    color: var(--auix-color-text-primary);
+  }
+
+  .auix-modal-close-button:focus-visible {
+    outline: none;
+    border-color: var(--auix-color-focus-ring);
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-modal-close-button {
+      width: var(--auix-touch-target-size);
+      height: var(--auix-touch-target-size);
     }
+  }
   """)
 
   rule(:auix_flash__info, """
@@ -424,20 +495,45 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   .auix-button {
     background-color: var(--auix-color-button-bg);
+    border-color: var(--auix-color-button-bg);
     color: var(--auix-color-button-text);
+    box-shadow: var(--auix-shadow-small);
+    cursor: pointer;
   }
 
   .auix-button:hover {
     background-color: var(--auix-color-bg-hover--reverted);
-    cursor: pointer;
+    border-color: var(--auix-color-bg-hover--reverted);
   }
 
   .auix-button:active {
     color: var(--auix-color-text-on-accent-active);
   }
 
-  .auix-button[phx-submit-loading] {
+  .auix-button:disabled {
+    background-color: var(--auix-color-button-disabled-bg);
+    border-color: var(--auix-color-button-disabled-border);
+    color: var(--auix-color-button-disabled-text);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .auix-button.phx-submit-loading {
+    background-color: var(--auix-color-button-bg);
+    border-color: var(--auix-color-button-bg);
+    color: var(--auix-color-button-text);
     opacity: var(--auix-opacity-75);
+    cursor: progress;
+  }
+
+  .auix-button.phx-submit-loading::before {
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: var(--auix-border-radius-round);
+    animation: spin 1s linear infinite;
   }
   """)
 
@@ -448,17 +544,43 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-button--alt {
     background-color: var(--auix-color-button-alt-bg);
     color: var(--auix-color-button-alt-text);
-    border-color: var(--auix-color-button-alt-border);         
-  }
-
-  .auix-button--alt:disabled {
-    background-color: var(--auix-color-bg-backdrop);
-    color: var(--auix-color-text-inactive);
+    border-color: var(--auix-color-button-alt-border);
+    cursor: pointer;
   }
 
   .auix-button--alt:hover {
     background-color: var(--auix-color-bg-hover);
+  }
+
+  .auix-button--alt:disabled {
+    background-color: var(--auix-color-button-disabled-bg);
+    border-color: var(--auix-color-button-disabled-border);
+    color: var(--auix-color-button-disabled-text);
+    cursor: not-allowed;
+  }
+  """)
+
+  rule(:auix_button__danger, """
+  /* auix-button--danger */
+  #{import_rule(:_auix_button_default, :auix_button__danger)}
+
+  .auix-button--danger {
+    background-color: var(--auix-color-button-danger-bg);
+    border-color: var(--auix-color-button-danger-bg);
+    color: var(--auix-color-button-danger-text);
     cursor: pointer;
+  }
+
+  .auix-button--danger:hover {
+    background-color: var(--auix-color-button-danger-bg-hover);
+    border-color: var(--auix-color-button-danger-bg-hover);
+  }
+
+  .auix-button--danger:disabled {
+    background-color: var(--auix-color-button-disabled-bg);
+    border-color: var(--auix-color-button-disabled-border);
+    color: var(--auix-color-button-disabled-text);
+    cursor: not-allowed;
   }
   """)
 
@@ -467,6 +589,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   #{import_rule(:_auix_button_default, :auix_button_badge)}
 
   .auix-button-badge {
+    height: auto;
+    gap: 0;
     font-size: var(--auix-font-size-small);
     border-radius: var(--auix-border-radius-round);
     padding-top: 0;
@@ -478,13 +602,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_button__iconized, """
   .auix-button--iconized {
+    height: auto;
+    min-width: var(--auix-row-action-size);
+    min-height: var(--auix-row-action-size);
     background-color: transparent;
     border: none;
+    border-radius: var(--auix-border-radius-default);
+    box-shadow: none;
     padding: 0;
     margin: 0;
   }
   .auix-button--iconized:hover {
-    background-color: var(--auix-color-bg-secondary);
+    background-color: var(--auix-color-button-iconized-bg-hover);
     cursor: pointer;
   }
   """)
@@ -1731,6 +1860,42 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    gap: var(--auix-gap-default);
+    height: var(--auix-control-height-compact);
+
+    font-size: var(--auix-font-size-caption);
+    font-weight: var(--auix-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    color: var(--auix-color-text-label);
+  }
+
+  .auix-record-navigator-bar > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--auix-row-action-size);
+    height: var(--auix-row-action-size);
+    border-radius: var(--auix-border-radius-default);
+  }
+
+  .auix-record-navigator-bar > a:hover {
+    background-color: var(--auix-color-bg-light);
+  }
+
+  .auix-record-navigator-bar > .auix-icon-inactive {
+    margin: 0 var(--auix-gap-default);
+  }
+
+  .auix-record-navigator-bar > span:not([class]) {
+    min-width: 4rem;
+    text-align: center;
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-record-navigator-bar {
+      height: var(--auix-touch-target-size);
+      font-size: 0.9375rem;
+    }
   }
   """)
 
@@ -2034,18 +2199,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     background-color: var(--auix-color-button-alt-bg);
     color: var(--auix-color-button-alt-text);
     border-color: var(--auix-color-button-alt-border);
-  }
-
-  .auix-index-all-action-button:disabled {
-    background-color: var(--auix-color-bg-backdrop);
-    color: var(--auix-color-text-inactive);
+    cursor: pointer;
   }
 
   .auix-index-all-action-button:hover {
     background-color: var(--auix-color-bg-hover);
-    cursor: pointer;
   }
 
+  .auix-index-all-action-button:disabled {
+    background-color: var(--auix-color-button-disabled-bg);
+    border-color: var(--auix-color-button-disabled-border);
+    color: var(--auix-color-button-disabled-text);
+    cursor: not-allowed;
+  }
   """)
 
   rule(:auix_show_container, """

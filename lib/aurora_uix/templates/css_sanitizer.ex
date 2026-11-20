@@ -16,6 +16,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   - Requires valid CSS syntax; malformed CSS may be partially processed
   - Custom properties must follow --auix-[a-z-]+ naming convention
   - resize accepts only the values none, block, both, vertical, horizontal and inline; any other value drops the declaration
+  - content accepts only one quoted string whose body holds none of: quote, backslash, parenthesis, line break; any other value drops the declaration
   """
 
   alias CssParser
@@ -35,6 +36,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
                         "overflow",
                         "visibility",
                         "content-visibility",
+                        "^content$",
                         "(max-|min-|)width",
                         "(max-|min-|)height",
                         # This is deprecated
@@ -395,6 +397,9 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   @spec allowed_value?(binary(), binary()) :: boolean()
   defp allowed_value?("resize", value),
     do: value in ~w(none block both vertical horizontal inline)
+
+  defp allowed_value?("content", value),
+    do: Regex.match?(~r/\A(?:"[^"'\\()\n]*"|'[^"'\\()\n]*')\z/, value)
 
   defp allowed_value?(_property, _value), do: true
 end

@@ -86,7 +86,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
           <div class="auix-discard-confirm-message">{dt("You have unsaved changes. Discard them and close the form?")}</div>
           <div class="auix-discard-confirm-actions">
             <.button type="button" class="auix-button--alt" name="auix-keep-editing" phx-click="auix_keep_editing" phx-target={@myself}>{dt("Keep editing")}</.button>
-            <.button type="button" name="auix-discard-changes" phx-click="auix_discard_changes" phx-target={@myself}>{dt("Discard changes")}</.button>
+            <.button type="button" class="auix-button--danger" name="auix-discard-changes" phx-click="auix_discard_changes" phx-target={@myself}>{dt("Discard changes")}</.button>
           </div>
         </div>
       </.modal>

@@ -24,4 +24,39 @@ defmodule Aurora.Uix.Templates.CssSanitizerTest do
       end
     end
   end
+
+  describe "content" do
+    test "the loading button keeps its spinner box" do
+      css = :auix_button |> Base.rule() |> CssSanitizer.sanitize_css()
+
+      assert css =~ ~s(.auix-button.phx-submit-loading::before { content: "";)
+    end
+
+    test "content keeps one plain string and drops any other value" do
+      for value <- [~s(""), ~s(''), ~s("*"), ~s('a b')] do
+        assert CssSanitizer.sanitize_css(".a { content: #{value}; }") ==
+                 ".a { content: #{value}; }"
+      end
+
+      for value <- [
+            "url(a.png)",
+            "attr(title)",
+            "counter(item)",
+            ~s[image-set("a.png" 1x)],
+            "none",
+            ~S("\201C"),
+            ~s("a" "b"),
+            ~s["x(y)"],
+            ~s["a'b"]
+          ] do
+        assert CssSanitizer.sanitize_css(".a { color: red; content: #{value}; }") ==
+                 ".a { color: red; }"
+      end
+
+      assert CssSanitizer.sanitize_css(
+               ".a { justify-content: center; align-content: start; content-visibility: auto; }"
+             ) ==
+               ".a { justify-content: center; align-content: start; content-visibility: auto; }"
+    end
+  end
 end
