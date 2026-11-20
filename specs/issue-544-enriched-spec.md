@@ -1194,13 +1194,13 @@ Layout types: none directly — the theme recolors every layout type through the
 4. Run `mix auix.gen.stylesheet`: `ThemeHelper.generate_variables_stylesheet/0` emits the `:root_colors` of every registered theme, so `assets/css/auix-variables.css` gains the `[data-theme-name="blue_graphite"]` blocks.
 
 ##### Acceptance criteria
-- [ ] AC-1: `ThemeHelper.registered_themes()` maps `:blue_graphite` to `Aurora.Uix.Templates.Basic.Themes.BlueGraphite`, so `config :aurora_uix, theme_name: :blue_graphite` selects it.
-- [ ] AC-2: Every `--auix-color-*` and `--auix-ring-*` variable White Charcoal declares, Blue Graphite declares too, with a `--dark--` value and a switch line in both dark blocks.
-- [ ] AC-3: Blue Graphite light uses `#0F172A` with white text for the primary and dark uses `#E6E9EF` with `#0C111D` text.
-- [ ] AC-4: White Charcoal remains the default theme: `Aurora.Uix.Templates.Basic.default_theme_name()` is `:white_charcoal`.
-- [ ] AC-5: The variables stylesheet carries a `[data-theme-name="blue_graphite"]` block.
-- [ ] AC-7: Blue Graphite's variables never leak into another theme: every `:root` / `:host` selector of its `:root_colors` is scoped by `[data-theme-name="blue_graphite"]`, so a host on White Charcoal keeps White Charcoal's values.
-- [ ] AC-6: Blue Graphite matches the Light and Dark pages of its mockup (visual — no red test; verified by switching `config/test.exs` to `theme_name: :blue_graphite`, running `mix auix.gen.stylesheet` and the demo server `iex -S mix run test/start_test_server.exs`, then reverting the config).
+- [x] AC-1: `ThemeHelper.registered_themes()` maps `:blue_graphite` to `Aurora.Uix.Templates.Basic.Themes.BlueGraphite`, so `config :aurora_uix, theme_name: :blue_graphite` selects it.
+- [x] AC-2: Every `--auix-color-*` and `--auix-ring-*` variable White Charcoal declares, Blue Graphite declares too, with a `--dark--` value and a switch line in both dark blocks.
+- [x] AC-3: Blue Graphite light uses `#0F172A` with white text for the primary and dark uses `#E6E9EF` with `#0C111D` text.
+- [x] AC-4: White Charcoal remains the default theme: `Aurora.Uix.Templates.Basic.default_theme_name()` is `:white_charcoal`.
+- [x] AC-5: The variables stylesheet carries a `[data-theme-name="blue_graphite"]` block.
+- [x] AC-7: Blue Graphite's variables never leak into another theme: every `:root` / `:host` selector of its `:root_colors` is scoped by `[data-theme-name="blue_graphite"]`, so a host on White Charcoal keeps White Charcoal's values.
+- [x] AC-6: Blue Graphite matches the Light and Dark pages of its mockup (visual — no red test; verified by switching `config/test.exs` to `theme_name: :blue_graphite`, running `mix auix.gen.stylesheet` and the demo server `iex -S mix run test/start_test_server.exs`, then reverting the config).
 
 ##### Test ports
 - Theme rules (pure, no DB): `BlueGraphite.rule(:root_colors)`, `WhiteCharcoal.rule(:root_colors)`, `ThemeHelper.registered_themes/0`, `ThemeHelper.generate_variables_stylesheet/0` — the issue names the theme rules test as the coverage.
