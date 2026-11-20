@@ -79,19 +79,23 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     --auix-color-back-link-text-hover: var(--auix-color-text-hover);
 
     /* sections / tabs */
-    --auix-color-sections-tab-active-text: var(--auix-color-text-label);
-    --auix-color-sections-tab-active-bg: var(--auix-color-bg-light);
-    --auix-color-sections-tab-active-border: var(--auix-color-bg-light);
-    --auix-color-sections-tab-inactive-bg: var(--auix-color-bg-hover);
-    --auix-color-sections-content-border: var(--auix-color-bg-light);
+    --auix-color-sections-tab-active-text: var(--auix-color-text-primary);
+    --auix-color-sections-tab-active-bg: var(--auix-color-bg-default);
+    --auix-color-sections-tab-active-border: var(--auix-color-border-secondary);
+    --auix-color-sections-tab-inactive-text: var(--auix-color-text-secondary);
+    --auix-color-sections-tab-inactive-bg: transparent;
+    --auix-color-sections-tab-hover-bg: var(--auix-color-bg-light);
+    --auix-color-sections-content-border: var(--auix-color-border-secondary);
+    --auix-color-sections-content-bg: var(--auix-color-bg-default);
 
     /* containers */
     --auix-color-show-content-bg: var(--auix-color-bg-default);
+    --auix-color-show-content-border: var(--auix-color-border-secondary);
     --auix-color-form-container-bg: var(--auix-color-bg-default);
-    /* Flat by default — a group always sits inside a container that already
-       paints a card, so painting one here nests two identical surfaces */
-    --auix-color-group-container-border: transparent;
-    --auix-color-group-container-bg: transparent;
+    --auix-color-form-container-border: var(--auix-color-border-secondary);
+    --auix-color-group-container-border: var(--auix-color-border-secondary);
+    --auix-color-group-container-bg: var(--auix-color-bg-default);
+    --auix-color-group-title-border: var(--auix-color-border-secondary);
     --auix-color-one-to-many-text: var(--auix-color-text-primary);
     --auix-color-one-to-many-border: var(--auix-color-border-primary);
     --auix-color-form-field-input-border: var(--auix-color-border-primary);
@@ -103,6 +107,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     /* embeds */
     --auix-color-embeds-bg: var(--auix-color-bg-inner-container);
     --auix-color-embeds-border: var(--auix-color-border-secondary);
+    --auix-color-embeds-empty-border: var(--auix-color-border-primary);
+    --auix-color-embeds-empty-text: var(--auix-color-text-tertiary);
     --auix-color-embeds-many-badge-bg: var(--auix-color-bg-default--reverted);
     --auix-color-embeds-many-badge-text: var(--auix-color-text-on-accent);
     --auix-color-items-card-item-content-text: var(--auix-color-text-primary);

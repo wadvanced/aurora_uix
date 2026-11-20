@@ -2141,14 +2141,14 @@ A nested group is `.auix-group-container .auix-group-container`; a nested sectio
 3. Tests: add `describe "containers"` to `test/cases/templates/theme_framing_test.exs` (created by UI-3); the LiveView rows amend two existing layout tests on their existing routes.
 
 ##### Acceptance criteria
-- [ ] AC-1: A group is a framed container (`--auix-color-group-container-border`, 12px radius, 16px padding) whose title is a title bar with a bottom border; a nested group uses the same frame with a 10px radius.
-- [ ] AC-2: An embedded record and a one-to-one record are tinted frames whose header title is the title bar.
-- [ ] AC-3: An empty embedded record and an empty one-to-one record each show "Field is empty" as a dashed box below the title bar.
-- [ ] AC-4: Section tabs are 40px folder tabs (44px below `sm`) attached to a bordered panel; the active tab's bottom border takes the panel background, so the tab joins the panel; tabs stay on one horizontal row and scroll horizontally when they overflow.
-- [ ] AC-5: A nested section uses 36px tabs with 13px text and a panel with 16px padding and a 10px radius.
-- [ ] AC-6: The form fields sit in a bordered container with the save button below it; below `sm` the container drops its border and padding. The show view's content follows the same frame, and inside a modal the show container adds no frame of its own.
-- [ ] AC-7: Given `/group-ui-layout-products/new`, a group renders as `div.auix-group-container > h3.auix-group-title`, the markup the title bar rule targets; given `/association/one_to_one/layout/products/:id/show` with no related record, `.auix-one-to-one-empty-msg` renders inside `.auix-one-to-one-container > .auix-header`.
-- [ ] AC-8: Groups, nested groups, embedded records and sections match the mockups' "Groups, nested groups and embedded records" and "Section tabs, with nested sections" boards on desktop and the mobile Form board (visual — no red test; verified by the guide images reviewed in UI-7).
+- [x] AC-1: A group is a framed container (`--auix-color-group-container-border`, 12px radius, 16px padding) whose title is a title bar with a bottom border; a nested group uses the same frame with a 10px radius.
+- [x] AC-2: An embedded record and a one-to-one record are tinted frames whose header title is the title bar.
+- [x] AC-3: An empty embedded record and an empty one-to-one record each show "Field is empty" as a dashed box below the title bar.
+- [x] AC-4: Section tabs are 40px folder tabs (44px below `sm`) attached to a bordered panel; the active tab's bottom border takes the panel background, so the tab joins the panel; tabs stay on one horizontal row and scroll horizontally when they overflow.
+- [x] AC-5: A nested section uses 36px tabs with 13px text and a panel with 16px padding and a 10px radius.
+- [x] AC-6: The form fields sit in a bordered container with the save button below it; below `sm` the container drops its border and padding. The show view's content follows the same frame, and inside a modal the show container adds no frame of its own.
+- [x] AC-7: Given `/group-ui-layout-products/new`, a group renders as `div.auix-group-container > h3.auix-group-title`, the markup the title bar rule targets; given `/association/one_to_one/layout/products/:id/show` with no related record, `.auix-one-to-one-empty-msg` renders inside `.auix-one-to-one-container > .auix-header`.
+- [x] AC-8: Groups, nested groups, embedded records and sections match the mockups' "Groups, nested groups and embedded records" and "Section tabs, with nested sections" boards on desktop and the mobile Form board (visual — no red test; verified by the guide images reviewed in UI-7).
 
 ##### Test ports
 - Theme rules (pure, no DB): `Base.rule/1`, `ThemeBase.rule(:root_color_aliases)`.
