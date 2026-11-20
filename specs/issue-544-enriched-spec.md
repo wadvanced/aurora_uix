@@ -876,13 +876,13 @@ Layout types: `:index`, `:form`, `:show` (the three renderers that render flashe
       ```
 
 ##### Acceptance criteria
-- [ ] AC-1: Given the White Charcoal and Vitreous Marble themes, then each `:root_colors` rule declares `--auix-color-focus-ring-halo`, `--auix-color-success-bg`, `--auix-color-success-border`, `--auix-color-success-text`, `--auix-color-warning-bg`, `--auix-color-warning-border`, `--auix-color-warning-text`, `--auix-color-selection-bg` and `--auix-color-selection-border`, each with a `--dark--` value and a dark switch line in both dark blocks.
-- [ ] AC-2: Given White Charcoal, then `--auix-color-error` is `#F43F5E` and `--auix-color-error-text-default` is `#BE123C` in light mode.
-- [ ] AC-3: Given the `:product` index at `/flash-kinds-products`, when the host handler puts a `:success` and a `:warning` flash, then `#flash-success.auix-flash--success` shows "Saved" with a `hero-check-circle-mini` icon and `#flash-warning.auix-flash--warning` shows "Check" with a `hero-exclamation-triangle-mini` icon.
-- [ ] AC-4: Given the same index with no flash put, then neither `#flash-success` nor `#flash-warning` renders.
-- [ ] AC-5: The flash rules `.auix-flash--info`, `.auix-flash--success`, `.auix-flash--warning` and `.auix-flash--error` take their background, border and text colors from their theme variables.
-- [ ] AC-6: The variables stylesheet declares every framing size of step 1.
-- [ ] AC-7: Info, success, warning and error flashes look like the "Flash messages" board of the White Charcoal mockup (visual — no red test; verified by the guide images reviewed in UI-7).
+- [x] AC-1: Given the White Charcoal and Vitreous Marble themes, then each `:root_colors` rule declares `--auix-color-focus-ring-halo`, `--auix-color-success-bg`, `--auix-color-success-border`, `--auix-color-success-text`, `--auix-color-warning-bg`, `--auix-color-warning-border`, `--auix-color-warning-text`, `--auix-color-selection-bg` and `--auix-color-selection-border`, each with a `--dark--` value and a dark switch line in both dark blocks.
+- [x] AC-2: Given White Charcoal, then `--auix-color-error` is `#F43F5E` and `--auix-color-error-text-default` is `#BE123C` in light mode.
+- [x] AC-3: Given the `:product` index at `/flash-kinds-products`, when the host handler puts a `:success` and a `:warning` flash, then `#flash-success.auix-flash--success` shows "Saved" with a `hero-check-circle-mini` icon and `#flash-warning.auix-flash--warning` shows "Check" with a `hero-exclamation-triangle-mini` icon.
+- [x] AC-4: Given the same index with no flash put, then neither `#flash-success` nor `#flash-warning` renders.
+- [x] AC-5: The flash rules `.auix-flash--info`, `.auix-flash--success`, `.auix-flash--warning` and `.auix-flash--error` take their background, border and text colors from their theme variables.
+- [x] AC-6: The variables stylesheet declares every framing size of step 1.
+- [x] AC-7: Info, success, warning and error flashes look like the "Flash messages" board of the White Charcoal mockup (visual — no red test; verified by the guide images reviewed in UI-7).
 
 ##### Test ports
 - Route `"/flash-kinds-products"` registered in `routes.ex` via `register_crud/2` · layout type `:index` · observable: `has_element?/2` on `#flash-success.auix-flash--success`, `#flash-warning.auix-flash--warning`.

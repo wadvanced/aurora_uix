@@ -52,6 +52,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
       
         <.flash kind={:error} flash={@flash} title={dt("Error!")} />
         <.flash kind={:info} flash={@flash} title={dt("Info!")} />
+        <.flash kind={:success} flash={@flash} title={dt("Success!")} />
+        <.flash kind={:warning} flash={@flash} title={dt("Warning!")} />
 
         <div class="auix-show-content" data-layout="#{name}">
           <Renderer.render_inner_elements auix={@auix} auix_entity={@auix.entity} />

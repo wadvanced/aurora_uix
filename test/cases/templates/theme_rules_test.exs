@@ -3,6 +3,7 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
 
   alias Aurora.Uix.Templates.Basic.Themes.Base
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
+  alias Aurora.Uix.Templates.Basic.Themes.VitreousMarble
   alias Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
   alias Aurora.Uix.Templates.CssSanitizer
   alias Aurora.Uix.Templates.Theme.Rule
@@ -26,6 +27,42 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
 
       refute source in [WhiteCharcoal, ThemeBase]
       assert %Rule{source: :local} = find_rule(source, :auix_button)
+    end
+  end
+
+  describe "theme properties" do
+    test "both themes declare the status, selection and focus-halo colors, light and dark" do
+      names =
+        ~w(auix-color-focus-ring-halo auix-color-success-bg auix-color-success-border
+           auix-color-success-text auix-color-warning-bg auix-color-warning-border
+           auix-color-warning-text auix-color-selection-bg auix-color-selection-border)
+
+      for theme <- [WhiteCharcoal, VitreousMarble], name <- names do
+        css = theme.rule(:root_colors)
+
+        assert css =~ ~r/^\s*--#{name}: (#|rgba\()/m, "#{inspect(theme)} lacks --#{name}"
+        assert css =~ ~r/--dark--#{name}: (#|rgba\()/, "#{inspect(theme)} lacks --dark--#{name}"
+        assert length(String.split(css, "--#{name}: var(--dark--#{name});")) == 3
+      end
+    end
+
+    test "White Charcoal uses rose-500 error borders and rose-700 error text" do
+      css = WhiteCharcoal.rule(:root_colors)
+
+      assert css =~ "--auix-color-error: #F43F5E;"
+      assert css =~ "--auix-color-error-text-default: #BE123C;"
+    end
+
+    test "each flash variant reads its own colors" do
+      for {rule, bg, border} <- [
+            {:auix_flash__info, "bg-info", "info-ring"},
+            {:auix_flash__success, "success-bg", "success-border"},
+            {:auix_flash__warning, "warning-bg", "warning-border"},
+            {:auix_flash__error, "error-bg", "error-ring"}
+          ] do
+        assert Base.rule(rule) =~ "background-color: var(--auix-color-#{bg})"
+        assert Base.rule(rule) =~ "border-color: var(--auix-color-#{border})"
+      end
     end
   end
 

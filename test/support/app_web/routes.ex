@@ -455,6 +455,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          FlashKindsTest.Product,
+          "flash-kinds-products"
+        )
+
+        RoutesHelper.register_crud(
           AshFormDiscardGuardTest.Author,
           "ash-form-discard-guard-authors"
         )

@@ -53,6 +53,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
 
       <.flash kind={:error} flash={@flash} title={dt("Error!")} />
       <.flash kind={:info} flash={@flash} title={dt("Info")} />
+      <.flash kind={:success} flash={@flash} title={dt("Success")} />
+      <.flash kind={:warning} flash={@flash} title={dt("Warning")} />
 
       <.simple_form
         for={@auix.form}

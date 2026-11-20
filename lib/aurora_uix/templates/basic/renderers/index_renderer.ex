@@ -61,6 +61,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
 
       <.flash kind={:error} flash={@flash} title={dt("Error!")} />
       <.flash kind={:info} flash={@flash} title={dt("Info")} />
+      <.flash kind={:success} flash={@flash} title={dt("Success")} />
+      <.flash kind={:warning} flash={@flash} title={dt("Warning")} />
       
       <.index_list auix={@auix} id={"auix-table-#{@auix.uri_path_id}-index"} streams={@auix.layout_options.get_streams.(assigns)} />
 

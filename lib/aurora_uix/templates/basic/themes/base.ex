@@ -27,18 +27,24 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:_auix_flash, """
   .auix-flash {
-    position: fixed;                 
-    top: var(--auix-margin-default);                     
-    right: var(--auix-margin-default);                   
-    margin-right: var(--auix-margin-default);            
+    position: fixed;
+    top: var(--auix-margin-medium);
+    right: var(--auix-margin-medium);
     z-index: 50;
 
     display: flex;
     flex-direction: column;
-    gap: var(--auix-gap-minimal);
+    gap: var(--auix-gap-default);
+    max-width: min(var(--auix-flash-max-width), calc(100vw - 1rem));
 
-    border-radius: var(--auix-border-radius-default);           
-    padding: var(--auix-padding-default);
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-radius: var(--auix-border-radius-nested);
+    padding: var(--auix-padding-control) 0.875rem;
+    box-shadow: var(--auix-shadow-lg);
+
+    font-size: var(--auix-font-size-caption);
+    line-height: var(--auix-line-height-default);
   }
   """)
 
@@ -257,15 +263,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   .auix-flash--info {
     background-color: var(--auix-color-bg-info);
-
+    border-color: var(--auix-color-info-ring);
     color: var(--auix-color-info-text);
     fill: var(--auix-color-icon-fill);
-
-    --auix-calc-shadow: var(--auix-shadow-primary);
-    box-shadow:
-      var(--auix-ring-offset-shadow),
-      var(--auix-ring-info),
-      var(--auix-calc-shadow);
   }
   """)
 
@@ -274,42 +274,70 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   .auix-flash--error {
     background-color: var(--auix-color-error-bg);
-
+    border-color: var(--auix-color-error-ring);
     color: var(--auix-color-error-text);
     fill: var(--auix-color-error-text);
+  }
+  """)
 
-    --auix-calc-ring-shadow: var(--auix-ring-inset) 0 0 0 calc(1px + var(--auix-ring-offset-width)) var(--auix-color-error-ring);
-    --auix-calc-shadow: var(--auix-shadow-md);
-    box-shadow:
-      var(--auix-ring-offset-shadow),
-      var(--auix-calc-ring-shadow),
-      var(--auix-calc-shadow);
+  rule(:auix_flash__success, """
+  #{import_rule(:_auix_flash, :auix_flash__success)}
+
+  .auix-flash--success {
+    background-color: var(--auix-color-success-bg);
+    border-color: var(--auix-color-success-border);
+    color: var(--auix-color-success-text);
+    fill: var(--auix-color-success-text);
+  }
+  """)
+
+  rule(:auix_flash__warning, """
+  #{import_rule(:_auix_flash, :auix_flash__warning)}
+
+  .auix-flash--warning {
+    background-color: var(--auix-color-warning-bg);
+    border-color: var(--auix-color-warning-border);
+    color: var(--auix-color-warning-text);
+    fill: var(--auix-color-warning-text);
   }
   """)
 
   rule(:auix_flash_title, """
-    .auix-flash-title {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      
-      font-size: var(--auix-font-size-caption);   
-      font-weight: var(--auix-font-weight-bold);      
-    }
+  .auix-flash-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+
+    font-size: var(--auix-font-size-caption);
+    font-weight: var(--auix-font-weight-bold);
+  }
+
+  .auix-flash-title > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+  }
   """)
 
   rule(:auix_flash_message, """
-    .auix-flash-message {
-      font-size: var(--auix-font-size-caption);  
-    }
+  .auix-flash-message {
+    font-size: var(--auix-font-size-caption);
+    line-height: var(--auix-line-height-default);
+  }
   """)
 
   rule(:auix_flash_close_button, """
   .auix-flash-close-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
     background: transparent;
     border: none;
     color: var(--auix-color-flash-close-text);
+    cursor: pointer;
   }
   """)
 

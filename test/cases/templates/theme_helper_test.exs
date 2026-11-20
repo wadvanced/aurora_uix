@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Templates.ThemeHelperTest do
     test "group-title and empty-state sizes do not resolve through the page title" do
       css = ThemeHelper.generate_variables_stylesheet()
 
-      assert css =~ "--auix-font-size-group-title: 1.125rem;"
+      assert css =~ "--auix-font-size-group-title: 0.875rem;"
       assert css =~ "--auix-font-size-empty-state: 1.125rem;"
       refute css =~ ~r/--auix-font-size-(?:group-title|empty-state):\s*var\(/
     end
@@ -52,6 +52,20 @@ defmodule Aurora.Uix.Templates.ThemeHelperTest do
 
       for level <- ["20", "40", "75", "100"] do
         assert css =~ ~r/--auix-opacity-#{level}:\s*[0-9.]+;/
+      end
+    end
+
+    test "declares the framing sizes" do
+      css = ThemeHelper.generate_variables_stylesheet()
+
+      for name <-
+            ~w(line-height-title border-radius-medium border-radius-nested control-height
+               control-height-compact padding-control padding-panel padding-container gap-label
+               gap-xl gap-container focus-ring-width row-action-size table-header-height
+               table-row-height checkbox-size checkbox-size-mobile toggle-width toggle-height
+               menu-min-width flash-max-width font-size-label font-size-input-mobile
+               font-size-page-title font-weight-medium) do
+        assert css =~ ~r/--auix-#{name}:\s*[^;]+;/, "--auix-#{name} is not declared"
       end
     end
   end
