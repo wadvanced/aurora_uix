@@ -130,7 +130,12 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   attr(:id, :string, doc: "the optional id of flash container")
   attr(:flash, :map, default: %{}, doc: "the map of flash messages to display")
   attr(:title, :string, default: nil)
-  attr(:kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup")
+
+  attr(:kind, :atom,
+    values: [:info, :success, :warning, :error],
+    doc: "used for styling and flash lookup"
+  )
+
   attr(:host_components, :any)
   attr(:rest, :global, doc: "the arbitrary HTML attributes to add to the flash container")
 
@@ -151,6 +156,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
       <div :if={@title} class="auix-flash-title">
         <div>
           <.icon :if={@kind == :info} name="hero-information-circle-mini" class="auix-icon-size-4" />
+          <.icon :if={@kind == :success} name="hero-check-circle-mini" class="auix-icon-size-4" />
+          <.icon :if={@kind == :warning} name="hero-exclamation-triangle-mini" class="auix-icon-size-4" />
           <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="auix-icon-size-4" />
           <span>{@title}</span>
         </div>

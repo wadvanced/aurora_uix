@@ -19,11 +19,14 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
 
     --auix-line-height-default: 1.250rem;
     --auix-line-height-relaxed: 1.5rem;
+    --auix-line-height-title: 1.75rem;
 
     --auix-border-radius-default: 0.5rem;
     --auix-border-radius-small: 0.250rem;
     --auix-border-radius-large: 1rem;
     --auix-border-radius-round: 9999px;
+    --auix-border-radius-medium: 0.75rem;
+    --auix-border-radius-nested: 0.625rem;
     --auix-border-width-default: 0.0625rem;
     --auix-border-width-thick: 0.125rem;
     --auix-border-style-default: solid;
@@ -49,8 +52,27 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
     /* Caps a checkbox group so a long candidate list scrolls instead of stretching the form */
     --auix-checkbox-group-max-height: 12rem;
     --auix-touch-target-size: 2.75rem;
-    --auix-items-card-label-width: 7.25rem;
+    --auix-items-card-label-width: 8rem;
     --auix-items-card-min-width: 17.5rem;
+
+    --auix-control-height: 2.5rem;
+    --auix-control-height-compact: 2.25rem;
+    --auix-padding-control: 0.75rem;
+    --auix-padding-panel: 1rem;
+    --auix-padding-container: 1.25rem;
+    --auix-gap-label: 0.375rem;
+    --auix-gap-xl: 1rem;
+    --auix-gap-container: 1.25rem;
+    --auix-focus-ring-width: 3px;
+    --auix-row-action-size: 2rem;
+    --auix-table-header-height: 2.75rem;
+    --auix-table-row-height: 3rem;
+    --auix-checkbox-size: 1.125rem;
+    --auix-checkbox-size-mobile: 1.25rem;
+    --auix-toggle-width: 2.75rem;
+    --auix-toggle-height: 1.5rem;
+    --auix-menu-min-width: 15rem;
+    --auix-flash-max-width: 24rem;
 
     --auix-hidden-element-size: 1px;
     --auix-focus-outline-width: 2px;
@@ -67,15 +89,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
     --auix-font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --auix-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
     --auix-font-family-default: var(--auix-font-sans);
-    --auix-font-size-title: 1.125rem;
+    --auix-font-size-title: 1.25rem;
     --auix-font-size-subtitle: 1rem;
     --auix-font-size-caption: 0.875rem;
     --auix-font-size-small: 0.750rem;
-    --auix-font-size-group-title: 1.125rem;
+    --auix-font-size-group-title: 0.875rem;
     --auix-font-size-empty-state: 1.125rem;
+    --auix-font-size-label: 0.8125rem;
+    --auix-font-size-input-mobile: 1rem;
+    --auix-font-size-page-title: 1.5rem;
 
     --auix-font-weight-bold: 600;
     --auix-font-weight-bold-semi: 400;
+    --auix-font-weight-medium: 500;
     --auix-font-style-mobile-viewmode: italic;
 
 

@@ -63,6 +63,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
 
     /* Focus States (Focus Ring / Border) - The "Cat's Eye" effect */
     --auix-color-focus-ring: #06B6D4; /* Cyan-500 */
+    --auix-color-focus-ring-halo: rgba(6, 182, 212, 0.3); /* Cyan-500 at 30% */
+
+    /* Success, warning and selection */
+    --auix-color-success-bg: #ECFDF5;       /* Emerald-50 */
+    --auix-color-success-border: #A7F3D0;   /* Emerald-200 */
+    --auix-color-success-text: #065F46;     /* Emerald-800 */
+    --auix-color-warning-bg: #FFFBEB;       /* Amber-50 */
+    --auix-color-warning-border: #FDE68A;   /* Amber-200 */
+    --auix-color-warning-text: #78350F;     /* Amber-900 */
+    --auix-color-selection-bg: #ECFEFF;     /* Cyan-50 */
+    --auix-color-selection-border: #06B6D4; /* Cyan-500 */
 
     --auix-ring-color: rgba(51, 65, 85, 0.1);
     
@@ -113,6 +124,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     --dark--auix-color-border-focus: #475569; /* Slate-600 */
 
     --dark--auix-color-focus-ring: #22D3EE; /* Cyan-400 (Glowing Glass) */
+    --dark--auix-color-focus-ring-halo: rgba(34, 211, 238, 0.3); /* Cyan-400 at 30% */
+    --dark--auix-color-success-bg: #022C22;       /* Emerald-950 */
+    --dark--auix-color-success-border: #065F46;   /* Emerald-800 */
+    --dark--auix-color-success-text: #6EE7B7;     /* Emerald-300 */
+    --dark--auix-color-warning-bg: #451A03;       /* Amber-950 */
+    --dark--auix-color-warning-border: #92400E;   /* Amber-800 */
+    --dark--auix-color-warning-text: #FCD34D;     /* Amber-300 */
+    --dark--auix-color-selection-bg: #083344;     /* Cyan-950 */
+    --dark--auix-color-selection-border: #22D3EE; /* Cyan-400 */
     --dark--auix-ring-color: rgba(203, 213, 225, 0.1);
 
     --dark--auix-color-shadow-alpha: rgba(0, 0, 0, 0.3);
@@ -165,6 +185,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
       --auix-color-border-focus: var(--dark--auix-color-border-focus);
 
       --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
+      --auix-color-focus-ring-halo: var(--dark--auix-color-focus-ring-halo);
+      --auix-color-success-bg: var(--dark--auix-color-success-bg);
+      --auix-color-success-border: var(--dark--auix-color-success-border);
+      --auix-color-success-text: var(--dark--auix-color-success-text);
+      --auix-color-warning-bg: var(--dark--auix-color-warning-bg);
+      --auix-color-warning-border: var(--dark--auix-color-warning-border);
+      --auix-color-warning-text: var(--dark--auix-color-warning-text);
+      --auix-color-selection-bg: var(--dark--auix-color-selection-bg);
+      --auix-color-selection-border: var(--dark--auix-color-selection-border);
       --auix-ring-color: var(--dark--auix-ring-color);
 
       --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
@@ -217,6 +246,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     --auix-color-border-focus: var(--dark--auix-color-border-focus);
 
     --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
+    --auix-color-focus-ring-halo: var(--dark--auix-color-focus-ring-halo);
+    --auix-color-success-bg: var(--dark--auix-color-success-bg);
+    --auix-color-success-border: var(--dark--auix-color-success-border);
+    --auix-color-success-text: var(--dark--auix-color-success-text);
+    --auix-color-warning-bg: var(--dark--auix-color-warning-bg);
+    --auix-color-warning-border: var(--dark--auix-color-warning-border);
+    --auix-color-warning-text: var(--dark--auix-color-warning-text);
+    --auix-color-selection-bg: var(--dark--auix-color-selection-bg);
+    --auix-color-selection-border: var(--dark--auix-color-selection-border);
     --auix-ring-color: var(--dark--auix-ring-color);
 
     --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);

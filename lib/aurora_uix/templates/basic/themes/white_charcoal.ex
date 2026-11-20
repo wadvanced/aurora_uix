@@ -41,8 +41,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
     --auix-color-text-on-accent-active: rgba(255, 255, 255, 0.8); /* active text opacity */
 
     /* Status Colors */
-    --auix-color-error-text-default: #E11D48; /* rose-600 for inline error text */
-    --auix-color-error: #FB7185;          /* rose-400 for input error borders */
+    --auix-color-error-text-default: #BE123C; /* rose-700 for inline error text */
+    --auix-color-error: #F43F5E;          /* rose-500 for input error borders */
     --auix-color-info-text: #065F46;      /* emerald-800 (Info Text) */
     --auix-color-info-ring: #10B981;      /* emerald-500 (Info Ring) */
     --auix-color-error-bg: #FFF1F2;       /* rose-50 (Error Background) */
@@ -63,6 +63,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
 
     /* Focus States (Focus Ring / Border) */
     --auix-color-focus-ring: #6366F1; /* indigo-500 */
+    --auix-color-focus-ring-halo: rgba(99, 102, 241, 0.3); /* indigo-500 at 30% */
+
+    /* Success, warning and selection */
+    --auix-color-success-bg: #ECFDF5;       /* emerald-50 */
+    --auix-color-success-border: #6EE7B7;   /* emerald-300 */
+    --auix-color-success-text: #065F46;     /* emerald-800 */
+    --auix-color-warning-bg: #FFFBEB;       /* amber-50 */
+    --auix-color-warning-border: #FDE68A;   /* amber-200 */
+    --auix-color-warning-text: #78350F;     /* amber-900 */
+    --auix-color-selection-bg: #F3F3F4;     /* zinc-900 at 5% on white */
+    --auix-color-selection-border: #18181B; /* zinc-900 */
 
     --auix-ring-color: rgba(63, 63, 70, 0.1);
     
@@ -115,6 +126,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
     --dark--auix-color-border-focus: #52525B; /* zinc-600 for input focus border */
 
     --dark--auix-color-focus-ring: #818CF8; /* indigo-400 */
+    --dark--auix-color-focus-ring-halo: rgba(129, 140, 248, 0.3); /* indigo-400 at 30% */
+    --dark--auix-color-success-bg: #022C22;       /* emerald-950 */
+    --dark--auix-color-success-border: #065F46;   /* emerald-800 */
+    --dark--auix-color-success-text: #6EE7B7;     /* emerald-300 */
+    --dark--auix-color-warning-bg: #451A03;       /* amber-950 */
+    --dark--auix-color-warning-border: #92400E;   /* amber-800 */
+    --dark--auix-color-warning-text: #FCD34D;     /* amber-300 */
+    --dark--auix-color-selection-bg: #2A2A2D;     /* zinc-50 at 8% on zinc-900 */
+    --dark--auix-color-selection-border: #FAFAFA; /* zinc-50 */
     --dark--auix-ring-color: rgba(212, 212, 212, 0.1);
 
     --dark--auix-color-shadow-alpha: rgba(0, 0, 0, 0.3);
@@ -167,6 +187,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
       --auix-color-border-focus: var(--dark--auix-color-border-focus);
 
       --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
+      --auix-color-focus-ring-halo: var(--dark--auix-color-focus-ring-halo);
+      --auix-color-success-bg: var(--dark--auix-color-success-bg);
+      --auix-color-success-border: var(--dark--auix-color-success-border);
+      --auix-color-success-text: var(--dark--auix-color-success-text);
+      --auix-color-warning-bg: var(--dark--auix-color-warning-bg);
+      --auix-color-warning-border: var(--dark--auix-color-warning-border);
+      --auix-color-warning-text: var(--dark--auix-color-warning-text);
+      --auix-color-selection-bg: var(--dark--auix-color-selection-bg);
+      --auix-color-selection-border: var(--dark--auix-color-selection-border);
       --auix-ring-color: var(--dark--auix-ring-color);
 
       --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
@@ -219,6 +248,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
     --auix-color-border-focus: var(--dark--auix-color-border-focus);
 
     --auix-color-focus-ring: var(--dark--auix-color-focus-ring);
+    --auix-color-focus-ring-halo: var(--dark--auix-color-focus-ring-halo);
+    --auix-color-success-bg: var(--dark--auix-color-success-bg);
+    --auix-color-success-border: var(--dark--auix-color-success-border);
+    --auix-color-success-text: var(--dark--auix-color-success-text);
+    --auix-color-warning-bg: var(--dark--auix-color-warning-bg);
+    --auix-color-warning-border: var(--dark--auix-color-warning-border);
+    --auix-color-warning-text: var(--dark--auix-color-warning-text);
+    --auix-color-selection-bg: var(--dark--auix-color-selection-bg);
+    --auix-color-selection-border: var(--dark--auix-color-selection-border);
     --auix-ring-color: var(--dark--auix-ring-color);
 
     --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
