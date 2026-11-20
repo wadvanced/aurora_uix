@@ -204,6 +204,7 @@ defmodule Aurora.Uix.MixProject do
           "Basic Template - Themes": [
             Aurora.Uix.Templates.Basic.Themes.Base,
             Aurora.Uix.Templates.Basic.Themes.BaseVariables,
+            Aurora.Uix.Templates.Basic.Themes.BlueGraphite,
             Aurora.Uix.Templates.Basic.Themes.VitreousMarble,
             Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
           ],

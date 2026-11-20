@@ -1,12 +1,15 @@
 defmodule Aurora.Uix.Templates.ThemeRulesTest do
   use ExUnit.Case, async: true
 
+  alias Aurora.Uix.Templates.Basic
   alias Aurora.Uix.Templates.Basic.Themes.Base
+  alias Aurora.Uix.Templates.Basic.Themes.BlueGraphite
   alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
   alias Aurora.Uix.Templates.Basic.Themes.VitreousMarble
   alias Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
   alias Aurora.Uix.Templates.CssSanitizer
   alias Aurora.Uix.Templates.Theme.Rule
+  alias Aurora.Uix.Templates.ThemeHelper
   alias Spark.Error.DslError
 
   describe "rules/0" do
@@ -63,6 +66,54 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
         assert Base.rule(rule) =~ "background-color: var(--auix-color-#{bg})"
         assert Base.rule(rule) =~ "border-color: var(--auix-color-#{border})"
       end
+    end
+  end
+
+  describe "Blue Graphite" do
+    test "is registered as :blue_graphite" do
+      assert ThemeHelper.registered_themes()[:blue_graphite] == BlueGraphite
+      assert BlueGraphite.theme_name() == :blue_graphite
+    end
+
+    test "declares every White Charcoal color, light and dark" do
+      css = BlueGraphite.rule(:root_colors)
+
+      names =
+        ~r/^\s*--((?:auix-color|auix-ring)-[a-z0-9-]+):/m
+        |> Regex.scan(WhiteCharcoal.rule(:root_colors), capture: :all_but_first)
+        |> List.flatten()
+        |> Enum.uniq()
+
+      for name <- names do
+        assert css =~ ~r/^\s*--#{name}: (#|rgba\()/m, "lacks --#{name}"
+        assert css =~ "--dark--#{name}: ", "lacks --dark--#{name}"
+        assert length(String.split(css, "--#{name}: var(--dark--#{name});")) == 3
+      end
+    end
+
+    test "uses a navy primary, light and dark" do
+      css = BlueGraphite.rule(:root_colors)
+
+      assert css =~ "--auix-color-bg-default--reverted: #0F172A;"
+      assert css =~ "--auix-color-text-on-accent: #FFFFFF;"
+      assert css =~ "--dark--auix-color-bg-default--reverted: #E6E9EF;"
+      assert css =~ "--dark--auix-color-text-on-accent: #0C111D;"
+    end
+
+    test "leaves White Charcoal as the default theme" do
+      assert Basic.default_theme_name() == :white_charcoal
+    end
+
+    test "reaches the variables stylesheet" do
+      assert ThemeHelper.generate_variables_stylesheet() =~ ~s([data-theme-name="blue_graphite"])
+    end
+
+    test "scopes every selector to its theme name" do
+      css = BlueGraphite.rule(:root_colors)
+      selectors = ~r/(?::root|:host)[^,{]*/ |> Regex.scan(css) |> List.flatten()
+
+      assert selectors != []
+      assert Enum.all?(selectors, &String.contains?(&1, ~s([data-theme-name="blue_graphite"])))
     end
   end
 
