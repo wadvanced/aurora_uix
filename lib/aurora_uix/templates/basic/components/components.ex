@@ -924,7 +924,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     ~H"""
     <div class="auix-items-card-menu" name="auix-card-menu"
         phx-click={toggle_card_menu()} phx-click-away={hide_card_menu()}>
-      <.button type="button" class="auix-button--iconized" name="auix-card-menu-toggle"
+      <.button type="button" class="auix-button--iconized auix-items-card-menu-toggle" name="auix-card-menu-toggle"
           title={dt("More actions")} aria-label={dt("More actions")} aria-haspopup="menu" aria-expanded="false">
         <.icon name="hero-ellipsis-vertical" />
       </.button>
@@ -944,7 +944,6 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   @spec toggle_card_menu() :: JS.t()
   defp toggle_card_menu do
     %JS{}
-    |> JS.toggle(to: {:inner, "[name='auix-card-menu-list']"}, display: "flex")
     |> JS.toggle_attribute({"aria-expanded", "true", "false"},
       to: {:inner, "[name='auix-card-menu-toggle']"}
     )
@@ -954,9 +953,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   # Closes a card's overflow menu, addressed relative to the menu element
   @spec hide_card_menu() :: JS.t()
   defp hide_card_menu do
-    %JS{}
-    |> JS.hide(to: {:inner, "[name='auix-card-menu-list']"})
-    |> JS.set_attribute({"aria-expanded", "false"},
+    JS.set_attribute(%JS{}, {"aria-expanded", "false"},
       to: {:inner, "[name='auix-card-menu-toggle']"}
     )
   end

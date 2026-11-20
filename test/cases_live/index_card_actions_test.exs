@@ -62,6 +62,13 @@ defmodule Aurora.UixWeb.Test.IndexCardActionsTest do
 
     refute has_element?(view, "#{m} [name='auix-card-show']")
     refute has_element?(view, "#{m} [name='auix-card-menu-list'] a[name='auix-show-product']")
+    refute has_element?(view, "#{m} a.auix-index-row-action[name='auix-copy-product']")
+    refute has_element?(view, "#{m} a.auix-index-row-action[name='auix-archive-product']")
+
+    assert has_element?(
+             view,
+             "#{m} [name='auix-card-menu-destructive'] > .auix-items-card-menu-item:nth-child(2) a.auix-index-row-action[name='auix-delete-product']"
+           )
 
     assert has_element?(
              view,

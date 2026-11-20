@@ -185,7 +185,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       |> Map.put(:title, if(Map.get(assigns, :contents, []) == [], do: dt("Delete")))
 
     ~H"""
-      <.auix_link
+      <.auix_link class="auix-index-row-action"
             phx-click={JS.push("delete", BasicHelpers.target_opts(@auix, value: %{id: row_info_id(@auix)})) |> uix_hide(row_dom_selector(@auix))}
             name={"auix-delete-#{@auix.module}"}
             data-confirm={dt("Are you sure?")}
@@ -499,7 +499,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
               prompt={dt("Default order")}
               omit_label?={true} />
         </.form>
-        <.button type="button" class="auix-button--alt"
+        <.button type="button" class="auix-button--alt auix-index-sort-select-direction"
             name={"auix-sort_direction-#{@auix.module}"}
             disabled={is_nil(@auix.sort)}
             phx-click="index-sort-direction"
@@ -740,10 +740,10 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
 
   # The class of the sort menu button; highlighted while a field sort is on
   @spec sort_menu_toggle_class(map() | nil) :: binary()
-  defp sort_menu_toggle_class(nil), do: "auix-button--iconized"
+  defp sort_menu_toggle_class(nil), do: "auix-button--iconized auix-index-sort-menu-toggle"
 
   defp sort_menu_toggle_class(_sort),
-    do: "auix-button--iconized auix-index-sort-menu-toggle--active"
+    do: "auix-button--iconized auix-index-sort-menu-toggle auix-index-sort-menu-toggle--active"
 
   # The class of a sort menu option's check; an inactive option keeps it invisible
   @spec sort_menu_check_class(boolean()) :: binary() | nil
@@ -754,7 +754,6 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   @spec toggle_sort_menu() :: JS.t()
   defp toggle_sort_menu do
     %JS{}
-    |> JS.toggle(to: {:inner, "[name='auix-sort_menu_list']"}, display: "flex")
     |> JS.toggle_attribute({"aria-expanded", "true", "false"},
       to: {:inner, "[name='auix-sort_menu_toggle']"}
     )
@@ -764,9 +763,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   # Closes the sort menu, addressed relative to the menu element
   @spec hide_sort_menu() :: JS.t()
   defp hide_sort_menu do
-    %JS{}
-    |> JS.hide(to: {:inner, "[name='auix-sort_menu_list']"})
-    |> JS.set_attribute({"aria-expanded", "false"},
+    JS.set_attribute(%JS{}, {"aria-expanded", "false"},
       to: {:inner, "[name='auix-sort_menu_toggle']"}
     )
   end
