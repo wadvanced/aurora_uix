@@ -5,16 +5,21 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.2.0
+## Current Status: v0.2.1-rc.1
 
-Aurora UIX v0.2.0 moves the resource metadata, layout, theme and layout option DSLs to Spark. Options are type-checked at compile time, and layouts can be reused across modules with `auix_create_ui include:`. This release is breaking; see the What's New guide.
+Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in any LiveView, and adds action icons and a card layout for the index list. It has two compile-time breaking changes; see the What's New guide.
 
-**Recent Changes (v0.2.0)**:
+**Recent Changes (v0.2.1)**:
+- `IndexComponent`, `FormComponent` and `ShowComponent` for reusable components
+- Action icons on default actions
+- Card layout for the index list, with a header menu, tap-to-show and an icon sort menu
+- Theme-driven menus and classes for the sort control and index cards
+
+**Previous Release (v0.2.0)**:
 - Resource metadata, layout, theme and layout option DSLs moved to Spark
-- Typed structures for resources, fields, layout nodes, theme rules and layout options
 - Reusable layouts (`auix_create_ui include:`)
 
-**Previous Release (v0.1.7)**:
+**Earlier Release (v0.1.7)**:
 - Card view sort control and `sort_disabled?` index option
 - Attribute-based id selectors for ids starting with a digit
 
