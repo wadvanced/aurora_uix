@@ -15,6 +15,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   - Rejects complex at-rules beyond @media and @keyframes
   - Requires valid CSS syntax; malformed CSS may be partially processed
   - Custom properties must follow --auix-[a-z-]+ naming convention
+  - resize accepts only the values none, block, both, vertical, horizontal and inline; any other value drops the declaration
   """
 
   alias CssParser
@@ -83,6 +84,7 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
                         "cursor",
                         "pointer-events",
                         # --- Browser behavior ---
+                        "^resize$",
                         "appearance",
                         "-moz-appearance",
                         "-webkit-appearance",
@@ -299,7 +301,8 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
     |> Enum.map(fn [property_name, property_value] ->
       property = property_name |> String.trim() |> String.downcase()
 
-      if Enum.any?(@allowed_properties, &allowed?(&1, property)) do
+      if Enum.any?(@allowed_properties, &allowed?(&1, property)) and
+           allowed_value?(property, String.trim(property_value)) do
         value = sanitize_url_functions(property_value)
         "#{property}: #{String.trim(value)};"
       else
@@ -386,4 +389,12 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
     |> Regex.compile!()
     |> Regex.match?(property_name)
   end
+
+  # Properties whose values are restricted to a fixed grammar; every other allowed property
+  # takes any value.
+  @spec allowed_value?(binary(), binary()) :: boolean()
+  defp allowed_value?("resize", value),
+    do: value in ~w(none block both vertical horizontal inline)
+
+  defp allowed_value?(_property, _value), do: true
 end

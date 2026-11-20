@@ -460,6 +460,11 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          FormControlsTest.Product,
+          "form-controls-products"
+        )
+
+        RoutesHelper.register_crud(
           AshFormDiscardGuardTest.Author,
           "ash-form-discard-guard-authors"
         )

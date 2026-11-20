@@ -1637,16 +1637,16 @@ The stylesheet emits every rule through `CssSanitizer.sanitize_css/1` (`lib/auro
 6. New file `test/cases/templates/css_sanitizer_test.exs` (`rg -l 'CssSanitizerTest' test` returns nothing): module `Aurora.Uix.Templates.CssSanitizerTest`, `use ExUnit.Case, async: true`, `alias Aurora.Uix.Templates.Basic.Themes.Base`, `alias Aurora.Uix.Templates.CssSanitizer`. UI-5 adds its own `describe` block to it.
 
 ##### Acceptance criteria
-- [ ] AC-1: An input, a select and a text area are 40px tall (`--auix-control-height`) with an 8px radius on desktop, and 44px tall (`--auix-touch-target-size`) with a 16px font below the `sm` breakpoint; a multiple select keeps its natural height.
-- [ ] AC-2: Each focused input, select and text area shows the focus border plus a 3px ring in `--auix-color-focus-ring-halo`.
-- [ ] AC-3: A disabled form input uses the disabled fill, border and text; an input in the show view, which is disabled, uses the read-only tinted fill and the primary text color instead.
-- [ ] AC-4: A field error shows the message left-aligned under the field, in the error text color, with a 14px icon.
-- [ ] AC-5: A checkbox is 18px on desktop and 20px on mobile, and its checked state uses `--auix-color-checkbox-accent` (the primary color); a toggle is 44×24px, off in `--auix-color-toggle-off` and on in `--auix-color-toggle-on`.
-- [ ] AC-6: Given the `:product` edit form at `/form-controls-products/:id/edit`, the text inputs render inside `.auix-form-field-container` with `class="auix-input"`, and given the show modal at `/form-controls-products/:id/show`, they render inside `.auix-show-content` as disabled `.auix-input` elements — the markup the read-only selector of step 2.2 matches.
-- [ ] AC-7: Given a submitted edit form whose `name` is blank, the error message renders as `.auix-error-message` under the field.
-- [ ] AC-8: The controls match the "Field inputs" and "Text area, select and choices" boards of the mockups in every state (visual — no red test; verified by the guide images reviewed in UI-7).
-- [ ] AC-9: The sanitized text area rule keeps `resize: vertical;` and the read-only text area's `resize: none;`.
-- [ ] AC-10: The sanitizer keeps a `resize` declaration whose value is one of `none`, `block`, `both`, `vertical`, `horizontal`, `inline`, and drops a `resize` declaration with any other value (`auto`, `inherit`, `Vertical`, `vertical !important`, `url(x)`) while keeping the rule's other declarations.
+- [x] AC-1: An input, a select and a text area are 40px tall (`--auix-control-height`) with an 8px radius on desktop, and 44px tall (`--auix-touch-target-size`) with a 16px font below the `sm` breakpoint; a multiple select keeps its natural height.
+- [x] AC-2: Each focused input, select and text area shows the focus border plus a 3px ring in `--auix-color-focus-ring-halo`.
+- [x] AC-3: A disabled form input uses the disabled fill, border and text; an input in the show view, which is disabled, uses the read-only tinted fill and the primary text color instead.
+- [x] AC-4: A field error shows the message left-aligned under the field, in the error text color, with a 14px icon.
+- [x] AC-5: A checkbox is 18px on desktop and 20px on mobile, and its checked state uses `--auix-color-checkbox-accent` (the primary color); a toggle is 44×24px, off in `--auix-color-toggle-off` and on in `--auix-color-toggle-on`.
+- [x] AC-6: Given the `:product` edit form at `/form-controls-products/:id/edit`, the text inputs render inside `.auix-form-field-container` with `class="auix-input"`, and given the show modal at `/form-controls-products/:id/show`, they render inside `.auix-show-content` as disabled `.auix-input` elements — the markup the read-only selector of step 2.2 matches.
+- [x] AC-7: Given a submitted edit form whose `name` is blank, the error message renders as `.auix-error-message` under the field.
+- [x] AC-8: The controls match the "Field inputs" and "Text area, select and choices" boards of the mockups in every state (visual — no red test; verified by the guide images reviewed in UI-7).
+- [x] AC-9: The sanitized text area rule keeps `resize: vertical;` and the read-only text area's `resize: none;`.
+- [x] AC-10: The sanitizer keeps a `resize` declaration whose value is one of `none`, `block`, `both`, `vertical`, `horizontal`, `inline`, and drops a `resize` declaration with any other value (`auto`, `inherit`, `Vertical`, `vertical !important`, `url(x)`) while keeping the rule's other declarations.
 
 ##### Test ports
 - Route `"/form-controls-products"` registered in `routes.ex` via `register_crud/2` · layout types `:form`, `:show` · observable: `has_element?/2` on `.auix-form-field-container input.auix-input[name='product[name]']`, `.auix-show-content input.auix-input[disabled]`, `.auix-error-message`.
