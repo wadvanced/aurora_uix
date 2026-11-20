@@ -158,7 +158,7 @@ defmodule Aurora.UixWeb.Test.AssociationOne2OneUILayoutTest do
 
       assert has_element?(
                view,
-               "#auix-one-to-one-product_barcode-show .auix-one-to-one-empty-msg"
+               "#auix-one-to-one-product_barcode-show > .auix-header .auix-one-to-one-empty-msg"
              )
     end
   end

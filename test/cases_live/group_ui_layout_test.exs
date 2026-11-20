@@ -33,6 +33,11 @@ defmodule Aurora.UixWeb.Test.GroupUILayoutTest do
            |> element(~s(div[id^="auix-group-quantities-"] + div[id^="auix-group-sale_prices-"]))
            |> has_element?()
 
+    assert has_element?(
+             view,
+             ~s(div[id^="auix-group-quantities-"] > h3.auix-group-title:first-child)
+           )
+
     # assert fields within group
     assert_group_field(view, "group-quantities", 1, "quantity_at_hand")
     assert_group_field(view, "group-quantities", 2, "quantity_initial")
