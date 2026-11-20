@@ -61,4 +61,60 @@ defmodule Aurora.Uix.Templates.ThemeFramingTest do
       refute toggle =~ "#16a34a"
     end
   end
+
+  describe "containers" do
+    test "a group is a framed container with a title bar" do
+      group_container = Base.rule(:auix_group_container)
+
+      assert group_container =~ "border-radius: var(--auix-border-radius-medium)"
+      assert group_container =~ ".auix-group-container .auix-group-container"
+      assert Base.rule(:auix_group_title) =~ "border-bottom: "
+
+      assert ThemeBase.rule(:root_color_aliases) =~
+               "--auix-color-group-container-border: var(--auix-color-border-secondary);"
+    end
+
+    test "embedded and one-to-one records share the title-bar frame" do
+      assert Base.rule(:auix_embeds_one_container) =~
+               ".auix-embeds-one-container > .auix-header .auix-header-title"
+
+      assert Base.rule(:auix_one_to_one_container) =~
+               ".auix-one-to-one-container > .auix-header .auix-header-title"
+    end
+
+    test "an empty record shows a dashed box" do
+      assert Base.rule(:auix_embeds_one_empty_msg) =~ "dashed"
+
+      one_to_one_empty_msg = Base.rule(:auix_one_to_one_empty_msg)
+
+      assert one_to_one_empty_msg =~ ".auix-one-to-one-empty-msg"
+      assert one_to_one_empty_msg =~ "dashed"
+    end
+
+    test "section tabs join their panel" do
+      assert Base.rule(:auix_sections_tab_button__active) =~
+               "border-bottom-color: var(--auix-color-sections-tab-active-bg)"
+
+      tab_container = Base.rule(:auix_sections_tab_container)
+
+      assert tab_container =~ "overflow-x: auto"
+      refute tab_container =~ "flex-direction: column"
+    end
+
+    test "nested sections use smaller tabs" do
+      assert Base.rule(:auix_sections_content) =~
+               ~r/\.auix-sections-content \.auix-sections-tab-button--active,\s*\.auix-sections-content \.auix-sections-tab-button--inactive \{\s*height: var\(--auix-control-height-compact\);/
+    end
+
+    test "form and show content sit in a bordered container" do
+      form_container = Base.rule(:auix_form_container)
+
+      assert form_container =~ "border-color: var(--auix-color-form-container-border)"
+
+      assert form_container =~
+               ~r/@media \(max-width: 640px\) \{\s*\.auix-form-container \{[^}]*padding: 0;/
+
+      assert Base.rule(:auix_show_container) =~ ".auix-modal-focus-wrap .auix-show-container"
+    end
+  end
 end
