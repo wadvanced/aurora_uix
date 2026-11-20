@@ -229,7 +229,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BaseVariables do
     --auix-padding-default: 0.625rem;
     
     /* Fonts */
-    --auix-font-size-title: 1.125rem;
+    --auix-font-size-title: 1.25rem;
     --auix-font-family-default: var(--auix-font-sans);
     
     /* Shadows */
@@ -501,12 +501,38 @@ end
 
 You define only the unique parts of your brand theme, and inherit all structural CSS from the base layers. This keeps your theme **small, focused, and maintainable**.
 
+## Status and selection colors
+
+Every built-in theme defines these colors in `:root_colors`, each with a light value and a
+`--dark--` value. A custom theme defines them too: a color it leaves out is undefined, and the
+element that reads it loses that color.
+
+| Variable | Used by |
+|---|---|
+| `--auix-color-success-bg` | Success flash background (`.auix-flash--success`) |
+| `--auix-color-success-border` | Success flash border |
+| `--auix-color-success-text` | Success flash text and icon |
+| `--auix-color-warning-bg` | Warning flash background (`.auix-flash--warning`) |
+| `--auix-color-warning-border` | Warning flash border |
+| `--auix-color-warning-text` | Warning flash text and icon |
+| `--auix-color-selection-bg` | Background of a selected index row and of a selected index card |
+| `--auix-color-selection-border` | Border of a selected index card |
+| `--auix-color-focus-ring-halo` | The 3px ring around a focused input, select, button or tab |
+
+The index, form and show views render a flash of kind `:success` or `:warning`; the library's own
+messages stay `:info` and `:error`. A host handler puts one like any other flash:
+
+```elixir
+{:noreply, put_flash(socket, :success, "Saved")}
+```
+
 ## Built-in Themes
 
-Aurora UIX ships with two registered themes:
+Aurora UIX ships with three registered themes:
 
 - `:white_charcoal` — the library default (light-first, neutral grays)
 - `:vitreous_marble` — Slate/Cyan/Ruby palette
+- `:blue_graphite` — slate text and borders with a navy primary, light and dark
 
 Select one via `config :aurora_uix, theme_name: :white_charcoal` and re-run
 `mix auix.gen.stylesheet` after changing the configuration.

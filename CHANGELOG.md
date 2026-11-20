@@ -14,6 +14,12 @@ changes: see the What's New guide for the upgrade checklist.
   any LiveView (Reusable Components guide).
 - **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
 - **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
+- **Blue Graphite theme**: `:blue_graphite`, a slate theme with a navy primary, in light and dark
+  (Theming guide, "Built-in Themes").
+- **Success and warning flashes**: `auix-flash--success` and `auix-flash--warning`, rendered by the
+  index, form and show views (Theming guide, "Status and selection colors").
+- **Selection colors**: a selected index row and a selected index card use the theme's selection
+  colors (Theming guide, "Status and selection colors").
 
 ### Changed
 
@@ -35,6 +41,14 @@ changes: see the What's New guide for the upgrade checklist.
   or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
 - **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
   guide, "Class reference").
+- **Refreshed look (CSS class changes)**: inputs, buttons, groups, embedded records, sections,
+  modals, the index table, cards and menus take a new frame in every theme; `auix-button--danger`
+  is new (Styling guide, "Class reference").
+- **White Charcoal error colors**: the input error border is rose-500 `#F43F5E` and the inline
+  error text rose-700 `#BE123C`.
+- **Theme CSS sanitizer**: theme rules may set `resize` to one of `none`, `block`, `both`,
+  `vertical`, `horizontal`, `inline`, and `content` to one plain quoted string such as `""`; any
+  other value of either property is dropped.
 
 ### Build
 
