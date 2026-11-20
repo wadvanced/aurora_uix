@@ -171,4 +171,62 @@ defmodule Aurora.Uix.Templates.ThemeFramingTest do
       assert navigator_bar =~ ".auix-record-navigator-bar > .auix-icon-inactive"
     end
   end
+
+  describe "index" do
+    test "the table sits in a card with a tinted header and marks the sorted column" do
+      assert Base.rule(:auix_items_table_container) =~
+               "border-radius: var(--auix-border-radius-medium)"
+
+      header = Base.rule(:auix_items_table_header)
+
+      assert header =~ "background-color: var(--auix-color-items-table-header-bg)"
+      assert header =~ ~s(th[aria-sort="ascending"])
+
+      assert Base.rule(:auix_items_table_cell) =~ "height: var(--auix-table-row-height)"
+    end
+
+    test "a selected row and a selected card use the selection colors" do
+      assert Base.rule(:auix_items_table_row) =~
+               ".auix-items-table-row:has(> .auix-items-table-cell:first-child .auix-checkbox:checked)"
+
+      assert Base.rule(:auix_items_card_item_content) =~
+               "border-color: var(--auix-color-items-card-border-selected)"
+    end
+
+    test "row actions are 32px targets" do
+      action_cell = Base.rule(:auix_items_table_action_cell)
+
+      assert action_cell =~
+               ~r/\.auix-items-table-action-cell \.auix-index-row-action \{[^}]*width: var\(--auix-row-action-size\);/
+
+      refute action_cell =~ "display: flex"
+    end
+
+    test "pagination becomes the table card footer" do
+      assert Base.rule(:auix_pagination_container) =~
+               ~s|.auix-index-container:has(> form .auix-items-desktop) > [name="auix-index-footer-actions"] > .auix-pagination-container|
+
+      assert Base.rule(:auix_pagination_bar_current_page_number) =~
+               "border-radius: var(--auix-border-radius-round)"
+    end
+
+    test "cards get the new frame and one-to-many lists no outer box" do
+      assert Base.rule(:auix_items_card_item_content) =~
+               "border-radius: var(--auix-border-radius-medium)"
+
+      refute Base.rule(:auix_one_to_many_container) =~ "border-width"
+    end
+
+    test "menus are 12px surfaces with dividers" do
+      for rule_name <- [:auix_items_card_menu_list, :auix_index_sort_menu_list] do
+        assert Base.rule(rule_name) =~ "border-radius: var(--auix-border-radius-medium)"
+      end
+
+      assert Base.rule(:auix_index_sort_menu_group) =~
+               "border-top-color: var(--auix-color-menu-divider)"
+
+      assert Base.rule(:auix_index_sort_menu_item) =~
+               ":not(:has(.auix-index-sort-menu-check--off))"
+    end
+  end
 end

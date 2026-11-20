@@ -23,6 +23,11 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
            |> selected_states()
            |> Enum.all?(&(!&1))
 
+    refute has_element?(
+             view,
+             "tr.auix-items-table-row > td.auix-items-table-cell:first-child input.auix-checkbox[checked]"
+           )
+
     # Test check all button
     view
     |> element("button[name='auix-selected_check_all-product']")
@@ -31,6 +36,16 @@ defmodule Aurora.UixWeb.Test.SelectedTest do
     assert view
            |> selected_states()
            |> Enum.all?(& &1)
+
+    assert has_element?(
+             view,
+             "tr.auix-items-table-row > td.auix-items-table-cell:first-child input.auix-checkbox[checked]"
+           )
+
+    assert has_element?(
+             view,
+             "#auix-table-selected-products-index-mobile .auix-items-card-item-content > .auix-items-card-item-group > .auix-items-card-select input.auix-checkbox[checked]"
+           )
 
     assert has_element?(view, "#auix-delete-all-button-product>button", "Delete selected")
 

@@ -25,6 +25,8 @@ defmodule Aurora.UixWeb.Test.PagesBarTest do
     assert html =~ "Listing Products"
 
     refute has_element?(view, "div[name='auix-pages_bar-products']")
+    refute has_element?(view, ".auix-pagination-container")
+    assert has_element?(view, ".auix-items-table-container")
   end
 
   test "Test UI page bar needed", %{conn: conn} do
@@ -35,6 +37,16 @@ defmodule Aurora.UixWeb.Test.PagesBarTest do
     assert html =~ "Listing Products"
 
     assert has_element?(view, "div[name='auix-pages_bar-products']")
+
+    assert has_element?(
+             view,
+             ".auix-index-container > [name='auix-index-footer-actions'] > .auix-pagination-container"
+           )
+
+    assert has_element?(
+             view,
+             ".auix-index-container > form .auix-items-desktop > .auix-items-table-container"
+           )
 
     assert html
            |> LazyHTML.from_document()

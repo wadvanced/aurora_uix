@@ -156,7 +156,7 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
     test "align the checkbox with the title" do
       select = Base.rule(:auix_items_card_select)
 
-      assert select =~ "height: var(--auix-line-height-relaxed)"
+      assert select =~ "height: var(--auix-touch-target-size)"
       assert select =~ ".auix-items-card-select .auix-fieldset"
       assert select =~ ".auix-items-card-select .auix-checkbox"
       assert Base.rule(:auix_items_card_title) =~ "line-height: var(--auix-line-height-relaxed)"
@@ -226,7 +226,7 @@ defmodule Aurora.Uix.Templates.ThemeRulesTest do
       active = Base.rule(:auix_index_sort_menu_toggle__active)
 
       assert active =~ ".auix-index-sort-menu > .auix-index-sort-menu-toggle--active"
-      assert active =~ "color: var(--auix-color-icon-info)"
+      assert active =~ "color: var(--auix-color-sort-toggle-active-text)"
       assert Base.rule(:auix_index_sort_menu_check__off) =~ "visibility: hidden"
 
       assert Base.rule(:auix_index_sort_menu_group) =~
