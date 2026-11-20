@@ -560,17 +560,17 @@ messages stay `:info` and `:error`. A host handler puts one like any other flash
 `````
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-544-enriched-spec.md`)
-- [ ] AC-3: `guides/customization/styling.md § Variable reference` documents every new size, typography, status and alias variable (mechanical — no red test; verified by `` for v in --auix-control-height --auix-font-size-label --auix-color-focus-ring-halo --auix-color-selection-bg --auix-color-button-danger-bg --auix-color-menu-bg; do grep -qF -- "| \`$v\` |" guides/customization/styling.md || echo "missing $v"; done `` printing nothing)
-- [ ] AC-4: `guides/customization/styling.md § Class reference` lists `.auix-button--danger`, `.auix-flash--success`, `.auix-flash--warning` and every class UI-1 to UI-6 restyle (mechanical — no red test; verified by `` for c in .auix-button--danger .auix-flash--success .auix-flash--warning .auix-items-table-container .auix-group-container .auix-sections-content; do grep -qF -- "| \`$c\` |" guides/customization/styling.md || echo "missing $c"; done `` printing nothing)
-- [ ] AC-5: `guides/customization/styling.md § Recipe table` has no `--auix-button-height-default` and a "Flat groups (0.2.0 look)" row (mechanical — no red test; verified by `grep -n 'Flat groups (0.2.0 look)' guides/customization/styling.md` matching and `grep -n 'Larger touch targets.*button-height-default' guides/customization/styling.md` matching nothing)
-- [ ] AC-6: `guides/customization/theming.md § Built-in Themes` lists `:blue_graphite`, `§ Status and selection colors` precedes it and `§ Layer 3: Base Variables` shows `--auix-font-size-title: 1.25rem;` (mechanical — no red test; verified by `grep -n -e '^## Status and selection colors' -e '^## Built-in Themes' -e 'blue_graphite' -e 'font-size-title: 1.25rem' guides/customization/theming.md` showing the status heading before the Built-in Themes heading)
+- [x] AC-3: `guides/customization/styling.md § Variable reference` documents every new size, typography, status and alias variable (mechanical — no red test; verified by `` for v in --auix-control-height --auix-font-size-label --auix-color-focus-ring-halo --auix-color-selection-bg --auix-color-button-danger-bg --auix-color-menu-bg; do grep -qF -- "| \`$v\` |" guides/customization/styling.md || echo "missing $v"; done `` printing nothing)
+- [x] AC-4: `guides/customization/styling.md § Class reference` lists `.auix-button--danger`, `.auix-flash--success`, `.auix-flash--warning` and every class UI-1 to UI-6 restyle (mechanical — no red test; verified by `` for c in .auix-button--danger .auix-flash--success .auix-flash--warning .auix-items-table-container .auix-group-container .auix-sections-content; do grep -qF -- "| \`$c\` |" guides/customization/styling.md || echo "missing $c"; done `` printing nothing)
+- [x] AC-5: `guides/customization/styling.md § Recipe table` has no `--auix-button-height-default` and a "Flat groups (0.2.0 look)" row (mechanical — no red test; verified by `grep -n 'Flat groups (0.2.0 look)' guides/customization/styling.md` matching and `grep -n 'Larger touch targets.*button-height-default' guides/customization/styling.md` matching nothing)
+- [x] AC-6: `guides/customization/theming.md § Built-in Themes` lists `:blue_graphite`, `§ Status and selection colors` precedes it and `§ Layer 3: Base Variables` shows `--auix-font-size-title: 1.25rem;` (mechanical — no red test; verified by `grep -n -e '^## Status and selection colors' -e '^## Built-in Themes' -e 'blue_graphite' -e 'font-size-title: 1.25rem' guides/customization/theming.md` showing the status heading before the Built-in Themes heading)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
