@@ -59,47 +59,94 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:_auix_textarea, """
   .auix-textarea {
-    margin: 0;               
-    padding: var(--auix-padding-minimal);
+    box-sizing: border-box;
+    display: block;
+    min-height: 5.25rem;
+    margin: 0;
+    padding: var(--auix-padding-default) var(--auix-padding-control);
 
     border-width: var(--auix-border-width-default);
     border-style: var(--auix-border-style-default);
-    border-radius: var(--auix-border-radius-small);            
+    border-radius: var(--auix-border-radius-default);
 
-    color: var(--auix-color-textarea-text); 
-    background-color: transparent;
+    font-family: inherit;
+    font-size: var(--auix-font-size-caption);
+    line-height: var(--auix-line-height-default);
+    resize: vertical;
+
+    color: var(--auix-color-textarea-text);
+    background-color: var(--auix-color-input-bg);
     caret-color: var(--auix-color-textarea-text);
+  }
+
+  .auix-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  .auix-textarea:disabled {
+    background-color: var(--auix-color-input-bg-disabled);
+    border-color: var(--auix-color-input-border-disabled);
+    color: var(--auix-color-input-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .auix-textarea[readonly],
+  .auix-show-content .auix-textarea:disabled {
+    background-color: var(--auix-color-input-bg-readonly);
+    border-color: var(--auix-color-input-border-disabled);
+    color: var(--auix-color-textarea-text);
+    resize: none;
   }
 
   @media (max-width: #{breakpoint(:sm)}) {
     .auix-textarea {
-      font-size: var(--auix-font-size-caption);            
+      font-size: var(--auix-font-size-input-mobile);
+      line-height: var(--auix-line-height-relaxed);
     }
   }
   """)
 
   rule(:_auix_input, """
   .auix-input {
-    padding: var(--auix-padding-minimal);
+    box-sizing: border-box;
+    height: var(--auix-control-height);
+    margin: 0;
+    padding: 0 var(--auix-padding-control);
 
     border-width: var(--auix-border-width-default);
     border-style: var(--auix-border-style-default);
-    border-radius: var(--auix-border-radius-small);
+    border-radius: var(--auix-border-radius-default);
 
+    font-size: var(--auix-font-size-caption);
     color: var(--auix-color-input-text);
-    background-color: transparent;
+    background-color: var(--auix-color-input-bg);
     caret-color: var(--auix-color-input-text);
   }
 
   .auix-input:focus {
-    --auix-ring-color: transparent;
-    box-shadow: none;
     outline: none;
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  .auix-input:disabled {
+    background-color: var(--auix-color-input-bg-disabled);
+    border-color: var(--auix-color-input-border-disabled);
+    color: var(--auix-color-input-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .auix-input[readonly],
+  .auix-show-content .auix-input:disabled {
+    background-color: var(--auix-color-input-bg-readonly);
+    border-color: var(--auix-color-input-border-disabled);
+    color: var(--auix-color-input-text);
   }
 
   @media (max-width: #{breakpoint(:sm)}) {
     .auix-input {
-      font-size: var(--auix-font-size-caption);
+      height: var(--auix-touch-target-size);
+      font-size: var(--auix-font-size-input-mobile);
     }
   }
   """)
@@ -497,11 +544,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-fieldset {
     display: flex;
     flex-direction: column;
-    gap: var(--auix-gap-default);
+    gap: var(--auix-gap-label);
 
+    min-width: 0;
     margin: 0;
     padding: 0;
-    padding-block: calc(0.25rem * 1);
     border-width: 0;
     font-size: var(--auix-font-size-caption);
   }
@@ -509,35 +556,46 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_checkbox, """
   .auix-checkbox {
-      padding: 0;
-      display: inline-block;
-      vertical-align: middle;
-      flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
 
-      height: var(--auix-box-size-unit);
-      width: var(--auix-box-size-unit);
-      margin: var(--auix-margin-default);
+    width: var(--auix-checkbox-size);
+    height: var(--auix-checkbox-size);
+    margin: 0;
+    padding: 0;
 
-      border-width: var(--auix-border-width-default);
-      border-style: var(--auix-border-style-default);
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-radius: var(--auix-border-radius-small);
+    border-color: var(--auix-color-checkbox-border);
+    background-color: var(--auix-color-bg-default);
+    color: var(--auix-color-checkbox-text);
+    accent-color: var(--auix-color-checkbox-accent);
 
-      border-radius: var(--auix-border-radius-small);
-      border-color: var(--auix-color-checkbox-border);
-      background-color: var(--auix-color-bg-default);
-      color: var(--auix-color-checkbox-text);
+    box-shadow: none;
+    outline: none;
+    background-image: none;
+  }
 
-      box-shadow: none;
-      outline: none;
-      background-image: none;
+  .auix-checkbox:focus-visible {
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  .auix-checkbox:disabled {
+    background-color: var(--auix-color-bg-light);
+    color: var(--auix-color-text-secondary);
+
+    opacity: var(--auix-opacity-100);
+    cursor: not-allowed;
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-checkbox {
+      width: var(--auix-checkbox-size-mobile);
+      height: var(--auix-checkbox-size-mobile);
     }
-
-    .auix-checkbox:disabled {
-      background-color: var(--auix-color-bg-light);
-      color: var(--auix-color-text-secondary);
-
-      opacity: var(--auix-opacity-100);
-      cursor: not-allowed;
-    }
+  }
   """)
 
   rule(:auix_checkbox__mixed, """
@@ -601,13 +659,19 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   """)
 
   rule(:auix_checkbox_label, """
+  .auix-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+    font-size: var(--auix-font-size-caption);
+    color: var(--auix-color-checkbox-label-text);
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
     .auix-checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: var(auix-gap-default);
-      font-size: var(--auix-font-size-caption);
-      color: var(--auix-color-checkbox-label-text);
+      min-height: var(--auix-touch-target-size);
     }
+  }
   """)
 
   rule(:auix_checkbox_group, """
@@ -733,45 +797,64 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   """)
 
   rule(:auix_select, """
+  .auix-select {
+    box-sizing: border-box;
+    height: var(--auix-control-height);
+    margin: 0;
+    padding: 0 var(--auix-padding-control);
+
+    border-radius: var(--auix-border-radius-default);
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-color: var(--auix-color-select-border);
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-position: right var(--auix-padding-control) center;
+    background-repeat: no-repeat;
+    background-size: var(--auix-box-size-unit) var(--auix-box-size-unit);
+    background-color: var(--auix-color-input-bg);
+
+    font-size: var(--auix-font-size-caption);
+    color: var(--auix-color-input-text);
+  }
+  .auix-select:not(:disabled) {
+    background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    padding-right: 2.25rem;
+  }
+  .auix-select:disabled {
+    background-image: none;
+    background-color: var(--auix-color-input-bg-disabled);
+    border-color: var(--auix-color-input-border-disabled);
+    color: var(--auix-color-input-text-disabled);
+    cursor: not-allowed;
+  }
+  .auix-show-content .auix-select:disabled {
+    background-color: var(--auix-color-input-bg-readonly);
+    color: var(--auix-color-input-text);
+  }
+  .auix-select[multiple] {
+    height: auto;
+    padding: var(--auix-padding-medium) var(--auix-padding-control);
+    background-image: none;
+  }
+
+  .auix-select:focus {
+    border-color: var(--auix-color-select-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
     .auix-select {
-      border-radius: var(--auix-border-radius-small);
-      border-width: var(--auix-border-width-default);
-      border-style: var(--auix-border-style-default);
-      border-color: var(--auix-color-select-border);
-      appearance: none;
-      background-position: right var(--auix-padding-medium) center;
-      background-repeat: no-repeat;
-      background-size: var(--auix-box-size-unit) var(--auix-box-size-unit);
-      background-color: var(--auix-color-bg-default);
-      box-shadow: var(--auix-shadow-small);
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      padding: var(--auix-padding-minimal);
-      box-sizing: content-box;
+      height: var(--auix-touch-target-size);
+      font-size: var(--auix-font-size-input-mobile);
     }
-    .auix-select:not(:disabled) {
-      background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      padding-right: var(--auix-padding-large);
+    .auix-select[multiple] {
+      height: auto;
     }
-    .auix-select:disabled {
-      background-image: none;
-      padding-right: var(--auix-padding-medium);
-      opacity: var(--auix-opacity-75);
-      cursor: not-allowed;
-    }
-
-    .auix-select:focus {
-      border-color: var(--auix-color-select-border-focus);
-      --auix-ring-color: transparent;
-      box-shadow: none;
-      outline: none;
-    }
-
-    @media (min-width: #{breakpoint(:sm)}) {
-      .auix-select {
-        font-size: var(--auix-font-size-caption);
-      }
-    }
+  }
   """)
 
   rule(:auix_select_label, """
@@ -883,9 +966,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_label, """
   .auix-label {
-    font-size: var(--auix-font-size-caption);             
-    font-weight: var(--auix-font-weight-bold);                
-    color: var(--auix-color-label-text); 
+    font-size: var(--auix-font-size-label);
+    font-weight: var(--auix-font-weight-medium);
+    color: var(--auix-color-label-text);
+  }
+
+  @media (max-width: #{breakpoint(:sm)}) {
+    .auix-label {
+      font-size: var(--auix-font-size-caption);
+    }
   }
   """)
 
@@ -893,12 +982,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   .auix-error-message {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+    gap: var(--auix-gap-label);
 
-    margin: 0;                       
-    font-size: var(--auix-font-size-caption);                       
-    color: var(--auix-color-error-text-default); 
+    margin: 0;
+    font-size: var(--auix-font-size-small);
+    line-height: 1rem;
+    color: var(--auix-color-error-text-default);
+  }
+
+  .auix-error-message .auix-icon-size-5 {
+    flex-shrink: 0;
+    width: 0.875rem;
+    height: 0.875rem;
   }
   """)
 
@@ -2021,13 +2118,20 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
 
   rule(:auix_form_field_container, """
   .auix-form-field-container {
-    display: flex;         
-    flex-direction: column; 
+    display: flex;
+    flex-direction: column;
     justify-content: space-between;
     width: stretch;
   }
   .auix-form-field-container > * {
     flex: 1;
+  }
+  .auix-form-field-container .auix-input,
+  .auix-form-field-container .auix-input--errors,
+  .auix-form-field-container .auix-textarea,
+  .auix-form-field-container .auix-textarea--errors,
+  .auix-form-field-container .auix-select {
+    width: 100%;
   }
   """)
 
@@ -2634,21 +2738,21 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
     appearance: none;
     -webkit-appearance: none;
     align-self: flex-start;
-    width: 2.25rem;
-    height: 1.25rem;
+    width: var(--auix-toggle-width);
+    height: var(--auix-toggle-height);
     margin: 0;
     border: none;
     border-radius: var(--auix-border-radius-round);
-    background-color: #e5e7eb;
-    background-image: radial-gradient(circle 0.45rem at 0.625rem 0.625rem, #ffffff 100%, transparent 0);
+    background-color: var(--auix-color-toggle-off);
+    background-image: radial-gradient(circle 0.625rem at 0.75rem 0.75rem, var(--auix-color-toggle-knob) 100%, transparent 0);
     background-repeat: no-repeat;
-    box-shadow: var(--auix-shadow-small);
+    box-shadow: none;
     cursor: pointer;
     transition: background-color 0.2s ease, background-position 0.2s ease;
   }
   .auix-checkbox.auix-toggle-switch:checked {
-    background-color: #16a34a;
-    background-position: 1rem 0;
+    background-color: var(--auix-color-toggle-on);
+    background-position: 1.25rem 0;
   }
   .auix-checkbox.auix-toggle-switch:disabled {
     opacity: var(--auix-opacity-100);
