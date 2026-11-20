@@ -62,6 +62,7 @@ defmodule Aurora.UixWeb.Test.FormDiscardGuardTest do
 
     refute has_element?(view, "#auix-product-edit-modal")
     refute has_element?(view, "#auix-product-discard-confirm-modal")
+    refute has_element?(view, "button.auix-button--danger")
   end
 
   test "a changed form opens the discard dialog", %{conn: conn} do
@@ -78,7 +79,7 @@ defmodule Aurora.UixWeb.Test.FormDiscardGuardTest do
 
     assert has_element?(
              view,
-             "#auix-product-discard-confirm-modal button[name='auix-discard-changes']"
+             "#auix-product-discard-confirm-modal button.auix-button--danger[name='auix-discard-changes']"
            )
   end
 

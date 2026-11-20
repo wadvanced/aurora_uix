@@ -117,4 +117,58 @@ defmodule Aurora.Uix.Templates.ThemeFramingTest do
       assert Base.rule(:auix_show_container) =~ ".auix-modal-focus-wrap .auix-show-container"
     end
   end
+
+  describe "buttons and modal" do
+    test "buttons share the 40px frame and the focus halo" do
+      button_default = Base.rule(:_auix_button_default)
+
+      assert button_default =~ "height: var(--auix-control-height)"
+      assert button_default =~ ".auix-button-default:focus-visible"
+    end
+
+    test "every variant has a disabled state and the primary a loading state" do
+      for rule_name <- [
+            :auix_button,
+            :auix_button__alt,
+            :auix_button__danger,
+            :auix_index_all_action_button
+          ] do
+        assert Base.rule(rule_name) =~ "background-color: var(--auix-color-button-disabled-bg)"
+      end
+
+      button = Base.rule(:auix_button)
+
+      assert button =~ ".auix-button.phx-submit-loading::before"
+      refute button =~ "[phx-submit-loading]"
+
+      assert ThemeBase.rule(:root_color_aliases) =~
+               "--auix-color-button-alt-bg: var(--auix-color-bg-default);"
+    end
+
+    test "action buttons become 44px squares on mobile" do
+      assert Base.rule(:_auix_button_default) =~
+               ~r/@media \(max-width: 640px\) \{\s*\.auix-button-default:has\(> \.auix-action-icon\) \{\s*width: var\(--auix-touch-target-size\);/
+    end
+
+    test "the modal floats with its close button at the top right" do
+      assert Base.rule(:auix_modal_close_button_container) =~ "position: absolute"
+
+      assert Base.rule(:auix_modal_box) =~
+               ~r/@media \(max-width: 640px\) \{\s*\.auix-modal-box \{\s*top: var\(--auix-margin-medium\);/
+
+      close_button = Base.rule(:auix_modal_close_button)
+
+      assert close_button =~ "border-color: var(--auix-color-modal-close-border)"
+      refute close_button =~ "opacity"
+    end
+
+    test "the record pager centers 32px arrows" do
+      navigator_bar = Base.rule(:auix_record_navigator_bar)
+
+      assert navigator_bar =~
+               ~r/\.auix-record-navigator-bar > a \{[^}]*width: var\(--auix-row-action-size\);/
+
+      assert navigator_bar =~ ".auix-record-navigator-bar > .auix-icon-inactive"
+    end
+  end
 end
