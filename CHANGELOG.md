@@ -2,6 +2,12 @@
 
 ## [0.2.1]
 
+**Reusable components and index cards**
+
+This release lets the index, form and show UIs be embedded as components in any LiveView, adds action
+icons and a card layout for the index list, and updates dependencies. It has two compile-time breaking
+changes: see the What's New guide for the upgrade checklist.
+
 ### Added
 
 - **Reusable components**: `IndexComponent`, `FormComponent` and `ShowComponent` can be embedded in
