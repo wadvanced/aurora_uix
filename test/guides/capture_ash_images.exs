@@ -33,7 +33,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
     # index
     |> visit(url)
     |> capture(:ash_index, screen_size, target, %{
-      desktop: [center_crop_width: 600, crop_height: 512],
+      desktop: [center_crop_width: 600, crop_height: 560],
       mobile: []
     })
 

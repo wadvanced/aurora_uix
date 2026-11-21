@@ -30,7 +30,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
     # index
     |> visit(url)
     |> capture(:index, screen_size, target, %{
-      desktop: [zoom: 0.70, center_crop_width: 640, center_crop_height: 620]
+      desktop: [height: 940, zoom: 0.70, center_crop_width: 700]
     })
 
     # show

@@ -3441,11 +3441,11 @@ Theme: the images render with `:vitreous_marble`. `lib/aurora_uix/templates/them
 9. Commit in two groups: the three capture files as `test: fit guide capture options to the refreshed frame`, then the PNGs as `docs: regenerate guide images`.
 
 ##### Acceptance criteria
-- [ ] AC-1: After steps 1–4, `git status --short` lists only `test/guides/capture_overview_images.exs`, `test/guides/capture_ash_images.exs`, `test/guides/capture_layout_images.exs` and PNG files under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash`; `config/test.exs` is not listed (mechanical — no red test; verified by `git status --short`).
-- [ ] AC-2: Every regenerated index, show and edit image shows the new frame of UI-3 to UI-6 at desktop and mobile width, and the seven images of step 2 show their whole table card and their whole modal with no edge cut (manual — no red test; verified by reading each changed PNG per step 7).
-- [ ] AC-3: A failing capture, a capture showing an error flash, a capture with a cut table card and a capture with a cut modal block the section: the PNG is not committed (manual — no red test; verified by steps 7–8).
-- [ ] AC-4: The captures render with `:vitreous_marble` in the checkout that runs them (mechanical — no red test; verified by the `mix run` command of step 1 printing `:vitreous_marble`).
-- [ ] AC-5: The seven images of step 2 have the sizes of step 6 (mechanical — no red test; verified by `file` on each image).
+- [x] AC-1: After steps 1–4, `git status --short` lists only `test/guides/capture_overview_images.exs`, `test/guides/capture_ash_images.exs`, `test/guides/capture_layout_images.exs` and PNG files under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash`; `config/test.exs` is not listed (mechanical — no red test; verified by `git status --short`).
+- [x] AC-2: Every regenerated index, show and edit image shows the new frame of UI-3 to UI-6 at desktop and mobile width, and the seven images of step 2 show their whole table card and their whole modal with no edge cut (manual — no red test; verified by reading each changed PNG per step 7).
+- [x] AC-3: A failing capture, a capture showing an error flash, a capture with a cut table card and a capture with a cut modal block the section: the PNG is not committed (manual — no red test; verified by steps 7–8).
+- [x] AC-4: The captures render with `:vitreous_marble` in the checkout that runs them (mechanical — no red test; verified by the `mix run` command of step 1 printing `:vitreous_marble`).
+- [x] AC-5: The seven images of step 2 have the sizes of step 6 (mechanical — no red test; verified by `file` on each image).
 
 ##### Test ports
 - None: the capture tests are the procedure, not the proof.
