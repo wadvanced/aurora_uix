@@ -43,7 +43,9 @@ changes: see the What's New guide for the upgrade checklist.
   guide, "Class reference").
 - **Refreshed look (CSS class changes)**: inputs, buttons, groups, embedded records, sections,
   modals, the index table, cards and menus take a new frame in every theme; `auix-button--danger`
-  is new (Styling guide, "Class reference").
+  is new (Styling guide, "Class reference"). Hosts that override `--auix-*` variables or `.auix-*`
+  rules should read the heads-up in the What's New guide (What's New in 0.2.1, "Heads-up: refreshed
+  look and CSS overrides").
 - **White Charcoal error colors**: the input error border is rose-500 `#F43F5E` and the inline
   error text rose-700 `#BE123C`.
 - **Theme CSS sanitizer**: theme rules may set `resize` to one of `none`, `block`, `both`,
