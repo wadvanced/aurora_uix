@@ -16,7 +16,7 @@ Every generated UI element takes the framing of the approved mockups — control
 | UI-4 | UI | theme · groups, embedded records, sections, form and show containers, headers | UI-3 | federico/544-ui-4-containers | feat: refreshed groups, sections and containers (#544 · UI-4) |
 | UI-5 | UI | theme + form renderer · buttons, modal, unsaved-changes confirmation, record pager; CSS sanitizer `content` | UI-4 | federico/544-ui-5-buttons-modal | feat: refreshed buttons and modal (#544 · UI-5) |
 | UI-6 | UI | theme · index table, selection, pagination, cards, one-to-many lists, menus | UI-5 | federico/544-ui-6-index | feat: refreshed index table, cards and menus (#544 · UI-6) |
-| UI-7 | UI | guide images regenerated | UI-2, UI-6 | federico/544-ui-7-guide-images | docs: regenerate guide images (#544 · UI-7) |
+| UI-7 | UI | guide images regenerated; capture options of the three capture tests | UI-2, UI-6 | federico/544-ui-7-guide-images | docs: regenerate guide images (#544 · UI-7) |
 
 A section starts only when every dependency is **merged**. Independent
 sections may run in parallel. Status is derived from GitHub, never recorded
@@ -3372,24 +3372,80 @@ The existing assertions of `test/cases/templates/theme_rules_test.exs` on these 
 Depends on: UI-2, UI-6
 
 #### Documentation references
-- `guides/overview/overview.md`, `guides/core/layouts.md`, `guides/core/ash_integration.md` (they embed the images; no text changes)
+- `guides/overview/overview.md`, `guides/core/layouts.md`, `guides/core/ash_integration.md` (they embed the images with a fixed `width` attribute; no text changes)
 - `.claude/skills/prepare-release/SKILL.md § 4. Build assets`, `§ 5. Screenshots` (the capture procedure this section follows)
 
 #### Implementation details
 
-Layout types: `:index`, `:form`, `:show`, as the capture tests drive them. No library code changes; the section commits regenerated PNGs only. The capture tests run on Wallaby (`test/guides/capture_*.exs`) because a PNG of the rendered page cannot be produced by LiveViewTest. They render with the test config's theme, `config/test.exs` `theme_name: :vitreous_marble`.
+Layout types: `:index`, `:form`, `:show`, as the capture tests drive them. No library code changes. The section changes capture options in the three capture tests and commits the regenerated PNGs. The capture tests run on Wallaby (`test/guides/capture_*.exs`) because a PNG of the rendered page cannot be produced by LiveViewTest.
 
-1. `mix assets.build` — must exit `0`. It regenerates the icons, `assets/css/auix-*.css` and the bundles the capture server serves.
-2. `mix test test/guides/capture_*.exs` — overwrites the PNGs under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash` (desktop 1024×768, mobile 412×915) through `ImageHelper.capture/5`.
-3. `git status --short` lists only `.png` files under those three directories.
-4. Open every changed PNG of the index, show and edit views and check: inputs, tabs, groups, the table card with its header row and pagination footer, the cards and the modal show the UI-3 to UI-6 frame; the data is the sample data; no error flash, no half-loaded state, no clipped crop, no empty crop.
-5. A bad capture is fixed in the UI section's CSS on a follow-up commit of this branch, after which steps 1–4 run again. PNGs are never edited by hand.
-6. Commit the PNGs alone as `docs: regenerate guide images`.
+Theme: the images render with `:vitreous_marble`. `lib/aurora_uix/templates/theme_helper.ex` reads `theme_name` with `Application.compile_env/3`, and the only file that sets it is `config/test.exs`. That file is gitignored (`.gitignore` entry `/config/test.exs`), so a fresh checkout and a section worktree do not have it and render `:white_charcoal`. `config/config.exs` imports it when it exists (its last line, `if File.exists?("config/#{config_env()}.exs")`).
+
+1. In the checkout that runs the captures, the file `config/test.exs` has exactly this content. Write it when it is missing. It stays untracked and is never committed.
+
+   ```elixir
+   import Config
+
+   config :aurora_uix,
+     theme_name: :vitreous_marble
+
+   config :wallaby,
+     driver: Wallaby.Chrome,
+     screenshot_on_failure: true,
+     screenshot_dir: "tmp",
+     hackney_options: [timeout: 5_000],
+     js_logger: nil,
+     chromedriver: [
+       headless: System.get_env("WALLABY_CHROME_HEADLESS", "true") == "true",
+       javascriptEnabled: true,
+       fullscreen: false
+     ]
+   ```
+
+   Run `MIX_ENV=test mix run --no-start -e 'IO.inspect(Aurora.Uix.Templates.ThemeHelper.theme_name())'`. It prints `:vitreous_marble`.
+2. Replace the `desktop:` option list of seven `capture/5` calls. Every other option list, every `mobile:` list and every `all:` list stays as it is. `<click>` stands for the `click:` entry the call already has; keep its selector text unchanged. `:height` is the window-height option `ImageHelper.capture/5` already supports (`test/guides/image_helper.exs`, `apply_opt/2` clause `{:height, new_height}`); `capture/5` restores the 1024×768 window after each capture.
+
+   | File · function | Call | Current `desktop:` list | New `desktop:` list |
+   |---|---|---|---|
+   | `test/guides/capture_overview_images.exs` · `create_overview_images/2` | `capture(:index, …)` | `[zoom: 0.70, center_crop_width: 640, center_crop_height: 620]` | `[height: 940, zoom: 0.70, center_crop_width: 700]` |
+   | `test/guides/capture_ash_images.exs` · `create_overview_images/2` | `capture(:ash_index, …)` | `[center_crop_width: 600, crop_height: 512]` | `[center_crop_width: 600, crop_height: 560]` |
+   | `test/guides/capture_layout_images.exs` · `create_layout_images/2` | `capture(:inline_1, …)` | `[<click>, center_crop_width: 600, crop_height: 320]` | `[<click>, center_crop_width: 680, crop_height: 420]` |
+   | same | `capture(:stacked_1, …)` | `[<click>, center_crop_width: 600]` | `[height: 1100, <click>, center_crop_width: 720, crop_height: 880]` |
+   | same | `capture(:group_1, …)` | `[<click>, center_crop_width: 600]` | `[height: 1100, <click>, center_crop_width: 680, crop_height: 810]` |
+   | same | `capture(:sections_1, …)` | `[<click>, center_crop_width: 600, crop_height: 448]` | `[<click>, center_crop_width: 680, crop_height: 590]` |
+   | same | `capture(:sections_2, …)` | `[center_crop_width: 600, crop_height: 480]` | `[height: 1100, center_crop_width: 680, crop_height: 670]` |
+
+   Then run `mix format test/guides/capture_overview_images.exs test/guides/capture_ash_images.exs test/guides/capture_layout_images.exs`.
+3. `mix assets.build` — must exit `0`. It regenerates the icons, `assets/css/auix-*.css` and the bundles the capture server serves.
+4. `mix test test/guides/capture_*.exs` — overwrites the PNGs under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash` through `ImageHelper.capture/5`. PNGs a previous run left modified in the working tree are overwritten by this run.
+5. `git status --short` lists the three capture files of step 2 and `.png` files under those three directories, and nothing else.
+6. `file` on each of the seven images of step 2 prints these sizes:
+
+   | Image | Size |
+   |---|---|
+   | `guides/overview/images/index-desktop.png` | 700 x N (N follows the browser window; 797 on the reference run) |
+   | `guides/core/images/ash/ash_index-desktop.png` | 600 x 560 |
+   | `guides/core/images/layouts/inline_1-desktop.png` | 680 x 420 |
+   | `guides/core/images/layouts/stacked_1-desktop.png` | 720 x 880 |
+   | `guides/core/images/layouts/group_1-desktop.png` | 680 x 810 |
+   | `guides/core/images/layouts/sections_1-desktop.png` | 680 x 590 |
+   | `guides/core/images/layouts/sections_2-desktop.png` | 680 x 670 |
+
+7. Open every changed PNG and check all of these:
+   - `index-desktop.png`: the whole table card — both side borders, the header row, 15 rows, the pagination footer with the current-page pill.
+   - `ash_index-desktop.png`: the whole table card, with its bottom border below "Overview Post 5".
+   - `inline_1`, `stacked_1`, `group_1`, `sections_1`, `sections_2` (`-desktop.png`): the whole modal — both side edges, the close button, the save button, the record pager at the top and at the bottom, the bottom edge.
+   - Every image: inputs, tabs, groups, cards and the modal show the UI-3 to UI-6 frame; the data is the sample data; no error flash, no half-loaded state, no empty crop.
+   - `default_index-desktop.png`, `default_show-desktop.png`, `default_edit-desktop.png`, `nested_1` to `nested_3`, the overview and Ash show and edit images, and every `-mobile.png` keep their option lists; a form taller than its capture ends at the image's bottom edge, as in the committed images.
+8. A capture that fails step 6 and a capture that fails step 7 stop the section: report it as a spec defect. Change no option beyond step 2, change no theme CSS, and never edit a PNG by hand.
+9. Commit in two groups: the three capture files as `test: fit guide capture options to the refreshed frame`, then the PNGs as `docs: regenerate guide images`.
 
 ##### Acceptance criteria
-- [ ] AC-1: After steps 1–2, `git status --short` lists only PNG files under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash` (mechanical — no red test; verified by `git status --short`).
-- [ ] AC-2: Every regenerated index, show and edit image shows the new frame of UI-3 to UI-6 at desktop and mobile width with no clipping (manual — no red test; verified by reading each changed PNG per step 4).
-- [ ] AC-3: A failing capture, and a capture showing an error flash, block the section: the PNG is not committed until a re-run is clean (manual — no red test; verified by step 4 on the re-run).
+- [ ] AC-1: After steps 1–4, `git status --short` lists only `test/guides/capture_overview_images.exs`, `test/guides/capture_ash_images.exs`, `test/guides/capture_layout_images.exs` and PNG files under `guides/overview/images`, `guides/core/images/layouts` and `guides/core/images/ash`; `config/test.exs` is not listed (mechanical — no red test; verified by `git status --short`).
+- [ ] AC-2: Every regenerated index, show and edit image shows the new frame of UI-3 to UI-6 at desktop and mobile width, and the seven images of step 2 show their whole table card and their whole modal with no edge cut (manual — no red test; verified by reading each changed PNG per step 7).
+- [ ] AC-3: A failing capture, a capture showing an error flash, a capture with a cut table card and a capture with a cut modal block the section: the PNG is not committed (manual — no red test; verified by steps 7–8).
+- [ ] AC-4: The captures render with `:vitreous_marble` in the checkout that runs them (mechanical — no red test; verified by the `mix run` command of step 1 printing `:vitreous_marble`).
+- [ ] AC-5: The seven images of step 2 have the sizes of step 6 (mechanical — no red test; verified by `file` on each image).
 
 ##### Test ports
 - None: the capture tests are the procedure, not the proof.
@@ -3401,7 +3457,7 @@ Layout types: `:index`, `:form`, `:show`, as the capture tests drive them. No li
 Every AC above carries its own verification; no red test applies.
 
 ##### Modules & components
-1. None.
+1. `test/guides/capture_overview_images.exs`, `test/guides/capture_ash_images.exs`, `test/guides/capture_layout_images.exs` — modified (option lists of step 2 only). No library module.
 2. Components: none.
 3. Theme: none; `mix assets.build` regenerates the stylesheet.
 4. `dt/1` strings: none.
