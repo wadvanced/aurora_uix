@@ -74,10 +74,32 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     --auix-color-modal-close-text: var(--auix-color-text-secondary);
 
     /* tables */
-    --auix-color-items-table-header-text: var(--auix-color-text-tertiary);
+    --auix-color-items-table-header-text: var(--auix-color-text-secondary);
+    --auix-color-items-table-header-sorted-text: var(--auix-color-text-primary);
+    --auix-color-items-table-header-bg: var(--auix-color-bg-hover);
     --auix-color-items-table-body-border: var(--auix-color-border-secondary);
-    --auix-color-items-table-body-text: var(--auix-color-text-hover);
+    --auix-color-items-table-body-text: var(--auix-color-text-label);
     --auix-color-items-table-row-bg-hover: var(--auix-color-bg-hover);
+    --auix-color-items-table-row-bg-selected: var(--auix-color-selection-bg);
+    --auix-color-items-table-row-border: var(--auix-color-border-tertiary);
+    --auix-color-items-table-bg: var(--auix-color-bg-default);
+    --auix-color-items-table-border: var(--auix-color-border-secondary);
+    --auix-color-row-action-text: var(--auix-color-text-secondary);
+    --auix-color-row-action-bg-hover: var(--auix-color-bg-light);
+
+    /* cards and menus */
+    --auix-color-items-card-bg: var(--auix-color-bg-default);
+    --auix-color-items-card-border: var(--auix-color-border-secondary);
+    --auix-color-items-card-bg-selected: var(--auix-color-selection-bg);
+    --auix-color-items-card-border-selected: var(--auix-color-selection-border);
+    --auix-color-items-card-label-text: var(--auix-color-text-secondary);
+    --auix-color-menu-bg: var(--auix-color-bg-default);
+    --auix-color-menu-border: var(--auix-color-border-secondary);
+    --auix-color-menu-divider: var(--auix-color-border-secondary);
+    --auix-color-menu-item-bg-hover: var(--auix-color-bg-light);
+    --auix-color-sort-toggle-active-text: var(--auix-color-bg-default--reverted);
+    --auix-color-sort-toggle-active-bg: var(--auix-color-selection-bg);
+    --auix-color-sort-toggle-active-border: var(--auix-color-selection-border);
 
     /* list */
     --auix-color-list-item-title-text: var(--auix-color-text-tertiary);
@@ -126,7 +148,9 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
     /* pagination */
     --auix-color-pagination-current-bg: var(--auix-color-bg-default--reverted);
     --auix-color-pagination-current-text: var(--auix-color-text-on-accent);
-    --auix-color-pagination-current-border: var(--auix-color-border-focus);
+    --auix-color-pagination-current-border: var(--auix-color-pagination-current-bg);
+    --auix-color-pagination-link-text: var(--auix-color-text-label);
+    --auix-color-pagination-link-bg-hover: var(--auix-color-bg-light);
 
     /* flash */
     --auix-color-flash-close-text: var(--auix-color-text-secondary);
