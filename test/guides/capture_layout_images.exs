@@ -62,8 +62,8 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
       desktop: [
         click:
           "input[id^='auix-field-product_location-reference-'][id$='#{product_location_id}--form']",
-        center_crop_width: 600,
-        crop_height: 320
+        center_crop_width: 680,
+        crop_height: 420
       ]
     })
 
@@ -75,8 +75,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> visit("#{url_stacked}/#{product_id}/edit")
     |> capture(:stacked_1, screen_size, target, %{
       desktop: [
+        height: 1100,
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 600
+        center_crop_width: 720,
+        crop_height: 880
       ]
     })
 
@@ -88,8 +90,10 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> visit("#{url_group}/#{product_id}/edit")
     |> capture(:group_1, screen_size, target, %{
       desktop: [
+        height: 1100,
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 600
+        center_crop_width: 680,
+        crop_height: 810
       ]
     })
 
@@ -102,15 +106,16 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     |> capture(:sections_1, screen_size, target, %{
       desktop: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']",
-        center_crop_width: 600,
-        crop_height: 448
+        center_crop_width: 680,
+        crop_height: 590
       ]
     })
     |> click(Query.css("button[data-button-sections-index='1'][data-button-tab-index='2']"))
     |> capture(:sections_2, screen_size, target, %{
       desktop: [
-        center_crop_width: 600,
-        crop_height: 480
+        height: 1100,
+        center_crop_width: 680,
+        crop_height: 670
       ]
     })
 
