@@ -18,6 +18,14 @@ defmodule Aurora.UixWeb.Test.Routes do
       quote do
         require Aurora.UixWeb.Test.RoutesHelper
 
+        RoutesHelper.register_mirror(Default, "default", [
+          "products",
+          "product_locations",
+          "product_transactions",
+          "product_barcodes",
+          "suppliers"
+        ])
+
         # Tests with required CRUD links for testing
         RoutesHelper.register_crud(
           CreateUIDefaultLayoutTest.Product,

@@ -60,6 +60,36 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
   end
 
   @doc """
+  Registers the CRUD routes of a mirror views variant, on both backends.
+
+  ## Parameters
+  - `variant` (module()) - The variant alias, such as `Default`.
+  - `slug` (binary()) - The literal slug of the variant.
+  - `sources` (list(binary())) - The literal list of resource sources to register.
+
+  ## Returns
+  Macro.t() - One `register_crud/2` call per backend and source, routed at
+  `/mirror-<backend>-<slug>-<source>`.
+  """
+  @spec register_mirror(module(), binary(), [binary()]) :: Macro.t()
+  defmacro register_mirror(variant, slug, sources) do
+    routes =
+      for {backend, backend_slug} <- [{MirrorAsh, "ash"}, {MirrorCtx, "ctx"}],
+          source <- sources do
+        schema = mirror_schema(source)
+        link_prefix = "mirror-#{backend_slug}-#{slug}-#{source}"
+
+        quote do
+          [unquote(backend), unquote(variant), unquote(schema)]
+          |> Module.concat()
+          |> RoutesHelper.register_crud(unquote(link_prefix))
+        end
+      end
+
+    {:__block__, [], routes}
+  end
+
+  @doc """
   Registers CRUD routes for user-related modules.
 
   ## Parameters
@@ -77,4 +107,13 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
       |> RoutesHelper.register_crud("#{unquote(prefix)}users")
     end
   end
+
+  ## PRIVATE ##
+
+  @spec mirror_schema(binary()) :: module()
+  defp mirror_schema("products"), do: Product
+  defp mirror_schema("product_locations"), do: ProductLocation
+  defp mirror_schema("product_transactions"), do: ProductTransaction
+  defp mirror_schema("product_barcodes"), do: ProductBarcode
+  defp mirror_schema("suppliers"), do: Supplier
 end
