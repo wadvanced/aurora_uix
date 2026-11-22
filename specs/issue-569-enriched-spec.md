@@ -189,8 +189,10 @@ Facts this section builds on, proven on `main` at 25a9ae6 with a probe:
 - `Aurora.Uix.Layout.CreateUI` `find_web_module/1` (`lib/aurora_uix/layout/create_ui.ex`) takes the web module from the nearest compiled parent of the views module. Views modules therefore live under `Aurora.UixWeb.Test.`.
 - Under `mix test --cover`, each generated module counts one line, covered once the module is mounted. A generated module no test mounts is one missed line.
 - The one-to-many renderer builds a related route by replacing the source in the current path (`lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex`, `set_related_uri_path/3`). A mirror route therefore ends with the source of its resource.
+- `use Aurora.UixWeb.Test.ConnCase` (`test/support/conn_case.ex`, `using` block) runs `use TestWeb, :verified_routes` (`test/support/aurora_uix_web.ex`, `verified_routes/0`), which imports every function and macro of `Phoenix.VerifiedRoutes`, the macros `path/2` and `path/3` among them. A second import of the same name and arity makes the unqualified call a compile error. The route helper of step 1 is therefore named `mirror_path`, and no function of `Scenario` is named `path`, `url`, `static_path`, `static_url`, `static_integrity`, `unverified_path` nor `unverified_url`.
+- No other name of this section is exported by a module a scenario test imports: `backends`, `each_backend`, `mirror_path` and `scenario_case` are absent from the exports of `Kernel`, `ExUnit.Case`, `ExUnit.Assertions`, `ExUnit.Callbacks`, `Phoenix.VerifiedRoutes`, `Plug.Conn`, `Phoenix.ConnTest`, `Aurora.UixWeb.Test.ConnCase`, `Phoenix.LiveViewTest`, `Aurora.Uix.Test.Mirror.Seeds`, `Aurora.UixWeb.Test.UICase`, `Aurora.UixWeb.Test.SectionHelper`, `Wallaby.Browser` and `Wallaby.Feature`. `rg -l "mirror_resource|register_mirror|each_backend|mirror_path" deps lib` returns nothing.
 
-New names in this section (search `rg -n "Test\.Scenario|Test\.Mirror\b|each_backend|register_mirror|mirror_resource|scenario_case|GuidesTest|LayoutScenariosTest" lib test mix.exs` returns nothing): every module, macro and function below.
+New names in this section (search `rg -n "Test\.Scenario|UixWeb\.Test\.Mirror(\b|Ash|Ctx)|each_backend|register_mirror|mirror_resource|mirror_path|scenario_case|GuidesTest|LayoutScenariosTest" lib test mix.exs` returns nothing): every module, macro and function below.
 
 ##### Acceptance criteria
 - [ ] AC-1: Given the `Default` variant, for each backend and each of `products`, `product_locations`, `product_transactions`, `product_barcodes`, `suppliers`: the index, `/new`, `/<id>/show` and `/<id>/edit` routes mount and render `.auix-index-container`; the new and edit routes render `.auix-form-container` inside `#auix-<resource>-<action>-modal`; the show route renders `.auix-show-container`
@@ -209,7 +211,7 @@ Both rows pass on first run.
 
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
-| AC-1, AC-2, AC-3 | new file (`ls test/cases_live \| grep -i scenario` returns nothing) | `use Aurora.UixWeb.Test.UICase, :scenario_case`; inside `each_backend(fn backend -> … end)`: mount the five empty indexes first, then `create_sample_products_with_transactions(1, 2, :test)`, `create_sample_product_locations(1, :test)`, `create_sample_products_with_barcodes(1)`, `create_sample_products_with_suppliers(1, 2)` | `test/cases_live/layout_scenarios_test.exs` (module `Aurora.UixWeb.Test.LayoutScenariosTest`) | `"default layouts mount index, new, show and edit for every resource"` | `{:ok, view, _} = live(conn, path(backend, "default", "products"))`; `assert has_element?(view, ".auix-index-container")`; `refute has_element?(view, ".auix-items-table-row")` before seeding; after seeding, for each source and each of `""`, `"/new"`, `"/<id>/show"`, `"/<id>/edit"`: `live/2` returns `{:ok, view, _}` and the containers of AC-1 are present |
+| AC-1, AC-2, AC-3 | new file (`ls test/cases_live \| grep -i scenario` returns nothing) | `use Aurora.UixWeb.Test.UICase, :scenario_case`; inside `each_backend(fn backend -> … end)`: mount the five empty indexes first, then `create_sample_products_with_transactions(1, 2, :test)`, `create_sample_product_locations(1, :test)`, `create_sample_products_with_barcodes(1)`, `create_sample_products_with_suppliers(1, 2)` | `test/cases_live/layout_scenarios_test.exs` (module `Aurora.UixWeb.Test.LayoutScenariosTest`) | `"default layouts mount index, new, show and edit for every resource"` | `{:ok, view, _} = live(conn, mirror_path(backend, "default", "products"))`; `assert has_element?(view, ".auix-index-container")`; `refute has_element?(view, ".auix-items-table-row")` before seeding; after seeding, for each source and each of `""`, `"/new"`, `"/<id>/show"`, `"/<id>/edit"`: `live/2` returns `{:ok, view, _}` and the containers of AC-1 are present |
 | AC-4 | new file (`ls test/cases_live \| grep -i guides` returns nothing) | `use Aurora.UixWeb.Test.UICase, :phoenix_case`; `delete_all_sample_data()`; `create_sample_products_with_transactions(1, 1, :test)`; `create_sample_product_locations(1, :test)`; `[author] = create_sample_authors(1)`; `[category] = create_sample_categories(1)`; `create_sample_posts(1, %{author_id: author.id, category_id: category.id})` | `test/cases_live/guides_test.exs` (module `Aurora.UixWeb.Test.GuidesTest`) | `"the guide pages mount on both backends"` | for each guide route and each of `""`, `"/new"`, `"/<id>/show"`, `"/<id>/edit"`: `assert {:ok, view, _} = live(conn, route)`; `assert has_element?(view, ".auix-index-container")` |
 
 ##### Modules & components
@@ -218,7 +220,7 @@ Both rows pass on first run.
    - `@type backend :: %{name: :ash | :ctx, slug: binary()}`.
    - `backends/0` → `[%{name: :ash, slug: "ash"}, %{name: :ctx, slug: "ctx"}]`.
    - `each_backend(names \\ [:ash, :ctx], fun)` — for each backend whose `name` is in `names`, in the order of `backends/0`: call `Aurora.Uix.Test.Mirror.Seeds.delete_all_mirror_data/0`, then `fun.(backend)`. An `ExUnit.AssertionError` raised by `fun` is re-raised with `"[backend: <name>] "` prepended to its `message`, keeping `__STACKTRACE__`. Returns `:ok`.
-   - `path(backend, variant, source, suffix \\ "")` → `"/mirror-#{backend.slug}-#{variant}-#{source}#{suffix}"`.
+   - `mirror_path(backend, variant, source, suffix \\ "")` → `"/mirror-#{backend.slug}-#{variant}-#{source}#{suffix}"`. Every test calls it unqualified, as `mirror_path/3` and as `mirror_path/4`.
 
 2. **`Aurora.UixWeb.Test.Mirror`** at `test/support/mirror_web/mirror.ex` — new. `@moduledoc` as above.
    - `defmacro __using__(backend: backend)`: calls `Module.put_attribute(__CALLER__.module, :mirror_backend, backend)`, then returns
@@ -255,7 +257,7 @@ Both rows pass on first run.
 
    This section creates the variant `Default` (slug `default`): `mirror_resource(:product)`, `mirror_resource(:product_location)`, `mirror_resource(:product_transaction)`, `mirror_resource(:product_barcode)`, `mirror_resource(:supplier)`, then `auix_create_ui()`.
 
-4. **Routes.** In `test/support/app_web/routes_helper.ex` add `defmacro register_mirror(variant, slug, sources)` with `@doc` and `@spec`. `variant` is an alias such as `Default`; `sources` is a list of source binaries. For each backend pair `{MirrorAsh, "ash"}`, `{MirrorCtx, "ctx"}` and each source, it expands to `RoutesHelper.register_crud(<Backend>.<Variant>.<Schema>, "mirror-<slug of backend>-<slug>-<source>")`, with `<Schema>` from this fixed map: `"products"` → `Product`, `"product_locations"` → `ProductLocation`, `"product_transactions"` → `ProductTransaction`, `"product_barcodes"` → `ProductBarcode`, `"suppliers"` → `Supplier`. In `test/support/app_web/routes.ex`, inside the `quote` of `load_test_routes/0`, directly after `require Aurora.UixWeb.Test.RoutesHelper`, add
+4. **Routes.** In `test/support/app_web/routes_helper.ex` add `defmacro register_mirror(variant, slug, sources)` with `@doc` and `@spec`. `variant` is an alias such as `Default`; `sources` is a list of source binaries. `slug` is a literal binary, and `sources` is a literal list of binaries: the macro iterates it when it expands. For each backend pair `{MirrorAsh, "ash"}`, `{MirrorCtx, "ctx"}` and each source, it emits one call in the form `register_product_crud/2` of the same file uses: `Module.concat([<Backend>, unquote(variant), <Schema>]) |> RoutesHelper.register_crud("mirror-<slug of backend>-<slug>-<source>")`, with `<Schema>` from this fixed map: `"products"` → `Product`, `"product_locations"` → `ProductLocation`, `"product_transactions"` → `ProductTransaction`, `"product_barcodes"` → `ProductBarcode`, `"suppliers"` → `Supplier`. `<Backend>`, the variant and `<Schema>` are written with no prefix; the `scope "/", Aurora.UixWeb.Test` of `test/support/app_web/router.ex` that calls `load_test_routes()` prepends `Aurora.UixWeb.Test`. In `test/support/app_web/routes.ex`, inside the `quote` of `load_test_routes/0`, directly after `require Aurora.UixWeb.Test.RoutesHelper`, add
    `RoutesHelper.register_mirror(Default, "default", ["products", "product_locations", "product_transactions", "product_barcodes", "suppliers"])`.
    `register_product_crud/2` and `register_user_crud/2` stay as they are.
 
@@ -337,7 +339,7 @@ None: this section changes no executable code.
    - A scenario test file starts with `use Aurora.UixWeb.Test.UICase, :scenario_case`. A test with no LiveView keeps `use ExUnit.Case`. There is no `FeatureCase` and no `test/support/factory.ex`.
    - Test data comes from the mirror fixture through `Aurora.Uix.Test.Mirror.Seeds` (`test/support/mirror/seeds.ex`): `create_sample_products/3`, `create_sample_products_with_transactions/4`, `delete_all_mirror_data/0`, … One seed serves both backends, because both read the same tables.
    - Views modules live in `test/support/mirror_web/`: one variant per layout, written once in `variants/<name>.ex` and compiled for each backend by `ash/<name>.ex` and `ctx/<name>.ex`. A test file declares no views module.
-   - A variant's routes are registered in `test/support/app_web/routes.ex` with `RoutesHelper.register_mirror/3`; a scenario builds its path with `Scenario.path/4`.
+   - A variant's routes are registered in `test/support/app_web/routes.ex` with `RoutesHelper.register_mirror/3`; a scenario builds its path with `Scenario.mirror_path/4`.
    - `test/support/helper.ex` seeds the guide schemas, for the guide pages and the guide image capture only.
    ```
 6. § Testing › Scope and Coverage — replace the three bullets of the subsection with
@@ -385,7 +387,7 @@ None: this section changes no executable code.
 
      test "the form renders and saves the field", %{conn: conn} do
        each_backend(fn backend ->
-         {:ok, view, _html} = live(conn, path(backend, "default", "products", "/new"))
+         {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products", "/new"))
          assert has_element?(view, ".auix-form-container input[name='product[reference]']")
        end)
      end
@@ -464,7 +466,7 @@ After S1 and S2, `test/cases/integration/ash/fields_parser_test.exs` holds its t
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -545,7 +547,7 @@ Every row passes on first run.
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -676,7 +678,7 @@ Every row passes on first run. Test file for every row: `test/cases_live/index_s
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -790,7 +792,7 @@ Every row passes on first run. Test file for every row: `test/cases_live/form_sc
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -887,7 +889,7 @@ Every row passes on first run. Test file for every row: `test/cases_live/show_sc
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -980,7 +982,7 @@ Every row passes on first run. Test file for every row: `test/cases_live/associa
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -1094,7 +1096,7 @@ Every row passes on first run.
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -1193,7 +1195,7 @@ Every row passes on first run.
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -1274,7 +1276,7 @@ Every row passes on first run.
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
@@ -1312,7 +1314,7 @@ Depends on: UI-12
 
 This section rewrites the Wallaby tests, deletes the test support nothing uses any more, and checks the whole suite. It changes no file under `lib/`. Every test passes on its first run. Layout types covered: `:index`, `:form`, `:show`, in a browser.
 
-Target for this area: 5 features, S1 to S5, in `test/browser_cases/browser_scenarios_test.exs` (module `Aurora.UixWeb.Test.BrowserScenariosTest`, new: `ls test/browser_cases | grep -x browser_scenarios_test.exs` returns nothing). The module has `use Aurora.UixWeb.Test.UICase, :scenario_case` and `use Wallaby.Feature`. Each feature runs its body in `each_backend/2` and visits `path/4` routes.
+Target for this area: 5 features, S1 to S5, in `test/browser_cases/browser_scenarios_test.exs` (module `Aurora.UixWeb.Test.BrowserScenariosTest`, new: `ls test/browser_cases | grep -x browser_scenarios_test.exs` returns nothing). The module has `use Aurora.UixWeb.Test.UICase, :scenario_case` and `use Wallaby.Feature`. Each feature runs its body in `each_backend/2` and visits `mirror_path/4` routes.
 
 Why Wallaby, stated in a comment above each feature: S1 and S2 drive the embeds-many JS (the add-entry modal and the entry list live in a client-managed portal); S3 sends a file through the browser's live upload channel, which `Phoenix.LiveViewTest` replaces with its own client; S4 drives the modal's client-side close (backdrop, Escape) that `Phoenix.LiveViewTest` cannot press; S5 loads the fallback routes with a full page load.
 
@@ -1347,7 +1349,7 @@ Every row passes on first run. Test file for every row: `test/browser_cases/brow
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
 1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
-2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
 3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
