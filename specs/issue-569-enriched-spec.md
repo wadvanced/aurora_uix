@@ -4,13 +4,14 @@
 **Complexity:** high
 
 ### Overview
-This issue replaces the 710 tests and 8 browser features with fewer than 100 scenario tests over one mirrored fixture: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. The issue delivers neither a feature nor a fix, so it has no `DOC-1` and no CHANGELOG entry; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3`.
+This issue replaces the 710 tests and 8 browser features with fewer than 100 scenario tests over one mirrored fixture: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3`.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
 |---|---|---|---|---|---|
+| DOC-1 | Documentation | `CHANGELOG.md` § `## [0.2.1]` | none | federico/569-doc-1-changelog | docs: record the guide overview order fix (#569 · DOC-1) |
 | UI-1 | UI | test support · mirrored fixture: migration, Ecto schemas and context, Ash resources and domain, seeds, fixture test | none | federico/569-ui-1-mirror-fixture | test: add the mirrored Ecto and Ash test fixture (#569 · UI-1) |
-| UI-2 | UI | test support · scenario harness, views variants, mirror routes, default-layout scenario, guide pages test | UI-1 | federico/569-ui-2-scenario-harness | test: add the scenario harness and the mirrored views (#569 · UI-2) |
+| UI-2 | UI | test support · scenario harness, views variants, mirror routes, default-layout scenario, guide pages test; the `order_by` of the demo views | UI-1, DOC-1 | federico/569-ui-2-scenario-harness | test: add the scenario harness and the mirrored views (#569 · UI-2) |
 | UI-3 | UI | rules · `AGENTS.md` § Testing and the pipeline skills state the scenario rule | UI-2 | federico/569-ui-3-scenario-rule | chore: state the scenario test rule (#569 · UI-3) |
 | UI-4 | UI | tests · parsers and metadata | UI-3 | federico/569-ui-4-parsers-metadata | test: cover parsers and metadata with scenarios (#569 · UI-4) |
 | UI-5 | UI | tests · layout and generation; guide capture views | UI-4 | federico/569-ui-5-layout-generation | test: cover layout and generation with scenarios (#569 · UI-5) |
@@ -27,6 +28,42 @@ A section starts only when every dependency is **merged**. Independent
 sections may run in parallel. Status is derived from GitHub, never recorded
 here.
 
+<!-- section:DOC-1:start -->
+### DOC-1 — Documentation
+Depends on: none
+
+#### Documentation references
+- `CHANGELOG.md` § `## [0.2.1]`
+
+#### Implementation details
+
+`UI-2` corrects the `order_by` of the product transactions index in the demo views module `lib/aurora_uix_web/guides/overview.ex`. This section records that fix. It edits `CHANGELOG.md` only.
+
+No guide owes an edit: the sample of `guides/overview/overview.md § Complete Example` has no `index_columns` call for `:product_transaction`, and every hit of `rg -n "order_by: :reference" guides` (`guides/core/layouts.md`, `guides/core/liveview.md`) is a `:product` sample, which stays correct.
+
+##### CHANGELOG.md
+1. § `## [0.2.1]` — this version has no `### Fixed` heading yet (`## [0.2.0]` and `## [0.1.7]` name theirs `### Fixed`). Directly above the line `### Build` of `## [0.2.1]`, insert verbatim, followed by one blank line:
+   ```
+   ### Fixed
+
+   - **Guide overview demo**: the product transactions index of the demo views ordered its rows by `reference`,
+     a column that table does not have, and raised when the page loaded. It orders them by `inserted_at`.
+   ```
+
+##### Acceptance criteria
+- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+      issue-link suffix (mechanical — no red test; verified by
+      `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
+- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+      (its AC ticks) (mechanical — no red test; verified by
+      `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
+      `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-569-enriched-spec.md`)
+- [ ] AC-3: `## [0.2.1]` carries `### Fixed` between `### Changed` and `### Build`, holding the one entry above (mechanical — no red test; verified by `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f && /^### /' CHANGELOG.md` printing `### Added`, `### Changed`, `### Fixed`, `### Build` in that order, and `grep -c "Guide overview demo" CHANGELOG.md` printing `1`)
+
+##### Green checks
+1. `mix consistency` clean (code-issue); `mix test` — full suite green
+   (review-issue runs the suite)
+<!-- section:DOC-1:end -->
 <!-- section:UI-1:start -->
 ### UI-1 — UI · test support · mirrored fixture
 Depends on: none
@@ -170,7 +207,7 @@ The module name is `Aurora.UixWeb.Test.MirrorFixtureTest`. `mix.exs` `test_modul
 <!-- section:UI-1:end -->
 <!-- section:UI-2:start -->
 ### UI-2 — UI · test support · scenario harness, views variants, mirror routes
-Depends on: UI-1
+Depends on: UI-1, DOC-1
 
 #### Documentation references
 - `AGENTS.md` § Testing, § Phoenix / LiveView Rules
@@ -178,7 +215,7 @@ Depends on: UI-1
 
 #### Implementation details
 
-This section adds test support and two tests. It changes no file under `lib/`. Both tests pass on their first run.
+This section adds test support and two tests, and corrects one line of one demo views module (step 7). That line is its only change under `lib/`; it changes no file under `lib/aurora_uix/`. The scenario test passes on its first run. The guides test fails until step 7 is applied, then passes.
 
 Layout types covered: `:index`, `:form`, `:show`, with the default layouts only.
 
@@ -191,6 +228,9 @@ Facts this section builds on, proven on `main` at 25a9ae6 with a probe:
 - The one-to-many renderer builds a related route by replacing the source in the current path (`lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex`, `set_related_uri_path/3`). A mirror route therefore ends with the source of its resource.
 - `use Aurora.UixWeb.Test.ConnCase` (`test/support/conn_case.ex`, `using` block) runs `use TestWeb, :verified_routes` (`test/support/aurora_uix_web.ex`, `verified_routes/0`), which imports every function and macro of `Phoenix.VerifiedRoutes`, the macros `path/2` and `path/3` among them. A second import of the same name and arity makes the unqualified call a compile error. The route helper of step 1 is therefore named `mirror_path`, and no function of `Scenario` is named `path`, `url`, `static_path`, `static_url`, `static_integrity`, `unverified_path` nor `unverified_url`.
 - No other name of this section is exported by a module a scenario test imports: `backends`, `each_backend`, `mirror_path` and `scenario_case` are absent from the exports of `Kernel`, `ExUnit.Case`, `ExUnit.Assertions`, `ExUnit.Callbacks`, `Phoenix.VerifiedRoutes`, `Plug.Conn`, `Phoenix.ConnTest`, `Aurora.UixWeb.Test.ConnCase`, `Phoenix.LiveViewTest`, `Aurora.Uix.Test.Mirror.Seeds`, `Aurora.UixWeb.Test.UICase`, `Aurora.UixWeb.Test.SectionHelper`, `Wallaby.Browser` and `Wallaby.Feature`. `rg -l "mirror_resource|register_mirror|each_backend|mirror_path" deps lib` returns nothing.
+- `lib/aurora_uix_web/guides/overview.ex`, inside `auix_create_ui`, holds `index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :reference)`. `Aurora.Uix.Guides.Inventory.ProductTransaction` (`lib/aurora_uix/guides/inventory/product_transaction.ex`) has the fields `id`, `type`, `quantity`, `cost`, `product_id`, `inserted_at` and `updated_at`, and no `reference`. Proven on `main` at 740dfae with a probe over the 24 mounts of AC-4: the four routes of `/guides-overview/product_transactions` raise `Postgrex.Error` (`column p0.reference does not exist`) and the other 20 mount; with `order_by: :inserted_at` all 24 return `{:ok, view, _}` and render `.auix-index-container`.
+- That `order_by` reaches the product transactions index only. The product transactions list inside the product show and edit views reads the `order_by` of its own field (`lib/aurora_uix/templates/basic/renderers/fields/one_to_many.ex`, `load_rows/1`), and no guide capture script visits `/guides-overview/product_transactions` (`test/guides/capture_overview_images.exs` visits `/guides-overview/products`, `test/guides/capture_ash_images.exs` visits `/guides-overview/posts`). No guide image changes.
+- `lib/aurora_uix_web/` is demo code: `mix.exs` excludes it from the Hex package (`exclude_patterns`) and from the generated docs.
 
 New names in this section (search `rg -n "Test\.Scenario|UixWeb\.Test\.Mirror(\b|Ash|Ctx)|each_backend|register_mirror|mirror_resource|mirror_path|scenario_case|GuidesTest|LayoutScenariosTest" lib test mix.exs` returns nothing): every module, macro and function below.
 
@@ -199,7 +239,7 @@ New names in this section (search `rg -n "Test\.Scenario|UixWeb\.Test\.Mirror(\b
 - [ ] AC-2: Given an index with no row, each backend renders `.auix-index-container` and no `.auix-items-table-row`
 - [ ] AC-3: `Scenario.each_backend/2` deletes every mirror row before each backend runs, and a failed assertion names the backend in its message (covered by the tests of AC-1: the second backend starts from an empty index)
 - [ ] AC-4: Given one inventory product, one location, one author, one category and one post created with `test/support/helper.ex`, each guide route of `Aurora.UixWeb.Routes.load_routes/0` under `/guides-overview` mounts its index, `/new`, `/<id>/show` and `/<id>/edit`
-- [ ] AC-5: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
+- [ ] AC-5: under `lib/`, the branch changes `lib/aurora_uix_web/guides/overview.ex` only, and in that file the one `index_columns(:product_transaction, …)` line of step 7; no file under `lib/aurora_uix/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` printing `lib/aurora_uix_web/guides/overview.ex` alone, and `git diff -U0 origin/main...HEAD -- lib | grep -cE '^[+-][^+-]'` printing `2`)
 - [ ] AC-6: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 
 ##### Test ports
@@ -207,7 +247,7 @@ New names in this section (search `rg -n "Test\.Scenario|UixWeb\.Test\.Mirror(\b
 - Guide routes, existing: `/guides-overview/products`, `/guides-overview/product-locations`, `/guides-overview/product_transactions`, `/guides-overview/posts`, `/guides-overview/authors`, `/guides-overview/categories` (`lib/aurora_uix_web/routes.ex`, `load_routes/0`, mounted by `test/support/app_web/router.ex` scope `"/guides-overview"`)
 
 ##### Red tests
-Both rows pass on first run.
+Row AC-1, AC-2, AC-3 passes on first run. Row AC-4 is red before step 7: the four mounts of `/guides-overview/product_transactions` raise `Postgrex.Error` (`column p0.reference does not exist`). It passes once step 7 is applied.
 
 | AC | Placement | Setup | Test file | Test name | Assertion sketch |
 |---|---|---|---|---|---|
@@ -276,6 +316,11 @@ Both rows pass on first run.
 
 6. Theme: none. `dt/1` strings: none.
 
+7. **Demo views.** In `lib/aurora_uix_web/guides/overview.ex`, inside `auix_create_ui`, replace the line
+   `index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :reference)` with
+   `index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :inserted_at)`.
+   Every other line of the file stays. This is the one edit under `lib/` of this section. `CHANGELOG.md` is not edited here: `DOC-1` carries the entry.
+
 ##### Green tests
 1. The two tests above pass (code-issue runs these, targeted)
 2. `mix test` — full suite green (review-issue runs this; code-issue runs only this section's test files and the coverage run of AC-6)
@@ -291,7 +336,7 @@ Depends on: UI-2
 
 #### Implementation details
 
-This section edits agent guidance only: `AGENTS.md` and five files under `.claude/skills/`. None of them is in the documentation set (`CHANGELOG.md`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md`), so no `DOC-1` exists. It changes no file under `lib/` and no test. Layout types: none.
+This section edits agent guidance only: `AGENTS.md` and five files under `.claude/skills/`. None of them is in the documentation set (`CHANGELOG.md`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md`), so `DOC-1` carries none of these edits. It changes no file under `lib/` and no test. Layout types: none.
 
 Every edit below replaces the quoted text with the given text. Text outside the quotes stays.
 
@@ -1384,11 +1429,11 @@ S3 and S4 replace no file: the issue's Target suite names the upload JS and the 
 ---
 
 ### Out of Scope
-- Any change to library behaviour under `lib/aurora_uix/`. A defect a scenario finds is listed in its section log and becomes a separate issue.
+- Any change to library behaviour under `lib/aurora_uix/`. A defect a scenario finds is listed in its section log and becomes a separate issue. No section changes a file under `lib/`, with one exception: the demo views line of `UI-2` step 7, in `lib/aurora_uix_web/guides/overview.ex`.
 - Judging how the UI looks: a human reviews the regenerated guide images.
 - The library causes of the intermittent failures on `main`: the named ETS table of `Aurora.Uix.Templates.CssSanitizer`, the leftover PubSub subscriber, the embeds-many browser feature. The rewritten tests carry no order dependence (`UI-10`, `UI-12`, `UI-13`).
-- `DOC-1` and a CHANGELOG entry: the issue delivers neither a feature nor a fix, and no file of the documentation set changes.
-- The guide and demo modules (`lib/aurora_uix/guides/`, `lib/aurora_uix_web/guides/`) and the guide image capture scripts, apart from the views the layout capture script loads (`UI-5`).
+- Documentation edits beyond the CHANGELOG entry of `DOC-1`: no text of `README.md`, `CONTRIBUTING.md`, `ROADMAP.md` and `guides/**/*.md` changes.
+- The guide and demo modules (`lib/aurora_uix/guides/`, `lib/aurora_uix_web/guides/`) and the guide image capture scripts, apart from the views the layout capture script loads (`UI-5`) and from one exception: `UI-2` step 7 corrects the `order_by` of the product transactions index in `lib/aurora_uix_web/guides/overview.ex`, so that every guide page loads.
 - The golden-map parser tests, `test/cases/integration/fields_parser_validations_test.exs` and the doctests (`test/doctests/uix/doc_test.exs`, `test/doctests/uix/parsers_doc_test.exs`): unchanged.
 - Parser sections: the issue changes no parser. The mirrored fixture and every scenario cover the Ash and the Ecto backend alike; the six backend-specific tests of `UI-11` cover what one backend alone has.
 - CSS text of single theme rules: no test restates it.
