@@ -51,14 +51,14 @@ No guide owes an edit: the sample of `guides/overview/overview.md § Complete Ex
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-569-enriched-spec.md`)
-- [ ] AC-3: `## [0.2.1]` carries `### Fixed` between `### Changed` and `### Build`, holding the one entry above (mechanical — no red test; verified by `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f && /^### /' CHANGELOG.md` printing `### Added`, `### Changed`, `### Fixed`, `### Build` in that order, and `grep -c "Guide overview demo" CHANGELOG.md` printing `1`)
+- [x] AC-3: `## [0.2.1]` carries `### Fixed` between `### Changed` and `### Build`, holding the one entry above (mechanical — no red test; verified by `awk '/^## \[0.2.1\]/{f=1} /^## \[0.2.0\]/{f=0} f && /^### /' CHANGELOG.md` printing `### Added`, `### Changed`, `### Fixed`, `### Build` in that order, and `grep -c "Guide overview demo" CHANGELOG.md` printing `1`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green
