@@ -159,6 +159,18 @@ defmodule Aurora.UixWeb.Test.UICase do
     end
   end
 
+  @spec scenario_case() :: Macro.t()
+  def scenario_case do
+    quote do
+      use Aurora.UixWeb.Test.ConnCase
+      import Phoenix.LiveViewTest
+      import Aurora.Uix.Test.Mirror.Seeds
+      import Aurora.UixWeb.Test.Scenario
+      import Aurora.UixWeb.Test.UICase
+      import Aurora.UixWeb.Test.SectionHelper
+    end
+  end
+
   ## PRIVATE
   # Asserts that the order of values matches the expected order.
   @spec assert_value_order(list(), list(), boolean(), list()) :: {boolean(), list()}
