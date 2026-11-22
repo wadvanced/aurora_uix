@@ -39,7 +39,8 @@ defmodule Aurora.Uix.Field do
     - `generated?` (`boolean` | `nil`) - If true the value is not stored with the entity (an Ash
       calculation or aggregate) and is loaded with it when a layout renders the field. The Ash parser
       sets it in `data` for the calculations and aggregates it discovers; declare it for any other.
-    - `resource` (`atom`) - Used for associations, indicate the resource_config defining the meta data of the related element.
+    - `resource` (`atom`) - The name of the resource that owns the field. The `resource:` field
+      option does not set it: it sets `data.resource`, the resource that renders the related entries.
     - `label` (`binary`) - A display label for the field.
     - `placeholder` (`binary`) - Placeholder text for input fields.
     - `length` (`non_neg_integer`) - Maximum allowed length of input (used for validations).

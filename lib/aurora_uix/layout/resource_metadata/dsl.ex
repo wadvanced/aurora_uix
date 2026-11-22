@@ -71,7 +71,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     ],
     resource: [
       type: :atom,
-      doc: "For associations and embeds: the resource that describes the related entries."
+      doc:
+        "For embedded fields and associations: the name of the resource that renders the related entries. It must describe the field's related schema. On an association it also preloads the association fields the named resource's layouts render."
     ],
     label: [type: :string, doc: "Display label. Derived from the field name when omitted."],
     placeholder: [type: :string, doc: "Placeholder text."],

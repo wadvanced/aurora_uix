@@ -1200,9 +1200,11 @@ defmodule Aurora.Uix.Layout.CreateUI do
     associations =
       fields_by_resource
       |> Enum.map(fn {resource_name, resource_fields} ->
+        links = declared_links(Map.fetch!(configurations, resource_name).resource_config)
+
         resource_fields
         |> Enum.reject(&generated?/1)
-        |> Enum.map(&{&1.key, &1.resource})
+        |> Enum.map(&{&1.key, preload_resource(&1, resource_name, links)})
         |> then(&{resource_name, &1})
       end)
       |> expand_associations()
@@ -1237,6 +1239,22 @@ defmodule Aurora.Uix.Layout.CreateUI do
   @spec generated?(Field.t()) :: boolean()
   defp generated?(%Field{generated?: true}), do: true
   defp generated?(%Field{data: data}), do: match?(%{generated: true}, data)
+
+  # The `resource:` links a resource declares for its fields, by field key.
+  @spec declared_links(Resource.t()) :: %{(atom() | tuple()) => atom()}
+  defp declared_links(%Resource{field_overrides: field_overrides}) do
+    field_overrides
+    |> Enum.reject(&is_nil(&1.resource))
+    |> Map.new(&{&1.key, &1.resource})
+  end
+
+  # The resource whose association keys are nested under an association. A field that keeps
+  # the name of its own resource nests nothing, unless the resource declares `resource:` for it.
+  @spec preload_resource(Field.t(), atom(), map()) :: atom() | nil
+  defp preload_resource(%Field{resource: resource_name} = field, resource_name, links),
+    do: Map.get(links, field.key, resource_name)
+
+  defp preload_resource(%Field{resource: resource}, _resource_name, _links), do: resource
 
   # Expands nested associations for preloading.
   @spec expand_associations(list()) :: map()
