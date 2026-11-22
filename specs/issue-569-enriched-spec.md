@@ -341,10 +341,10 @@ This section edits agent guidance only: `AGENTS.md` and five files under `.claud
 Every edit below replaces the quoted text with the given text. Text outside the quotes stays.
 
 ##### Acceptance criteria
-- [ ] AC-1: `AGENTS.md` § Testing › Scope and Coverage states the scenario rule and no longer says "Each test should assert one behavior clearly" (mechanical — no red test; verified by `grep -c "assert one behavior" AGENTS.md` returning `0` and `grep -c "One scenario per feature, on both backends" AGENTS.md` returning `1`)
-- [ ] AC-2: `AGENTS.md` names the mirrored fixture as the source of test data (mechanical — no red test; verified by `grep -c "test/support/mirror" AGENTS.md` returning at least `4`)
-- [ ] AC-3: no skill tells the coder to seed tests from the guide schemas, and none tells it to write one test per acceptance criterion (mechanical — no red test; verified by `grep -rn "create_sample_products/2" .claude/skills` returning nothing and `grep -c "Every Parser and UI AC has a red-test row" .claude/skills/improve-issue/SKILL.md` returning `0`)
-- [ ] AC-4: an edit whose quoted text is absent from its file stops the section with a spec defect, and no partial rewording is committed (mechanical — no red test; verified by `git diff --stat origin/main...HEAD` listing exactly the six files of this section and the spec file)
+- [x] AC-1: `AGENTS.md` § Testing › Scope and Coverage states the scenario rule and no longer says "Each test should assert one behavior clearly" (mechanical — no red test; verified by `grep -c "assert one behavior" AGENTS.md` returning `0` and `grep -c "One scenario per feature, on both backends" AGENTS.md` returning `1`)
+- [x] AC-2: `AGENTS.md` names the mirrored fixture as the source of test data (mechanical — no red test; verified by `grep -c "test/support/mirror" AGENTS.md` returning at least `4`)
+- [x] AC-3: no skill tells the coder to seed tests from the guide schemas, and none tells it to write one test per acceptance criterion (mechanical — no red test; verified by `grep -rn "create_sample_products/2" .claude/skills` returning nothing and `grep -c "Every Parser and UI AC has a red-test row" .claude/skills/improve-issue/SKILL.md` returning `0`)
+- [x] AC-4: an edit whose quoted text is absent from its file stops the section with a spec defect, and no partial rewording is committed (mechanical — no red test; verified by `git diff --stat origin/main...HEAD` listing exactly the six files of this section and the spec file)
 
 ##### Test ports
 None: this section changes no executable code.

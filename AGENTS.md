@@ -62,7 +62,9 @@ When referencing UI components in documentation or code, use simple names (e.g. 
 | **Blueprint** | Compile-time expansion that turns resource metadata + layout declarations into the generated LiveView modules. |
 | **Backend / integration** | `:ash` or `:ctx`. Selected per resource; determines which parser and CRUD module are used. |
 | **Host application** | The app that depends on `aurora_uix`. Owns its schemas, changesets and Ash actions — the library never writes those. |
-| **Guides** | `lib/aurora_uix/guides/` — demo schemas shipped with the library, doubling as test fixtures. `blog/` is Ash, `inventory/` is Ecto. |
+| **Guides** | `lib/aurora_uix/guides/` — demo schemas shipped with the library. `blog/` is Ash, `inventory/` is Ecto. |
+| **Mirror fixture** | `test/support/mirror/` — the test fixture: one set of tables in the PostgreSQL schema `mirror`, with an Ecto schema (`MirrorCtx`) and an Ash resource (`MirrorAsh`) over each table. |
+| **Scenario** | One test that drives one feature through the UI on both backends, written once with `Scenario.each_backend/2`. |
 
 ## Architecture
 
@@ -92,10 +94,12 @@ priv/
   gettext/              # *.pot templates (no per-locale translations shipped)
 test/
   cases/                # metadata + parser tests (no DB)
-  cases_live/           # LiveView tests — the default for UI work
+  cases_live/           # scenario tests — the default for UI work
   browser_cases/        # Wallaby — last resort
   doctests/
-  support/              # UICase, WebCase, helper.ex, app_web/routes.ex
+  support/              # UICase, WebCase, scenario.ex, app_web/routes.ex
+    mirror/             #   the mirrored fixture: ctx/ (Ecto), ash/ (Ash), seeds.ex
+    mirror_web/         #   views variants: variants/, ash/, ctx/
 guides/                 # end-user documentation
 ```
 
@@ -118,7 +122,7 @@ def render(%{field: %{type: :one_to_many_association}} = assigns), do: ...
 
 **Adding a new `%Field{}` type atom is the highest-risk change in this codebase.** Many modules pattern-match on the existing atoms. Grep for a sibling atom and make a deliberate *add / do-NOT-add* decision at every hit — silent omission (e.g. forgetting `filter_preloads/1`) fails far from the change and is the dominant failure mode here.
 
-**The library is transport-only for writes.** It renders input names and forwards params untouched; it never builds a changeset. Persisting nested data is the **host's** responsibility — `cast_assoc`/`cast_embed` in an Ecto changeset, or `argument` + `change manage_relationship(...)` in an Ash action. The only `cast_*` calls in this repo are in `lib/aurora_uix/guides/`, which is demo host code.
+**The library is transport-only for writes.** It renders input names and forwards params untouched; it never builds a changeset. Persisting nested data is the **host's** responsibility — `cast_assoc`/`cast_embed` in an Ecto changeset, or `argument` + `change manage_relationship(...)` in an Ash action. The only `cast_*` calls in this repo are in `lib/aurora_uix/guides/` and `test/support/mirror/`, which are demo and test host code.
 
 **Renderers** implement the `Aurora.Uix.Renderer` behaviour (`render/1`) and are dispatched from `templates/basic/renderers/default_renderer.ex`. Prefer swapping `auix` keys (`:layout_tree`, `:resource_name`, `:form`, `:entity`) and delegating to `Renderer.render_inner_elements/1` over hand-writing child markup — that keeps renderer overrides, sections and groups working.
 
@@ -435,15 +439,18 @@ Streams are **not enumerable** — to filter, refetch data and re-stream with `r
 | `test/cases/integration/{ash,ctx}/` | parser output for one backend | no |
 | `test/cases/integration/fields_parser_validations_test.exs` | shared golden `%Field{}` metadata | no |
 | `test/cases/` | resource metadata, layout/blueprint generation | no |
-| `test/cases_live/` | rendered LiveView behaviour — **the default for UI work** | yes |
+| `test/cases_live/` | scenario tests over the generated LiveViews — **the default for UI work** | yes |
 | `test/browser_cases/` | Wallaby — last resort | yes |
 | `test/doctests/` | doctests | no |
 
 Parser and metadata tests are pure compile-time introspection — run them first as the fast feedback loop.
 
 ### Test Case Modules
-- `use Aurora.UixWeb.Test.UICase, :phoenix_case` and `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. There is no `FeatureCase` and no `test/support/factory.ex`.
-- Test data comes from the guide schemas via `test/support/helper.ex` (`create_sample_products/2`, `delete_all_inventory_data/0`, …)
+- A scenario test file starts with `use Aurora.UixWeb.Test.UICase, :scenario_case`. A test with no LiveView keeps `use ExUnit.Case`. There is no `FeatureCase` and no `test/support/factory.ex`.
+- Test data comes from the mirror fixture through `Aurora.Uix.Test.Mirror.Seeds` (`test/support/mirror/seeds.ex`): `create_sample_products/3`, `create_sample_products_with_transactions/4`, `delete_all_mirror_data/0`, … One seed serves both backends, because both read the same tables.
+- Views modules live in `test/support/mirror_web/`: one variant per layout, written once in `variants/<name>.ex` and compiled for each backend by `ash/<name>.ex` and `ctx/<name>.ex`. A test file declares no views module.
+- A variant's routes are registered in `test/support/app_web/routes.ex` with `RoutesHelper.register_mirror/3`; a scenario builds its path with `Scenario.mirror_path/4`.
+- `test/support/helper.ex` seeds the guide schemas, for the guide pages and the guide image capture only.
 - **Each checkout has its own test PostgreSQL instance and endpoint port** (`scripts/test_pg.sh`, wired in `test/config/test.exs`; linked worktrees derive a port from their path, `PORT` overrides). A fresh checkout or worktree starts with an empty database: run `MIX_ENV=test mix ecto.create && mix ecto.migrate` first. On CI (`CI` set) the shared service database is used.
 - **Migrations are not run by `mix test`.** Run `mix ecto.migrate` yourself, or DB-backed tests fail with a confusing `relation "…" does not exist`
 - Use `start_supervised!/1` for processes — never `Process.sleep/1`
@@ -451,14 +458,17 @@ Parser and metadata tests are pure compile-time introspection — run them first
 - Monitor processes with `Process.monitor/1` + `assert_receive {:DOWN, ...}`
 
 ### Scope and Coverage
-- **Write concise, targeted tests.** Each test should assert one behavior clearly.
-- **Don't over-test.** Once a behavior is covered (e.g., validation of a field), do not repeat the same assertion in another test file or describe block.
-- Prefer `describe` blocks to group related cases; avoid duplicating setup or assertions across groups.
+- **One scenario per feature, on both backends.** A scenario is one test. It runs its body for `:ash` and for `:ctx` with `Scenario.each_backend/2`, drives the UI (click, type, submit) and asserts what the feature does and how the page is built: containers and `auix-*` classes, on stable selectors.
+- **Amend the scenario of the feature.** A new behaviour of an existing feature is asserted inside that feature's scenario. A new test is written only for a feature no scenario covers.
+- **A backend-specific test states why.** A test that runs on one backend covers what only that backend has: Ash actors and policies, calculations and aggregates, a query parser, `ctx` CRUD function discovery.
+- **Compile errors are table-driven.** One test per DSL loops over its cases, each case a source body and the expected message.
+- **Theme tests do not restate CSS.** They check that the stylesheet generates, that every rule is emitted, that every variable resolves in each theme, and that the sanitizer rejects what it must.
+- **Don't over-test.** Once a behaviour is asserted, do not repeat the assertion in another scenario.
 
 ### No Mocks
 - **Never use mocks.** Test against real implementations with real database state.
-- Create test data through the guide schemas and `test/support/helper.ex`, not by hand-rolling structs.
-- Cover **both backends** when a change touches the parser layer — an Ash-only or Ecto-only test is an incomplete test.
+- Create test data through `Aurora.Uix.Test.Mirror.Seeds`, not by hand-rolling structs.
+- Cover **both backends** in every scenario and in every parser test — an Ash-only or Ecto-only test is an incomplete test, unless it is backend-specific as defined above.
 
 ### LiveView vs. Wallaby
 - **Prefer `Phoenix.LiveViewTest` for all UI tests.** It is faster, does not require a browser driver, and covers the vast majority of LiveView interactions.
