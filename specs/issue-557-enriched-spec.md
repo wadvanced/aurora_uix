@@ -251,9 +251,9 @@ Depends on: DOC-1
 The section adds one public function to the Ecto fields parser. It produces no `%Field{}` and changes no existing clause. The mirrored section for the Ash backend is PAR-2.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an Ecto schema without a table (the inline `embeds_one` schema `AllTypes.EmbedsOne` of the test module), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `true`
-- [ ] AC-2: Given an Ecto schema with a table (`AllTypes`, source `"test_all_types"`), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `false`
-- [ ] AC-3: Given a module that is not an Ecto schema (`String`), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `false` and does not raise
+- [x] AC-1: Given an Ecto schema without a table (the inline `embeds_one` schema `AllTypes.EmbedsOne` of the test module), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `true`
+- [x] AC-2: Given an Ecto schema with a table (`AllTypes`, source `"test_all_types"`), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `false`
+- [x] AC-3: Given a module that is not an Ecto schema (`String`), when `Ctx.FieldsParser.embedded_schema?/1` receives it, then it returns `false` and does not raise
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ctx.FieldsParser.embedded_schema?/1` · in: `module()` · out: `boolean()` · new (`rg -n 'embedded_schema\?' lib test guides` returns nothing)
