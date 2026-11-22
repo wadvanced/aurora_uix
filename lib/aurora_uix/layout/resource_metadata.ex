@@ -215,8 +215,16 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
       end)
 
-    {created, declared} = Enum.split(with_embedded, length(with_embedded) - length(resources))
-    Enum.map(created, &struct(&1, %{embedded?: true})) ++ declared
+    embedded_names =
+      with_embedded
+      |> Enum.take(length(with_embedded) - length(resources))
+      |> Enum.map(& &1.name)
+
+    Enum.map(with_embedded, fn resource ->
+      if resource.name in embedded_names,
+        do: struct(resource, %{embedded?: true}),
+        else: resource
+    end)
   end
 
   @spec parse_fields(Resource.t()) :: {atom(), Resource.t()}

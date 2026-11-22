@@ -116,7 +116,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
     write those fields with `field` in a block.
   - One `auix_create_ui` per module, and one layout per resource and layout type in it.
   - Two generated modules with one name, or two names for one module, do not compile.
-  - A resource created for an embedded field generates no modules.
+  - A resource named for an embedded field (`<parent>__<field>`) generates no modules, whether
+    the library creates it or the module declares it.
   - Two modules that import from each other do not compile.
   """
 

@@ -29,7 +29,8 @@ defmodule Aurora.Uix.Resource do
   - `resolved?` (`boolean`) - `false` while the resource is only declared; `true` once
     `resolve/1` has filled the defaults (`type: :ctx`) and resolved every field. Resolution
     in `Aurora.Uix.Layout.ResourceMetadata` sets it after parsing the schema.
-  - `embedded?` (`boolean`) - `true` for a resource the library created for an embedded field.
+  - `embedded?` (`boolean`) - `true` for a resource named for an embedded field
+    (`<parent>__<field>`), created by the library or declared.
 
   ## Key Features
   - Gives each resource option its own key; only backend-owned options share a keyword list.
