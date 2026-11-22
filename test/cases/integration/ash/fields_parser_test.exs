@@ -260,160 +260,72 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
     assert Validations.compare_maps(validations, parsed_schema) == []
   end
 
-  # Ash-only: neither shape has an Ecto counterpart, so they stay out of the shared golden map.
-  describe "enum flavours without a `one_of` constraint" do
-    test "a module enum takes its options -- and their labels -- from the module" do
-      field = parsed_field(:field_module_enum)
+  # Ash-only: neither enum flavours without `one_of` nor aggregates have an Ecto counterpart, so
+  # they stay out of the shared golden map.
+  test "enum flavours and aggregates parse to typed, generated fields" do
+    module_enum = parsed_field(:field_module_enum)
 
-      assert field.type == :string
-      assert field.html_type == :select
-      assert field.filterable?
-      assert field.length == 9
+    assert module_enum.type == :string
+    assert module_enum.html_type == :select
+    assert module_enum.filterable?
+    assert module_enum.length == 9
 
-      # `:published` declares a label, the other two fall back to Ash's humanized default.
-      assert field.data == %{
-               select: %{
-                 opts: [{"Draft", :draft}, {"Live", :published}, {"Archived", :archived}],
-                 multiple: false
-               }
+    # `:published` declares a label, the other two fall back to Ash's humanized default.
+    assert module_enum.data == %{
+             select: %{
+               opts: [{"Draft", :draft}, {"Live", :published}, {"Archived", :archived}],
+               multiple: false
              }
-    end
+           }
 
-    test "a NewType is unwrapped to the constraints its subtype carries" do
-      field = parsed_field(:field_new_type_enum)
+    new_type_enum = parsed_field(:field_new_type_enum)
+
+    assert new_type_enum.html_type == :select
+
+    assert new_type_enum.data == %{
+             select: %{
+               opts: [{"Draft", :draft}, {"Published", :published}, {"Archived", :archived}],
+               multiple: false
+             }
+           }
+
+    for key <- [:field_multi_module_enum, :field_multi_new_type_enum] do
+      field = parsed_field(key)
 
       assert field.html_type == :select
-
-      assert field.data == %{
-               select: %{
-                 opts: [{"Draft", :draft}, {"Published", :published}, {"Archived", :archived}],
-                 multiple: false
-               }
-             }
+      assert field.data.select.multiple
+      refute field.filterable?
     end
 
-    test "the array form of either is a multiple select, and is not filterable" do
-      for key <- [:field_multi_module_enum, :field_multi_new_type_enum] do
-        field = parsed_field(key)
+    assert %{type: :string, html_type: :text} = aggregate_field(:first_body)
+    assert %{type: :decimal} = aggregate_field(:total_score)
+    assert %{type: :date} = aggregate_field(:first_published_on)
+    assert %{type: :date} = aggregate_field(:last_published_on)
 
-        assert field.html_type == :select
-        assert field.data.select.multiple
-        refute field.filterable?
-      end
-    end
-  end
+    assert %{type: :integer, html_type: :number} = aggregate_field(:entries_count)
+    assert %{type: :boolean} = aggregate_field(:any_entry)
+    assert %{type: :float} = aggregate_field(:average_score)
 
-  # Ash-only: aggregates have no `aurora_ctx`/Ecto counterpart, so they stay out of the shared
-  # golden map.
-  describe "aggregates" do
-    test "the kinds Ash derives from the aggregated attribute carry that attribute's own type" do
-      assert %{type: :string, html_type: :text} = aggregate_field(:first_body)
-      assert %{type: :decimal} = aggregate_field(:total_score)
-      assert %{type: :date} = aggregate_field(:first_published_on)
-      assert %{type: :date} = aggregate_field(:last_published_on)
-    end
+    assert %{type: :string, html_type: :unimplemented} = aggregate_field(:bodies)
 
-    test "the kinds whose type does not depend on the aggregated attribute keep it" do
-      assert %{type: :integer, html_type: :number} = aggregate_field(:entries_count)
-      assert %{type: :boolean} = aggregate_field(:any_entry)
-      assert %{type: :float} = aggregate_field(:average_score)
-    end
+    # Ash resolves a `:custom` aggregate's type only from a built query, so asking the resource
+    # for it fails and the type declared on the entity is the only source left.
+    assert {:error, _reason} = AshResourceInfo.aggregate_type(Aggregates, :joined_bodies)
+    assert %{type: :string, html_type: :text} = aggregate_field(:joined_bodies)
 
-    test "a list aggregate carries its item's type and renders read-only" do
-      assert %{type: :string, html_type: :unimplemented} = aggregate_field(:bodies)
-    end
-
-    # The error path: Ash resolves a `:custom` aggregate's type only from a built query, so asking
-    # the resource for it fails and the type declared on the entity is the only source left.
-    test "a custom aggregate takes the type declared on the entity, which Ash itself cannot resolve" do
-      assert {:error, _reason} =
-               AshResourceInfo.aggregate_type(Aggregates, :joined_bodies)
-
-      assert %{type: :string, html_type: :text} = aggregate_field(:joined_bodies)
-    end
-
-    test "an aggregate is a generated field: disabled, and preloaded rather than written" do
-      assert %{disabled: true, data: %{generated: true}} = aggregate_field(:first_body)
-    end
+    assert %{disabled: true, data: %{generated: true}} = aggregate_field(:first_body)
 
     # A module enum's options live on the module, not in constraints the aggregate carries, so
     # the field degrades to the stored scalar rather than a select -- `:text`, not `:select`, is
     # the intended behaviour here, not a gap to close.
-    test "an aggregate over a module enum degrades to the stored scalar rather than the enum module" do
-      assert %{type: :string, html_type: :text} = aggregate_field(:latest_status)
-    end
+    assert %{type: :string, html_type: :text} = aggregate_field(:latest_status)
 
-    test "no aggregate reaches the catch-all that used to hand back `type: nil`" do
-      {fields, log} = with_log(fn -> Ash.FieldsParser.parse_fields(Aggregates, :aggregates) end)
+    {fields, log} = with_log(fn -> Ash.FieldsParser.parse_fields(Aggregates, :aggregates) end)
 
-      refute log =~ "could not be parsed"
-      refute Enum.any?(fields, &is_nil(&1.type))
-    end
+    refute log =~ "could not be parsed"
+    refute Enum.any?(fields, &is_nil(&1.type))
 
-    test "a count aggregate is sortable" do
-      assert %{sortable?: true} = aggregate_field(:entries_count)
-    end
-  end
-
-  describe "sortable?" do
-    setup do
-      fields =
-        AllTypes
-        |> Ash.FieldsParser.parse_fields(:all_types)
-        |> Map.new(&{&1.key, &1})
-
-      %{fields: fields}
-    end
-
-    test "scalar attributes are sortable", %{fields: fields} do
-      for key <- [
-            :id,
-            :field_integer,
-            :field_string,
-            :field_utc_datetime,
-            :field_duration,
-            :field_status
-          ],
-          do: assert(fields[key].sortable?)
-    end
-
-    test "arrays and embedded resources are not sortable", %{fields: fields} do
-      for key <- [:field_multi_status, :field_string_array, :embeds_many, :embeds_one],
-          do: refute(fields[key].sortable?)
-    end
-
-    test "only the source attribute of a relationship is sortable" do
-      fields =
-        AllTypes
-        |> Ash.FieldsParser.parse_fields(:all_types)
-        |> then(&Ash.FieldsParser.parse_associations(AllTypes, :all_types, %{}, &1))
-        |> Map.new(&{&1.key, &1})
-
-      assert fields[:belongs_to_field_id].sortable?
-
-      for key <- [:belongs_to_field, :has_many_field, :has_one_field, :many_to_many_field],
-          do: refute(fields[key].sortable?)
-    end
-
-    test "a key the resource does not define is not sortable" do
-      field = Ash.FieldsParser.parse_field(AllTypes, :all_types, {:selected_check__, :boolean})
-
-      refute field.sortable?
-    end
-  end
-
-  describe "embedded_schema?/1" do
-    test "an embedded resource is embedded-only" do
-      assert Ash.FieldsParser.embedded_schema?(EmbedsOne)
-    end
-
-    test "a resource with a table is not embedded-only" do
-      refute Ash.FieldsParser.embedded_schema?(AggregatedRelationship)
-    end
-
-    test "a module that is not a resource is not embedded-only" do
-      refute Ash.FieldsParser.embedded_schema?(String)
-    end
+    assert %{sortable?: true} = aggregate_field(:entries_count)
   end
 
   @spec aggregate_field(atom()) :: Aurora.Uix.Field.t()

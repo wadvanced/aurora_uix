@@ -481,15 +481,15 @@ The four golden-map tests stay byte for byte: `"Validate fields_parser"` and `"V
 Target for this area: 10 tests — the four golden-map tests, `"the mirrored fixture gives both backends the same fields and the same rows"` (UI-1), and S1 to S5 below.
 
 ##### Acceptance criteria
-- [ ] AC-1: the four golden-map tests and `fields_parser_validations_test.exs` are unchanged (mechanical — no red test; verified by `git diff origin/main...HEAD -- test/cases/integration/fields_parser_validations_test.exs` returning nothing and both `"Validate …"` tests of each parser file passing)
-- [ ] AC-2: S1 asserts, for the Ash parser, every enum flavour, every aggregate kind and the generated-field flags the replaced tests assert
-- [ ] AC-3: S2 asserts `sortable?` and `embedded_schema?/1` for both parsers, including a key the resource does not define and a module that is neither a schema nor a resource
-- [ ] AC-4: S3 asserts the resource defaults, the field overrides, the field order and the `generated?` loading on both backends
-- [ ] AC-5: S4 asserts that `resource:` and a declared resource link embedded fields and associations to resources, on both backends
-- [ ] AC-6: S5 is one table-driven test: each case is `{label, source body, message regex}`; each replaced compile-error test is one case; a case that compiles fails the test with its label
-- [ ] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
-- [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
-- [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
+- [x] AC-1: the four golden-map tests and `fields_parser_validations_test.exs` are unchanged (mechanical — no red test; verified by `git diff origin/main...HEAD -- test/cases/integration/fields_parser_validations_test.exs` returning nothing and both `"Validate …"` tests of each parser file passing)
+- [x] AC-2: S1 asserts, for the Ash parser, every enum flavour, every aggregate kind and the generated-field flags the replaced tests assert
+- [x] AC-3: S2 asserts `sortable?` and `embedded_schema?/1` for both parsers, including a key the resource does not define and a module that is neither a schema nor a resource
+- [x] AC-4: S3 asserts the resource defaults, the field overrides, the field order and the `generated?` loading on both backends
+- [x] AC-5: S4 asserts that `resource:` and a declared resource link embedded fields and associations to resources, on both backends
+- [x] AC-6: S5 is one table-driven test: each case is `{label, source body, message regex}`; each replaced compile-error test is one case; a case that compiles fails the test with its label
+- [x] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
+- [x] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
+- [x] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ash.FieldsParser` and `Aurora.Uix.Integration.Ctx.FieldsParser`, through the calls the replaced tests make · existing
