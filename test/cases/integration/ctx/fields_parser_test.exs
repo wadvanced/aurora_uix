@@ -160,4 +160,18 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ctx.FieldsParserTest do
           do: refute(fields[key].sortable?)
     end
   end
+
+  describe "embedded_schema?/1" do
+    test "a schema without a table is embedded-only" do
+      assert Ctx.FieldsParser.embedded_schema?(AllTypes.EmbedsOne)
+    end
+
+    test "a schema with a table is not embedded-only" do
+      refute Ctx.FieldsParser.embedded_schema?(AllTypes)
+    end
+
+    test "a module that is not a schema is not embedded-only" do
+      refute Ctx.FieldsParser.embedded_schema?(String)
+    end
+  end
 end
