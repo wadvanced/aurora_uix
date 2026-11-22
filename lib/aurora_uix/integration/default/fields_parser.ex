@@ -88,4 +88,18 @@ defmodule Aurora.Uix.Integration.Default.FieldsParser do
   """
   @spec embedded_resource({atom(), module(), atom()}, list(Resource.t())) :: list(Resource.t())
   def embedded_resource(_parent_resource, result), do: result
+
+  @doc """
+  Tells whether a schema is embedded-only. A schema of an unknown backend never is.
+
+  ## Parameters
+
+  - `schema` (module()) - The schema module of a resource.
+
+  ## Returns
+
+  boolean() - Always `false`.
+  """
+  @spec embedded_schema?(module()) :: boolean()
+  def embedded_schema?(_schema), do: false
 end
