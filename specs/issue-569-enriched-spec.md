@@ -557,7 +557,108 @@ This section rewrites tests and test support only. It changes no file under `lib
 
 Target for this area: 7 tests, S1 to S7. S1 already exists (`UI-2`) and is amended.
 
-Facts this section builds on, proven on `main` at f6aa246 with a probe: every variant of `##### Modules & components
+Facts this section builds on, proven on `main` at f6aa246 with a probe: every variant of `##### Modules & components` step 1 compiled on both backends from the DSL written there, and the replaced LiveView tests ran against those variants with their routes re-pointed.
+- The default product form of the mirror renders three more `header` elements than the guide form (the `packaging`, `contacts` and `product_barcode` blocks). The page header of a modal is `div#auix-product-<action>-modal header.auix-header--top-actions`.
+- The mirror `Product` has more fields than the guide `Product`. The expected field list of the two `"Check field, … order"` tests is the declaration order of `Aurora.Uix.Test.MirrorCtx.Product` (`test/support/mirror/ctx/product.ex`, `schema "products"`), with `id` first.
+- A relationship no `preload` names is not loaded in an index row, on both backends: the marker of the `product_barcodes` index of the `Options` variant renders `NOT_LOADED`; the markers of its `product_transactions` and `product_locations` indexes render `LOADED`.
+- The render tree of the S6 body below has the same node ids on both backends: `"auix-product-form"`, `"auix-group-identification-product-form-0"`, `"auix-sections-product-form-1"`, `"auix-section-quantities-product-form-1-0"`, `"auix-section-prices-product-form-1-1"`.
+- Two resources over `MirrorCtx.Product` and `MirrorAsh.Product` in one views module give both the module hint `Product`; a module declares one of the two.
+
+`test/guides/capture_layout_images.exs` requires five test files this issue deletes. Step 3 of `##### Modules & components` gives the capture script its own views, over the guide schemas, so the guide images keep their content.
+
+##### Acceptance criteria
+- [ ] AC-1: S1 asserts, on both backends, that the default index, show and form render every field of the product, stacked for `Default` and inline for `DefaultInline`, and that a product created through the default form (with `product_barcode: %{code: "C-1"}` in the params, carry rule 10) appears in the index; the field order equals the declaration order on `:ctx` (on `:ash` it follows map order, `##### Backend differences`)
+- [ ] AC-2: S2 asserts groups, sections and nested sections on both backends: `.auix-group-container` per group; `.auix-sections-container` with one tab button per section; clicking a tab shows its fields and hides the others (`.auix-visually-hidden`); the `default: true` section is active on mount
+- [ ] AC-3: S3 asserts titles and subtitles of index, new, edit and show, the layout preload, the resource preload and the resource `where`, on both backends: the `product_transactions` index (layout `preload: [:product]`) and the `product_locations` index (resource `preload([:products])`) render the `LOADED` marker in every row, and the `product_barcodes` index, which declares no preload, renders the `NOT_LOADED` marker
+- [ ] AC-4: S4 asserts named modules, `use:`, `index_live` and included layouts on both backends: a used form component serves the resource of its host; a local layout replaces the included one
+- [ ] AC-5: S5 asserts, on both backends, the edit and the show layout declared with two `auix_create_layout` calls (`Manual`: the show page has no `list_price` and no `rrp` input, and `description` is an `input`) and resources taken from another module (`Separated`); on `:ctx` only, a resource map built by hand (`ManualResource`)
+- [ ] AC-6: S6 asserts the generation metadata with no database: the module registry, module names, `generate:`, `use:`, cards, the layout option sets, the render tree of the body of step 4 compiled once per backend, and embedded resources that generate no module on each backend
+- [ ] AC-7: S7 is one table-driven test over `auix_create_ui`, `auix_create_layout` and layout option declarations: each replaced compile-error test is one case `{label, source body, message regex}`; a case that compiles fails the test with its label
+- [ ] AC-8: `test/guides/capture_layout_images.exs` requires no file under `test/cases_live/` (mechanical — no red test; verified by `grep -c "cases_live" test/guides/capture_layout_images.exs` returning `0` and `MIX_ENV=test mix test test/guides/capture_layout_images.exs` exiting `0`, followed by `git checkout -- guides` to discard the regenerated images)
+- [ ] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
+- [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
+- [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
+
+##### Test ports
+- Mirror routes `/mirror-<ash|ctx>-<slug>-<source>` of the variants below · layout types `:index`, `:form`, `:show` · observable: `has_element?/2`, `element/2`, the section helpers of `test/support/section_helper.ex`
+- `Aurora.Uix.Layout.CreateUI` (`module_name/3`, `default_name/2`, `schema_hint/1`, `put_defaults/1`), `auix_modules/0`, `auix_module/1`, `auix_configurations/0` of a compiled views module, as the replaced tests call them · existing
+
+##### Red tests
+Every row passes on first run.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-1 | amend `test/cases_live/layout_scenarios_test.exs` `"default layouts mount index, new, show and edit for every resource"` | variants `Default`, `DefaultInline`; `create_sample_products(3, :test)` | same file | S1, name unchanged | carried assertions, plus `.auix-index-container`, `.auix-form-container`, `.auix-show-container`, `.auix-show-content`; the modal header is `element(view, "div#auix-product-new-modal header.auix-header--top-actions")`; the create submit is `form("#auix-product-form", product: %{reference: "test-first", name: "This is the first test", quantity_initial: 11, product_barcode: %{code: "C-1"}})`; the expected field order is the mirror list, asserted inside `if backend.name == :ctx` |
+| AC-2 | add to `test/cases_live/layout_scenarios_test.exs` | variants `Groups`, `Sections`, `NestedSections`; no seed; the `/new` route, as the three old tests mount it | same file | S2 `"groups, sections and nested sections lay out the form"` | carried assertions, plus `.auix-group-container`, `.auix-sections-container`, `.auix-sections-tab-container`, `.auix-sections-content` |
+| AC-3 | add to `test/cases_live/layout_scenarios_test.exs` | variant `Options`; `create_sample_products_with_transactions(2, 2, :test)`, `create_sample_product_locations(3, :test)` | same file | S3 `"layout options set titles and preloads"` | carried assertions of `create_ui_layout_test.exs` (titles and subtitles only; its create, edit and delete flows belong to `UI-7`), re-pointed to `mirror_path(backend, "options", "products", …)`; `product_transactions` index: `assert has_element?(view, ".auix-product-marker", "LOADED")`, `refute has_element?(view, ".auix-product-marker", "NOT_LOADED")`; `product_locations` index: the same two on `.auix-products-marker`, two `.auix-items-table-row` rows, and `refute has_element?(view, "td", "test-reference-test-3")`; `product_barcodes` index, after `create_sample_products_with_barcodes(1)`: `assert has_element?(view, ".auix-product-marker", "NOT_LOADED")`; then `/new` and `/<id>/show` of the three sources each return `{:ok, _, _}` (carry rule 8) |
+| AC-4 | add to `test/cases_live/layout_scenarios_test.exs` | variants `NamedForms`, `Named`, `Included`; `create_sample_product_locations(1, :test)`, `create_sample_products(1, :test)` | same file | S4 `"named modules, use: and included layouts render through their host"` | carried assertions |
+| AC-5 | add to `test/cases_live/layout_scenarios_test.exs` | variants `Manual`, `Separated`; the hand-built resource module of step 2; `create_sample_products_with_transactions(1, 1, :test)` | same file | S5 `"manual layouts and resources from another module render"` | `Manual`: the four tests of `manual_layouts_test.exs`; `Separated`: the four tests of `separated_multiple_resources_ui_test.exs`; a `"can&#39;t be blank"` match follows carry rule 11; the hand-built resource part is the four tests of `manual_resource_test.exs` inside `each_backend([:ctx], …)` |
+| AC-6 | new file (`ls test/cases \| grep -x generation_test.exs` returns nothing) | `use ExUnit.Case, async: true`; `compile/1` and `compiled_ui/1` copied from `test/cases/create_ui_validation_test.exs`, the sample module renamed `Aurora.UixWeb.Test.GenerationSample<n>` and its `auix_resource_metadata` re-pointed to `Aurora.Uix.Test.MirrorCtx`; `compile_raw/1` of step 4; the three `named_modules_test.exs` tests read `Aurora.UixWeb.Test.MirrorCtx.Named`, `…MirrorCtx.NamedForms`, `…MirrorCtx.NamedHost` and their `MirrorAsh` twins | `test/cases/generation_test.exs` (module `Aurora.Uix.Test.Cases.GenerationTest`) | S6 `"generated modules, names, render trees and option sets"` | carried assertions, re-pointed with the name map below `##### Replaced files`; the render-tree and embedded-resource assertions of step 4 |
+| AC-7 | add to `test/cases/generation_test.exs` | as S6 | same file | S7 `"create_ui and layout option compile errors"` | `for {label, body, regex} <- cases`, `assert_raise(Spark.Error.DslError, regex, fn -> compile(body) end)`; a failure message starts with `label`; a case whose old test asserts another exception keeps that exception |
+
+##### Carry rules
+These rules apply to every row of `##### Replaced files`.
+1. `file → S` means: scenario `S` makes every assertion of every test of that file, except the tests the row lists under Dropped. The old file is the source of the selectors, the input names and the drives.
+2. Re-pointing an Ecto (inventory) test: a guide module becomes the `MirrorCtx` / `MirrorAsh` module of the same last name; a route becomes `mirror_path(backend, "<variant slug>", "<source>", "<suffix>")`; a seed call keeps its name and arguments (`Aurora.Uix.Test.Mirror.Seeds`); a `delete_all_*_data()` call is removed, because `each_backend/2` empties the mirror tables. Selectors, input names and element names stay as written.
+3. `on :ash` in a row means the file is the Ash twin of an Ecto file in the same row: its assertions are the Ecto ones, and the scenario makes them on `:ash` by running there. A test listed as `Ash-only` has no Ecto twin: carry it with the name map the row gives, and assert it on both backends.
+4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
+5. Every scenario also asserts the structure its row lists, on both backends.
+6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe.
+- `:ash`: the fields of a default layout follow map order, not declaration order (library defect, logged by `UI-4`). The two `"Check field, … order"` assertions run on `:ctx` only.
+- Both backends: saving the default product form with blank `product_barcode` inputs writes no row. On `:ash` the form shows `.auix-flash--error`; on `:ctx` the LiveView exits with `FunctionClauseError` in `Aurora.Uix.Templates.Basic.Helpers.process_error_detail/1` (library defect on `:ctx`: a validation error on a nested child has no clause). No scenario submits that form with a blank `code`; the section log lists the defect under "Library defects found".
+- A `"can&#39;t be blank"` match of a carried create flow follows carry rule 11.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases_live/create_ui_default_layout_test.exs` (5) | S1 | none |
+| `test/cases_live/create_ui_default_layout_inline_test.exs` (1) | S1 | none |
+| `test/cases_live/group_ui_layout_test.exs` (1) | S2 | none |
+| `test/cases_live/section_ui_layout_test.exs` (1) | S2 | none |
+| `test/cases_live/nested_sections_ui_layout_test.exs` (1) | S2 | none |
+| `test/cases_live/preload_layout_test.exs` (1) | S3: the layout preload, asserted on the `product_transactions` index | none |
+| `test/cases_live/preload_metadata_test.exs` (2) | S3: the resource preload and the resource `where`, asserted on the `product_locations` index | none |
+| `test/cases_live/ash_preload_metadata_test.exs` (1) | S3, on :ash: the same `product_locations` assertions | none |
+| `test/cases_live/named_modules_test.exs` (4) | S4 (`"a used form component serves the resource of its host"`); the other three → S6 | none |
+| `test/cases_live/included_layouts_test.exs` (2) | S4 | none |
+| `test/cases_live/manual_layouts_test.exs` (4) | S5, on the `Manual` variant | none |
+| `test/cases_live/manual_trees_test.exs` (4) | none | all four. `"Test UI default…"`, `"Test CREATE new…"` and `"Test validate the fields displayed in NEW"` are copies of the `manual_layouts_test.exs` tests over the same `auix_create_layout` edit layout. `"Test validate the fields displayed in SHOW"` asserts the default show layout (`list_price` and `rrp` present), which contradicts the `show_layout` of `Manual`; the default show layout is asserted by S1 |
+| `test/cases_live/manual_ui_test.exs` (4) | none | all four. Its layouts are declared inside `auix_create_ui`, as every other variant declares them; `field(:description, html_type: :textarea)` contradicts the `input` the `Manual` tests assert and is asserted by `UI-7` S1 on the `Form` variant; `page_subtitle:` is asserted by S3; its index mount and create flow are copies of the `manual_layouts_test.exs` ones |
+| `test/cases_live/manual_resource_test.exs` (4) | S5, on `:ctx` | none |
+| `test/cases_live/separated_multiple_resources_ui_test.exs` (4) | S5, on the `Separated` variant | none |
+| `test/cases_live/separated_single_resource_ui_test.exs` (2) | none | both: the same index mount and create flow as the first two tests of the `separated_multiple` file, over a resources module with one resource instead of two |
+| `test/cases_live/unseparated_multiple_resources_ui_test.exs` (4) | none | all four: its two resources in one module are what every variant already declares |
+| `test/cases/create_ui_validation_test.exs` (39) | the tests whose name ends `fails compilation`, and `"use: rejects what it cannot take"`, `"use: takes no do block"`, `"use: takes no other option"`, `"use: on index_columns rejects what it cannot take"`, `"a one-to-many field rejects an action_icons key of another field type"`, `"a many-to-many field takes no action_icons key"`, `"a live view needs its form and show components"`, `"an imported module must be a registry entry"` → S7 cases; every other test → S6 | none |
+| `test/cases/layout_options_test.exs` (6) | `"lists each option of the set with its layout type"`, `"available_options/1 reads the options of every set"`, `"a listed option is read from the layout, then from get_default/2"` → S6; the three `fails compilation` tests → S7 cases | none |
+| `test/cases/render_tree_test.exs` (4) | S6, on the module `compile_raw/1` builds from the render-tree body of step 4, once per backend | none |
+
+Name map for the compile bodies and the assertions carried from `test/cases/create_ui_validation_test.exs`, `test/cases/layout_options_test.exs` and `test/cases_live/named_modules_test.exs`: `Aurora.Uix.Guides.Inventory` → `Aurora.Uix.Test.MirrorCtx`, in module names and in the `~r/… has no layouts/` regex alike; `Aurora.UixWeb.Test.NamedModulesForms` → `…MirrorCtx.NamedForms`, `NamedModulesHost` → `…MirrorCtx.NamedHost`, `NamedModulesTest` → `…MirrorCtx.Named` (and the `MirrorAsh` twins for the second pass). The test `"an embedded resource generates no modules"` is not re-pointed by this map: step 4 gives its two bodies. A test that names no guide module is carried as written.
+
+Partly carried here, deleted by a later section: `test/cases_live/ash_default_layout_test.exs` — `"Default layout index"` and `"Test show default behaviour"` are covered by S1 on `:ash`; `test/cases_live/create_ui_layout_test.exs` — its titles and subtitles are asserted by S3. Both files stay until `UI-7`.
+
+##### Modules & components
 1. Variants (rules above). Each block is the content of the `quote` of `__using__/1`, after `use Aurora.UixWeb.Test.Mirror, unquote(opts)`, as the probe compiled it on both backends.
 
    **`DefaultInline`** · slug `default-inline` · sources `products`
@@ -897,7 +998,54 @@ These rules apply to every row of `##### Replaced files`.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
 6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
-7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe: none. Every carried assertion of this section held on both backends.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases_live/sortable_columns_test.exs` (11), `ash_sortable_columns_test.exs` (7, on :ash) | header tests → S2; card sort tests → S3 | none |
+| `test/cases_live/sort_disabled_test.exs` (4) | S3; `"a forged index-sort event is ignored when sorting is disabled"` → S2 | none |
+| `test/cases_live/order_by_metadata_test.exs` (1), `order_by_layout_test.exs` (1), `ash_order_by_metadata_test.exs` (1, on :ash), `ash_order_by_layout_test.exs` (1, on :ash) | S4 | none |
+| `test/cases_live/load_items_options_test.exs` (1) | S4 | none |
+| `test/cases_live/ash_filter_bar_test.exs` (9) | S5, on :ash; Ash-only: `"a filter matching no row shows the empty state"`, `"the filter bar opens on the toggle"` — names: `post` → `product`, `title` → `name`, `author_id` → `product_location_id`, `published_at` → `discontinued_at` | none |
+| `test/cases_live/where_layout_test.exs` (1), `ash_where_layout_test.exs` (1, on :ash) | S6: rows inside the bounds, in the layout order | none |
+| `test/cases_live/where_filter_layout_test.exs` (5), `ash_where_filter_layout_test.exs` (5, on :ash) | S6 | none |
+| `test/cases_live/pages_bar_test.exs` (2) | S7 | none |
+| `test/cases/templates/basic/index_list_test.exs` (4) | S7 | none |
+| `test/cases_live/infinity_scroll_test.exs` (1) | S8 | none |
+| `test/cases_live/selected_test.exs` (2) | S9 | none |
+| `test/cases/selection_test.exs` (1) | S9 | none |
+| `test/cases_live/selected_bulk_action_test.exs` (3) | S10 | none |
+| `test/cases_live/index_card_frame_test.exs` (6), `index_card_content_test.exs` (1), `index_card_grid_test.exs` (1), `index_card_actions_test.exs` (1) | S11 | `"cards have no stripes and no italic values"`: it restates CSS declarations (issue, Expected behaviour 7) |
+| `test/cases_live/create_ui_actions_index_test.exs` (5) | S12 | `"Test UI default with schema, context, basic layout"`: the index mount S1 asserts |
+| `test/cases_live/action_icons_index_test.exs` (3) | S12 | none |
+| `test/cases/templates/basic/actions_icon_test.exs` (4) | S12 | none |
+| `test/cases/id_selector_guard_test.exs` (2) | S12 | none |
+
+Partly carried here, deleted by `UI-7`: `test/cases_live/special_fields_ui_test.exs` — its nine `"Test filters …"` tests are covered by S5; `test/cases_live/ash_default_layout_test.exs` — `"Pagination navigation test"` is covered by S7 on `:ash` and `"Test filters contains matches a substring, case-insensitively"` by S5 on `:ash`; `test/cases_live/multi_select_ui_test.exs` and `ash_multi_select_test.exs` — the joined labels of their `index` tests are asserted by S1.
+
+##### Modules & components
 1. Variants (rules above). Each block is the content of the `quote` of `__using__/1`, after `use Aurora.UixWeb.Test.Mirror, unquote(opts)`, as the probe compiled it on both backends.
 
    **`Index`** · slug `index` · sources `products`, `product_locations`, `suppliers`. `:product` merges the resource block of `sortable_columns_test.exs` with the `status` and `product_location_id` lines of `special_fields_ui_test.exs`; `:product_location` and `:supplier` carry `sort_disabled_test.exs`.
@@ -1119,7 +1267,54 @@ These rules apply to every row of `##### Replaced files`.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
 6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
-7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe.
+- `:ash`: an edit form submitted with a blank required field stays open and writes nothing, shows `.auix-flash--error`, shows no `.auix-error-message` and shows the stored value in the input (library defect on `:ash`). The new form shows `.auix-error-message` on both backends.
+- Validation text follows carry rule 11: `"Test CREATE new, context, basic layout"` of `create_ui_layout_test.exs` matches `can&#39;t be blank` on `:ctx` and `is required` on `:ash`.
+- Every other carried assertion of this section held on both backends.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases_live/create_ui_layout_test.exs` (10) | the six tests up to `"Test new link"` → S1; `"Test main show link"`, `"Test show link - edit link"`, `"Test main edit link"`, `"Test main delete link"` → S2 | none |
+| `test/cases_live/ash_default_layout_test.exs` (7) | `"Test CREATE new author"`, `"Test CREATE new author updates the index list without remounting"` → S1 on :ash; `"Test UPDATE existing author"` → S2 on :ash; the other four are covered by `UI-5` S1 and `UI-6` S5, S7 | none |
+| `test/cases_live/form_controls_test.exs` (2) | S3 | none |
+| `test/cases/core_components_input_test.exs` (5) | S3 | none |
+| `test/cases_live/flash_kinds_test.exs` (2) | S4 | none |
+| `test/cases_live/form_discard_guard_test.exs` (8), `form_discard_guard_disabled_test.exs` (1), `ash_form_discard_guard_test.exs` (2, on :ash) | S5 | none |
+| `test/cases_live/special_fields_ui_test.exs` (10) | `"Test select field"` → S6; the nine filter tests are covered by `UI-6` S5 | none |
+| `test/cases_live/unimplemented_field_ui_test.exs` (3) | S6 | none |
+| `test/cases_live/multi_select_ui_test.exs` (7), `ash_multi_select_test.exs` (7, on :ash), `multi_select_ui_actions_test.exs` (3) | S7 | none |
+| `test/cases_live/checkbox_checked_test.exs` (5), `ash_checkbox_checked_test.exs` (5, on :ash) | S8 | the `active?` attribute name of the `AshCheckbox.Item` fixture: the mirror has no column named with `?`; the checked-state guard it exercised is asserted on `inactive` and `deleted` |
+| `test/cases_live/upload_field_test.exs` (21), `upload_field_error_test.exs` (1) | S9 | none |
+| `test/cases_live/custom_field_renderers_test.exs` (8) | S10 | none |
+| `test/cases_live/predefined_renderers_test.exs` (17) | S11 | none |
+| `test/cases_live/html_type_renderers_app_config_test.exs` (2), `html_type_renderers_module_test.exs` (2), `html_type_renderers_precedence_test.exs` (3) | S11 | none |
+| `test/cases_live/create_ui_actions_form_test.exs` (2), `action_icons_form_show_test.exs` (2) | S12 | none |
+
+Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/item.ex` and the route registrations of `AshCheckboxCheckedTest` in `test/support/app_web/routes.ex`.
+
+##### Modules & components
 1. In `test/support/mirror_web/mirror.ex` (`UI-2`), `__using__/1` takes its options as one keyword list. Replace its head and first line with
      ```elixir
      defmacro __using__(opts) do
@@ -1343,7 +1538,41 @@ These rules apply to every row of `##### Replaced files`.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
 6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
-7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe.
+- `:ash`: record navigation across a page boundary does not open the expected record: previous from the first row of a page and next from the last row of a page fail the two cross-page assertions, which hold on `:ctx` (library defect on `:ash`). Navigation inside a page holds on both backends.
+- Every other carried assertion of this section held on both backends.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases_live/create_ui_actions_show_test.exs` (1) | S1 | none |
+| `test/cases_live/record_navigation_test.exs` (6) | S3 | none |
+| `test/cases_live/record_navigation_disable_test.exs` (4) | S3 | none |
+
+S2 replaces no file: no test on `main` drives a group in a show layout, and none drives a section there. It is the scenario the issue's Target suite names for the show view.
+
+##### Modules & components
 1. Variants (rules above). Each block is the content of the `quote` of `__using__/1`, after `use Aurora.UixWeb.Test.Mirror, unquote(opts)`, as the probe compiled it on both backends.
 
    **`Show`** · slug `show` · sources `products`. The module starts as variant rule 6 says and defines, with `@doc false`, `custom_header_action/1` and `custom_back_footer_action/1` of `test/cases_live/create_ui_actions_show_test.exs`, bodies unchanged.
@@ -1478,7 +1707,58 @@ These rules apply to every row of `##### Replaced files`.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
 6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
-7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe.
+- `:ctx`: a validation error on a nested child (an embeds-many entry, the one-to-one inputs) exits the LiveView with `FunctionClauseError` in `Aurora.Uix.Templates.Basic.Helpers.process_error_detail/1` (library defect on `:ctx`). The invalid-email part of S10 runs on `:ash` only, and no scenario submits a nested child that fails validation on `:ctx`. The section log lists the defect.
+- `:ash`: the new form renders no `product[packaging][…]` input before the embeds-one is added; `:ctx` renders the three inputs at once. The edit form of a product with a packaging renders them on both.
+- Both backends: a seeded product without `quantity_initial` fails validation on an edit submit. `check_edit` of the many-to-one files passed on the guide schema for that reason: the form stayed open with the changed option. With carry rule 10 the submit saves; S1 asserts the row and a fresh mount.
+- A one-to-many list keeps one column order on both backends only with the `index_columns` lines of the variants below.
+- The other carried assertions of this section held on both backends.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases_live/association_many2one_selector_atom_test.exs` (4) | S1 | none |
+| `test/cases_live/association_many2one_selector_function_test.exs` (3), `association_many2one_selector_assigns_test.exs` (3) | S1: the label of each, asserted on `product_transaction.product_id` and on `product_barcode.product_id` | `check_listing` of both: the same index mount as the atom file's. `check_show` and `check_edit` of both, apart from the label: the same selected-option assertions as the atom file's |
+| `test/cases_live/association_many2one_selector_ui_layout_test.exs` (3) | none | all three: `check_listing` is the atom file's index mount; `check_show` and `check_edit` make the atom file's selected-option assertions with the default option label, and the `:product_location` parent field they add is asserted by S2 |
+| `test/cases_live/where_many2one_test.exs` (1), `ash_where_many2one_test.exs` (1, on :ash) | S1 | none |
+| `test/cases_live/ash_many_to_one_select_test.exs` (1) | S1, on :ash | none |
+| `test/cases_live/association_many2one_ui_layout_test.exs` (1), `association_many2one_parent_ui_layout_test.exs` (1) | S2 | none |
+| `test/cases_live/association_one2many_ui_layout_test.exs` (4) | S3 | none |
+| `test/cases_live/where_one2many_test.exs` (1), `ash_where_one2many_test.exs` (2) | S3, on :ash; Ash-only: `"an author with no post shows the empty one-to-many state"` — names: `author` → `product`, `posts` → `product_transactions` | none |
+| `test/cases_live/one_to_many_component_test.exs` (1) | S3 | none |
+| `test/cases/templates/basic/one_to_many_rows_test.exs` (2) | S3 | none |
+| `test/cases_live/association_one2many_ui_actions_test.exs` (4) | S4 | none |
+| `test/cases_live/action_icons_fields_test.exs` (2) | `"one-to-many actions take the field's action_icons"` → S4; `"embeds-many actions take the field's action_icons"` → S9 | none |
+| `test/cases_live/association_one2one_ui_layout_test.exs` (8), `ash_one2one_test.exs` (7, on :ash) | S5 | none |
+| `test/cases_live/association_many2many_ui_layout_test.exs` (12), `ash_many2many_test.exs` (10, on :ash) | S6; Ash-only: `"labels each option from the related resource when no option_label is declared"` → S7 — names: `post` → `product`, `topics` → `suppliers` | none |
+| `test/cases_live/association_many2many_ui_actions_test.exs` (3) | S7 | none |
+| `test/cases_live/embeds_one_test.exs` (2) | S8 — names: `user` → `product`, `profile` → `packaging`, `online` / `dark_mode` → `fragile`, `visibility` → `material`, `given_name` → `reference`, `family_name` → `name` | none |
+| `test/cases_live/embeds_many_test.exs` (3) | S9 — names: `user` → `product`, `emails` → `contacts`; `"Create new user with emails"` → S10 | none |
+
+Partly carried here, deleted by `UI-11`: `test/cases_live/ash_embeds_test.exs` — `"Show from list embeds-many"`, `"embeds_many with :expanded renders the details open in show and edit"` and `"Test forms creation"` are covered by S8, S9 and S10 on `:ash` (names: `post` → `product`, `tags` → `contacts`, `comment` → `packaging`).
+
+##### Modules & components
 1. Variants (rules above). Each block is the content of the `quote` of `__using__/1`, after `use Aurora.UixWeb.Test.Mirror, unquote(opts)`, as the probe compiled it on both backends.
 
    **`ManyToOne`** · slug `many-to-one` · sources `products`, `product_locations`, `product_transactions`, `product_barcodes`. The module defines, with `@doc false`: `def option_label(entity), do: "The #{entity.name}"` and `def option_label(assigns, entity), do: "#{assigns.auix.layout_type}: #{entity.name}"`.
@@ -1754,7 +2034,52 @@ These rules apply to every row of `##### Replaced files`.
 4. An assertion on an `auix-field-*` id, and an `=~` on rendered HTML, is rewritten as `has_element?/2` on the same element, selected by the first of these it has: its `name` attribute, its input name, its `auix-*` class.
 5. Every scenario also asserts the structure its row lists, on both backends.
 6. An assertion that holds on one backend and fails on the other is a library defect. Keep it for the passing backend inside `if backend.name == <passing> do … end`, with the comment `# Library defect on <failing>: <what happens>`, and list it under "Library defects found" in the section log. Never change a file under `lib/`.
-7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components
+7. Delete each replaced file with `git rm`. Remove from `test/support/app_web/routes.ex` every registration whose module argument starts with the test module of a deleted file. A module a deleted file defines beside its test module moves as `##### Modules & components` of this section says.
+8. A views variant declares only the resources and layouts its scenarios mount, and each generated module is mounted by a scenario: an unmounted generated module is a missed line in the coverage total.
+9. An id that embeds the route (`auix-table-<route>-index`, `auix-table-<route>-index-mobile`, `auix-table-<route>-index-hook`) is rebuilt from the mirror route: `"#auix-table-mirror-#{backend.slug}-<variant slug>-<source>-index"`. For these ids this rule replaces the last sentence of rule 2.
+10. Required fields and seeds. `name`, `status` and `quantity_initial` are required on both backends, and `create_sample_products/3` and `create_sample_products_with_transactions/4` set no `quantity_initial`. A form submit that must save a seeded product sets `quantity_initial`: in the seed attrs (`%{quantity_initial: 1}`) when the form has no `quantity_initial` input, in the submitted params otherwise. A form that renders the `:product_barcode` inputs (the default product form of the `Default` variant, the `OneToOne` variant) saves only with `product_barcode: %{code: "<code>"}` in the submitted params.
+11. A validation message is the text of the backend: `can't be blank` on `:ctx`, `is required` on `:ash`. Assert the `.auix-error-message` element on both backends and the text of the running backend.
+12. A raw SQL statement on a guide table and a `Repo` call on a guide schema become an `Aurora.Uix.Repo` call on the `MirrorCtx` schema of the same table. Persisted values are read through `MirrorCtx` schemas on both backends: the tables are shared.
+13. A carried assertion that fails on both backends because the variant is not the old views module (another field list, another seed, another column position) is restated for the variant: the fact it states stays, and its selector and expected value are recomputed from the variant DSL this section gives. It is removed only when the variant no longer has the thing it asserts; each removal is listed in the section log with that reason.
+14. `##### Backend differences` of this section lists what the probe measured. Each entry is asserted as the entry says. An assertion that fails on one backend only and has no entry falls under rule 6.
+
+##### Backend differences
+Measured by the probe.
+- `:ash`: `"record navigation patches without a routing stack"` patches to another record than the one `:ctx` opens (the cross-page defect `UI-8` logs). Its `decoded_patch/1` assertion runs inside `if backend.name == :ctx`; the absence of a routing stack is asserted on both.
+- Events: the schema module and the structs are the backend's own (step 5). This is the contract of `Aurora.Uix.Events`, not a defect.
+- `ash_navigation_test.exs`, `ash_components_index_test.exs`, `ash_components_form_show_test.exs` and `ash_events_test.exs` show each flow passing on Ash; an assertion of their Ecto twin that still fails on `:ash` falls under rule 6.
+
+##### Variant rules
+1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
+2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
+5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
+6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
+7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
+8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
+9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
+
+##### Replaced files
+| Old file (tests) | Home | Dropped, with the reason |
+|---|---|---|
+| `test/cases/navigation_test.exs` (10) — kept, amended | S1 | none |
+| `test/cases/templates/basic/helpers_navigation_test.exs` (3), `test/cases/routing_components_test.exs` (1) | S1 | none |
+| `test/cases_live/navigation_test.exs` (14) | the first five tests → S2; `"a new child navigates to the child route and back to the parent form"`, `"child show and edit links navigate with the parent on the stack"`, `"a new parent with a child list continues on its edit form"` → S3; the other six → S4 | none |
+| `test/cases_live/ash_navigation_test.exs` (4, on :ash) | S2, S3 | none |
+| `test/cases_live/handler_hooks_index_test.exs` (4), `handler_hooks_form_test.exs` (5), `handler_hooks_show_test.exs` (4) | S5 | `"Test CREATE new, context, basic layout"`, `"Test main edit link"`, `"Test one-to-many relationship UI workflow"`, `"Test one-to-many relationship UI workflow new Product"`: copies of flows `UI-7` S1, S2 and `UI-9` S3 assert; their hook assertions, when a test has one, are carried |
+| `test/cases_live/components_index_test.exs` (10), `ash_components_index_test.exs` (1, on :ash) | S6 | none |
+| `test/cases_live/components_form_show_test.exs` (8), `ash_components_form_show_test.exs` (1, on :ash) | S7 | none |
+| `test/cases/templates/basic/helpers_intent_test.exs` (3) | S7 | none |
+| `test/cases_live/component_hooks_test.exs` (3), `test/cases/component_hooks_test.exs` (1) | S8 | none |
+| `test/cases/events_test.exs` (8) — kept, amended | S9 | none |
+| `test/cases_live/events_test.exs` (19), `ash_events_test.exs` (8, on :ash) | S10 | none |
+| `test/cases_live/gettext_domain_test.exs` (2) | S11 | none |
+| `test/aurora_uix/helpers/gettext_resolver_test.exs` (3), `test/aurora_uix/templates/basic/gettext_coverage_test.exs` (3) | S11 | none |
+
+After this section the directory `test/aurora_uix/` no longer exists.
+
+##### Modules & components
 1. Variants (rules above). Each block is the content of the `quote` of `__using__/1`, after `use Aurora.UixWeb.Test.Mirror, unquote(opts)`, as the probe compiled it on both backends.
 
    **`Navigation`** · slug `navigation` · sources `products`, `product_transactions` (DSL of `test/cases_live/navigation_test.exs`)
