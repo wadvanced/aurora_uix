@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   - HTML5 input type mapping for form generation
   - Field metadata extraction for select/enum types
   - Automatic discovery and type-mapping of Ash **calculations** (from their declared return type) and **aggregates** (all nine kinds, via `Ash.Resource.Info.aggregate_type/2`); both are disabled in generated forms
+  - Tells whether a schema is embedded-only (an embedded Ash resource)
 
   ## Key Constraints
 
@@ -220,6 +221,22 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
     |> Enum.filter(&embedded_resource?/1)
     |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
   end
+
+  @doc """
+  Tells whether a schema is embedded-only: an Ash resource with the embedded data layer.
+
+  ## Parameters
+
+  - `schema` (module()) - The schema module of a resource.
+
+  ## Returns
+
+  boolean() - `true` for an embedded Ash resource; `false` for any other resource and for a
+  module that is not an Ash resource.
+  """
+  @spec embedded_schema?(module()) :: boolean()
+  def embedded_schema?(schema),
+    do: AshResourceInfo.resource?(schema) and AshResourceInfo.embedded?(schema)
 
   ## PRIVATE
 
