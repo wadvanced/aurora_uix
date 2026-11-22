@@ -42,6 +42,9 @@ changes: see the What's New guide for the upgrade checklist.
   0.2.0").
 - **Embedded resources on the Ecto backend**: a resource declared on a schema without a table
   needs no `context:` and no CRUD functions.
+- **Atom without `one_of` warning (Ash)**: the compile-time warning is emitted only for a field a
+  generated form places and can write. Calculations, aggregates, read-only fields and fields only an
+  index or a show layout places no longer warn, and the message names the views module.
 - **Associations to imported resources**: an association links to a resource imported with
   `@auix_resource_metadata`.
 - **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves

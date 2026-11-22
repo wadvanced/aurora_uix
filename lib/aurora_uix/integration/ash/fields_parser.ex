@@ -439,15 +439,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   defp field_html_type(%{select: {_opts, _multiple?}}, _attribute), do: :select
 
   # An atom without enum markers has no option list to render, so it degrades to a text input.
-  defp field_html_type(attrs, %{type: resource_type})
-       when resource_type in @selectable_atom_types do
-    Logger.warning("""
-            Field ':#{attrs.key}' of '#{attrs.resource_schema}' has invalid ':atom' type, it makes sense to be used in conjuntion of ':one_of' constraint.
-            Setting values of NON existant atoms will raise an error on the host runtime.
-    """)
-
-    :text
-  end
+  # `field_data/2` marks it, and `auix_create_ui` warns when a form can write it.
+  defp field_html_type(_attrs, %{type: resource_type})
+       when resource_type in @selectable_atom_types,
+       do: :text
 
   defp field_html_type(_attrs, %{embedded?: true}), do: :unimplemented
 
@@ -554,6 +549,10 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
 
   defp field_data(%{select: {opts, multiple?}}, _attribute),
     do: %{select: %{opts: opts, multiple: multiple?}}
+
+  # A calculation or an aggregate never gets here: the generated clause above takes it.
+  defp field_data(_attrs, %{type: resource_type}) when resource_type in @selectable_atom_types,
+    do: %{unconstrained_atom: true}
 
   defp field_data(attrs, %{type: {:array, related_schema}, embedded?: true} = attribute),
     do: field_data(attrs, Map.put(attribute, :type, related_schema))
