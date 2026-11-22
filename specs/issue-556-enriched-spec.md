@@ -66,18 +66,18 @@ Both edits reword existing text. No entry, bullet, heading and note is added.
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-556-enriched-spec.md`)
-- [ ] AC-3: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` reads as prescribed (mechanical — no
+- [x] AC-3: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` reads as prescribed (mechanical — no
       red test; verified by `grep -c 'A resource named for an embedded field' guides/whats_new/0.2.1.md`
       returning `1` and `grep -c 'A resource created for an embedded field' guides/whats_new/0.2.1.md`
       returning `0`)
-- [ ] AC-4: the **Generated module names (breaking)** entry reads as prescribed and the `### Changed`
+- [x] AC-4: the **Generated module names (breaking)** entry reads as prescribed and the `### Changed`
       list of `## [0.2.1]` has the same number of entries as on `main` (mechanical — no red test;
       verified by `grep -c 'resource named for an embedded field' CHANGELOG.md` returning `1` and
       `git diff origin/main...HEAD --stat -- CHANGELOG.md` showing 3 insertions and 2 deletions)

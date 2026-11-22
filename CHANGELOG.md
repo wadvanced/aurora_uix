@@ -33,8 +33,9 @@ changes: see the What's New guide for the upgrade checklist.
   - lazy_html: 0.1.13 -> 0.1.14
   - phoenix_html: 4.3.0 -> 4.4.0
   - sourceror: 1.12.4 -> 1.13.0
-- **Generated module names (breaking)**: a duplicate generated module name fails compilation, and an
-  embedded field generates no modules (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Generated module names (breaking)**: a duplicate generated module name fails compilation, and a
+  resource named for an embedded field (`<parent>__<field>`) generates no modules, created by the
+  library or declared (What's New in 0.2.1, "Upgrading from 0.2.0").
 - **Associations to imported resources**: an association links to a resource imported with
   `@auix_resource_metadata`.
 - **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves
