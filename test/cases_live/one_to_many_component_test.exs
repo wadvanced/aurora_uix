@@ -7,8 +7,8 @@ defmodule Aurora.UixWeb.Test.OneToManyComponentTest do
   alias Aurora.Uix.Guides.Inventory.ProductLocation
   alias Aurora.Uix.Repo
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product)
   auix_resource_metadata(:product_compact, context: Inventory, schema: Product)
+  auix_resource_metadata(:product, context: Inventory, schema: Product)
 
   auix_resource_metadata :product_location do
     context(Inventory)

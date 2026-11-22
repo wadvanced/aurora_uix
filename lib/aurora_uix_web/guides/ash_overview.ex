@@ -48,6 +48,7 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
     ash_resource(Post)
     order_by(:title)
     field :topics, label: "Topics"
+    field :tags, resource: :tag
   end
 
   auix_resource_metadata(:tag, ash_resource: Tag)

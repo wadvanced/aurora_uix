@@ -683,6 +683,50 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     assert mod.auix_configurations().product.layout_trees.index.card == nil
   end
 
+  test "a field with resource: keeps its nested preload" do
+    mod =
+      compiled_ui("""
+        auix_resource_metadata :product_location do
+          context Aurora.Uix.Guides.Inventory
+          schema Aurora.Uix.Guides.Inventory.ProductLocation
+          field :products, resource: :product
+        end
+
+        auix_create_ui do
+          index_columns :product, [:reference, :product_location]
+
+          edit_layout :product do
+            stacked [:reference, :product_location]
+          end
+
+          show_layout :product do
+            stacked [:reference, :product_location, :product_transactions]
+          end
+
+          index_columns :product_location, [:name]
+
+          edit_layout :product_location do
+            stacked [:name]
+          end
+
+          show_layout :product_location do
+            stacked [:name, :products]
+          end
+        end
+      """)
+
+    assert mod.auix_resource(:product_location).fields.products.resource == :product_location
+    preloads = mod.auix_preloads()
+
+    assert preloads.product_location |> Keyword.fetch!(:products) |> Enum.sort() == [
+             :product_location,
+             :product_transactions
+           ]
+
+    assert Keyword.fetch!(preloads.product, :product_location) == []
+    assert Keyword.fetch!(preloads.product, :product_transactions) == []
+  end
+
   @spec compiled_ui(binary()) :: module()
   defp compiled_ui(body) do
     {mod, _binary} =

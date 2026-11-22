@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.ResolveResources do
           declared
           |> Enum.map(&ResourceMetadata.prepare_resource(&1, module))
           |> Enum.reverse()
-          |> ResourceMetadata.resolve_resources(imported_resources(module))
+          |> ResourceMetadata.resolve_resources(imported_resources(module), module)
 
         dsl_state
         |> Transformer.persist(:auix_resources, resources)

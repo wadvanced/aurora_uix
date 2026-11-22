@@ -51,6 +51,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   - `backend_opts` are validated by the resource's backend (see
     `Aurora.Uix.Integration.ContextParserDefaults.backend_opts_schema/1`).
   - `fields [:a, :b], opts` declares the same options for several fields.
+  - `resource:` on an embedded field and on an association names the resource that renders it; the name and its schema are checked at compile time.
 
   ## Key Constraints
   - Function options take captured functions (`&Mod.fun/1`), not inline `fn`.
@@ -206,16 +207,20 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   ## Parameters
   - `resources` (list(Resource.t())) - Prepared resources, latest declaration first.
   - `imported` ([{atom(), Resource.t()}]) - Resources the module imports, by name. They are lookup candidates for the associations of `resources`; they are not resolved again and not returned.
+  - `module` (module()) - The module declaring the resources, for error reporting.
 
   ## Returns
   `map()` - Resolved resources by name.
+
+  Raises `Spark.Error.DslError` for a `resource:` field option that names no resource, names a resource on another schema, or sits on a field that is neither embedded nor an association.
   """
-  @spec resolve_resources([Resource.t()], [{atom(), Resource.t()}]) :: %{atom() => Resource.t()}
-  def resolve_resources(resources, imported) do
+  @spec resolve_resources([Resource.t()], [{atom(), Resource.t()}], module()) ::
+          %{atom() => Resource.t()}
+  def resolve_resources(resources, imported, module) do
     resources
     |> add_embedded_resources()
     |> Enum.map(&parse_fields/1)
-    |> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed ++ imported)) end)
+    |> then(fn parsed -> Enum.map(parsed, &resolve_fields(&1, parsed ++ imported, module)) end)
     |> Map.new()
   end
 
@@ -263,21 +268,37 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     end
   end
 
+  @linkable_types [
+    :embeds_one,
+    :embeds_many,
+    :many_to_one_association,
+    :one_to_many_association,
+    :one_to_one_association,
+    :many_to_many_association
+  ]
+
   # Associations are parsed against every resource, so a related resource can be found by schema.
-  @spec resolve_fields({atom(), Resource.t()}, [{atom(), Resource.t()}]) :: {atom(), Resource.t()}
-  defp resolve_fields({name, %Resource{schema: nil} = resource}, _resources),
+  # `resource:` links a field to the resource that renders it (`data.resource`); `field.resource`
+  # keeps the name of the owning resource.
+  @spec resolve_fields({atom(), Resource.t()}, [{atom(), Resource.t()}], module()) ::
+          {atom(), Resource.t()}
+  defp resolve_fields({name, %Resource{schema: nil} = resource}, _resources, _module),
     do: {name, put_fields(resource, resource.fields)}
 
-  defp resolve_fields({name, %Resource{} = resource}, resources) do
+  defp resolve_fields({name, %Resource{} = resource}, resources, module) do
     fields_parser = LayoutHelpers.get_fields_parser_module(resource.type)
     overrides = merge_overrides(resource.field_overrides)
+
+    owner_overrides =
+      Map.new(overrides, fn {key, override} -> {key, struct(override, %{resource: nil})} end)
 
     resource.schema
     |> fields_parser.parse_associations(name, resources, resource.fields)
     |> Enum.reverse()
+    |> link_resources(overrides, %{module: module, owner: name, resources: resources})
     |> configure_many_to_one_selectors()
-    |> apply_overrides(overrides)
-    |> append_declared_fields(resource.field_overrides, overrides, name)
+    |> apply_overrides(owner_overrides)
+    |> append_declared_fields(resource.field_overrides, owner_overrides, name)
     |> then(&{name, put_fields(resource, &1)})
   end
 
@@ -318,6 +339,79 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
       end)
 
     fields ++ new_fields
+  end
+
+  @spec link_resources([Field.t()], map(), map()) :: [Field.t()]
+  defp link_resources(fields, overrides, context) do
+    overrides
+    |> Map.values()
+    |> Enum.reject(&is_nil(&1.resource))
+    |> Enum.reduce(fields, &link_resource(&1, &2, context))
+  end
+
+  @spec link_resource(Field.t(), [Field.t()], map()) :: [Field.t()]
+  defp link_resource(override, fields, context) do
+    field = Enum.find(fields, &(&1.key == override.key))
+
+    if is_nil(field) or field.type not in @linkable_types do
+      not_linkable_error(override, field, fields, context)
+    end
+
+    linked = List.keyfind(context.resources, override.resource, 0)
+
+    if is_nil(linked) do
+      link_error(
+        override,
+        context,
+        "field #{inspect(override.key)} of #{inspect(context.owner)} links to the unknown resource #{inspect(override.resource)}"
+      )
+    end
+
+    if elem(linked, 1).schema != field.data.related do
+      link_error(
+        override,
+        context,
+        "field #{inspect(override.key)} of #{inspect(context.owner)} links to the resource #{inspect(override.resource)}, whose schema is #{inspect(elem(linked, 1).schema)}; the field relates to #{inspect(field.data.related)}"
+      )
+    end
+
+    Enum.map(fields, fn
+      %Field{key: key} = linked_field when key == override.key ->
+        struct(linked_field, %{data: Map.put(linked_field.data, :resource, override.resource)})
+
+      other ->
+        other
+    end)
+  end
+
+  @spec not_linkable_error(Field.t(), Field.t() | nil, [Field.t()], map()) :: no_return()
+  defp not_linkable_error(override, field, fields, context) do
+    key = override.key
+    type = if field, do: field.type, else: override.type || :string
+
+    association =
+      Enum.find(fields, &(&1.type == :many_to_one_association and &1.data.owner_key == key))
+
+    hint =
+      if association,
+        do: ". Put `resource:` on the association field #{inspect(association.key)}",
+        else: ""
+
+    link_error(
+      override,
+      context,
+      "`resource:` on field #{inspect(key)} of #{inspect(context.owner)} is not allowed: its type is #{inspect(type)}, and only an embedded field or an association links to a resource" <>
+        hint
+    )
+  end
+
+  @spec link_error(Field.t(), map(), binary()) :: no_return()
+  defp link_error(override, context, message) do
+    raise DslError,
+      module: context.module,
+      path: [:auix_resource_metadata, context.owner, :field, override.key],
+      location: Entity.anno(override),
+      message: message
   end
 
   @spec configure_many_to_one_selectors([Field.t()]) :: [Field.t()]
