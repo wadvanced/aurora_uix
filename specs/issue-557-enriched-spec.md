@@ -313,9 +313,9 @@ Depends on: DOC-1
 The section adds one public function to the Ash fields parser. It produces no `%Field{}` and changes no existing clause. The mirrored section for the Ecto backend is PAR-1.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given an Ash resource with `data_layer: :embedded` (`EmbedsOne` of the test file), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `true`
-- [ ] AC-2: Given an Ash resource with a table (`AggregatedRelationship`, `data_layer: AshPostgres.DataLayer`), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `false`
-- [ ] AC-3: Given a module that is not an Ash resource (`String`), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `false` and does not raise
+- [x] AC-1: Given an Ash resource with `data_layer: :embedded` (`EmbedsOne` of the test file), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `true`
+- [x] AC-2: Given an Ash resource with a table (`AggregatedRelationship`, `data_layer: AshPostgres.DataLayer`), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `false`
+- [x] AC-3: Given a module that is not an Ash resource (`String`), when `Ash.FieldsParser.embedded_schema?/1` receives it, then it returns `false` and does not raise
 
 ##### Test ports
 - `Aurora.Uix.Integration.Ash.FieldsParser.embedded_schema?/1` · in: `module()` · out: `boolean()` · new (`rg -n 'embedded_schema\?' lib test guides` returns nothing)

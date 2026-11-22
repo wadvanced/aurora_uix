@@ -402,6 +402,20 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
     end
   end
 
+  describe "embedded_schema?/1" do
+    test "an embedded resource is embedded-only" do
+      assert Ash.FieldsParser.embedded_schema?(EmbedsOne)
+    end
+
+    test "a resource with a table is not embedded-only" do
+      refute Ash.FieldsParser.embedded_schema?(AggregatedRelationship)
+    end
+
+    test "a module that is not a resource is not embedded-only" do
+      refute Ash.FieldsParser.embedded_schema?(String)
+    end
+  end
+
   @spec aggregate_field(atom()) :: Aurora.Uix.Field.t()
   defp aggregate_field(key) do
     Aggregates
