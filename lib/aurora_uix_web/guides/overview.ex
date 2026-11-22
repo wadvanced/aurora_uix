@@ -34,7 +34,7 @@ defmodule Aurora.UixWeb.Guides.Overview do
       order_by: :reference
     )
 
-    index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :reference)
+    index_columns(:product_transaction, [:type, :quantity, :cost], order_by: :inserted_at)
 
     edit_layout :product_location do
       inline([:reference, :name, :type])
