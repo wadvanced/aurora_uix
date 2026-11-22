@@ -138,6 +138,8 @@ defmodule Aurora.Uix.Layout.CreateUI do
   alias Aurora.Uix.Template
   alias Spark.Error.DslError
 
+  require Logger
+
   @type kind() :: :index_live | :index_component | :form_component | :show_component
 
   @component_kinds [index: :index_component, form: :form_component, show: :show_component]
@@ -674,27 +676,66 @@ defmodule Aurora.Uix.Layout.CreateUI do
            ]}
         end)
 
-      {resource_config_name,
-       Map.merge(
-         %{
-           resource_config_name: resource_config_name,
-           resource_config: resource_config,
-           layout_tags: layout_tags,
-           parsed_opts: parsed_opts,
-           layout_trees: layout_trees,
-           template: template,
-           html_type_renderers: html_type_renderers,
-           modules: %{
-             caller: caller,
-             module: resource_module,
-             web: find_web_module(caller),
-             context: resource_config.context
-           }
-         },
-         resource_modules({resource_config_name, resource_config}, layouts, names, opts)
-       )}
+      configuration =
+        Map.merge(
+          %{
+            resource_config_name: resource_config_name,
+            resource_config: resource_config,
+            layout_tags: layout_tags,
+            parsed_opts: parsed_opts,
+            layout_trees: layout_trees,
+            template: template,
+            html_type_renderers: html_type_renderers,
+            modules: %{
+              caller: caller,
+              module: resource_module,
+              web: find_web_module(caller),
+              context: resource_config.context
+            }
+          },
+          resource_modules({resource_config_name, resource_config}, layouts, names, opts)
+        )
+
+      :ok = warn_unconstrained_atoms(configuration, caller)
+
+      {resource_config_name, configuration}
     end
   end
+
+  # An atom with no option list renders as a text input, so a form can submit a value that is
+  # not an existing atom. Only a field a form places and can write carries that risk.
+  @spec warn_unconstrained_atoms(map(), module()) :: :ok
+  defp warn_unconstrained_atoms(
+         %{resource_config: resource, layout_trees: layout_trees, generate: generate},
+         caller
+       ) do
+    if resource.embedded? or :form_component in generate do
+      layout_trees
+      |> Map.get(:form)
+      |> List.wrap()
+      |> Node.fields()
+      |> Enum.map(& &1.field)
+      |> Enum.filter(&writable_unconstrained_atom?/1)
+      |> Enum.uniq_by(& &1.key)
+      |> Enum.each(fn field ->
+        Logger.warning(
+          "Field #{inspect(field.key)} of resource #{inspect(resource.name)} (#{inspect(resource.schema)}), " <>
+            "placed in a form of #{inspect(caller)}, is an :atom without a :one_of constraint. " <>
+            "It renders as a text input, and a value that is not an existing atom raises in the host at runtime. " <>
+            "Add `constraints one_of: [...]` to the attribute, or make the field read-only."
+        )
+      end)
+    end
+
+    :ok
+  end
+
+  @spec writable_unconstrained_atom?(Field.t()) :: boolean()
+  defp writable_unconstrained_atom?(%Field{data: %{unconstrained_atom: true}} = field),
+    do:
+      not Enum.any?([field.readonly, field.disabled, field.omitted, field.hidden], &(&1 == true))
+
+  defp writable_unconstrained_atom?(_field), do: false
 
   @spec layout_type(Node.layout()) :: atom()
   defp layout_type(%Node.Index{}), do: :index
