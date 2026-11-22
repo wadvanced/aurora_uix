@@ -375,10 +375,33 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
           context: Aurora.Uix.Guides.Accounts,
           schema: Aurora.Uix.Guides.Accounts.User
 
-        auix_create_ui()
+        auix_resource_metadata :post, ash_resource: Aurora.Uix.Guides.Blog.Post
+        auix_resource_metadata :policy_item, ash_resource: AshActorTest.PolicyItem
+
+        auix_resource_metadata :post__comment do
+          ash_resource Aurora.Uix.Guides.Blog.Comment
+          field :description, readonly: true
+        end
+
+        auix_resource_metadata :post__tags, ash_resource: Aurora.Uix.Guides.Blog.Tag
+        auix_resource_metadata :policy_item__tags, ash_resource: AshActorTest.Tag
+
+        auix_create_ui do
+          edit_layout :post__comment do
+            stacked [:description]
+          end
+        end
       """)
 
     assert mod.auix_modules() |> Map.keys() |> Enum.sort() == [
+             :policy_item_form_component,
+             :policy_item_index,
+             :policy_item_index_component,
+             :policy_item_show_component,
+             :post_form_component,
+             :post_index,
+             :post_index_component,
+             :post_show_component,
              :product_form_component,
              :product_index,
              :product_index_component,
@@ -395,6 +418,20 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     refute mod |> Module.concat(Email.Index) |> Code.ensure_loaded?()
     assert Map.has_key?(mod.auix_configurations(), :user__profile)
     assert Map.has_key?(mod.auix_configurations(), :user__emails)
+
+    refute mod |> Module.concat(Comment.Index) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Comment.FormComponent) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Comment.ShowComponent) |> Code.ensure_loaded?()
+    refute mod |> Module.concat(Tag.Index) |> Code.ensure_loaded?()
+
+    for name <- [:post__comment, :post__tags, :policy_item__tags] do
+      assert mod.auix_resource(name).embedded?
+    end
+
+    assert mod.auix_resource(:post__comment).fields.description.readonly
+
+    assert [%Node.Stacked{children: [%Node.Field{key: :description}]}] =
+             mod.auix_configurations().post__comment.layout_trees.form.children
   end
 
   test "index_columns generates an index component" do

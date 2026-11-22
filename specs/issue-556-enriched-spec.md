@@ -109,26 +109,26 @@ existing test. Test layer: `test/cases/` (layout generation, no DB), because the
 modules a views module generates.
 
 ##### Acceptance criteria
-- [ ] AC-1: Given a views module declaring the Ash resources `:post`
+- [x] AC-1: Given a views module declaring the Ash resources `:post`
       (`Aurora.Uix.Guides.Blog.Post`) and `:post__comment` (`Aurora.Uix.Guides.Blog.Comment`), then
       `auix_resource(:post__comment).embedded?` is `true`, `auix_modules/0` holds no `:comment_*`
       name, and no `<Module>.Comment.Index`, `.FormComponent` and `.ShowComponent` module is
       generated.
-- [ ] AC-2: Given that module also declaring `:policy_item` (`AshActorTest.PolicyItem`),
+- [x] AC-2: Given that module also declaring `:policy_item` (`AshActorTest.PolicyItem`),
       `:post__tags` (`Aurora.Uix.Guides.Blog.Tag`) and `:policy_item__tags` (`AshActorTest.Tag`),
       two declared embedded-field resources whose schemas give the same module names, then the
       module compiles, both are `embedded?: true`, `auix_modules/0` holds no `:tag_*` name, and no
       `<Module>.Tag.Index` module is generated.
-- [ ] AC-3: Given that module, with `field :description, readonly: true` on `:post__comment` and an
+- [x] AC-3: Given that module, with `field :description, readonly: true` on `:post__comment` and an
       `edit_layout :post__comment` placing only `:description`, then
       `auix_resource(:post__comment).fields.description.readonly` is `true` and the `:form` layout
       tree of `auix_configurations().post__comment` places the one field `:description`.
-- [ ] AC-4 (error path, guard kept): two ordinary resources on one schema still fail compilation
+- [x] AC-4 (error path, guard kept): two ordinary resources on one schema still fail compilation
       with the unchanged message `module name :product_form_component is taken more than once`
       (mechanical — no red test; verified by the existing test
       `test/cases/create_ui_validation_test.exs` "two resources on one schema need their own module
       names" passing unmodified)
-- [ ] AC-5: the two moduledoc lines read as prescribed in Modules & components 2 and 3
+- [x] AC-5: the two moduledoc lines read as prescribed in Modules & components 2 and 3
       (mechanical — no red test; verified by
       `grep -rn 'created for an embedded field' lib/` returning nothing and
       `grep -c 'named for an embedded field' lib/aurora_uix/layout/create_ui.ex lib/aurora_uix/resource.ex`
