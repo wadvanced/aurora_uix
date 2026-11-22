@@ -169,6 +169,116 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataValidationTest do
              nil
   end
 
+  test "resource: links an Ash embedded field and a many-to-one" do
+    [{mod, _}] =
+      compile("""
+        auix_resource_metadata :post do
+          ash_resource Aurora.Uix.Guides.Blog.Post
+          field :comment, resource: :my_comment
+          field :author, resource: :writer
+        end
+
+        auix_resource_metadata :my_comment, ash_resource: Aurora.Uix.Guides.Blog.Comment
+        auix_resource_metadata :writer, ash_resource: Aurora.Uix.Guides.Blog.Author
+        auix_resource_metadata :author, ash_resource: Aurora.Uix.Guides.Blog.Author
+      """)
+
+    fields = mod.auix_resource(:post).fields
+    assert {fields.comment.resource, fields.comment.data.resource} == {:post, :my_comment}
+    assert {fields.author.resource, fields.author.data.resource} == {:post, :writer}
+    assert fields.author_id.data.resource == :writer
+  end
+
+  test "resource: links an Ecto embedded field" do
+    [{mod, _}] =
+      compile("""
+        auix_resource_metadata :user do
+          schema Aurora.Uix.Guides.Accounts.User
+          context Aurora.Uix.Guides.Accounts
+          field :profile, resource: :profile_card
+        end
+
+        auix_resource_metadata :profile_card, schema: Aurora.Uix.Guides.Accounts.User.Profile
+      """)
+
+    field = mod.auix_resource(:user).fields.profile
+    assert {field.resource, field.data.resource} == {:user, :profile_card}
+  end
+
+  test "resource: links to an imported resource" do
+    meta = compile_meta()
+
+    [{mod, _}] =
+      compile("""
+        @auix_resource_metadata %{product_location: #{inspect(meta)}.auix_resource(:product_location)}
+
+        auix_resource_metadata :catalog_product do
+          schema Aurora.Uix.Guides.Inventory.Product
+          context Aurora.Uix.Guides.Inventory
+          field :product_location, resource: :product_location
+        end
+      """)
+
+    field = mod.auix_resource(:catalog_product).fields.product_location
+    assert {field.resource, field.data.resource} == {:catalog_product, :product_location}
+  end
+
+  test "resource: with an unknown name fails compilation" do
+    assert_raise DslError,
+                 ~r/field :product_location of :product links to the unknown resource :nowhere/,
+                 fn ->
+                   compile("""
+                     auix_resource_metadata :product do
+                       schema Aurora.Uix.Guides.Inventory.Product
+                       context Aurora.Uix.Guides.Inventory
+                       field :product_location, resource: :nowhere
+                     end
+                   """)
+                 end
+  end
+
+  test "resource: with a resource on another schema fails compilation" do
+    assert_raise DslError,
+                 ~r/field :product_location of :product links to the resource :movement, whose schema is Aurora\.Uix\.Guides\.Inventory\.ProductTransaction; the field relates to Aurora\.Uix\.Guides\.Inventory\.ProductLocation/,
+                 fn ->
+                   compile("""
+                     auix_resource_metadata :product do
+                       schema Aurora.Uix.Guides.Inventory.Product
+                       context Aurora.Uix.Guides.Inventory
+                       field :product_location, resource: :movement
+                     end
+
+                     auix_resource_metadata :movement,
+                       context: Aurora.Uix.Guides.Inventory,
+                       schema: Aurora.Uix.Guides.Inventory.ProductTransaction
+                   """)
+                 end
+  end
+
+  test "resource: on a plain field fails compilation" do
+    body = fn field ->
+      """
+        auix_resource_metadata :product do
+          schema Aurora.Uix.Guides.Inventory.Product
+          context Aurora.Uix.Guides.Inventory
+          field #{inspect(field)}, resource: :product_location
+        end
+
+        auix_resource_metadata :product_location,
+          context: Aurora.Uix.Guides.Inventory,
+          schema: Aurora.Uix.Guides.Inventory.ProductLocation
+      """
+    end
+
+    assert_raise DslError,
+                 ~r/`resource:` on field :name of :product is not allowed: its type is :string, and only an embedded field or an association links to a resource/,
+                 fn -> compile(body.(:name)) end
+
+    assert_raise DslError,
+                 ~r/`resource:` on field :product_location_id of :product is not allowed: .* Put `resource:` on the association field :product_location/,
+                 fn -> compile(body.(:product_location_id)) end
+  end
+
   @spec compile_meta() :: module()
   defp compile_meta do
     [{meta, _}] =
