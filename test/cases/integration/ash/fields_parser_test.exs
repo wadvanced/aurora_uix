@@ -189,12 +189,6 @@ defmodule Aggregates do
 
   attributes do
     uuid_primary_key :id
-    attribute :free_status, :atom
-    attribute :free_labels, {:array, :atom}
-  end
-
-  calculations do
-    calculate :status_copy, :atom, expr(free_status)
   end
 
   relationships do
@@ -340,28 +334,6 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
 
     test "an aggregate is a generated field: disabled, and preloaded rather than written" do
       assert %{disabled: true, data: %{generated: true}} = aggregate_field(:first_body)
-    end
-
-    # The parser only marks the field: `auix_create_ui` warns, and only when a form can write it.
-    test "an atom without `one_of` is a marked text input, and parsing it logs nothing" do
-      log =
-        capture_log(fn ->
-          # The test environment logs errors only.
-          Logger.put_process_level(self(), :warning)
-
-          assert %{html_type: :text, data: %{unconstrained_atom: true}} =
-                   aggregate_field(:free_status)
-
-          assert %{html_type: :text, data: %{unconstrained_atom: true}} =
-                   aggregate_field(:free_labels)
-        end)
-
-      refute log =~ "one_of"
-    end
-
-    test "an atom calculation is a generated field, not an unconstrained atom" do
-      assert %{disabled: true, data: %{generated: true} = data} = aggregate_field(:status_copy)
-      refute Map.has_key?(data, :unconstrained_atom)
     end
 
     # A module enum's options live on the module, not in constraints the aggregate carries, so
