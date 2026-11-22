@@ -47,13 +47,13 @@ Facts this section builds on, proven on `main` at 25a9ae6 with a rolled-back pro
 New names in this section (search `rg -n "MirrorCtx|MirrorAsh|Mirror\.Seeds|mirror_fixture" lib test mix.exs` returns nothing): every module, file and function below.
 
 ##### Acceptance criteria
-- [ ] AC-1: after `MIX_ENV=test mix ecto.migrate`, the schema `mirror` holds the six tables of step 1 (mechanical — no red test; verified by `psql` on the test database: `\dt mirror.*` lists `product_barcodes`, `product_locations`, `product_suppliers`, `product_transactions`, `products`, `suppliers`)
-- [ ] AC-2: Given a product written through `Aurora.Uix.Test.MirrorCtx` with a packaging, two contacts, a location, a barcode, two transactions and two suppliers, when `Aurora.Uix.Test.MirrorAsh.Product` reads it with those relationships loaded, then every scalar, both embeds and every related record equal the written values
-- [ ] AC-3: Given a product created through the `:create` action of `Aurora.Uix.Test.MirrorAsh.Product` with the same data, when `Aurora.Uix.Test.MirrorCtx.Product` reads it with preloads, then the values are equal; an update through each backend of the row the other backend wrote is read back by both
-- [ ] AC-4: Given the two parsed resource maps, `Aurora.Uix.Integration.FieldsParser` output for `MirrorCtx.Product` and for `MirrorAsh.Product`, then for every key both define, `type` and `html_type` are equal; the keys only Ash defines are exactly `[:summary, :suppliers_join_assoc]`
-- [ ] AC-5: Given a blank `name`, the Ecto changeset is invalid and the Ash `:create` action returns `{:error, %Ash.Error.Invalid{}}`; neither writes a row
-- [ ] AC-6: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
-- [ ] AC-7: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; the script exits 3 because the project threshold is 90%, as on `main`)
+- [x] AC-1: after `MIX_ENV=test mix ecto.migrate`, the schema `mirror` holds the six tables of step 1 (mechanical — no red test; verified by `psql` on the test database: `\dt mirror.*` lists `product_barcodes`, `product_locations`, `product_suppliers`, `product_transactions`, `products`, `suppliers`)
+- [x] AC-2: Given a product written through `Aurora.Uix.Test.MirrorCtx` with a packaging, two contacts, a location, a barcode, two transactions and two suppliers, when `Aurora.Uix.Test.MirrorAsh.Product` reads it with those relationships loaded, then every scalar, both embeds and every related record equal the written values
+- [x] AC-3: Given a product created through the `:create` action of `Aurora.Uix.Test.MirrorAsh.Product` with the same data, when `Aurora.Uix.Test.MirrorCtx.Product` reads it with preloads, then the values are equal; an update through each backend of the row the other backend wrote is read back by both
+- [x] AC-4: Given the two parsed resource maps, `Aurora.Uix.Integration.FieldsParser` output for `MirrorCtx.Product` and for `MirrorAsh.Product`, then for every key both define, `type` and `html_type` are equal; the keys only Ash defines are exactly `[:summary, :suppliers_join_assoc]`
+- [x] AC-5: Given a blank `name`, the Ecto changeset is invalid and the Ash `:create` action returns `{:error, %Ash.Error.Invalid{}}`; neither writes a row
+- [x] AC-6: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
+- [x] AC-7: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; the script exits 3 because the project threshold is 90%, as on `main`)
 
 ##### Test ports
 - `Aurora.Uix.Test.MirrorCtx` (new) · Ecto context · out: `{:ok, struct}` / `{:error, Ecto.Changeset.t()}`
