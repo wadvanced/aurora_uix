@@ -635,6 +635,8 @@ use either — the budget applies only when the script is used.
 
 For each row of the `##### Red tests` table, in order:
 
+A row whose placement is `amend` extends the named scenario: add the assertions inside its `each_backend/2` body, so they run on both backends. Never add a second test for a feature a scenario already drives.
+
 1. **Red.** Honor the row exactly: `Placement` (`amend` the named test /
    `add to` the named file / `new file`), `Setup` (fixtures, factory calls,
    actor, mount path), test file, test name, assertion sketch, and the
@@ -744,8 +746,8 @@ while coding. Additionally:
 - **Never run `mix gettext.extract` / `gettext.merge`** to "finish" a string: user-visible strings
   go through `dt/1`; extraction into `priv/gettext/*.pot` is not this section's work and rewrites
   files across worktrees.
-- **Seed test data through `test/support/helper.ex`** (`create_sample_products/2`,
-  `delete_all_inventory_data/0`, …) and the guide schemas — never hand-rolled structs, never mocks.
+- **Seed test data through `Aurora.Uix.Test.Mirror.Seeds`** (`test/support/mirror/seeds.ex`) and the
+  mirror fixture — never hand-rolled structs, never mocks.
 - The spec-is-read-only rule (non-negotiable 1) extends to the section log
   and every marker block: this skill writes only what Step 8 lists.
 
@@ -954,8 +956,8 @@ this skill enforces while coding.
 - **Elixir gotchas**: lists do not support `mylist[i]` (use `Enum.at/2` or pattern match); block
   expressions must rebind (`socket = if ... do ... end`); never `String.to_atom/1` on user input;
   never nest multiple modules in one file; predicate functions end with `?`.
-- **Tests**: `use Aurora.UixWeb.Test.UICase, :phoenix_case` and
-  `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test`. There is no `FeatureCase` and no
+- **Tests**: one scenario per feature, on both backends: `use Aurora.UixWeb.Test.UICase, :scenario_case`,
+  `Scenario.each_backend/2`, views variants from `test/support/mirror_web/`. There is no `FeatureCase` and no
   factory. No mocks. No `Process.sleep/1` — use `start_supervised!/1`, `_ = :sys.get_state(pid)`,
   or `Process.monitor/1` + `assert_receive {:DOWN, ...}`.
 
@@ -1052,31 +1054,20 @@ test "Validate association_parser" do
   assert Validations.compare_maps(validations, parsed_schema) == []
 end
 
-# test/cases_live/ — declare metadata + layout, then drive the generated UI.
-defmodule Aurora.UixWeb.Test.MyFeatureTest do
-  use Aurora.UixWeb.Test.UICase, :phoenix_case
-  use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
+# test/cases_live/ — one scenario per feature, on both backends.
+defmodule Aurora.UixWeb.Test.MyFeatureScenariosTest do
+  use Aurora.UixWeb.Test.UICase, :scenario_case
 
-  auix_resource_metadata(:product, context: Inventory, schema: Product)
-
-  auix_create_ui do
-    edit_layout :product do
-      stacked([:reference, :name])
-    end
-  end
-
-  test "renders the field", %{conn: conn} do
-    delete_all_inventory_data()
-    {:ok, view, _html} = live(conn, "/my-feature/products/new")
-    assert has_element?(view, "input[name='product[reference]']")
+  test "the form renders and saves the field", %{conn: conn} do
+    each_backend(fn backend ->
+      {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products", "/new"))
+      assert has_element?(view, ".auix-form-container input[name='product[reference]']")
+    end)
   end
 end
 ```
 
-**Every route used by a `test/cases_live/` test must be registered in
-`test/support/app_web/routes.ex`** via `RoutesHelper.register_crud/2` — otherwise the test 404s.
-Do **not** extend `register_product_crud/2`; it hardcodes three modules and is called from ~20
-sites.
+**Every route a scenario visits belongs to a views variant** under `test/support/mirror_web/`, registered in `test/support/app_web/routes.ex` with `RoutesHelper.register_mirror/3` — otherwise the test 404s. Do **not** extend `register_product_crud/2`.
 
 Assert on stable selectors — `input[name='parent[child][field]']`, container ids,
 `has_element?/2`. Never assert on raw HTML strings, and avoid `auix-field-*` ids: they embed a

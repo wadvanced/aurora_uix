@@ -22,7 +22,7 @@ Read by `improve-issue` **Draft** when a Schema section is in scope. A Schema se
      `priv/resource_snapshots/` snapshot are committed.
    - A new foreign key carries an index; a one-to-one relationship carries a UNIQUE index.
 6. `mix test` does not run migrations: the section's Green checks include `mix ecto.migrate`.
-7. Fixture helpers in `test/support/helper.ex` that the section's dependants need are prescribed
+7. Seed functions in `test/support/mirror/seeds.ex` that the section's dependants need, and the matching change to both sides of the mirror fixture (`test/support/mirror/ctx/` and `test/support/mirror/ash/`), are prescribed
    here, by exact function name and arity.
 8. AC-1 and AC-2 of the template are present in every Schema section. Issue-specific ACs are
    numbered from AC-3.
