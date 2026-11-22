@@ -950,7 +950,8 @@ end
 **Field Parsing:**
 - Map your backend's types to Ecto-compatible types
 - Handle associations and embedded resources appropriately
-- Use the `__` naming convention for nested resources
+- Define `embedded_schema?/1` in the fields parser: `true` for a schema that exists only embedded
+  in another one, so that its resources generate no modules
 
 **Error Handling:**
 - Wrap backend errors in standard `{:ok, result}` or `{:error, reason}` tuples

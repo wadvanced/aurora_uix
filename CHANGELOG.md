@@ -5,7 +5,7 @@
 **Reusable components and index cards**
 
 This release lets the index, form and show UIs be embedded as components in any LiveView, adds action
-icons and a card layout for the index list, and updates dependencies. It has two compile-time breaking
+icons and a card layout for the index list, and updates dependencies. It has three compile-time breaking
 changes: see the What's New guide for the upgrade checklist.
 
 ### Added
@@ -34,8 +34,14 @@ changes: see the What's New guide for the upgrade checklist.
   - phoenix_html: 4.3.0 -> 4.4.0
   - sourceror: 1.12.4 -> 1.13.0
 - **Generated module names (breaking)**: a duplicate generated module name fails compilation, and a
-  resource named for an embedded field (`<parent>__<field>`) generates no modules, created by the
-  library or declared (What's New in 0.2.1, "Upgrading from 0.2.0").
+  resource on an embedded-only schema (an Ash embedded resource, an Ecto schema without a table)
+  generates no modules, whatever its name (What's New in 0.2.1, "Upgrading from 0.2.0").
+- **Field `resource:` option (breaking)**: `resource:` on an embedded field or on an association
+  names the resource that renders it, on both backends. An unknown name, a resource on another
+  schema, and `resource:` on any other field fail compilation (What's New in 0.2.1, "Upgrading from
+  0.2.0").
+- **Embedded resources on the Ecto backend**: a resource declared on a schema without a table
+  needs no `context:` and no CRUD functions.
 - **Associations to imported resources**: an association links to a resource imported with
   `@auix_resource_metadata`.
 - **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves

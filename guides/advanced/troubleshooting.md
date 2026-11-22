@@ -133,113 +133,43 @@ Common issues and solutions for Aurora UIX.
 
 ## Embedded and Associated Resources Metadata
 
-**Symptoms:** Configuration changes to embedded or associated resources don't work, fields 
-don't appear in forms, or metadata options seem to be ignored.
+**Symptoms:** Field options declared for an embedded record, or for the entries of an
+association, are ignored.
 
-**Cause:** When a resource has embedded or associated resources, the metadata name must 
-reflect the relationship hierarchy using double underscore notation (`__`) to be recognized 
-by Aurora UIX.
+**Cause:** The field is rendered with another resource than the one that holds the options.
 
-**Understanding the Naming Convention:**
+- An embedded field uses the resource named `<parent>__<field>` (`:post__comment` for the `comment`
+  field of `:post`), unless the field names one with `resource:`.
+- An association uses the latest resource declared for the related schema, unless the field names
+  one with `resource:`.
 
-When you have a parent resource (e.g., `Post`) with embedded or associated child resources 
-(e.g., `Comment`), and the parent resource has metadata named `:post`, you must prefix the 
-embedded resource metadata with the parent's name:
-
-- Parent metadata: `:post`
-- Embedded resource metadata: `:post__comment` (not `:comment`)
-
-**Example:**
+**Solution:** Name the resource on the field:
 
 ```elixir
-# Parent resource metadata
-auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
-
-# CORRECT - Embedded resource uses parent prefix
-auix_resource_metadata :post__comment do
-  ash_resource Comment
-  field :description, html_type: :textarea
+auix_resource_metadata :post do
+  ash_resource Post
+  field :comment, resource: :comment_form
 end
 
-# WRONG - This won't be recognized as belonging to Post
-auix_resource_metadata :comment do
+auix_resource_metadata :comment_form do
   ash_resource Comment
   field :description, html_type: :textarea
 end
 ```
 
-**When to Use This Pattern:**
+A resource declared as `:post__comment` is used without `resource:`.
 
-1. **Embedded resources** defined with `embeds_one` or `embeds_many` in Ecto schemas
-2. **Associated resources** defined with `has_one`, `has_many`, `belongs_to` in Ecto schemas
-3. **Ash embedded resources** defined with `attribute` type embeds in Ash resources
-4. **Ash relationships** defined with `has_one`, `has_many`, `belongs_to` in Ash resources
+**Compilation fails after adding `resource:`:**
 
-**Solutions:**
-
-1. **Rename your metadata definition:**
-   ```elixir
-   # If Post has embedded Comments, use:
-   auix_resource_metadata(:post__comment, ash_resource: Comment)
-   
-   # For multiple levels, continue the pattern:
-   auix_resource_metadata(:post__comment__reply, ash_resource: Reply)
-   ```
-
-2. **Update field configurations:**
-   ```elixir
-   # All field customizations must use the prefixed name
-   auix_resource_metadata :post__comment do
-     ash_resource Comment
-     field :content, html_type: :textarea
-     field :author, label: "Comment Author"
-   end
-   ```
-
-3. **Reference in layouts:**
-   ```elixir
-   # In your UI layouts, reference the embedded resource normally
-   show_layout :post do
-     stacked([:title, :author, :comment])  # 'comment' works here
-   end
-   
-   edit_layout :post do
-     stacked([:title, :comment])  # Same here
-   end
-   ```
-
-4. **Verify the relationship structure:**
-   - Check your schema or Ash resource definition to confirm the embedding structure
-   - Ensure the parent resource metadata name matches what you're using as the prefix
-   - Use `mix phx.routes` or inspect compiled metadata to verify configuration
-
-**Complete Working Example:**
-
-```elixir
-use Aurora.Uix
-
-alias MyApp.Blog.Post
-alias MyApp.Blog.Comment
-
-# Parent resource
-auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
-
-# Embedded resource - note the :post__comment naming
-auix_resource_metadata :post__comment do
-  ash_resource Comment
-  field :description, html_type: :textarea
-end
-
-auix_create_ui do
-  show_layout :post do
-    stacked([:status, :title, :author, :comment])
-  end
-  
-  edit_layout :post do
-    stacked([:title, :comment])
-  end
-end
-```
+- `links to the unknown resource`: the name matches no resource of the module, declared or
+  imported.
+- `whose schema is ...; the field relates to ...`: the named resource describes another schema
+  than the one the field relates to.
+- `only an embedded field or an association links to a resource`: the field is a plain column. On
+  the foreign-key column of a many-to-one, put `resource:` on the association field.
+- ``requires the `:context` option``: the resource is declared on an Ecto schema that has a table.
+  Give `context:` with its CRUD functions, or remove the declaration to use the resource the
+  library creates.
 
 ## Ash Policy-Protected Resource Shows No Rows
 

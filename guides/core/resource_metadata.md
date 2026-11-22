@@ -72,7 +72,7 @@ For Ash resources with declarative actions:
 4. **Relationship Processing** - Detects and configures:
    - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
    - `has_many` → One-to-many relationships (rendered as nested lists)
-   - Embedded resources → Nested Ash resources (rendered inline with `__` naming convention)
+   - Embedded resources → Nested Ash resources, rendered inline (see [Embedded Resources](#embedded-resources))
 5. **Calculations and Aggregates** - Discovers Ash calculations and aggregates and parses them into fields when they yield a predictable type (`count → :integer`, `exists → :boolean`, `sum/max/min/avg → :float`, scalar calculation types). Both are disabled in forms. Fields whose type can't be inferred can be overridden via the metadata block — see [Calculations and Aggregates](ash_integration.md#calculations-and-aggregates).
 6. **Action Resolution** - Discovers CRUD actions from Ash resource:
    - Prioritizes primary actions (`:read`, `:create`, `:update`, `:destroy`)
@@ -80,13 +80,48 @@ For Ash resources with declarative actions:
    - Validates pagination support for list operations
    - Creates function references wrapped in `Aurora.Uix.Integration.Connector` structs
 
-### Embedded Resource Naming
+### Embedded Resources
 
-Both backends follow a consistent naming pattern for embedded/associated resources:
+An embedded field (`embeds_one`, `embeds_many`, an Ash attribute whose type is an embedded
+resource) is rendered with a resource that describes the embedded schema. The library creates one
+for every embedded field, named `<parent>__<field>`:
 
 - Parent resource: `:post`
-- Embedded resource: `:post__comment` (double underscore notation)
-- Nested embedded: `:post__comment__reply` (continues the pattern)
+- Resource created for its `comment` field: `:post__comment`
+
+To set field options for the embedded record, declare a resource on the embedded schema and name
+it in the parent with `resource:`:
+
+```elixir
+auix_resource_metadata :employer do
+  ash_resource Employer
+  field :legal_rep, resource: :legal_contact
+  field :hr_manager, resource: :hr_contact
+end
+
+auix_resource_metadata :legal_contact do
+  ash_resource Contact
+  field :phone, required: true
+end
+
+auix_resource_metadata :hr_contact, ash_resource: Contact
+```
+
+Without `resource:` an embedded field uses the resource named `<parent>__<field>`: the one the
+module declares under that name, else the one the library creates.
+
+The backend decides whether a schema is embedded-only: an Ash resource with
+`data_layer: :embedded`, and an Ecto schema without a table (`embedded_schema`, and the inline
+schema of `embeds_one` and `embeds_many`). A resource on such a schema generates no modules,
+whatever its name, and on the Ecto backend it needs no `context:`.
+
+An Ecto schema with a table can also be embedded. A resource declared on it is a standalone
+resource: it needs `context:` with its CRUD functions and generates its modules. Remove the
+declaration to use the resource the library creates.
+
+`resource:` is checked when the module compiles: the name must be a resource of the module,
+declared or imported; that resource must describe the schema the field relates to; and the field
+must be an embedded field or an association.
 
 This compile-time generation ensures minimal runtime overhead while providing complete UI configuration through introspection, regardless of the backend framework used.
 
@@ -112,7 +147,7 @@ Aurora UIX supports two types of resource backends:
 For traditional Ecto schemas with Phoenix Context modules:
 
 - `:schema` (module()) - Required. Your Ecto schema module
-- `:context` (module()) - Required. Context module with CRUD functions
+- `:context` (module()) - Context module with CRUD functions. Required unless the schema has no table (see [Embedded Resources](#embedded-resources))
 
 ### Ash Framework Resources
 
@@ -346,7 +381,7 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `html_type` - The HTML type inferred from Ecto type. Common values: `:text`, `textarea`, `:number`,
     `:checkbox`, `:select`, `:datetime-local`, `:time` 
     
-- `resource` - Reference to the resource this field belongs to
+- `resource` - Name of the resource that owns the field. The `resource:` field option does not change it: it sets `data.resource` (see [Field Data](#field-data))
 
 ### Display and Interaction
 
@@ -385,6 +420,12 @@ These field options have their own keys on `Aurora.Uix.Field`:
   option, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`) returning the label
 - `query_opts` - Keyword list with the `:order_by` and `:where` field options, applied when listing
   the related entries of an association
+- `resource` - (embedded fields and associations) The name of the resource that renders the
+  related entries, kept in `data.resource`. On an association it also preloads the association
+  fields that the layouts of the named resource render (see
+  [Preloading Associations](liveview.md#preloading-associations)). See
+  [Embedded Resources](#embedded-resources) and
+  [Two resources on one schema](components.md#two-resources-on-one-schema)
 - `upload` - An `Aurora.Uix.Field.Upload` with the upload options described under
   "For file-upload fields" below
 - `expanded` - (`:embeds_many` only) Controls whether the embedded collection renders expanded or
@@ -407,14 +448,14 @@ The `data` property is a versatile map that holds configuration specific to the 
 
 **For many-to-one associations (`:many_to_one_association`):**
 
-- `resource` - The resource name of the related entity
+- `resource` - The resource name of the related entity: the one `resource:` names, else the latest resource declared for the related schema
 - `owner_key` - The foreign key field on this schema
 - `related` - The related schema module
 - `related_key` - The primary key of the related entity
 
 **For one-to-many associations (`:one_to_many_association`):**
 
-- `resource` - The resource name of the related entities (may be `nil` if not configured)
+- `resource` - The resource name of the related entities: the one `resource:` names, else the latest resource declared for the related schema (`nil` when there is none)
 - `owner_key` - The primary key on this schema
 - `related` - The related schema module
 - `related_key` - The foreign key field on the related schema
@@ -422,7 +463,7 @@ The `data` property is a versatile map that holds configuration specific to the 
 **For embedded schemas (`:embeds_one`, `:embeds_many`):**
 
 - `owner` - The owner schema module
-- `resource` - The embedded resource name (follows `parent__embed` naming pattern)
+- `resource` - The name of the resource that renders the embedded record: the one `resource:` names, else `<parent>__<field>`
 - `related` - The embedded schema module
 **For select fields with fixed options:**
 
