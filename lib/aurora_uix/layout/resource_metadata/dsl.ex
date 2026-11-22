@@ -135,7 +135,8 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     ash_resource: [type: :atom, as: :schema, doc: "Alias of `:schema` for Ash resources."],
     context: [
       type: :atom,
-      doc: "Context module of an Ecto resource. Required for context resources."
+      doc:
+        "Context module of an Ecto resource. Required unless the schema is embedded-only (no table)."
     ],
     type: [type: :atom, doc: "Backend (`:ctx`, `:ash`). Detected from the schema when omitted."],
     order_by: [type: :any, doc: "Order of the index entries, in `Ecto.Query.order_by/3` form."],

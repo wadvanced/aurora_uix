@@ -16,7 +16,6 @@ defmodule Aurora.UixWeb.Routes do
       auix_live_resources("/posts", AshOverview.Post)
       auix_live_resources("/authors", AshOverview.Author)
       auix_live_resources("/categories", AshOverview.Category)
-      auix_live_resources("/tags", AshOverview.Tag)
     end
   end
 end

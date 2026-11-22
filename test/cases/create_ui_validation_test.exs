@@ -375,6 +375,11 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
           context: Aurora.Uix.Guides.Accounts,
           schema: Aurora.Uix.Guides.Accounts.User
 
+        auix_resource_metadata :user__profile do
+          schema Aurora.Uix.Guides.Accounts.User.Profile
+          field :online, readonly: true
+        end
+
         auix_resource_metadata :post, ash_resource: Aurora.Uix.Guides.Blog.Post
         auix_resource_metadata :policy_item, ash_resource: AshActorTest.PolicyItem
 
@@ -383,7 +388,7 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
           field :description, readonly: true
         end
 
-        auix_resource_metadata :post__tags, ash_resource: Aurora.Uix.Guides.Blog.Tag
+        auix_resource_metadata :tag_metadata, ash_resource: Aurora.Uix.Guides.Blog.Tag
         auix_resource_metadata :policy_item__tags, ash_resource: AshActorTest.Tag
 
         auix_create_ui do
@@ -424,11 +429,12 @@ defmodule Aurora.Uix.Test.Cases.CreateUIValidationTest do
     refute mod |> Module.concat(Comment.ShowComponent) |> Code.ensure_loaded?()
     refute mod |> Module.concat(Tag.Index) |> Code.ensure_loaded?()
 
-    for name <- [:post__comment, :post__tags, :policy_item__tags] do
+    for name <- [:post__comment, :post__tags, :policy_item__tags, :tag_metadata, :user__profile] do
       assert mod.auix_resource(name).embedded?
     end
 
     assert mod.auix_resource(:post__comment).fields.description.readonly
+    assert mod.auix_resource(:user__profile).fields.online.readonly
 
     assert [%Node.Stacked{children: [%Node.Field{key: :description}]}] =
              mod.auix_configurations().post__comment.layout_trees.form.children

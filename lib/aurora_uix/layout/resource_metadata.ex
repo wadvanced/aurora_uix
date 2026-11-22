@@ -54,7 +54,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
 
   ## Key Constraints
   - Function options take captured functions (`&Mod.fun/1`), not inline `fn`.
-  - A context (`:ctx`) resource requires `:context`.
+  - A context (`:ctx`) resource requires `:context`, unless its schema is embedded-only (no table).
   - A field option explicitly set to `nil` is the same as leaving it out.
   """
 
@@ -80,7 +80,7 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   ## Returns
   `Aurora.Uix.Resource.t()` - The declared resource, ready for `resolve_resources/2`.
 
-  Raises `Spark.Error.DslError` for a context resource without `:context` or invalid
+  Raises `Spark.Error.DslError` for a context resource on a schema with a table and no `:context`, and for invalid
   `:backend_opts`.
   """
   @spec prepare_resource(Resource.t(), module()) :: Resource.t()
@@ -148,14 +148,29 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
   defp validate_context(%Resource{schema: nil} = resource, _module), do: resource
 
   defp validate_context(%Resource{type: :ctx, context: nil} = resource, module) do
-    raise DslError,
-      module: module,
-      path: [:auix_resource_metadata, resource.name],
-      location: Entity.anno(resource),
-      message: "context resource #{inspect(resource.name)} requires the `:context` option"
+    if schema_embedded?(resource) do
+      resource
+    else
+      raise DslError,
+        module: module,
+        path: [:auix_resource_metadata, resource.name],
+        location: Entity.anno(resource),
+        message:
+          "context resource #{inspect(resource.name)} requires the `:context` option: " <>
+            "#{inspect(resource.schema)} has a table, so #{inspect(resource.name)} is a standalone " <>
+            "resource. Give `context:` with its CRUD functions, or remove the declaration to use " <>
+            "the resource the library creates for an embedded field"
+    end
   end
 
   defp validate_context(resource, _module), do: resource
+
+  @spec schema_embedded?(Resource.t()) :: boolean()
+  defp schema_embedded?(%Resource{} = resource) do
+    resource.type
+    |> LayoutHelpers.get_fields_parser_module()
+    |> then(& &1.embedded_schema?(resource.schema))
+  end
 
   @spec validate_backend_opts(Resource.t(), module()) :: Resource.t()
   defp validate_backend_opts(%Resource{} = resource, module) do
@@ -215,17 +230,17 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
         |> then(& &1.embedded_resource({resource.name, resource.schema, resource.type}, result))
       end)
 
-    embedded_names =
-      with_embedded
-      |> Enum.take(length(with_embedded) - length(resources))
-      |> Enum.map(& &1.name)
+    {created, declared} = Enum.split(with_embedded, length(with_embedded) - length(resources))
 
-    Enum.map(with_embedded, fn resource ->
-      if resource.name in embedded_names,
-        do: struct(resource, %{embedded?: true}),
-        else: resource
-    end)
+    Enum.map(created, &struct(&1, %{embedded?: true})) ++
+      Enum.map(declared, &put_embedded_status/1)
   end
+
+  @spec put_embedded_status(Resource.t()) :: Resource.t()
+  defp put_embedded_status(%Resource{schema: nil} = resource), do: resource
+
+  defp put_embedded_status(%Resource{} = resource),
+    do: struct(resource, %{embedded?: schema_embedded?(resource)})
 
   @spec parse_fields(Resource.t()) :: {atom(), Resource.t()}
   defp parse_fields(%Resource{} = resource) do
