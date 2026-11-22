@@ -393,6 +393,8 @@ was handled as the section's `##### Type-atom audit` says (add / do-NOT-add). Si
 
 **Tests:**
 - Mocks: `scoped 'Mox|Mock|:meck'`; `Process.sleep/1`: `scoped 'Process\.sleep'`
+- A new test for a feature an existing scenario already drives, instead of an amendment of that scenario
+- A `test/cases_live/` test that runs on one backend and does not state why it is backend-specific
 - Assertions on raw HTML: `scoped 'assert.*=~.*<' '^test/'`
 - Assertions on counter-based ids: `scoped 'auix-field-[a-z_]+-[a-z_]+-[0-9]' '^test/'`
 - A `test/cases_live/` test whose route is missing from `test/support/app_web/routes.ex`

@@ -9,13 +9,12 @@ backend-agnostic: it consumes `%Field{}` atoms and never references `Ecto.Associ
 
 ## Rules
 
-1. Tests use `Phoenix.LiveViewTest` in `test/cases_live/`, on real data from
-   `test/support/helper.ex`. Wallaby (`test/browser_cases/`) only when LiveViewTest cannot
+1. Tests are scenarios in `test/cases_live/`: one per feature, run on both backends with `Scenario.each_backend/2`, on real data from `Aurora.Uix.Test.Mirror.Seeds`. Wallaby (`test/browser_cases/`) only when LiveViewTest cannot
    observe the behaviour (file downloads, native dialogs, multi-tab); the section says which and
    why.
-2. Every route a `test/cases_live/` test visits is registered in `test/support/app_web/routes.ex`
-   through `RoutesHelper.register_crud/2`. The section names the registration. It never extends
-   `register_product_crud/2`.
+2. Every route a scenario visits belongs to a views variant under `test/support/mirror_web/`, registered
+   in `test/support/app_web/routes.ex` through `RoutesHelper.register_mirror/3`. The section names the
+   variant. It never extends `register_product_crud/2`.
 3. A renderer implements `Aurora.Uix.Renderer` (`render/1`), is dispatched from
    `templates/basic/renderers/default_renderer.ex`, and delegates children through
    `Renderer.render_inner_elements/1`. Field renderers live under `renderers/fields/`; the module

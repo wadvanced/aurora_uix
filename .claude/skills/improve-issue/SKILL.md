@@ -443,7 +443,7 @@ Always a question, never a judgement of this skill:
 
      | Placement | When | Row says |
      |---|---|---|
-     | amend an existing test | a test already exercises the port | `amend <file> "<test>"` |
+     | amend an existing scenario | a scenario already drives the feature | `amend <file> "<test>"` |
      | add to an existing file | the module under test has a test file | `add to <file>`, in the matching `describe` |
      | new file | the module under test has none | `new file`, with the search that found none |
 
@@ -454,9 +454,7 @@ Always a question, never a judgement of this skill:
      impossible to observe with LiveViewTest, and the row says why.
   3. **Setup.** Every row states how the test reaches the port: the schema declared inside the
      test module (parser tests), or `auix_resource_metadata` + `auix_create_ui` and the route
-     (registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud/2`), the
-     sample data from `test/support/helper.ex` (`create_sample_products/2`,
-     `delete_all_inventory_data/0`, …). No mocks, no `Process.sleep/1`.
+     (registered in `test/support/app_web/routes.ex` via `RoutesHelper.register_crud/2`), the sample data from `Aurora.Uix.Test.Mirror.Seeds` (`test/support/mirror/seeds.ex`), and the views variant under `test/support/mirror_web/` whose routes `RoutesHelper.register_mirror/3` registers. No mocks, no `Process.sleep/1`.
   4. **Assertion API follows the mount type.** Name the mount type when it is not a LiveViewTest
      view.
 
@@ -466,10 +464,12 @@ Always a question, never a judgement of this skill:
      | parser output | `Validations.compare_maps/2 == []` or a match on the `%Field{}` |
      | directly rendered component | `render_component/2`, as its test file already does |
 
-  5. **Every Parser and UI AC has a red-test row, or ends**
+  5. **Every Parser and UI AC is named by a red-test row, or ends**
      `(<visual|mechanical|manual> — no red test; verified by <means>)`.
-  6. **Both backends.** A Parser section for one backend names the mirrored section for the other,
-     or the sentence in `### Out of Scope` that excuses it.
+     One row may name several ACs: a row is a scenario, and a scenario asserts every AC of its feature.
+  6. **Both backends.** A UI row runs on `:ash` and on `:ctx` through `Scenario.each_backend/2`, or
+     states why it is backend-specific. A Parser section for one backend names the mirrored section
+     for the other, or the sentence in `### Out of Scope` that excuses it.
 
 - **Writes:** `scope` (every section this step edited).
 
