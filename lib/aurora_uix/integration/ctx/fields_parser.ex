@@ -14,6 +14,7 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
   - Association and embed handling
   - Default placeholder text generation
   - Field visibility and editability rules
+  - Tells whether a schema is embedded-only (no table)
 
   ## Key Constraints
 
@@ -175,6 +176,25 @@ defmodule Aurora.Uix.Integration.Ctx.FieldsParser do
     |> schema_module.__schema__()
     |> Enum.map(&schema_module.__schema__(:embed, &1))
     |> Enum.reduce(result, &embedded_resource_config(parent_resource, &1, &2))
+  end
+
+  @doc """
+  Tells whether a schema is embedded-only: an Ecto schema without a table.
+
+  ## Parameters
+
+  - `schema` (module()) - The schema module of a resource.
+
+  ## Returns
+
+  boolean() - `true` when `schema.__schema__(:source)` is `nil`; `false` for a schema with a
+  table and for a module that is not an Ecto schema.
+  """
+  @spec embedded_schema?(module()) :: boolean()
+  def embedded_schema?(schema) do
+    Code.ensure_compiled(schema)
+
+    function_exported?(schema, :__schema__, 1) and is_nil(schema.__schema__(:source))
   end
 
   ## PRIVATE
