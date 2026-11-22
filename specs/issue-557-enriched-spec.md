@@ -220,20 +220,20 @@ Rules for this section:
    ```
 
 ##### Acceptance criteria
-- [ ] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
+- [x] AC-1: the CHANGELOG entry sits under the current unreleased version and carries no
       issue-link suffix (mechanical — no red test; verified by
       `git diff origin/main...HEAD -- CHANGELOG.md | grep -E '^\+.*\[#[0-9]+\]'` returning nothing)
-- [ ] AC-2: no file outside the documentation set modified, apart from this issue's spec file
+- [x] AC-2: no file outside the documentation set modified, apart from this issue's spec file
       (its AC ticks) (mechanical — no red test; verified by
       `git diff --name-only origin/main...HEAD` listing only `CHANGELOG.md`, `README.md`,
       `CONTRIBUTING.md`, `ROADMAP.md`, `guides/**/*.md` and `specs/issue-557-enriched-spec.md`)
-- [ ] AC-3: `guides/advanced/advanced_usage.md § Key Considerations` names `embedded_schema?/1` (mechanical — no red test; verified by `grep -c 'embedded_schema?/1' guides/advanced/advanced_usage.md` returning `1`)
-- [ ] AC-4: `guides/advanced/troubleshooting.md § Embedded and Associated Resources Metadata` reads as prescribed (mechanical — no red test; verified by `grep -c 'WRONG - This' guides/advanced/troubleshooting.md` returning `0` and `grep -c 'links to the unknown resource' guides/advanced/troubleshooting.md` returning `1`)
-- [ ] AC-5: `guides/core/ash_integration.md` has no `/tags` route and links `:tags` to `:tag` (mechanical — no red test; verified by `grep -c 'AshOverview.Tag' guides/core/ash_integration.md` returning `0` and `grep -c 'field :tags, resource: :tag' guides/core/ash_integration.md` returning `1`)
-- [ ] AC-6: `guides/core/components.md § Two resources on one schema` reads as prescribed (mechanical — no red test; verified by `grep -c 'An association needs .resource:. only then' guides/core/components.md` returning `1`)
-- [ ] AC-7: `guides/core/liveview.md § Preloading Associations` says that `resource:` also loads the association fields of the named resource (mechanical — no red test; verified by `grep -c 'one level deep' guides/core/liveview.md` returning `1`)
-- [ ] AC-8: `guides/core/resource_metadata.md` has `### Embedded Resources`, no `### Embedded Resource Naming`, and links the `resource` option to the preload rule (mechanical — no red test; verified by `grep -c '^### Embedded Resources$' guides/core/resource_metadata.md` returning `1`, `grep -c 'Embedded Resource Naming' guides/core/resource_metadata.md` returning `0` and `grep -c 'liveview.md#preloading-associations' guides/core/resource_metadata.md` returning `1`)
-- [ ] AC-9: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` lists four cases and no preload note (mechanical — no red test; verified by `grep -c 'Four cases need a change' guides/whats_new/0.2.1.md` returning `1`, `grep -c 'A custom fields parser defines' guides/whats_new/0.2.1.md` returning `1` and `grep -ci 'preload' guides/whats_new/0.2.1.md` returning `0`)
+- [x] AC-3: `guides/advanced/advanced_usage.md § Key Considerations` names `embedded_schema?/1` (mechanical — no red test; verified by `grep -c 'embedded_schema?/1' guides/advanced/advanced_usage.md` returning `1`)
+- [x] AC-4: `guides/advanced/troubleshooting.md § Embedded and Associated Resources Metadata` reads as prescribed (mechanical — no red test; verified by `grep -c 'WRONG - This' guides/advanced/troubleshooting.md` returning `0` and `grep -c 'links to the unknown resource' guides/advanced/troubleshooting.md` returning `1`)
+- [x] AC-5: `guides/core/ash_integration.md` has no `/tags` route and links `:tags` to `:tag` (mechanical — no red test; verified by `grep -c 'AshOverview.Tag' guides/core/ash_integration.md` returning `0` and `grep -c 'field :tags, resource: :tag' guides/core/ash_integration.md` returning `1`)
+- [x] AC-6: `guides/core/components.md § Two resources on one schema` reads as prescribed (mechanical — no red test; verified by `grep -c 'An association needs .resource:. only then' guides/core/components.md` returning `1`)
+- [x] AC-7: `guides/core/liveview.md § Preloading Associations` says that `resource:` also loads the association fields of the named resource (mechanical — no red test; verified by `grep -c 'one level deep' guides/core/liveview.md` returning `1`)
+- [x] AC-8: `guides/core/resource_metadata.md` has `### Embedded Resources`, no `### Embedded Resource Naming`, and links the `resource` option to the preload rule (mechanical — no red test; verified by `grep -c '^### Embedded Resources$' guides/core/resource_metadata.md` returning `1`, `grep -c 'Embedded Resource Naming' guides/core/resource_metadata.md` returning `0` and `grep -c 'liveview.md#preloading-associations' guides/core/resource_metadata.md` returning `1`)
+- [x] AC-9: `guides/whats_new/0.2.1.md § Upgrading from 0.2.0` lists four cases and no preload note (mechanical — no red test; verified by `grep -c 'Four cases need a change' guides/whats_new/0.2.1.md` returning `1`, `grep -c 'A custom fields parser defines' guides/whats_new/0.2.1.md` returning `1` and `grep -ci 'preload' guides/whats_new/0.2.1.md` returning `0`)
 
 ##### Green checks
 1. `mix consistency` clean (code-issue); `mix test` — full suite green

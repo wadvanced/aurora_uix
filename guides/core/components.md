@@ -385,7 +385,7 @@ Two generated modules with one name do not compile. `:product_transaction` and
 `:product_transaction_compact` describe the same schema, so the second one names its index component and
 its LiveView, and takes the form and the show view of the first with `use:`, by their default names. The
 transactions list in the product form is `ProductTransaction.TransactionsCompact`: the `resource:` option
-of the field says which of the two resources the list shows. A field needs `resource:` only then.
+of the field says which of the two resources the list shows. An association needs `resource:` only then.
 
 `auix_resource_metadata` takes its options on the line, or a block that holds them with the field
 options. It does not take both.

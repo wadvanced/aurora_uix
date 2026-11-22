@@ -134,7 +134,11 @@ defmodule Aurora.UixWeb.Guides.AshOverview do
     field :description, html_type: :textarea
   end
 
-  auix_resource_metadata(:post, ash_resource: Post, order_by: :title)
+  auix_resource_metadata :post do
+    ash_resource Post
+    order_by :title
+    field :tags, resource: :tag
+  end
 
   auix_resource_metadata(:tag, ash_resource: Tag)
 
@@ -183,7 +187,6 @@ defmodule Aurora.UixWeb.Router do
     auix_live_resources("/posts", AshOverview.Post)
     auix_live_resources("/authors", AshOverview.Author)
     auix_live_resources("/categories", AshOverview.Category)
-    auix_live_resources("/tags", AshOverview.Tag)
   end
 end
 ```
@@ -525,6 +528,11 @@ end
 Aurora UIX will render:
 - `embeds_one` - Single nested form
 - `embeds_many` - List of nested forms with add/remove actions
+
+A resource declared on an embedded resource generates no modules and no routes. Name it on the
+parent field with `resource:` to render the embedded record with its field options; without
+`resource:` the field uses the resource named `<parent>__<field>`. See
+[Embedded Resources](resource_metadata.md#embedded-resources).
 
 ## Advanced Examples
 

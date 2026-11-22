@@ -1107,6 +1107,10 @@ per-field preload option to set. To load an association the layout does not rend
 resource's or the index layout's `preload` (see
 [Index Query Options](resource_metadata.md#index-query-options)).
 
+An association field that names its resource with `resource:` also loads, for each related
+record, the association fields that the layouts of the named resource render, one level deep.
+Without `resource:` it loads the related records alone.
+
 ### Async Operations
 
 Use `handle_async/3` for heavy operations:
