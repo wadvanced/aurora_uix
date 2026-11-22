@@ -3,6 +3,23 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataValidationTest do
 
   alias Spark.Error.DslError
 
+  defmodule Address do
+    use Ecto.Schema
+
+    schema "addresses" do
+      field :street, :string
+    end
+  end
+
+  defmodule Person do
+    use Ecto.Schema
+
+    schema "people" do
+      field :name, :string
+      embeds_one(:address, Aurora.Uix.Test.Cases.ResourceMetadataValidationTest.Address)
+    end
+  end
+
   @spec compile(binary()) :: [{module(), binary()}]
   defp compile(body) do
     Code.compile_string("""
@@ -52,11 +69,35 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataValidationTest do
   end
 
   test "a context resource without :context fails compilation" do
-    assert_raise DslError, ~r/requires the `:context` option/, fn ->
-      compile("""
-        auix_resource_metadata :product, schema: Aurora.Uix.Guides.Inventory.Product
-      """)
-    end
+    assert_raise DslError,
+                 ~r/requires the `:context` option: Aurora\.Uix\.Guides\.Inventory\.Product has a table, so :product is a standalone resource\. Give `context:` with its CRUD functions/,
+                 fn ->
+                   compile("""
+                     auix_resource_metadata :product, schema: Aurora.Uix.Guides.Inventory.Product
+                   """)
+                 end
+  end
+
+  test "a declared resource on a schema with a table is not embedded" do
+    body_a = """
+      auix_resource_metadata :person,
+        schema: Aurora.Uix.Test.Cases.ResourceMetadataValidationTest.Person,
+        context: Aurora.Uix.Guides.Inventory
+    """
+
+    body_b =
+      body_a <>
+        """
+          auix_resource_metadata :person__address,
+            schema: Aurora.Uix.Test.Cases.ResourceMetadataValidationTest.Address,
+            context: Aurora.Uix.Guides.Inventory
+        """
+
+    [{a, _}] = compile(body_a)
+    assert a.auix_resource(:person__address).embedded?
+
+    [{b, _}] = compile(body_b)
+    refute b.auix_resource(:person__address).embedded?
   end
 
   test "backend options are validated by the backend" do
