@@ -582,7 +582,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: every va
 - [x] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
 - [x] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [x] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
-- [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [x] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-<slug>-<source>` of the variants below · layout types `:index`, `:form`, `:show` · observable: `has_element?/2`, `element/2`, the section helpers of `test/support/section_helper.ex`
