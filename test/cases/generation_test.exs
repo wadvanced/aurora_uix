@@ -374,6 +374,62 @@ defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexActions do
   use Aurora.UixWeb.Test.Mirror.Variants.IndexActions, backend: :ctx
 end
 
+defmodule Aurora.UixWeb.Test.Generation.Ash.Form do
+  use Aurora.UixWeb.Test.Mirror.Variants.Form, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Form do
+  use Aurora.UixWeb.Test.Mirror.Variants.Form, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.FormOptions do
+  use Aurora.UixWeb.Test.Mirror.Variants.FormOptions, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.FormOptions do
+  use Aurora.UixWeb.Test.Mirror.Variants.FormOptions, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Uploads do
+  use Aurora.UixWeb.Test.Mirror.Variants.Uploads, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Uploads do
+  use Aurora.UixWeb.Test.Mirror.Variants.Uploads, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Renderers do
+  use Aurora.UixWeb.Test.Mirror.Variants.Renderers, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Renderers do
+  use Aurora.UixWeb.Test.Mirror.Variants.Renderers, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.PredefinedRenderers do
+  use Aurora.UixWeb.Test.Mirror.Variants.PredefinedRenderers, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.PredefinedRenderers do
+  use Aurora.UixWeb.Test.Mirror.Variants.PredefinedRenderers, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.RendererModuleTable do
+  use Aurora.UixWeb.Test.Mirror.Variants.RendererModuleTable, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.RendererModuleTable do
+  use Aurora.UixWeb.Test.Mirror.Variants.RendererModuleTable, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.RendererPrecedence do
+  use Aurora.UixWeb.Test.Mirror.Variants.RendererPrecedence, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.RendererPrecedence do
+  use Aurora.UixWeb.Test.Mirror.Variants.RendererPrecedence, backend: :ctx
+end
+
 defmodule Aurora.Uix.Test.Cases.GenerationTest do
   use ExUnit.Case, async: true
 
@@ -400,7 +456,8 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @variant_views ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
                     NamedHost Named Included Manual SeparatedResources Separated Index IndexQuery
-                    IndexWhere IndexCards IndexActions)a
+                    IndexWhere IndexCards IndexActions Form FormOptions Uploads Renderers
+                    PredefinedRenderers RendererModuleTable RendererPrecedence)a
 
   @single_views [
     {Generation.Ctx.ManualResource, MirrorCtx.ManualResource},
