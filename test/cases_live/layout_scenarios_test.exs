@@ -44,8 +44,15 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
         assert has_element?(show_view, ".auix-index-container")
         assert has_element?(show_view, ".auix-show-container")
       end
+    end)
+  end
 
-      delete_all_mirror_data()
+  test "the default pages carry their titles, subtitles and containers", %{conn: conn} do
+    each_backend(fn backend ->
+      product_id =
+        3
+        |> create_sample_products(:test)
+        |> get_in([Access.key!("id_test-1"), Access.key!(:id)])
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products"))
       assert has_element?(view, ".auix-header-title", "Listing Products")
@@ -59,7 +66,7 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                "New Product"
              )
 
-      {:ok, view, html} = live(conn, mirror_path(backend, "default", "products", "/new"))
+      {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products", "/new"))
       modal_header = "div#auix-product-new-modal header.auix-header--top-actions"
       assert has_element?(view, "#{modal_header} .auix-header-title", "New Product")
 
@@ -68,48 +75,6 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                "#{modal_header} .auix-header-subtitle",
                ~r/Creates a new .Product. record in your database/
              )
-
-      if backend.name == :ctx do
-        config = CtxViews.Default |> resource_configs() |> get_in([Access.key!(:product)])
-
-        declared_fields()
-        |> reject_select_fields(config.fields)
-        |> assert_container_order(html, "auix-stacked-container")
-      end
-
-      view
-      |> form("#auix-product-form",
-        product: %{reference: "test-first", name: "This is the first test"}
-      )
-      |> render_change()
-
-      # Library defect on ash (#582): a blank required `quantity_initial` renders no
-      # `.auix-error-message` on validate in the default product form.
-      if backend.name == :ctx do
-        assert_blank_error(view, backend)
-      end
-
-      view
-      |> form("#auix-product-form",
-        product: %{
-          reference: "test-first",
-          name: "This is the first test",
-          quantity_initial: 11,
-          product_barcode: %{code: "C-1"}
-        }
-      )
-      |> render_submit()
-
-      {:ok, index_view, _html} = live(conn, mirror_path(backend, "default", "products"))
-      assert has_element?(index_view, ".auix-header-title", "Listing Products")
-      assert has_element?(index_view, ".auix-items-table-cell", "test-first")
-
-      delete_all_mirror_data()
-
-      product_id =
-        3
-        |> create_sample_products(:test)
-        |> get_in([Access.key!("id_test-1"), Access.key!(:id)])
 
       {:ok, show_view, _html} =
         live(conn, mirror_path(backend, "default", "products", "/#{product_id}/show"))
@@ -138,6 +103,20 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                "div#auix-product-edit-modal header .auix-header-subtitle",
                ~r/Use this form to manage .Products. records in your database/
              )
+    end)
+  end
+
+  test "the default form lists the fields in declaration order, stacked and inline", %{conn: conn} do
+    each_backend(fn backend ->
+      {:ok, _view, html} = live(conn, mirror_path(backend, "default", "products", "/new"))
+
+      if backend.name == :ctx do
+        config = CtxViews.Default |> resource_configs() |> get_in([Access.key!(:product)])
+
+        declared_fields()
+        |> reject_select_fields(config.fields)
+        |> assert_container_order(html, "auix-stacked-container")
+      end
 
       {:ok, _view, inline_html} =
         live(conn, mirror_path(backend, "default-inline", "products", "/new"))
@@ -152,7 +131,40 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
     end)
   end
 
-  test "groups, sections and nested sections lay out the form", %{conn: conn} do
+  test "a product created through the default form appears in the index", %{conn: conn} do
+    each_backend(fn backend ->
+      {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products", "/new"))
+
+      view
+      |> form("#auix-product-form",
+        product: %{reference: "test-first", name: "This is the first test"}
+      )
+      |> render_change()
+
+      # Library defect on ash (#582): a blank required `quantity_initial` renders no
+      # `.auix-error-message` on validate in the default product form.
+      if backend.name == :ctx do
+        assert_blank_error(view, backend)
+      end
+
+      view
+      |> form("#auix-product-form",
+        product: %{
+          reference: "test-first",
+          name: "This is the first test",
+          quantity_initial: 11,
+          product_barcode: %{code: "C-1"}
+        }
+      )
+      |> render_submit()
+
+      {:ok, index_view, _html} = live(conn, mirror_path(backend, "default", "products"))
+      assert has_element?(index_view, ".auix-header-title", "Listing Products")
+      assert has_element?(index_view, ".auix-items-table-cell", "test-first")
+    end)
+  end
+
+  test "groups lay out the form", %{conn: conn} do
     each_backend(fn backend ->
       {:ok, view, _html} = live(conn, mirror_path(backend, "groups", "products", "/new"))
       assert has_element?(view, ".auix-group-container[id^='auix-group-quantities-']")
@@ -172,7 +184,11 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
       assert_group_field(view, "group-quantities", 2, "quantity_initial")
       assert_group_field(view, "group-sale_prices", 1, "list_price")
       assert_group_field(view, "group-sale_prices", 2, "rrp")
+    end)
+  end
 
+  test "sections and nested sections show one tab at a time", %{conn: conn} do
+    each_backend(fn backend ->
       {:ok, view, _html} = live(conn, mirror_path(backend, "sections", "products", "/new"))
       assert has_element?(view, ".auix-sections-container")
       assert has_element?(view, ".auix-sections-content")
@@ -228,10 +244,9 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
     end)
   end
 
-  test "layout options set titles and preloads", %{conn: conn} do
+  test "layout options set the page titles and subtitles", %{conn: conn} do
     each_backend(fn backend ->
       create_sample_products_with_transactions(2, 2, :test)
-      create_sample_product_locations(3, :test)
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "options", "products"))
       assert has_element?(view, ".auix-header-title", "The Products Listing")
@@ -281,18 +296,22 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                "div#auix-product-edit-modal header .auix-header-subtitle",
                "Entries are validated before saving"
              )
+    end)
+  end
+
+  test "layout and resource preloads load the relationships an index renders", %{conn: conn} do
+    each_backend(fn backend ->
+      create_sample_products_with_transactions(2, 2, :test)
+      create_sample_product_locations(3, :test)
+      create_sample_products_with_barcodes(1)
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "options", "product_transactions"))
       assert has_element?(view, ".auix-product-marker", "LOADED")
       refute has_element?(view, ".auix-product-marker", "NOT_LOADED")
 
-      {:ok, view, html} = live(conn, mirror_path(backend, "options", "product_locations"))
+      {:ok, view, _html} = live(conn, mirror_path(backend, "options", "product_locations"))
       assert has_element?(view, ".auix-products-marker", "LOADED")
       refute has_element?(view, ".auix-products-marker", "NOT_LOADED")
-      assert count(html, ".auix-items-table-row") == 2
-      refute has_element?(view, "td", "test-reference-test-3")
-
-      create_sample_products_with_barcodes(1)
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "options", "product_barcodes"))
       assert has_element?(view, ".auix-product-marker", "NOT_LOADED")
@@ -309,10 +328,19 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
     end)
   end
 
-  test "named modules, use: and included layouts render through their host", %{conn: conn} do
+  test "a resource where narrows the index", %{conn: conn} do
+    each_backend(fn backend ->
+      create_sample_product_locations(3, :test)
+
+      {:ok, view, html} = live(conn, mirror_path(backend, "options", "product_locations"))
+      assert count(html, ".auix-items-table-row") == 2
+      refute has_element?(view, "td", "test-reference-test-3")
+    end)
+  end
+
+  test "a used form component serves the resource of its host", %{conn: conn} do
     each_backend(fn backend ->
       create_sample_product_locations(1, :test)
-      create_sample_products(1, :test)
       [location] = Repo.all(MirrorCtx.ProductLocation)
       views = views_namespace(backend)
 
@@ -339,6 +367,12 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
       refute views |> Module.concat(Named.ProductLocation.FormComponent) |> Code.ensure_loaded?()
       refute views |> Module.concat(Named.ProductLocation.Index) |> Code.ensure_loaded?()
       assert views |> Module.concat(Named.ProductLocation.Locations) |> Code.ensure_loaded?()
+    end)
+  end
+
+  test "a local layout replaces the included one", %{conn: conn} do
+    each_backend(fn backend ->
+      create_sample_products(1, :test)
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "included", "products", "/new"))
       assert has_element?(view, "input[name='product[reference]']")
@@ -356,7 +390,7 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
     end)
   end
 
-  test "manual layouts and resources from another module render", %{conn: conn} do
+  test "layouts declared with auix_create_layout render the edit and the show page", %{conn: conn} do
     each_backend(fn backend ->
       products = create_sample_products_with_transactions(1, 1, :test)
       create_sample_product_locations(1, :test)
@@ -398,6 +432,13 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
         mirror_path(backend, "manual", "product_locations"),
         MirrorCtx.ProductLocation
       )
+    end)
+  end
+
+  test "resources taken from another module render and save", %{conn: conn} do
+    each_backend(fn backend ->
+      create_sample_products_with_transactions(1, 1, :test)
+      create_sample_product_locations(1, :test)
 
       assert_index_and_new(conn, mirror_path(backend, "separated", "products"))
       assert_product_created(conn, backend, mirror_path(backend, "separated", "products"))
@@ -470,7 +511,9 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                  )
                )
     end)
+  end
 
+  test "a resource map built by hand renders and saves", %{conn: conn} do
     # A resource map built by hand names a `context:` and a `schema:`, which only `:ctx` has.
     each_backend([:ctx], fn backend ->
       products = create_sample_products_with_transactions(1, 1, :test)

@@ -1,3 +1,339 @@
+defmodule Aurora.UixWeb.Test.Generation.Registry do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+  auix_create_ui()
+end
+
+defmodule Aurora.UixWeb.Test.Generation.FieldInBlock do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    edit_layout :product do
+      inline do
+        field(:reference, readonly: true)
+        field({:product_location_id, :name})
+      end
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.ModuleName do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    edit_layout :product, module_name: :reference_form do
+      inline([:reference, :name])
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.IndexLiveName do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_live(:product, module_name: :catalog)
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.GenerateComponents do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+  auix_create_ui(generate: [:form_component, :show_component])
+end
+
+defmodule Aurora.UixWeb.Test.Generation.NamedIndex do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_columns(:product, [:reference], module_name: :index_compact)
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.OnlyIndexComponent do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+  auix_create_ui(generate: [:index_component])
+end
+
+defmodule Aurora.UixWeb.Test.Generation.UseIndexLayout do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+  mirror_resource(:product_location)
+
+  auix_create_ui do
+    index_columns(:product, [:reference, :name], module_name: :index_compact)
+    index_columns(:product_location, use: :index_compact)
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.CardColumns do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_columns :product do
+      card title: :name, subtitle: :reference do
+        stacked([:msrp, :name])
+      end
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.IndexOptions do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_columns(:product, [:reference], page_title: "Products")
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.IndexPair do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_columns(:product, name: [label: "Product"])
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.IndexWithoutCard do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  auix_create_ui do
+    index_columns(:product, [:reference])
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.NestedPreload do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+  mirror_resource(:product)
+
+  mirror_resource :product_location do
+    field(:products, resource: :product)
+  end
+
+  auix_create_ui do
+    index_columns(:product, [:reference, :product_location])
+
+    edit_layout :product do
+      stacked([:reference, :product_location])
+    end
+
+    show_layout :product do
+      stacked([:reference, :product_location, :product_transactions])
+    end
+
+    index_columns(:product_location, [:name])
+
+    edit_layout :product_location do
+      stacked([:name])
+    end
+
+    show_layout :product_location do
+      stacked([:name, :products])
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.RenderTree do
+  defmacro __using__(opts) do
+    quote do
+      use Aurora.UixWeb.Test.Mirror, unquote(opts)
+
+      mirror_resource(:product)
+
+      auix_create_ui do
+        edit_layout :product, [] do
+          group("Identification", [:reference, name: [label: "Product name"]])
+
+          sections do
+            section("Quantities", [:quantity_initial])
+            section("Prices", [:msrp], default: true)
+          end
+        end
+
+        index_columns :product, [:reference, :name, :msrp] do
+          card title: :name, subtitle: :reference, show_on: :all do
+            inline([:msrp])
+            field(:name, label: "Product name")
+          end
+        end
+      end
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.RenderTree do
+  use Aurora.UixWeb.Test.Generation.RenderTree, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.RenderTree do
+  use Aurora.UixWeb.Test.Generation.RenderTree, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.CtxEmbedded do
+  use Aurora.UixWeb.Test.Mirror, backend: :ctx
+
+  mirror_resource(:product)
+
+  auix_resource_metadata :product__packaging do
+    schema(Aurora.Uix.Test.MirrorCtx.Product.Packaging)
+    field(:fragile, readonly: true)
+  end
+
+  auix_create_ui()
+end
+
+defmodule Aurora.UixWeb.Test.Generation.AshEmbedded do
+  use Aurora.UixWeb.Test.Mirror, backend: :ash
+
+  mirror_resource(:product)
+
+  auix_resource_metadata :product__packaging do
+    ash_resource(Aurora.Uix.Test.MirrorAsh.Packaging)
+    field(:notes, readonly: true)
+  end
+
+  auix_resource_metadata(:contact_metadata, ash_resource: Aurora.Uix.Test.MirrorAsh.Contact)
+  auix_resource_metadata(:policy_item, ash_resource: AshActorTest.PolicyItem)
+  auix_resource_metadata(:policy_item__tags, ash_resource: AshActorTest.Tag)
+
+  auix_create_ui do
+    edit_layout :product__packaging do
+      stacked([:notes])
+    end
+  end
+end
+
+defmodule Aurora.UixWeb.Test.Generation.OptionsSet do
+  use Aurora.Uix.Layout.Options, layout_type: :sample
+
+  option(:greeting, :string)
+  option(:farewell, :string)
+
+  @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+  defp get_default(_assigns, :greeting), do: {:ok, "hello"}
+  defp get_default(_assigns, option), do: {:not_found, option}
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.ManualResource do
+  use Aurora.UixWeb.Test.Mirror.Variants.ManualResource, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.IncludedLayouts do
+  use Aurora.UixWeb.Test.Mirror.Variants.IncludedLayouts, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Default do
+  use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Default do
+  use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.DefaultInline do
+  use Aurora.UixWeb.Test.Mirror.Variants.DefaultInline, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.DefaultInline do
+  use Aurora.UixWeb.Test.Mirror.Variants.DefaultInline, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Groups do
+  use Aurora.UixWeb.Test.Mirror.Variants.Groups, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Groups do
+  use Aurora.UixWeb.Test.Mirror.Variants.Groups, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Sections do
+  use Aurora.UixWeb.Test.Mirror.Variants.Sections, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Sections do
+  use Aurora.UixWeb.Test.Mirror.Variants.Sections, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.NestedSections do
+  use Aurora.UixWeb.Test.Mirror.Variants.NestedSections, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.NestedSections do
+  use Aurora.UixWeb.Test.Mirror.Variants.NestedSections, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Options do
+  use Aurora.UixWeb.Test.Mirror.Variants.Options, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Options do
+  use Aurora.UixWeb.Test.Mirror.Variants.Options, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.NamedForms do
+  use Aurora.UixWeb.Test.Mirror.Variants.NamedForms, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.NamedForms do
+  use Aurora.UixWeb.Test.Mirror.Variants.NamedForms, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.NamedHost do
+  use Aurora.UixWeb.Test.Mirror.Variants.NamedHost, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.NamedHost do
+  use Aurora.UixWeb.Test.Mirror.Variants.NamedHost, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Named do
+  use Aurora.UixWeb.Test.Mirror.Variants.Named, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Named do
+  use Aurora.UixWeb.Test.Mirror.Variants.Named, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Included do
+  use Aurora.UixWeb.Test.Mirror.Variants.Included, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Included do
+  use Aurora.UixWeb.Test.Mirror.Variants.Included, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Manual do
+  use Aurora.UixWeb.Test.Mirror.Variants.Manual, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Manual do
+  use Aurora.UixWeb.Test.Mirror.Variants.Manual, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.SeparatedResources do
+  use Aurora.UixWeb.Test.Mirror.Variants.SeparatedResources, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.SeparatedResources do
+  use Aurora.UixWeb.Test.Mirror.Variants.SeparatedResources, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.Separated do
+  use Aurora.UixWeb.Test.Mirror.Variants.Separated, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Separated do
+  use Aurora.UixWeb.Test.Mirror.Variants.Separated, backend: :ctx
+end
+
 defmodule Aurora.Uix.Test.Cases.GenerationTest do
   use ExUnit.Case, async: true
 
@@ -7,15 +343,10 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   alias Aurora.Uix.Layout.Options.Form
   alias Aurora.Uix.Layout.Options.Option
   alias Aurora.Uix.Templates.Basic.Helpers
+  alias Aurora.UixWeb.Test.Generation
   alias Aurora.UixWeb.Test.Mirror
-  alias Aurora.UixWeb.Test.Mirror.Variants
   alias Aurora.UixWeb.Test.MirrorCtx
   alias Spark.Error.DslError
-
-  @render_tree_sources [
-    "context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product",
-    "ash_resource: Aurora.Uix.Test.MirrorAsh.Product"
-  ]
 
   @named_views [
     {Aurora.UixWeb.Test.MirrorCtx.Named, Aurora.UixWeb.Test.MirrorCtx.NamedForms,
@@ -27,135 +358,119 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   # The 0.1.x options form raises before Spark sees the module, so its error is not a DslError.
   @exceptions %{"the 0.1.x form fails compilation" => ArgumentError}
 
-  @run_time_variants ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
-                        NamedHost Named Included Manual SeparatedResources Separated)a
+  @variant_views ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
+                    NamedHost Named Included Manual SeparatedResources Separated)a
 
-  @run_time_single_views [
-    {Variants.ManualResource, :ctx, MirrorCtx.ManualResource},
-    {Variants.IncludedLayouts, :ctx, Mirror.IncludedLayouts}
+  @single_views [
+    {Generation.Ctx.ManualResource, MirrorCtx.ManualResource},
+    {Generation.Ctx.IncludedLayouts, Mirror.IncludedLayouts}
   ]
 
-  test "generated modules, names, render trees and option sets" do
-    assert_duplicate_layouts()
-    assert_field_in_block()
+  test "the module registry lists every generated module with its kind, fields and layout" do
     assert_registry()
+  end
+
+  test "module names come from module_name, index_live and the defaults" do
     assert_module_name()
     assert_index_live_name()
-    assert_generate_kinds()
-    assert_shared_schema_names()
-    assert_duplicate_module()
-    assert_index_component()
-    assert_use_index_layout()
     assert_names()
+  end
+
+  test "generate:, the index component and the default artifacts decide which modules exist" do
+    assert_generate_kinds()
+    assert_index_component()
     assert_default_artifacts()
-    assert_card_columns()
-    assert_index_columns_without_block()
-    assert_index_without_card()
-    assert_nested_preload()
+  end
+
+  test "use: takes a layout and a component from another module" do
+    assert_use_index_layout()
 
     for {named, forms, host} <- @named_views do
       assert_named_modules(named, forms, host)
     end
-
-    for source <- @render_tree_sources do
-      source |> render_tree_body() |> compile_raw() |> assert_render_tree()
-    end
-
-    assert_ctx_embedded_resources()
-    assert_ash_embedded_resources()
-    assert_option_sets()
-    assert_run_time_views()
   end
 
-  test "create_ui and layout option compile errors" do
-    cases = [
+  test "field, card and index declarations build their layout trees" do
+    assert_field_in_block()
+    assert_card_columns()
+    assert_index_columns_without_block()
+    assert_index_without_card()
+  end
+
+  test "the render tree carries node ids, field nodes, tab state and cards" do
+    for mod <- [Generation.Ash.RenderTree, Generation.Ctx.RenderTree] do
+      assert_render_tree(mod)
+    end
+  end
+
+  test "a field with resource: keeps its nested preload" do
+    assert_nested_preload()
+  end
+
+  test "an embedded resource generates no modules" do
+    assert_ctx_embedded_resources()
+    assert_ash_embedded_resources()
+  end
+
+  test "layout option sets list and read their options" do
+    assert_option_sets()
+  end
+
+  test "the views under cover have the signature of the mounted views" do
+    assert_views()
+  end
+
+  test "duplicate layouts and module names fail compilation" do
+    assert_compile_errors([
+      {"two layouts of the same type for a resource fail compilation",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            inline [:reference]
+          end
+
+          edit_layout :product do
+            inline [:name]
+          end
+        end
+       """, ~r/:product has more than one form layout/},
+      {"two resources on one schema need their own module names",
+       """
+        auix_resource_metadata :product_compact,
+          context: Aurora.Uix.Test.MirrorCtx,
+          schema: Aurora.Uix.Test.MirrorCtx.Product
+
+        auix_create_ui()
+       """, ~r/module name :product_form_component is taken more than once/},
+      {"two names for one module fail compilation",
+       """
+        auix_resource_metadata :product_compact,
+          context: Aurora.Uix.Test.MirrorCtx,
+          schema: Aurora.Uix.Test.MirrorCtx.Product
+
+        auix_create_ui do
+          edit_layout :product_compact, module_name: :form_component do
+            inline [:name]
+          end
+
+          show_layout :product_compact, module_name: :compact_show do
+            inline [:name]
+          end
+
+          index_columns :product_compact, [:name], module_name: :index_compact
+          index_live :product_compact, module_name: :compact
+        end
+       """, ~r/would be generated twice/}
+    ])
+  end
+
+  test "use:, includes and imports reject what they cannot take" do
+    assert_compile_errors([
       {"including a module without layouts fails compilation",
        """
         auix_create_ui include: Aurora.Uix.Test.MirrorCtx do
         end
        """, ~r/Aurora.Uix.Test.MirrorCtx has no layouts/},
-      {"an unknown layout option fails compilation",
-       """
-        auix_create_ui do
-          index_columns :product, [:reference], page_tittle: "Products"
-        end
-       """, ~r/unknown index layout options \[:page_tittle\]/},
-      {"an index action_icons key that is not a button or link action fails compilation",
-       """
-        auix_create_ui do
-          index_columns :product, [:reference], action_icons: [default_sort: "hero-bolt"]
-        end
-       """,
-       ~r/index layout: unknown options \[:default_sort\], valid options are: \[:default_row_show,/},
-      {"a layout option of the wrong type fails compilation",
-       """
-        auix_create_ui do
-          index_columns :product, [:reference], pagination_items_per_page: "forty"
-        end
-       """, ~r/index layout: expected :pagination_items_per_page option to match/},
-      {"a form action_icons key of another layout fails compilation",
-       """
-        auix_create_ui do
-          edit_layout :product, action_icons: [default_back: "←"] do
-            inline [:reference]
-          end
-        end
-       """,
-       ~r/form layout: unknown options \[:default_back\], valid options are: \[:default_save\]/},
-      {"an index layout preload of the wrong type fails compilation",
-       """
-        auix_create_ui do
-          index_columns :product, [:reference], preload: :product_location
-        end
-       """, ~r/invalid value for :preload option: expected list/},
-      {"an unknown field option fails compilation",
-       """
-        auix_create_ui do
-          edit_layout :product do
-            inline [:reference, name: [lable: "Name"]]
-          end
-        end
-       """, ~r/field :name: unknown options \[:lable\]/},
-      {"a one-to-many field rejects an action_icons key of another field type",
-       """
-        auix_create_ui do
-          edit_layout :product do
-            inline [:reference, product_transactions: [action_icons: [default_add_entry: "hero-plus"]]]
-          end
-        end
-       """,
-       ~r/field :product_transactions: unknown options \[:default_add_entry\], valid options are: \[:default_new, :default_row_show, :default_row_edit, :default_row_delete\]/},
-      {"a many-to-many field takes no action_icons key",
-       """
-        auix_create_ui do
-          edit_layout :product do
-            inline [:reference, suppliers: [action_icons: [default_toggle_all: "hero-check"]]]
-          end
-        end
-       """,
-       ~r/field :suppliers: unknown options \[:default_toggle_all\], valid options are: \[\]/},
-      {"a layout for an undeclared resource fails compilation",
-       """
-        auix_create_ui do
-          index_columns :category, [:name]
-        end
-       """, ~r/unknown resource :category/},
-      {"a field the resource does not have fails compilation",
-       """
-        auix_create_ui do
-          edit_layout :product do
-            group "Identification", [:reference, :nmae]
-          end
-        end
-       """, ~r/unknown fields \[:nmae\] for resource :product/},
-      {"a section outside sections fails compilation",
-       """
-        auix_create_ui do
-          edit_layout :product do
-            section "Prices", [:msrp]
-          end
-        end
-       """, ~r/section can only be placed inside sections/},
       {"use: rejects what it cannot take (1)",
        """
         auix_create_ui do
@@ -229,7 +544,107 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
         @auix_modules %{reference_form: nil}
 
         auix_create_ui()
-       """, ~r/@auix_modules entry :reference_form is not a generated module/},
+       """, ~r/@auix_modules entry :reference_form is not a generated module/}
+    ])
+  end
+
+  test "layout and field options that fail compilation" do
+    assert_compile_errors([
+      {"an unknown layout option fails compilation",
+       """
+        auix_create_ui do
+          index_columns :product, [:reference], page_tittle: "Products"
+        end
+       """, ~r/unknown index layout options \[:page_tittle\]/},
+      {"an index action_icons key that is not a button or link action fails compilation",
+       """
+        auix_create_ui do
+          index_columns :product, [:reference], action_icons: [default_sort: "hero-bolt"]
+        end
+       """,
+       ~r/index layout: unknown options \[:default_sort\], valid options are: \[:default_row_show,/},
+      {"a layout option of the wrong type fails compilation",
+       """
+        auix_create_ui do
+          index_columns :product, [:reference], pagination_items_per_page: "forty"
+        end
+       """, ~r/index layout: expected :pagination_items_per_page option to match/},
+      {"a form action_icons key of another layout fails compilation",
+       """
+        auix_create_ui do
+          edit_layout :product, action_icons: [default_back: "←"] do
+            inline [:reference]
+          end
+        end
+       """,
+       ~r/form layout: unknown options \[:default_back\], valid options are: \[:default_save\]/},
+      {"an index layout preload of the wrong type fails compilation",
+       """
+        auix_create_ui do
+          index_columns :product, [:reference], preload: :product_location
+        end
+       """, ~r/invalid value for :preload option: expected list/},
+      {"an unknown field option fails compilation",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            inline [:reference, name: [lable: "Name"]]
+          end
+        end
+       """, ~r/field :name: unknown options \[:lable\]/},
+      {"a one-to-many field rejects an action_icons key of another field type",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            inline [:reference, product_transactions: [action_icons: [default_add_entry: "hero-plus"]]]
+          end
+        end
+       """,
+       ~r/field :product_transactions: unknown options \[:default_add_entry\], valid options are: \[:default_new, :default_row_show, :default_row_edit, :default_row_delete\]/},
+      {"a many-to-many field takes no action_icons key",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            inline [:reference, suppliers: [action_icons: [default_toggle_all: "hero-check"]]]
+          end
+        end
+       """,
+       ~r/field :suppliers: unknown options \[:default_toggle_all\], valid options are: \[\]/},
+      {"an unknown show_on fails compilation",
+       """
+        auix_create_ui do
+          index_columns :product, [:name] do
+            card show_on: :desktop
+          end
+        end
+       """, ~r/show_on/}
+    ])
+  end
+
+  test "layouts with an unknown resource, an unknown field or a misplaced container fail compilation" do
+    assert_compile_errors([
+      {"a layout for an undeclared resource fails compilation",
+       """
+        auix_create_ui do
+          index_columns :category, [:name]
+        end
+       """, ~r/unknown resource :category/},
+      {"a field the resource does not have fails compilation",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            group "Identification", [:reference, :nmae]
+          end
+        end
+       """, ~r/unknown fields \[:nmae\] for resource :product/},
+      {"a section outside sections fails compilation",
+       """
+        auix_create_ui do
+          edit_layout :product do
+            section "Prices", [:msrp]
+          end
+        end
+       """, ~r/section can only be placed inside sections/},
       {"a card field outside the field list fails compilation",
        """
         auix_create_ui do
@@ -265,15 +680,12 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
             end
           end
         end
-       """, ~r/card takes no sections/},
-      {"an unknown show_on fails compilation",
-       """
-        auix_create_ui do
-          index_columns :product, [:name] do
-            card show_on: :desktop
-          end
-        end
-       """, ~r/show_on/},
+       """, ~r/card takes no sections/}
+    ])
+  end
+
+  test "option set declarations that fail compilation" do
+    assert_compile_errors([
       {"an option declared twice fails compilation",
        """
         defmodule LayoutOptionsSet do
@@ -301,8 +713,13 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
           use Aurora.Uix.Layout.Options, :sample
         end
        """, ~r/no longer finds the options/}
-    ]
+    ])
+  end
 
+  ## PRIVATE ##
+
+  @spec assert_compile_errors([{binary(), binary(), Regex.t()}]) :: term()
+  defp assert_compile_errors(cases) do
     for {label, body, regex} <- cases do
       exception = Map.get(@exceptions, label, DslError)
 
@@ -328,8 +745,6 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     end
   end
 
-  ## PRIVATE ##
-
   @spec compile(binary()) :: [{module(), binary()}]
   defp compile(body) do
     Code.compile_string("""
@@ -345,59 +760,28 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     """)
   end
 
-  @spec compiled_ui(binary()) :: module()
-  defp compiled_ui(body) do
-    {mod, _binary} =
-      body
-      |> compile()
-      |> Enum.find(fn {m, _} -> function_exported?(m, :auix_modules, 0) end)
+  @spec assert_views() :: term()
+  defp assert_views do
+    for name <- @variant_views, backend <- [:ash, :ctx] do
+      assert signature(view(backend, name)) == signature(Mirror.sibling(backend, name)),
+             "#{name} on #{backend}"
+    end
 
-    mod
+    for {view, mounted} <- @single_views do
+      assert signature(view) == signature(mounted), inspect(view)
+    end
+
+    assert_manual_views()
+    assert_included_views()
+    assert_resource_only_views()
   end
 
-  @spec compile_raw(binary()) :: module()
-  defp compile_raw(body) do
-    {mod, _binary} =
-      """
-      defmodule Aurora.UixWeb.Test.GenerationSample#{System.unique_integer([:positive])} do
-        use Aurora.Uix
-      #{body}
-      end
-      """
-      |> Code.compile_string()
-      |> Enum.find(fn {m, _} -> function_exported?(m, :auix_modules, 0) end)
+  @spec view(:ash | :ctx, atom()) :: module()
+  defp view(:ash, name), do: Module.concat(Generation.Ash, name)
+  defp view(:ctx, name), do: Module.concat(Generation.Ctx, name)
 
-    mod
-  end
-
-  # Compiles every views definition while the suite runs and compares it with the views module
-  # the scenarios mount, so the DSL a variant declares is exercised by a test.
-  @spec assert_run_time_views() :: term()
-  defp assert_run_time_views do
-    variants =
-      for name <- @run_time_variants, backend <- [:ash, :ctx] do
-        {Module.concat(Variants, name), backend, Mirror.sibling(backend, name)}
-      end
-
-    signatures =
-      (variants ++ @run_time_single_views)
-      |> Task.async_stream(
-        fn {definition, backend, twin} ->
-          signature = definition |> compile_view(backend) |> signature()
-          assert signature == signature(twin), "#{inspect(definition)} on #{backend}"
-          {{definition, backend}, signature}
-        end,
-        timeout: :infinity
-      )
-      |> Map.new(fn {:ok, entry} -> entry end)
-
-    assert_manual_views(signatures)
-    assert_included_views(signatures)
-    assert_resource_only_views(signatures)
-  end
-
-  @spec assert_manual_views(map()) :: term()
-  defp assert_manual_views(signatures) do
+  @spec assert_manual_views() :: term()
+  defp assert_manual_views do
     product_form =
       {:form_component,
        [
@@ -413,7 +797,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
        ]}
 
     for backend <- [:ash, :ctx] do
-      manual = signatures[{Variants.Manual, backend}]
+      manual = backend |> view(:Manual) |> signature()
 
       assert manual.layouts == [
                {Node.Form, :product},
@@ -439,31 +823,31 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                {:index_component, [:description, :name, :product_location_id, :reference]}
     end
 
-    hand_built = signatures[{Variants.ManualResource, :ctx}]
+    hand_built = signature(Generation.Ctx.ManualResource)
     assert hand_built.resources == []
     assert hand_built.modules.product_form_component == product_form
     assert hand_built.modules.product_show_component == put_elem(product_form, 0, :show_component)
   end
 
-  @spec assert_included_views(map()) :: term()
-  defp assert_included_views(signatures) do
+  @spec assert_included_views() :: term()
+  defp assert_included_views do
     layouts = [{Node.Form, :product}, {Node.Show, :product}]
 
-    assert signatures[{Variants.IncludedLayouts, :ctx}] ==
+    assert signature(Generation.Ctx.IncludedLayouts) ==
              %{resources: [], layouts: layouts, modules: %{}}
 
     for backend <- [:ash, :ctx] do
-      included = signatures[{Variants.Included, backend}]
+      included = backend |> view(:Included) |> signature()
       assert included.layouts == layouts
       assert included.modules.product_form_component == {:form_component, [:name, :reference]}
       assert included.modules.product_show_component == {:show_component, [:name]}
     end
   end
 
-  @spec assert_resource_only_views(map()) :: term()
-  defp assert_resource_only_views(signatures) do
+  @spec assert_resource_only_views() :: term()
+  defp assert_resource_only_views do
     for backend <- [:ash, :ctx] do
-      assert signatures[{Variants.SeparatedResources, backend}] == %{
+      assert backend |> view(:SeparatedResources) |> signature() == %{
                resources: [
                  :product,
                  :product__contacts,
@@ -474,25 +858,12 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                modules: %{}
              }
 
-      assert signatures[{Variants.NamedHost, backend}] == %{
+      assert backend |> view(:NamedHost) |> signature() == %{
                resources: [],
                layouts: [{Node.Form, :product_location}],
                modules: %{}
              }
     end
-  end
-
-  @spec compile_view(module(), :ash | :ctx) :: module()
-  defp compile_view(definition, backend) do
-    name = "Aurora.UixWeb.Test.GenerationSample#{System.unique_integer([:positive])}"
-
-    Code.compile_string("""
-    defmodule #{name} do
-      use #{inspect(definition)}, backend: #{inspect(backend)}
-    end
-    """)
-
-    Module.concat([name])
   end
 
   @spec signature(module()) :: map()
@@ -516,31 +887,6 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     if function_exported?(views, function, 0),
       do: apply(views, function, []),
       else: default
-  end
-
-  @spec render_tree_body(binary()) :: binary()
-  defp render_tree_body(source) do
-    """
-    auix_resource_metadata :product, #{source}
-
-    auix_create_ui do
-      edit_layout :product, [] do
-        group("Identification", [:reference, name: [label: "Product name"]])
-
-        sections do
-          section("Quantities", [:quantity_initial])
-          section("Prices", [:msrp], default: true)
-        end
-      end
-
-      index_columns :product, [:reference, :name, :msrp] do
-        card title: :name, subtitle: :reference, show_on: :all do
-          inline [:msrp]
-          field :name, label: "Product name"
-        end
-      end
-    end
-    """
   end
 
   @spec assert_render_tree(module()) :: term()
@@ -617,15 +963,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_ctx_embedded_resources() :: term()
   defp assert_ctx_embedded_resources do
-    mod =
-      compile_raw("""
-      auix_resource_metadata :product, context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product
-      auix_resource_metadata :product__packaging do
-        schema Aurora.Uix.Test.MirrorCtx.Product.Packaging
-        field :fragile, readonly: true
-      end
-      auix_create_ui()
-      """)
+    mod = Generation.CtxEmbedded
 
     assert mod.auix_modules() |> Map.keys() |> Enum.sort() == [
              :product_form_component,
@@ -647,22 +985,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_ash_embedded_resources() :: term()
   defp assert_ash_embedded_resources do
-    mod =
-      compile_raw("""
-      auix_resource_metadata :product, ash_resource: Aurora.Uix.Test.MirrorAsh.Product
-      auix_resource_metadata :product__packaging do
-        ash_resource Aurora.Uix.Test.MirrorAsh.Packaging
-        field :notes, readonly: true
-      end
-      auix_resource_metadata :contact_metadata, ash_resource: Aurora.Uix.Test.MirrorAsh.Contact
-      auix_resource_metadata :policy_item, ash_resource: AshActorTest.PolicyItem
-      auix_resource_metadata :policy_item__tags, ash_resource: AshActorTest.Tag
-      auix_create_ui do
-        edit_layout :product__packaging do
-          stacked [:notes]
-        end
-      end
-      """)
+    mod = Generation.AshEmbedded
 
     assert mod.auix_modules() |> Map.keys() |> Enum.sort() == [
              :policy_item_form_component,
@@ -702,18 +1025,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert :record_navigator in Options.available_options(:show)
     refute :edit_title in Options.available_options(:show)
 
-    [{options_set, _binary}] =
-      Code.compile_string("""
-      defmodule Aurora.Uix.Test.LayoutOptionsSample#{System.unique_integer([:positive])} do
-        use Aurora.Uix.Layout.Options, layout_type: :sample
-
-        option :greeting, :string
-        option :farewell, :string
-
-        defp get_default(_assigns, :greeting), do: {:ok, "hello"}
-        defp get_default(_assigns, option), do: {:not_found, option}
-      end
-      """)
+    options_set = Generation.OptionsSet
 
     assigns = %{auix: %{layout_type: :sample, layout_tree: %{options: [farewell: "bye"]}}}
 
@@ -722,42 +1034,10 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert options_set.get(assigns, :unlisted) == {:not_found, :unlisted}
   end
 
-  @spec assert_duplicate_layouts() :: term()
-  defp assert_duplicate_layouts do
-    assert_raise DslError, ~r/:product has more than one form layout/, fn ->
-      compile("""
-        auix_create_ui do
-          edit_layout :product do
-            inline [:reference]
-          end
-
-          edit_layout :product do
-            inline [:name]
-          end
-        end
-      """)
-    end
-  end
-
   @spec assert_field_in_block() :: term()
   defp assert_field_in_block do
-    modules =
-      compile("""
-        auix_create_ui do
-          edit_layout :product do
-            inline do
-              field :reference, readonly: true
-              field {:product_location_id, :name}
-            end
-          end
-        end
-      """)
-
-    {module, _binary} =
-      Enum.find(modules, fn {module, _binary} -> function_exported?(module, :auix_layouts, 0) end)
-
     assert [%Node.Form{children: [%Node.Inline{children: [reference, location]}]}] =
-             module.auix_layouts()
+             Generation.FieldInBlock.auix_layouts()
 
     assert %Node.Field{key: :reference, overrides: %{readonly: true}} = reference
     assert %Node.Field{key: :product_location_id, path: [:name]} = location
@@ -765,7 +1045,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_registry() :: term()
   defp assert_registry do
-    mod = compiled_ui("  auix_create_ui()\n")
+    mod = Generation.Registry
     form = Module.concat(mod, Product.FormComponent)
     index = Module.concat(mod, Product.Index)
 
@@ -788,14 +1068,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_module_name() :: term()
   defp assert_module_name do
-    mod =
-      compiled_ui("""
-        auix_create_ui do
-          edit_layout :product, module_name: :reference_form do
-            inline [:reference, :name]
-          end
-        end
-      """)
+    mod = Generation.ModuleName
 
     form = mod.auix_module(:reference_form)
     assert form == Module.concat(mod, Product.ReferenceForm)
@@ -805,12 +1078,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_index_live_name() :: term()
   defp assert_index_live_name do
-    mod =
-      compiled_ui("""
-        auix_create_ui do
-          index_live :product, module_name: :catalog
-        end
-      """)
+    mod = Generation.IndexLiveName
 
     assert mod.auix_module(:catalog) == Module.concat(mod, Product.Catalog)
     assert mod.auix_module(:catalog).auix_kind() == :index_live
@@ -819,7 +1087,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_generate_kinds() :: term()
   defp assert_generate_kinds do
-    mod = compiled_ui("  auix_create_ui generate: [:form_component, :show_component]\n")
+    mod = Generation.GenerateComponents
 
     refute mod |> Module.concat(Product.Index) |> Code.ensure_loaded?()
 
@@ -828,58 +1096,14 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
            end)
   end
 
-  @spec assert_shared_schema_names() :: term()
-  defp assert_shared_schema_names do
-    body = """
-      auix_resource_metadata :product_compact,
-        context: Aurora.Uix.Test.MirrorCtx,
-        schema: Aurora.Uix.Test.MirrorCtx.Product
-
-      auix_create_ui()
-    """
-
-    assert_raise DslError, ~r/module name :product_form_component is taken more than once/, fn ->
-      compile(body)
-    end
-  end
-
-  @spec assert_duplicate_module() :: term()
-  defp assert_duplicate_module do
-    body = """
-      auix_resource_metadata :product_compact,
-        context: Aurora.Uix.Test.MirrorCtx,
-        schema: Aurora.Uix.Test.MirrorCtx.Product
-
-      auix_create_ui do
-        edit_layout :product_compact, module_name: :form_component do
-          inline [:name]
-        end
-
-        show_layout :product_compact, module_name: :compact_show do
-          inline [:name]
-        end
-
-        index_columns :product_compact, [:name], module_name: :index_compact
-        index_live :product_compact, module_name: :compact
-      end
-    """
-
-    assert_raise DslError, ~r/would be generated twice/, fn -> compile(body) end
-  end
-
   @spec assert_index_component() :: term()
   defp assert_index_component do
-    mod = compiled_ui("  auix_create_ui()\n")
+    mod = Generation.Registry
 
     assert mod.auix_module(:product_index_component) == Module.concat(mod, Product.IndexComponent)
     assert mod.auix_module(:product_index_component).auix_kind() == :index_component
 
-    named =
-      compiled_ui("""
-        auix_create_ui do
-          index_columns :product, [:reference], module_name: :index_compact
-        end
-      """)
+    named = Generation.NamedIndex
 
     assert named.auix_module(:index_compact) == Module.concat(named, Product.IndexCompact)
 
@@ -889,7 +1113,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert named.auix_module(:index_compact).auix_fields() == [:reference]
     refute named |> Module.concat(Product.IndexComponent) |> Code.ensure_loaded?()
 
-    only = compiled_ui("  auix_create_ui generate: [:index_component]\n")
+    only = Generation.OnlyIndexComponent
 
     assert only |> Module.concat(Product.IndexComponent) |> Code.ensure_loaded?()
     refute only |> Module.concat(Product.Index) |> Code.ensure_loaded?()
@@ -899,17 +1123,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_use_index_layout() :: term()
   defp assert_use_index_layout do
-    mod =
-      compiled_ui("""
-        auix_resource_metadata :product_location,
-          context: Aurora.Uix.Test.MirrorCtx,
-          schema: Aurora.Uix.Test.MirrorCtx.ProductLocation
-
-        auix_create_ui do
-          index_columns :product, [:reference, :name], module_name: :index_compact
-          index_columns :product_location, use: :index_compact
-        end
-      """)
+    mod = Generation.UseIndexLayout
 
     assert Enum.map(
              mod.auix_configurations().product_location.layout_trees.index.children,
@@ -978,16 +1192,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_card_columns() :: term()
   defp assert_card_columns do
-    mod =
-      compiled_ui("""
-        auix_create_ui do
-          index_columns :product do
-            card title: :name, subtitle: :reference do
-              stacked [:msrp, :name]
-            end
-          end
-        end
-      """)
+    mod = Generation.CardColumns
 
     assert Enum.map(mod.auix_configurations().product.layout_trees.index.children, & &1.key) ==
              [:name, :reference, :msrp]
@@ -995,21 +1200,11 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_index_columns_without_block() :: term()
   defp assert_index_columns_without_block do
-    with_options =
-      compiled_ui("""
-        auix_create_ui do
-          index_columns :product, [:reference], page_title: "Products"
-        end
-      """)
+    with_options = Generation.IndexOptions
 
     assert [%Node.Index{options: [page_title: "Products"]}] = with_options.auix_layouts()
 
-    pair_only =
-      compiled_ui("""
-        auix_create_ui do
-          index_columns :product, [name: [label: "Product"]]
-        end
-      """)
+    pair_only = Generation.IndexPair
 
     assert [%Node.Index{children: [%Node.Field{key: :name, overrides: %{label: "Product"}}]}] =
              pair_only.auix_layouts()
@@ -1017,48 +1212,14 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
   @spec assert_index_without_card() :: term()
   defp assert_index_without_card do
-    mod =
-      compiled_ui("""
-        auix_create_ui do
-          index_columns :product, [:reference]
-        end
-      """)
+    mod = Generation.IndexWithoutCard
 
     assert mod.auix_configurations().product.layout_trees.index.card == nil
   end
 
   @spec assert_nested_preload() :: term()
   defp assert_nested_preload do
-    mod =
-      compiled_ui("""
-        auix_resource_metadata :product_location do
-          context Aurora.Uix.Test.MirrorCtx
-          schema Aurora.Uix.Test.MirrorCtx.ProductLocation
-          field :products, resource: :product
-        end
-
-        auix_create_ui do
-          index_columns :product, [:reference, :product_location]
-
-          edit_layout :product do
-            stacked [:reference, :product_location]
-          end
-
-          show_layout :product do
-            stacked [:reference, :product_location, :product_transactions]
-          end
-
-          index_columns :product_location, [:name]
-
-          edit_layout :product_location do
-            stacked [:name]
-          end
-
-          show_layout :product_location do
-            stacked [:name, :products]
-          end
-        end
-      """)
+    mod = Generation.NestedPreload
 
     assert mod.auix_resource(:product_location).fields.products.resource == :product_location
     preloads = mod.auix_preloads()
