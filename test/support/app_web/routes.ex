@@ -68,6 +68,14 @@ defmodule Aurora.UixWeb.Test.Routes do
           "suppliers"
         ])
 
+        RoutesHelper.register_mirror(Form, "form", ["products", "product_locations"])
+        RoutesHelper.register_mirror(FormOptions, "form-options", ["products"])
+        RoutesHelper.register_mirror(Uploads, "uploads", ["products"])
+        RoutesHelper.register_mirror(Renderers, "renderers", ["products"])
+        RoutesHelper.register_mirror(PredefinedRenderers, "predefined-renderers", ["products"])
+        RoutesHelper.register_mirror(RendererModuleTable, "renderer-module-table", ["products"])
+        RoutesHelper.register_mirror(RendererPrecedence, "renderer-precedence", ["products"])
+
         RoutesHelper.register_product_crud(
           MirrorCtx.ManualResource,
           "mirror-ctx-manual-resource-"
@@ -101,83 +109,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         # Tests with required CRUD links for testing
 
         RoutesHelper.register_crud(
-          CreateUILayoutTest.Product,
-          "create-ui-layout-products"
-        )
-
-        RoutesHelper.register_crud(
-          CustomFieldRenderersTest.Product,
-          "custom-field-renderers-products"
-        )
-
-        RoutesHelper.register_crud(
-          CustomFieldRenderersIndexColumnsTest.Product,
-          "custom-field-renderers-index-columns-products"
-        )
-
-        RoutesHelper.register_crud(
-          PredefinedRenderersTest.Product,
-          "predefined-renderers-products"
-        )
-
-        RoutesHelper.register_crud(
-          PredefinedRenderersInteractiveTest.Product,
-          "predefined-renderers-interactive-products"
-        )
-
-        RoutesHelper.register_crud(
-          HtmlTypeRenderersAppConfigTest.Product,
-          "html-type-renderers-app-config-products"
-        )
-
-        RoutesHelper.register_crud(
-          HtmlTypeRenderersModuleTest.Product,
-          "html-type-renderers-module-products"
-        )
-
-        RoutesHelper.register_crud(
-          HtmlTypeRenderersPrecedenceTest.Product,
-          "html-type-renderers-precedence-products"
-        )
-
-        RoutesHelper.register_crud(
-          InlineFieldOptsTest.Product,
-          "inline-field-opts-products"
-        )
-
-        RoutesHelper.register_crud(
-          SpecialFieldsUITest.Product,
-          "special-fields-ui-products"
-        )
-
-        RoutesHelper.register_crud(
-          MultiSelectUITest.Product,
-          "multi-select-ui-products"
-        )
-
-        RoutesHelper.register_crud(
-          MultiSelectUIActionsTest.Product,
-          "multi-select-actions-products"
-        )
-
-        RoutesHelper.register_crud(
-          AshMultiSelectTest.Post,
-          "ash-multi-select-posts"
-        )
-
-        RoutesHelper.register_crud(
-          UnimplementedFieldUITest.Product,
-          "unimplemented-field-products"
-        )
-
-        RoutesHelper.register_crud(
           RecordNavigationTest.Product,
           "record-navigation-products"
-        )
-
-        RoutesHelper.register_crud(
-          AshDefaultLayoutTest.Author,
-          "ash-default-layout-authors"
         )
 
         RoutesHelper.register_crud(
@@ -296,16 +229,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          CreateUIActionsFormTest,
-          "create-ui-actions-form-"
-        )
-
-        RoutesHelper.register_crud(
-          ActionIconsFormShowTest.Product,
-          "action-icons-form-show-products"
-        )
-
-        RoutesHelper.register_product_crud(
           GettextDomainTest,
           "gettext-domain-"
         )
@@ -376,63 +299,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
-          UploadFieldTest.Product,
-          "upload-field-products"
-        )
-
-        RoutesHelper.register_crud(
-          UploadFieldErrorTest.Product,
-          "upload-field-error-products"
-        )
-
-        RoutesHelper.register_crud(
-          SocketAwareUploadFieldTest.Product,
-          "socket-aware-upload-products"
-        )
-
-        RoutesHelper.register_crud(
-          DownloadUploadFieldTest.Product,
-          "download-upload-field-products"
-        )
-
-        RoutesHelper.register_crud(
           AshActorPolicyTest.PublicItem,
           "ash-actor-public-items"
-        )
-
-        RoutesHelper.register_crud(
-          CheckboxCheckedTest.Product,
-          "checkbox-checked-products"
-        )
-
-        RoutesHelper.register_crud(
-          AshCheckboxCheckedTest.Item,
-          "ash-checkbox-checked-items"
-        )
-
-        RoutesHelper.register_crud(
-          FormDiscardGuardTest.Product,
-          "form-discard-guard-products"
-        )
-
-        RoutesHelper.register_crud(
-          FlashKindsTest.Product,
-          "flash-kinds-products"
-        )
-
-        RoutesHelper.register_crud(
-          FormControlsTest.Product,
-          "form-controls-products"
-        )
-
-        RoutesHelper.register_crud(
-          AshFormDiscardGuardTest.Author,
-          "ash-form-discard-guard-authors"
-        )
-
-        RoutesHelper.register_crud(
-          FormDiscardGuardDisabledTest.Product,
-          "form-discard-guard-disabled-products"
         )
 
         RoutesHelper.register_crud(

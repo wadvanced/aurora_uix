@@ -19,18 +19,21 @@ defmodule Aurora.UixWeb.Test.Mirror do
   Prepares the caller as a mirror views module for `backend`.
 
   ## Parameters
-  - `opts` (keyword()) - `backend: :ash | :ctx`.
+  - `opts` (keyword()) - `backend: :ash | :ctx`; `uix:` holds the quoted options of
+    `use Aurora.Uix` (defaults to none).
 
   ## Returns
   Macro.t() - The quoted setup of the views module.
   """
   @spec __using__(keyword()) :: Macro.t()
-  defmacro __using__(backend: backend) do
+  defmacro __using__(opts) do
+    backend = Keyword.fetch!(opts, :backend)
+    uix_opts = Keyword.get(opts, :uix, [])
     Module.put_attribute(__CALLER__.module, :mirror_backend, backend)
 
     quote do
       Module.register_attribute(__MODULE__, :auix_resource_metadata, persist: true)
-      use Aurora.Uix
+      use Aurora.Uix, unquote(uix_opts)
 
       import Aurora.UixWeb.Test.Mirror,
         only: [mirror_resource: 1, mirror_resource: 2, mirror_resource: 3]
