@@ -31,9 +31,9 @@ defmodule Aurora.Uix.Test.Cases.ParserParityTest do
     }
   ]
 
-  test "sortable? and embedded_schema? answer the same on both backends" do
+  test "sortable? answers the same on both backends" do
     for backend <- @parsers do
-      %{parser: parser, product: product, embedded: embedded} = backend
+      %{parser: parser, product: product} = backend
 
       fields =
         product
@@ -49,12 +49,6 @@ defmodule Aurora.Uix.Test.Cases.ParserParityTest do
 
       refute parser.parse_field(product, :product, backend.undefined_key).sortable?,
              "#{backend.name}: a key the resource does not define is not sortable"
-
-      assert parser.embedded_schema?(embedded),
-             "#{backend.name}: #{inspect(embedded)} is embedded"
-
-      for module <- [product, String],
-          do: refute(parser.embedded_schema?(module), "#{backend.name}: #{inspect(module)}")
     end
 
     settings =
@@ -63,5 +57,17 @@ defmodule Aurora.Uix.Test.Cases.ParserParityTest do
       |> Enum.find(&(&1.key == :settings))
 
     refute settings.sortable?
+  end
+
+  test "embedded_schema? answers the same on both backends" do
+    for backend <- @parsers do
+      %{parser: parser, product: product, embedded: embedded} = backend
+
+      assert parser.embedded_schema?(embedded),
+             "#{backend.name}: #{inspect(embedded)} is embedded"
+
+      for module <- [product, String],
+          do: refute(parser.embedded_schema?(module), "#{backend.name}: #{inspect(module)}")
+    end
   end
 end

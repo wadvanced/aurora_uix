@@ -106,9 +106,31 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     }
   ]
 
-  test "resource metadata: defaults, field changes, field order and generated fields" do
+  test "a resource takes its defaults from its schema" do
     for backend <- @backends do
-      labelled("[backend: #{backend.name}]", fn -> assert_metadata(backend) end)
+      labelled("[backend: #{backend.name}]", fn ->
+        defaults = resource_configs(backend.defaults)
+
+        validate_schema(defaults, :product,
+          cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
+        )
+
+        validate_schema(defaults, :product_transaction,
+          product_id: %{html_type: :select, name: "product_id", length: 36}
+        )
+
+        for {name, schema} <- [
+              product: backend.product,
+              product_transaction: backend.product_transaction
+            ] do
+          resource = backend.defaults.auix_resource(name)
+
+          assert resource.schema == schema
+          assert resource.context == backend.context
+          assert resource.fields != nil
+          assert resource.fields != []
+        end
+      end)
     end
 
     resource_configs = resource_configs(WithoutOptions)
@@ -122,7 +144,130 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     refute WithoutOptions |> Module.concat(Index) |> Code.ensure_loaded?()
   end
 
-  test "resource: and declared resources link fields to resources" do
+  test "field declarations change the parsed fields, the last one winning" do
+    for backend <- @backends do
+      labelled("[backend: #{backend.name}]", fn ->
+        field_changes = resource_configs(backend.field_changes)
+
+        validate_schema(field_changes, :product,
+          inactive: %{html_type: :checkbox, name: "inactive", label: "Inactive", length: 10},
+          reference: %{sortable?: true},
+          name: %{sortable?: false},
+          inserted_at: %{hidden: true},
+          weight: %{precision: 16, scale: 3},
+          length: %{precision: 16, scale: 3},
+          width: %{precision: 16, scale: 3},
+          # Order is important, scale is changed, once again on the :height field
+          height: %{precision: 16, scale: 1},
+          data_virtual: %{html_type: :checkbox, sortable?: false},
+          status: %{renderer_opts: [max: 5]}
+        )
+
+        contacts = get_in(field_changes, [:product, Access.key!(:fields), :contacts])
+
+        assert contacts.expanded == true
+        # The embeds_many source-of-truth keys must survive the override.
+        assert Map.has_key?(contacts.data, :related)
+        assert Map.has_key?(contacts.data, :owner)
+        assert Map.has_key?(contacts.data, :resource)
+      end)
+    end
+  end
+
+  test "fields_order follows the declaration order" do
+    for backend <- @backends do
+      labelled("[backend: #{backend.name}]", fn ->
+        field_changes = resource_configs(backend.field_changes)
+
+        # Library defect on ash (#580): `fields_order` follows map order, not the declaration
+        # order of the resource's attributes and relationships.
+        if backend.name == :ctx do
+          field_changes
+          |> get_in([Access.key!(:product), Access.key!(:fields_order)])
+          |> assert_values_order([
+            :id,
+            :reference,
+            :name,
+            :description,
+            :quantity_at_hand,
+            :quantity_initial,
+            :quantity_entries,
+            :quantity_exits,
+            :cost,
+            :msrp,
+            :rrp,
+            :list_price,
+            :discounted_price,
+            :weight,
+            :length,
+            :width,
+            :height,
+            :image,
+            :thumbnail,
+            :status,
+            :grade,
+            :labels,
+            :units_per_box,
+            :margin,
+            :released_on,
+            :opens_at,
+            :audited_at,
+            :discontinued_at,
+            :deleted,
+            :inactive,
+            :packaging,
+            :contacts,
+            :product_location_id,
+            :product_transactions,
+            :product_barcode,
+            :product_location,
+            :suppliers,
+            :data_virtual
+          ])
+        end
+      end)
+    end
+  end
+
+  test "auix_create_ui with no layout generates the index and the form modules" do
+    for backend <- @backends do
+      labelled("[backend: #{backend.name}]", fn ->
+        ui =
+          compile_ui(
+            "auix_resource_metadata :product do\n    #{backend.source}\n  end\n\n  auix_create_ui()"
+          )
+
+        index_functions = Module.concat(ui, Product.Index).__info__(:functions)
+        assert {:__live__, 0} in index_functions
+        assert {:handle_params, 3} in index_functions
+        assert {:handle_event, 3} in index_functions
+        assert {:handle_info, 2} in index_functions
+
+        form_functions = Module.concat(ui, Product.FormComponent).__info__(:functions)
+        assert {:__live__, 0} in form_functions
+        assert {:__components__, 0} in form_functions
+        assert {:update, 2} in form_functions
+        assert {:handle_event, 3} in form_functions
+
+        product = ui.auix_resource(:product)
+        assert product.schema == backend.product
+        assert product.context == backend.context
+        assert product.fields != nil
+        assert product.fields != []
+      end)
+    end
+  end
+
+  test "a field declared generated? is loaded with the entity" do
+    for backend <- @backends do
+      labelled("[backend: #{backend.name}]", fn ->
+        assert :name in compile_generated(backend, "generated?: true").auix_preloads().product
+        refute :name in compile_generated(backend, "label: \"Name\"").auix_preloads().product
+      end)
+    end
+  end
+
+  test "a declared resource decides whether an embedded schema is embedded" do
     body_a = """
       auix_resource_metadata :person,
         schema: Aurora.Uix.Test.Cases.ResourceMetadataTest.Person,
@@ -142,7 +287,9 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
     [{b, _}] = compile(body_b)
     refute b.auix_resource(:person__address).embedded?
+  end
 
+  test "declared and imported resources link the associations of a resource" do
     meta = compile_meta()
 
     imports =
@@ -184,6 +331,10 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
     assert plain_mod.auix_resource(:catalog_product).fields.product_transactions.data.resource ==
              nil
+  end
+
+  test "resource: links an embedded field and an association to a named resource" do
+    meta = compile_meta()
 
     [{post_mod, _}] =
       compile("""
@@ -239,21 +390,7 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
              {:catalog_product, :product_location}
   end
 
-  test "resource metadata compile errors" do
-    plain_field = fn field ->
-      """
-        auix_resource_metadata :product do
-          schema Aurora.Uix.Test.MirrorCtx.Product
-          context Aurora.Uix.Test.MirrorCtx
-          field #{inspect(field)}, resource: :product_location
-        end
-
-        auix_resource_metadata :product_location,
-          context: Aurora.Uix.Test.MirrorCtx,
-          schema: Aurora.Uix.Test.MirrorCtx.ProductLocation
-      """
-    end
-
+  test "field options that fail compilation" do
     generated_field = fn field_options ->
       """
         auix_resource_metadata :product do
@@ -277,6 +414,16 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
            field :name, lable: "Name"
          end
        """, ~r/unknown options \[:lable\]/},
+      {"generated? must be a boolean", generated_field.("generated?: \"yes\""), ~r/generated\?/},
+      {"data no longer accepts generated", generated_field.("data: %{generated: true}"),
+       ~r/unknown options \[:generated\]/}
+    ]
+
+    assert_compile_errors(cases)
+  end
+
+  test "resource options that fail compilation" do
+    cases = [
       {"a mistyped resource option",
        """
          auix_resource_metadata :product,
@@ -302,7 +449,28 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
            schema: Aurora.Uix.Test.MirrorCtx.Product,
            context: Aurora.Uix.Test.MirrorCtx,
            backend_opts: [ash_actor_assign: :current_user]
-       """, ~r/unknown options \[:ash_actor_assign\]/},
+       """, ~r/unknown options \[:ash_actor_assign\]/}
+    ]
+
+    assert_compile_errors(cases)
+  end
+
+  test "resource: links that fail compilation" do
+    plain_field = fn field ->
+      """
+        auix_resource_metadata :product do
+          schema Aurora.Uix.Test.MirrorCtx.Product
+          context Aurora.Uix.Test.MirrorCtx
+          field #{inspect(field)}, resource: :product_location
+        end
+
+        auix_resource_metadata :product_location,
+          context: Aurora.Uix.Test.MirrorCtx,
+          schema: Aurora.Uix.Test.MirrorCtx.ProductLocation
+      """
+    end
+
+    cases = [
       {"resource: with an unknown name",
        """
          auix_resource_metadata :product do
@@ -327,141 +495,22 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
       {"resource: on a plain field", plain_field.(:name),
        ~r/`resource:` on field :name of :product is not allowed: its type is :string, and only an embedded field or an association links to a resource/},
       {"resource: on a foreign key", plain_field.(:product_location_id),
-       ~r/`resource:` on field :product_location_id of :product is not allowed: .* Put `resource:` on the association field :product_location/},
-      {"generated? must be a boolean", generated_field.("generated?: \"yes\""), ~r/generated\?/},
-      {"data no longer accepts generated", generated_field.("data: %{generated: true}"),
-       ~r/unknown options \[:generated\]/}
+       ~r/`resource:` on field :product_location_id of :product is not allowed: .* Put `resource:` on the association field :product_location/}
     ]
 
-    for {label, body, regex} <- cases do
-      labelled(label, fn ->
-        assert_raise(DslError, regex, fn -> compile_in_own_process(body) end)
-      end)
-    end
+    assert_compile_errors(cases)
   end
 
-  @spec assert_metadata(map()) :: :ok
-  defp assert_metadata(backend) do
-    defaults = resource_configs(backend.defaults)
+  @spec assert_compile_errors([{binary(), binary(), Regex.t()}]) :: term()
+  defp assert_compile_errors(cases) do
+    for compile_case <- cases, do: assert_compile_error(compile_case)
+  end
 
-    validate_schema(defaults, :product,
-      cost: %{html_type: :number, name: "cost", label: "Cost", precision: 10, scale: 2}
-    )
-
-    validate_schema(defaults, :product_transaction,
-      product_id: %{html_type: :select, name: "product_id", length: 36}
-    )
-
-    for {name, schema} <- [
-          product: backend.product,
-          product_transaction: backend.product_transaction
-        ] do
-      resource = backend.defaults.auix_resource(name)
-
-      assert resource.schema == schema
-      assert resource.context == backend.context
-      assert resource.fields != nil
-      assert resource.fields != []
-    end
-
-    field_changes = resource_configs(backend.field_changes)
-
-    validate_schema(field_changes, :product,
-      inactive: %{html_type: :checkbox, name: "inactive", label: "Inactive", length: 10},
-      reference: %{sortable?: true},
-      name: %{sortable?: false},
-      inserted_at: %{hidden: true},
-      weight: %{precision: 16, scale: 3},
-      length: %{precision: 16, scale: 3},
-      width: %{precision: 16, scale: 3},
-      # Order is important, scale is changed, once again on the :height field
-      height: %{precision: 16, scale: 1},
-      data_virtual: %{html_type: :checkbox, sortable?: false},
-      status: %{renderer_opts: [max: 5]}
-    )
-
-    contacts = get_in(field_changes, [:product, Access.key!(:fields), :contacts])
-
-    assert contacts.expanded == true
-    # The embeds_many source-of-truth keys must survive the override.
-    assert Map.has_key?(contacts.data, :related)
-    assert Map.has_key?(contacts.data, :owner)
-    assert Map.has_key?(contacts.data, :resource)
-
-    # Library defect on ash: `fields_order` follows map order, not the declaration order of the
-    # resource's attributes and relationships.
-    if backend.name == :ctx do
-      field_changes
-      |> get_in([Access.key!(:product), Access.key!(:fields_order)])
-      |> assert_values_order([
-        :id,
-        :reference,
-        :name,
-        :description,
-        :quantity_at_hand,
-        :quantity_initial,
-        :quantity_entries,
-        :quantity_exits,
-        :cost,
-        :msrp,
-        :rrp,
-        :list_price,
-        :discounted_price,
-        :weight,
-        :length,
-        :width,
-        :height,
-        :image,
-        :thumbnail,
-        :status,
-        :grade,
-        :labels,
-        :units_per_box,
-        :margin,
-        :released_on,
-        :opens_at,
-        :audited_at,
-        :discontinued_at,
-        :deleted,
-        :inactive,
-        :packaging,
-        :contacts,
-        :product_location_id,
-        :product_transactions,
-        :product_barcode,
-        :product_location,
-        :suppliers,
-        :data_virtual
-      ])
-    end
-
-    ui =
-      compile_ui(
-        "auix_resource_metadata :product do\n    #{backend.source}\n  end\n\n  auix_create_ui()"
-      )
-
-    index_functions = Module.concat(ui, Product.Index).__info__(:functions)
-    assert {:__live__, 0} in index_functions
-    assert {:handle_params, 3} in index_functions
-    assert {:handle_event, 3} in index_functions
-    assert {:handle_info, 2} in index_functions
-
-    form_functions = Module.concat(ui, Product.FormComponent).__info__(:functions)
-    assert {:__live__, 0} in form_functions
-    assert {:__components__, 0} in form_functions
-    assert {:update, 2} in form_functions
-    assert {:handle_event, 3} in form_functions
-
-    product = ui.auix_resource(:product)
-    assert product.schema == backend.product
-    assert product.context == backend.context
-    assert product.fields != nil
-    assert product.fields != []
-
-    assert :name in compile_generated(backend, "generated?: true").auix_preloads().product
-    refute :name in compile_generated(backend, "label: \"Name\"").auix_preloads().product
-
-    :ok
+  @spec assert_compile_error({binary(), binary(), Regex.t()}) :: term()
+  defp assert_compile_error({label, body, regex}) do
+    labelled(label, fn ->
+      assert_raise(DslError, regex, fn -> compile_in_own_process(body) end)
+    end)
   end
 
   @spec compile_generated(map(), binary()) :: module()
