@@ -4,7 +4,7 @@
 **Complexity:** normal
 
 ### Overview
-This issue replaces the 710 tests and 8 browser features with scenario tests over one mirrored fixture, one functionality per test: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3` and `UI-14`. `UI-14` states the one-functionality-per-test rule there, and `UI-15` regroups by that rule the tests `UI-4` merged.
+This issue replaces the 710 tests and 8 browser features with scenario tests over one mirrored fixture, one functionality per test: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3` and `UI-14`. `UI-14` states the one-functionality-per-test rule there, and `UI-15` regroups by that rule the tests `UI-4` merged. `UI-16` runs before `UI-8`: it makes the full suite not slower than the suite of the original tree, and `UI-8` to `UI-13` each run the time check `AC-C5`.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
@@ -17,7 +17,8 @@ This issue replaces the 710 tests and 8 browser features with scenario tests ove
 | UI-5 | UI | tests · layout and generation; guide capture views | UI-4 | federico/569-ui-5-layout-generation | test: cover layout and generation with scenarios (#569 · UI-5) |
 | UI-6 | UI | tests · index | UI-5 | federico/569-ui-6-index | test: cover the index with scenarios (#569 · UI-6) |
 | UI-7 | UI | tests · form | UI-6 | federico/569-ui-7-form | test: cover the form with scenarios (#569 · UI-7) |
-| UI-8 | UI | tests · show | UI-7 | federico/569-ui-8-show | test: cover the show view with scenarios (#569 · UI-8) |
+| UI-16 | UI | tests · suite time: the 52 views copies of `generation_test.exs` dropped, the browser features in the async phase, `.claude/scripts/suite-time.sh` | UI-7 | federico/569-ui-16-suite-time | test: make the suite not slower than the original (#569 · UI-16) |
+| UI-8 | UI | tests · show | UI-16 | federico/569-ui-8-show | test: cover the show view with scenarios (#569 · UI-8) |
 | UI-9 | UI | tests · associations and embeds | UI-8 | federico/569-ui-9-associations-embeds | test: cover associations and embeds with scenarios (#569 · UI-9) |
 | UI-10 | UI | tests · navigation and extension | UI-9 | federico/569-ui-10-navigation-extension | test: cover navigation and extension with scenarios (#569 · UI-10) |
 | UI-11 | UI | tests · backend-specific | UI-10 | federico/569-ui-11-backend-specific | test: consolidate the backend-specific tests (#569 · UI-11) |
@@ -1812,9 +1813,275 @@ Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/
 2. `mix test` — full suite green (review-issue runs this; code-issue runs only this section's test files and the coverage run of AC-C3)
 3. `mix compile --warnings-as-errors` clean
 <!-- section:UI-7:end -->
+<!-- section:UI-16:start -->
+### UI-16 — UI · tests · suite time: mounted views under cover, browser features in the async phase, the time script
+Depends on: UI-7
+
+#### Documentation references
+- `AGENTS.md` § Testing › LiveView vs. Wallaby, › Scope and Coverage (no edit)
+- `CONTRIBUTING.md § Wallaby Setup` (no edit)
+
+#### Implementation details
+
+This section changes test files, test support, `test/config/test.exs` and adds one script, `.claude/scripts/suite-time.sh`. It changes no file under `lib/`, deletes no file and adds no test. Every test passes on its first run. Layout types: none.
+
+The full suite after `UI-7` takes 60 to 65 s; the suite of the original tree (`25a9ae6`, 710 tests and 8 features) takes 42 to 44 s. This section makes the suite after `UI-16` not slower than the original, and states the time rule that `UI-8` to `UI-13` keep (`##### Carry rules`, rule 3). `UI-8` depends on this section, so no section is coded under the slow design.
+
+Facts this section builds on, measured with `AURORA_UIX_TEST_PG=shared MIX_ENV=test mix test` (`Finished in`), runs back to back on one machine, trees `25a9ae6` (original), `cee3ee2` (after `UI-7`, same test files as `main` at f050ebc) and copies of `cee3ee2` carrying the changes of this section:
+- The original tree: 41.8, 42.4, 42.6, 42.7, 42.8, 43.7, 43.9 and 44.1 s in eight quiet runs (710 tests, 8 features); a run that excludes every test (`--exclude test --exclude feature`) takes 5.7 s.
+- The tree after `UI-7`: 60.3, 63.1, 63.2 and 65.1 s in four quiet runs (436 tests, 8 features); the run that excludes every test takes 25.2 s.
+- The gap is one file. `test/cases/generation_test.exs` loads in 27.75 s of the 33 s that loading all test files takes one after the other, and its 52 views modules (25 variants on two backends, `ManualResource` and `IncludedLayouts`) compile in 19.6 s, serially, because a file compiles its modules one at a time. Each variant is compiled twice: once under `test/support/mirror_web/` and once in that file.
+- Without those 52 modules, the file loads in 5.4 s, the run that excludes every test takes 6.1 to 6.9 s, and the user CPU time of the full run falls from 58.8 and 60.2 s (original) to 50.7 and 55.4 s. The 52 modules credit 236 lines to the coverage total; 188 of them are lines of the mounted modules that `assert_views/0` reaches through `auix_kind/0` and `auix_fields/0`, and 48 are lines of library code that runs while the copies compile.
+- With those 52 modules dropped and `assert_views/0` reading the mounted modules, `mix test --cover` reports `82.73% | Total` against the floor of 81.62%, and the suite takes 43.4, 43.5, 44.2, 45.3 and 48.8 s in five runs: not faster than the original. The suite then runs in two phases: the async modules (15 s), then the sync modules one after the other (27 to 31 s). 13 s of the sync phase are the 8 Wallaby features of three browser modules, which wait on a browser, not on the CPU.
+- Those 8 features run in 6.2 to 7.5 s when their modules are `async: true` with a sandboxed connection of their own (three runs made while preparing this section failed one feature each: the feature read the saved row before the LiveView process had written it, because the text `Listing Posts` is on the page behind the modal and `click_and_wait/5` returns at once; with the wait for the closed form of step 2, eight consecutive runs of `mix test test/browser_cases` printed `8 features, 0 failures`). With that change, and the 52 modules dropped, the suite takes 34.7 and 35.8 s against 42.4 and 42.8 s for the original tree, in alternating runs (`async` 16.5 to 16.7 s, `sync` 18.0 to 19.3 s).
+- `.claude/scripts/suite-time.sh` run on a copy of `cee3ee2` with every change of this section, against the original tree, `Finished in` seconds, reference then candidate: three runs each, 44.4 43.3 41.8 against 35.3 35.3 34.4; three runs each, 46.0 42.2 41.1 against 41.4 59.5 34.6 (the 59.5 s run overlapped a background burst); five runs each, 41.1 42.1 40.3 40.1 66.1 against 37.3 33.3 34.2 35.0 65.5 (the last pair overlapped the same burst), whose `real` medians are 42.06 s against 36.43 s. The script printed `PASS` and `EXIT: 0` each time; a median of five tolerates two such runs.
+- Tried and not adopted: making the three scenario modules of `UI-2`, `UI-6` and `UI-7` `async: true` fails 50 of their 60 tests (they delete and seed the shared mirror tables) and takes 229.7 s. Splitting the rest of `generation_test.exs` into three self-contained files lowers the async phase by 0.5 s only, because `ThemeRulesTest` and `ThemeHelperTest` end it at 14.3 and 14.7 s: the first call of `ThemeHelper.registered_themes/0` loads every module of the code path (6.4 s on the original tree, 7.6 s on the new one) and both modules wait for it. That scan is library code and stays as it is.
+- Run-to-run noise on the machine of the measurements is 1 to 3 s in quiet runs; runs that overlapped a heavy background job took 60 to 130 s on both trees and are not used.
+
+Tests of this area: the one test of `##### Red tests`, in `test/cases/generation_test.exs`.
+
+##### Acceptance criteria
+- [ ] AC-1: the full suite of this section's tip is not slower than the original tree's: `.claude/scripts/suite-time.sh <reference-dir>` prints `PASS` and `EXIT: 0`, which means the median of five `Finished in` seconds of the tip, and the median of five `real` seconds of its `mix test` command, are each not greater than the same medians of the reference tree `25a9ae6`, the ten runs alternating back to back on one machine with nothing else running (mechanical — no red test; verified by that command; `<reference-dir>` is a checkout of `25a9ae6` made once with `git worktree add --detach <dir> 25a9ae6`, its `deps` copied from the tip, `MIX_ENV=test mix ecto.create && MIX_ENV=test mix ecto.migrate` run in it; the section log records the four result lines)
+- [ ] AC-2: S6j asserts, for every variant of `@variant_views` on both backends and for every module of `@single_views`, that each module its mounted views module registers has one of the kinds `:form_component`, `:index_component`, `:index_live` and `:show_component`, and lists at least one field unless its kind is `:index_live`; the assertion message names the variant, the backend and the module
+- [ ] AC-3: S6j reads a mounted views module that exports none of `auix_resources/0`, `auix_layouts/0` and `auix_modules/0` as an empty signature, and keeps the asserted values of `Manual`, `Included`, `SeparatedResources`, `NamedHost`, `ManualResource` and `IncludedLayouts`
+- [ ] AC-4: no test file declares a views module for a variant: the 52 modules are gone (mechanical — no red test; verified by `grep -rn "use Aurora.UixWeb.Test.Mirror.Variants" test/cases test/cases_live test/browser_cases` returning nothing)
+- [ ] AC-5: the three browser modules run in the async phase, each with a sandboxed connection of its own, and every `Phoenix.LiveViewTest` test mounts its views as before, from a request that carries no sandbox metadata (mechanical — no red test; verified by `grep -c "async: true" test/browser_cases/*.exs` printing a count of `1` after each of the three file names, `grep -c "count: 0))" test/browser_cases/ash_embeds_test.exs test/browser_cases/embeds_many_test.exs` printing `2` after each of the two file names, `mix test test/browser_cases` printing `8 features, 0 failures`, and `mix test test/cases_live` printing `0 failures`)
+- [ ] AC-6: `.claude/scripts/suite-time.sh` refuses a reference directory that does not exist and an even number of runs (mechanical — no red test; verified by `.claude/scripts/suite-time.sh /nonexistent` and `.claude/scripts/suite-time.sh . 2` each printing `EXIT: 64`)
+- [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
+- [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
+- [ ] AC-C4: the test of this section covers one functionality (manual — no red test; verified by review: S6j is the one test of `##### Red tests` and its body asserts only what its row names)
+
+##### Test ports
+- `Aurora.UixWeb.Test.Mirror.sibling/2` (`test/support/mirror_web/mirror.ex`) · existing: the mounted views module of a variant, `sibling(:ash | :ctx, name)`
+- `auix_resources/0`, `auix_layouts/0`, `auix_modules/0` of a views module and `auix_kind/0`, `auix_fields/0` of every module `auix_modules/0` returns (`lib/aurora_uix/layout/create_ui.ex` `module_code/2`) · existing; the helpers `signature/1` and `exported/3` of the test file read them
+- `Phoenix.Ecto.SQL.Sandbox` (`init/1`, `call/2`, `allow/2`, `metadata_for/3`) of `phoenix_ecto` · existing, in `deps/phoenix_ecto/lib/phoenix_ecto/sql/sandbox.ex`; Wallaby's `use Wallaby.Feature` passes the metadata of the test's connection as the user agent of the browser session when `config :wallaby, otp_app:` is set
+
+##### Red tests
+Every row passes on first run.
+
+| AC | Placement | Setup | Test file | Test name | Assertion sketch |
+|---|---|---|---|---|---|
+| AC-2, AC-3 | amend `test/cases/generation_test.exs` `"the views under cover have the signature of the mounted views"` (`UI-5`, S6j) | the mounted views modules of the 25 variants and of `@single_views`; no database | same file | S6j `"the mounted views export a known kind and the fields of each generated module"` | `assert_views()` of step 1, the one call of the test: `assert_registry_kinds/2` for each mounted module, then the three existing `assert_manual_views/0`, `assert_included_views/0` and `assert_resource_only_views/0`, which read the mounted modules |
+
+##### Carry rules
+These rules apply to `UI-8` to `UI-13`; each of those sections restates the rule it uses.
+1. Mounted views. This rule replaces the views-under-cover rule (variant rule 10 of `UI-5` to `UI-7`, step 3 of `UI-11`). A module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui` and `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. No module is written in a test file to compile a variant a second time. A variant adds its name to `@variant_views` of `test/cases/generation_test.exs`; a definition that is no variant adds its mounted module to `@single_views`. A section adds no module to that file and no test for it. `mix test --cover` counts the lines of the mounted modules through S6j and the lines of the library through the scenarios.
+2. Browser modules. A module of `test/browser_cases/` starts with `use ExUnit.Case, async: true`, then `use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test` when it declares resources, then `use Wallaby.Feature`; it does not use `ConnCase`: `use Wallaby.Feature` checks out the connection of the test and hands its metadata to the browser session. A module that creates rows calls the seed and delete functions it needs (`import Aurora.Uix.Test.Helper` for the guide schemas, `import Aurora.Uix.Test.Mirror.Seeds` and `import Aurora.UixWeb.Test.Scenario` for the mirror) and reads rows through `Aurora.Uix.Repo` in the test process.
+3. Time. A section of this issue does not make the full suite slower than the original tree. Its AC-C5 runs `.claude/scripts/suite-time.sh <reference-dir>` on the section's tip. A section whose run prints `FAIL` removes its own cost before it is reviewed: a variant that declares only the resources its scenarios mount, one `Seeds` call per scenario and not per backend run when the scenario does not need a fresh table, a module that needs no database made `async: true`. It never deletes a test, never weakens an assertion and never lowers the coverage floor to pass.
+4. Reading the time. `Finished in` is the figure of the ExUnit summary; `real` is the wall clock of the whole `mix test` command with a warm build. A figure measured while another suite runs on the machine, a recompile, a run with a failure and a run under cover are not used. The original tree has one browser feature (the second one of `test/browser_cases/embeds_many_test.exs`) that fails now and then: `suite-time.sh` repeats a failed run up to three times.
+
+##### Modules & components
+1. `test/cases/generation_test.exs` — modified. The changes, in file order:
+   - delete the 52 `defmodule` blocks that sit between `defmodule Aurora.UixWeb.Test.Generation.OptionsSet` and `defmodule Aurora.Uix.Test.Cases.GenerationTest`: `Aurora.UixWeb.Test.Generation.Ctx.ManualResource`, `Aurora.UixWeb.Test.Generation.Ctx.IncludedLayouts`, and `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for each of the 25 names of `@variant_views`. `grep -c "^defmodule" test/cases/generation_test.exs` prints `20` after the deletion (`72` before it). The modules `Aurora.UixWeb.Test.Generation.RenderTree`, `…Ash.RenderTree` and `…Ctx.RenderTree` stay.
+   - replace the four lines of `@single_views` with
+     ```elixir
+     @single_views [MirrorCtx.ManualResource, Mirror.IncludedLayouts]
+
+     @kinds [:form_component, :index_component, :index_live, :show_component]
+     ```
+   - rename the test `"the views under cover have the signature of the mounted views"` to `"the mounted views export a known kind and the fields of each generated module"`; its body stays `assert_views()`.
+   - replace `assert_views/0` by
+     ```elixir
+     @spec assert_views() :: term()
+     defp assert_views do
+       for name <- @variant_views, backend <- [:ash, :ctx] do
+         assert_registry_kinds(Mirror.sibling(backend, name), "#{name} on #{backend}")
+       end
+
+       for views <- @single_views, do: assert_registry_kinds(views, inspect(views))
+
+       assert_manual_views()
+       assert_included_views()
+       assert_resource_only_views()
+     end
+     ```
+   - replace `view/2` (its two clauses and its `@spec`) by
+     ```elixir
+     @spec assert_registry_kinds(module(), binary()) :: term()
+     defp assert_registry_kinds(views, label) do
+       for {name, {kind, fields}} <- signature(views).modules do
+         assert kind in @kinds, "#{label}: #{name} has the kind #{inspect(kind)}"
+         assert fields != [] or kind == :index_live, "#{label}: #{name} has no fields"
+       end
+     end
+     ```
+   - in `assert_manual_views/0`, `assert_included_views/0` and `assert_resource_only_views/0`, replace each `backend |> view(:<Name>)` by `backend |> Mirror.sibling(:<Name>)`; replace `signature(Generation.Ctx.ManualResource)` by `signature(MirrorCtx.ManualResource)` and `signature(Generation.Ctx.IncludedLayouts)` by `signature(Mirror.IncludedLayouts)`.
+   `@variant_views`, `signature/1`, `exported/3`, the aliases and every other test of the file stay as they are. The alias `Generation` stays: `assert_render_tree/1` reads `Generation.Ash.RenderTree` and `Generation.Ctx.RenderTree`.
+2. The sandbox of the browser modules, all under `test/`:
+   - `test/config/test.exs`: in `config :wallaby,` add `otp_app: :aurora_uix,` as the first option.
+   - `test/support/app_web/endpoint.ex`: directly above `socket("/live", Socket,`, add
+     ```elixir
+     if Application.compile_env(:aurora_uix, :sandbox) do
+       plug(Phoenix.Ecto.SQL.Sandbox)
+     end
+     ```
+     (`config :aurora_uix, sandbox: Ecto.Adapters.SQL.Sandbox` is already in `test/config/test.exs`, and the socket already passes `:user_agent` as connect info).
+   - `test/support/app_web/sandbox_hook.ex` — new (`rg -n "SandboxHook" test lib` returns nothing), module `Aurora.UixWeb.Test.SandboxHook`, `@moduledoc false`:
+     ```elixir
+     import Phoenix.Component, only: [assign_new: 3]
+     import Phoenix.LiveView, only: [connected?: 1, get_connect_info: 2]
+
+     @spec on_mount(atom(), map(), map(), Phoenix.LiveView.Socket.t()) ::
+             {:cont, Phoenix.LiveView.Socket.t()}
+     def on_mount(:default, _params, _session, socket) do
+       socket =
+         assign_new(socket, :phoenix_ecto_sandbox, fn ->
+           if connected?(socket), do: get_connect_info(socket, :user_agent)
+         end)
+
+       Phoenix.Ecto.SQL.Sandbox.allow(socket.assigns.phoenix_ecto_sandbox, Ecto.Adapters.SQL.Sandbox)
+       {:cont, socket}
+     end
+     ```
+     `Phoenix.Ecto.SQL.Sandbox.allow/2` returns `:ok` for a `nil` metadata, which is what every `Phoenix.LiveViewTest` mount and every dead render passes.
+   - `test/support/app_web/router.ex`: in `live_session :actor_current_user` write `on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :current_user}]`; in `live_session :actor_scope` write `on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :scope}]`; replace the line `load_test_routes()` of the `scope "/", Aurora.UixWeb.Test do` by
+     ```elixir
+     live_session :sandbox, on_mount: [Aurora.UixWeb.Test.SandboxHook] do
+       load_test_routes()
+     end
+     ```
+     The hook runs before `SetActorHook`, as `Phoenix.Ecto.SQL.Sandbox` requires.
+   - `test/browser_cases/ash_embeds_test.exs`, `test/browser_cases/embeds_many_test.exs`, `test/browser_cases/create_ui_default_layout_test.exs`: replace the line `use Aurora.UixWeb.Test.UICase, :phoenix_case` by `use ExUnit.Case, async: true`; after the blank line that follows `use Wallaby.Feature`, insert the line `import Aurora.Uix.Test.Helper` and one blank line. In `ash_embeds_test.exs`, directly after each of the two lines `click_and_wait(session, @save_button, Query.text("Listing Posts"))` and `|> click_and_wait(@save_button, Query.text("Listing Posts"))` that precede a read of `Post`, add `assert_has(session, Query.css("#auix-post-form", count: 0))`; in `embeds_many_test.exs`, directly after each of the two lines that click `@save_button` and wait for `Query.text("Listing Users")`, add `assert_has(session, Query.css("#auix-user-form", count: 0))`. Each added line sits before the `Ash.read!(Post)` and `Accounts.list_users()` call of its feature, so the row is read after the form has closed. `create_ui_default_layout_test.exs` has no other change.
+3. `.claude/scripts/suite-time.sh` — new (`ls .claude/scripts | grep -x suite-time.sh` returns nothing); executable (`chmod +x`); content verbatim:
+   ```bash
+   #!/usr/bin/env bash
+   # Compares the full-suite time of this checkout with the time of a reference checkout of the
+   # original suite, run back to back so both see the same machine load.
+   #
+   # Usage: suite-time.sh <reference-dir> [<runs>]     (runs defaults to 5; an odd number)
+   #
+   # Warms both checkouts (a run that excludes every test, so a recompile is not timed), then runs
+   # `mix test` in <reference-dir> and in the current directory, alternating, <runs> times each.
+   # Every run gives two seconds: `Finished in` of the ExUnit summary, and `real` of the whole
+   # command (VM start, test helper and tests). A run with a failure is not a timing: the run is
+   # repeated, up to three times, and the script stops with EXIT: 3 when all three fail (the
+   # original suite has one browser feature that fails now and then).
+   #
+   # Output (stdout, also /tmp/suite-time-<branch>.verdict):
+   #   finished reference: <seconds>... median <m>
+   #   finished candidate: <seconds>... median <m>
+   #   real reference: <seconds>... median <m>
+   #   real candidate: <seconds>... median <m>
+   #   PASS | FAIL      then      EXIT: 0 | 1
+   #   EXIT: 3 (a run failed or printed no time), EXIT: 64 (bad argument)
+   # PASS means the candidate median is not greater than the reference median, for both seconds.
+   #
+   # `mix test` provisions the test database of each checkout itself; run `mix ecto.migrate`
+   # (MIX_ENV=test) in a fresh reference checkout first.
+   set -uo pipefail
+
+   export MIX_ENV=test
+
+   reference="${1:-}"
+   runs="${2:-5}"
+   branch=$(git branch --show-current 2>/dev/null | tr '/' '-')
+   branch=${branch:-detached}
+   verdict="/tmp/suite-time-${branch}.verdict"
+   rm -f "$verdict"
+
+   emit() {
+     printf '%s\n' "$1" | tee -a "$verdict"
+   }
+
+   case "$runs" in
+     '' | *[!0-9]* | 0)
+       emit "usage: suite-time.sh <reference-dir> [<odd runs>]"
+       emit "EXIT: 64"
+       exit 64
+       ;;
+   esac
+   if [ $((runs % 2)) -eq 0 ] || [ ! -d "$reference" ]; then
+     emit "usage: suite-time.sh <reference-dir> [<odd runs>]"
+     emit "EXIT: 64"
+     exit 64
+   fi
+
+   candidate="$(pwd)"
+   work=$(mktemp -d)
+   finished_reference=""
+   finished_candidate=""
+   real_reference=""
+   real_candidate=""
+
+   # Prints the `Finished in` seconds of a log, or nothing when the run had a failure.
+   finished_of() {
+     grep -qE '^[0-9]+ (doctests?, )?[0-9]* ?(properties, )?[0-9]* ?(features?, )?[0-9]* ?tests?, 0 failures' "$1" || return 1
+     grep -oE 'Finished in [0-9.]+' "$1" | tail -n 1 | grep -oE '[0-9.]+'
+   }
+
+   real_of() {
+     grep -E '^real ' "$1" | tail -n 1 | grep -oE '[0-9.]+'
+   }
+
+   median_of() {
+     tr ' ' '\n' | grep -v '^$' | sort -n | awk '{ v[NR] = $1 } END { print v[int((NR + 1) / 2)] }'
+   }
+
+   for dir in "$reference" "$candidate"; do
+     (cd "$dir" && mix test --exclude test --exclude feature >/dev/null 2>&1)
+   done
+
+   for i in $(seq 1 "$runs"); do
+     for side in reference candidate; do
+       dir="$candidate"
+       [ "$side" = reference ] && dir="$reference"
+       log="$work/${side}-${i}.log"
+       finished=""
+       for attempt in 1 2 3; do
+         (cd "$dir" && /usr/bin/time -p mix test) >"$log" 2>&1
+         finished=$(finished_of "$log") && real=$(real_of "$log") && break
+         finished=""
+       done
+       if [ -z "$finished" ]; then
+         emit "run $i of $side failed three times: $log"
+         emit "EXIT: 3"
+         exit 3
+       fi
+       if [ "$side" = reference ]; then
+         finished_reference="$finished_reference $finished"
+         real_reference="$real_reference $real"
+       else
+         finished_candidate="$finished_candidate $finished"
+         real_candidate="$real_candidate $real"
+       fi
+     done
+   done
+
+   finished_reference_median=$(printf '%s' "$finished_reference" | median_of)
+   finished_candidate_median=$(printf '%s' "$finished_candidate" | median_of)
+   real_reference_median=$(printf '%s' "$real_reference" | median_of)
+   real_candidate_median=$(printf '%s' "$real_candidate" | median_of)
+
+   emit "finished reference:${finished_reference} median ${finished_reference_median}"
+   emit "finished candidate:${finished_candidate} median ${finished_candidate_median}"
+   emit "real reference:${real_reference} median ${real_reference_median}"
+   emit "real candidate:${real_candidate} median ${real_candidate_median}"
+
+   not_greater() {
+     awk -v c="$1" -v r="$2" 'BEGIN { exit !(c <= r) }'
+   }
+
+   if not_greater "$finished_candidate_median" "$finished_reference_median" &&
+     not_greater "$real_candidate_median" "$real_reference_median"; then
+     emit "PASS"
+     emit "EXIT: 0"
+     exit 0
+   fi
+
+   emit "FAIL"
+   emit "EXIT: 1"
+   exit 1
+   ```
+4. Theme: none. `dt/1` strings: none. No route is added; no `lib/` file changes.
+
+##### Green tests
+1. The red test above passes (code-issue runs `mix test test/cases/generation_test.exs`, `mix test test/browser_cases` and `mix test test/cases_live`)
+2. `mix test` — full suite green (review-issue runs this and the command of AC-1; code-issue runs only this section's test files, the coverage run of AC-C3 and the command of AC-1)
+3. `mix compile --warnings-as-errors` clean
+<!-- section:UI-16:end -->
 <!-- section:UI-8:start -->
 ### UI-8 — UI · tests · show
-Depends on: UI-7
+Depends on: UI-16
 
 #### Documentation references
 - `AGENTS.md` § Testing › Scope and Coverage
@@ -1838,6 +2105,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the two 
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-<slug>-<source>/<id>/show` and `/<id>/edit` of the variants below and of `Form` · layout types `:show`, `:form` · observable: `has_element?/2`, `element/2`, `render_click/3`, `assert_patch/1`, the section helpers of `test/support/section_helper.ex`
@@ -1886,7 +2154,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its two variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the two names to `@variant_views`, in this order: `Show`, `ShowNavigator`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
+10. Mounted views (`UI-16` replaces the views-under-cover rule: no module is written in a test file to compile a variant a second time). Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`, amended by `UI-16`) reads each mounted views module through `Aurora.UixWeb.Test.Mirror.sibling/2`: a variant adds its name to `@variant_views` of that file. This section appends the two names of its variants to `@variant_views`, in this order: `Show`, `ShowNavigator`. This section adds no module to that file, no test and no other definition.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -2003,6 +2271,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the ten 
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-<slug>-<source>` of the variants below · layout types `:form`, `:show`, `:index` · observable: `form/3`, `render_change/1`, `render_submit/1`, `has_element?/2`, `element/2`
@@ -2069,7 +2338,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its ten variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the ten names to `@variant_views`, in this order: `ManyToOne`, `ManyToOneQueries`, `OneToMany`, `OneToManyComponent`, `OneToManyActions`, `OneToOne`, `ManyToMany`, `ManyToManyActions`, `Embeds`, `EmbedsExpanded`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
+10. Mounted views (`UI-16` replaces the views-under-cover rule: no module is written in a test file to compile a variant a second time). Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`, amended by `UI-16`) reads each mounted views module through `Aurora.UixWeb.Test.Mirror.sibling/2`: a variant adds its name to `@variant_views` of that file. This section appends the ten names of its variants to `@variant_views`, in this order: `ManyToOne`, `ManyToOneQueries`, `OneToMany`, `OneToManyComponent`, `OneToManyActions`, `OneToOne`, `ManyToMany`, `ManyToManyActions`, `Embeds`, `EmbedsExpanded`. This section adds no module to that file, no test and no other definition.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -2341,6 +2610,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the vari
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes of the variants below; `Aurora.Uix.RouteHelper.auix_live_resources/3` routes with `only:` and `except:`; the host LiveViews of step 2 · observable: `assert_patch/1`, the `{:error, {:live_redirect, %{to: path}}}` return of `render_click/1`, `Aurora.UixWeb.Test.NavigationHelper.decode_route/1` and `encode_stack/1` (`test/support/navigation_helper.ex`), `Phoenix.Router.route_info/4`, `has_element?/2`, `assert_receive/2`
@@ -2418,7 +2688,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its eleven variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the eleven names to `@variant_views`, in this order: `Navigation`, `HooksIndex`, `HooksForm`, `HooksShow`, `Components`, `ComponentsPaired`, `ComponentsHandled`, `Events`, `Gettext`, `PairedFormHost`, `PairedIndexHost`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
+10. Mounted views (`UI-16` replaces the views-under-cover rule: no module is written in a test file to compile a variant a second time). Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6j of `UI-5`, amended by `UI-16`) reads each mounted views module through `Aurora.UixWeb.Test.Mirror.sibling/2`: a variant adds its name to `@variant_views` of that file. This section appends the eleven names of its variants to `@variant_views`, in this order: `Navigation`, `HooksIndex`, `HooksForm`, `HooksShow`, `Components`, `ComponentsPaired`, `ComponentsHandled`, `Events`, `Gettext`, `PairedFormHost`, `PairedIndexHost`. This section adds no module to that file, no test and no other definition.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -2655,6 +2925,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the two 
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Routes of `test/support/app_web/router.ex` live sessions `:actor_current_user` and `:actor_scope`, and `ash-actor-…` routes of `test/support/app_web/routes.ex` · existing; their module prefix changes in step 1
@@ -2743,27 +3014,7 @@ These rules apply to every row of `##### Replaced files`.
      ```
      Route lines: `RoutesHelper.register_crud(MirrorAsh.Aggregates.ProductLocation, "mirror-ash-aggregates-product_locations")` and `RoutesHelper.register_crud(MirrorAsh.Aggregates.Product, "mirror-ash-aggregates-products")`.
    - `Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions` at `test/support/mirror_web/variants/context_functions.ex` (`@moduledoc false`; `@doc false`, `@spec __using__(keyword()) :: Macro.t()`, `defmacro __using__(_opts)`), whose `quote` holds: `Module.register_attribute(__MODULE__, :auix_resource_metadata, persist: true)`, `use Aurora.Uix`, `auix_resource_metadata(:product, context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product, backend_opts: [list_function_paginated: &Aurora.Uix.Test.MirrorCtx.list_products_paginated/1])`, `auix_create_ui do index_columns(:product, [:reference, :name]) end`. `Aurora.UixWeb.Test.MirrorCtx.ContextFunctions` at `test/support/mirror_web/ctx/context_functions.ex` is `@moduledoc false` and `use Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions, backend: :ctx`. Route line: `RoutesHelper.register_crud(MirrorCtx.ContextFunctions.Product, "mirror-ctx-context-functions-products")`.
-3. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. In `test/cases/generation_test.exs` (`UI-5`), add directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`:
-     ```elixir
-     defmodule Aurora.UixWeb.Test.Generation.Ash.Aggregates do
-       use Aurora.UixWeb.Test.Mirror.Variants.Aggregates, backend: :ash
-     end
-
-     defmodule Aurora.UixWeb.Test.Generation.Ctx.ContextFunctions do
-       use Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions, backend: :ctx
-     end
-
-     defmodule Aurora.UixWeb.Test.Generation.Ash.AshActorViews do
-       use Aurora.UixWeb.Test.AshActorViewsDefinition, backend: :ash
-     end
-     ```
-   and append to `@single_views` of that file:
-     ```elixir
-     {Generation.Ash.Aggregates, Aurora.UixWeb.Test.MirrorAsh.Aggregates},
-     {Generation.Ctx.ContextFunctions, MirrorCtx.ContextFunctions},
-     {Generation.Ash.AshActorViews, Aurora.UixWeb.Test.AshActorViews}
-     ```
-   The three modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each equals the signature of its views module. This section adds no test for it and compiles no views module from a string. Proven with a probe on `main` at f186ea4: a module whose body is the `use` line of each of the three definitions compiled with the signature of its views module. `Variants.Aggregates` and `Variants.ContextFunctions` are new (`rg -n "Variants.Aggregates|Variants.ContextFunctions" test lib` returns nothing).
+3. Mounted views (`UI-16` replaces the views-under-cover step: no module is written in a test file to compile a definition a second time). In `test/cases/generation_test.exs` (`UI-5`, amended by `UI-16`), append to `@single_views` of that file the three mounted modules `Aurora.UixWeb.Test.MirrorAsh.Aggregates`, `MirrorCtx.ContextFunctions` and `Aurora.UixWeb.Test.AshActorViews`. S6j reads their registered modules through `assert_views/0`. This section adds no module to that file and no test for it. `Variants.Aggregates` and `Variants.ContextFunctions` are new (`rg -n "Variants.Aggregates|Variants.ContextFunctions" test lib` returns nothing).
 4. Theme: none. `dt/1` strings: none.
 
 ##### Green tests
@@ -2801,6 +3052,7 @@ The rewritten tests must not depend on test order: no test creates the named ETS
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - `Mix.Tasks.Auix.Gen.Stylesheet.run/1`, as `test/mix/tasks/auix/gen/stylesheet_test.exs` runs it · existing
@@ -2843,7 +3095,7 @@ These rules apply to every row of `##### Replaced files`.
 | `test/cases/templates/css_sanitizer_test.exs` (4) | S4 | `"the text area rule keeps its resize declarations"`, `"the loading button keeps its spinner box"`: each restates the CSS of one rule; the sanitizer cases they rely on are the other two tests |
 
 ##### Modules & components
-1. No views variant, no route, no theme rule, no `dt/1` string. This section adds no module that calls `auix_resource_metadata`, `auix_create_ui` and `auix_create_layout`: `@variant_views`, `@single_views` and the views modules of `test/cases/generation_test.exs` stay as they are. The three themes of step 2 compile with the test file and the failing cases of S5b compile inside the test, so `mix test --cover` counts both.
+1. No views variant, no route, no theme rule, no `dt/1` string. This section adds no module that calls `auix_resource_metadata`, `auix_create_ui` and `auix_create_layout`: `@variant_views` and `@single_views` of `test/cases/generation_test.exs` stay as they are. The three themes of step 2 compile with the test file and the failing cases of S5b compile inside the test, so `mix test --cover` counts both.
 2. `test/cases/templates/theme_test.exs` — new, with the tests S2a to S5b. Above its test module it holds the three themes S5a reads, written out; the test module holds `alias Aurora.Uix.Test.Theme`. `compile_theme/1`, copied from `test/cases/templates/theme_rules_test.exs`, compiles the five failing cases and nothing else. `Aurora.Uix.Test.Theme` is new (`rg -n "Aurora\.Uix\.Test\.Theme\." test lib` returns nothing).
      ```elixir
      defmodule Aurora.Uix.Test.Theme.LocalRule do
@@ -2885,7 +3137,7 @@ Depends on: UI-12
 
 This section rewrites the Wallaby tests, deletes the test support nothing uses any more, and checks the whole suite. It changes no file under `lib/`. Every test passes on its first run. Layout types covered: `:index`, `:form`, `:show`, in a browser.
 
-Features of this area: S1 to S5, one feature per row of `##### Red tests`, in `test/browser_cases/browser_scenarios_test.exs` (module `Aurora.UixWeb.Test.BrowserScenariosTest`, new: `ls test/browser_cases | grep -x browser_scenarios_test.exs` returns nothing). The module has `use Aurora.UixWeb.Test.UICase, :scenario_case` and `use Wallaby.Feature`. Each feature runs its body in `each_backend/2` and visits `mirror_path/4` routes. One feature covers one functionality: it makes several checks when they all belong to that functionality. No number of tests and no number of features is a target.
+Features of this area: S1 to S5, one feature per row of `##### Red tests`, in `test/browser_cases/browser_scenarios_test.exs` (module `Aurora.UixWeb.Test.BrowserScenariosTest`, new: `ls test/browser_cases | grep -x browser_scenarios_test.exs` returns nothing). The module is async (`UI-16`, carry rule 2): it has `use ExUnit.Case, async: true`, `use Wallaby.Feature`, `import Aurora.Uix.Test.Mirror.Seeds` and `import Aurora.UixWeb.Test.Scenario`, and does not use `ConnCase`. Each feature runs its body in `each_backend/2` and visits `mirror_path/4` routes. One feature covers one functionality: it makes several checks when they all belong to that functionality. No number of tests and no number of features is a target.
 
 Why Wallaby, stated in a comment above each feature: S1 and S2 drive the embeds-many JS (the add-entry modal and the entry list live in a client-managed portal); S3 sends a file through the browser's live upload channel, which `Phoenix.LiveViewTest` replaces with its own client; S4 drives the modal's client-side close (backdrop, Escape) that `Phoenix.LiveViewTest` cannot press; S5 loads the fallback routes with a full page load.
 
@@ -2904,6 +3156,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a Wallaby probe o
 - [ ] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
+- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-embeds-products`, `/mirror-<ash|ctx>-uploads-products`, `/mirror-<ash|ctx>-form-products`, `/mirror-<ash|ctx>-default-products` (variants of `UI-9`, `UI-7`, `UI-2`) · observable: Wallaby `visit/2`, `click/2`, `fill_in/3`, `attach_file/3`, `send_keys/2`, `assert_has/2`, `refute_has/2`; persisted rows through `Aurora.Uix.Repo`
@@ -2940,7 +3193,7 @@ These rules apply to every row of `##### Replaced files`.
 S3 and S4 replace no file: the issue's Areas table names the upload JS and the modal for the browser area.
 
 ##### Modules & components
-1. No new variant. Routes: none added. `@variant_views`, `@single_views` and the views modules of `test/cases/generation_test.exs` stay as they are: the features of this section visit variants whose modules earlier sections wrote there.
+1. No new variant. Routes: none added. `@variant_views` and `@single_views` of `test/cases/generation_test.exs` stay as they are: the features of this section visit variants that earlier sections defined.
 2. Delete from `test/support/app_web/routes.ex` every registration left that names a module no file defines; after this step `load_test_routes/0` holds the `register_mirror` lines, the `auix_live_resources` lines of the `Named` and `Navigation` variants, the `ManualResource` (`register_product_crud`), `Aggregates` and `ContextFunctions` lines, the `AshActorViews` line, the five `GuidesCapture` lines and the `-local-demo` block. `register_user_crud/2` in `test/support/app_web/routes_helper.ex` has no caller left and is deleted; `register_product_crud/2` stays for the `-local-demo` block, the `ManualResource` line and the capture routes.
 3. `test/support/helper.ex` keeps `create_guides_sample_data/0`, `create_sample_products/3`, `create_sample_products_with_transactions/4`, `create_sample_product_locations/2`, `create_sample_authors/2`, `create_sample_categories/2`, `create_sample_posts/2`, `delete_all_inventory_data/0`, `delete_all_accounts_data/0`, `delete_all_blog_data/0`, `delete_all_sample_data/0` and the private functions they call. Delete `create_sample_users/2`, `create_sample_products_with_suppliers/2`, `create_sample_posts_with_topics/2`, `create_sample_products_with_barcodes/1`, `create_sample_authors_with_profiles/1` and `to_boolean/1`, with their `@doc` and `@spec`.
 4. In `mix.exs`, `xref(:test)` stays as it is: every file of `test/cases_live/` still has one `defmodule … Test do` line.
@@ -3123,4 +3376,5 @@ After this section `test/cases/integration/ash/fields_parser_test.exs` holds its
 - Parser sections: the issue changes no parser. The mirrored fixture and every scenario cover the Ash and the Ecto backend alike; the backend-specific tests of `UI-11` cover what one backend alone has.
 - CSS text of single theme rules: no test restates it.
 - A number of tests as a target: the count is the outcome of one functionality per test.
+- The scan of the code path in `Aurora.Uix.Templates.ThemeHelper.registered_themes/0` (6 to 8 s of the async phase): library code, left as it is by `UI-16`; shortening it is a separate issue.
 <!-- enriched-spec:end -->
