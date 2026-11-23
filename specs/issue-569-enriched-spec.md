@@ -1,7 +1,7 @@
 <!-- enriched-spec:start v2 -->
 ## Enriched Spec
 
-**Complexity:** high
+**Complexity:** normal
 
 ### Overview
 This issue replaces the 710 tests and 8 browser features with scenario tests over one mirrored fixture, one functionality per test: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3` and `UI-14`. `UI-14` states the one-functionality-per-test rule there, and `UI-15` regroups by that rule the tests `UI-4` merged.
