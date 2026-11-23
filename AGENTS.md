@@ -64,7 +64,7 @@ When referencing UI components in documentation or code, use simple names (e.g. 
 | **Host application** | The app that depends on `aurora_uix`. Owns its schemas, changesets and Ash actions — the library never writes those. |
 | **Guides** | `lib/aurora_uix/guides/` — demo schemas shipped with the library. `blog/` is Ash, `inventory/` is Ecto. |
 | **Mirror fixture** | `test/support/mirror/` — the test fixture: one set of tables in the PostgreSQL schema `mirror`, with an Ecto schema (`MirrorCtx`) and an Ash resource (`MirrorAsh`) over each table. |
-| **Scenario** | One test that drives one feature through the UI on both backends, written once with `Scenario.each_backend/2`. |
+| **Scenario** | One test that drives one functionality through the UI on both backends, written once with `Scenario.each_backend/2`. |
 
 ## Architecture
 
@@ -458,10 +458,11 @@ Parser and metadata tests are pure compile-time introspection — run them first
 - Monitor processes with `Process.monitor/1` + `assert_receive {:DOWN, ...}`
 
 ### Scope and Coverage
-- **One scenario per feature, on both backends.** A scenario is one test. It runs its body for `:ash` and for `:ctx` with `Scenario.each_backend/2`, drives the UI (click, type, submit) and asserts what the feature does and how the page is built: containers and `auix-*` classes, on stable selectors.
-- **Amend the scenario of the feature.** A new behaviour of an existing feature is asserted inside that feature's scenario. A new test is written only for a feature no scenario covers.
+- **One scenario per functionality, on both backends.** A scenario is one test. It runs its body for `:ash` and for `:ctx` with `Scenario.each_backend/2`, drives the UI (click, type, submit) and asserts what the feature does and how the page is built: containers and `auix-*` classes, on stable selectors.
+- **One functionality per test.** A test makes several checks when they all belong to one functionality. A test that walks through loosely related parts is split, one test per functionality. The number of tests is an outcome, never a target.
+- **Amend the scenario of the functionality.** A new check of an existing functionality is asserted inside that functionality's scenario. A new functionality gets a new test.
 - **A backend-specific test states why.** A test that runs on one backend covers what only that backend has: Ash actors and policies, calculations and aggregates, a query parser, `ctx` CRUD function discovery.
-- **Compile errors are table-driven.** One test per DSL loops over its cases, each case a source body and the expected message.
+- **Compile errors are table-driven.** One test per validator loops over its cases, each case a source body and the expected message. One table never holds the cases of unrelated validators.
 - **Theme tests do not restate CSS.** They check that the stylesheet generates, that every rule is emitted, that every variable resolves in each theme, and that the sanitizer rejects what it must.
 - **Don't over-test.** Once a behaviour is asserted, do not repeat the assertion in another scenario.
 
