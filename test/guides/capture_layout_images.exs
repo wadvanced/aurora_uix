@@ -1,9 +1,9 @@
 Code.require_file("test/guides/image_helper.exs")
-Code.require_file("test/cases_live/create_ui_default_layout_test.exs")
-Code.require_file("test/cases_live/association_many2one_selector_ui_layout_test.exs")
-Code.require_file("test/cases_live/group_ui_layout_test.exs")
-Code.require_file("test/cases_live/section_ui_layout_test.exs")
-Code.require_file("test/cases_live/nested_sections_ui_layout_test.exs")
+Code.require_file("test/guides/views/default_layout.exs")
+Code.require_file("test/guides/views/selector_layout.exs")
+Code.require_file("test/guides/views/group_layout.exs")
+Code.require_file("test/guides/views/section_layout.exs")
+Code.require_file("test/guides/views/nested_sections_layout.exs")
 
 defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
   use Aurora.UixWeb.Test.UICase, :phoenix_case
@@ -23,7 +23,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     product_id = get_product("item_overview-010").id
     product_location_id = get_product("item_overview-010").product_location_id
 
-    url = "/create-ui-default-layout-products"
+    url = "/guides-capture-default-products"
     target = "guides/core/images/layouts"
 
     session
@@ -53,7 +53,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     })
 
     # inline layout
-    url_inline = "/association-many_to_one_selector-layout-product_locations"
+    url_inline = "/guides-capture-selector-product_locations"
 
     # edit
     session
@@ -69,7 +69,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # stacked layout
     # edit
-    url_stacked = "/association-many_to_one_selector-layout-products"
+    url_stacked = "/guides-capture-selector-products"
 
     session
     |> visit("#{url_stacked}/#{product_id}/edit")
@@ -84,7 +84,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # group layout
     # edit
-    url_group = "group-ui-layout-products"
+    url_group = "/guides-capture-group-products"
 
     session
     |> visit("#{url_group}/#{product_id}/edit")
@@ -99,7 +99,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
 
     # section layout
     # edit
-    url_section = "section-ui-layout-products"
+    url_section = "/guides-capture-section-products"
 
     session
     |> visit("#{url_section}/#{product_id}/edit")
@@ -120,7 +120,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureImages do
     })
 
     # nested sections
-    url_nested = "nested-sections-ui-layout-products"
+    url_nested = "/guides-capture-nested-sections-products"
 
     session
     |> visit("#{url_nested}/#{product_id}/edit")

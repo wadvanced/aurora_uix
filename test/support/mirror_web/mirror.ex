@@ -68,6 +68,11 @@ defmodule Aurora.UixWeb.Test.Mirror do
     end
   end
 
+  @doc false
+  @spec sibling(:ash | :ctx, module()) :: module()
+  def sibling(:ash, name), do: Module.concat([Aurora.UixWeb.Test.MirrorAsh, name])
+  def sibling(:ctx, name), do: Module.concat([Aurora.UixWeb.Test.MirrorCtx, name])
+
   ## PRIVATE ##
 
   @spec source_lines(:ash | :ctx, atom()) :: Macro.t()
