@@ -1604,7 +1604,7 @@ Measured by the probe.
 ##### Variant rules
 1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
 2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
-3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`. The definition module aliases itself above `__using__/1` (`alias Aurora.UixWeb.Test.Mirror.Variants.<Name>`), and its `quote` references the function as `&<Name>.fun/1`, as `test/support/mirror_web/variants/options.ex` does with `&Options.product_marker/1`. The fully qualified capture fails `Credo.Check.Design.AliasUsage` of `mix credo --strict`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
 4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
 5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
 6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
@@ -1690,8 +1690,8 @@ Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/
        index_columns(:product, [:reference, :name], handler_module: Aurora.UixWeb.Test.Mirror.Handlers.FlashKindsHandlerHook)
        edit_layout :product,
          unsaved_changes_guard_disabled?: true,
-         add_header_action: {:custom_header, &Aurora.UixWeb.Test.Mirror.Variants.FormOptions.custom_form_header_action/1},
-         insert_footer_action: {:custom_footer, &Aurora.UixWeb.Test.Mirror.Variants.FormOptions.custom_form_footer_action/1},
+         add_header_action: {:custom_header, &FormOptions.custom_form_header_action/1},
+         insert_footer_action: {:custom_footer, &FormOptions.custom_form_footer_action/1},
          action_icons: [default_save: "hero-bolt"] do
          stacked([
            :reference,
@@ -1699,9 +1699,9 @@ Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/
            :quantity_initial,
            labels: [
              remove_label_action: :default_toggle_all,
-             add_label_action: {:custom_label, &Aurora.UixWeb.Test.Mirror.Variants.FormOptions.labels_label_action/1},
-             add_header_action: {:custom_header, &Aurora.UixWeb.Test.Mirror.Variants.FormOptions.labels_header_action/1},
-             add_footer_action: {:custom_footer, &Aurora.UixWeb.Test.Mirror.Variants.FormOptions.labels_footer_action/1}
+             add_label_action: {:custom_label, &FormOptions.labels_label_action/1},
+             add_header_action: {:custom_header, &FormOptions.labels_header_action/1},
+             add_footer_action: {:custom_footer, &FormOptions.labels_footer_action/1}
            ]
          ])
        end
@@ -1747,11 +1747,11 @@ Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/
    **`Renderers`** · slug `renderers` · sources `products`. The three views modules of `custom_field_renderers_test.exs` do not fit one resource as they are: `index_columns(name: [index_renderer: …])` replaces the resource `index_renderer` of `name`, and the generic `renderer` of `reference` leaves no `input` for `readonly`. The column renderer therefore sits on `description` and the inline option on `quantity_initial`. `inactive` carries no renderer: it is the checkbox `html_type_renderers_app_config_test.exs` switches. The module starts with `use Phoenix.Component` and defines, with `@doc false`: `renderer/1` (both clauses), `index_marker/1`, `edit_marker/1`, `show_marker/1` of `CustomFieldRenderersTest`, and `index_marker/1` of `CustomFieldRenderersIndexColumnsTest` renamed `index_cols_marker/1`.
      ```elixir
      mirror_resource :product do
-       field(:reference, renderer: &Aurora.UixWeb.Test.Mirror.Variants.Renderers.renderer/1)
+       field(:reference, renderer: &Renderers.renderer/1)
        field(:name,
-         index_renderer: &Aurora.UixWeb.Test.Mirror.Variants.Renderers.index_marker/1,
-         edit_renderer: &Aurora.UixWeb.Test.Mirror.Variants.Renderers.edit_marker/1,
-         show_renderer: &Aurora.UixWeb.Test.Mirror.Variants.Renderers.show_marker/1
+         index_renderer: &Renderers.index_marker/1,
+         edit_renderer: &Renderers.edit_marker/1,
+         show_renderer: &Renderers.show_marker/1
        )
        field(:deleted, renderer: :default_checkbox)
        field(:labels, html_type: :unimplemented)
@@ -1760,7 +1760,7 @@ Also deleted: `test/support/ash_checkbox/domain.ex`, `test/support/ash_checkbox/
        index_columns(:product,
          reference: [label: "ZZZ_CustomRef"],
          name: [],
-         description: [index_renderer: &Aurora.UixWeb.Test.Mirror.Variants.Renderers.index_cols_marker/1],
+         description: [index_renderer: &Renderers.index_cols_marker/1],
          labels: [],
          inactive: []
        )
@@ -1879,7 +1879,7 @@ Measured by the probe.
 ##### Variant rules
 1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
 2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
-3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`. The definition module aliases itself above `__using__/1` (`alias Aurora.UixWeb.Test.Mirror.Variants.<Name>`), and its `quote` references the function as `&<Name>.fun/1`, as `test/support/mirror_web/variants/options.ex` does with `&Options.product_marker/1`. The fully qualified capture fails `Credo.Check.Design.AliasUsage` of `mix credo --strict`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
 4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
 5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
 6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
@@ -1912,8 +1912,8 @@ S1a replaces no file: its assertions are the structure of AC-1. S2a and S2b repl
          end
        end
        show_layout :product,
-         replace_header_action: {:default_edit, &Aurora.UixWeb.Test.Mirror.Variants.Show.custom_header_action/1},
-         add_footer_action: {:custom_back_action, &Aurora.UixWeb.Test.Mirror.Variants.Show.custom_back_footer_action/1} do
+         replace_header_action: {:default_edit, &Show.custom_header_action/1},
+         add_footer_action: {:custom_back_action, &Show.custom_back_footer_action/1} do
          inline([:reference, :name, :description])
          group "Quantities" do
            inline([:quantity_at_hand, :quantity_initial])
@@ -2062,7 +2062,7 @@ Measured by the probe.
 ##### Variant rules
 1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
 2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
-3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`. The definition module aliases itself above `__using__/1` (`alias Aurora.UixWeb.Test.Mirror.Variants.<Name>`), and its `quote` references the function as `&<Name>.fun/1`, as `test/support/mirror_web/variants/options.ex` does with `&Options.product_marker/1`. The fully qualified capture fails `Credo.Check.Design.AliasUsage` of `mix credo --strict`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
 4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
 5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
 6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
@@ -2106,10 +2106,10 @@ Partly carried here, deleted by `UI-11`: `test/cases_live/ash_embeds_test.exs` �
        field(:product_location_id, option_label: :name, query_opts: [order_by: [desc: :name]])
      end
      mirror_resource :product_transaction do
-       field(:product_id, option_label: &Aurora.UixWeb.Test.Mirror.Variants.ManyToOne.option_label/1)
+       field(:product_id, option_label: &ManyToOne.option_label/1)
      end
      mirror_resource :product_barcode do
-       field(:product_id, option_label: &Aurora.UixWeb.Test.Mirror.Variants.ManyToOne.option_label/2)
+       field(:product_id, option_label: &ManyToOne.option_label/2)
      end
      auix_create_ui do
        index_columns(:product_transaction, [:type, :quantity])
@@ -2198,10 +2198,10 @@ Partly carried here, deleted by `UI-11`: `test/cases_live/ash_embeds_test.exs` �
            :description,
            :quantity_initial,
            product_transactions: [
-             add_header_action: {:custom_action, &Aurora.UixWeb.Test.Mirror.Variants.OneToManyActions.custom_new_child/1},
-             replace_row_action: {:default_row_edit, &Aurora.UixWeb.Test.Mirror.Variants.OneToManyActions.custom_edit_row_action/1},
-             add_footer_action: {:custom_footer_second_action, &Aurora.UixWeb.Test.Mirror.Variants.OneToManyActions.custom_footer_second_action/1},
-             insert_footer_action: {:custom_footer_action, &Aurora.UixWeb.Test.Mirror.Variants.OneToManyActions.custom_footer_action/1}
+             add_header_action: {:custom_action, &OneToManyActions.custom_new_child/1},
+             replace_row_action: {:default_row_edit, &OneToManyActions.custom_edit_row_action/1},
+             add_footer_action: {:custom_footer_second_action, &OneToManyActions.custom_footer_second_action/1},
+             insert_footer_action: {:custom_footer_action, &OneToManyActions.custom_footer_action/1}
            ]
          ])
        end
@@ -2258,9 +2258,9 @@ Partly carried here, deleted by `UI-11`: `test/cases_live/ash_embeds_test.exs` �
            :name,
            suppliers: [
              remove_label_action: :default_toggle_all,
-             add_label_action: {:custom_label, &Aurora.UixWeb.Test.Mirror.Variants.ManyToManyActions.custom_label_action/1},
-             add_header_action: {:custom_header, &Aurora.UixWeb.Test.Mirror.Variants.ManyToManyActions.custom_header_action/1},
-             add_footer_action: {:custom_footer, &Aurora.UixWeb.Test.Mirror.Variants.ManyToManyActions.custom_footer_action/1}
+             add_label_action: {:custom_label, &ManyToManyActions.custom_label_action/1},
+             add_header_action: {:custom_header, &ManyToManyActions.custom_header_action/1},
+             add_footer_action: {:custom_footer, &ManyToManyActions.custom_footer_action/1}
            ]
          ])
        end
@@ -2285,7 +2285,7 @@ Partly carried here, deleted by `UI-11`: `test/cases_live/ash_embeds_test.exs` �
    **`EmbedsExpanded`** · slug `embeds-expanded` · sources `products`. The module defines `def always_expanded(_assigns), do: true` with `@doc false` (from `test/cases_live/ash_embeds_test.exs`).
      ```elixir
      mirror_resource :product do
-       field(:contacts, expanded: &Aurora.UixWeb.Test.Mirror.Variants.EmbedsExpanded.always_expanded/1)
+       field(:contacts, expanded: &EmbedsExpanded.always_expanded/1)
      end
      auix_create_ui do
        edit_layout :product do
@@ -2411,7 +2411,7 @@ Measured by the probe.
 ##### Variant rules
 1. A variant is the three files `UI-2` defines: `test/support/mirror_web/variants/<name>.ex` (module `Aurora.UixWeb.Test.Mirror.Variants.<Name>`), `test/support/mirror_web/ash/<name>.ex` and `test/support/mirror_web/ctx/<name>.ex`. Its routes are one `RoutesHelper.register_mirror(<Name>, "<slug>", [<sources>])` line in `test/support/app_web/routes.ex`, below the existing `register_mirror` lines.
 2. "DSL of `<old file>`" means the `auix_resource_metadata` and `auix_create_ui` calls of that file, moved into the `quote` of the variant's `__using__/1`. `auix_resource_metadata(:x, context: …, schema: …)` and `auix_resource_metadata(:x, ash_resource: …)` become `mirror_resource(:x)`; resource options and `field` lines go in its `do` block, unchanged. For an Ash (blog) source file the row gives the resource and field names to use.
-3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`, referenced as `&Aurora.UixWeb.Test.Mirror.Variants.<Name>.fun/1`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
+3. A function a layout references (`&__MODULE__.fun/1`) becomes a public function of the variant definition module with `@doc false`. The definition module aliases itself above `__using__/1` (`alias Aurora.UixWeb.Test.Mirror.Variants.<Name>`), and its `quote` references the function as `&<Name>.fun/1`, as `test/support/mirror_web/variants/options.ex` does with `&Options.product_marker/1`. The fully qualified capture fails `Credo.Check.Design.AliasUsage` of `mix credo --strict`. A handler module a layout names becomes `Aurora.UixWeb.Test.Mirror.Handlers.<SameLastName>` at `test/support/mirror_web/handlers/<name>.ex`, body unchanged.
 4. When two sources in one variant give the same resource the same layout type, the row says which list is kept; a positional selector (`nth-child`, `nth-of-type`) of a carried assertion is recomputed for that list.
 5. When a row moves a source's DSL to another resource (for example a products test onto `:product_location`), its fields are replaced by fields of that resource with the same type, its seed call by that resource's seed function, and each carried assertion states the same fact about the new resource.
 6. A variant definition module that defines function components starts with `use Aurora.Uix.CoreComponentsImporter` and `import Aurora.Uix.Templates.Basic.RoutingComponents` (`<.button>` comes from the first, `<.auix_link>` from the second; without the import the module fails to compile with `undefined function auix_link/1`). Its `__using__/1` and its functions live in the same module.
@@ -2485,7 +2485,7 @@ After this section the directory `test/aurora_uix/` no longer exists.
        end
        edit_layout :product,
          edit_handler_module: Aurora.UixWeb.Test.Mirror.Handlers.FormHandlerHook,
-         add_footer_action: {:hooks_hide_description, &Aurora.UixWeb.Test.Mirror.Variants.HooksForm.hooks_footer_action/1} do
+         add_footer_action: {:hooks_hide_description, &HooksForm.hooks_footer_action/1} do
          inline([:reference, :name, :description])
          inline([:quantity_at_hand, :quantity_initial])
          inline([:list_price, :rrp])
@@ -3041,13 +3041,16 @@ Facts this section builds on, read on `main` at f0f9934:
 - `"sortable? and embedded_schema? answer the same on both backends"` (`test/cases/integration/parser_parity_test.exs`) asserts two: `sortable?` and `embedded_schema?/1`.
 - In `test/cases/resource_metadata_test.exs`: `"resource metadata: defaults, field changes, field order and generated fields"` asserts five, four of them inside `assert_metadata/1`; `"resource: and declared resources link fields to resources"` asserts three; `"resource metadata compile errors"` holds the cases of three groups of declarations in one table.
 
+Fact read on `main` at 699262f:
+- `Credo.Check.Refactor.Nesting` (`.credo.exs`, max depth 2) checks the body of a function and not the body of a `test`. The loop of the old compile-error test (`for`, the `fn` of `labelled/2`, the `fn` of `assert_raise/3`) is depth 3 once it sits in a private function: `mix credo --strict` fails on it. Step 2 of `##### Modules & components` splits it in two functions of depth 1 and 2. Proven with a probe: `mix format --check-formatted` and `mix credo --strict` pass on `test/cases/resource_metadata_test.exs` holding T5 to T15 and the two functions as written there.
+
 ##### Acceptance criteria
 - [ ] AC-1: the enum flavours and the aggregates of the Ash parser are asserted by one test each (T1, T2)
 - [ ] AC-2: `sortable?` and `embedded_schema?/1` are asserted by one test each, on both parsers (T3, T4)
 - [ ] AC-3: resource metadata is asserted on both backends by one test per functionality: the defaults (T5), the field changes (T6), the field order (T7), the modules `auix_create_ui()` generates (T8), the `generated?` loading (T9)
 - [ ] AC-4: the resource links are asserted by one test per functionality: a declared resource and the embedded flag (T10), declared and imported resources and the associations (T11), `resource:` on an embedded field and on an association (T12)
 - [ ] AC-5: the compile errors are table-driven, one test per group of declarations: field options (T13), resource options (T14), `resource:` links (T15); each case is `{label, source body, message regex}` and compiles in a process of its own; a case that compiles fails the test with its label
-- [ ] AC-6: no assertion is added and none is removed (mechanical — no red test; verified by reading `git diff origin/main...HEAD -- test/cases`: every removed line that holds one of `assert`, `refute`, `validate_schema` is among the added lines with the same statement, apart from the definition and the call of `assert_metadata/1`; no added line holds one that is not among the removed lines, apart from the definition and the three calls of `assert_compile_errors/1`)
+- [ ] AC-6: no assertion is added and none is removed (mechanical — no red test; verified by reading `git diff origin/main...HEAD -- test/cases`: every removed line that holds one of `assert`, `refute`, `validate_schema` is among the added lines with the same statement, apart from the definition and the call of `assert_metadata/1`; no added line holds one that is not among the removed lines, apart from the definitions of `assert_compile_errors/1` and `assert_compile_error/1`, the three calls of the first and the one call of the second)
 - [ ] AC-7: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-8: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-9: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the three files of this section are the golden-map names and the names of `##### Red tests`, one test per row, and no test body makes a check that the row of another test names)
@@ -3063,8 +3066,8 @@ Every row passes on first run. A row whose placement is `amend` keeps the named 
 |---|---|---|---|---|---|
 | AC-1 | amend `test/cases/integration/ash/fields_parser_test.exs` `"enum flavours and aggregates parse to typed, generated fields"` | the schemas the file declares; `parsed_field/1` | same file | T1 `"enum flavours without one_of parse to selects"` | from `module_enum = parsed_field(:field_module_enum)` through the `for key <- [:field_multi_module_enum, :field_multi_new_type_enum]` block; the `# Ash-only:` comment stays above this test |
 | AC-1 | add to `test/cases/integration/ash/fields_parser_test.exs` | the schemas the file declares; `aggregate_field/1` | same file | T2 `"aggregates parse to typed, generated fields"` | from `assert %{type: :string, html_type: :text} = aggregate_field(:first_body)` through `assert %{sortable?: true} = aggregate_field(:entries_count)` |
-| AC-2 | amend `test/cases/integration/parser_parity_test.exs` `"sortable? and embedded_schema? answer the same on both backends"` | `@parsers`; the inline `Settings` schema | same file | T3 `"sortable? answers the same on both backends"` | per entry of `@parsers`: the `fields` binding, the two `for key <-` loops and the `undefined_key` refute; then the `Settings` statements and `refute settings.sortable?` |
-| AC-2 | add to `test/cases/integration/parser_parity_test.exs` | `@parsers` | same file | T4 `"embedded_schema? answers the same on both backends"` | per entry of `@parsers`: `assert parser.embedded_schema?(embedded)` and the `for module <- [product, String]` loop |
+| AC-2 | amend `test/cases/integration/parser_parity_test.exs` `"sortable? and embedded_schema? answer the same on both backends"` | `@parsers`; the inline `Settings` schema | same file | T3 `"sortable? answers the same on both backends"` | per entry of `@parsers`: `%{parser: parser, product: product} = backend`, the `fields` binding, the two `for key <-` loops and the `undefined_key` refute; then the `Settings` statements and `refute settings.sortable?` |
+| AC-2 | add to `test/cases/integration/parser_parity_test.exs` | `@parsers` | same file | T4 `"embedded_schema? answers the same on both backends"` | per entry of `@parsers`: `%{parser: parser, product: product, embedded: embedded} = backend`, `assert parser.embedded_schema?(embedded)` and the `for module <- [product, String]` loop |
 | AC-3 | amend `test/cases/resource_metadata_test.exs` `"resource metadata: defaults, field changes, field order and generated fields"` | the modules the file declares; `@backends` | same file | T5 `"a resource takes its defaults from its schema"` | per backend: the two `validate_schema(defaults, …)` calls and the `for {name, schema} <- …` loop of `assert_metadata/1`; then the `WithoutOptions` statements of the old test, from `resource_configs = resource_configs(WithoutOptions)` through the `refute` on its `Index` module |
 | AC-3 | add to `test/cases/resource_metadata_test.exs` | as T5 | same file | T6 `"field declarations change the parsed fields, the last one winning"` | per backend: `validate_schema(field_changes, :product, …)` and the four `contacts` assertions of `assert_metadata/1` |
 | AC-3 | add to `test/cases/resource_metadata_test.exs` | as T5 | same file | T7 `"fields_order follows the declaration order"` | per backend: the `if backend.name == :ctx do … end` block of `assert_metadata/1`, with its comment written `# Library defect on ash (#580): …` |
@@ -3084,7 +3087,21 @@ After this section `test/cases/integration/ash/fields_parser_test.exs` holds its
 2. `test/cases/resource_metadata_test.exs`:
    - T5 to T9 each wrap their statements as the old test does: `for backend <- @backends do labelled("[backend: #{backend.name}]", fn -> … end) end`. The bindings a statement reads move with it: `defaults = resource_configs(backend.defaults)` to T5, `field_changes = resource_configs(backend.field_changes)` to T6 and to T7.
    - `assert_metadata/1` has no statement left and is deleted, with its `@spec`.
-   - `assert_compile_errors/1` is new (`rg -n "assert_compile_errors" test lib` returns nothing): a private function with `@spec assert_compile_errors([{binary(), binary(), Regex.t()}]) :: term()`, whose body is the `for {label, body, regex} <- cases do … end` loop of the old compile-error test, unchanged. T13, T14 and T15 each build their `cases` list and call it.
+   - `assert_compile_errors/1` and `assert_compile_error/1` are new private functions of this test module (`rg -n "assert_compile_error" test/cases/resource_metadata_test.exs` returns nothing). `assert_compile_errors/1` of `test/cases/generation_test.exs` is a private function of `Aurora.Uix.Test.Cases.GenerationTest` with another body; it stays as it is and is not called here. The first function iterates the cases. The second asserts one case: its body is the body of the `for {label, body, regex} <- cases do … end` loop of the old compile-error test, unchanged. They sit below T15, above `compile_generated/2`, written so:
+     ```elixir
+     @spec assert_compile_errors([{binary(), binary(), Regex.t()}]) :: term()
+     defp assert_compile_errors(cases) do
+       for compile_case <- cases, do: assert_compile_error(compile_case)
+     end
+
+     @spec assert_compile_error({binary(), binary(), Regex.t()}) :: term()
+     defp assert_compile_error({label, body, regex}) do
+       labelled(label, fn ->
+         assert_raise(DslError, regex, fn -> compile_in_own_process(body) end)
+       end)
+     end
+     ```
+     T13, T14 and T15 each build their `cases` list and call `assert_compile_errors/1`. No `credo:disable` comment is written.
    - Every other private function of the file stays as it is.
 3. `test/cases/integration/ash/fields_parser_test.exs` and `test/cases/integration/parser_parity_test.exs`: no function is added and none is removed.
 
