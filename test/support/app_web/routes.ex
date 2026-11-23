@@ -26,16 +26,59 @@ defmodule Aurora.UixWeb.Test.Routes do
           "suppliers"
         ])
 
-        # Tests with required CRUD links for testing
-        RoutesHelper.register_crud(
-          CreateUIDefaultLayoutTest.Product,
-          "create-ui-default-layout-products"
+        RoutesHelper.register_mirror(DefaultInline, "default-inline", ["products"])
+        RoutesHelper.register_mirror(Groups, "groups", ["products"])
+        RoutesHelper.register_mirror(Sections, "sections", ["products"])
+        RoutesHelper.register_mirror(NestedSections, "nested-sections", ["products"])
+
+        RoutesHelper.register_mirror(Options, "options", [
+          "products",
+          "product_transactions",
+          "product_locations",
+          "product_barcodes"
+        ])
+
+        RoutesHelper.register_mirror(Included, "included", ["products"])
+
+        RoutesHelper.register_mirror(Manual, "manual", [
+          "products",
+          "product_transactions",
+          "product_locations"
+        ])
+
+        RoutesHelper.register_mirror(Separated, "separated", ["products", "product_transactions"])
+
+        RoutesHelper.register_product_crud(
+          MirrorCtx.ManualResource,
+          "mirror-ctx-manual-resource-"
         )
 
         RoutesHelper.register_crud(
-          CreateUIDefaultLayoutInlineTest.Product,
-          "create-ui-default-layout-inline-products"
+          GuidesCapture.DefaultLayout.Product,
+          "guides-capture-default-products"
         )
+
+        RoutesHelper.register_product_crud(
+          GuidesCapture.SelectorLayout,
+          "guides-capture-selector-"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.GroupLayout.Product,
+          "guides-capture-group-products"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.SectionLayout.Product,
+          "guides-capture-section-products"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.NestedSectionsLayout.Product,
+          "guides-capture-nested-sections-products"
+        )
+
+        # Tests with required CRUD links for testing
 
         RoutesHelper.register_crud(
           CreateUILayoutTest.Product,
@@ -83,21 +126,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
-          GroupUILayoutTest.Product,
-          "group-ui-layout-products"
-        )
-
-        RoutesHelper.register_crud(
-          SectionUILayoutTest.Product,
-          "section-ui-layout-products"
-        )
-
-        RoutesHelper.register_crud(
-          NestedSectionsUILayoutTest.Product,
-          "nested-sections-ui-layout-products"
-        )
-
-        RoutesHelper.register_crud(
           SpecialFieldsUITest.Product,
           "special-fields-ui-products"
         )
@@ -120,11 +148,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_crud(
           UnimplementedFieldUITest.Product,
           "unimplemented-field-products"
-        )
-
-        RoutesHelper.register_crud(
-          SeparatedSingleResourceUITest.Product,
-          "separated-single-resource-products"
         )
 
         RoutesHelper.register_crud(
@@ -210,16 +233,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_product_crud(
           RecordNavigationDisableTest,
           "record-navigation-disable-"
-        )
-
-        RoutesHelper.register_product_crud(
-          SeparatedMultipleResourcesUITest,
-          "separated-multiple-resources-"
-        )
-
-        RoutesHelper.register_product_crud(
-          UnseparatedMultipleResourcesUITest,
-          "unseparated-multiple-resources-"
         )
 
         RoutesHelper.register_product_crud(
@@ -318,16 +331,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          PreloadMetadataTest,
-          "preload-metadata-"
-        )
-
-        RoutesHelper.register_product_crud(
-          PreloadLayoutTest,
-          "preload-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
           OrderByLayoutTest,
           "order-by-layout-"
         )
@@ -355,31 +358,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_product_crud(
           InfinityScrollTest,
           "infinity-scroll-"
-        )
-
-        RoutesHelper.register_product_crud(
-          ManualResourceTest,
-          "manual-resource-"
-        )
-
-        RoutesHelper.register_product_crud(
-          ManualUITest,
-          "manual-ui-"
-        )
-
-        RoutesHelper.register_product_crud(
-          ManualLayoutsTest,
-          "manual-layouts-"
-        )
-
-        RoutesHelper.register_product_crud(
-          ManualTreesTest,
-          "manual-trees-"
-        )
-
-        RoutesHelper.register_product_crud(
-          IncludedLayoutsTest,
-          "included-layouts-"
         )
 
         RoutesHelper.register_product_crud(
@@ -502,8 +480,6 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_crud(AshFilterBarTest.Post, "ash-filter-bar-posts")
 
-        RoutesHelper.register_crud(AshPreloadMetadataTest.Author, "ash-preload-metadata-authors")
-
         RoutesHelper.register_crud(
           AshWhereOne2ManyTest.Author,
           "ash-where-one_to_many-authors"
@@ -562,8 +538,14 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RouteHelper.auix_live_resources(
-          "/named-modules-locations",
-          NamedModulesTest.ProductLocation,
+          "/mirror-ash-named-product_locations",
+          MirrorAsh.Named.ProductLocation,
+          index_live: :locations
+        )
+
+        RouteHelper.auix_live_resources(
+          "/mirror-ctx-named-product_locations",
+          MirrorCtx.Named.ProductLocation,
           index_live: :locations
         )
 
