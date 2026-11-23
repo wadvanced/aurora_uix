@@ -561,9 +561,10 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: every va
 - The default product form of the mirror renders three more `header` elements than the guide form (the `packaging`, `contacts` and `product_barcode` blocks). The page header of a modal is `div#auix-product-<action>-modal header.auix-header--top-actions`.
 - The mirror `Product` has more fields than the guide `Product`. The expected field list of the two `"Check field, … order"` tests is the declaration order of `Aurora.Uix.Test.MirrorCtx.Product` (`test/support/mirror/ctx/product.ex`, `schema "products"`), with `id` first.
 - A relationship no `preload` names is not loaded in an index row, on both backends: the marker of the `product_barcodes` index of the `Options` variant renders `NOT_LOADED`; the markers of its `product_transactions` and `product_locations` indexes render `LOADED`.
-- The render tree of the S6 body below has the same node ids on both backends: `"auix-product-form"`, `"auix-group-identification-product-form-0"`, `"auix-sections-product-form-1"`, `"auix-section-quantities-product-form-1-0"`, `"auix-section-prices-product-form-1-1"`.
+- The render tree of the definition of step 4 has the same node ids on both backends: `"auix-product-form"`, `"auix-group-identification-product-form-0"`, `"auix-sections-product-form-1"`, `"auix-section-quantities-product-form-1-0"`, `"auix-section-prices-product-form-1-1"`.
 - Two resources over `MirrorCtx.Product` and `MirrorAsh.Product` in one views module give both the module hint `Product`; a module declares one of the two.
-- Coverage, measured on `main` at f186ea4 with this section applied: `mix test --cover` reports `1 doctest, 8 features, 577 tests, 0 failures` and `82.81% | Total` (4681 of 5653 lines). Without step 5 of `##### Modules & components` the same run reports `80.63%` (4557 of 5652 lines): the views modules under `test/support/` compile before the run starts, so the layout DSL they call is not counted (variant rule 10).
+- Coverage, measured on `main` at b02c7b5 with this section applied: `mix test --cover` reports `1 doctest, 8 features, 577 tests, 0 failures` and `82.82% | Total`. Without the views modules of step 5 of `##### Modules & components` the same run reports `80.84%`: the views modules under `test/support/` compile before the run starts, so the layout DSL they call is not counted. A module written in a test file compiles during the run and is counted (variant rule 10).
+- A module that compiles is written in the test file. `Code.compile_string/1` compiles only a source that must fail compilation: such a module cannot be written in a file that compiles.
 
 `test/guides/capture_layout_images.exs` requires five test files this issue deletes. Step 3 of `##### Modules & components` gives the capture script its own views, over the guide schemas, so the guide images keep their content.
 
@@ -573,8 +574,8 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: every va
 - [ ] AC-3: S3 asserts titles and subtitles of index, new, edit and show, the layout preload, the resource preload and the resource `where`, on both backends: the `product_transactions` index (layout `preload: [:product]`) and the `product_locations` index (resource `preload([:products])`) render the `LOADED` marker in every row, and the `product_barcodes` index, which declares no preload, renders the `NOT_LOADED` marker
 - [ ] AC-4: S4 asserts named modules, `use:`, `index_live` and included layouts on both backends: a used form component serves the resource of its host; a local layout replaces the included one
 - [ ] AC-5: S5 asserts, on both backends, the edit and the show layout declared with two `auix_create_layout` calls (`Manual`: the show page has no `list_price` and no `rrp` input, and `description` is an `input`) and resources taken from another module (`Separated`); on `:ctx` only, a resource map built by hand (`ManualResource`)
-- [ ] AC-6: S6 asserts the generation metadata with no database: the module registry, module names, `generate:`, `use:`, cards, the layout option sets, the render tree of the body of step 4 compiled once per backend, embedded resources that generate no module on each backend, and every views definition of `@run_time_variants` and `@run_time_single_views` compiled while the test runs, with the signature of the views module the scenarios mount (variant rule 10)
-- [ ] AC-7: S7 is one table-driven test over `auix_create_ui`, `auix_create_layout` and layout option declarations: each replaced compile-error test is one case `{label, source body, message regex}`; a case that compiles fails the test with its label
+- [ ] AC-6: S6 asserts the generation metadata with no database, on modules written in the test file: the module registry, module names, `generate:`, `use:`, cards, the layout option sets, the render tree of the definition of step 4 used once per backend, embedded resources that generate no module on each backend, and, for every views definition of `@variant_views` and `@single_views`, a module of the test file that uses it, with the signature of the views module the scenarios mount (variant rule 10); S6 compiles no string
+- [ ] AC-7: S7 is one table-driven test over the `auix_create_ui`, `auix_create_layout` and layout option declarations that must fail compilation: each replaced test whose assertion is a raised error is one case `{label, source body, message regex}`, compiled from its source by `compile/1`, the one caller of `Code.compile_string/1` in the file; a case that compiles fails the test with its label
 - [ ] AC-8: `test/guides/capture_layout_images.exs` requires no file under `test/cases_live/` (mechanical — no red test; verified by `grep -c "cases_live" test/guides/capture_layout_images.exs` returning `0` and `MIX_ENV=test mix test test/guides/capture_layout_images.exs` exiting `0`, followed by `git checkout -- guides` to discard the regenerated images)
 - [ ] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
@@ -595,8 +596,8 @@ Every row passes on first run.
 | AC-3 | add to `test/cases_live/layout_scenarios_test.exs` | variant `Options`; `create_sample_products_with_transactions(2, 2, :test)`, `create_sample_product_locations(3, :test)` | same file | S3 `"layout options set titles and preloads"` | carried assertions of `create_ui_layout_test.exs` (titles and subtitles only; its create, edit and delete flows belong to `UI-7`), re-pointed to `mirror_path(backend, "options", "products", …)`; `product_transactions` index: `assert has_element?(view, ".auix-product-marker", "LOADED")`, `refute has_element?(view, ".auix-product-marker", "NOT_LOADED")`; `product_locations` index: the same two on `.auix-products-marker`, two `.auix-items-table-row` rows, and `refute has_element?(view, "td", "test-reference-test-3")`; `product_barcodes` index, after `create_sample_products_with_barcodes(1)`: `assert has_element?(view, ".auix-product-marker", "NOT_LOADED")`; then `/new` and `/<id>/show` of the three sources each return `{:ok, _, _}` (carry rule 8) |
 | AC-4 | add to `test/cases_live/layout_scenarios_test.exs` | variants `NamedForms`, `Named`, `Included`; `create_sample_product_locations(1, :test)`, `create_sample_products(1, :test)` | same file | S4 `"named modules, use: and included layouts render through their host"` | carried assertions |
 | AC-5 | add to `test/cases_live/layout_scenarios_test.exs` | variants `Manual`, `Separated`; the hand-built resource module of step 2; `create_sample_products_with_transactions(1, 1, :test)` | same file | S5 `"manual layouts and resources from another module render"` | `Manual`: the four tests of `manual_layouts_test.exs`; `Separated`: the four tests of `separated_multiple_resources_ui_test.exs`; a `"can&#39;t be blank"` match follows carry rule 11; the hand-built resource part is the four tests of `manual_resource_test.exs` inside `each_backend([:ctx], …)` |
-| AC-6 | new file (`ls test/cases \| grep -x generation_test.exs` returns nothing) | `use ExUnit.Case, async: true`; `compile/1` and `compiled_ui/1` copied from `test/cases/create_ui_validation_test.exs`, the sample module renamed `Aurora.UixWeb.Test.GenerationSample<n>` and its `auix_resource_metadata` re-pointed to `Aurora.Uix.Test.MirrorCtx`; `compile_raw/1` of step 4; the aliases, attributes and functions of step 5; the three `named_modules_test.exs` tests read `Aurora.UixWeb.Test.MirrorCtx.Named`, `…MirrorCtx.NamedForms`, `…MirrorCtx.NamedHost` and their `MirrorAsh` twins | `test/cases/generation_test.exs` (module `Aurora.Uix.Test.Cases.GenerationTest`) | S6 `"generated modules, names, render trees and option sets"` | carried assertions, re-pointed with the name map below `##### Replaced files`; the render-tree and embedded-resource assertions of step 4; `assert_run_time_views()` of step 5 as the last call of the test |
-| AC-7 | add to `test/cases/generation_test.exs` | as S6 | same file | S7 `"create_ui and layout option compile errors"` | `for {label, body, regex} <- cases`, `assert_raise(Spark.Error.DslError, regex, fn -> compile(body) end)`; a failure message starts with `label`; a case whose old test asserts another exception keeps that exception |
+| AC-6 | new file (`ls test/cases \| grep -x generation_test.exs` returns nothing) | `use ExUnit.Case, async: true`; the modules of steps 4 and 5, written above the test module; the aliases, attributes and functions of step 5; the three `named_modules_test.exs` tests read `Aurora.UixWeb.Test.MirrorCtx.Named`, `…MirrorCtx.NamedForms`, `…MirrorCtx.NamedHost` and their `MirrorAsh` twins | `test/cases/generation_test.exs` (module `Aurora.Uix.Test.Cases.GenerationTest`) | S6 `"generated modules, names, render trees and option sets"` | carried assertions, re-pointed with the name map below `##### Replaced files`, each on its module of step 4, read by name; the render-tree and embedded-resource assertions of step 4; `assert_views()` of step 5 as the last call of the test |
+| AC-7 | add to `test/cases/generation_test.exs` | `compile/1` copied from `test/cases/create_ui_validation_test.exs`, the sample module renamed `Aurora.UixWeb.Test.GenerationSample<n>` and its `auix_resource_metadata` re-pointed to `Aurora.Uix.Test.MirrorCtx` | same file | S7 `"create_ui and layout option compile errors"` | `for {label, body, regex} <- cases`, `assert_raise(Spark.Error.DslError, regex, fn -> compile(body) end)`; a failure message starts with `label`; a case whose old test asserts another exception keeps that exception |
 
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
@@ -631,7 +632,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section writes `assert_run_time_views/0` (step 5 of `##### Modules & components`) and names the `Default` variant of `UI-2`, its own twelve variants and its two other definitions, `ManualResource` and `IncludedLayouts`. A later section adds its entries and no test.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section writes `assert_views/0` and the modules of the `Default` variant of `UI-2`, of its own twelve variants and of its two other definitions, `ManualResource` and `IncludedLayouts` (step 5 of `##### Modules & components`). A later section adds its modules and its entries, and no test.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -653,11 +654,11 @@ Measured by the probe.
 | `test/cases_live/separated_multiple_resources_ui_test.exs` (4) | S5, on the `Separated` variant | none |
 | `test/cases_live/separated_single_resource_ui_test.exs` (2) | none | both: the same index mount and create flow as the first two tests of the `separated_multiple` file, over a resources module with one resource instead of two |
 | `test/cases_live/unseparated_multiple_resources_ui_test.exs` (4) | none | all four: its two resources in one module are what every variant already declares |
-| `test/cases/create_ui_validation_test.exs` (39) | the tests whose name ends `fails compilation`, and `"use: rejects what it cannot take"`, `"use: takes no do block"`, `"use: takes no other option"`, `"use: on index_columns rejects what it cannot take"`, `"a one-to-many field rejects an action_icons key of another field type"`, `"a many-to-many field takes no action_icons key"`, `"a live view needs its form and show components"`, `"an imported module must be a registry entry"` → S7 cases; every other test → S6 | none |
+| `test/cases/create_ui_validation_test.exs` (39) | the tests whose name ends `fails compilation`, and `"two layouts of the same type for a resource fail compilation"`, `"two resources on one schema need their own module names"`, `"two names for one module fail compilation"`, `"use: rejects what it cannot take"`, `"use: takes no do block"`, `"use: takes no other option"`, `"use: on index_columns rejects what it cannot take"`, `"a one-to-many field rejects an action_icons key of another field type"`, `"a many-to-many field takes no action_icons key"`, `"a live view needs its form and show components"`, `"an imported module must be a registry entry"` → S7 cases; every other test → S6 | none |
 | `test/cases/layout_options_test.exs` (6) | `"lists each option of the set with its layout type"`, `"available_options/1 reads the options of every set"`, `"a listed option is read from the layout, then from get_default/2"` → S6; the three `fails compilation` tests → S7 cases | none |
-| `test/cases/render_tree_test.exs` (4) | S6, on the module `compile_raw/1` builds from the render-tree body of step 4, once per backend | none |
+| `test/cases/render_tree_test.exs` (4) | S6, on the two modules of step 4 that use the render-tree definition, one per backend | none |
 
-Name map for the compile bodies and the assertions carried from `test/cases/create_ui_validation_test.exs`, `test/cases/layout_options_test.exs` and `test/cases_live/named_modules_test.exs`: `Aurora.Uix.Guides.Inventory` → `Aurora.Uix.Test.MirrorCtx`, in module names and in the `~r/… has no layouts/` regex alike; `Aurora.UixWeb.Test.NamedModulesForms` → `…MirrorCtx.NamedForms`, `NamedModulesHost` → `…MirrorCtx.NamedHost`, `NamedModulesTest` → `…MirrorCtx.Named` (and the `MirrorAsh` twins for the second pass). The test `"an embedded resource generates no modules"` is not re-pointed by this map: step 4 gives its two bodies. A test that names no guide module is carried as written.
+Name map for the modules of step 4, the S7 bodies and the assertions carried from `test/cases/create_ui_validation_test.exs`, `test/cases/layout_options_test.exs` and `test/cases_live/named_modules_test.exs`: `Aurora.Uix.Guides.Inventory` → `Aurora.Uix.Test.MirrorCtx`, in module names and in the `~r/… has no layouts/` regex alike; `Aurora.UixWeb.Test.NamedModulesForms` → `…MirrorCtx.NamedForms`, `NamedModulesHost` → `…MirrorCtx.NamedHost`, `NamedModulesTest` → `…MirrorCtx.Named` (and the `MirrorAsh` twins for the second pass). The test `"an embedded resource generates no modules"` is not re-pointed by this map: step 4 gives its two modules. A test that names no guide module is carried as written.
 
 Partly carried here, deleted by a later section: `test/cases_live/ash_default_layout_test.exs` — `"Default layout index"` and `"Test show default behaviour"` are covered by S1 on `:ash`; `test/cases_live/create_ui_layout_test.exs` — its titles and subtitles are asserted by S3. Both files stay until `UI-7`.
 
@@ -907,100 +908,184 @@ Partly carried here, deleted by a later section: `test/cases_live/ash_default_la
 
    In `test/guides/capture_layout_images.exs`: replace the five `Code.require_file("test/cases_live/…")` lines with five `Code.require_file("test/guides/views/<file>")` lines; replace `"/create-ui-default-layout-products"` with `"/guides-capture-default-products"`, `"/association-many_to_one_selector-layout-product_locations"` with `"/guides-capture-selector-product_locations"`, `"/association-many_to_one_selector-layout-products"` with `"/guides-capture-selector-products"`, `"group-ui-layout-products"` with `"/guides-capture-group-products"`, `"section-ui-layout-products"` with `"/guides-capture-section-products"`, `"nested-sections-ui-layout-products"` with `"/guides-capture-nested-sections-products"`. These modules are `.exs` files: they are loaded by the capture script only and are outside the compiled test support.
 
-4. S6 bodies. `test/cases/generation_test.exs` defines, beside `compile/1` and `compiled_ui/1`:
-     ```elixir
-     defp compile_raw(body) do
-       {mod, _binary} =
-         """
-         defmodule Aurora.UixWeb.Test.GenerationSample#{System.unique_integer([:positive])} do
-           use Aurora.Uix
-         #{body}
-         end
-         """
-         |> Code.compile_string()
-         |> Enum.find(fn {m, _} -> function_exported?(m, :auix_modules, 0) end)
+4. S6 modules. Every module S6 reads is written in `test/cases/generation_test.exs`, above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, under the name `Aurora.UixWeb.Test.Generation.<Name>`. S6 calls neither `Code.compile_string/1` nor `compile/1`; `compile/1` is the one function of the file that compiles a string. The test module holds `alias Aurora.UixWeb.Test.Generation`, and each carried assertion reads its module by name (`mod = Generation.ModuleName`). None of these modules has a route. `Aurora.UixWeb.Test.Generation` is new (`rg -n "Test\.Generation\." test lib` returns nothing).
+   - Sample modules, one per body of `test/cases/create_ui_validation_test.exs` that compiles. Each starts with the two lines `use Aurora.UixWeb.Test.Mirror, backend: :ctx` and `mirror_resource(:product)`, which declare the resource the first lines of `compile/1` declare; the lines of the third column follow them.
 
-       mod
+     | Module | Body of the old test | Lines after `mirror_resource(:product)` |
+     |---|---|---|
+     | `Generation.Registry` | `"every generated module has a registry entry"`; the first body of `"index_columns generates an index component"` | `auix_create_ui()` |
+     | `Generation.FieldInBlock` | `"field places one field, with options or as an association path, in a block"` | its `auix_create_ui` block |
+     | `Generation.ModuleName` | `"module_name names the component of its layout"` | its `auix_create_ui` block |
+     | `Generation.IndexLiveName` | `"an index_live line names the live view"` | its `auix_create_ui` block |
+     | `Generation.GenerateComponents` | `"generate chooses the kinds of module"` | `auix_create_ui(generate: [:form_component, :show_component])` |
+     | `Generation.NamedIndex` | `"index_columns generates an index component"`, second body | its `auix_create_ui` block |
+     | `Generation.OnlyIndexComponent` | the same test, third body | `auix_create_ui(generate: [:index_component])` |
+     | `Generation.UseIndexLayout` | `"use: gives a resource the index layout of another"` | `mirror_resource(:product_location)`, then its `auix_create_ui` block |
+     | `Generation.CardColumns` | `"a card without a field list gives the columns"` | its `auix_create_ui` block |
+     | `Generation.IndexOptions` | `"index_columns without a block keeps its options and its pair-only field list"`, first body | its `auix_create_ui` block |
+     | `Generation.IndexPair` | the same test, second body | its `auix_create_ui` block |
+     | `Generation.IndexWithoutCard` | `"an index without a card has none"` | its `auix_create_ui` block |
+     | `Generation.NestedPreload` | `"a field with resource: keeps its nested preload"` | `mirror_resource :product_location do field(:products, resource: :product) end`, then its `auix_create_ui` block |
+
+     The assertion of `"field places one field, …"` reads `Generation.FieldInBlock.auix_layouts()`.
+   - Render tree. One definition and one module per backend. The `auix_create_ui do … end` block is the block of `test/cases/render_tree_test.exs`, unchanged.
+     ```elixir
+     defmodule Aurora.UixWeb.Test.Generation.RenderTree do
+       defmacro __using__(opts) do
+         quote do
+           use Aurora.UixWeb.Test.Mirror, unquote(opts)
+
+           mirror_resource(:product)
+
+           auix_create_ui do
+             edit_layout :product, [] do
+               group("Identification", [:reference, name: [label: "Product name"]])
+
+               sections do
+                 section("Quantities", [:quantity_initial])
+                 section("Prices", [:msrp], default: true)
+               end
+             end
+
+             index_columns :product, [:reference, :name, :msrp] do
+               card title: :name, subtitle: :reference, show_on: :all do
+                 inline([:msrp])
+                 field(:name, label: "Product name")
+               end
+             end
+           end
+         end
+       end
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ash.RenderTree do
+       use Aurora.UixWeb.Test.Generation.RenderTree, backend: :ash
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ctx.RenderTree do
+       use Aurora.UixWeb.Test.Generation.RenderTree, backend: :ctx
      end
      ```
-   - Render tree. For each of `"context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product"` and `"ash_resource: Aurora.Uix.Test.MirrorAsh.Product"`, the body is `auix_resource_metadata :product, <that source>` followed by the `auix_create_ui do … end` block of `test/cases/render_tree_test.exs`, unchanged. The four tests of that file assert on `mod.auix_configurations().product.layout_trees.form` and `.index`, with the ids they hard-code; each holds on both backends.
-   - Embedded resources, `:ctx` body:
+     The four tests of `render_tree_test.exs` assert on `mod.auix_configurations().product.layout_trees.form` and `.index`, with the ids they hard-code, for `mod` in `Generation.Ash.RenderTree` and `Generation.Ctx.RenderTree`; each holds on both backends.
+   - Embedded resources, `:ctx` module:
      ```elixir
-     auix_resource_metadata :product, context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product
-     auix_resource_metadata :product__packaging do
-       schema Aurora.Uix.Test.MirrorCtx.Product.Packaging
-       field :fragile, readonly: true
+     defmodule Aurora.UixWeb.Test.Generation.CtxEmbedded do
+       use Aurora.UixWeb.Test.Mirror, backend: :ctx
+
+       mirror_resource(:product)
+
+       auix_resource_metadata :product__packaging do
+         schema(Aurora.Uix.Test.MirrorCtx.Product.Packaging)
+         field(:fragile, readonly: true)
+       end
+
+       auix_create_ui()
      end
-     auix_create_ui()
      ```
-     Assertions: `mod.auix_modules() |> Map.keys() |> Enum.sort() == [:product_form_component, :product_index, :product_index_component, :product_show_component]`; `Packaging.Index`, `Packaging.FormComponent`, `Packaging.ShowComponent` and `Contact.Index` under `mod` are not loaded; `mod.auix_configurations()` has the keys `:product__packaging` and `:product__contacts`; `mod.auix_resource(:product__packaging).embedded?` and `mod.auix_resource(:product__contacts).embedded?`; `mod.auix_resource(:product__packaging).fields.fragile.readonly`.
-   - Embedded resources, `:ash` body:
+     Assertions, with `mod = Generation.CtxEmbedded`: `mod.auix_modules() |> Map.keys() |> Enum.sort() == [:product_form_component, :product_index, :product_index_component, :product_show_component]`; `Packaging.Index`, `Packaging.FormComponent`, `Packaging.ShowComponent` and `Contact.Index` under `mod` are not loaded; `mod.auix_configurations()` has the keys `:product__packaging` and `:product__contacts`; `mod.auix_resource(:product__packaging).embedded?` and `mod.auix_resource(:product__contacts).embedded?`; `mod.auix_resource(:product__packaging).fields.fragile.readonly`.
+   - Embedded resources, `:ash` module:
      ```elixir
-     auix_resource_metadata :product, ash_resource: Aurora.Uix.Test.MirrorAsh.Product
-     auix_resource_metadata :product__packaging do
-       ash_resource Aurora.Uix.Test.MirrorAsh.Packaging
-       field :notes, readonly: true
-     end
-     auix_resource_metadata :contact_metadata, ash_resource: Aurora.Uix.Test.MirrorAsh.Contact
-     auix_resource_metadata :policy_item, ash_resource: AshActorTest.PolicyItem
-     auix_resource_metadata :policy_item__tags, ash_resource: AshActorTest.Tag
-     auix_create_ui do
-       edit_layout :product__packaging do
-         stacked [:notes]
+     defmodule Aurora.UixWeb.Test.Generation.AshEmbedded do
+       use Aurora.UixWeb.Test.Mirror, backend: :ash
+
+       mirror_resource(:product)
+
+       auix_resource_metadata :product__packaging do
+         ash_resource(Aurora.Uix.Test.MirrorAsh.Packaging)
+         field(:notes, readonly: true)
+       end
+
+       auix_resource_metadata(:contact_metadata, ash_resource: Aurora.Uix.Test.MirrorAsh.Contact)
+       auix_resource_metadata(:policy_item, ash_resource: AshActorTest.PolicyItem)
+       auix_resource_metadata(:policy_item__tags, ash_resource: AshActorTest.Tag)
+
+       auix_create_ui do
+         edit_layout :product__packaging do
+           stacked([:notes])
+         end
        end
      end
      ```
-     Assertions: the sorted module keys are `[:policy_item_form_component, :policy_item_index, :policy_item_index_component, :policy_item_show_component, :product_form_component, :product_index, :product_index_component, :product_show_component]`; `Packaging.Index`, `Packaging.FormComponent`, `Packaging.ShowComponent`, `Contact.Index` and `Tag.Index` under `mod` are not loaded; `embedded?` holds for `:product__packaging`, `:product__contacts`, `:policy_item__tags` and `:contact_metadata`; `mod.auix_resource(:product__packaging).fields.notes.readonly`; `[%Node.Stacked{children: [%Node.Field{key: :notes}]}] = mod.auix_configurations().product__packaging.layout_trees.form.children`.
-   Both bodies replace the single body of `"an embedded resource generates no modules"`; its `Accounts.User`, `Blog.Post`, `Blog.Comment` and `Blog.Tag` lines have no other home.
-
-5. Run-time views (S6, variant rule 10). In `test/cases/generation_test.exs`:
-   - below `alias Aurora.Uix.Templates.Basic.Helpers`, add
+     Assertions, with `mod = Generation.AshEmbedded`: the sorted module keys are `[:policy_item_form_component, :policy_item_index, :policy_item_index_component, :policy_item_show_component, :product_form_component, :product_index, :product_index_component, :product_show_component]`; `Packaging.Index`, `Packaging.FormComponent`, `Packaging.ShowComponent`, `Contact.Index` and `Tag.Index` under `mod` are not loaded; `embedded?` holds for `:product__packaging`, `:product__contacts`, `:policy_item__tags` and `:contact_metadata`; `mod.auix_resource(:product__packaging).fields.notes.readonly`; `[%Node.Stacked{children: [%Node.Field{key: :notes}]}] = mod.auix_configurations().product__packaging.layout_trees.form.children`.
+   Both modules replace the single body of `"an embedded resource generates no modules"`; its `Accounts.User`, `Blog.Post`, `Blog.Comment` and `Blog.Tag` lines have no other home.
+   - Option set, read by the assertions of `"a listed option is read from the layout, then from get_default/2"` (`test/cases/layout_options_test.exs`) as `options_set = Generation.OptionsSet`. The `@spec` is required by `mix credo --strict`.
      ```elixir
+     defmodule Aurora.UixWeb.Test.Generation.OptionsSet do
+       use Aurora.Uix.Layout.Options, layout_type: :sample
+
+       option(:greeting, :string)
+       option(:farewell, :string)
+
+       @spec get_default(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+       defp get_default(_assigns, :greeting), do: {:ok, "hello"}
+       defp get_default(_assigns, option), do: {:not_found, option}
+     end
+     ```
+   - S7 keeps `compile/1`. The three bodies whose assertion is a raised error leave S6 and are S7 cases, each with the name of its old test as label and the regex of that test: `"two layouts of the same type for a resource fail compilation"` (`~r/:product has more than one form layout/`), `"two resources on one schema need their own module names"` (`~r/module name :product_form_component is taken more than once/`), `"two names for one module fail compilation"` (`~r/would be generated twice/`).
+
+5. Views modules (S6, variant rule 10). In `test/cases/generation_test.exs`:
+   - below the modules of step 4 and above the test module, write the views modules, one per definition and backend. First the two other definitions:
+     ```elixir
+     defmodule Aurora.UixWeb.Test.Generation.Ctx.ManualResource do
+       use Aurora.UixWeb.Test.Mirror.Variants.ManualResource, backend: :ctx
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ctx.IncludedLayouts do
+       use Aurora.UixWeb.Test.Mirror.Variants.IncludedLayouts, backend: :ctx
+     end
+     ```
+     then, for each of the thirteen names of `@variant_views`, in that order, the two modules of the variant, written out as these two are for `Default`:
+     ```elixir
+     defmodule Aurora.UixWeb.Test.Generation.Ash.Default do
+       use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ash
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ctx.Default do
+       use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ctx
+     end
+     ```
+     These 28 modules have no route: no scenario mounts them, and the views modules under `test/support/mirror_web/` and their routes stay as step 1 and step 2 give them. Each backend has a module of its own: one module that declares the `MirrorCtx` and the `MirrorAsh` product gives both the module hint `Product`.
+   - in the test module, below `alias Aurora.Uix.Templates.Basic.Helpers`, add
+     ```elixir
+     alias Aurora.UixWeb.Test.Generation
      alias Aurora.UixWeb.Test.Mirror
-     alias Aurora.UixWeb.Test.Mirror.Variants
      alias Aurora.UixWeb.Test.MirrorCtx
      ```
    - above the first `test`, add the module attributes
      ```elixir
-     @run_time_variants ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
-                           NamedHost Named Included Manual SeparatedResources Separated)a
+     @variant_views ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
+                       NamedHost Named Included Manual SeparatedResources Separated)a
 
-     @run_time_single_views [
-       {Variants.ManualResource, :ctx, MirrorCtx.ManualResource},
-       {Variants.IncludedLayouts, :ctx, Mirror.IncludedLayouts}
+     @single_views [
+       {Generation.Ctx.ManualResource, MirrorCtx.ManualResource},
+       {Generation.Ctx.IncludedLayouts, Mirror.IncludedLayouts}
      ]
      ```
-   - make `assert_run_time_views()` the last call of the S6 test;
-   - beside `compile_raw/1`, add
+   - make `assert_views()` the last call of the S6 test;
+   - beside `compile/1`, add
      ```elixir
-     # Compiles every views definition while the suite runs and compares it with the views module
-     # the scenarios mount, so the DSL a variant declares is exercised by a test.
-     @spec assert_run_time_views() :: term()
-     defp assert_run_time_views do
-       variants =
-         for name <- @run_time_variants, backend <- [:ash, :ctx] do
-           {Module.concat(Variants, name), backend, Mirror.sibling(backend, name)}
-         end
+     @spec assert_views() :: term()
+     defp assert_views do
+       for name <- @variant_views, backend <- [:ash, :ctx] do
+         assert signature(view(backend, name)) == signature(Mirror.sibling(backend, name)),
+                "#{name} on #{backend}"
+       end
 
-       signatures =
-         (variants ++ @run_time_single_views)
-         |> Task.async_stream(
-           fn {definition, backend, twin} ->
-             signature = definition |> compile_view(backend) |> signature()
-             assert signature == signature(twin), "#{inspect(definition)} on #{backend}"
-             {{definition, backend}, signature}
-           end,
-           timeout: :infinity
-         )
-         |> Map.new(fn {:ok, entry} -> entry end)
+       for {view, mounted} <- @single_views do
+         assert signature(view) == signature(mounted), inspect(view)
+       end
 
-       assert_manual_views(signatures)
-       assert_included_views(signatures)
-       assert_resource_only_views(signatures)
+       assert_manual_views()
+       assert_included_views()
+       assert_resource_only_views()
      end
 
-     @spec assert_manual_views(map()) :: term()
-     defp assert_manual_views(signatures) do
+     @spec view(:ash | :ctx, atom()) :: module()
+     defp view(:ash, name), do: Module.concat(Generation.Ash, name)
+     defp view(:ctx, name), do: Module.concat(Generation.Ctx, name)
+
+     @spec assert_manual_views() :: term()
+     defp assert_manual_views do
        product_form =
          {:form_component,
           [
@@ -1016,7 +1101,7 @@ Partly carried here, deleted by a later section: `test/cases_live/ash_default_la
           ]}
 
        for backend <- [:ash, :ctx] do
-         manual = signatures[{Variants.Manual, backend}]
+         manual = backend |> view(:Manual) |> signature()
 
          assert manual.layouts == [
                   {Node.Form, :product},
@@ -1042,31 +1127,31 @@ Partly carried here, deleted by a later section: `test/cases_live/ash_default_la
                   {:index_component, [:description, :name, :product_location_id, :reference]}
        end
 
-       hand_built = signatures[{Variants.ManualResource, :ctx}]
+       hand_built = signature(Generation.Ctx.ManualResource)
        assert hand_built.resources == []
        assert hand_built.modules.product_form_component == product_form
        assert hand_built.modules.product_show_component == put_elem(product_form, 0, :show_component)
      end
 
-     @spec assert_included_views(map()) :: term()
-     defp assert_included_views(signatures) do
+     @spec assert_included_views() :: term()
+     defp assert_included_views do
        layouts = [{Node.Form, :product}, {Node.Show, :product}]
 
-       assert signatures[{Variants.IncludedLayouts, :ctx}] ==
+       assert signature(Generation.Ctx.IncludedLayouts) ==
                 %{resources: [], layouts: layouts, modules: %{}}
 
        for backend <- [:ash, :ctx] do
-         included = signatures[{Variants.Included, backend}]
+         included = backend |> view(:Included) |> signature()
          assert included.layouts == layouts
          assert included.modules.product_form_component == {:form_component, [:name, :reference]}
          assert included.modules.product_show_component == {:show_component, [:name]}
        end
      end
 
-     @spec assert_resource_only_views(map()) :: term()
-     defp assert_resource_only_views(signatures) do
+     @spec assert_resource_only_views() :: term()
+     defp assert_resource_only_views do
        for backend <- [:ash, :ctx] do
-         assert signatures[{Variants.SeparatedResources, backend}] == %{
+         assert backend |> view(:SeparatedResources) |> signature() == %{
                   resources: [
                     :product,
                     :product__contacts,
@@ -1077,25 +1162,12 @@ Partly carried here, deleted by a later section: `test/cases_live/ash_default_la
                   modules: %{}
                 }
 
-         assert signatures[{Variants.NamedHost, backend}] == %{
+         assert backend |> view(:NamedHost) |> signature() == %{
                   resources: [],
                   layouts: [{Node.Form, :product_location}],
                   modules: %{}
                 }
        end
-     end
-
-     @spec compile_view(module(), :ash | :ctx) :: module()
-     defp compile_view(definition, backend) do
-       name = "Aurora.UixWeb.Test.GenerationSample#{System.unique_integer([:positive])}"
-
-       Code.compile_string("""
-       defmodule #{name} do
-         use #{inspect(definition)}, backend: #{inspect(backend)}
-       end
-       """)
-
-       Module.concat([name])
      end
 
      @spec signature(module()) :: map()
@@ -1121,7 +1193,7 @@ Partly carried here, deleted by a later section: `test/cases_live/ash_default_la
          else: default
      end
      ```
-   The atoms of `@run_time_variants` are written with `~w(…)a`: the file aliases `Options` and `Form`, so a bare `Options` in a list names `Aurora.Uix.Layout.Options`. Each expected value above was read from the compiled modules and is the same on both backends. `assert_run_time_views/0`, `assert_manual_views/1`, `assert_included_views/1`, `assert_resource_only_views/1`, `compile_view/2`, `signature/1`, `exported/3`, `@run_time_variants` and `@run_time_single_views` are new (`rg -n "run_time_variants|run_time_single_views|assert_run_time_views|compile_view|defp signature|defp exported" test lib` returns nothing).
+   The atoms of `@variant_views` are written with `~w(…)a`: the file aliases `Options` and `Form`, so a bare `Options` in a list names `Aurora.Uix.Layout.Options`. Each expected value above was read from the compiled modules and is the same on both backends. `assert_views/0`, `view/2`, `assert_manual_views/0`, `assert_included_views/0`, `assert_resource_only_views/0`, `signature/1`, `exported/3`, `@variant_views` and `@single_views` are new (`rg -n "variant_views|single_views|assert_views|defp view\(|defp signature|defp exported" test lib` returns nothing).
 
 6. Theme: none. `dt/1` strings: none.
 
@@ -1217,7 +1289,7 @@ Measured by the probe: none. Every carried assertion of this section held on bot
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section appends its five variants to `@run_time_variants`, in this order: `Index`, `IndexQuery`, `IndexWhere`, `IndexCards`, `IndexActions`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: each of them compiled under a `GenerationSample<n>` name on both backends with the signature of its views module.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its five variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the five names to `@variant_views`, in this order: `Index`, `IndexQuery`, `IndexWhere`, `IndexCards`, `IndexActions`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -1490,7 +1562,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section appends its seven variants to `@run_time_variants`, in this order: `Form`, `FormOptions`, `Uploads`, `Renderers`, `PredefinedRenderers`, `RendererModuleTable`, `RendererPrecedence`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: each of them compiled under a `GenerationSample<n>` name on both backends with the signature of its views module.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its seven variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the seven names to `@variant_views`, in this order: `Form`, `FormOptions`, `Uploads`, `Renderers`, `PredefinedRenderers`, `RendererModuleTable`, `RendererPrecedence`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -1761,7 +1833,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section appends its two variants to `@run_time_variants`, in this order: `Show`, `ShowNavigator`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: each of them compiled under a `GenerationSample<n>` name on both backends with the signature of its views module.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its two variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the two names to `@variant_views`, in this order: `Show`, `ShowNavigator`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -1934,7 +2006,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section appends its ten variants to `@run_time_variants`, in this order: `ManyToOne`, `ManyToOneQueries`, `OneToMany`, `OneToManyComponent`, `OneToManyActions`, `OneToOne`, `ManyToMany`, `ManyToManyActions`, `Embeds`, `EmbedsExpanded`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: each of them compiled under a `GenerationSample<n>` name on both backends with the signature of its views module.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its ten variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the ten names to `@variant_views`, in this order: `ManyToOne`, `ManyToOneQueries`, `OneToMany`, `OneToManyComponent`, `OneToManyActions`, `OneToOne`, `ManyToMany`, `ManyToManyActions`, `Embeds`, `EmbedsExpanded`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -2260,7 +2332,7 @@ Measured by the probe.
 7. A function with `~H` written inside the `quote` of `__using__/1` (the `render/1` of a host LiveView) takes its argument as `var!(assigns)`: `def render(var!(assigns)) do ~H"…" end`.
 8. A variant that reads another variant of its own backend gets that module from `Aurora.UixWeb.Test.Mirror.sibling/2`, called in `__using__/1` before the `quote` and unquoted inside it: `views = Aurora.UixWeb.Test.Mirror.sibling(opts[:backend], <Name>)`.
 9. An `Aurora.Uix.RouteHelper.auix_live_resources/3` line of a variant goes in `test/support/app_web/routes.ex` beside the existing `auix_live_resources` lines, below `require Aurora.Uix.RouteHelper`, one line per backend.
-10. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module, and `assert_run_time_views/0` of `test/cases/generation_test.exs` (S6 of `UI-5`) compiles the definition again under a `GenerationSample<n>` name while the suite runs and asserts that its signature (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. A variant is one atom, its last name, in `@run_time_variants` of that file, and is compiled on both backends. Any other definition is one `{definition, backend, views module}` tuple in `@run_time_single_views`. This section appends its eleven variants to `@run_time_variants`, in this order: `Navigation`, `HooksIndex`, `HooksForm`, `HooksShow`, `Components`, `ComponentsPaired`, `ComponentsHandled`, `Events`, `Gettext`, `PairedFormHost`, `PairedIndexHost`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: each of them compiled under a `GenerationSample<n>` name on both backends with the signature of its views module.
+10. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. Every module under `test/support/` that calls any of `auix_resource_metadata`, `auix_create_ui`, `auix_create_layout` keeps that DSL in the `quote` of the `__using__/1` of a definition module. `test/cases/generation_test.exs` (S6 of `UI-5`) holds, above its test module, one module per definition and backend, written out, whose body is the `use` line of the definition: `Aurora.UixWeb.Test.Generation.Ash.<Name>` and `Aurora.UixWeb.Test.Generation.Ctx.<Name>` for a variant, whose last name is one atom in `@variant_views` of that file; for any other definition, one module and one `{module, views module}` tuple in `@single_views`. These modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each (resource names, layouts, and the kind and sorted fields of every module of the registry) equals the signature of the views module the scenarios mount. No views module is compiled from a string. This section adds the two modules of each of its eleven variants to that file, directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`, and appends the eleven names to `@variant_views`, in this order: `Navigation`, `HooksIndex`, `HooksForm`, `HooksShow`, `Components`, `ComponentsPaired`, `ComponentsHandled`, `Events`, `Gettext`, `PairedFormHost`, `PairedIndexHost`. It adds no test and no other definition. Proven with a probe on `main` at f6aa246: a module whose body is the `use` line of each of them compiled on both backends with the signature of its views module.
 
 ##### Replaced files
 | Old file (tests) | Home | Dropped, with the reason |
@@ -2578,13 +2650,27 @@ These rules apply to every row of `##### Replaced files`.
      ```
      Route lines: `RoutesHelper.register_crud(MirrorAsh.Aggregates.ProductLocation, "mirror-ash-aggregates-product_locations")` and `RoutesHelper.register_crud(MirrorAsh.Aggregates.Product, "mirror-ash-aggregates-products")`.
    - `Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions` at `test/support/mirror_web/variants/context_functions.ex` (`@moduledoc false`; `@doc false`, `@spec __using__(keyword()) :: Macro.t()`, `defmacro __using__(_opts)`), whose `quote` holds: `Module.register_attribute(__MODULE__, :auix_resource_metadata, persist: true)`, `use Aurora.Uix`, `auix_resource_metadata(:product, context: Aurora.Uix.Test.MirrorCtx, schema: Aurora.Uix.Test.MirrorCtx.Product, backend_opts: [list_function_paginated: &Aurora.Uix.Test.MirrorCtx.list_products_paginated/1])`, `auix_create_ui do index_columns(:product, [:reference, :name]) end`. `Aurora.UixWeb.Test.MirrorCtx.ContextFunctions` at `test/support/mirror_web/ctx/context_functions.ex` is `@moduledoc false` and `use Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions, backend: :ctx`. Route line: `RoutesHelper.register_crud(MirrorCtx.ContextFunctions.Product, "mirror-ctx-context-functions-products")`.
-3. Run-time compile. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run, and the files under `test/support/` compile before it. In `test/cases/generation_test.exs` (`UI-5`), append to `@run_time_single_views`:
+3. Views under cover. `mix test --cover` counts the library code that runs while a module compiles only when that module compiles during the run: the files under `test/support/` compile before it, and a module written in a test file compiles during it. In `test/cases/generation_test.exs` (`UI-5`), add directly above `defmodule Aurora.Uix.Test.Cases.GenerationTest`:
      ```elixir
-     {Variants.Aggregates, :ash, Aurora.UixWeb.Test.MirrorAsh.Aggregates},
-     {Variants.ContextFunctions, :ctx, MirrorCtx.ContextFunctions},
-     {Aurora.UixWeb.Test.AshActorViewsDefinition, :ash, Aurora.UixWeb.Test.AshActorViews}
+     defmodule Aurora.UixWeb.Test.Generation.Ash.Aggregates do
+       use Aurora.UixWeb.Test.Mirror.Variants.Aggregates, backend: :ash
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ctx.ContextFunctions do
+       use Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions, backend: :ctx
+     end
+
+     defmodule Aurora.UixWeb.Test.Generation.Ash.AshActorViews do
+       use Aurora.UixWeb.Test.AshActorViewsDefinition, backend: :ash
+     end
      ```
-   `assert_run_time_views/0` of that file compiles each definition again while the suite runs and asserts that its signature equals the signature of its views module. This section adds no test for it. Proven with a probe on `main` at f186ea4: the three definitions compiled under a `GenerationSample<n>` name with the signature of their views module. `Variants.Aggregates` and `Variants.ContextFunctions` are new (`rg -n "Variants.Aggregates|Variants.ContextFunctions" test lib` returns nothing).
+   and append to `@single_views` of that file:
+     ```elixir
+     {Generation.Ash.Aggregates, Aurora.UixWeb.Test.MirrorAsh.Aggregates},
+     {Generation.Ctx.ContextFunctions, MirrorCtx.ContextFunctions},
+     {Generation.Ash.AshActorViews, Aurora.UixWeb.Test.AshActorViews}
+     ```
+   The three modules have no route and no scenario mounts them. `assert_views/0` of that file asserts that the signature of each equals the signature of its views module. This section adds no test for it and compiles no views module from a string. Proven with a probe on `main` at f186ea4: a module whose body is the `use` line of each of the three definitions compiled with the signature of its views module. `Variants.Aggregates` and `Variants.ContextFunctions` are new (`rg -n "Variants.Aggregates|Variants.ContextFunctions" test lib` returns nothing).
 4. Theme: none. `dt/1` strings: none.
 
 ##### Green tests
@@ -2625,7 +2711,7 @@ The rewritten tests must not depend on test order: no test creates the named ETS
 ##### Test ports
 - `Mix.Tasks.Auix.Gen.Stylesheet.run/1`, as `test/mix/tasks/auix/gen/stylesheet_test.exs` runs it · existing
 - `Aurora.Uix.Templates.ThemeHelper` `generate_stylesheet/0`, `generate_variables_stylesheet/0`, `generate_rules_stylesheet/0` (`lib/aurora_uix/templates/theme_helper.ex`); `rules/0`, `rule_names/0`, `theme_name/0` of a theme module (`lib/aurora_uix/templates/theme.ex`) · existing
-- The theme DSL compiled with `Code.compile_string/1`, as `test/cases/templates/theme_rules_test.exs` compiles it · out: `Spark.Error.DslError`
+- The theme DSL: `rules/0` and `rule/1` of the three theme modules of step 2, written in the test file; a declaration that must fail compilation, compiled with `Code.compile_string/1` as `compile_theme/1` of `test/cases/templates/theme_rules_test.exs` compiles it · out: `Spark.Error.DslError`
 
 ##### Red tests
 Every row passes on first run.
@@ -2636,7 +2722,7 @@ Every row passes on first run.
 | AC-2 | new file (`ls test/cases/templates \| grep -x theme_test.exs` returns nothing) | `use ExUnit.Case` | `test/cases/templates/theme_test.exs` (module `Aurora.Uix.Test.Cases.ThemeTest`) | S2 `"every theme emits every rule once and the stylesheet splits cleanly"` | `for theme <- themes do assert Enum.map(theme.rules(), & &1.name) == theme.rule_names(); assert theme.rule_names() == Enum.uniq(theme.rule_names()); refute Enum.any?(theme.rules(), &(&1.css in [nil, ""])) end`; carried split and bridge assertions |
 | AC-3 | add to `theme_test.exs` | as S2 | same | S3 `"every variable a rule uses is declared, in each theme, light and dark"` | `used = Regex.scan(~r/var\((--[a-zA-Z0-9_-]+)/, rules)`; `declared = Regex.scan(~r/(--[a-zA-Z0-9_-]+)\s*:/, variables <> rules)`; `assert used -- declared == []`; carried per-theme declarations |
 | AC-4 | add to `theme_test.exs` | as S2 | same | S4 `"the sanitizer keeps allowed values and drops the rest"` | carried assertions |
-| AC-5 | add to `theme_test.exs` | `compile/1` of `theme_rules_test.exs` | same | S5 `"the theme DSL replaces, imports and rejects rules"` | carried assertions; the five `fails compilation` tests become cases `{label, body, regex}` |
+| AC-5 | add to `theme_test.exs` | the three theme modules of step 2; `compile_theme/1` of `theme_rules_test.exs` for the failing cases | same | S5 `"the theme DSL replaces, imports and rejects rules"` | carried assertions, the first three tests of `describe "theme DSL"` each on its module of step 2; the five `fails compilation` tests become cases `{label, body, regex}`, compiled by `compile_theme/1` |
 
 ##### Carry rules
 These rules apply to every row of `##### Replaced files`.
@@ -2659,8 +2745,30 @@ These rules apply to every row of `##### Replaced files`.
 | `test/cases/templates/css_sanitizer_test.exs` (4) | S4 | `"the text area rule keeps its resize declarations"`, `"the loading button keeps its spinner box"`: each restates the CSS of one rule; the sanitizer cases they rely on are the other two tests |
 
 ##### Modules & components
-1. No views variant, no route, no theme rule, no `dt/1` string. This section adds no module that calls `auix_resource_metadata`, `auix_create_ui` and `auix_create_layout`: `@run_time_variants` and `@run_time_single_views` of `test/cases/generation_test.exs` stay as they are. The theme DSL of S5 compiles inside the test, so `mix test --cover` counts it.
-2. `test/cases/templates/theme_test.exs` — new, four tests (S2 to S5).
+1. No views variant, no route, no theme rule, no `dt/1` string. This section adds no module that calls `auix_resource_metadata`, `auix_create_ui` and `auix_create_layout`: `@variant_views`, `@single_views` and the views modules of `test/cases/generation_test.exs` stay as they are. The three themes of step 2 compile with the test file and the failing cases of S5 compile inside the test, so `mix test --cover` counts both.
+2. `test/cases/templates/theme_test.exs` — new, four tests (S2 to S5). Above its test module it holds the three themes S5 reads, written out; the test module holds `alias Aurora.Uix.Test.Theme`. `compile_theme/1`, copied from `test/cases/templates/theme_rules_test.exs`, compiles the five failing cases and nothing else. `Aurora.Uix.Test.Theme` is new (`rg -n "Aurora\.Uix\.Test\.Theme\." test lib` returns nothing).
+     ```elixir
+     defmodule Aurora.Uix.Test.Theme.LocalRule do
+       use Aurora.Uix.Templates.Theme
+
+       rule(:auix_button, ".auix-button { color: red; }")
+       include(Aurora.Uix.Templates.Basic.Themes.Base)
+     end
+
+     defmodule Aurora.Uix.Test.Theme.ImportedRule do
+       use Aurora.Uix.Templates.Theme
+
+       rule(:_auix_shared, ".auix-shared { gap: 1px; }")
+       rule(:auix_copy, "#{import_rule(:_auix_shared, :auix_copy)} .auix-copy { gap: 2px; }")
+     end
+
+     defmodule Aurora.Uix.Test.Theme.OneRule do
+       use Aurora.Uix.Templates.Theme
+
+       rule(:auix_one, ".auix-one {}")
+     end
+     ```
+   `"a local rule replaces an included one and keeps its place"` asserts on `Theme.LocalRule`, `"import_rule copies a rule and renames its selector"` on `Theme.ImportedRule`, `"an unknown rule name gives empty CSS"` on `Theme.OneRule.rule(:auix_two)`.
 
 ##### Green tests
 1. The scenarios above pass, on both backends where the row says both (code-issue runs these, targeted)
@@ -2734,7 +2842,7 @@ These rules apply to every row of `##### Replaced files`.
 S3 and S4 replace no file: the issue's Target suite names the upload JS and the modal for the browser area.
 
 ##### Modules & components
-1. No new variant. Routes: none added. `@run_time_variants` and `@run_time_single_views` of `test/cases/generation_test.exs` stay as they are: the features of this section visit variants that earlier sections named there.
+1. No new variant. Routes: none added. `@variant_views`, `@single_views` and the views modules of `test/cases/generation_test.exs` stay as they are: the features of this section visit variants whose modules earlier sections wrote there.
 2. Delete from `test/support/app_web/routes.ex` every registration left that names a module no file defines; after this step `load_test_routes/0` holds the `register_mirror` lines, the `auix_live_resources` lines of the `Named` and `Navigation` variants, the `ManualResource` (`register_product_crud`), `Aggregates` and `ContextFunctions` lines, the `AshActorViews` line, the five `GuidesCapture` lines and the `-local-demo` block. `register_user_crud/2` in `test/support/app_web/routes_helper.ex` has no caller left and is deleted; `register_product_crud/2` stays for the `-local-demo` block, the `ManualResource` line and the capture routes.
 3. `test/support/helper.ex` keeps `create_guides_sample_data/0`, `create_sample_products/3`, `create_sample_products_with_transactions/4`, `create_sample_product_locations/2`, `create_sample_authors/2`, `create_sample_categories/2`, `create_sample_posts/2`, `delete_all_inventory_data/0`, `delete_all_accounts_data/0`, `delete_all_blog_data/0`, `delete_all_sample_data/0` and the private functions they call. Delete `create_sample_users/2`, `create_sample_products_with_suppliers/2`, `create_sample_posts_with_topics/2`, `create_sample_products_with_barcodes/1`, `create_sample_authors_with_profiles/1` and `to_boolean/1`, with their `@doc` and `@spec`.
 4. In `mix.exs`, `xref(:test)` stays as it is: every file of `test/cases_live/` still has one `defmodule … Test do` line.
