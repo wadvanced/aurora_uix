@@ -48,6 +48,26 @@ defmodule Aurora.UixWeb.Test.Routes do
 
         RoutesHelper.register_mirror(Separated, "separated", ["products", "product_transactions"])
 
+        RoutesHelper.register_mirror(Index, "index", [
+          "products",
+          "product_locations",
+          "suppliers"
+        ])
+
+        RoutesHelper.register_mirror(IndexQuery, "index-query", ["products", "product_locations"])
+        RoutesHelper.register_mirror(IndexWhere, "index-where", ["products"])
+
+        RoutesHelper.register_mirror(IndexCards, "index-cards", [
+          "products",
+          "product_transactions"
+        ])
+
+        RoutesHelper.register_mirror(IndexActions, "index-actions", [
+          "products",
+          "product_locations",
+          "suppliers"
+        ])
+
         RoutesHelper.register_product_crud(
           MirrorCtx.ManualResource,
           "mirror-ctx-manual-resource-"
@@ -271,11 +291,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          CreateUIActionsIndexTest,
-          "create-ui-actions-index-"
-        )
-
-        RoutesHelper.register_product_crud(
           CreateUIActionsShowTest,
           "create-ui-actions-show-"
         )
@@ -300,16 +315,6 @@ defmodule Aurora.UixWeb.Test.Routes do
           "association-one_to_many-actions-"
         )
 
-        RoutesHelper.register_crud(
-          ActionIconsIndexTest.Product,
-          "action-icons-index-products"
-        )
-
-        RoutesHelper.register_product_crud(
-          LoadItemsOptionsTest,
-          "load-items-options-"
-        )
-
         RoutesHelper.register_product_crud(
           HandlerHooksIndexTest,
           "handler-hooks-index-"
@@ -326,21 +331,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          OrderByMetadataTest,
-          "order-by-metadata-"
-        )
-
-        RoutesHelper.register_product_crud(
-          OrderByLayoutTest,
-          "order-by-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
-          WhereLayoutTest,
-          "where-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
           WhereOne2ManyTest,
           "where-one_to_many-"
         )
@@ -348,21 +338,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_product_crud(
           WhereMany2OneTest,
           "where-many_to_one-"
-        )
-
-        RoutesHelper.register_product_crud(
-          PagesBarTest,
-          "pages-bar-"
-        )
-
-        RoutesHelper.register_product_crud(
-          InfinityScrollTest,
-          "infinity-scroll-"
-        )
-
-        RoutesHelper.register_product_crud(
-          SelectedTest,
-          "selected-"
         )
 
         RoutesHelper.register_product_crud(
@@ -461,57 +436,15 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
-          WhereFilterLayoutTest.Product,
-          "where-filter-layout-products"
-        )
-
-        RoutesHelper.register_crud(
-          AshWhereFilterLayoutTest.Post,
-          "ash-where-filter-layout-posts"
-        )
-
-        RoutesHelper.register_crud(AshWhereLayoutTest.Author, "ash-where-layout-authors")
-        RoutesHelper.register_crud(AshOrderByLayoutTest.Author, "ash-order-by-layout-authors")
-
-        RoutesHelper.register_crud(
-          AshOrderByMetadataTest.Author,
-          "ash-order-by-metadata-authors"
-        )
-
-        RoutesHelper.register_crud(AshFilterBarTest.Post, "ash-filter-bar-posts")
-
-        RoutesHelper.register_crud(
           AshWhereOne2ManyTest.Author,
           "ash-where-one_to_many-authors"
         )
 
         RoutesHelper.register_crud(AshWhereMany2OneTest.Post, "ash-where-many_to_one-posts")
-        RoutesHelper.register_crud(SortableColumnsTest.Product, "sortable-columns-products")
-
-        RoutesHelper.register_crud(
-          AshSortableColumnsTest.Author,
-          "ash-sortable-columns-authors"
-        )
-
-        RoutesHelper.register_crud(IndexCardFrameTest.Product, "index-card-frame-products")
-        RoutesHelper.register_crud(IndexCardActionsTest.Product, "index-card-actions-products")
-        RoutesHelper.register_crud(IndexCardContentTest.Product, "index-card-content-products")
-        RoutesHelper.register_crud(IndexCardGridTest.Product, "index-card-grid-products")
-        RoutesHelper.register_crud(SortDisabledTest.Product, "sort-disabled-products")
-
-        RoutesHelper.register_crud(
-          SortDisabledTest.ProductLocation,
-          "sort-disabled-product-locations"
-        )
 
         RoutesHelper.register_crud(EventsTest.Product, "events-products")
         RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
         RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")
-
-        RoutesHelper.register_crud(
-          SelectedBulkActionTest.Product,
-          "selected-bulk-action-products"
-        )
 
         RoutesHelper.register_crud(NavigationTest.Product, "navigation-products")
 

@@ -334,6 +334,46 @@ defmodule Aurora.UixWeb.Test.Generation.Ctx.Separated do
   use Aurora.UixWeb.Test.Mirror.Variants.Separated, backend: :ctx
 end
 
+defmodule Aurora.UixWeb.Test.Generation.Ash.Index do
+  use Aurora.UixWeb.Test.Mirror.Variants.Index, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.Index do
+  use Aurora.UixWeb.Test.Mirror.Variants.Index, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.IndexQuery do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexQuery, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexQuery do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexQuery, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.IndexWhere do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexWhere, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexWhere do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexWhere, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.IndexCards do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexCards, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexCards do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexCards, backend: :ctx
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ash.IndexActions do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexActions, backend: :ash
+end
+
+defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexActions do
+  use Aurora.UixWeb.Test.Mirror.Variants.IndexActions, backend: :ctx
+end
+
 defmodule Aurora.Uix.Test.Cases.GenerationTest do
   use ExUnit.Case, async: true
 
@@ -359,7 +399,8 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   @exceptions %{"the 0.1.x form fails compilation" => ArgumentError}
 
   @variant_views ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
-                    NamedHost Named Included Manual SeparatedResources Separated)a
+                    NamedHost Named Included Manual SeparatedResources Separated Index IndexQuery
+                    IndexWhere IndexCards IndexActions)a
 
   @single_views [
     {Generation.Ctx.ManualResource, MirrorCtx.ManualResource},
