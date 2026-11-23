@@ -2968,10 +2968,10 @@ This section edits agent guidance only: `AGENTS.md` and four files under `.claud
 Every edit below replaces the quoted text with the given text. Text outside the quotes stays.
 
 ##### Acceptance criteria
-- [ ] AC-1: `AGENTS.md` § Testing › Scope and Coverage states one scenario per functionality and the one-functionality-per-test rule (mechanical — no red test; verified by `grep -c "One scenario per feature" AGENTS.md` returning `0`, `grep -c "One scenario per functionality, on both backends" AGENTS.md` returning `1` and `grep -c "One functionality per test" AGENTS.md` returning `1`)
-- [ ] AC-2: no skill words a test as one per feature (mechanical — no red test; verified by `grep -rn "per feature\|of its feature\|for a feature\|drives the feature" .claude/skills/improve-issue/SKILL.md .claude/skills/code-issue/SKILL.md .claude/skills/review-issue/SKILL.md .claude/skills/shared/improve-issue/templates/ui.md` returning nothing)
-- [ ] AC-3: `review-issue` lists a test that mixes functionalities as a finding (mechanical — no red test; verified by `grep -c "walks through loosely related functionalities" .claude/skills/review-issue/SKILL.md` returning `1`)
-- [ ] AC-4: an edit whose quoted text is absent from its file stops the section with a spec defect, and no partial rewording is committed (mechanical — no red test; verified by `git diff --stat origin/main...HEAD` listing exactly the five files of this section and the spec file)
+- [x] AC-1: `AGENTS.md` § Testing › Scope and Coverage states one scenario per functionality and the one-functionality-per-test rule (mechanical — no red test; verified by `grep -c "One scenario per feature" AGENTS.md` returning `0`, `grep -c "One scenario per functionality, on both backends" AGENTS.md` returning `1` and `grep -c "One functionality per test" AGENTS.md` returning `1`)
+- [x] AC-2: no skill words a test as one per feature (mechanical — no red test; verified by `grep -rn "per feature\|of its feature\|for a feature\|drives the feature" .claude/skills/improve-issue/SKILL.md .claude/skills/code-issue/SKILL.md .claude/skills/review-issue/SKILL.md .claude/skills/shared/improve-issue/templates/ui.md` returning nothing)
+- [x] AC-3: `review-issue` lists a test that mixes functionalities as a finding (mechanical — no red test; verified by `grep -c "walks through loosely related functionalities" .claude/skills/review-issue/SKILL.md` returning `1`)
+- [x] AC-4: an edit whose quoted text is absent from its file stops the section with a spec defect, and no partial rewording is committed (mechanical — no red test; verified by `git diff --stat origin/main...HEAD` listing exactly the five files of this section and the spec file)
 
 ##### Test ports
 None: this section changes no executable code.

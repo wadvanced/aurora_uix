@@ -635,7 +635,7 @@ use either — the budget applies only when the script is used.
 
 For each row of the `##### Red tests` table, in order:
 
-A row whose placement is `amend` extends the named scenario: add the assertions inside its `each_backend/2` body, so they run on both backends. Never add a second test for a feature a scenario already drives.
+A row whose placement is `amend` extends the named scenario: add the assertions inside its `each_backend/2` body, so they run on both backends. Never add a second test for a functionality a scenario already drives, and never add to a scenario a check of another functionality: that check belongs to the test of its own row.
 
 1. **Red.** Honor the row exactly: `Placement` (`amend` the named test /
    `add to` the named file / `new file`), `Setup` (fixtures, factory calls,
@@ -956,7 +956,7 @@ this skill enforces while coding.
 - **Elixir gotchas**: lists do not support `mylist[i]` (use `Enum.at/2` or pattern match); block
   expressions must rebind (`socket = if ... do ... end`); never `String.to_atom/1` on user input;
   never nest multiple modules in one file; predicate functions end with `?`.
-- **Tests**: one scenario per feature, on both backends: `use Aurora.UixWeb.Test.UICase, :scenario_case`,
+- **Tests**: one scenario per functionality, on both backends, one functionality per test: `use Aurora.UixWeb.Test.UICase, :scenario_case`,
   `Scenario.each_backend/2`, views variants from `test/support/mirror_web/`. There is no `FeatureCase` and no
   factory. No mocks. No `Process.sleep/1` — use `start_supervised!/1`, `_ = :sys.get_state(pid)`,
   or `Process.monitor/1` + `assert_receive {:DOWN, ...}`.
@@ -1054,7 +1054,7 @@ test "Validate association_parser" do
   assert Validations.compare_maps(validations, parsed_schema) == []
 end
 
-# test/cases_live/ — one scenario per feature, on both backends.
+# test/cases_live/ — one scenario per functionality, on both backends.
 defmodule Aurora.UixWeb.Test.MyFeatureScenariosTest do
   use Aurora.UixWeb.Test.UICase, :scenario_case
 

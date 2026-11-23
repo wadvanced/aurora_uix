@@ -9,7 +9,7 @@ backend-agnostic: it consumes `%Field{}` atoms and never references `Ecto.Associ
 
 ## Rules
 
-1. Tests are scenarios in `test/cases_live/`: one per feature, run on both backends with `Scenario.each_backend/2`, on real data from `Aurora.Uix.Test.Mirror.Seeds`. Wallaby (`test/browser_cases/`) only when LiveViewTest cannot
+1. Tests are scenarios in `test/cases_live/`: one per functionality, run on both backends with `Scenario.each_backend/2`, on real data from `Aurora.Uix.Test.Mirror.Seeds`. Wallaby (`test/browser_cases/`) only when LiveViewTest cannot
    observe the behaviour (file downloads, native dialogs, multi-tab); the section says which and
    why.
 2. Every route a scenario visits belongs to a views variant under `test/support/mirror_web/`, registered

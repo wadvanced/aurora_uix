@@ -443,7 +443,7 @@ Always a question, never a judgement of this skill:
 
      | Placement | When | Row says |
      |---|---|---|
-     | amend an existing scenario | a scenario already drives the feature | `amend <file> "<test>"` |
+     | amend an existing scenario | a scenario already drives the functionality | `amend <file> "<test>"` |
      | add to an existing file | the module under test has a test file | `add to <file>`, in the matching `describe` |
      | new file | the module under test has none | `new file`, with the search that found none |
 
@@ -466,7 +466,7 @@ Always a question, never a judgement of this skill:
 
   5. **Every Parser and UI AC is named by a red-test row, or ends**
      `(<visual|mechanical|manual> — no red test; verified by <means>)`.
-     One row may name several ACs: a row is a scenario, and a scenario asserts every AC of its feature.
+     One row is one test, and one test covers one functionality. A row names several ACs when they all belong to that functionality; an AC that spans several functionalities is named by one row per functionality. A spec states no number of tests as a target.
   6. **Both backends.** A UI row runs on `:ash` and on `:ctx` through `Scenario.each_backend/2`, or
      states why it is backend-specific. A Parser section for one backend names the mirrored section
      for the other, or the sentence in `### Out of Scope` that excuses it.
