@@ -262,7 +262,7 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
 
   # Ash-only: neither enum flavours without `one_of` nor aggregates have an Ecto counterpart, so
   # they stay out of the shared golden map.
-  test "enum flavours and aggregates parse to typed, generated fields" do
+  test "enum flavours without one_of parse to selects" do
     module_enum = parsed_field(:field_module_enum)
 
     assert module_enum.type == :string
@@ -296,7 +296,9 @@ defmodule Aurora.Uix.Test.Cases.Integration.Ash.FieldsParserTest do
       assert field.data.select.multiple
       refute field.filterable?
     end
+  end
 
+  test "aggregates parse to typed, generated fields" do
     assert %{type: :string, html_type: :text} = aggregate_field(:first_body)
     assert %{type: :decimal} = aggregate_field(:total_score)
     assert %{type: :date} = aggregate_field(:first_published_on)
