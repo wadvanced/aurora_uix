@@ -1,7 +1,9 @@
 defmodule Aurora.UixWeb.Test.BrowserCreateUIDefaultLayoutTest do
-  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use ExUnit.Case, async: true
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
+
+  import Aurora.Uix.Test.Helper
 
   alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product

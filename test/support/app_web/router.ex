@@ -40,15 +40,19 @@ defmodule Aurora.UixWeb.Test.Router do
   scope "/", Aurora.UixWeb.Test do
     pipe_through(:browser)
 
-    live_session :actor_current_user, on_mount: [{AshActorTest.SetActorHook, :current_user}] do
+    live_session :actor_current_user,
+      on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :current_user}] do
       RoutesHelper.register_crud(AshActorPolicyTest.PolicyItem, "ash-actor-policy-items")
     end
 
-    live_session :actor_scope, on_mount: [{AshActorTest.SetActorHook, :scope}] do
+    live_session :actor_scope,
+      on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :scope}] do
       RoutesHelper.register_crud(AshActorPolicyTest.PolicyItemScope, "ash-actor-scope-items")
     end
 
-    load_test_routes()
+    live_session :sandbox, on_mount: [Aurora.UixWeb.Test.SandboxHook] do
+      load_test_routes()
+    end
   end
 
   # Other scopes may use custom stacks.

@@ -1,7 +1,9 @@
 defmodule Aurora.UixWeb.Test.BrowserEmbedsManyTest do
-  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use ExUnit.Case, async: true
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
+
+  import Aurora.Uix.Test.Helper
 
   alias Aurora.Uix.Guides.Accounts
   alias Aurora.Uix.Guides.Accounts.User
@@ -50,6 +52,8 @@ defmodule Aurora.UixWeb.Test.BrowserEmbedsManyTest do
     |> fill_field(&main_form/1, :given_name, "Paul")
     |> fill_field(&main_form/1, :family_name, "Test")
     |> click_and_wait(@save_button, Query.text("Listing Users"))
+
+    assert_has(session, Query.css("#auix-user-form", count: 0))
 
     users = Accounts.list_users()
 
@@ -106,6 +110,7 @@ defmodule Aurora.UixWeb.Test.BrowserEmbedsManyTest do
     end)
 
     click_and_wait(session, @save_button, Query.text("Listing Users"))
+    assert_has(session, Query.css("#auix-user-form", count: 0))
 
     users =
       Accounts.list_users()

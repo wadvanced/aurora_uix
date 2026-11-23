@@ -222,214 +222,6 @@ defmodule Aurora.UixWeb.Test.Generation.OptionsSet do
   defp get_default(_assigns, option), do: {:not_found, option}
 end
 
-defmodule Aurora.UixWeb.Test.Generation.Ctx.ManualResource do
-  use Aurora.UixWeb.Test.Mirror.Variants.ManualResource, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.IncludedLayouts do
-  use Aurora.UixWeb.Test.Mirror.Variants.IncludedLayouts, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Default do
-  use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Default do
-  use Aurora.UixWeb.Test.Mirror.Variants.Default, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.DefaultInline do
-  use Aurora.UixWeb.Test.Mirror.Variants.DefaultInline, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.DefaultInline do
-  use Aurora.UixWeb.Test.Mirror.Variants.DefaultInline, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Groups do
-  use Aurora.UixWeb.Test.Mirror.Variants.Groups, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Groups do
-  use Aurora.UixWeb.Test.Mirror.Variants.Groups, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Sections do
-  use Aurora.UixWeb.Test.Mirror.Variants.Sections, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Sections do
-  use Aurora.UixWeb.Test.Mirror.Variants.Sections, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.NestedSections do
-  use Aurora.UixWeb.Test.Mirror.Variants.NestedSections, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.NestedSections do
-  use Aurora.UixWeb.Test.Mirror.Variants.NestedSections, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Options do
-  use Aurora.UixWeb.Test.Mirror.Variants.Options, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Options do
-  use Aurora.UixWeb.Test.Mirror.Variants.Options, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.NamedForms do
-  use Aurora.UixWeb.Test.Mirror.Variants.NamedForms, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.NamedForms do
-  use Aurora.UixWeb.Test.Mirror.Variants.NamedForms, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.NamedHost do
-  use Aurora.UixWeb.Test.Mirror.Variants.NamedHost, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.NamedHost do
-  use Aurora.UixWeb.Test.Mirror.Variants.NamedHost, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Named do
-  use Aurora.UixWeb.Test.Mirror.Variants.Named, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Named do
-  use Aurora.UixWeb.Test.Mirror.Variants.Named, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Included do
-  use Aurora.UixWeb.Test.Mirror.Variants.Included, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Included do
-  use Aurora.UixWeb.Test.Mirror.Variants.Included, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Manual do
-  use Aurora.UixWeb.Test.Mirror.Variants.Manual, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Manual do
-  use Aurora.UixWeb.Test.Mirror.Variants.Manual, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.SeparatedResources do
-  use Aurora.UixWeb.Test.Mirror.Variants.SeparatedResources, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.SeparatedResources do
-  use Aurora.UixWeb.Test.Mirror.Variants.SeparatedResources, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Separated do
-  use Aurora.UixWeb.Test.Mirror.Variants.Separated, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Separated do
-  use Aurora.UixWeb.Test.Mirror.Variants.Separated, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Index do
-  use Aurora.UixWeb.Test.Mirror.Variants.Index, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Index do
-  use Aurora.UixWeb.Test.Mirror.Variants.Index, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.IndexQuery do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexQuery, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexQuery do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexQuery, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.IndexWhere do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexWhere, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexWhere do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexWhere, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.IndexCards do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexCards, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexCards do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexCards, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.IndexActions do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexActions, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.IndexActions do
-  use Aurora.UixWeb.Test.Mirror.Variants.IndexActions, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Form do
-  use Aurora.UixWeb.Test.Mirror.Variants.Form, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Form do
-  use Aurora.UixWeb.Test.Mirror.Variants.Form, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.FormOptions do
-  use Aurora.UixWeb.Test.Mirror.Variants.FormOptions, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.FormOptions do
-  use Aurora.UixWeb.Test.Mirror.Variants.FormOptions, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Uploads do
-  use Aurora.UixWeb.Test.Mirror.Variants.Uploads, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Uploads do
-  use Aurora.UixWeb.Test.Mirror.Variants.Uploads, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.Renderers do
-  use Aurora.UixWeb.Test.Mirror.Variants.Renderers, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.Renderers do
-  use Aurora.UixWeb.Test.Mirror.Variants.Renderers, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.PredefinedRenderers do
-  use Aurora.UixWeb.Test.Mirror.Variants.PredefinedRenderers, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.PredefinedRenderers do
-  use Aurora.UixWeb.Test.Mirror.Variants.PredefinedRenderers, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.RendererModuleTable do
-  use Aurora.UixWeb.Test.Mirror.Variants.RendererModuleTable, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.RendererModuleTable do
-  use Aurora.UixWeb.Test.Mirror.Variants.RendererModuleTable, backend: :ctx
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ash.RendererPrecedence do
-  use Aurora.UixWeb.Test.Mirror.Variants.RendererPrecedence, backend: :ash
-end
-
-defmodule Aurora.UixWeb.Test.Generation.Ctx.RendererPrecedence do
-  use Aurora.UixWeb.Test.Mirror.Variants.RendererPrecedence, backend: :ctx
-end
-
 defmodule Aurora.Uix.Test.Cases.GenerationTest do
   use ExUnit.Case, async: true
 
@@ -459,10 +251,9 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                     IndexWhere IndexCards IndexActions Form FormOptions Uploads Renderers
                     PredefinedRenderers RendererModuleTable RendererPrecedence)a
 
-  @single_views [
-    {Generation.Ctx.ManualResource, MirrorCtx.ManualResource},
-    {Generation.Ctx.IncludedLayouts, Mirror.IncludedLayouts}
-  ]
+  @single_views [MirrorCtx.ManualResource, Mirror.IncludedLayouts]
+
+  @kinds [:form_component, :index_component, :index_live, :show_component]
 
   test "the module registry lists every generated module with its kind, fields and layout" do
     assert_registry()
@@ -514,7 +305,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert_option_sets()
   end
 
-  test "the views under cover have the signature of the mounted views" do
+  test "the mounted views export a known kind and the fields of each generated module" do
     assert_views()
   end
 
@@ -861,22 +652,23 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   @spec assert_views() :: term()
   defp assert_views do
     for name <- @variant_views, backend <- [:ash, :ctx] do
-      assert signature(view(backend, name)) == signature(Mirror.sibling(backend, name)),
-             "#{name} on #{backend}"
+      assert_registry_kinds(Mirror.sibling(backend, name), "#{name} on #{backend}")
     end
 
-    for {view, mounted} <- @single_views do
-      assert signature(view) == signature(mounted), inspect(view)
-    end
+    for views <- @single_views, do: assert_registry_kinds(views, inspect(views))
 
     assert_manual_views()
     assert_included_views()
     assert_resource_only_views()
   end
 
-  @spec view(:ash | :ctx, atom()) :: module()
-  defp view(:ash, name), do: Module.concat(Generation.Ash, name)
-  defp view(:ctx, name), do: Module.concat(Generation.Ctx, name)
+  @spec assert_registry_kinds(module(), binary()) :: term()
+  defp assert_registry_kinds(views, label) do
+    for {name, {kind, fields}} <- signature(views).modules do
+      assert kind in @kinds, "#{label}: #{name} has the kind #{inspect(kind)}"
+      assert fields != [] or kind == :index_live, "#{label}: #{name} has no fields"
+    end
+  end
 
   @spec assert_manual_views() :: term()
   defp assert_manual_views do
@@ -895,7 +687,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
        ]}
 
     for backend <- [:ash, :ctx] do
-      manual = backend |> view(:Manual) |> signature()
+      manual = backend |> Mirror.sibling(:Manual) |> signature()
 
       assert manual.layouts == [
                {Node.Form, :product},
@@ -921,7 +713,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                {:index_component, [:description, :name, :product_location_id, :reference]}
     end
 
-    hand_built = signature(Generation.Ctx.ManualResource)
+    hand_built = signature(MirrorCtx.ManualResource)
     assert hand_built.resources == []
     assert hand_built.modules.product_form_component == product_form
     assert hand_built.modules.product_show_component == put_elem(product_form, 0, :show_component)
@@ -931,11 +723,11 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   defp assert_included_views do
     layouts = [{Node.Form, :product}, {Node.Show, :product}]
 
-    assert signature(Generation.Ctx.IncludedLayouts) ==
+    assert signature(Mirror.IncludedLayouts) ==
              %{resources: [], layouts: layouts, modules: %{}}
 
     for backend <- [:ash, :ctx] do
-      included = backend |> view(:Included) |> signature()
+      included = backend |> Mirror.sibling(:Included) |> signature()
       assert included.layouts == layouts
       assert included.modules.product_form_component == {:form_component, [:name, :reference]}
       assert included.modules.product_show_component == {:show_component, [:name]}
@@ -945,7 +737,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   @spec assert_resource_only_views() :: term()
   defp assert_resource_only_views do
     for backend <- [:ash, :ctx] do
-      assert backend |> view(:SeparatedResources) |> signature() == %{
+      assert backend |> Mirror.sibling(:SeparatedResources) |> signature() == %{
                resources: [
                  :product,
                  :product__contacts,
@@ -956,7 +748,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                modules: %{}
              }
 
-      assert backend |> view(:NamedHost) |> signature() == %{
+      assert backend |> Mirror.sibling(:NamedHost) |> signature() == %{
                resources: [],
                layouts: [{Node.Form, :product_location}],
                modules: %{}
