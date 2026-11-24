@@ -128,7 +128,9 @@ defmodule Aurora.Uix.Renderers do
   defp host_renderers do
     case Application.get_env(:aurora_uix, :renderers) do
       registrar when is_atom(registrar) and not is_nil(registrar) ->
-        if function_exported?(registrar, :renderers, 0), do: registrar.renderers(), else: %{}
+        if Code.ensure_loaded?(registrar) and function_exported?(registrar, :renderers, 0),
+          do: registrar.renderers(),
+          else: %{}
 
       _other ->
         %{}

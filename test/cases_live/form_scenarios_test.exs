@@ -875,9 +875,6 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
       assert Renderers.resolve(%Field{}, :show) == (&DefaultRenderer.render/1)
 
-      # `Renderers` checks the registrar with `function_exported?/3`, which loads no module.
-      Code.ensure_loaded!(HostRegistrar)
-
       put_temporary_env(:renderers, HostRegistrar, fn ->
         assert Renderers.resolve(%Field{renderer: :toggle_switch}, :show) ==
                  (&HostToggle.render/1)
