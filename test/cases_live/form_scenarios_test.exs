@@ -260,13 +260,8 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
       assert Repo.aggregate(MirrorCtx.Product, :count) == 0
 
-      if backend.name == :ctx do
-        assert has_element?(view, "#auix-product-form .auix-error-message")
-        assert_blank_error(view, backend)
-      else
-        # Library defect on ash (#582): a submitted new form shows no field error, only the flash.
-        assert has_element?(view, ".auix-flash--error")
-      end
+      assert has_element?(view, "#auix-product-form .auix-error-message")
+      assert_blank_error(view, backend)
 
       %{"id_test-1" => product} = create_sample_products(1, :test)
 
@@ -280,14 +275,7 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
       assert has_element?(view, "#auix-product-form")
       assert Repo.get!(MirrorCtx.Product, product.id).name == "Item test-1"
 
-      if backend.name == :ctx do
-        assert has_element?(view, "#auix-product-form .auix-error-message")
-      else
-        # Library defect on ash (#582): the edit form shows no field error, only the flash.
-        assert has_element?(view, ".auix-flash--error")
-        refute has_element?(view, "#auix-product-form .auix-error-message")
-        assert has_element?(view, "input[name='product[name]'][value='Item test-1']")
-      end
+      assert has_element?(view, "#auix-product-form .auix-error-message")
     end)
   end
 

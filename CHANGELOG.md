@@ -64,6 +64,8 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Ash form field errors**: an Ash form showed no error under a field, on change or after a failed save,
+  only the error flash. It now shows each field's error on both, as an Ecto form does.
 - **Guide overview demo**: the product transactions index of the demo views ordered its rows by `reference`,
   a column that table does not have, and raised when the page loaded. It orders them by `inserted_at`.
 - **Configured modules not loaded yet**: a renderers registrar (`config :aurora_uix, :renderers`) or a

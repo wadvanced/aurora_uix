@@ -297,7 +297,13 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     entity
     |> AshPhoenix.Form.for_update(action_name, form_opts)
     |> add_missing_single_relationship_forms()
+    |> validate_submitted(attrs)
   end
+
+  # A form built from submitted params reports its errors; the blank initial form stays quiet.
+  @spec validate_submitted(AshPhoenix.Form.t(), map()) :: AshPhoenix.Form.t()
+  defp validate_submitted(form, attrs) when attrs == %{}, do: form
+  defp validate_submitted(form, attrs), do: AshPhoenix.Form.validate(form, attrs, errors: true)
 
   @doc """
   Creates a new Ash resource struct with optional preloading.
