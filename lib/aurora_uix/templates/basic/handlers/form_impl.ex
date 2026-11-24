@@ -133,7 +133,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
             {:noreply,
              socket
              |> clear_flash()
-             |> put_flash(:error, format_ash_error(ash_error))}
+             |> put_flash(:error, format_ash_error(ash_error))
+             |> assign_auix(:form, FormImpl.validated_form(socket, entity_params))}
 
           {:error, reason} ->
             {:noreply,
@@ -258,17 +259,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     entity_params = Map.get(params, auix.module)
 
     socket = Phoenix.LiveView.clear_flash(socket)
-    change_opts = backend_socket_opts(socket, auix.change_function)
-
-    form =
-      auix.change_function
-      |> apply_change_function(
-        socket.assigns[:auix][:entity],
-        auix.module,
-        entity_params,
-        change_opts
-      )
-      |> to_named_form(auix.module, action: :validate)
+    form = validated_form(socket, entity_params)
 
     {:noreply,
      socket
@@ -349,6 +340,30 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   def save_entity(%{assigns: %{action: :new, auix: auix}} = socket, entity_params) do
     create_opts = backend_socket_opts(socket, auix.create_function)
     apply_create_function(auix.create_function, entity_params, create_opts)
+  end
+
+  @doc """
+  Builds the form for the submitted params, flagged as validated so fields show their errors.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The form component socket.
+  - `entity_params` (map()) - The submitted params of the form.
+
+  ## Returns
+  `Phoenix.HTML.Form.t()` - The named form carrying the errors of the params.
+  """
+  @spec validated_form(Socket.t(), map()) :: Phoenix.HTML.Form.t()
+  def validated_form(%{assigns: %{auix: auix}} = socket, entity_params) do
+    change_opts = backend_socket_opts(socket, auix.change_function)
+
+    auix.change_function
+    |> apply_change_function(
+      socket.assigns[:auix][:entity],
+      auix.module,
+      entity_params,
+      change_opts
+    )
+    |> to_named_form(auix.module, action: :validate)
   end
 
   @doc """
