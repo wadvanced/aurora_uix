@@ -249,7 +249,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   @variant_views ~w(Default DefaultInline Groups Sections NestedSections Options NamedForms
                     NamedHost Named Included Manual SeparatedResources Separated Index IndexQuery
                     IndexWhere IndexCards IndexActions Form FormOptions Uploads Renderers
-                    PredefinedRenderers RendererModuleTable RendererPrecedence)a
+                    PredefinedRenderers RendererModuleTable RendererPrecedence Show ShowNavigator)a
 
   @single_views [MirrorCtx.ManualResource, Mirror.IncludedLayouts]
 
