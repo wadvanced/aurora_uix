@@ -14,7 +14,6 @@ defmodule Aurora.Uix.Test.Helper do
   alias Aurora.Uix.Guides.Blog.Post
   alias Aurora.Uix.Guides.Blog.PostTopic
   alias Aurora.Uix.Guides.Blog.Topic
-  alias Aurora.Uix.Guides.Inventory
   alias Aurora.Uix.Guides.Inventory.Product
   alias Aurora.Uix.Guides.Inventory.ProductBarcode
   alias Aurora.Uix.Guides.Inventory.ProductLocation
@@ -125,166 +124,6 @@ defmodule Aurora.Uix.Test.Helper do
       |> then(&{"id_#{index}", &1})
     end)
     |> Map.new()
-  end
-
-  @doc """
-  Creates sample users.
-  """
-  @spec create_sample_users(non_neg_integer(), map()) :: :ok
-  def create_sample_users(count, attrs \\ %{}) do
-    Enum.map(
-      1..count,
-      &(%User{
-          given_name: "John #{&1}",
-          family_name: "john#{&1}@doe.com",
-          avatar_url: "https://noexist-avatar-#{&1}.svg",
-          profile: %{online: false, dark_mode: false, visibility: :public}
-        }
-        |> struct(attrs)
-        |> Repo.insert()
-        |> elem(1))
-    )
-  end
-
-  @doc """
-  Creates suppliers and products, wiring each product to the given number of suppliers.
-
-  Goes through `Inventory.create_product/1` so the fixture exercises the host's `put_assoc` path —
-  the same write path the parent form uses.
-
-  ## Parameters
-  - `product_count` (integer()) - Number of products to create.
-  - `supplier_count` (integer()) - Number of suppliers to create and attach to every product.
-
-  ## Returns
-  {list(Product.t()), list(Supplier.t())} - The created products and suppliers.
-  """
-  @spec create_sample_products_with_suppliers(integer(), integer()) :: {list(), list()}
-  def create_sample_products_with_suppliers(product_count, supplier_count) do
-    suppliers =
-      Enum.map(1..supplier_count//1, fn index ->
-        %Supplier{name: "Supplier #{index}", country: "Country #{index}"}
-        |> Repo.insert()
-        |> elem(1)
-      end)
-
-    supplier_ids = Enum.map(suppliers, & &1.id)
-
-    products =
-      Enum.map(1..product_count//1, fn index ->
-        {:ok, product} =
-          Inventory.create_product(%{
-            reference: "supplied_#{index}",
-            name: "Supplied item #{index}",
-            status: "in_stock",
-            quantity_initial: index,
-            suppliers: supplier_ids
-          })
-
-        product
-      end)
-
-    {products, suppliers}
-  end
-
-  @doc """
-  Creates topics and posts, wiring each post to the given number of topics.
-
-  Passes the topic ids as an action argument, so Ash's `manage_relationship` writes the join rows —
-  the same write path the parent form uses.
-
-  ## Parameters
-  - `post_count` (integer()) - Number of posts to create.
-  - `topic_count` (integer()) - Number of topics to create and attach to every post.
-
-  ## Returns
-  {list(struct()), list(struct())} - The created posts and topics.
-  """
-  @spec create_sample_posts_with_topics(integer(), integer()) :: {list(), list()}
-  def create_sample_posts_with_topics(post_count, topic_count) do
-    topics =
-      Enum.map(1..topic_count//1, fn index ->
-        Topic
-        |> Ash.Changeset.for_create(:create, %{name: "Topic #{index}", slug: "topic-#{index}"})
-        |> Ash.create!()
-      end)
-
-    topic_ids = Enum.map(topics, & &1.id)
-
-    posts =
-      Enum.map(1..post_count//1, fn index ->
-        Post
-        |> Ash.Changeset.for_create(:create, %{
-          title: "Topical post #{index}",
-          content: "Content #{index}",
-          topics: topic_ids
-        })
-        |> Ash.create!()
-      end)
-
-    {posts, topics}
-  end
-
-  @doc """
-  Creates sample products, each with its single barcode.
-
-  Goes through `Inventory.create_product/1` rather than inserting directly, so the nested child is
-  built by the host's `cast_assoc` — the same write path the parent form exercises.
-
-  ## Parameters
-  - `count` (integer()) - Number of products to create.
-
-  ## Returns
-  list(Product.t()) - The created products.
-  """
-  @spec create_sample_products_with_barcodes(integer()) :: list(Product.t())
-  def create_sample_products_with_barcodes(count) do
-    Enum.map(1..count, fn index ->
-      {:ok, product} =
-        Inventory.create_product(%{
-          reference: "barcoded_#{index}",
-          name: "Barcoded item #{index}",
-          status: "in_stock",
-          quantity_initial: index,
-          product_barcode: %{
-            code: "400638133#{String.pad_leading(to_string(index), 4, "0")}",
-            symbology: "EAN-13",
-            registered_at: Date.add(~D[2026-01-01], index)
-          }
-        })
-
-      product
-    end)
-  end
-
-  @doc """
-  Creates sample authors, each with its single profile.
-
-  Passes the nested profile as an action argument, so Ash's `manage_relationship` builds the child —
-  the same write path the parent form exercises.
-
-  ## Parameters
-  - `count` (integer()) - Number of authors to create.
-
-  ## Returns
-  list(struct()) - The created authors.
-  """
-  @spec create_sample_authors_with_profiles(integer()) :: list(struct())
-  def create_sample_authors_with_profiles(count) do
-    Enum.map(1..count, fn index ->
-      Author
-      |> Ash.Changeset.for_create(:create, %{
-        name: "Profiled author #{index}",
-        email: "profiled#{index}@test.com",
-        bio: "Bio for profiled author #{index}",
-        author_profile: %{
-          website: "https://author-#{index}.test",
-          twitter_handle: "@author_#{index}",
-          years_active: index
-        }
-      })
-      |> Ash.create!()
-    end)
   end
 
   @doc """
@@ -462,23 +301,6 @@ defmodule Aurora.Uix.Test.Helper do
     delete_all_accounts_data()
     delete_all_blog_data()
   end
-
-  @doc """
-  Converts to boolean
-  """
-  @spec to_boolean(term()) :: boolean()
-  def to_boolean(nil), do: false
-
-  def to_boolean(value) when is_binary(value) do
-    value
-    |> String.downcase()
-    |> String.trim()
-    |> Kernel.==("true")
-  end
-
-  def to_boolean(value) when is_number(value), do: value != 0
-
-  def to_boolean(_value), do: false
 
   ## PRIVATE ##
 
