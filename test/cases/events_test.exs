@@ -77,8 +77,10 @@ defmodule Aurora.Uix.Test.EventsTest do
   test "Events honours the pubsub_server configuration" do
     Application.delete_env(:aurora_uix, :pubsub_server)
 
-    assert Events.subscribe(Product) == :ok
-    assert Registry.lookup(Aurora.Uix.PubSub, Events.topic(Product)) == []
+    # A topic of its own: LiveViews of other tests, and the registry entry of a test process
+    # that has just ended, can still be subscribed to the Product topic.
+    assert Events.subscribe(__MODULE__) == :ok
+    assert Registry.lookup(Aurora.Uix.PubSub, Events.topic(__MODULE__)) == []
 
     :ok = Phoenix.PubSub.subscribe(Aurora.Uix.PubSub, Events.topic(Product))
     on_exit(fn -> Phoenix.PubSub.unsubscribe(Aurora.Uix.PubSub, Events.topic(Product)) end)
