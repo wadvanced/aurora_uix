@@ -61,28 +61,16 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   def parse_fields(resource_schema, resource_name) do
     Code.ensure_compiled(resource_schema)
 
-    attributes =
-      resource_schema
-      |> AshResourceInfo.attributes()
-      |> Map.new(&{&1.name, &1})
+    elements =
+      AshResourceInfo.attributes(resource_schema) ++
+        AshResourceInfo.calculations(resource_schema) ++
+        AshResourceInfo.aggregates(resource_schema)
 
-    calculations =
-      resource_schema
-      |> AshResourceInfo.calculations()
-      |> Map.new(&{&1.name, &1})
+    all_elements = Map.new(elements, &{&1.name, &1})
 
-    aggregates =
-      resource_schema
-      |> AshResourceInfo.aggregates()
-      |> Map.new(&{&1.name, &1})
-
-    all_elements =
-      attributes
-      |> Map.merge(calculations)
-      |> Map.merge(aggregates)
-
-    all_elements
-    |> Map.keys()
+    elements
+    |> Enum.map(& &1.name)
+    |> Enum.uniq()
     |> Enum.map(&parse_field(resource_schema, resource_name, &1, all_elements))
     |> List.flatten()
   end
@@ -185,12 +173,11 @@ defmodule Aurora.Uix.Integration.Ash.FieldsParser do
   def parse_associations(resource_schema, resource_name, resources, fields) do
     associations = AshResourceInfo.relationships(resource_schema)
 
-    associations
-    |> Enum.reduce(
+    Enum.reduce(
+      associations,
       Enum.reverse(fields),
       &parse_association(resource_schema, resource_name, resources, &1, &2)
     )
-    |> Enum.reverse()
   end
 
   @doc """
