@@ -49,6 +49,7 @@ suite stays green.
 | `pr-from-issue` | Opens one reviewed section's PR — owns its branch, title and issue reference; delegates the rest to `do-pr` |
 | `address-pr-review` | Captures a section PR's unresolved review threads as a `review-feedback` report on the issue — the review-loop twin of `spec-defect`. Changes no code, resolves nothing it captured |
 | `merge-pr` | Merges one PR a human labelled `approved` — or one spec PR, which needs no label (see below) — and cleans up after it — refreshes `origin/main` and local `main`, deletes the merged section branch. Reads the review labels, writes none |
+| `sync-pipeline-agents` | Regenerates the pipeline's agents from the model registry. Run by a user after editing the registry; never automatic |
 | `orchestrate-issue` | Drives an issue's sections end to end, respecting merged-dependency gating; merges an `approved` PR and runs an `amends-required` PR's feedback back through the pipeline |
 | `gate` | Runs `gate-fix`, then `gate-commit` if clean |
 | `gate-fix` | Runs `mix consistency` and fixes mechanical issues; emits a Refactor Plan for refactor-class issues |

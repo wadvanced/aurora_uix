@@ -6,7 +6,7 @@ description: >
   worktree, independent sections in parallel, one wave per invocation. Reads the
   human review labels, never writes them. Never spawns improve-issue: returns
   STATUS: SPEC_PENDING instead. Invoked by `orchestrate-issue`, not by a user.
-model: sonnet
+model: claude-sonnet-5-5
 effort: medium
 ---
 
@@ -20,6 +20,11 @@ A state machine. One invocation runs the steps below top to bottom — steps 1�
 steps 4–13 once per pass, at most 3 passes. Every step is a first-match table over
 observed GitHub and git state, so a misroute self-corrects on the next pass instead of
 compounding; every judgement call is delegated upward as a verbatim `NEEDS_DECISION`.
+
+The frontmatter's `model:` and `effort:` lines are the Coordination row of
+`.claude/skills/shared/coder-model.md`, written by `.claude/scripts/pipeline-agents.sh generate`
+and never by hand. `orchestrate-issue` spawns this agent with no `model` argument, so those two
+lines are what the run is bound to; Boot proves it before anything else happens.
 
 ## Invariants
 
@@ -50,6 +55,7 @@ compounding; every judgement call is delegated upward as a verbatim `NEEDS_DECIS
 
 | Field | Content |
 |---|---|
+| `binding` | the `model` and `effort` this run is bound to, as verified |
 | `mode` | `run` \| `dry-run` |
 | `decision` | the prompt's `DECISION:` line, or none |
 | `pass` | 1–3 |
@@ -82,10 +88,24 @@ Reset per pass: `obs`, `table`, `digest`, `changed`, `batch`, `results`.
 - **Pre-flight:** `pass > 1` → skip.
 - **Loads:** `.claude/skills/shared/turn-discipline.md`; the marker table only:
   `sed -n '/^| Block | Written by | Read by |$/,/^$/p' .claude/skills/README.md | sed '$d'`
-- **Do:** parse the prompt — issue `<n>`, `--dry-run`, `DECISION:`. Record
-  this checkout's root. Announce `Coordination: <family>   Issue: #<n>`.
+- **Do:** first verify what this run is bound to, in one turn:
+  1. Model — the exact model ID the environment states this agent is powered by.
+  2. Effort — the output of `echo "${CLAUDE_EFFORT:-unset}"`.
+
+  Compare both with this agent's registry cell:
+
+  Registry cell (Coordination): model `claude-sonnet-5-5`, effort `medium`.
+
+  Either value differs, or the command could not run and the effort is unverified →
+  **stop** `mismatch` (payload:
+  `expected <cell model>+<cell effort>, running <model>+<effort>`). A different model means
+  the spawn passed a `model` argument, which outranks the frontmatter. Identical under dry-run.
+
+  Then parse the prompt — issue `<n>`, `--dry-run`, `DECISION:`. Record
+  this checkout's root. Announce
+  `Coordination: <binding.model>+<binding.effort>   Issue: #<n>`.
   `M.decision` picks an option labelled `Stop …` or `Abort …` → **stop** `stopped`.
-- **Writes:** `mode`, `decision`, `pass = 1`.
+- **Writes:** `binding`, `mode`, `decision`, `pass = 1`.
 
 ## 2 · Claim
 
@@ -259,7 +279,8 @@ Reset per pass: `obs`, `table`, `digest`, `changed`, `batch`, `results`.
 
 ## 11 · Spawn
 
-- **Pre-flight:** `batch` empty → skip. Dry-run → resolve models, print the spawn lines, skip.
+- **Pre-flight:** `batch` empty → skip. Dry-run → name each spawn's agent and read its cell
+  (model and effort) for the announcement, print the spawn lines, skip.
 - **Loads:** `.claude/skills/shared/coder-model.md`;
   `.claude/skills/shared/orchestrator/spawn-prompts.md`
 - **Do:** write the state file with each batched section `in_progress`; issue the whole
@@ -295,18 +316,19 @@ Reset per pass: `obs`, `table`, `digest`, `changed`, `batch`, `results`.
   | # | `M` | Write `state` | Then |
   |---|---|---|---|
   | 1 | `mode = dry-run` | — | print the table, the batch, and any pause as `would pause`; return |
-  | 2 | `halt.kind = stopped` | — | return `STATUS: BLOCKED — stopped-by-user` |
-  | 3 | `halt.kind = concurrent` † | — | return `NEEDS_DECISION`: options `Take over — the other run is dead` · `Abort this run — the other one is live` |
-  | 4 | `halt.kind = spec` | `spec_pending` | return `STATUS: SPEC_PENDING` + the reason |
-  | 5 | `halt.kind = cap` † | `awaiting_decision` | return `NEEDS_DECISION` naming the cap and what it protects against: options `Continue — clear the cap and keep driving` · `Stop — I will take it from here` |
-  | 6 | `halt.kind = decision` | `awaiting_decision` | return the payload verbatim, then the other sections' lines |
-  | 7 | `halt.kind = blocked` | `blocked` | return the payload line |
-  | 8 | `halt.kind = plan` | `plan_pending` | return the payload verbatim |
-  | 9 | `halt.kind = complete` | `done` | return the completion report, per section: last step, verdict, PR URL |
-  | 10 | a batch was spawned | `wave_done`, `waves += 1` | return exactly `STATUS: WAVE_DONE waves=<k>`, `<k>` the new `waves` |
-  | 11 | `changed`, `pass < 3` | `running` | `pass += 1`; reset per-pass fields; **go to step 4** |
-  | 12 | `changed`, `pass = 3` | `wave_done`, `waves += 1` | as row 10 |
-  | 13 | otherwise † | `awaiting_decision` | return the review pause, below |
+  | 2 | `halt.kind = mismatch` | — | return `STATUS: BLOCKED — binding-mismatch (<payload>)` |
+  | 3 | `halt.kind = stopped` | — | return `STATUS: BLOCKED — stopped-by-user` |
+  | 4 | `halt.kind = concurrent` † | — | return `NEEDS_DECISION`: options `Take over — the other run is dead` · `Abort this run — the other one is live` |
+  | 5 | `halt.kind = spec` | `spec_pending` | return `STATUS: SPEC_PENDING` + the reason |
+  | 6 | `halt.kind = cap` † | `awaiting_decision` | return `NEEDS_DECISION` naming the cap and what it protects against: options `Continue — clear the cap and keep driving` · `Stop — I will take it from here` |
+  | 7 | `halt.kind = decision` | `awaiting_decision` | return the payload verbatim, then the other sections' lines |
+  | 8 | `halt.kind = blocked` | `blocked` | return the payload line |
+  | 9 | `halt.kind = plan` | `plan_pending` | return the payload verbatim |
+  | 10 | `halt.kind = complete` | `done` | return the completion report, per section: last step, verdict, PR URL |
+  | 11 | a batch was spawned | `wave_done`, `waves += 1` | return exactly `STATUS: WAVE_DONE waves=<k>`, `<k>` the new `waves` |
+  | 12 | `changed`, `pass < 3` | `running` | `pass += 1`; reset per-pass fields; **go to step 4** |
+  | 13 | `changed`, `pass = 3` | `wave_done`, `waves += 1` | as row 11 |
+  | 14 | otherwise † | `awaiting_decision` | return the review pause, below |
 
   ```
   NEEDS_DECISION

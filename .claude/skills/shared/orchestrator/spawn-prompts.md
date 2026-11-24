@@ -2,10 +2,20 @@
 
 Loaded by `epic-orchestrator`'s Spawn, only on a non-empty batch.
 
-Every spawn: `subagent_type: general-purpose`, **no `isolation`**, `model` from
-`coder-model.md` at `M.obs.level` — `code-issue` → Coder, `review-issue` → Spec/Review,
-`pr-from-issue` → the pinned Ship family (never the issue's level). Never hardcode a
-model, never write one onto a GitHub issue.
+Every spawn is one cell of `coder-model.md` at `M.obs.level`, and the cell is carried by
+the agent the spawn names (`coder-model.md` § How a cell binds):
+
+| Skill | `subagent_type` |
+|---|---|
+| `code-issue` | `pipeline-worker-<level>-coder` |
+| `review-issue` | `pipeline-worker-<level>-spec-review` |
+| `pr-from-issue` | `pipeline-worker-<level>-ship` |
+
+**Never pass `model`** — it overrides the agent's pinned version with an alias.
+**No `isolation`.** Never `general-purpose`: it runs at this agent's own model and effort,
+whatever the cell says. The session does not offer the agent → spawn nothing for that
+section; row `note: blocked: unknown-agent`. Never hardcode a model, a version or an
+effort, never write one onto a GitHub issue.
 
 All `Agent` calls of the batch go in **one message**. This agent never changes its own
 directory to spawn a section — it stays in its own checkout for every tool call, Provision
