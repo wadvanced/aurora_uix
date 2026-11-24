@@ -16,12 +16,10 @@ description: >
 Thin launcher around the `epic-orchestrator` agent. The agent drives sections;
 this skill exists for three reasons only:
 
-1. **To bind models and efforts.** A spawn cannot carry a model version or an
-   effort; only the agent it is spawned as can (`coder-model.md` § How a cell
-   binds). So this skill checks that the agents equal the registry, then
-   spawns each step as the agent named after its cell and never passes
-   `model` — `epic-orchestrator` for Coordination,
-   `pipeline-worker-<level>-spec-review` for `improve-issue`.
+1. **To resolve models.** An agent cannot pick its own model, so this skill
+   reads the registry and passes the resolved family as a spawn-time `model`
+   override — Coordination for the `epic-orchestrator`, Spec/Review for
+   `improve-issue`.
 2. **To ask the user.** A subagent cannot call `AskUserQuestion`. The agent
    returns `NEEDS_DECISION` and terminates; this skill — running in the main
    session, where prompting works — surfaces the question and re-spawns.
@@ -65,20 +63,13 @@ persisted level rather than resetting it.
 
 ## Steps
 
-1. **Check the agents against the registry.** One Bash call:
+1. **Resolve Coordination's model.** Read `.claude/skills/shared/coder-model.md`
+   and resolve the Coordination family — it is pinned at every complexity
+   level, but still resolved through the registry, never hardcoded.
 
-   ```bash
-   .claude/scripts/pipeline-agents.sh check
-   ```
-
-   Last line `STATUS: OK — …` → continue. Anything else → spawn nothing,
-   report the script's output verbatim, and stop. An `agent-mismatch` is
-   repaired by the user running the `sync-pipeline-agents` skill — never by
-   this skill, and never by editing an agent.
-
-2. **Spawn** the `epic-orchestrator` agent with the issue number and
-   `--dry-run` through in the prompt when given. **Pass no `model`
-   argument** — it would override the agent's pinned version with an alias.
+2. **Spawn** the `epic-orchestrator` agent with the issue number, passing the
+   resolved model as the `Agent` call's `model` and `--dry-run` through in the
+   prompt when given.
 
 3. **Patch the task id into the state file.** Same mechanism as before: the
    `Agent` call returns the agent's id once the spawn is accepted; the agent
@@ -147,15 +138,12 @@ persisted level rather than resetting it.
 5. **Spec loop** — `improve-issue` drafts at Spec/Review; this session
    approves and stores.
 
-   a. **Name Spec/Review's agent** at the run's level — read `level` from
-      `.orchestrator-state.json` (the agent wrote it this pass; it is the
-      positional `<level>` on a fresh issue, else the persisted
-      `**Complexity:**`). Carry the same
-      `subagent_type: pipeline-worker-<level>-spec-review`, and no `model`
-      argument, on every `improve-issue` spawn in this loop. The session does
-      not offer that agent → report `STATUS: BLOCKED — unknown-agent` and
-      stop the whole run.
-   b. **Spawn** `improve-issue <n>` as that `Agent`, prompt
+   a. **Resolve Spec/Review's model** from the registry at the run's level —
+      read `level` from `.orchestrator-state.json` (the agent wrote it this
+      pass; it is the positional `<level>` on a fresh issue, else the
+      persisted `**Complexity:**`). Carry that same `model` on every
+      `improve-issue` spawn in this loop.
+   b. **Spawn** `improve-issue <n>` as an `Agent` at that model, prompt
       carrying `NON_INTERACTIVE: true`, plus `<level>` only if this issue has
       no `enriched-spec:start v2` block yet (a fresh spec) — omit it on a
       re-enrichment so the persisted level survives.
@@ -234,7 +222,7 @@ persisted level rather than resetting it.
    `WAVE_DONE` (the agent re-derives everything from the issue), then return
    to step 4.
 
-   **Spawn the same `epic-orchestrator` agent, with no `model`, on every re-spawn.**
+   **Carry the same `model` on every re-spawn.**
 
 Loop steps 4 and 6 until the agent completes, blocks, or the user stops it. A
 run of `WAVE_DONE` re-spawns is the normal shape of a long issue, one per wave
@@ -279,12 +267,6 @@ the issue, so `/orchestrate-issue <n>` resumes wherever the sections actually
 stand rather than replaying a session.
 
 ## Forbidden
-
-- Passing a `model` argument on any spawn. It overrides the agent's pinned
-  version with an alias the harness resolves from the launching session.
-- Running `.claude/scripts/pipeline-agents.sh generate`, or editing a file in
-  `.claude/agents/`, to get past a failed check. Regenerating is the user's
-  call, through `sync-pipeline-agents`.
 
 - Running a pipeline skill inline in this session instead of spawning it —
   `improve-issue` included. It is spawned at Spec/Review; only its
