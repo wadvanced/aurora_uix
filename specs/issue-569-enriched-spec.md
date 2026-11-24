@@ -4,7 +4,7 @@
 **Complexity:** normal
 
 ### Overview
-This issue replaces the 710 tests and 8 browser features with scenario tests over one mirrored fixture, one functionality per test: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3` and `UI-14`. `UI-14` states the one-functionality-per-test rule there, and `UI-15` regroups by that rule the tests `UI-4` merged. `UI-16` runs before `UI-8`: it makes the full suite not slower than the suite of the original tree, and `UI-8` to `UI-13` each run the time check `AC-C5`.
+This issue replaces the 710 tests and 8 browser features with scenario tests over one mirrored fixture, one functionality per test: one set of tables in the PostgreSQL schema `mirror`, an Ecto schema and an Ash resource over each table, and views modules in `test/support`. Every scenario runs on `:ash` and on `:ctx`, except the backend-specific ones the issue names. `UI-2` also corrects one `order_by` in the demo views module `lib/aurora_uix_web/guides/overview.ex`, and `DOC-1` records that fix in the CHANGELOG; `AGENTS.md` and the `.claude/skills` files are outside the documentation set and are edited by `UI-3` and `UI-14`. `UI-14` states the one-functionality-per-test rule there, and `UI-15` regroups by that rule the tests `UI-4` merged. `UI-16` runs before `UI-8`: it makes the full suite not slower than the suite of the original tree, and by the user's decision "Run the check once" (2026-11-24) the comparison with the original tree runs once, in `UI-13` (`AC-C5`). `UI-8` ran it before that decision; `UI-9` to `UI-12` have no `AC-C5` and record the `Finished in` line of their full-suite run in the section log.
 
 ### Section Map
 | ID | Type | Scope | Depends on | Branch | PR title |
@@ -2256,6 +2256,8 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the ten 
 - The S10 params create a product with a packaging and two contacts, and the edit params leave one contact and the material `:bag`, on both backends.
 
 
+Suite time. The user's decision "Run the check once" (2026-11-24) supersedes carry rules 3 and 4 of `UI-16` for this section, which make every section run `.claude/scripts/suite-time.sh` as its `AC-C5`. This section has no `AC-C5` and does not run `.claude/scripts/suite-time.sh`: the comparison with the original tree runs once, in `UI-13`. The section log records, as information, the `Finished in` line of the full-suite run of AC-C3 (`grep 'Finished in' /tmp/suite-<branch>.log`); no figure is compared with another and none is a threshold. Carry rule 8 keeps applying: a views variant declares only the resources and layouts its scenarios mount.
+
 ##### Acceptance criteria
 - [ ] AC-1: S1 asserts the many-to-one select on both backends: one option per related record, labelled from an atom, and the selected value saved and read back from the row (S1a); labels from a function of the entity and from a function of the assigns and the entity (S1b); `query_opts` `order_by` and `where` order and limit the options (S1c)
 - [ ] AC-2: S2 asserts the parent record fields of a many-to-one (`{:product_location, :name}`, `product_location: :type`, `:product_location`) in the form and in the show view, and that they change when the select changes and the form is saved
@@ -2271,7 +2273,6 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the ten 
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
-- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-<slug>-<source>` of the variants below · layout types `:form`, `:show`, `:index` · observable: `form/3`, `render_change/1`, `render_submit/1`, `has_element?/2`, `element/2`
@@ -2594,6 +2595,8 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the vari
 - `ComponentsIndexViews` and `ComponentsIndexHandled` each declare `index_columns(:product, …)`; one module takes one index layout per resource. The handled index has its own variant.
 - An event carries the schema module of the backend: `Aurora.Uix.Test.MirrorAsh.Product` on `:ash`, `Aurora.Uix.Test.MirrorCtx.Product` on `:ctx`. With the module of the running backend in `Events.topic/1`, in the expected `%Event{schema: …}` and in the `entities:` pattern, 16 of the 19 tests of `events_test.exs` hold on `:ash` as they are; the other three hand `Events.updated/1`, `Events.created/1` and `Events.deleted/2` a struct, which must be the backend's own.
 
+Suite time. The user's decision "Run the check once" (2026-11-24) supersedes carry rules 3 and 4 of `UI-16` for this section, which make every section run `.claude/scripts/suite-time.sh` as its `AC-C5`. This section has no `AC-C5` and does not run `.claude/scripts/suite-time.sh`: the comparison with the original tree runs once, in `UI-13`. The section log records, as information, the `Finished in` line of the full-suite run of AC-C3 (`grep 'Finished in' /tmp/suite-<branch>.log`); no figure is compared with another and none is a threshold. Carry rule 8 keeps applying: a views variant declares only the resources and layouts its scenarios mount.
+
 ##### Acceptance criteria
 - [ ] AC-1: S1 asserts the `Aurora.Uix.Navigation` functions with no database: the five paths and `resolve_uri_path/2` (S1a); the stack round trip, `forward/2`, `back/1`, `back_to_edit/2`, and the raise for an unknown key and for a missing current path (S1b); the navigation helpers of `Aurora.Uix.Templates.Basic.Helpers` (S1c); a routing link that passes `phx-target` through (S1d)
 - [ ] AC-2: S2 asserts the routing stack on both backends: the index opens show, edit and new with the index pushed twice; show to show-edit and back unwinds the stack; closing and saving return to the index; a directly loaded form and a directly loaded show each return to the index with an empty stack (S2a); the discard guard holds navigation (S2b)
@@ -2610,7 +2613,6 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the vari
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
-- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes of the variants below; `Aurora.Uix.RouteHelper.auix_live_resources/3` routes with `only:` and `except:`; the host LiveViews of step 2 · observable: `assert_patch/1`, the `{:error, {:live_redirect, %{to: path}}}` return of `render_click/1`, `Aurora.UixWeb.Test.NavigationHelper.decode_route/1` and `encode_stack/1` (`test/support/navigation_helper.ex`), `Phoenix.Router.route_info/4`, `has_element?/2`, `assert_receive/2`
@@ -2914,6 +2916,8 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the two 
 - `/mirror-ctx-context-functions-products` lists the three seeded references.
 - The default product form saves only with a `product_barcode` code (carry rule 10 of `UI-5`): S6a submits `product_barcode: %{code: "C-1"}` with its create.
 
+Suite time. The user's decision "Run the check once" (2026-11-24) supersedes carry rules 3 and 4 of `UI-16` for this section, which make every section run `.claude/scripts/suite-time.sh` as its `AC-C5`. This section has no `AC-C5` and does not run `.claude/scripts/suite-time.sh`: the comparison with the original tree runs once, in `UI-13`. The section log records, as information, the `Finished in` line of the full-suite run of AC-C3 (`grep 'Finished in' /tmp/suite-<branch>.log`); no figure is compared with another and none is a threshold. Carry rule 8 keeps applying: a views variant declares only the resources and layouts its scenarios mount.
+
 ##### Acceptance criteria
 - [ ] AC-1: S1 asserts, through the generated UI on Ash resources with `Ash.Policy.Authorizer`: create, update and the delete link with the actor in the session, for the `:current_user` and the `:scope` assign; the embeds-many component under an actor (S1a); index and new form mount with no actor configured and with the assign absent; a create without an actor shows an error and writes no row (S1b)
 - [ ] AC-2: S2 asserts with no UI: `Aurora.Uix.Integration.Ash.Crud` `list/2`, `create/3`, `update/4`, `delete/3` with and without an actor (`{:error, %Ash.Error.Forbidden{}}`, never a raise) (S2a); `socket_opts/2` and `Helpers.backend_socket_opts/2` (S2b); `CrudSpec.new/0`, `new/3`, `new/4`; the `:ash_actor_assign` and `:actor_assign` options (S2c)
@@ -2925,7 +2929,6 @@ Facts this section builds on, proven on `main` at f6aa246 with a probe: the two 
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
-- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - Routes of `test/support/app_web/router.ex` live sessions `:actor_current_user` and `:actor_scope`, and `ash-actor-…` routes of `test/support/app_web/routes.ex` · existing; their module prefix changes in step 1
@@ -3042,6 +3045,8 @@ Facts this section builds on, measured on `main` at 25a9ae6:
 
 The rewritten tests must not depend on test order: no test creates the named ETS table of `Aurora.Uix.Templates.CssSanitizer`, and none assumes it exists; the test file is not `async`, and no test calls `:ets.new/2`, `:ets.delete/1` and `:ets.info/1` on that table. S2 and S3 reach the sanitizer through `ThemeHelper` and the theme modules; S4 calls `Aurora.Uix.Templates.CssSanitizer.sanitize_css/1`, as `test/cases/templates/css_sanitizer_test.exs` calls it.
 
+Suite time. The user's decision "Run the check once" (2026-11-24) supersedes carry rules 3 and 4 of `UI-16` for this section, which make every section run `.claude/scripts/suite-time.sh` as its `AC-C5`. This section has no `AC-C5` and does not run `.claude/scripts/suite-time.sh`: the comparison with the original tree runs once, in `UI-13`. The section log records, as information, the `Finished in` line of the full-suite run of AC-C3 (`grep 'Finished in' /tmp/suite-<branch>.log`); no figure is compared with another and none is a threshold. Carry rule 8 keeps applying: a views variant declares only the resources and layouts its scenarios mount.
+
 ##### Acceptance criteria
 - [ ] AC-1: S1 asserts the stylesheet task in a temporary directory: the default run writes the variables, rules and combined files and neither the custom file nor the baseline file (S1a); `--baseline` and `--custom` each create their file once, keep it on a second run, and overwrite it with `--force`; the two flags are independent (S1b)
 - [ ] AC-2: S2 asserts, for each of the three theme modules: `rules/0` lists each name of `rule_names/0` once, in that order, each with non-empty CSS (S2a); the rules stylesheet holds `.auix-` selectors and no `:root` block, the variables stylesheet the reverse, and both halves recombine to `generate_stylesheet/0`; the daisyUI bridge file is shipped (S2b)
@@ -3052,7 +3057,6 @@ The rewritten tests must not depend on test order: no test creates the named ETS
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
 - [ ] AC-C4: each test of this section covers one functionality (manual — no red test; verified by review: the test names in the section's test files are the names of `##### Red tests`, one test per row, and no test body drives or asserts what the row of another test names)
-- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
 
 ##### Test ports
 - `Mix.Tasks.Auix.Gen.Stylesheet.run/1`, as `test/mix/tasks/auix/gen/stylesheet_test.exs` runs it · existing
@@ -3135,7 +3139,7 @@ Depends on: UI-12
 
 #### Implementation details
 
-This section rewrites the Wallaby tests, deletes the test support nothing uses any more, and checks the whole suite. It changes no file under `lib/`. Every test passes on its first run. Layout types covered: `:index`, `:form`, `:show`, in a browser.
+This section rewrites the Wallaby tests, deletes the test support nothing uses any more, and checks the whole suite: coverage (AC-C3) and, once for the whole issue, time (AC-C5). It changes no file under `lib/`. Every test passes on its first run. Layout types covered: `:index`, `:form`, `:show`, in a browser.
 
 Features of this area: S1 to S5, one feature per row of `##### Red tests`, in `test/browser_cases/browser_scenarios_test.exs` (module `Aurora.UixWeb.Test.BrowserScenariosTest`, new: `ls test/browser_cases | grep -x browser_scenarios_test.exs` returns nothing). The module is async (`UI-16`, carry rule 2): it has `use ExUnit.Case, async: true`, `use Wallaby.Feature`, `import Aurora.Uix.Test.Mirror.Seeds` and `import Aurora.UixWeb.Test.Scenario`, and does not use `ConnCase`. Each feature runs its body in `each_backend/2` and visits `mirror_path/4` routes. One feature covers one functionality: it makes several checks when they all belong to that functionality. No number of tests and no number of features is a target.
 
@@ -3144,6 +3148,8 @@ Why Wallaby, stated in a comment above each feature: S1 and S2 drive the embeds-
 A feature depends neither on another feature's rows nor on test order: each backend run starts from `delete_all_mirror_data/0` and creates its own rows. The second old feature of `test/browser_cases/embeds_many_test.exs` fails intermittently on `main`; its rewrite waits for each element with a Wallaby query (`assert_has/2`) before it clicks, and never reads a counter id. An element that must disappear is awaited with `assert_has(session, Query.css("<selector>", count: 0))`.
 
 Facts this section builds on, proven on `main` at f6aa246 with a Wallaby probe on both backends: the S3 drive attaches the file, shows `.auix-upload-entry`, saves and stores the bytes in `image`; the S4 drive opens the discard dialog on Escape, keeps editing, and discards. `refute_has/2` on the form right after the click failed in the probe while the form was still closing; the `count: 0` query waited for it.
+
+Suite time. The user's decision "Run the check once" (2026-11-24) supersedes carry rules 3 and 4 of `UI-16`, which make every section run `.claude/scripts/suite-time.sh` as its `AC-C5`. This section is the one place it runs, as `AC-C5`, through step 8 of `##### Modules & components`. The rule of `UI-16` that the suite is not slower than the original tree stays. `review-issue` verifies `AC-C5` by the four result lines of the section log and `/tmp/suite-time-<branch>.verdict`, and does not run the script again.
 
 ##### Acceptance criteria
 - [ ] AC-1: S1 creates a product with no contact through the browser, on both backends, and the saved product has no contact
@@ -3156,7 +3162,7 @@ Facts this section builds on, proven on `main` at f6aa246 with a Wallaby probe o
 - [ ] AC-C1: every file listed under `##### Replaced files` is deleted, with its route registrations, and `mix test` is green (mechanical — no red test; verified by `git diff --name-status origin/main...HEAD -- test` showing a `D` line for each listed file)
 - [ ] AC-C2: no file under `lib/` is modified (mechanical — no red test; verified by `git diff --name-only origin/main...HEAD -- lib` returning nothing)
 - [ ] AC-C3: line coverage holds (mechanical — no red test; verified by `.claude/scripts/suite.sh --cover`, then `grep -E '\| Total' /tmp/suite-<branch>.log` showing at least 81.62% and the summary line showing `0 failures`; exit code 3 is the unmet 90% project threshold, as on `main`)
-- [ ] AC-C5: the full suite is not slower than the original tree's (mechanical — no red test; verified by `.claude/scripts/suite-time.sh <reference-dir>` of `UI-16` printing `PASS` and `EXIT: 0`; the section log records its four result lines)
+- [ ] AC-C5: the full suite of this section's tip is not slower than the original tree's: `.claude/scripts/suite-time.sh <reference-dir>` prints `PASS` and `EXIT: 0` (`UI-16` AC-1 defines `PASS`: each median of the tip is not greater than the same median of the reference) (mechanical — no red test; verified by step 8 of `##### Modules & components`, which prepares `<reference-dir>` and runs the script once for the whole issue; the section log records its four result lines)
 
 ##### Test ports
 - Mirror routes `/mirror-<ash|ctx>-embeds-products`, `/mirror-<ash|ctx>-uploads-products`, `/mirror-<ash|ctx>-form-products`, `/mirror-<ash|ctx>-default-products` (variants of `UI-9`, `UI-7`, `UI-2`) · observable: Wallaby `visit/2`, `click/2`, `fill_in/3`, `attach_file/3`, `send_keys/2`, `assert_has/2`, `refute_has/2`; persisted rows through `Aurora.Uix.Repo`
@@ -3200,6 +3206,16 @@ S3 and S4 replace no file: the issue's Areas table names the upload JS and the m
 5. `test/test_templates/cases_live/local-demo_test_example.exs` stays.
 6. In `AGENTS.md` § Testing › Test layers, replace the row `| `test/cases/` | resource metadata, layout/blueprint generation | no |` with `| `test/cases/` | resource metadata, generation, navigation, events, theme | no |`.
 7. Theme: none. `dt/1` strings: none.
+8. Suite time check (AC-C5): the one comparison of the issue. Run it last, after every other AC of this section is ticked, on the tip of this branch, with nothing else running on the machine.
+   1. Reference checkout: run `git worktree list | grep 25a9ae6`. A hit gives `<reference-dir>`: the path in its first column. No hit: run `git worktree add --detach /tmp/aurora-uix-ref-25a9ae6 25a9ae6`; `<reference-dir>` is then `/tmp/aurora-uix-ref-25a9ae6`.
+   2. Copy from the tip into `<reference-dir>` what git does not carry; without the second and third command the 8 browser features of the reference fail (learned in `UI-16`): `rsync -a deps/ <reference-dir>/deps/`, then `rsync -a --ignore-existing priv/static/ <reference-dir>/priv/static/`, then `rsync -a assets/css/auix-*.css <reference-dir>/assets/css/`.
+   3. In `<reference-dir>` run `MIX_ENV=test mix ecto.create && MIX_ENV=test mix ecto.migrate`.
+   4. From the tip run `.claude/scripts/suite-time.sh <reference-dir>` through Bash with `run_in_background: true`, the plain command with no `&`. When the call ends, read `/tmp/suite-time-<branch>.verdict`. Never poll it.
+   5. The last two lines of the verdict decide:
+      - `PASS` and `EXIT: 0`: tick `AC-C5`; copy the four result lines (`finished reference`, `finished candidate`, `real reference`, `real candidate`) into the section log.
+      - `EXIT: 64`: the script ran nothing; correct the argument and run it again.
+      - `EXIT: 3`: a run failed three times and the verdict names its log. Read the log. A failing test of this section is fixed as any failing test; a missing copy of sub-step 2 is made; then run the script again. Any other cause is handled as `FAIL`.
+      - `FAIL` and `EXIT: 1`: stop. Do not tick `AC-C5`. Do not delete a test. Do not weaken an assertion. Do not lower the coverage floor. Do not change a variant. Do not run the script again to obtain another figure. Post the `spec-defect` comment of `code-issue` with `Class: design-gap`, the slug `suite-time` and the four result lines as its facts, and end with `STATUS: BLOCKED — spec-defect: suite-time`. No pull request is opened. `UI-13` is not COMPLETED, the issue-level completion phrase is not written, and the user decides.
 
 ##### Green tests
 1. The scenarios above pass, on both backends where the row says both (code-issue runs these, targeted)
