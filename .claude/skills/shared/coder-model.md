@@ -31,18 +31,6 @@ every level, for reasons that do not vary with how hard the issue is:
   model on the ship step, is the answer when it happens. Pinning also bounds the cost of the one
   step that runs on **every** node of a tree.
 
-## Family → model ID
-
-The versions the families resolve to. Reference only: the `Agent` tool accepts the aliases
-`sonnet`, `opus` and `fable`, not a model ID, so a spawn passes the alias and the harness picks
-the version. Update this table when the harness moves a family to a new version.
-
-| Family | Alias | Model ID |
-|---|---|---|
-| Sonnet | `sonnet` | `claude-sonnet-5-5` |
-| Opus | `opus` | `claude-opus-5-5` |
-| Fable | `fable` | `claude-fable-5-2` |
-
 ## Group → skills
 
 | Group | Skills |
@@ -137,8 +125,8 @@ The hand-off does not carry the level — the next skill reads it from the issue
 
 ## Rules
 
-- **Family plus explicit effort** — `Sonnet+medium`, `Opus+high`, `Fable+high`. Version
-  numbers live only in § Family → model ID, never in the level table or a `SKILL.md`. **Every cell
+- **Family plus explicit effort** — `Sonnet+medium`, `Opus+high`, `Fable+high`. No version
+  numbers; add one only if two versions of a family become selectable at once. **Every cell
   carries an effort**; there is no implied default, and a bare family name in the table is a
   defect.
 - **The level may be persisted; a model name may never be.** The level lives in the
