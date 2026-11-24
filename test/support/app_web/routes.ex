@@ -69,6 +69,13 @@ defmodule Aurora.UixWeb.Test.Routes do
         ])
 
         RoutesHelper.register_mirror(Form, "form", ["products", "product_locations"])
+        RoutesHelper.register_mirror(Show, "show", ["products"])
+
+        RoutesHelper.register_mirror(ShowNavigator, "show-navigator", [
+          "products",
+          "product_locations"
+        ])
+
         RoutesHelper.register_mirror(FormOptions, "form-options", ["products"])
         RoutesHelper.register_mirror(Uploads, "uploads", ["products"])
         RoutesHelper.register_mirror(Renderers, "renderers", ["products"])
@@ -107,11 +114,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         # Tests with required CRUD links for testing
-
-        RoutesHelper.register_crud(
-          RecordNavigationTest.Product,
-          "record-navigation-products"
-        )
 
         RoutesHelper.register_crud(
           AshMany2OneSelectTest.Post,
@@ -184,11 +186,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          RecordNavigationDisableTest,
-          "record-navigation-disable-"
-        )
-
-        RoutesHelper.register_product_crud(
           AssociationOne2ManyUILayoutTest,
           "association/one_to_many/layout/"
         )
@@ -221,11 +218,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_product_crud(
           AssociationMany2OneSelectorAssignsTest,
           "association-many_to_one_selector-assigns-"
-        )
-
-        RoutesHelper.register_product_crud(
-          CreateUIActionsShowTest,
-          "create-ui-actions-show-"
         )
 
         RoutesHelper.register_product_crud(
