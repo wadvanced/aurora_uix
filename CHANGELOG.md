@@ -64,6 +64,8 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
+  of other pages. A page change now keeps the index's query options, as on Ecto.
 - **Ash form field errors**: an Ash form showed no error under a field, on change or after a failed save,
   only the error flash. It now shows each field's error on both, as an Ecto form does.
 - **Guide overview demo**: the product transactions index of the demo views ordered its rows by `reference`,

@@ -143,7 +143,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
           entries_count: offset.count,
           page: paginate.page,
           pages_count: pages_count,
-          per_page: paginate.per_page
+          per_page: paginate.per_page,
+          opts: opts
         }
 
       # Forbidden reads surface as an empty page so the index renders empty.
@@ -209,7 +210,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
           entries_count: pagination.entries_count,
           page: page,
           pages_count: pagination.pages_count,
-          per_page: pagination.per_page
+          per_page: pagination.per_page,
+          opts: merged_opts
         }
 
       {:error, %Ash.Error.Forbidden{}} ->
