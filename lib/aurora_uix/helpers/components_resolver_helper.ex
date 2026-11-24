@@ -60,7 +60,9 @@ defmodule Aurora.Uix.ComponentsResolverHelper do
         nil
 
       components ->
-        if function_exported?(components, function, 1), do: components, else: nil
+        if Code.ensure_loaded?(components) and function_exported?(components, function, 1),
+          do: components,
+          else: nil
     end
   end
 

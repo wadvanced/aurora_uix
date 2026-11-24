@@ -66,6 +66,9 @@ changes: see the What's New guide for the upgrade checklist.
 
 - **Guide overview demo**: the product transactions index of the demo views ordered its rows by `reference`,
   a column that table does not have, and raised when the page loaded. It orders them by `inserted_at`.
+- **Configured modules not loaded yet**: a renderers registrar (`config :aurora_uix, :renderers`) or a
+  components override module that was compiled but not yet loaded, typical in development and in tests on an
+  existing build, was ignored, so its renderers or components did not apply. Both are now loaded before use.
 
 ### Build
 
