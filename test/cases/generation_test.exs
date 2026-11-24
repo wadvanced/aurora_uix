@@ -233,6 +233,7 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
   alias Aurora.Uix.Templates.Basic.Helpers
   alias Aurora.UixWeb.Test.Generation
   alias Aurora.UixWeb.Test.Mirror
+  alias Aurora.UixWeb.Test.MirrorAsh
   alias Aurora.UixWeb.Test.MirrorCtx
   alias Spark.Error.DslError
 
@@ -255,7 +256,13 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                     HooksIndex HooksForm HooksShow Components ComponentsPaired ComponentsHandled
                     Events Gettext PairedFormHost PairedIndexHost)a
 
-  @single_views [MirrorCtx.ManualResource, Mirror.IncludedLayouts]
+  @single_views [
+    MirrorCtx.ManualResource,
+    Mirror.IncludedLayouts,
+    MirrorAsh.Aggregates,
+    MirrorCtx.ContextFunctions,
+    Aurora.UixWeb.Test.AshActorViews
+  ]
 
   @kinds [:form_component, :index_component, :index_live, :show_component]
 
