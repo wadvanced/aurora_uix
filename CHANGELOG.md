@@ -69,6 +69,9 @@ changes: see the What's New guide for the upgrade checklist.
 - **Configured modules not loaded yet**: a renderers registrar (`config :aurora_uix, :renderers`) or a
   components override module that was compiled but not yet loaded, typical in development and in tests on an
   existing build, was ignored, so its renderers or components did not apply. Both are now loaded before use.
+- **Ash field order**: an Ash resource listed its fields in an arbitrary order, relationships first. The
+  index, form and show layouts now follow the declaration order: attributes, calculations, aggregates, then
+  relationships, as on Ecto.
 
 ### Build
 

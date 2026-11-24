@@ -175,56 +175,28 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
   end
 
   test "fields_order follows the declaration order" do
-    for backend <- @backends do
-      labelled("[backend: #{backend.name}]", fn ->
-        field_changes = resource_configs(backend.field_changes)
+    ash_order =
+      ~w(id reference name description status grade labels quantity_initial quantity_at_hand cost
+         msrp rrp list_price discounted_price weight length width height quantity_entries
+         quantity_exits units_per_box margin released_on opens_at audited_at discontinued_at image
+         thumbnail deleted inactive packaging contacts product_location_id summary
+         suppliers_join_assoc product_location product_transactions product_barcode suppliers)a
 
-        # Library defect on ash (#580): `fields_order` follows map order, not the declaration
-        # order of the resource's attributes and relationships.
-        if backend.name == :ctx do
-          field_changes
+    ctx_order =
+      ~w(id reference name description quantity_at_hand quantity_initial quantity_entries
+         quantity_exits cost msrp rrp list_price discounted_price weight length width height image
+         thumbnail status grade labels units_per_box margin released_on opens_at audited_at
+         discontinued_at deleted inactive packaging contacts product_location_id
+         product_transactions product_barcode product_location suppliers data_virtual)a
+
+    for {backend, expected} <- Enum.zip(@backends, [ash_order, ctx_order]) do
+      labelled("[backend: #{backend.name}]", fn ->
+        fields_order =
+          backend.field_changes
+          |> resource_configs()
           |> get_in([Access.key!(:product), Access.key!(:fields_order)])
-          |> assert_values_order([
-            :id,
-            :reference,
-            :name,
-            :description,
-            :quantity_at_hand,
-            :quantity_initial,
-            :quantity_entries,
-            :quantity_exits,
-            :cost,
-            :msrp,
-            :rrp,
-            :list_price,
-            :discounted_price,
-            :weight,
-            :length,
-            :width,
-            :height,
-            :image,
-            :thumbnail,
-            :status,
-            :grade,
-            :labels,
-            :units_per_box,
-            :margin,
-            :released_on,
-            :opens_at,
-            :audited_at,
-            :discontinued_at,
-            :deleted,
-            :inactive,
-            :packaging,
-            :contacts,
-            :product_location_id,
-            :product_transactions,
-            :product_barcode,
-            :product_location,
-            :suppliers,
-            :data_virtual
-          ])
-        end
+
+        assert_values_order(fields_order, expected)
       end)
     end
   end
