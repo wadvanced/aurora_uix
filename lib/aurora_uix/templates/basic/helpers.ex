@@ -1180,7 +1180,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
-    |> Enum.map(&"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
+    |> flatten_error_messages([])
   end
 
   @doc """
@@ -1840,11 +1840,19 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     end
   end
 
-  @spec process_error_detail(list()) :: binary()
-  defp process_error_detail([value]) when is_binary(value), do: value
+  @spec flatten_error_messages(map() | list() | binary(), [atom() | binary()]) :: [binary()]
+  defp flatten_error_messages(errors, path) when is_map(errors) do
+    Enum.flat_map(errors, fn {field, detail} ->
+      flatten_error_messages(detail, [field | path])
+    end)
+  end
 
-  defp process_error_detail([child, %{}]) when is_map(child) do
-    Enum.map(child, &"#{elem(&1, 0)}: #{process_error_detail(elem(&1, 1))}")
+  defp flatten_error_messages(errors, path) when is_list(errors) do
+    Enum.flat_map(errors, &flatten_error_messages(&1, path))
+  end
+
+  defp flatten_error_messages(message, path) when is_binary(message) do
+    ["#{path |> Enum.reverse() |> Enum.join(".")}: #{message}"]
   end
 
   @spec maybe_update_source(map(), atom() | binary()) :: map()
