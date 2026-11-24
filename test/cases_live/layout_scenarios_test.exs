@@ -141,11 +141,7 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
       )
       |> render_change()
 
-      # Library defect on ash (#582): a blank required `quantity_initial` renders no
-      # `.auix-error-message` on validate in the default product form.
-      if backend.name == :ctx do
-        assert_blank_error(view, backend)
-      end
+      assert_blank_error(view, backend)
 
       view
       |> form("#auix-product-form",
@@ -482,11 +478,7 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
       )
       |> render_change()
 
-      # Library defect on ash (#582): a blank required `product_id` renders no
-      # `.auix-error-message` on validate.
-      if backend.name == :ctx do
-        assert_blank_error(view, backend)
-      end
+      assert_blank_error(view, backend)
 
       view
       |> form("#auix-product_transaction-form",
