@@ -438,7 +438,7 @@ Streams are **not enumerable** — to filter, refetch data and re-stream with `r
 |---|---|---|
 | `test/cases/integration/{ash,ctx}/` | parser output for one backend | no |
 | `test/cases/integration/fields_parser_validations_test.exs` | shared golden `%Field{}` metadata | no |
-| `test/cases/` | resource metadata, layout/blueprint generation | no |
+| `test/cases/` | resource metadata, generation, navigation, events, theme | no |
 | `test/cases_live/` | scenario tests over the generated LiveViews — **the default for UI work** | yes |
 | `test/browser_cases/` | Wallaby — last resort | yes |
 | `test/doctests/` | doctests | no |
