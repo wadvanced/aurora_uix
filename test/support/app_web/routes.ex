@@ -173,23 +173,6 @@ defmodule Aurora.UixWeb.Test.Routes do
           "guides-capture-nested-sections-products"
         )
 
-        # Tests with required CRUD links for testing
-
-        RoutesHelper.register_crud(
-          BrowserAshEmbedsTest.Post,
-          "browser-ash-embeds-posts"
-        )
-
-        RoutesHelper.register_product_crud(
-          BrowserCreateUIDefaultLayoutTest,
-          "browser-create-ui-default-layout-"
-        )
-
-        RoutesHelper.register_user_crud(
-          BrowserEmbedsManyTest,
-          "browser-embeds-many-"
-        )
-
         RoutesHelper.register_crud(
           AshActorViews.PublicItem,
           "ash-actor-public-items"

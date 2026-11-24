@@ -89,25 +89,6 @@ defmodule Aurora.UixWeb.Test.RoutesHelper do
     {:__block__, [], routes}
   end
 
-  @doc """
-  Registers CRUD routes for user-related modules.
-
-  ## Parameters
-  - `module` (module()) - The base module.
-  - `prefix` (binary()) - The URL prefix for the routes.
-
-  ## Returns
-  Macro.t() - CRUD routes configuration quote for user modules.
-  """
-  @spec register_user_crud(module(), binary()) :: Macro.t()
-  defmacro register_user_crud(module, prefix) do
-    quote do
-      unquote(module)
-      |> Module.concat(User)
-      |> RoutesHelper.register_crud("#{unquote(prefix)}users")
-    end
-  end
-
   ## PRIVATE ##
 
   @spec mirror_schema(binary()) :: module()
