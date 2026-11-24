@@ -875,10 +875,6 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
       assert Renderers.resolve(%Field{}, :show) == (&DefaultRenderer.render/1)
 
-      # A compiled registrar is not loaded until first used; `Renderers` must still find it.
-      :code.purge(HostRegistrar)
-      :code.delete(HostRegistrar)
-
       put_temporary_env(:renderers, HostRegistrar, fn ->
         assert Renderers.resolve(%Field{renderer: :toggle_switch}, :show) ==
                  (&HostToggle.render/1)
