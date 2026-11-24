@@ -72,6 +72,9 @@ changes: see the What's New guide for the upgrade checklist.
 - **Ash field order**: an Ash resource listed its fields in an arbitrary order, relationships first. The
   index, form and show layouts now follow the declaration order: attributes, calculations, aggregates, then
   relationships, as on Ecto.
+- **Nested validation errors on Ecto**: saving a form with an error on a nested record (one-to-one,
+  embeds-one, embeds-many) or several errors on one field crashed the LiveView. The flash now lists every
+  error, nested ones as `parent.field: message`.
 
 ### Build
 
