@@ -42,12 +42,12 @@ defmodule Aurora.UixWeb.Test.Router do
 
     live_session :actor_current_user,
       on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :current_user}] do
-      RoutesHelper.register_crud(AshActorPolicyTest.PolicyItem, "ash-actor-policy-items")
+      RoutesHelper.register_crud(AshActorViews.PolicyItem, "ash-actor-policy-items")
     end
 
     live_session :actor_scope,
       on_mount: [Aurora.UixWeb.Test.SandboxHook, {AshActorTest.SetActorHook, :scope}] do
-      RoutesHelper.register_crud(AshActorPolicyTest.PolicyItemScope, "ash-actor-scope-items")
+      RoutesHelper.register_crud(AshActorViews.PolicyItemScope, "ash-actor-scope-items")
     end
 
     live_session :sandbox, on_mount: [Aurora.UixWeb.Test.SandboxHook] do

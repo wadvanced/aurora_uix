@@ -44,24 +44,30 @@ defmodule Aurora.Uix.Integration.Ash.CrudPolicyTest.Item do
 end
 
 defmodule Aurora.Uix.Integration.Ash.CrudPolicyTest do
-  @moduledoc """
-  End-to-end actor-threading tests against a real policy-protected Ash resource.
-
-  Pins AC-2 / AC-3 / AC-6 / AC-7 from issue #253:
-  - Passing `actor:` to `Ash.Crud.list/2`, `create/3`, `update/4` succeeds when the
-    actor satisfies `actor_present()`.
-  - Omitting `actor:` returns an empty read and rejects writes with
-    `Ash.Error.Forbidden` (never crashes).
-  - The actor flows through `socket_opts/2` end-to-end, mirroring what handlers do.
-  """
+  @moduledoc "Ash actors and policies: the Ash CRUD module, its socket options and the actor assign options."
   use ExUnit.Case, async: true
 
   alias Ash.Resource.Info, as: AshInfo
+  alias Aurora.Uix.Integration.Ash.ContextParserDefaults
   alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
   alias Aurora.Uix.Integration.Ash.CrudPolicyTest.Item
   alias Aurora.Uix.Integration.Ash.CrudSpec
+  alias Aurora.Uix.Integration.Connector
+  alias Aurora.Uix.Templates.Basic.Helpers
+  alias Aurora.Uix.Test.MirrorAsh.ProductLocation
 
   @actor %{id: "actor-1"}
+
+  @auix_action_keys [
+    :list_function,
+    :list_function_paginated,
+    :get_function,
+    :create_function,
+    :update_function,
+    :delete_function,
+    :change_function,
+    :new_function
+  ]
 
   @spec list_spec() :: CrudSpec.t()
   defp list_spec do
@@ -110,91 +116,134 @@ defmodule Aurora.Uix.Integration.Ash.CrudPolicyTest do
     |> Enum.find(&(&1.type == type and &1.primary?))
   end
 
-  describe "list/2 with policy: authorize_if actor_present()" do
-    setup do
-      {:ok, _item} =
-        AshCrud.create(create_spec(), %{name: "visible"}, actor: @actor)
-
-      :ok
-    end
-
-    test "returns rows when actor is present" do
-      results = AshCrud.list(list_spec(), actor: @actor)
-      assert is_list(results.entries)
-      assert Enum.any?(results.entries, &(&1.name == "visible"))
-    end
-
-    test "returns [] when actor is absent (policy filters)" do
-      assert AshCrud.list(list_spec(), []) == []
-    end
+  @spec ash_connector_with_actor(atom() | nil) :: Connector.t()
+  defp ash_connector_with_actor(assign_key) do
+    %Connector{type: :ash, crud_spec: %CrudSpec{actor_assign: assign_key}}
   end
 
-  describe "create/3 with policy: authorize_if actor_present()" do
-    test "succeeds when actor is present" do
-      assert {:ok, item} = AshCrud.create(create_spec(), %{name: "ok"}, actor: @actor)
-      assert item.name == "ok"
-    end
+  test "Ash CRUD runs with an actor and returns Forbidden without one" do
+    {:ok, _item} = AshCrud.create(create_spec(), %{name: "visible"}, actor: @actor)
 
-    test "returns {:error, %Ash.Error.Forbidden{}} when actor is absent (never raises)" do
-      assert {:error, %Ash.Error.Forbidden{}} =
-               AshCrud.create(create_spec(), %{name: "blocked"}, [])
-    end
+    results = AshCrud.list(list_spec(), actor: @actor)
+    assert is_list(results.entries)
+    assert Enum.any?(results.entries, &(&1.name == "visible"))
+    assert AshCrud.list(list_spec(), []) == []
+
+    assert {:ok, item} = AshCrud.create(create_spec(), %{name: "ok"}, actor: @actor)
+    assert item.name == "ok"
+
+    assert {:error, %Ash.Error.Forbidden{}} =
+             AshCrud.create(create_spec(), %{name: "blocked"}, [])
+
+    assert {:ok, updated} =
+             AshCrud.update(update_spec(), item, %{name: "renamed"}, actor: @actor)
+
+    assert updated.name == "renamed"
+
+    assert {:error, %Ash.Error.Forbidden{}} =
+             AshCrud.update(update_spec(), item, %{name: "renamed"}, [])
+
+    assert {:error, %Ash.Error.Forbidden{}} = AshCrud.delete(delete_spec(), item, [])
+    assert {:ok, _} = AshCrud.delete(delete_spec(), item, actor: @actor)
   end
 
-  describe "update/4 with policy: authorize_if actor_present()" do
-    test "succeeds when actor is present" do
-      {:ok, item} = AshCrud.create(create_spec(), %{name: "original"}, actor: @actor)
+  test "socket_opts/2 resolves the actor from the socket assigns" do
+    {:ok, _item} = AshCrud.create(create_spec(), %{name: "from-handler"}, actor: @actor)
 
-      assert {:ok, updated} =
-               AshCrud.update(update_spec(), item, %{name: "renamed"}, actor: @actor)
+    socket_opts = AshCrud.socket_opts(list_spec(), %{assigns: %{current_user: @actor}})
+    results = AshCrud.list(list_spec(), socket_opts)
+    assert Enum.any?(results.entries, &(&1.name == "from-handler"))
 
-      assert updated.name == "renamed"
-    end
+    empty_opts = AshCrud.socket_opts(list_spec(), %{assigns: %{}})
+    assert empty_opts == []
+    assert AshCrud.list(list_spec(), empty_opts) == []
 
-    test "returns {:error, %Ash.Error.Forbidden{}} when actor is absent" do
-      {:ok, item} = AshCrud.create(create_spec(), %{name: "original"}, actor: @actor)
+    actor = %{id: 1, role: :admin}
 
-      assert {:error, %Ash.Error.Forbidden{}} =
-               AshCrud.update(update_spec(), item, %{name: "renamed"}, [])
-    end
+    assert AshCrud.socket_opts(%CrudSpec{actor_assign: nil}, %{assigns: %{current_user: actor}}) ==
+             []
+
+    assert AshCrud.socket_opts(%CrudSpec{actor_assign: :current_user}, %{
+             assigns: %{current_user: actor}
+           }) == [actor: actor]
+
+    assert AshCrud.socket_opts(%CrudSpec{actor_assign: :current_user}, %{
+             assigns: %{current_user: nil}
+           }) == []
+
+    assert AshCrud.socket_opts(%CrudSpec{actor_assign: :current_user}, %{assigns: %{}}) == []
+
+    assert AshCrud.socket_opts(%CrudSpec{actor_assign: :actor}, %{
+             assigns: %{actor: %{id: 42}, current_user: %{id: 99}}
+           }) == [actor: %{id: 42}]
+
+    assert AshCrud.socket_opts(%{}, %{assigns: %{}}) == []
+    assert AshCrud.socket_opts(nil, %{assigns: %{}}) == []
+
+    assert Helpers.backend_socket_opts(%{assigns: %{current_user: %{id: 1}}}, nil) == []
+    assert Helpers.backend_socket_opts(%{current_user: %{id: 1}}, nil) == []
+
+    connector = ash_connector_with_actor(:current_user)
+
+    assert Helpers.backend_socket_opts(%{assigns: %{current_user: %{id: 1}}}, connector) == [
+             actor: %{id: 1}
+           ]
+
+    assert Helpers.backend_socket_opts(%{current_user: %{id: 1}}, connector) == [actor: %{id: 1}]
+
+    assert Helpers.backend_socket_opts(
+             %{assigns: %{current_user: %{id: 1}}},
+             ash_connector_with_actor(nil)
+           ) == []
   end
 
-  describe "delete/3 with policy: authorize_if actor_present()" do
-    test "succeeds when actor is present" do
-      {:ok, item} = AshCrud.create(create_spec(), %{name: "to-delete"}, actor: @actor)
+  test "CrudSpec and the actor assign options carry the actor assign" do
+    assert %CrudSpec{actor_assign: nil} = CrudSpec.new()
 
-      assert {:ok, _} = AshCrud.delete(delete_spec(), item, actor: @actor)
+    action = %{name: :read}
+    spec = CrudSpec.new(MyApp.User, action, :list_function)
+    assert spec.resource == MyApp.User
+    assert spec.action == action
+    assert spec.auix_action_name == :list_function
+    assert spec.actor_assign == nil
+
+    assert CrudSpec.new(MyApp.User, action, :list_function, actor_assign: :current_user).actor_assign ==
+             :current_user
+
+    assert CrudSpec.new(MyApp.User, action, :list_function, []).actor_assign == nil
+
+    resource_config = %{schema: ProductLocation, name: :product_location}
+
+    for key <- @auix_action_keys do
+      connector =
+        ContextParserDefaults.option_value(
+          %{},
+          resource_config,
+          [ash_actor_assign: :current_user],
+          key
+        )
+
+      assert %Connector{type: :ash, crud_spec: %CrudSpec{actor_assign: :current_user}} = connector,
+             "expected actor_assign: :current_user on CrudSpec for #{inspect(key)}"
     end
 
-    test "returns {:error, %Ash.Error.Forbidden{}} when actor is absent" do
-      {:ok, item} = AshCrud.create(create_spec(), %{name: "to-delete"}, actor: @actor)
+    assert %Connector{crud_spec: %CrudSpec{actor_assign: :viewer}} =
+             ContextParserDefaults.option_value(
+               %{},
+               resource_config,
+               [actor_assign: :viewer],
+               :list_function
+             )
 
-      assert {:error, %Ash.Error.Forbidden{}} =
-               AshCrud.delete(delete_spec(), item, [])
-    end
-  end
+    assert %Connector{crud_spec: %CrudSpec{actor_assign: nil}} =
+             ContextParserDefaults.option_value(%{}, resource_config, [], :list_function)
 
-  describe "end-to-end via socket_opts/2 (handler-level flow)" do
-    test "actor resolved from socket.assigns flows through list/2" do
-      {:ok, _item} =
-        AshCrud.create(create_spec(), %{name: "from-handler"}, actor: @actor)
-
-      socket = %{assigns: %{current_user: @actor}}
-      socket_opts = AshCrud.socket_opts(list_spec(), socket)
-
-      results = AshCrud.list(list_spec(), socket_opts)
-      assert Enum.any?(results.entries, &(&1.name == "from-handler"))
-    end
-
-    test "missing actor in socket.assigns yields empty results, not a crash" do
-      {:ok, _item} =
-        AshCrud.create(create_spec(), %{name: "from-handler"}, actor: @actor)
-
-      socket = %{assigns: %{}}
-      socket_opts = AshCrud.socket_opts(list_spec(), socket)
-
-      assert socket_opts == []
-      assert AshCrud.list(list_spec(), socket_opts) == []
-    end
+    assert %Connector{crud_spec: %CrudSpec{actor_assign: nil}} =
+             ContextParserDefaults.option_value(
+               %{},
+               resource_config,
+               [ash_actor_assign: "current_user"],
+               :list_function
+             )
   end
 end

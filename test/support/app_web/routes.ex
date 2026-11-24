@@ -176,16 +176,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         # Tests with required CRUD links for testing
 
         RoutesHelper.register_crud(
-          AshEmbedsTest.Author,
-          "ash-embeds-authors"
-        )
-
-        RoutesHelper.register_crud(
-          AshEmbedsTest.Post,
-          "ash-embeds-posts"
-        )
-
-        RoutesHelper.register_crud(
           BrowserAshEmbedsTest.Post,
           "browser-ash-embeds-posts"
         )
@@ -201,8 +191,23 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
-          AshActorPolicyTest.PublicItem,
+          AshActorViews.PublicItem,
           "ash-actor-public-items"
+        )
+
+        RoutesHelper.register_crud(
+          MirrorAsh.Aggregates.ProductLocation,
+          "mirror-ash-aggregates-product_locations"
+        )
+
+        RoutesHelper.register_crud(
+          MirrorAsh.Aggregates.Product,
+          "mirror-ash-aggregates-products"
+        )
+
+        RoutesHelper.register_crud(
+          MirrorCtx.ContextFunctions.Product,
+          "mirror-ctx-context-functions-products"
         )
 
         require Aurora.Uix.RouteHelper
