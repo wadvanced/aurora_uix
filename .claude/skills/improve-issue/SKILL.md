@@ -76,7 +76,7 @@ Each term has one meaning in this file. No synonym is used.
 | `decisions` | every `DECISION:` line of the prompt |
 | `changes` | the text of a change request, or none |
 | `level_arg` | the level the prompt asked for, or none |
-| `level` | `normal` \| `high` \| `max` |
+| `level` | `low` \| `normal` \| `high` \| `max` |
 | `obs` | `/tmp/improve-issue-<n>-issue.json`, `/tmp/improve-issue-<n>-comments.jsonl`, the mentioned issues, `spec: /tmp/spec-<n>.md \| missing`, `prs`: per Section Map row, its PR's number and state, or none |
 | `inputs` | unresolved defect and feedback comments: `id`, kind, `<SEC-ID>`, defect `Class:` |
 | `scope` | `all` on an enrichment; otherwise the ids this run changes or adds — it grows as the run edits |

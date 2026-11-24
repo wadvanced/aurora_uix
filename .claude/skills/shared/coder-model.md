@@ -8,12 +8,12 @@ yield one model; it yields a set of four, one per skill group.
 
 ## Level → models
 
-| Group | `normal` ← default | `high` | `max` |
-|---|---|---|---|
-| Coordination | Sonnet+medium | Sonnet+medium | Sonnet+medium |
-| Spec / Review | Opus+high | Fable+medium | Fable+high |
-| Coder | Sonnet+high | Opus+medium | Fable+medium |
-| Ship | Sonnet+low | Sonnet+low | Sonnet+low |
+| Group | `low` | `normal` ← default | `high` | `max` |
+|---|---|---|---|---|
+| Coordination | Sonnet+medium | Sonnet+medium | Sonnet+medium | Sonnet+medium |
+| Spec / Review | Sonnet+high | Opus+high | Fable+medium | Fable+high |
+| Coder | Sonnet+medium | Sonnet+high | Opus+medium | Fable+medium |
+| Ship | Sonnet+low | Sonnet+low | Sonnet+low | Sonnet+low |
 
 Only **Spec / Review** and **Coder** move with the level. Coordination and Ship are pinned at
 every level, for reasons that do not vary with how hard the issue is:
@@ -58,6 +58,7 @@ twenty ACs on one surface are still `normal`.
 | 5 or more files, or 4 or more layers (parser · layout · renderer · generator/handler · theme · guide schema) | `high` |
 | a change to the blueprint macro expansion, or to a behaviour every renderer implements | `high` |
 | a migration, or a guide schema on both backends | `normal` |
+| none of the above: one surface, one backend, no migration (docs, copy, a small fix) | `low` |
 
 ## Resolving the level
 
@@ -104,6 +105,7 @@ Every skill opens with one line naming the level and **its own group's** model:
 
 ```
 Level: high · Spec/Review: Fable+medium
+Level: low · Coder: Sonnet+medium
 Level: high (from issue) · Coder: Opus+medium
 Level: normal (default) · Spec/Review: Opus+high
 Level: normal (override; issue says high) · Coder: Sonnet+high
