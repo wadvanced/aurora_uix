@@ -251,7 +251,9 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
                     IndexWhere IndexCards IndexActions Form FormOptions Uploads Renderers
                     PredefinedRenderers RendererModuleTable RendererPrecedence Show ShowNavigator
                     ManyToOne ManyToOneQueries OneToMany OneToManyComponent OneToManyActions
-                    OneToOne ManyToMany ManyToManyActions Embeds EmbedsExpanded)a
+                    OneToOne ManyToMany ManyToManyActions Embeds EmbedsExpanded Navigation
+                    HooksIndex HooksForm HooksShow Components ComponentsPaired ComponentsHandled
+                    Events Gettext PairedFormHost PairedIndexHost)a
 
   @single_views [MirrorCtx.ManualResource, Mirror.IncludedLayouts]
 
