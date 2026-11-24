@@ -48,7 +48,7 @@ no narration-only turns.
 
 ```
 /orchestrate-issue <n>                 drive issue <n>'s sections to PR(s)
-/orchestrate-issue <n> <level>         normal|high|max — used only if this
+/orchestrate-issue <n> <level>         low|normal|high|max — used only if this
                                         issue has no spec yet, passed through
                                         to the first improve-issue spawn
 /orchestrate-issue <n> --dry-run       print the derived per-section state and

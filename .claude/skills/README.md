@@ -32,7 +32,7 @@ suite stays green.
 - Spec depth is fixed at the `normal` coder, whatever complexity level the run
   is invoked at. A `high` or `max` issue buys a stronger coder, never a
   shallower spec.
-- One **complexity level** per issue — `normal` (default), `high`, `max` — set
+- One **complexity level** per issue — `low`, `normal` (default), `high`, `max` — set
   by the caller on the first `improve-issue` run and persisted in the spec
   block, so every later step resolves the same models in any session.
   `shared/coder-model.md` is the registry.
@@ -89,7 +89,7 @@ A section's PR references the issue as `Part of #<n> · <SEC-ID>`, never
 first section to merge would close an issue whose remaining sections are not
 written yet.
 
-`[level]` is `normal` (default), `high`, or `max`, and is needed only on the
+`[level]` is `low`, `normal` (default), `high`, or `max`, and is needed only on the
 first `improve-issue` run — the later steps read it from the spec block. Passing
 it to `code-issue` or `review-issue` is a one-off override, never written back.
 
