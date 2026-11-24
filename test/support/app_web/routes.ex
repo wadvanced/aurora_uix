@@ -83,6 +83,46 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_mirror(RendererModuleTable, "renderer-module-table", ["products"])
         RoutesHelper.register_mirror(RendererPrecedence, "renderer-precedence", ["products"])
 
+        RoutesHelper.register_mirror(ManyToOne, "many-to-one", [
+          "products",
+          "product_locations",
+          "product_transactions",
+          "product_barcodes"
+        ])
+
+        RoutesHelper.register_mirror(ManyToOneQueries, "many-to-one-queries", [
+          "products",
+          "product_locations"
+        ])
+
+        RoutesHelper.register_mirror(OneToMany, "one-to-many", [
+          "products",
+          "product_transactions",
+          "product_locations"
+        ])
+
+        RoutesHelper.register_mirror(OneToManyComponent, "one-to-many-component", [
+          "products",
+          "product_locations"
+        ])
+
+        RoutesHelper.register_mirror(OneToManyActions, "one-to-many-actions", [
+          "products",
+          "product_transactions",
+          "product_locations"
+        ])
+
+        RoutesHelper.register_mirror(OneToOne, "one-to-one", ["products", "product_barcodes"])
+        RoutesHelper.register_mirror(ManyToMany, "many-to-many", ["products", "suppliers"])
+
+        RoutesHelper.register_mirror(ManyToManyActions, "many-to-many-actions", [
+          "products",
+          "suppliers"
+        ])
+
+        RoutesHelper.register_mirror(Embeds, "embeds", ["products"])
+        RoutesHelper.register_mirror(EmbedsExpanded, "embeds-expanded", ["products"])
+
         RoutesHelper.register_product_crud(
           MirrorCtx.ManualResource,
           "mirror-ctx-manual-resource-"
@@ -116,61 +156,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         # Tests with required CRUD links for testing
 
         RoutesHelper.register_crud(
-          AshMany2OneSelectTest.Post,
-          "ash-many2one-select-posts"
-        )
-
-        RoutesHelper.register_crud(
-          AshMany2ManyTest.Post,
-          "ash-many2many-posts"
-        )
-
-        RoutesHelper.register_crud(
-          AshMany2ManyTest.Topic,
-          "ash-many2many-topics"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationMany2ManyUILayoutTest.Product,
-          "association/many_to_many/layout/products"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationMany2ManyUILayoutTest.Supplier,
-          "association/many_to_many/layout/suppliers"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationMany2ManyUIActionsTest.Product,
-          "association/many_to_many/actions/products"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationMany2ManyUIActionsTest.Supplier,
-          "association/many_to_many/actions/suppliers"
-        )
-
-        RoutesHelper.register_crud(
-          AshOne2OneTest.Author,
-          "ash-one2one-authors"
-        )
-
-        RoutesHelper.register_crud(
-          AshOne2OneTest.AuthorProfile,
-          "ash-one2one-author-profiles"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationOne2OneUILayoutTest.Product,
-          "association/one_to_one/layout/products"
-        )
-
-        RoutesHelper.register_crud(
-          AssociationOne2OneUILayoutTest.ProductBarcode,
-          "association/one_to_one/layout/product_barcodes"
-        )
-
-        RoutesHelper.register_crud(
           AshEmbedsTest.Author,
           "ash-embeds-authors"
         )
@@ -186,48 +171,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          AssociationOne2ManyUILayoutTest,
-          "association/one_to_many/layout/"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneUILayoutTest,
-          "association-many_to_one-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneParentUILayoutTest,
-          "association-many_to_one_parent-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneSelectorUILayoutTest,
-          "association-many_to_one_selector-layout-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneSelectorAtomTest,
-          "association-many_to_one_selector-atom-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneSelectorFunctionTest,
-          "association-many_to_one_selector-function-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationMany2OneSelectorAssignsTest,
-          "association-many_to_one_selector-assigns-"
-        )
-
-        RoutesHelper.register_product_crud(
           GettextDomainTest,
           "gettext-domain-"
-        )
-
-        RoutesHelper.register_product_crud(
-          AssociationOne2ManyUIActionsTest,
-          "association-one_to_many-actions-"
         )
 
         RoutesHelper.register_product_crud(
@@ -246,43 +191,8 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          WhereOne2ManyTest,
-          "where-one_to_many-"
-        )
-
-        RoutesHelper.register_product_crud(
-          WhereMany2OneTest,
-          "where-many_to_one-"
-        )
-
-        RoutesHelper.register_product_crud(
           BrowserCreateUIDefaultLayoutTest,
           "browser-create-ui-default-layout-"
-        )
-
-        RoutesHelper.register_user_crud(
-          EmbedsOneTest,
-          "embeds-one-"
-        )
-
-        RoutesHelper.register_user_crud(
-          EmbedsManyTest,
-          "embeds-many-"
-        )
-
-        RoutesHelper.register_crud(
-          ActionIconsFieldsTest.Product,
-          "action-icons-fields-products"
-        )
-
-        RoutesHelper.register_crud(
-          ActionIconsFieldsTest.ProductTransaction,
-          "action-icons-fields-product_transactions"
-        )
-
-        RoutesHelper.register_crud(
-          ActionIconsFieldsTest.User,
-          "action-icons-fields-users"
         )
 
         RoutesHelper.register_user_crud(
@@ -294,13 +204,6 @@ defmodule Aurora.UixWeb.Test.Routes do
           AshActorPolicyTest.PublicItem,
           "ash-actor-public-items"
         )
-
-        RoutesHelper.register_crud(
-          AshWhereOne2ManyTest.Author,
-          "ash-where-one_to_many-authors"
-        )
-
-        RoutesHelper.register_crud(AshWhereMany2OneTest.Post, "ash-where-many_to_one-posts")
 
         RoutesHelper.register_crud(EventsTest.Product, "events-products")
         RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
@@ -340,16 +243,6 @@ defmodule Aurora.UixWeb.Test.Routes do
           "/mirror-ctx-named-product_locations",
           MirrorCtx.Named.ProductLocation,
           index_live: :locations
-        )
-
-        RoutesHelper.register_crud(
-          OneToManyComponentTest.Product,
-          "one-to-many-component-products"
-        )
-
-        RoutesHelper.register_crud(
-          OneToManyComponentTest.ProductLocation,
-          "one-to-many-component-product_locations"
         )
       end
 
