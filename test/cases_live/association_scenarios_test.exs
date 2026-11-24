@@ -559,6 +559,21 @@ defmodule Aurora.UixWeb.Test.AssociationScenariosTest do
 
       assert has_element?(view, "#auix-one-to-one-product_barcode-form")
 
+      view
+      |> form("#auix-product-form", %{
+        "product" => %{
+          "reference" => "blank_code_ref",
+          "name" => "Blank code",
+          "quantity_initial" => "3",
+          "product_barcode" => %{"code" => ""}
+        }
+      })
+      |> render_submit()
+
+      assert has_element?(view, "#auix-product-form")
+      assert has_element?(view, ".auix-flash--error")
+      assert Repo.get_by(MirrorCtx.Product, reference: "blank_code_ref") == nil
+
       for field <- ~w(code symbology registered_at) do
         assert has_element?(view, "input[name='product[product_barcode][#{field}]']")
       end
