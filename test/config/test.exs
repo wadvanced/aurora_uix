@@ -116,6 +116,7 @@ config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
 config :wallaby,
+  otp_app: :aurora_uix,
   base_url: "http://localhost:#{test_port}",
   driver: Wallaby.Chrome,
   screenshot_on_failure: true,

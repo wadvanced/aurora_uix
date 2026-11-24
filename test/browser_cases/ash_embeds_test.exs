@@ -1,7 +1,9 @@
 defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
-  use Aurora.UixWeb.Test.UICase, :phoenix_case
+  use ExUnit.Case, async: true
   use Aurora.UixWeb.Test.WebCase, :aurora_uix_for_test
   use Wallaby.Feature
+
+  import Aurora.Uix.Test.Helper
 
   alias Aurora.Uix.Guides.Blog.Post
 
@@ -57,6 +59,8 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     |> fill_field(&main_form/1, :content, test_content)
     |> click_and_wait(@save_button, Query.text("Listing Posts"))
 
+    assert_has(session, Query.css("#auix-post-form", count: 0))
+
     post = Ash.read!(Post)
 
     post
@@ -109,6 +113,7 @@ defmodule Aurora.UixWeb.Test.BrowserAshEmbedsTest do
     end)
 
     click_and_wait(session, @save_button, Query.text("Listing Posts"))
+    assert_has(session, Query.css("#auix-post-form", count: 0))
 
     posts = Ash.read!(Post)
 
