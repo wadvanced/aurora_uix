@@ -123,6 +123,26 @@ defmodule Aurora.UixWeb.Test.Routes do
         RoutesHelper.register_mirror(Embeds, "embeds", ["products"])
         RoutesHelper.register_mirror(EmbedsExpanded, "embeds-expanded", ["products"])
 
+        RoutesHelper.register_mirror(Navigation, "navigation", [
+          "products",
+          "product_transactions"
+        ])
+
+        RoutesHelper.register_mirror(HooksIndex, "hooks-index", ["products"])
+        RoutesHelper.register_mirror(HooksForm, "hooks-form", ["products"])
+
+        RoutesHelper.register_mirror(HooksShow, "hooks-show", ["products", "product_transactions"])
+
+        RoutesHelper.register_mirror(Components, "components", ["products"])
+
+        RoutesHelper.register_mirror(Events, "events", [
+          "products",
+          "product_locations",
+          "product_transactions"
+        ])
+
+        RoutesHelper.register_mirror(Gettext, "gettext", ["products"])
+
         RoutesHelper.register_product_crud(
           MirrorCtx.ManualResource,
           "mirror-ctx-manual-resource-"
@@ -171,26 +191,6 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_product_crud(
-          GettextDomainTest,
-          "gettext-domain-"
-        )
-
-        RoutesHelper.register_product_crud(
-          HandlerHooksIndexTest,
-          "handler-hooks-index-"
-        )
-
-        RoutesHelper.register_product_crud(
-          HandlerHooksShowTest,
-          "handler-hooks-show-"
-        )
-
-        RoutesHelper.register_product_crud(
-          HandlerHooksFormTest,
-          "handler-hooks-form-"
-        )
-
-        RoutesHelper.register_product_crud(
           BrowserCreateUIDefaultLayoutTest,
           "browser-create-ui-default-layout-"
         )
@@ -205,31 +205,29 @@ defmodule Aurora.UixWeb.Test.Routes do
           "ash-actor-public-items"
         )
 
-        RoutesHelper.register_crud(EventsTest.Product, "events-products")
-        RoutesHelper.register_crud(EventsTest.ProductLocation, "events-product-locations")
-        RoutesHelper.register_crud(AshEventsTest.Author, "ash-events-authors")
-
-        RoutesHelper.register_crud(NavigationTest.Product, "navigation-products")
-
-        RoutesHelper.register_crud(
-          NavigationTest.ProductTransaction,
-          "navigation-product_transactions"
-        )
-
-        RoutesHelper.register_crud(AshNavigationTest.Author, "ash-navigation-authors")
-        RoutesHelper.register_crud(AshNavigationTest.Post, "ash-navigation-posts")
-
         require Aurora.Uix.RouteHelper
 
         RouteHelper.auix_live_resources(
-          "/navigation-only-products",
-          NavigationTest.Product,
+          "/mirror-ash-navigation-only-products",
+          MirrorAsh.Navigation.Product,
           only: [:index, :show]
         )
 
         RouteHelper.auix_live_resources(
-          "/navigation-except-products",
-          NavigationTest.Product,
+          "/mirror-ctx-navigation-only-products",
+          MirrorCtx.Navigation.Product,
+          only: [:index, :show]
+        )
+
+        RouteHelper.auix_live_resources(
+          "/mirror-ash-navigation-except-products",
+          MirrorAsh.Navigation.Product,
+          except: [:new, :edit]
+        )
+
+        RouteHelper.auix_live_resources(
+          "/mirror-ctx-navigation-except-products",
+          MirrorCtx.Navigation.Product,
           except: [:new, :edit]
         )
 
