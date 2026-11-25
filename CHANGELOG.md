@@ -64,6 +64,11 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **A failed DSL compile breaking the next one**: a DSL error inside a nested entry (a `field` in
+  `auix_resource_metadata`, a layout in `auix_create_ui`) left Spark's builder state in the compiling
+  process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several
+  modules) failed with "Somehow got a nested entity without a `recursive_as` or `nested_key`". Every module
+  now starts from a clean state.
 - **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
   of other pages, and the record navigator opened the wrong record when it crossed a page boundary. A page
   change now keeps the index's query options, as on Ecto.

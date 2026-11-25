@@ -394,6 +394,40 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     assert_compile_errors(cases)
   end
 
+  test "a failed compilation leaves nothing behind for the next one in the process" do
+    for backend <- @backends do
+      valid = """
+        auix_resource_metadata :product do
+          #{backend.source}
+        end
+      """
+
+      cases = [
+        {"#{backend.name}: a nested field with an unknown option",
+         """
+           auix_resource_metadata :product do
+             #{backend.source}
+             field :name, lable: "Name"
+           end
+         """, ~r/unknown options \[:lable\]/},
+        {"#{backend.name}: a layout with an unknown option",
+         """
+         #{valid}
+           auix_create_ui do
+             index_columns :product, [:reference], page_tittle: "x"
+           end
+         """, ~r/unknown index layout options \[:page_tittle\]/}
+      ]
+
+      for {label, failing, regex} <- cases do
+        labelled(label, fn ->
+          assert_raise(DslError, regex, fn -> compile_ui(failing) end)
+          assert is_atom(compile_ui(valid))
+        end)
+      end
+    end
+  end
+
   test "resource options that fail compilation" do
     cases = [
       {"a mistyped resource option",
@@ -481,7 +515,7 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
   @spec assert_compile_error({binary(), binary(), Regex.t()}) :: term()
   defp assert_compile_error({label, body, regex}) do
     labelled(label, fn ->
-      assert_raise(DslError, regex, fn -> compile_in_own_process(body) end)
+      assert_raise(DslError, regex, fn -> compile(body) end)
     end)
   end
 
@@ -518,29 +552,6 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     """)
 
     name
-  end
-
-  # A failed compilation leaves Spark's DSL state behind in the compiling process, so the next
-  # compilation in that process fails with an unrelated error. Each case compiles in its own.
-  @spec compile_in_own_process(binary()) :: [{module(), binary()}]
-  defp compile_in_own_process(body) do
-    result =
-      fn -> compile_or_capture(body) end
-      |> Task.async()
-      |> Task.await(:infinity)
-
-    case result do
-      {:ok, compiled} -> compiled
-      {:raised, error, stacktrace} -> reraise error, stacktrace
-    end
-  end
-
-  @spec compile_or_capture(binary()) ::
-          {:ok, [{module(), binary()}]} | {:raised, Exception.t(), Exception.stacktrace()}
-  defp compile_or_capture(body) do
-    {:ok, compile(body)}
-  rescue
-    error -> {:raised, error, __STACKTRACE__}
   end
 
   @spec compile(binary()) :: [{module(), binary()}]
