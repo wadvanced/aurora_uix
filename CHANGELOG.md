@@ -69,6 +69,10 @@ changes: see the What's New guide for the upgrade checklist.
   process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several
   modules) failed with "Somehow got a nested entity without a `recursive_as` or `nested_key`". Every module
   now starts from a clean state.
+- **Single-select index cells**: an index cell of a single select, a declared `data.select` or an enum field
+  (`Ecto.Enum`, an Ash `one_of` atom or `Ash.Type.Enum`), showed the stored value instead of the option label
+  that the show view, the form and a multi-select cell show. It now shows the label, and a stored value no
+  longer among the options falls back to the raw value.
 - **Ash empty embeds-one**: an Ash form rendered no inputs for an embeds-one field with no value, on a new
   form and on the edit form of a record without one, so it could not be filled. It now renders its blank
   inputs, as an Ecto form does.
