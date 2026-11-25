@@ -30,6 +30,7 @@ defmodule Aurora.UixWeb.Test.IndexScenariosTest do
         %{
           product_location_id: location.id,
           status: "discontinued",
+          grade: :premium,
           labels: [:fragile, :hazardous],
           inactive: index == 1
         }
@@ -53,10 +54,12 @@ defmodule Aurora.UixWeb.Test.IndexScenariosTest do
       assert Enum.at(cells, 9) == "Fragile, Hazardous"
       assert has_element?(view, "[name='auix-show-product']", "Fragile, Hazardous")
 
-      # A many-to-one cell renders `option_label` of the related record, as the form select does,
-      # and a single select's stored value
+      # A many-to-one cell renders `option_label` of the related record, as the form select does, and
+      # a single select the label of the selected option: declared opts (`status`), and the opts each backend derives from an
+      # enum (`grade`: `Ecto.Enum` on ctx, an `:atom` with `one_of` on Ash).
       assert Enum.at(cells, 5) == "test-name-test-1"
-      assert Enum.at(cells, 6) == "discontinued"
+      assert Enum.at(cells, 6) == "Discontinued"
+      assert Enum.at(cells, 10) == "Premium"
     end)
   end
 

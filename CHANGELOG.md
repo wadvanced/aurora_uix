@@ -67,6 +67,10 @@ changes: see the What's New guide for the upgrade checklist.
 - **Index many-to-one `option_label`**: an index column of a many-to-one field with an `option_label` showed
   the listed row's own value, or called a label function with the row. It now applies `option_label` to the
   related record, as the form and show selects do.
+- **Single-select index cells**: an index cell of a single select, a declared `data.select` or an enum field
+  (`Ecto.Enum`, an Ash `one_of` atom or `Ash.Type.Enum`), showed the stored value instead of the option label
+  that the show view, the form and a multi-select cell show. It now shows the label, and a stored value no
+  longer among the options falls back to the raw value.
 - **Ash empty embeds-one**: an Ash form rendered no inputs for an embeds-one field with no value, on a new
   form and on the edit form of a record without one, so it could not be filled. It now renders its blank
   inputs, as an Ecto form does.

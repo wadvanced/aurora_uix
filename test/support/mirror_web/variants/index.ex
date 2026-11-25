@@ -6,7 +6,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Index do
   ## Key Features
 
   - Declares a product index with sortable, opted-out and upload columns, a select status, a
-    many-to-one location and multi-value labels
+    many-to-one location, multi-value labels and an enum grade
   - Declares a product locations index without sortable fields
   - Declares a suppliers index with `sort_disabled?`
 
@@ -75,6 +75,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Index do
           :inactive,
           :quantity_at_hand,
           :labels,
+          :grade,
           description: [sortable?: false]
         ])
 

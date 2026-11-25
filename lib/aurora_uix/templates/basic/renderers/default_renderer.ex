@@ -120,13 +120,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
     """
   end
 
-  # A multi-value select holds a list, and `Phoenix.HTML.Safe` raises on a list of atoms, so the
-  # generic clause below cannot render one. Labels are joined the same way the form shows them.
-  defp index_value(%{field: %{html_type: :select, data: %{select: %{multiple: true}}}} = assigns) do
-    assigns = Map.put(assigns, :multi_select_labels, multi_select_labels(assigns))
+  # A select shows the label of its selected option, as the form and the show view do. A
+  # multi-value select also holds a list, and `Phoenix.HTML.Safe` raises on a list of atoms, so the
+  # generic clause below cannot render one either.
+  defp index_value(%{field: %{html_type: :select, data: %{select: %{opts: _opts}}}} = assigns) do
+    assigns = Map.put(assigns, :select_labels, select_labels(assigns))
 
     ~H"""
-      {@multi_select_labels}
+      {@select_labels}
     """
   end
 
@@ -173,17 +174,22 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
     |> Map.get(to_string(value), value)
   end
 
-  # Maps every selected value of a multi-value select to its option label, falling back to the raw
-  # value when the entity holds something the options no longer offer.
-  @spec multi_select_labels(map()) :: binary()
-  defp multi_select_labels(%{field: %{key: key, data: %{select: %{opts: opts}}}, entity: entity}) do
-    labels = Map.new(opts, fn {label, value} -> {to_string(value), label} end)
+  # Maps every selected value of a select, single or multiple, to its option label, falling back to
+  # the raw value when the entity holds something the options no longer offer.
+  @spec select_labels(map()) :: binary()
+  defp select_labels(%{field: %{key: key, data: %{select: %{opts: opts}}}, entity: entity}) do
+    labels = Map.new(opts, &option_label_pair/1)
 
     entity
     |> Map.get(key)
     |> List.wrap()
     |> Enum.map_join(", ", &Map.get(labels, to_string(&1), to_string(&1)))
   end
+
+  # An option is a `{label, value}` pair or a bare value that is its own label.
+  @spec option_label_pair(term()) :: {binary(), binary()}
+  defp option_label_pair({label, value}), do: {to_string(value), to_string(label)}
+  defp option_label_pair(value), do: {to_string(value), to_string(value)}
 
   # --- show / form inputs ---
 
