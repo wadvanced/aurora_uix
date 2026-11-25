@@ -307,7 +307,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
     form =
       auix.change_function
-      |> apply_change_function(auix.entity, field.key, %{field.key => changes}, change_opts)
+      |> apply_change_function(auix.entity, auix.module, %{field.key => changes}, change_opts)
       |> to_form()
 
     {:noreply,
