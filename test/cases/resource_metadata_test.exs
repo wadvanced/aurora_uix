@@ -481,7 +481,7 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
   @spec assert_compile_error({binary(), binary(), Regex.t()}) :: term()
   defp assert_compile_error({label, body, regex}) do
     labelled(label, fn ->
-      assert_raise(DslError, regex, fn -> compile_in_own_process(body) end)
+      assert_raise(DslError, regex, fn -> compile(body) end)
     end)
   end
 
@@ -518,29 +518,6 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     """)
 
     name
-  end
-
-  # A failed compilation leaves Spark's DSL state behind in the compiling process, so the next
-  # compilation in that process fails with an unrelated error. Each case compiles in its own.
-  @spec compile_in_own_process(binary()) :: [{module(), binary()}]
-  defp compile_in_own_process(body) do
-    result =
-      fn -> compile_or_capture(body) end
-      |> Task.async()
-      |> Task.await(:infinity)
-
-    case result do
-      {:ok, compiled} -> compiled
-      {:raised, error, stacktrace} -> reraise error, stacktrace
-    end
-  end
-
-  @spec compile_or_capture(binary()) ::
-          {:ok, [{module(), binary()}]} | {:raised, Exception.t(), Exception.stacktrace()}
-  defp compile_or_capture(body) do
-    {:ok, compile(body)}
-  rescue
-    error -> {:raised, error, __STACKTRACE__}
   end
 
   @spec compile(binary()) :: [{module(), binary()}]

@@ -64,6 +64,11 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **A failed DSL compile breaking the next one**: a DSL error inside a nested entry (a `field` in
+  `auix_resource_metadata`, a layout in `auix_create_ui`) left Spark's builder state in the compiling
+  process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several
+  modules) failed with "Somehow got a nested entity without a `recursive_as` or `nested_key`". Every module
+  now starts from a clean state.
 - **Single-select index cells**: an index cell of a single select, a declared `data.select` or an enum field
   (`Ecto.Enum`, an Ash `one_of` atom or `Ash.Type.Enum`), showed the stored value instead of the option label
   that the show view, the form and a multi-select cell show. It now shows the label, and a stored value no

@@ -623,19 +623,13 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     for {label, body, regex} <- cases do
       exception = Map.get(@exceptions, label, DslError)
 
-      # Spark keeps the entity being built in the process dictionary, and a DSL error raised
-      # mid-entity leaves it there: each case compiles in a process of its own.
       raised =
-        fn ->
-          try do
-            compile(body)
-            nil
-          rescue
-            error -> error
-          end
+        try do
+          compile(body)
+          nil
+        rescue
+          error -> error
         end
-        |> Task.async()
-        |> Task.await(:infinity)
 
       assert is_exception(raised, exception),
              "#{label}: expected #{inspect(exception)}, got #{inspect(raised)}"
