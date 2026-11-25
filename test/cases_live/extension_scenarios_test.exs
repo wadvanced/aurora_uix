@@ -144,7 +144,7 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
         assert has_element?(view, row("low", p(products, 3)))
         refute has_element?(view, row("low", p(products, 4)))
 
-        assert_instances_page_separately(conn, backend, index, products)
+        assert_instances_page_separately(conn, index, products)
         assert_page_and_options(conn, index, products)
         assert_card_sort(conn, index)
         assert_event_refresh(conn, backend, index)
@@ -684,8 +684,8 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
 
   ## Components
 
-  @spec assert_instances_page_separately(Plug.Conn.t(), map(), module(), [struct()]) :: term()
-  defp assert_instances_page_separately(conn, backend, index, products) do
+  @spec assert_instances_page_separately(Plug.Conn.t(), module(), [struct()]) :: term()
+  defp assert_instances_page_separately(conn, index, products) do
     {:ok, view, _html} =
       mount_components(conn, [
         %{module: index, id: "a", props: %{where: [{:reference, :lt, "item_test-04"}]}},
@@ -704,13 +704,9 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
     refute paged == first_page
     assert has_element?(view, row("a", p(products, 1)))
 
-    # Library defect on ash (new): after a page change the instance still lists rows that do
-    # not belong to the page, so its rows are not the rows of page 2 alone.
-    if backend.name == :ctx do
-      assert paged -- first_page == paged
-      assert has_element?(view, row("b", p(products, 6)))
-      refute has_element?(view, row("b", p(products, 1)))
-    end
+    assert paged -- first_page == paged
+    assert has_element?(view, row("b", p(products, 6)))
+    refute has_element?(view, row("b", p(products, 1)))
 
     assert has_element?(
              view,

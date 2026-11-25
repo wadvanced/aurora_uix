@@ -262,9 +262,7 @@ defmodule Aurora.UixWeb.Test.ShowScenariosTest do
 
       assert has_element?(view, "#{@navigator} span.hero-chevron-right.auix-icon-inactive")
 
-      # Library defect on ash (#583): previous from the first row of a page and next from the
-      # last row of a page do not open the expected record.
-      if backend.name == :ctx, do: assert_cross_page_navigation(conn, path)
+      assert_cross_page_navigation(conn, path)
     end)
   end
 
