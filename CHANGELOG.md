@@ -71,6 +71,9 @@ changes: see the What's New guide for the upgrade checklist.
 - **Ash embeds-many entry removal**: removing an entry from an embeds-many field on an Ash form renamed
   the form after the field (`contacts[contacts][0][...]` instead of `product[contacts][0][...]`), so the
   remaining entries were dropped on save. The form keeps its name.
+- **Removing a saved Ash embeds-many entry**: on an Ash form, removing an entry loaded from the database
+  kept the wrong one, in the form and once saved: removing the first of two saved entries left the first
+  and dropped the second. The entry removed is the one that goes (#634).
 - **Index many-to-one `option_label`**: an index column of a many-to-one field with an `option_label` showed
   the listed row's own value, or called a label function with the row. It now applies `option_label` to the
   related record, as the form and show selects do.

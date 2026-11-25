@@ -1037,26 +1037,29 @@ defmodule Aurora.UixWeb.Test.AssociationScenariosTest do
       edit_path = mirror_path(backend, "embeds", "products", "/#{created.id}/edit")
       {:ok, view, _html} = live(conn, edit_path)
 
-      view |> element("#auix-remove-button-1 button") |> render_click()
+      # Removing the first saved entry keeps the second one, in the form and once saved (#634)
+      view |> element("#auix-remove-button-0 button") |> render_click()
 
       view
-      |> element("#auix-remove-button-1 .auix-confirm-button--actions button:first-of-type")
+      |> element("#auix-remove-button-0 .auix-confirm-button--actions button:first-of-type")
       |> render_click()
+
+      assert has_element?(view, "input[name='product[contacts][0][email]'][value='b@test.com']")
+      refute has_element?(view, "input[name='product[contacts][1][email]']")
 
       view
       |> form("#auix-product-form")
       |> render_submit(%{
         product: %{
           name: "Two embeds edited",
-          packaging: %{material: "bag", fragile: "true", notes: "n"},
-          contacts: %{"0" => %{email: "a@test.com", name: "A"}}
+          packaging: %{material: "bag", fragile: "true", notes: "n"}
         }
       })
 
       edited = Repo.get!(MirrorCtx.Product, created.id)
       assert edited.name == "Two embeds edited"
       assert edited.packaging.material == :bag
-      assert Enum.map(edited.contacts, & &1.email) == ["a@test.com"]
+      assert Enum.map(edited.contacts, & &1.email) == ["b@test.com"]
 
       # Library defect on :ctx (#581): a validation error on a nested record exits the LiveView
       # with a FunctionClauseError

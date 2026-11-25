@@ -439,7 +439,13 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
 
   defp get_entries_changes(entries), do: entries
 
+  # A nested form built from a saved entry that wasn't edited carries empty params: its values
+  # are in its data (#634).
   @spec extract_changes(map()) :: map() | nil
+  defp extract_changes(%{params: params, data: data})
+       when params in [nil, %{}] and is_struct(data),
+       do: data
+
   defp extract_changes(%{params: params}), do: params
   defp extract_changes(entry), do: entry
 
