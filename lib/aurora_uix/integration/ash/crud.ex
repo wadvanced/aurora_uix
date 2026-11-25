@@ -501,11 +501,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## PRIVATE
 
-  # Materialises the blank nested form for every singular managed relationship that has no child
-  # yet, so a `has_one` renders its inputs on a new parent exactly as it does on an existing one.
-  # `AshPhoenix.Form.Auto` only builds a nested form when data is already there, which would
-  # otherwise make the child uncreatable through the parent form. Embedded attributes are skipped:
-  # they carry no `:managed_relationship` and already render from their own defaults.
+  # Materialises the blank nested form for every singular nested form that has no child yet, so a
+  # `has_one` or an embeds-one renders its inputs on a new parent exactly as it does on an existing
+  # one. `AshPhoenix.Form.Auto` only builds a nested form when data is already there, which would
+  # otherwise make the child uncreatable through the parent form.
   @spec add_missing_single_relationship_forms(AshPhoenix.Form.t()) :: AshPhoenix.Form.t()
   defp add_missing_single_relationship_forms(%AshPhoenix.Form{form_keys: form_keys} = form) do
     form_keys
@@ -513,12 +512,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
     |> Enum.reduce(form, fn {key, _opts}, acc -> AshPhoenix.Form.add_form(acc, key) end)
   end
 
-  # A singular managed relationship whose nested form was not built from existing data.
+  # A singular nested form (managed relationship or embedded attribute) not built from existing data.
   @spec missing_single_relationship?(AshPhoenix.Form.t(), {atom(), keyword()}) :: boolean()
   defp missing_single_relationship?(%AshPhoenix.Form{forms: forms}, {key, opts}) do
-    Keyword.get(opts, :type) == :single and
-      Keyword.has_key?(opts, :managed_relationship) and
-      is_nil(Map.get(forms, key))
+    Keyword.get(opts, :type) == :single and is_nil(Map.get(forms, key))
   end
 
   # Builds `[actor: actor]` when present, otherwise `[]`. Centralised so every Ash call
