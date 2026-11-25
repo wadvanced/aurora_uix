@@ -244,7 +244,7 @@ defmodule Aurora.Uix.MixProject do
   # Mix deps.
   defp deps do
     [
-      {:ash, "~> 3.37"},
+      {:ash, "~> 3.38"},
       {:ash_phoenix, "~> 2.3"},
       {:ash_postgres, "~> 2.16"},
       {:aurora_ctx, "~> 0.1.11"},
@@ -282,7 +282,7 @@ defmodule Aurora.Uix.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:doctor, "~> 0.23", only: :dev, runtime: false},
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
-      {:image, "~> 0.73", only: :test},
+      {:image, "~> 0.74", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:sourceror, "~> 1.13", only: [:dev, :test], runtime: false},
       {:wallaby, "~> 0.31", only: :test, runtime: false}
