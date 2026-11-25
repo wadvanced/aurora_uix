@@ -64,6 +64,9 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Ash embeds-many entry removal**: removing an entry from an embeds-many field on an Ash form renamed
+  the form after the field (`contacts[contacts][0][...]` instead of `product[contacts][0][...]`), so the
+  remaining entries were dropped on save. The form keeps its name.
 - **A failed DSL compile breaking the next one**: a DSL error inside a nested entry (a `field` in
   `auix_resource_metadata`, a layout in `auix_create_ui`) left Spark's builder state in the compiling
   process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several

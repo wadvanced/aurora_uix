@@ -55,12 +55,7 @@ defmodule Aurora.UixWeb.Test.BrowserScenariosTest do
       |> fill_field("product[quantity_initial]", "3")
       |> click_and_wait(@expand_details, @add_embed)
       |> click_and_wait(@add_embed, @do_add)
-
-      # Library defect on ash (new): the add-entry modal flashes "Entry added successfully" but the
-      # form renders no input for the entry, so the entry cannot be seen, removed or saved.
-      if backend.name == :ctx do
-        add_remove_and_save_contacts(session)
-      end
+      |> add_remove_and_save_contacts()
     end)
   end
 
