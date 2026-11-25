@@ -64,6 +64,9 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Index many-to-one `option_label`**: an index column of a many-to-one field with an `option_label` showed
+  the listed row's own value, or called a label function with the row. It now applies `option_label` to the
+  related record, as the form and show selects do.
 - **A failed DSL compile breaking the next one**: a DSL error inside a nested entry (a `field` in
   `auix_resource_metadata`, a layout in `auix_create_ui`) left Spark's builder state in the compiling
   process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several

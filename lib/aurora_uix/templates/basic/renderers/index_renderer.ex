@@ -156,6 +156,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
       assigns
       |> Map.put(:default_show_function, default_show_function)
       |> Map.put(:card, Map.get(assigns.auix.layout_tree, :card))
+      |> then(&Map.put(&1, :auix, Map.put(&1.auix, :select_labels, select_labels(&1))))
 
     ~H"""
     <div class="auix-index-actions">
@@ -248,6 +249,26 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   end
 
   # PRIVATE
+
+  # Resolves, once per render, the label of every related record a many-to-one column can show, so
+  # the cells do not query per row. The options are the ones the form select offers, which keeps
+  # `option_label` applied to the related record; they are keyed by the stored foreign key.
+  @spec select_labels(map()) :: %{atom() => %{binary() => term()}}
+  defp select_labels(%{auix: auix} = assigns) do
+    for %{option_label: option_label, data: %{resource: resource, related_key: related_key}} =
+          field <- auix.index_fields,
+        option_label != nil and resource != nil and related_key != nil,
+        into: %{} do
+      labels =
+        assigns
+        |> Map.put(:field, field)
+        |> BasicHelpers.get_select_options()
+        |> Map.fetch!(:options)
+        |> Map.new(fn {label, value} -> {to_string(value), label} end)
+
+      {field.key, labels}
+    end
+  end
 
   @spec modal_on_cancel(atom(), map()) :: JS.t()
   defp modal_on_cancel(:show, _auix), do: JS.push("auix_route_back")
