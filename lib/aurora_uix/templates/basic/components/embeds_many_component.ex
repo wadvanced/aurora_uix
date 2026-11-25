@@ -263,7 +263,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
         %{assigns: %{auix: %{new_entry_form: %{action: action}}}} = socket
       )
       when is_nil(action) do
-    {:no_reply, socket}
+    {:noreply, socket}
   end
 
   def handle_event(

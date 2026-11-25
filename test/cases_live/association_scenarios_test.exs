@@ -986,6 +986,22 @@ defmodule Aurora.UixWeb.Test.AssociationScenariosTest do
              )
 
       assert has_element?(view, "#auix-remove-button-0 button span.hero-x-mark")
+
+      view
+      |> element(
+        "div[name='auix-embeds_many-header_actions'] > button[phx-click='toggle-add-embeds']"
+      )
+      |> render_click()
+
+      entry = %{"email" => "early@test.com", "name" => "Early"}
+
+      # An add-entry event before the entry form is validated is ignored
+      view
+      |> with_target(".auix-embeds-many-container")
+      |> render_hook("add-embeds-many", entry)
+
+      refute has_element?(view, "div[name='auix-embeds_many-header_actions']")
+      refute has_element?(view, ".auix-embeds-many-container input[value='early@test.com']")
     end)
   end
 
