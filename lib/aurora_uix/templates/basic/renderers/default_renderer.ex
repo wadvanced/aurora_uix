@@ -101,24 +101,22 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   # --- index cell values ---
 
   @spec index_value(map()) :: Phoenix.LiveView.Rendered.t()
-  defp index_value(%{field: %{html_type: :select, option_label: label_field}} = assigns)
-       when is_atom(label_field) and not is_nil(label_field) do
-    ~H"""
-      {Map.get(@entity, @field.option_label)}
-    """
-  end
+  # The related record's label is resolved once per render by the index renderer, with the same
+  # options the form select offers; a foreign key no option offers renders as stored.
+  defp index_value(
+         %{
+           field: %{
+             html_type: :select,
+             option_label: option_label,
+             data: %{resource: resource, related_key: related_key}
+           }
+         } = assigns
+       )
+       when option_label != nil and resource != nil and related_key != nil do
+    assigns = Map.put(assigns, :value, related_label(assigns))
 
-  defp index_value(%{field: %{html_type: :select, option_label: option_label}} = assigns)
-       when is_function(option_label, 1) do
     ~H"""
-    {@field.option_label.(@entity)}
-    """
-  end
-
-  defp index_value(%{field: %{html_type: :select, option_label: option_label}} = assigns)
-       when is_function(option_label, 2) do
-    ~H"""
-      {@field.option_label.(assigns, @entity)}
+    {@value}
     """
   end
 
@@ -163,6 +161,16 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
       values when is_list(values) -> Enum.map_join(values, ", ", &to_string/1)
       value -> value
     end
+  end
+
+  @spec related_label(map()) :: term()
+  defp related_label(%{entity: entity, field: %{key: key}, auix: auix}) do
+    value = Map.get(entity, key)
+
+    auix
+    |> Map.get(:select_labels, %{})
+    |> Map.get(key, %{})
+    |> Map.get(to_string(value), value)
   end
 
   # Maps every selected value of a multi-value select to its option label, falling back to the raw
