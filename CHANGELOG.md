@@ -69,6 +69,9 @@ changes: see the What's New guide for the upgrade checklist.
   process, so the next module using `Aurora.Uix` compiled there (in IEx, or in a test that compiles several
   modules) failed with "Somehow got a nested entity without a `recursive_as` or `nested_key`". Every module
   now starts from a clean state.
+- **Ash empty embeds-one**: an Ash form rendered no inputs for an embeds-one field with no value, on a new
+  form and on the edit form of a record without one, so it could not be filled. It now renders its blank
+  inputs, as an Ecto form does.
 - **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
   of other pages, and the record navigator opened the wrong record when it crossed a page boundary. A page
   change now keeps the index's query options, as on Ecto.
