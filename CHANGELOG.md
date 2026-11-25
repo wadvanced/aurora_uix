@@ -85,7 +85,10 @@ changes: see the What's New guide for the upgrade checklist.
   longer among the options falls back to the raw value.
 - **Ash empty embeds-one**: an Ash form rendered no inputs for an embeds-one field with no value, on a new
   form and on the edit form of a record without one, so it could not be filled. It now renders its blank
-  inputs, as an Ecto form does.
+  inputs, as an Ecto form does. The form now submits them, so the embedded resource's `create` action and
+  validations run on save: a required field left blank is rejected with its errors, and a record whose
+  embed is `nil` (a test fixture, for one) no longer saves unchanged. See
+  [What's New in 0.2.1](guides/whats_new/0.2.1.md#upgrading-from-0-2-0).
 - **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
   of other pages, and the record navigator opened the wrong record when it crossed a page boundary. A page
   change now keeps the index's query options, as on Ecto.
