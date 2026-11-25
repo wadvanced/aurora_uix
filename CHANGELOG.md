@@ -68,6 +68,9 @@ changes: see the What's New guide for the upgrade checklist.
   (`Ecto.Enum`, an Ash `one_of` atom or `Ash.Type.Enum`), showed the stored value instead of the option label
   that the show view, the form and a multi-select cell show. It now shows the label, and a stored value no
   longer among the options falls back to the raw value.
+- **Ash empty embeds-one**: an Ash form rendered no inputs for an embeds-one field with no value, on a new
+  form and on the edit form of a record without one, so it could not be filled. It now renders its blank
+  inputs, as an Ecto form does.
 - **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
   of other pages, and the record navigator opened the wrong record when it crossed a page boundary. A page
   change now keeps the index's query options, as on Ecto.

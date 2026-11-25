@@ -858,30 +858,26 @@ defmodule Aurora.UixWeb.Test.AssociationScenariosTest do
                "Creates a new 'Product' record in your database"
              )
 
-      # Library defect on :ash (#584): the new form renders no product[packaging][…] input while
-      # the embeds-one is empty
-      if backend.name == :ctx do
-        assert has_element?(view, ".auix-embeds-one-container")
-        assert has_element?(view, "[name='product[packaging][material]']")
-        assert has_element?(view, "[name='product[packaging][fragile]']")
-        assert has_element?(view, "[name='product[packaging][notes]']")
+      assert has_element?(view, ".auix-embeds-one-container")
+      assert has_element?(view, "[name='product[packaging][material]']")
+      assert has_element?(view, "[name='product[packaging][fragile]']")
+      assert has_element?(view, "[name='product[packaging][notes]']")
 
-        view
-        |> form("#auix-product-form",
-          product: %{
-            reference: "John Test",
-            name: "thetest@test.com",
-            quantity_initial: 1,
-            packaging: %{material: "bag", fragile: true, notes: "friends only"}
-          }
-        )
-        |> render_submit()
+      view
+      |> form("#auix-product-form",
+        product: %{
+          reference: "John Test",
+          name: "thetest@test.com",
+          quantity_initial: 1,
+          packaging: %{material: "bag", fragile: true, notes: "friends only"}
+        }
+      )
+      |> render_submit()
 
-        created = Repo.get_by!(MirrorCtx.Product, reference: "John Test")
-        assert created.name == "thetest@test.com"
-        assert created.packaging.fragile == true
-        assert created.packaging.material == :bag
-      end
+      created = Repo.get_by!(MirrorCtx.Product, reference: "John Test")
+      assert created.name == "thetest@test.com"
+      assert created.packaging.fragile == true
+      assert created.packaging.material == :bag
 
       {:ok, view, _html} =
         live(conn, mirror_path(backend, "embeds", "products", "/#{product.id}/edit"))
