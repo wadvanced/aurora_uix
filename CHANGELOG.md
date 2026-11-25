@@ -24,14 +24,17 @@ changes: see the What's New guide for the upgrade checklist.
 ### Changed
 
 - **Updated Dependencies**
-  - ash: 3.36.1 -> 3.37.6
+  - ash: 3.36.1 -> 3.38.1
   - ash_phoenix: 2.3.25 -> 2.3.26
   - ash_postgres: 2.15.1 -> 2.16.0
   - bandit: 1.13.1 -> 1.15.0
   - dialyxir: 1.4.8 -> 1.4.9
-  - image: 0.72.0 -> 0.73.0
-  - lazy_html: 0.1.13 -> 0.1.14
+  - ex_doc: 0.40.4 -> 0.40.5
+  - image: 0.72.0 -> 0.74.0
+  - lazy_html: 0.1.13 -> 0.1.16
+  - phoenix: 1.8.16 -> 1.8.17
   - phoenix_html: 4.3.0 -> 4.4.0
+  - phoenix_live_view: 1.2.13 -> 1.2.15
   - sourceror: 1.12.4 -> 1.13.0
 - **Generated module names (breaking)**: a duplicate generated module name fails compilation, and a
   resource on an embedded-only schema (an Ash embedded resource, an Ecto schema without a table)
