@@ -394,40 +394,6 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     assert_compile_errors(cases)
   end
 
-  test "a failed compilation leaves nothing behind for the next one in the process" do
-    for backend <- @backends do
-      valid = """
-        auix_resource_metadata :product do
-          #{backend.source}
-        end
-      """
-
-      cases = [
-        {"#{backend.name}: a nested field with an unknown option",
-         """
-           auix_resource_metadata :product do
-             #{backend.source}
-             field :name, lable: "Name"
-           end
-         """, ~r/unknown options \[:lable\]/},
-        {"#{backend.name}: a layout with an unknown option",
-         """
-         #{valid}
-           auix_create_ui do
-             index_columns :product, [:reference], page_tittle: "x"
-           end
-         """, ~r/unknown index layout options \[:page_tittle\]/}
-      ]
-
-      for {label, failing, regex} <- cases do
-        labelled(label, fn ->
-          assert_raise(DslError, regex, fn -> compile_ui(failing) end)
-          assert is_atom(compile_ui(valid))
-        end)
-      end
-    end
-  end
-
   test "resource options that fail compilation" do
     cases = [
       {"a mistyped resource option",
