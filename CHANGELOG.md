@@ -109,6 +109,11 @@ changes: see the What's New guide for the upgrade checklist.
   embeds-one, embeds-many) or several errors on one field crashed the LiveView. The flash now lists every
   error, nested ones as `parent.field: message`.
 
+### Documentation
+
+- What's New in 0.2.1: sections for index cards and action icons, and a note to rebuild the CSS bundle
+  after regenerating the stylesheet.
+
 ### Build
 
 - Claude Code cloud sessions restore a cached build at start. Dialyzer PLTs live in `priv/plts`.
