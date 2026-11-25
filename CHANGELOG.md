@@ -64,6 +64,10 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Single-select index cells**: an index cell of a single select, a declared `data.select` or an enum field
+  (`Ecto.Enum`, an Ash `one_of` atom or `Ash.Type.Enum`), showed the stored value instead of the option label
+  that the show view, the form and a multi-select cell show. It now shows the label, and a stored value no
+  longer among the options falls back to the raw value.
 - **Ash pagination order**: on Ash, clicking a page in the page bar of an index with an `order_by` listed rows
   of other pages, and the record navigator opened the wrong record when it crossed a page boundary. A page
   change now keeps the index's query options, as on Ecto.
