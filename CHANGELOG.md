@@ -35,6 +35,7 @@ changes: see the What's New guide for the upgrade checklist.
   - phoenix: 1.8.16 -> 1.8.17
   - phoenix_html: 4.3.0 -> 4.4.0
   - phoenix_live_view: 1.2.13 -> 1.2.15
+  - postgrex: 0.22.4 -> 0.23.0
   - sourceror: 1.12.4 -> 1.13.0
 - **Generated module names (breaking)**: a duplicate generated module name fails compilation, and a
   resource on an embedded-only schema (an Ash embedded resource, an Ecto schema without a table)
