@@ -16,14 +16,20 @@ defmodule Aurora.Uix.Layout.Helpers do
 
   alias Ecto.Embedded
 
-  @fields_parser_integration_modules :aurora_uix
-                                     |> Application.compile_env(
-                                       :fields_parser_integration_modules,
-                                       ash: Aurora.Uix.Integration.Ash.FieldsParser,
-                                       ctx: Aurora.Uix.Integration.Ctx.FieldsParser,
-                                       default: Aurora.Uix.Integration.Default.FieldsParser
+  @fields_parser_integration_modules Map.merge(
+                                       %{
+                                         ash: Aurora.Uix.Integration.Ash.FieldsParser,
+                                         ctx: Aurora.Uix.Integration.Ctx.FieldsParser,
+                                         default: Aurora.Uix.Integration.Default.FieldsParser
+                                       },
+                                       Map.new(
+                                         Application.compile_env(
+                                           :aurora_uix,
+                                           :fields_parser_integration_modules,
+                                           []
+                                         )
+                                       )
                                      )
-                                     |> Map.new()
 
   @doc """
   Generates a unique resource identifier for embedded fields.
@@ -46,8 +52,10 @@ defmodule Aurora.Uix.Layout.Helpers do
   @doc """
   Resolves fields parser implementation module based on connector type.
 
-  Uses compile-time configuration map to look up the appropriate module.
-  The type must match a key in @crud_integration_modules or an error is raised.
+  Uses compile-time configuration map to look up the appropriate module: the built-in
+  `:ash`, `:ctx` and `:default` parsers, plus the ones registered under the
+  `:fields_parser_integration_modules` key. The type must match one of them or an error
+  is raised.
 
   ## Parameters
   - `type` (atom()) - The connector type (`:ash` or `:ctx`).
