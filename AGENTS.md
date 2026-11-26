@@ -128,7 +128,7 @@ def render(%{field: %{type: :one_to_many_association}} = assigns), do: ...
 
 > Note the module-vs-path convention: field renderers live in `renderers/fields/` but are named `Aurora.Uix.Templates.Basic.Renderers.OneToMany`, **not** `…Renderers.Fields.OneToMany`.
 
-**Localization**: user-visible strings go through `dt/1` (`use Aurora.Uix.Gettext`) and are extracted to `priv/gettext/*.pot`. This project ships no per-locale translations.
+**Localization**: user-visible strings go through `dt/1` (`use Aurora.Uix.GettextResolver`) and are extracted to `priv/gettext/*.pot`. This project ships no per-locale translations.
 
 ### Tech Stack
 
