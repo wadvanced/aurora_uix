@@ -126,6 +126,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 - New [Reusable Components](guides/core/components.md) guide.
 - New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
+- Overview and README: features grouped by use, with reusable components and the other missing ones.
 
 ### Build
 

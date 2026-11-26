@@ -28,18 +28,38 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Production-Ready Features** — Built-in pagination, validation, error handling, i18n, responsive design, and real-time updates via LiveView.
 
 **Key Features:**
-- **Multiple Backend Support** — Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection.
-- **Policy-Aware CRUD** — For Ash resources protected by `Ash.Policy.Authorizer`, set [`ash_actor_assign`](./guides/core/ash_integration.md#authorization--policies) and Aurora UIX threads the current actor through every generated call.
-- **Declarative Resource Metadata** — Define fields, validation, labels, and associations in a single, maintainable place.
-- **Flexible Layout DSL** — Compose complex UIs using `inline`, `stacked`, and `section` layout primitives.
-- **Complete CRUD Generation** — Automatic index, show, and edit views with pagination, filtering, and sorting.
-- **Association Support** — First-class support for `belongs_to`, `has_many`, `has_one`, `many_to_many`, `embeds_one`, and `embeds_many`.
-- **Responsive Design** — Mobile-first layouts that work seamlessly on all devices.
-- **i18n Support** — Built-in internationalization via a configurable Gettext backend. Missing translations are automatically written to `.pot` files at runtime so translators always have up-to-date templates. Opt-in `Logger` warnings surface gaps during development. See the [Internationalization guide](./guides/core/internationalization.md).
-- **Customizable Themes** — Besides the included themes, you can create your own or override partially the existing ones.
-- **Runtime Component Overrides** — Replace individual core, filtering, or routing components at runtime via `Application` config, without forking the library. See [Customizing & Extending](./guides/customization/customization.md).
 
-**Technology Stack:**
+### Generate
+
+- **Complete CRUD views** - Index, show and form views from your resource metadata and layouts
+- **Two backends** - Ecto schemas with [`aurora_ctx`](https://hexdocs.pm/aurora_ctx) contexts, or Ash resources, detected automatically
+- **Associations and embeds** - `belongs_to`, `has_many`, `has_one`, `many_to_many`, `embeds_one` and `embeds_many`
+- **File uploads** - An [`upload` block](./guides/core/resource_metadata.md#file-uploads) turns a field into a LiveView upload
+- **Compile-time checks** - An unknown or mistyped DSL option fails compilation at the line that declares it
+
+### Work with data
+
+- **Filtering and sorting** - Filters on the index fields (turn one off with `filterable?: false`), sortable column headers, and `where` and `order_by` to scope a list
+- **Pagination** - Pages in the table, infinite scroll in the card view
+- **Live updates** - With a PubSub server configured, [open lists re-read their page](./guides/core/liveview.md#reacting-to-data-changes) when another session saves or deletes a record
+- **Ash authorization** - The current actor is [passed to every generated call](./guides/core/ash_integration.md#authorization--policies), so your policies apply
+- **Ash calculations and aggregates** - [Discovered and loaded](./guides/core/ash_integration.md#calculations-and-aggregates) like any other field
+
+### Embed
+
+- **[Reusable components](./guides/core/components.md)** - Place the generated index, form and show views inside LiveViews you write
+
+### Adapt
+
+- **Layouts** - Compose `inline`, `stacked`, `group` and `sections`, and [reuse layouts](./guides/core/layouts.md#reusable-layouts) across modules with `include:`
+- **Responsive cards** - Small screens show [one card per record](./guides/core/layouts.md#index-cards); a layout can design the card and show it at every width
+- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](./guides/customization/theming.md)
+- **Actions** - [Add, replace or remove buttons](./guides/customization/custom_actions.md), change their icons, and run [bulk actions](./guides/customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
+- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers, templates and [component overrides](./guides/customization/customization.md)
+- **Behavior** - [Handler hooks](./guides/core/liveview.md#handler-hooks) for your business logic
+- **Internationalization** - A [configurable Gettext backend](./guides/core/internationalization.md)
+
+### Technology Stack
 - Elixir `1.17+`
 - Phoenix `1.8+`
 - Phoenix LiveView `1.2+`
