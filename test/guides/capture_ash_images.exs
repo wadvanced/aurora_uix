@@ -9,6 +9,12 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureAshImages do
   alias Wallaby.Session
 
   feature "create_images", %{session: session} do
+    # Ash counts a page in a separate task, which the browser sandbox does not reach: the
+    # record navigator and the "Check all" button would see no records.
+    disable_async? = Application.get_env(:ash, :disable_async?, false)
+    Application.put_env(:ash, :disable_async?, true)
+    on_exit(fn -> Application.put_env(:ash, :disable_async?, disable_async?) end)
+
     create_guides_sample_data()
 
     session
