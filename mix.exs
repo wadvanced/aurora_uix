@@ -2,7 +2,7 @@ defmodule Aurora.Uix.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/wadvanced/aurora_uix"
-  @version "0.2.1-rc.1"
+  @version "0.2.1"
 
   @spark_extensions Enum.join(
                       [

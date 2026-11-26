@@ -17,7 +17,7 @@ Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project 
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.2.1-rc.1"}
+    {:aurora_uix, "~> 0.2.1"}
   ]
 end
 ```

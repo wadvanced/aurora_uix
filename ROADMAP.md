@@ -5,15 +5,18 @@ this is a dynamic wishlist that evolves based on community feedback, adoption pa
 
 **Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
 
-## Current Status: v0.2.1-rc.1
+## Current Status: v0.2.1
 
-Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in any LiveView, and adds action icons and a card layout for the index list. It has two compile-time breaking changes; see the What's New guide.
+Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in any LiveView, adds action icons and a card layout for the index list, refreshes the look of every theme and fixes a set of form, index and Ash backend bugs. It has three compile-time breaking changes; see the What's New guide.
 
 **Recent Changes (v0.2.1)**:
 - `IndexComponent`, `FormComponent` and `ShowComponent` for reusable components
 - Action icons on default actions
 - Card layout for the index list, with a header menu, tap-to-show and an icon sort menu
 - Theme-driven menus and classes for the sort control and index cards
+- Refreshed look in every theme and the Blue Graphite theme
+- `resource:` on embedded fields and associations
+- Fixes for Ash forms (field errors, embeds), Ash pagination and field order, and nested Ecto errors
 
 **Previous Release (v0.2.0)**:
 - Resource metadata, layout, theme and layout option DSLs moved to Spark
@@ -47,7 +50,7 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 - Automatic adapter detection for Ash resources
 - Support for Ash actions and changesets
 
-**Previous Release (v0.1.2)**:
+**Earlier Release (v0.1.2)**:
 - Record navigation feature with next/previous controls
 - Option to disable record navigation when needed
 
