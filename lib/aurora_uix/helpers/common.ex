@@ -15,12 +15,26 @@ defmodule Aurora.Uix.Helpers.Common do
 
   ## Returns
   atom() | nil - The existing atom if it exists, otherwise nil.
+
+  ## Examples
+
+      iex> Aurora.Uix.Helpers.Common.safe_existing_atom("ok")
+      :ok
+
+      iex> Aurora.Uix.Helpers.Common.safe_existing_atom("auix_no_such_atom_643")
+      nil
+
+      iex> Aurora.Uix.Helpers.Common.safe_existing_atom(:ok)
+      :ok
+
+      iex> Aurora.Uix.Helpers.Common.safe_existing_atom(42)
+      nil
   """
   @spec safe_existing_atom(term() | nil) :: atom() | nil
   def safe_existing_atom(name) when is_binary(name) do
     String.to_existing_atom(name)
-  catch
-    _ -> nil
+  rescue
+    ArgumentError -> nil
   end
 
   def safe_existing_atom(name) when is_atom(name), do: name
