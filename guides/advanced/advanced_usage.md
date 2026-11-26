@@ -879,16 +879,22 @@ end
 
 ### Step 5: Register Your Backend
 
-Add your backend to the application configuration:
+Register each of your backend's modules under its own key. The built-in `:ash` and `:ctx`
+backends stay registered, so list only yours:
 
 ```elixir
 # config/config.exs
 
-config :aurora_uix, :crud_integration_modules,
-  ash: Aurora.Uix.Integration.Ash.Crud,
-  ctx: Aurora.Uix.Integration.Ctx.Crud,
-  custom: MyApp.CustomBackend.Crud  # Your custom backend
+config :aurora_uix, :crud_integration_modules, custom: MyApp.CustomBackend.Crud
+
+config :aurora_uix, :parser_defaults_integration_modules,
+  custom: MyApp.CustomBackend.ContextParserDefaults
+
+config :aurora_uix, :fields_parser_integration_modules,
+  custom: MyApp.CustomBackend.FieldsParser
 ```
+
+An entry under a built-in key (`:ash` or `:ctx`) replaces that built-in module.
 
 ### Step 6: Use Your Custom Backend
 

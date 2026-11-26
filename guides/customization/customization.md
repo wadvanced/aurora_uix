@@ -192,6 +192,8 @@ Options of the resource itself that shape its index list (an `index_columns` lay
 ```elixir
 config :aurora_uix, :template, MyApp.CustomTemplate
 config :aurora_uix, :crud_integration_modules, custom: MyApp.CustomBackend.Crud
+config :aurora_uix, :parser_defaults_integration_modules, custom: MyApp.CustomBackend.ContextParserDefaults
+config :aurora_uix, :fields_parser_integration_modules, custom: MyApp.CustomBackend.FieldsParser
 ```
 
 → **See:** [Advanced Usage](../advanced/advanced_usage.md) — templates, macro conversions, metadata separation, custom backends
