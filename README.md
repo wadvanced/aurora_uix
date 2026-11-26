@@ -123,7 +123,7 @@ Add Aurora UIX to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:aurora_uix, "~> 0.2.1-rc.1"}
+    {:aurora_uix, "~> 0.2.1"}
   ]
 end
 ```
@@ -229,6 +229,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[What's New](./guides/whats_new/0.2.1.md)** — Headline changes of 0.2.1 with upgrade notes and examples; one page is kept per release in `guides/whats_new/`
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
+- **[Reusable Components](./guides/core/components.md)** — Embed the index, form and show components in your own LiveViews
 - **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
 - **[Customizing & Extending](./guides/customization/customization.md)** — Central hub for styling, theming, component overrides, and custom actions
 - **[Styling](./guides/customization/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model

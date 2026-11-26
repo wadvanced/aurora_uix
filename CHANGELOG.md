@@ -1,17 +1,20 @@
 # Changelog for Aurora UIX
 
-## [0.2.1]
+## [0.2.1] - 2026-11-26
 
-**Reusable components and index cards**
+**Reusable components, index cards and a refreshed look**
 
 This release lets the index, form and show UIs be embedded as components in any LiveView, adds action
-icons and a card layout for the index list, and updates dependencies. It has three compile-time breaking
-changes: see the What's New guide for the upgrade checklist.
+icons and a card layout for the index list, refreshes the look of every theme and adds Blue Graphite,
+fixes a set of form, index and Ash backend bugs, and updates dependencies. It has three compile-time
+breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Added
 
 - **Reusable components**: `IndexComponent`, `FormComponent` and `ShowComponent` can be embedded in
   any LiveView (Reusable Components guide).
+- **Destructive row actions**: `destructive?: true` marks a row action; index cards list it last in
+  their menu, in the danger color (Custom Actions guide, "Row actions in cards").
 - **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
 - **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
 - **Blue Graphite theme**: `:blue_graphite`, a slate theme with a navy primary, in light and dark
@@ -37,6 +40,8 @@ changes: see the What's New guide for the upgrade checklist.
   - phoenix_live_view: 1.2.13 -> 1.2.15
   - postgrex: 0.22.4 -> 0.23.0
   - sourceror: 1.12.4 -> 1.13.0
+- **Minimum dependency versions**: `ash ~> 3.38`, `ash_postgres ~> 2.16`, `bandit ~> 1.15` and
+  `phoenix_html ~> 4.4`.
 - **Generated module names (breaking)**: a duplicate generated module name fails compilation, and a
   resource on an embedded-only schema (an Ash embedded resource, an Ecto schema without a table)
   generates no modules, whatever its name (What's New in 0.2.1, "Upgrading from 0.2.0").
@@ -44,6 +49,8 @@ changes: see the What's New guide for the upgrade checklist.
   names the resource that renders it, on both backends. An unknown name, a resource on another
   schema, and `resource:` on any other field fail compilation (What's New in 0.2.1, "Upgrading from
   0.2.0").
+- **Custom fields parsers (breaking)**: a custom fields parser defines `embedded_schema?/1`; without
+  it the views module does not compile (Advanced Usage guide).
 - **Embedded resources on the Ecto backend**: a resource declared on a schema without a table
   needs no `context:` and no CRUD functions.
 - **Atom without `one_of` warning (Ash)**: the compile-time warning is emitted only for a field a
@@ -51,6 +58,10 @@ changes: see the What's New guide for the upgrade checklist.
   index or a show layout places no longer warn, and the message names the views module.
 - **Associations to imported resources**: an association links to a resource imported with
   `@auix_resource_metadata`.
+- **One-to-many lists**: a one-to-many list in a form or show view is an embedded `IndexComponent`.
+- **Mobile actions and cards**: below 640px a default action button shows only its icon and the card
+  sort control is a single icon menu; an index card has a menu of row actions and opens the show view
+  when tapped (Layouts guide, "Index Cards").
 - **Form navigation in LiveView tests**: the generated `Index` LiveView redirects after a form saves
   or closes (What's New in 0.2.1, "Upgrading from 0.2.0").
 - **Index card styling (CSS class changes)**: the `auix-items-card-*` classes changed (Styling
@@ -64,16 +75,18 @@ changes: see the What's New guide for the upgrade checklist.
   error text rose-700 `#BE123C`.
 - **Theme CSS sanitizer**: theme rules may set `resize` to one of `none`, `block`, `both`,
   `vertical`, `horizontal`, `inline`, and `content` to one plain quoted string such as `""`; any
-  other value of either property is dropped.
+  other value of either property is dropped. `object-fit` is allowed too.
 
 ### Fixed
 
+- **Embeds-many add entry**: an add-entry event that arrived before the new entry was validated
+  crashed the LiveView. It is now ignored.
 - **Ash embeds-many entry removal**: removing an entry from an embeds-many field on an Ash form renamed
   the form after the field (`contacts[contacts][0][...]` instead of `product[contacts][0][...]`), so the
   remaining entries were dropped on save. The form keeps its name.
 - **Removing a saved Ash embeds-many entry**: on an Ash form, removing an entry loaded from the database
   kept the wrong one, in the form and once saved: removing the first of two saved entries left the first
-  and dropped the second. The entry removed is the one that goes (#634).
+  and dropped the second. The entry removed is the one that goes.
 - **Index many-to-one `option_label`**: an index column of a many-to-one field with an `option_label` showed
   the listed row's own value, or called a label function with the row. It now applies `option_label` to the
   related record, as the form and show selects do.
@@ -111,8 +124,8 @@ changes: see the What's New guide for the upgrade checklist.
 
 ### Documentation
 
-- What's New in 0.2.1: sections for index cards and action icons, and a note to rebuild the CSS bundle
-  after regenerating the stylesheet.
+- New [Reusable Components](guides/core/components.md) guide.
+- New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
 
 ### Build
 

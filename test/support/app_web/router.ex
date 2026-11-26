@@ -34,7 +34,9 @@ defmodule Aurora.UixWeb.Test.Router do
   scope "/guides-overview", Aurora.UixWeb.Guides do
     pipe_through(:browser)
 
-    load_routes()
+    live_session :guides_sandbox, on_mount: [Aurora.UixWeb.Test.SandboxHook] do
+      load_routes()
+    end
   end
 
   scope "/", Aurora.UixWeb.Test do
