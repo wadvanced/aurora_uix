@@ -127,6 +127,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - New [Reusable Components](guides/core/components.md) guide.
 - New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
 - Overview and README: features grouped by use, with reusable components and the other missing ones.
+- Fixed links between guides that did not reach their section or file on HexDocs or GitHub.
 
 ### Build
 
@@ -611,9 +612,9 @@ Requires:
   - Adds a new `socket_opts/2` callback to the `Aurora.Uix.Integration.Crud` behaviour; the Ash backend resolves the actor from `socket.assigns`, the Ctx backend ignores it. `Connector` stays neutral — the new `actor_assign` field lives on the Ash `CrudSpec`.
   - See `guides/core/ash_integration.md#authorization--policies`.
 
-- **Styling guide and customization scaffold** — new [Styling](./guides/core/styling.md) guide; `mix auix.gen.stylesheet --custom` seeds an opt-in `auix-custom.css` stub for token-level overrides (add `--force` to refresh an existing stub).
+- **Styling guide and customization scaffold** — new [Styling](./guides/customization/styling.md) guide; `mix auix.gen.stylesheet --custom` seeds an opt-in `auix-custom.css` stub for token-level overrides (add `--force` to refresh an existing stub).
 
-- **Non-Tailwind baseline stylesheet (opt-in)** — `mix auix.gen.stylesheet --baseline` scaffolds `assets/css/auix-baseline.css`, a tag-selector reset (`html`, `body`, `a`) for hosts without a CSS preflight. Host-owned once created; refresh with `--baseline --force`. Tailwind hosts skip the flag and the file. See [Hosts without Tailwind](./guides/core/styling.md#hosts-without-tailwind).
+- **Non-Tailwind baseline stylesheet (opt-in)** — `mix auix.gen.stylesheet --baseline` scaffolds `assets/css/auix-baseline.css`, a tag-selector reset (`html`, `body`, `a`) for hosts without a CSS preflight. Host-owned once created; refresh with `--baseline --force`. Tailwind hosts skip the flag and the file. See [Hosts without Tailwind](./guides/customization/styling.md#hosts-without-tailwind).
 
 - **New `mix auix.gen.tailwind_classes` task** — scans Aurora UIX source files for Heroicon class names and writes a minimal JS safelist to `priv/static/classes.js`. Host Tailwind configs can reference this file with `@source "../deps/aurora_uix/priv/static/classes.js"` instead of scanning the entire dependency tree.
 

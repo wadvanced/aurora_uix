@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Integration.Ash.CrudSpec do
   - `:actor_assign` is `nil` by default — no `actor:` is forwarded to Ash, preserving
     the previous behaviour for resources that do not use `Ash.Policy.Authorizer`
 
-  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  See the [Ash integration guide — Authorization and policies](ash_integration.html#authorization-and-policies)
   for the end-to-end worked example and the behaviour matrix.
   """
 

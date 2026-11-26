@@ -292,6 +292,8 @@ Combine all layout types for sophisticated UIs:
 
 Each layout type (`:index`, `:form`, `:show`) supports specific customization options that control titles, subtitles, pagination, and more.
 
+<a id="index-layout-options"></a>
+
 #### Index Layout Options
 
 Controls list view pagination, titles, and row/header actions:
@@ -317,6 +319,8 @@ index_columns :product, [:reference, :name, :price],
 - `:preload` — Associations the list loads besides the ones the layout renders, such as `[:category, posts: :author]`. It replaces the resource's `preload` for this layout (see [Index Query Options](resource_metadata.md#index-query-options))
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
 - `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
+
+<a id="index-cards"></a>
 
 #### Index Cards
 
@@ -421,7 +425,7 @@ end
 - `:back_action_label` — Label for the back action (default: `"Back to {title}"`)
 - `:action_icons` — The icons of the edit and back actions, such as `[default_back: "←"]` (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 
-### Dynamic Titles & Subtitles
+### Dynamic Titles and Subtitles
 
 For dynamic content, pass function references (named functions only, not anonymous):
 
@@ -506,7 +510,7 @@ index_columns :product, [
 
 For complete field attributes reference, see the `Aurora.Uix.Field` module documentation.
 
-## Actions: Customizing Buttons & Links
+## Actions: Customizing Buttons and Links
 
 Aurora UIX provides a comprehensive action system for customizing the buttons and links rendered in headers, footers, rows, and selection bars of every layout type.
 

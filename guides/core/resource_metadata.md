@@ -166,7 +166,7 @@ For Ash Framework resources:
     backend_opts: [ash_actor_assign: :current_user]
   ```
 
-  See [Ash Integration → Authorization & policies](ash_integration.md#authorization--policies)
+  See [Ash Integration → Authorization and policies](ash_integration.md#authorization-and-policies)
   for the worked example, troubleshooting checklist, and the full behaviour
   matrix.
 
@@ -217,7 +217,7 @@ auix_resource_metadata :product,
 
 This is a different mechanism from the arity-1, `assigns`-receiving functions accepted by
 per-layout title/subtitle options (`:page_title`, `:edit_title`, and similar) — see
-[Layout System → Dynamic Titles & Subtitles](layouts.md#dynamic-titles--subtitles) for that.
+[Layout System → Dynamic Titles and Subtitles](layouts.md#dynamic-titles-and-subtitles) for that.
 
 Let's see examples for both approaches:
 
@@ -675,7 +675,7 @@ end
 
 ## Related guides
 
-- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub, including a [field options reference table](../customization/customization.md#6-field--resource-options-reference)
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub, including a [field options reference table](../customization/customization.md#6-field-and-resource-options-reference)
 - [Layout System](layouts.md) — arrange the configured fields in index, form, and show views
 - [Ash Integration](ash_integration.md) — Ash-specific metadata options and action resolution
 - [Advanced Usage](../advanced/advanced_usage.md) — separating metadata from UI modules

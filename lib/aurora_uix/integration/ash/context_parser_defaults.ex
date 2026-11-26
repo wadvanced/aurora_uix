@@ -39,7 +39,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
         # or, equivalently:
         # backend_opts: [actor_assign: :current_user]     # alias
 
-  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  See the [Ash integration guide — Authorization and policies](ash_integration.html#authorization-and-policies)
   for the worked example and the full behaviour matrix.
   """
   @behaviour Aurora.Uix.Integration.ContextParserDefaults

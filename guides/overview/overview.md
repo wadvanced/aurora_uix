@@ -54,7 +54,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 - **Filtering and sorting** - Filters on the index fields (turn one off with `filterable?: false`), sortable column headers, and `where` and `order_by` to scope a list
 - **Pagination** - Pages in the table, infinite scroll in the card view
 - **Live updates** - With a PubSub server configured, [open lists re-read their page](../core/liveview.md#reacting-to-data-changes) when another session saves or deletes a record
-- **Ash authorization** - The current actor is [passed to every generated call](../core/ash_integration.md#authorization-policies), so your policies apply
+- **Ash authorization** - The current actor is [passed to every generated call](../core/ash_integration.md#authorization-and-policies), so your policies apply
 - **Ash calculations and aggregates** - [Discovered and loaded](../core/ash_integration.md#calculations-and-aggregates) like any other field
 
 ### Embed

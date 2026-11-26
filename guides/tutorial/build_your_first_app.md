@@ -333,7 +333,7 @@ the next step.
 > `Ash.Policy.Authorizer`, add `backend_opts: [ash_actor_assign: :current_user]` to the metadata
 > so Aurora UIX threads the current user as the Ash actor through every generated
 > CRUD call. See
-> [Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
+> [Ash Integration → Authorization and policies](../core/ash_integration.md#authorization-and-policies).
 
 ### Either way — you're now on the shared path
 
