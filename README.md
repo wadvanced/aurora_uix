@@ -19,11 +19,11 @@
 ---
 ## 📖 Overview
 
-Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that lets you rapidly generate complete CRUD interfaces from your Ecto schemas. Instead of writing repetitive form and list code, define your resource once and get a fully functional, responsive UI with built-in validation, association handling, and real-time updates.
+Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that lets you rapidly generate complete CRUD interfaces from your Ecto schemas or Ash resources. Instead of writing repetitive form and list code, define your resource once and get a fully functional, responsive UI with built-in validation, association handling, and real-time updates.
 
 **Why Aurora UIX?**
 - **Rapid Development** — Build CRUD interfaces in minutes, not days. Define resource metadata once, get complete index, show, and edit views.
-- **Type-Safe Code Generation** — All UI code is generated at compile-time, not runtime. Full type safety with zero overhead.
+- **Compile-Time Generation** — The UI modules are generated when your application compiles, and mistakes in a declaration fail the build.
 - **Extensible by Design** — Customize every layer: field renderers, layouts, templates, themes, and LiveView event handlers.
 - **Production-Ready Features** — Built-in pagination, validation, error handling, i18n, responsive design, and real-time updates via LiveView.
 
@@ -129,14 +129,10 @@ end
 
 ### Prerequisites
 
-Ensure you have the following installed:
-- [Elixir](https://elixir-lang.org/install.html) 1.17+
-- [Erlang](https://www.erlang.org/downloads) OTP 28+
-- [Phoenix](https://phoenixframework.org/blog/phoenix-1-8-released) 1.8+
+- [Elixir](https://elixir-lang.org/install.html) 1.17+, with an [Erlang/OTP](https://www.erlang.org/downloads) release it supports
+- [Phoenix](https://hexdocs.pm/phoenix/installation.html) 1.8+ and Phoenix LiveView 1.2+
 
 ### Installation
-
-#### 1. Add Dependency
 
 Add Aurora UIX to your `mix.exs`:
 
@@ -148,67 +144,15 @@ def deps do
 end
 ```
 
-Then run:
-```shell
-mix deps.get
-```
+Aurora UIX needs `phoenix_live_view ~> 1.2` and `phoenix_live_dashboard ~> 0.9`. If your project
+pins older versions, as some `mix phx.new` releases do, raise both before running `mix deps.get`.
 
-#### 2. Configure the Stylesheet
+Then follow [Getting Started](./guides/introduction/getting_started.md):
 
-Aurora UIX ships with pre-built CSS themes (`light` and `dark` by default). Generate the stylesheet:
-
-```shell
-mix auix.gen.stylesheet
-```
-
-This creates `assets/css/auix-stylesheet.css`. Import it **at the end** of your `assets/css/app.css`:
-
-```css
-@import "./auix-stylesheet.css";
-```
-
-> **Important**: The Aurora UIX stylesheet must be the **last line** in `app.css` so its styles take priority over any conflicting rules.
-
-> **Tip**: If you change the theme configuration or customize its style, re-run `mix auix.gen.stylesheet` to regenerate the stylesheet.
-
-#### 3. Configure Icons (optional)
-
-Aurora UIX uses **Heroicons** for all UI icons. If your project doesn't already use Heroicons, generate the icon CSS classes:
-
-```shell
-mix auix.gen.icons
-```
-
-Then add an import **at the top** of your `assets/css/app.css`:
-
-```css
-@import "auix-icons.css";
-```
-
-#### 4. Create Your First CRUD UI
-
-Create a module (e.g., `lib/my_app_web/auix/product_ui.ex`) and use the example above. Then register LiveView routes in your router:
-
-```elixir
-scope "/inventory" do
-  pipe_through(:browser)
-  live "/products", Overview.Product.Index
-  live "/products/new", Overview.Product.Index, :new
-  live "/products/:id/edit", Overview.Product.Index, :edit
-  live "/products/:id/show", Overview.Product.Index, :show
-end
-```
-
-Or use the route helper for a shorter syntax:
-
-```elixir
-import Aurora.Uix.RouteHelper
-
-scope "/inventory", Aurora.UixWeb.Guides do
-  pipe_through(:browser)
-  auix_live_resources("/products", Overview.Product)
-end
-```
+1. [Generate and import the stylesheet](./guides/introduction/getting_started.md#css-configuration)
+2. [Set up the icons](./guides/introduction/getting_started.md#icons-configuration)
+3. [Import the JavaScript hooks](./guides/introduction/getting_started.md#javascript-setup)
+4. [Declare your UI and add its routes](./guides/introduction/getting_started.md#basic-usage)
 
 ### 📚 Next Steps
 
@@ -257,21 +201,6 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[CSS Bridges](./guides/customization/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
 - **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom templates and backends
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
-
----
-## 🚢 Deployment
-
-Building your Aurora UIX application for production:
-
-```bash
-# Build the release
-MIX_ENV=prod mix release
-
-# Run the release
-_build/prod/rel/aurora_uix/bin/aurora_uix start
-```
-
-For complete deployment guidance, see the [Phoenix Deployment Guide](https://hexdocs.pm/phoenix/deployment.html).
 
 ---
 ## 🤝 Contributing
