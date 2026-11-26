@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Missing record on show and edit**: opening the show, edit or show-edit view of an id that matches
+  no record crashed the LiveView, on both backends. It now returns to the index with an "Item not
+  found" error flash.
 - **Embeds-many add entry**: an add-entry event that arrived before the new entry was validated
   crashed the LiveView. It is now ignored.
 - **Ash embeds-many entry removal**: removing an entry from an embeds-many field on an Ash form renamed
