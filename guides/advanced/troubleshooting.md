@@ -191,7 +191,7 @@ auix_resource_metadata :template,
 
 Also confirm the assign is actually set — typically via an `on_mount` hook
 inside a `live_session`. See
-[Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
+[Ash Integration → Authorization and policies](../core/ash_integration.md#authorization-and-policies).
 
 ## Ash Save Raises or Shows "Forbidden" Flash
 
@@ -228,4 +228,4 @@ the assign is populated on the socket before the form mounts.
 - [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
 - [Styling Aurora UIX in a Host Application](../customization/styling.md) — verifying variable overrides and cascade layers
 - [Creating Custom Registered Themes](../customization/theming.md) — theme configuration details
-- [Ash Integration](../core/ash_integration.md#authorization--policies) — policy/actor troubleshooting
+- [Ash Integration](../core/ash_integration.md#authorization-and-policies) — policy/actor troubleshooting

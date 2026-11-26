@@ -47,7 +47,7 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   `Aurora.Uix.Templates.Basic.Helpers.backend_socket_opts/2` instead, which is
   backend-agnostic and accepts both full sockets and bare assigns maps.
 
-  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  See the [Ash integration guide — Authorization and policies](ash_integration.html#authorization-and-policies)
   for the end-to-end worked example, alias (`:actor_assign`), behaviour matrix,
   and troubleshooting.
   """

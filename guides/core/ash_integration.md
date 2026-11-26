@@ -966,7 +966,7 @@ auix_resource_metadata :post,
   backend_opts: [ash_read_action: :published, ash_read_action_paginated: :published_paginated]
 ```
 
-## Authorization & policies
+## Authorization and policies
 
 Aurora UIX threads an **actor** through every Ash call it generates, so resources
 protected by `Ash.Policy.Authorizer` work out of the box. You declare *where* the

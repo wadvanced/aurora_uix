@@ -200,7 +200,7 @@ defmodule Aurora.Uix.Integration.Crud do
   keyword() - Options to merge into subsequent CRUD calls (e.g. `[actor: %User{}]`).
   Returns `[]` when nothing applies.
 
-  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  See the [Ash integration guide — Authorization and policies](ash_integration.html#authorization-and-policies)
   for the end-user-facing configuration that drives this callback.
   """
   @callback socket_opts(term(), Phoenix.LiveView.Socket.t() | map()) :: keyword()

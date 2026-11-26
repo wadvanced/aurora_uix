@@ -229,7 +229,7 @@ For detailed configuration options, see the [Resource Metadata Guide](../core/re
 > **Using Ash with policies?** If your resource is protected by
 > `Ash.Policy.Authorizer`, add `backend_opts: [ash_actor_assign: :current_user]` to thread the
 > current user as the Ash actor on every generated CRUD call. See
-> [Ash Integration → Authorization & policies](../core/ash_integration.md#authorization--policies).
+> [Ash Integration → Authorization and policies](../core/ash_integration.md#authorization-and-policies).
 
 ### 2. Generate UI Layout
 

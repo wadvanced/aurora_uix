@@ -6,7 +6,7 @@ Thank you for considering contributing to Aurora UIX! We appreciate your help in
 
 1. [How to Contribute](#how-to-contribute)
 2. [Development Setup](#development-setup)
-3. [Code Style & Quality](#code-style--quality)
+3. [Code Style and Quality](#code-style-and-quality)
 4. [Testing](#testing)
 5. [Documentation](#documentation)
 6. [Commit Conventions](#commit-conventions)
@@ -99,7 +99,7 @@ cp test/config/test.exs config/test.exs
 ```
 
 ---
-## Code Style & Quality
+## Code Style and Quality
 
 ### Format Code
 
@@ -171,7 +171,8 @@ mix phx.server
 # Development server with iex
 iex -S mix phx.server
 ```
-<a name="server-under-test-environment"></a>
+<a id="server-under-test-environment"></a>
+
 #### Server under test environment
 
 All routes will be available

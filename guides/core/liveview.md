@@ -5,7 +5,7 @@ Aurora UIX leverages Phoenix LiveView to provide dynamic, real-time CRUD interfa
 > #### JavaScript setup required {: .warning}
 > Aurora UIX requires its client-side hooks to be imported in your `app.js`. Without this, features
 > like file downloads and the theme switcher will not work. See
-> [JavaScript Setup](../introduction/getting_started.html#javascript-setup) in the Getting Started
+> [JavaScript Setup](../introduction/getting_started.md#javascript-setup) in the Getting Started
 > guide.
 
 ## How It Works
@@ -629,6 +629,8 @@ defmodule MyApp.ProductShowHandler do
   end
 end
 ```
+
+<a id="targeting-the-component"></a>
 
 #### Targeting the Component
 

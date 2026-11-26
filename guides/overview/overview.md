@@ -41,14 +41,35 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 
 ## Key Features
 
-- **Multiple Backend Support** - Works seamlessly with Ecto schemas and Ash Framework resources through automatic adapter detection
-- **Declarative Configuration** - Define resources and layouts as Elixir code, no templates to manage
-- **Automatic CRUD UIs** - Generate complete Create, Read, Update, Delete interfaces automatically
-- **Association Support** - Built-in handling for `belongs_to`, `has_many`, `embeds_one`, and `embeds_many`
-- **Responsive Design** - Layouts work seamlessly on desktop and mobile devices
-- **Customizable Themes** - Includes light and dark themes, fully customizable or replaceable
-- **Extensible** - Override templates, create custom renderers, integrate custom components
-- **Minimal Overhead** - Compile-time generation means fast runtime performance
+### Generate
+
+- **Complete CRUD views** - Index, show and form views from your resource metadata and layouts
+- **Two backends** - Ecto schemas with [`aurora_ctx`](https://hexdocs.pm/aurora_ctx) contexts, or Ash resources, detected automatically
+- **Associations and embeds** - `belongs_to`, `has_many`, `has_one`, `many_to_many`, `embeds_one` and `embeds_many`
+- **File uploads** - An [`upload` block](../core/resource_metadata.md#file-uploads) turns a field into a LiveView upload
+- **Compile-time checks** - An unknown or mistyped DSL option fails compilation at the line that declares it
+
+### Work with data
+
+- **Filtering and sorting** - Filters on the index fields (turn one off with `filterable?: false`), sortable column headers, and `where` and `order_by` to scope a list
+- **Pagination** - Pages in the table, infinite scroll in the card view
+- **Live updates** - With a PubSub server configured, [open lists re-read their page](../core/liveview.md#reacting-to-data-changes) when another session saves or deletes a record
+- **Ash authorization** - The current actor is [passed to every generated call](../core/ash_integration.md#authorization-and-policies), so your policies apply
+- **Ash calculations and aggregates** - [Discovered and loaded](../core/ash_integration.md#calculations-and-aggregates) like any other field
+
+### Embed
+
+- **[Reusable components](../core/components.md)** - Place the generated index, form and show views inside LiveViews you write
+
+### Adapt
+
+- **Layouts** - Compose `inline`, `stacked`, `group` and `sections`, and [reuse layouts](../core/layouts.md#reusable-layouts) across modules with `include:`
+- **Responsive cards** - Small screens show [one card per record](../core/layouts.md#index-cards); a layout can design the card and show it at every width
+- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](../customization/theming.md)
+- **Actions** - [Add, replace or remove buttons](../customization/custom_actions.md), change their icons, and run [bulk actions](../customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
+- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers, templates and [component overrides](../customization/customization.md)
+- **Behavior** - [Handler hooks](../core/liveview.md#handler-hooks) for your business logic
+- **Internationalization** - A [configurable Gettext backend](../core/internationalization.md)
 
 ## Complete Example
 
@@ -119,6 +140,36 @@ end
 - ✅ Automatic validation and error handling
 - ✅ Real-time updates via LiveView
 
+## Reusable Components
+
+`auix_create_ui` generates an `IndexComponent`, a `FormComponent` and a `ShowComponent` for each
+resource, next to the `Index` LiveView. Use them to add Aurora UIX to one screen of an existing
+application, or to combine several lists and forms on a page of your own:
+
+```elixir
+defmodule MyAppWeb.DashboardLive do
+  use MyAppWeb, :live_view
+
+  on_mount Aurora.Uix.Live.ComponentHooks
+
+  def render(assigns) do
+    ~H"""
+    <.live_component
+      module={MyAppWeb.InventoryViews.Product.IndexComponent}
+      id="low-stock"
+      where={[{:quantity_at_hand, :lt, 10}]}
+    />
+    """
+  end
+
+  # A component never navigates: it tells its parent what the user asked for.
+  def handle_info({Aurora.Uix, _component_id, _intent}, socket), do: {:noreply, socket}
+end
+```
+
+The [Reusable Components](../core/components.md) guide describes the inputs, the messages and how
+to handle them.
+
 ## Generated UI Examples
 
 Aurora UIX generates complete, responsive CRUD interfaces. Here are examples of automatically generated interfaces:
@@ -186,14 +237,6 @@ Aurora UIX works best when:
 - Consistency across the application is important
 - You want compile-time safety and performance
 
-Aurora UIX is built to be extensible:
-
-- **Custom Field Renderers** - Implement custom rendering logic for specialized fields
-- **Layout Components** - Create reusable layout compositions
-- **Custom Templates** - Override the default template system
-- **Theme Customization** - Modify existing themes or create new ones from scratch
-- **LiveView Integration** - Hook into LiveView events for business logic
-
 ## Documentation & Next Steps
 
 ### Getting Started
@@ -203,6 +246,7 @@ Ready to build your first Aurora UIX interface? Follow these steps:
 1. **[Getting Started Guide](../introduction/getting_started.md)** - 10-minute setup and first CRUD interface
 2. **[Resource Metadata Guide](../core/resource_metadata.md)** - Learn how to configure resources
 3. **[Layout System Guide](../core/layouts.md)** - Get to know the layout DSL
+4. **[Reusable Components Guide](../core/components.md)** - Embed the generated views in your own LiveViews
 
 ### Customization & Extension
 

@@ -322,7 +322,7 @@ end
 ```
 
 For complete worked examples of customizing index, form, and show actions inside layouts,
-see [Layout System → Actions: Customizing Buttons & Links](../core/layouts.md#actions-customizing-buttons--links).
+see [Layout System → Actions: Customizing Buttons and Links](../core/layouts.md#actions-customizing-buttons-and-links).
 
 ## Action Icons
 

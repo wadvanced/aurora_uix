@@ -156,7 +156,7 @@ end
 
 → **See:** [LiveView Integration → Customizing Behavior](../core/liveview.md#customizing-behavior)
 
-## 6. Field & Resource Options Reference
+## 6. Field and Resource Options Reference
 
 The most-used field options, all configured in `auix_resource_metadata` (some also accepted inline in layouts):
 

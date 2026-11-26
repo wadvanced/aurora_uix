@@ -85,7 +85,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
         socket_opts ++ [filter: [title: query]]
       )
 
-  See the [Ash integration guide — Authorization &amp; policies](ash_integration.html#authorization--policies)
+  See the [Ash integration guide — Authorization and policies](ash_integration.html#authorization-and-policies)
   for the end-to-end flow.
   """
   @spec backend_socket_opts(Socket.t() | map(), Connector.t() | nil) :: keyword()

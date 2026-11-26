@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.ComponentsResolverHelper do
   @moduledoc """
-  Runtime helpers and the `resolve_component_for/1` macro that power the Aurora UIX
+  Runtime helpers and the dispatch macro that power the Aurora UIX
   component override system.
 
   ## How it works
