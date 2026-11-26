@@ -20,11 +20,15 @@ defmodule Aurora.Uix.Integration.Crud do
   ## Implementation Resolution
 
   The module uses compile-time configuration to build a map of connector types to
-  implementation modules. Configuration is read from `:aurora_uix` application:
+  implementation modules. The built-in `:ash` and `:ctx` modules are always registered;
+  the `:crud_integration_modules` key of the `:aurora_uix` application adds backends to
+  them, or replaces a built-in one under the same key:
 
       config :aurora_uix, :crud_integration_modules,
-        ash: Aurora.Uix.Integration.Ash.Crud,
-        ctx: Aurora.Uix.Integration.Ctx.Crud
+        custom: MyApp.CustomBackend.Crud
+
+  The parser-defaults modules of a backend are registered separately, under
+  `:parser_defaults_integration_modules` (see `Aurora.Uix.Integration.ContextParserDefaults`).
 
   At runtime, `get_crud_module/1` resolves the appropriate implementation:
 
@@ -43,12 +47,19 @@ defmodule Aurora.Uix.Integration.Crud do
   alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Connector
 
-  @crud_integration_modules :aurora_uix
-                            |> Application.compile_env(:crud_integration_modules,
-                              ash: Aurora.Uix.Integration.Ash.Crud,
-                              ctx: Aurora.Uix.Integration.Ctx.Crud
+  @crud_integration_modules Map.merge(
+                              %{
+                                ash: Aurora.Uix.Integration.Ash.Crud,
+                                ctx: Aurora.Uix.Integration.Ctx.Crud
+                              },
+                              Map.new(
+                                Application.compile_env(
+                                  :aurora_uix,
+                                  :crud_integration_modules,
+                                  []
+                                )
+                              )
                             )
-                            |> Map.new()
 
   @doc """
   Lists resources with optional query parameters.

@@ -66,6 +66,16 @@ config :aurora_uix,
   endpoint: Aurora.UixWeb.Test.Endpoint,
   sandbox: Ecto.Adapters.SQL.Sandbox
 
+# A backend registered by the host, the way the Advanced Usage guide shows. It reuses the
+# ctx modules under another type, so the built-in :ash and :ctx must still resolve.
+config :aurora_uix, :crud_integration_modules, extra_ctx: Aurora.Uix.Integration.Ctx.Crud
+
+config :aurora_uix, :parser_defaults_integration_modules,
+  extra_ctx: Aurora.Uix.Integration.Ctx.ContextParserDefaults
+
+config :aurora_uix, :fields_parser_integration_modules,
+  extra_ctx: Aurora.Uix.Integration.Ctx.FieldsParser
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

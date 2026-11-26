@@ -79,6 +79,13 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Registering a custom backend**: `Aurora.Uix.Integration.Crud` and
+  `Aurora.Uix.Integration.ContextParserDefaults` both read `:crud_integration_modules`, so setting it
+  sent the CRUD modules to the parser, and registering only a new backend dropped `:ash` and `:ctx`.
+  The parser-defaults modules now have their own key, `:parser_defaults_integration_modules`, and the
+  modules configured under `:crud_integration_modules`, `:parser_defaults_integration_modules` and
+  `:fields_parser_integration_modules` are added to the built-in ones (Advanced Usage guide, "Register
+  Your Backend").
 - **Missing record on show and edit**: opening the show, edit or show-edit view of an id that matches
   no record crashed the LiveView, on both backends. It now returns to the index with an "Item not
   found" error flash.

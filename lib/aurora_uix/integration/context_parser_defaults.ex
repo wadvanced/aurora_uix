@@ -20,11 +20,16 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   ## Implementation Resolution
 
-  Uses compile-time configuration to resolve parser implementation modules:
+  Uses compile-time configuration to resolve parser implementation modules. The built-in
+  `:ash` and `:ctx` modules are always registered; the `:parser_defaults_integration_modules`
+  key of the `:aurora_uix` application adds backends to them, or replaces a built-in one
+  under the same key:
 
-      config :aurora_uix, :crud_integration_modules,
-        ash: Aurora.Uix.Integration.Ash.ContextParserDefaults,
-        ctx: Aurora.Uix.Integration.Ctx.ContextParserDefaults
+      config :aurora_uix, :parser_defaults_integration_modules,
+        custom: MyApp.CustomBackend.ContextParserDefaults
+
+  This key is separate from `:crud_integration_modules`, which registers the CRUD modules
+  of `Aurora.Uix.Integration.Crud`.
 
   Resolution mechanism:
 
@@ -71,12 +76,19 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   @behaviour Aurora.Uix.Parser
 
-  @parser_defaults_integration_modules :aurora_uix
-                                       |> Application.compile_env(:crud_integration_modules,
-                                         ash: Aurora.Uix.Integration.Ash.ContextParserDefaults,
-                                         ctx: Aurora.Uix.Integration.Ctx.ContextParserDefaults
+  @parser_defaults_integration_modules Map.merge(
+                                         %{
+                                           ash: Aurora.Uix.Integration.Ash.ContextParserDefaults,
+                                           ctx: Aurora.Uix.Integration.Ctx.ContextParserDefaults
+                                         },
+                                         Map.new(
+                                           Application.compile_env(
+                                             :aurora_uix,
+                                             :parser_defaults_integration_modules,
+                                             []
+                                           )
+                                         )
                                        )
-                                       |> Map.new()
 
   @doc """
   Resolves the default value for a configuration key.
