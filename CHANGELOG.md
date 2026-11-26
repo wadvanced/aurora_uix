@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`mix auix.gen.icons` without Heroicons**: in a host application without the `heroicons` dependency,
+  the task crashed with a bare "could not list directory" error. It now stops with a message giving the
+  dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and
+  creates `assets/css` when it is missing.
 - **Missing record on show and edit**: opening the show, edit or show-edit view of an id that matches
   no record crashed the LiveView, on both backends. It now returns to the index with an "Item not
   found" error flash.

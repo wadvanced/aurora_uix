@@ -640,7 +640,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
 
-  Icons are generated from the `deps/heroicons` directory and put in assets/css/icons.css,
+  Icons are generated from the `heroicons` dependency by `mix auix.gen.icons` into `assets/css/auix-icons.css`,
   then esbuild compiles the app.css.
 
   ## Examples
