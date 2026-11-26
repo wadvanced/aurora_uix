@@ -27,4 +27,15 @@ defmodule Aurora.UixWeb.Test.GuidesTest do
       assert has_element?(view, ".auix-index-container")
     end
   end
+
+  test "a missing record redirects the show and edit of a guide page back to its index",
+       %{conn: conn} do
+    missing_id = "00000000-0000-0000-0000-000000000000"
+
+    for route <- ["/guides-overview/products", "/guides-overview/posts"],
+        suffix <- ["/#{missing_id}/show", "/#{missing_id}/edit"] do
+      assert {:error, {:live_redirect, %{to: ^route, flash: %{"error" => "Item not found"}}}} =
+               live(conn, route <> suffix)
+    end
+  end
 end

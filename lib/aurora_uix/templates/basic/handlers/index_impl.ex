@@ -519,7 +519,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @doc """
   Applies the given action to the socket state.
 
-  Handles `:edit`, `:show`, `:show_edit` actions by fetching and assigning entity, `:new` action
+  Handles `:edit`, `:show`, `:show_edit` actions by fetching and assigning entity (or, when no record
+  matches the id, flashing an error and patching back to the index), `:new` action
   by creating new entity, and `:index` action by clearing entity assignment or paginating.
 
   ## Parameters
@@ -531,54 +532,18 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   """
   @spec apply_action(Socket.t(), map()) :: Socket.t()
   def apply_action(
-        %{assigns: %{auix: auix, live_action: :edit}} = socket,
+        %{assigns: %{auix: auix, live_action: live_action}} = socket,
         %{"id" => id} = params
-      ) do
+      )
+      when live_action in [:edit, :show, :show_edit] do
     get_opts =
       socket
       |> backend_socket_opts(auix.get_function)
       |> Keyword.put(:preload, auix.preload)
 
-    new_entity = apply_get_function(auix.get_function, id, get_opts)
-
-    socket
-    |> assign_new_entity(params, new_entity)
-    |> assign_item_index()
-    |> assign_live_component()
-  end
-
-  def apply_action(
-        %{assigns: %{auix: auix, live_action: :show}} = socket,
-        %{"id" => id} = params
-      ) do
-    get_opts =
-      socket
-      |> backend_socket_opts(auix.get_function)
-      |> Keyword.put(:preload, auix.preload)
-
-    new_entity = apply_get_function(auix.get_function, id, get_opts)
-
-    socket
-    |> assign_new_entity(params, new_entity)
-    |> assign_item_index()
-    |> assign_live_component()
-  end
-
-  def apply_action(
-        %{assigns: %{auix: auix, live_action: :show_edit}} = socket,
-        %{"id" => id} = params
-      ) do
-    get_opts =
-      socket
-      |> backend_socket_opts(auix.get_function)
-      |> Keyword.put(:preload, auix.preload)
-
-    new_entity = apply_get_function(auix.get_function, id, get_opts)
-
-    socket
-    |> assign_new_entity(params, new_entity)
-    |> assign_item_index()
-    |> assign_live_component()
+    auix.get_function
+    |> apply_get_function(id, get_opts)
+    |> assign_record_entity(socket, params)
   end
 
   def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
@@ -605,6 +570,23 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   end
 
   ## PRIVATE
+
+  # A record that does not exist, typically a stale link or a typed URL, has nothing to show or
+  # edit, so the view returns to the index instead of rendering a nil entity.
+  @spec assign_record_entity(struct() | nil, Socket.t(), map()) :: Socket.t()
+  defp assign_record_entity(nil, %{assigns: %{auix: %{navigation: nav}}} = socket, _params) do
+    socket
+    |> assign_auix(:entity, nil)
+    |> put_flash(:error, dt("Item not found"))
+    |> push_patch(to: Navigation.path(nav, :index))
+  end
+
+  defp assign_record_entity(entity, socket, params) do
+    socket
+    |> assign_new_entity(params, entity)
+    |> assign_item_index()
+    |> assign_live_component()
+  end
 
   # Mirrors `FormImpl.conditional_route_back/3`. The navigation of the form has no current path,
   # hence the empty one.

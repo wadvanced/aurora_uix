@@ -4,6 +4,20 @@ defmodule Aurora.UixWeb.Test.ShowScenariosTest do
   @show_content ".auix-show-container .auix-show-content"
   @navigator "#auix-product-show-modal-content .auix-record-navigator-bar:nth-of-type(1)"
 
+  test "a missing record redirects the show, edit and show-edit back to the index",
+       %{conn: conn} do
+    each_backend(fn backend ->
+      missing_id = "00000000-0000-0000-0000-000000000000"
+      index_path = mirror_path(backend, "form", "products")
+
+      for action <- ["show", "edit", "show-edit"] do
+        assert {:error,
+                {:live_redirect, %{to: ^index_path, flash: %{"error" => "Item not found"}}}} =
+                 live(conn, mirror_path(backend, "form", "products", "/#{missing_id}/#{action}"))
+      end
+    end)
+  end
+
   test "the show view renders one read-only element per field type", %{conn: conn} do
     each_backend(fn backend ->
       %{"id_1" => location} = create_sample_product_locations(1, :test)
