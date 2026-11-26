@@ -49,7 +49,7 @@ virtual machine), inside a **Phoenix** web application. You need all three.
 Target versions:
 
 - Elixir `1.17+`
-- Erlang/OTP `28+`
+- An Erlang/OTP release your Elixir version supports (this tutorial was checked with Elixir 1.19 and OTP 28)
 - Phoenix `1.8+`
 
 ### Recommended: use a version manager
@@ -148,7 +148,7 @@ names match, **the next steps are byte-for-byte identical** for both options.
 > (`Inventory`), so we group these schemas under `Inventory.Catalog`. This also
 > lines the Ecto path up perfectly with the Ash domain in Option B.
 
-### Option A — Phoenix + Ecto
+### Option A: Phoenix and Ecto
 
 Generate the two **schemas** (tables + Ecto schema modules). We use
 `phx.gen.schema` — not `phx.gen.context` — because Aurora UIX gets its CRUD
@@ -189,7 +189,7 @@ functions (`list_products/1`, `get_product/2`, `create_product/2`, …) that Aur
 UIX expects:
 
 ```elixir
-{:aurora_ctx, "~> 0.1"}
+{:aurora_ctx, "~> 0.1.11"}
 ```
 
 Run `mix deps.get`, then create the context module at `lib/inventory/catalog.ex`:
@@ -221,15 +221,24 @@ mix ecto.migrate
 
 That's it — skip ahead to **"Either way"** below.
 
-### Option B — Ash
+### Option B: Ash
 
 [Ash](https://ash-hq.org/) is a declarative resource framework. Install it with
 its [igniter](https://hexdocs.pm/igniter)-powered installers, which scaffold the
 repo, config, and supervision tree for you:
 
 ```shell
+mix archive.install hex igniter_new
 mix igniter.install ash ash_postgres ash_phoenix
 ```
+
+Ash needs to know your domain. Add this line to `config/config.exs`, below `import Config`:
+
+```elixir
+config :inventory, ash_domains: [Inventory.Catalog]
+```
+
+Without it, the migration generator below finds no resources and creates no tables.
 
 Then define a domain and two resources. Create `lib/inventory/catalog.ex`:
 
@@ -349,16 +358,29 @@ the next step.
 
 ## 5. Add Aurora UIX
 
-Add the dependency to `mix.exs`:
+Add the dependency to `mix.exs`. Aurora UIX needs `phoenix_live_view ~> 1.2` and
+`phoenix_live_dashboard ~> 0.9`, so if `mix phx.new` wrote older requirements for those two, change
+those lines too:
 
 ```elixir
 def deps do
   [
     # ...your other deps...
-    {:aurora_uix, "~> 0.1"}
+    {:phoenix_live_view, "~> 1.2"},
+    {:phoenix_live_dashboard, "~> 0.9"},
+    {:aurora_uix, "~> 0.2.1"}
   ]
 end
 ```
+
+Add `:aurora_uix` to the `import_deps` list in `.formatter.exs`, so `mix format` keeps its
+declarations without parentheses:
+
+```elixir
+import_deps: [:aurora_uix, :ecto, :ecto_sql, :phoenix],
+```
+
+(With Option B the list also holds the Ash entries; keep them.)
 
 Fetch it:
 
@@ -366,42 +388,34 @@ Fetch it:
 mix deps.get
 ```
 
-Aurora UIX ships pre-built CSS themes, a set of icons, and a few JavaScript hooks.
-Wire them up once:
+Aurora UIX ships CSS themes and a few JavaScript hooks, and uses the Heroicons your new
+application already has. Generate the stylesheet once:
 
 ```shell
 mix auix.gen.stylesheet
-mix auix.gen.icons
 ```
 
-In `assets/css/app.css`, add the imports at the **end** of the file — variables
-first, then the rules **last** so Aurora UIX's component styles win. Use a
-relative `./` path on each import (Tailwind v4 requires it):
+In `assets/css/app.css`, add these lines at the **end** of the file: the icon classes, then the
+variables, then the rules. Keep the `./` on each import (Tailwind v4 requires it):
 
 ```css
 /* Aurora UIX — add at the end of app.css */
-@import "./auix-icons.css";
+@source "../../deps/aurora_uix/priv/static/classes.js";   /* the icons it uses */
 @import "./auix-variables.css";        /* Aurora UIX defaults */
 @import "./auix-bridge-daisyui.css";   /* optional: follow your daisyUI theme */
 @import "./auix-rules.css";            /* must be last */
 ```
 
-> #### Already using Heroicons? {: .info}
-> A fresh Phoenix 1.8 app already ships Heroicons. In that case you can skip
-> `mix auix.gen.icons` and instead add `@source
-> "../../deps/aurora_uix/priv/static/classes.js";` near the top of `app.css` so
-> Tailwind picks up only the icon classes Aurora UIX needs. Either approach works.
-
-In `assets/js/app.js`, import Aurora UIX's hooks and spread them into your
-`LiveSocket`:
+In `assets/js/app.js`, import Aurora UIX's hooks below the other imports:
 
 ```js
 import {Hooks as auroraHooks} from "../../deps/aurora_uix/assets/js/hooks.js"
+```
 
-const liveSocket = new LiveSocket("/live", Socket, {
-  params: {_csrf_token: csrfToken},
-  hooks: {...auroraHooks},   // alongside your own hooks, if any
-})
+and add them to the `hooks` of the `LiveSocket` that is already there:
+
+```js
+  hooks: {...colocatedHooks, ...auroraHooks},
 ```
 
 > #### Want the details — or your own theme? {: .info}
@@ -533,7 +547,9 @@ Now visit:
   product and pick its category from the dropdown.
 
 You have a complete, responsive CRUD app — list, detail, create, and edit views,
-with validation and real-time updates — and you wrote almost no UI code. 🎉
+with validation — and you wrote almost no UI code. 🎉 To refresh open lists when
+another session changes data, see
+[Live Updates](../introduction/getting_started.md#live-updates-optional).
 
 > #### Generate routes for one resource at a time {: .info}
 > `auix_live_resources/2` accepts `only:` / `except:` to limit which routes it

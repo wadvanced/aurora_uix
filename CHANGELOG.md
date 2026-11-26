@@ -131,6 +131,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
 - Overview and README: features grouped by use, with reusable components and the other missing ones.
 - Fixed links between guides that did not reach their section or file on HexDocs or GitHub.
+- README, Getting Started, the tutorial and Troubleshooting were checked against a new Phoenix
+  application: dependency requirements, stylesheet imports, icons, hooks, routes and the Ash setup.
 
 ### Build
 

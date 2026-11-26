@@ -22,6 +22,15 @@ def deps do
 end
 ```
 
+Aurora UIX needs `phoenix_live_view ~> 1.2` and `phoenix_live_dashboard ~> 0.9`. Some
+`mix phx.new` releases write older requirements (`~> 1.1.0` and `~> 0.8.3`), and dependency
+resolution then fails. Raise both in your `mix.exs`:
+
+```elixir
+{:phoenix_live_view, "~> 1.2"},
+{:phoenix_live_dashboard, "~> 0.9"},
+```
+
 Then fetch the dependencies:
 
 ```shell
@@ -60,7 +69,9 @@ session that made a change refreshes. See
 
 ## CSS Configuration
 
-Aurora UIX renders UI with pre-built CSS themes. A `basic` template with `light` and `dark` themes are included by default.
+Aurora UIX renders its UI with CSS themes. The `basic` template includes three, each in light and
+dark: White Charcoal (the default), Vitreous Marble and Blue Graphite. See the
+[Theming](../customization/theming.md) guide to choose one.
 
 To enable Aurora UIX styling, generate the stylesheet and import it in your application's CSS:
 
@@ -72,30 +83,36 @@ Run the stylesheet generator task:
 mix auix.gen.stylesheet
 ```
 
-This generates three files under `assets/css/`:
+This generates these files under `assets/css/`:
 
 - `auix-variables.css` — `:root` declarations for all `--auix-*` custom properties (sizes, colors, shadows).
 - `auix-rules.css` — the `.auix-*` component rules that consume those variables.
-- `auix-stylesheet.css` — back-compat shim that re-imports the two files above.
+- `auix-stylesheet.css` — a shim that imports the two files above.
+- `auix-bridge-daisyui.css` — the daisyUI bridge of Step 3 below, copied on the first run only.
 
 ### Step 2: Import Stylesheets in app.css
 
-In your `assets/css/app.css`, import the variables first, optionally override individual `--auix-*` vars (directly or via a bridge file — see below), then import the rules **last**:
+In your `assets/css/app.css`, after your own imports, add the variables, then any overrides, then
+the rules:
 
 ```css
 /* Your custom styles and other imports go here */
 
-@import "auix-variables.css";       /* Aurora UIX defaults */
+@import "./auix-variables.css";     /* Aurora UIX defaults */
 :root { /* optional: override --auix-* vars here */ }
-@import "auix-rules.css";           /* must be last */
+@import "./auix-rules.css";
 ```
 
-Hosts on the previous single-file install keep working — `@import "auix-stylesheet.css"` is still generated and now just re-imports the two halves above.
+> #### Keep the `./` and the order {: .warning}
+> Tailwind v4 resolves an import without `./` as a package and fails with `Can't resolve
+> 'auix-variables.css'`. Keep variables first and rules last, so the overrides you place between
+> them take effect.
+>
+> `auix-stylesheet.css` imports the other two without `./`, so a Tailwind v4 build cannot use it.
+> Import the two files directly.
 
-> #### Why Rules Last? {: .warning}
-> `auix-rules.css` must be imported as the **last** Aurora UIX line in `app.css` so its component selectors have the highest specificity and any overrides you placed between the two imports take effect.
-
-The stylesheets are bundled with your application CSS and served alongside your other assets. Your main layout file (`root.html.heex` or `app.html.heex`) already includes the standard asset link:
+The stylesheets are bundled with your application CSS and served with your other assets, through
+the stylesheet link your root layout already has:
 
 ```html
 <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
@@ -114,10 +131,10 @@ If your Phoenix app uses Tailwind v4 + daisyUI, Aurora UIX can follow the host t
 @import "tailwindcss";
 @plugin "daisyui";
 
-@import "auix-variables.css";       /* Aurora UIX defaults */
-@import "auix-bridge-daisyui.css";  /* inherit daisyUI theme */
+@import "./auix-variables.css";       /* Aurora UIX defaults */
+@import "./auix-bridge-daisyui.css";  /* inherit daisyUI theme */
 :root { /* optional host overrides */ }
-@import "auix-rules.css";           /* must be last */
+@import "./auix-rules.css";           /* must be last */
 ```
 
 Switching the daisyUI theme (or toggling dark mode) then automatically restyles every Aurora UIX component with no further mix tasks. The bridge file is yours to edit — subsequent runs of `mix auix.gen.stylesheet` leave it untouched. Run with `--force` to refresh it from the library version:
@@ -130,32 +147,46 @@ If you use a design system other than daisyUI, see the [Writing a Style Bridge](
 
 ## Icons Configuration
 
-Aurora UIX uses **Heroicons** for all UI icons. Heroicons provides multiple icon sets and sizes (outline, solid, mini, and micro variants).
+Aurora UIX uses **Heroicons** for its icons, as `hero-*` CSS classes. Set them up in one of two
+ways.
 
-### If You're Already Using Heroicons
+### If Your Application Already Uses Heroicons
 
-If your host application is already using Heroicons, add this single source line to your `app.css` so Tailwind includes only the icon classes Aurora UIX needs — without scanning the entire dependency tree:
+A new Phoenix application does: it has the `heroicons` dependency and a Tailwind plugin that
+creates the classes. Add this line to your `assets/css/app.css`, so Tailwind includes the classes
+Aurora UIX uses without scanning the dependency:
 
 ```css
 @source "../../deps/aurora_uix/priv/static/classes.js";
 ```
 
-### If You're Not Using Heroicons
+### If It Does Not
 
-Generate the icon CSS classes used by Aurora UIX:
+Add the `heroicons` dependency, which Aurora UIX does not bring with it:
+
+```elixir
+{:heroicons,
+ github: "tailwindlabs/heroicons",
+ tag: "v2.2.0",
+ sparse: "optimized",
+ app: false,
+ compile: false,
+ depth: 1}
+```
+
+Then fetch it and generate the icon classes:
 
 ```shell
+mix deps.get
 mix auix.gen.icons
 ```
 
-This generates `assets/css/auix-icons.css` containing all Heroicons as CSS classes (`.hero-{icon-name}`, `.hero-{icon-name}-solid`, `.hero-{icon-name}-mini`, `.hero-{icon-name}-micro`).
-
-### Import Icons in app.css
-
-In your `assets/css/app.css`, add an import statement at the top:
+This writes `assets/css/auix-icons.css` with every Heroicon as a CSS class (`.hero-{icon-name}`,
+`.hero-{icon-name}-solid`, `.hero-{icon-name}-mini`, `.hero-{icon-name}-micro`). Import it in
+`assets/css/app.css`:
 
 ```css
-@import "auix-icons.css";
+@import "./auix-icons.css";
 ```
 
 > #### Using Custom Icons {: .info}
@@ -168,17 +199,17 @@ must import this file in their own `assets/js/app.js` so the browser can receive
 the server (e.g. file downloads from upload fields) and activate hooks (e.g. the theme switcher on
 index pages).
 
-Add the import and spread the hooks into your `LiveSocket` configuration:
+Add the import, and spread the hooks into your `LiveSocket` next to the ones you already have. In
+a Phoenix 1.8 application:
 
 ```js
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
+import {hooks as colocatedHooks} from "phoenix-colocated/my_app"
 import {Hooks as auroraHooks} from "../../deps/aurora_uix/assets/js/hooks.js"
 
-const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
+  longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...auroraHooks},   // spread alongside your own app hooks if any
+  hooks: {...colocatedHooks, ...auroraHooks},
 })
 ```
 
@@ -190,6 +221,7 @@ mix assets.build
 
 > #### What does this enable? {: .info}
 > - **`AuixThemeName` hook** — syncs the active theme on index pages.
+> - **`AuixCopyToClipboard` hook** — the copy button of copyable inputs.
 > - **`phx:auix_download` listener** — performs browser file downloads for upload fields configured
 >   with a `:download` callback. Without this import, clicking the Download button on a show or edit
 >   page will silently do nothing.
@@ -200,7 +232,12 @@ Aurora UIX works in three main steps:
 
 ### 1. Define Resource Metadata
 
-Resource metadata describes the UI characteristics of fields in your Ecto schema. Use the `auix_resource_metadata` macro to configure how each field should be rendered:
+Resource metadata describes the UI characteristics of the fields of an Ecto schema or an Ash
+resource. Use the `auix_resource_metadata` macro to configure how each field is rendered. This
+example uses an Ecto schema and its context; for Ash, see the
+[Ash Integration](../core/ash_integration.md) guide. The context needs the CRUD functions Aurora UIX
+looks for, which [`aurora_ctx`](https://hexdocs.pm/aurora_ctx) generates (see
+[the tutorial](../tutorial/build_your_first_app.md#option-a-phoenix-and-ecto)).
 
 ```elixir
 defmodule MyAppWeb.ProductViews do
@@ -233,7 +270,8 @@ For detailed configuration options, see the [Resource Metadata Guide](../core/re
 
 ### 2. Generate UI Layout
 
-Use the layout DSL to define which fields appear in your index (list), show, and form views. You can use sensible defaults or customize the layout:
+In the same module, use the layout DSL to define which fields appear in your index (list), show,
+and form views. You can use the defaults or customize the layout:
 
 ```elixir
   auix_create_ui do
@@ -248,45 +286,45 @@ For more layout options, see the [Layouts Guide](../core/layouts.md).
 
 ### 3. Add Routes to Router
 
-Add the generated LiveView modules to your router. The standard pattern includes index, show, new, and edit views:
-
-```elixir
-scope "/inventory" do
-  pipe_through(:browser)
-  live "/products", Overview.Product.Index
-  live "/products/new", Overview.Product.Index, :new
-  live "/products/:id/edit", Overview.Product.Index, :edit
-  live "/products/:id/show", Overview.Product.Index, :show
-  live "/products/:id/show-edit", Overview.Product.Index, :show_edit
-end
-```
-
-**Alternatively, use the route helper for shorter syntax:**
+Add the generated LiveView to your router. Each resource gets one routable LiveView,
+`<ViewsModule>.<Schema>.Index`, and the action of the route selects the view. Use the route helper:
 
 ```elixir
 import Aurora.Uix.RouteHelper
 
-scope "/inventory", Aurora.UixWeb.Guides do
-  pipe_through(:browser)
-  auix_live_resources("/products", Overview.Product)
+scope "/inventory", MyAppWeb do
+  pipe_through :browser
+
+  auix_live_resources "/products", ProductViews.Product
 end
 ```
 
-This automatically generates all the routes above with the standard CRUD pattern:
-- Index: `GET /products`
-- New: `GET /products/new`
-- Show: `GET /products/:id/show`
-- Edit from Show: `GET /products/:id/show-edit`
-- Edit: `GET /products/:id/edit`
-
-You can also selectively generate routes using `:only` or `:except` options:
+It expands to these routes, which you can also write yourself. Give every route its action: a route
+without one raises when it is visited.
 
 ```elixir
-# Generate only index and show routes
-auix_live_resources("/products", Overview.Product, only: [:index, :show])
+scope "/inventory", MyAppWeb do
+  pipe_through :browser
 
-# Generate all routes except new and edit (read-only mode)
-auix_live_resources("/products", Overview.Product, except: [:new, :edit])
+  live "/products", ProductViews.Product.Index, :index
+  live "/products/new", ProductViews.Product.Index, :new
+  live "/products/:id/edit", ProductViews.Product.Index, :edit
+  live "/products/:id/show", ProductViews.Product.Index, :show
+  live "/products/:id/show-edit", ProductViews.Product.Index, :show_edit
+end
+```
+
+`:show_edit` is the edit form opened from the show view.
+
+You can generate some of the routes with `:only` or `:except`. They remove routes, not the buttons
+that point to them:
+
+```elixir
+# Only the index and show routes
+auix_live_resources "/products", ProductViews.Product, only: [:index, :show]
+
+# Every route except new and edit
+auix_live_resources "/products", ProductViews.Product, except: [:new, :edit]
 ```
 
 For more details on routing, see the [LiveView Integration Guide](../core/liveview.md).
