@@ -4,20 +4,22 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   `use Aurora.Uix.Templates.Basic.Handlers.FormImpl` defines the `Phoenix.LiveComponent` callbacks
   `update/2` and `handle_event/3`, delegating to the overridable `auix_update/2`,
-  `auix_handle_event/3` and `save_entity/2`.
+  `auix_handle_event/3` and `auix_save_entity/2`.
 
   ## Key Features
 
     - Builds the form with the change function of the resource and validates it as the user types.
-    - Handles `"save"` itself: consumes the uploads, calls `save_entity/2`, reports and publishes
+    - Handles `"save"` itself: consumes the uploads, calls `auix_save_entity/2`, reports and publishes
       the saved record, and shows the backend errors.
     - Guards a close request while the form has unsaved changes.
 
   ## Key Constraints
 
     - Expects the `:auix` assign in the component socket.
-    - `"save"` does not reach `auix_handle_event/3`; override `save_entity/2` to change how a record
-      is persisted.
+    - `"save"` does not reach `auix_handle_event/3`; override `auix_save_entity/2` to change how a
+      record is persisted.
+    - `save_entity/2` is deprecated and will be removed in 0.3: an override of it still runs, called
+      by the default `auix_save_entity/2`.
   """
   import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
@@ -78,6 +80,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   `{:ok, struct()}` - If the entity was correctly saved.
   `{:error, term()}` - An `Ecto.Changeset`, an Ash error or a message, shown as an error flash.
   """
+  @callback auix_save_entity(socket :: Socket.t(), entity_params :: map()) ::
+              {:ok, struct()} | {:error, Ecto.Changeset.t()}
+
+  @doc """
+  Deprecated name of `c:auix_save_entity/2`, removed in 0.3.
+
+  The default `auix_save_entity/2` calls it, so an existing override keeps working. Override
+  `c:auix_save_entity/2` instead.
+  """
+  @doc deprecated: "Override auix_save_entity/2 instead"
   @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
               {:ok, struct()} | {:error, Ecto.Changeset.t()}
 
@@ -102,7 +114,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
         entity_params = Map.get(params, auix.module)
 
         with {:ok, consumed_params} <- FormImpl.auix_consume_uploads(socket, entity_params),
-             {:ok, entity} <- save_entity(socket, consumed_params) do
+             {:ok, entity} <- auix_save_entity(socket, consumed_params) do
           FormImpl.report_saved(socket, entity)
           FormImpl.publish_saved(action, entity)
 
@@ -156,11 +168,16 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
       @doc false
       @impl FormImpl
-      defdelegate save_entity(socket, entity_params), to: FormImpl
+      def auix_save_entity(socket, entity_params), do: save_entity(socket, entity_params)
+
+      @doc false
+      @impl FormImpl
+      defdelegate save_entity(socket, entity_params), to: FormImpl, as: :auix_save_entity
 
       defoverridable LiveComponent
       defoverridable auix_update: 2
       defoverridable auix_handle_event: 3
+      defoverridable auix_save_entity: 2
       defoverridable save_entity: 2
     end
   end
@@ -324,9 +341,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   `{:error, term()}` - An `Ecto.Changeset`, an Ash error or a message, shown as an error flash.
 
   """
-  @spec save_entity(Socket.t(), map()) ::
+  @spec auix_save_entity(Socket.t(), map()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
-  def save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
+  def auix_save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
       when action in [:edit, :show_edit] do
     update_opts = backend_socket_opts(socket, auix.update_function)
 
@@ -338,10 +355,25 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     )
   end
 
-  def save_entity(%{assigns: %{action: :new, auix: auix}} = socket, entity_params) do
+  def auix_save_entity(%{assigns: %{action: :new, auix: auix}} = socket, entity_params) do
     create_opts = backend_socket_opts(socket, auix.create_function)
     apply_create_function(auix.create_function, entity_params, create_opts)
   end
+
+  @doc """
+  Deprecated name of `auix_save_entity/2`, removed in 0.3.
+
+  ## Parameters
+  - `socket` (Socket.t()) - The current LiveView socket with action and auix assigns.
+  - `entity_params` (map()) - UI entity changes to persist.
+
+  ## Returns
+  `{:ok, struct()} | {:error, term()}` - What `auix_save_entity/2` returns.
+  """
+  @deprecated "Use auix_save_entity/2 instead"
+  @spec save_entity(Socket.t(), map()) ::
+          {:ok, struct()} | {:error, Ecto.Changeset.t()}
+  def save_entity(socket, entity_params), do: auix_save_entity(socket, entity_params)
 
   @doc """
   Builds the form for the submitted params, flagged as validated so fields show their errors.
@@ -467,7 +499,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Parameters
   - `action` (atom()) - The form action: `:new`, `:edit` or `:show_edit`.
-  - `entity` (struct()) - The record returned by `save_entity/2`.
+  - `entity` (struct()) - The record returned by `auix_save_entity/2`.
 
   ## Returns
   `:ok | {:error, term()}`

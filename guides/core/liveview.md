@@ -120,6 +120,12 @@ Handler hooks are specified directly in the layout DSL as options:
 - **`edit_handler_module`** - For edit layout (FormComponent handler)
 - **`show_handler_module`** - For show layout (ShowComponent handler)
 
+> #### Deprecated names {: .warning}
+>
+> `apply_action/2` and `save_entity/2` are the deprecated names of `auix_apply_action/2` and
+> `auix_save_entity/2`, and are removed in 0.3. Until then an override of the old name still runs:
+> the default `auix_*` callback calls it. Rename your overrides to the `auix_*` names.
+
 ### Understanding Aurora UIX Callbacks vs Phoenix Callbacks
 
 Aurora UIX provides two layers of callbacks:
@@ -171,7 +177,7 @@ The Index handler manages the Index LiveView for list pages and hosting modals.
 | `auix_handle_event/3` | IndexImpl | Handle custom events |
 | `auix_handle_info/2` | IndexImpl | Handle info messages |
 | `auix_handle_async/3` | IndexImpl | Handle async task results |
-| `apply_action/2` | IndexImpl | Apply route actions |
+| `auix_apply_action/2` | IndexImpl | Apply route actions |
 
 **Example - Override `auix_mount/3`:**
 
@@ -268,7 +274,7 @@ defmodule MyApp.ProductIndexHandler do
 end
 ```
 
-**Example - Override `apply_action/2`:**
+**Example - Override `auix_apply_action/2`:**
 
 ```elixir
 defmodule MyApp.ProductIndexHandler do
@@ -277,7 +283,7 @@ defmodule MyApp.ProductIndexHandler do
   import Phoenix.Component, only: [assign: 3]
 
   @impl IndexImpl
-  def apply_action(socket, params) do
+  def auix_apply_action(socket, params) do
     socket
     |> super(params)
     |> maybe_load_additional_data(socket.assigns.live_action)
@@ -301,7 +307,7 @@ The FormComponent handler manages the LiveComponent for create and edit operatio
 |----------|------|---------|
 | `auix_update/2` | FormImpl | Initialize/update component state |
 | `auix_handle_event/3` | FormImpl | Handle custom events |
-| `save_entity/2` | FormImpl | Create or update entity |
+| `auix_save_entity/2` | FormImpl | Create or update entity |
 
 **Example - Override `auix_update/2`:**
 
@@ -322,9 +328,9 @@ defmodule MyApp.ProductFormHandler do
 end
 ```
 
-**Example - Override `save_entity/2`:**
+**Example - Override `auix_save_entity/2`:**
 
-`save_entity/2` returns `{:ok, record}`, or `{:error, reason}` where `reason` is an
+`auix_save_entity/2` returns `{:ok, record}`, or `{:error, reason}` where `reason` is an
 `Ecto.Changeset`, an Ash error or a message shown as the error flash.
 
 ```elixir
@@ -335,7 +341,7 @@ defmodule MyApp.ProductFormHandler do
 
   # Customize creation logic
   @impl FormImpl
-  def save_entity(%{assigns: %{action: :new, auix: auix}} = _socket, entity_params) do
+  def auix_save_entity(%{assigns: %{action: :new, auix: auix}} = _socket, entity_params) do
     # Add custom pre-processing
     entity_params = Map.put(entity_params, "reference", build_reference(entity_params))
 
@@ -352,7 +358,7 @@ defmodule MyApp.ProductFormHandler do
   end
 
   # Customize update logic
-  def save_entity(%{assigns: %{action: action, auix: auix}} = _socket, entity_params)
+  def auix_save_entity(%{assigns: %{action: action, auix: auix}} = _socket, entity_params)
       when action in [:edit, :show_edit] do
     # Custom validation before update
     if editable?(auix.entity) do
@@ -889,7 +895,7 @@ The Index module is a full Phoenix LiveView with Aurora UIX callbacks for custom
 | `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle events | Add custom event handlers |
 | `auix_handle_info/2` | `(term(), Socket.t()) :: {:noreply, Socket.t()}` | Handle messages | Process custom info messages |
 | `auix_handle_async/3` | `(atom(), term(), Socket.t()) :: {:noreply, Socket.t()}` | Handle async results | Process custom async task results |
-| `apply_action/2` | `(Socket.t(), map()) :: Socket.t()` | Apply route actions | Load action-specific data |
+| `auix_apply_action/2` | `(Socket.t(), map()) :: Socket.t()` | Apply route actions | Load action-specific data |
 
 ```elixir
 @callback auix_mount(params :: map(), session :: map(), socket :: Socket.t()) ::
@@ -902,7 +908,7 @@ The Index module is a full Phoenix LiveView with Aurora UIX callbacks for custom
             {:noreply, Socket.t()}
 @callback auix_handle_async(task :: atom(), result :: term(), socket :: Socket.t()) ::
             {:noreply, Socket.t()}
-@callback apply_action(socket :: Socket.t(), params :: map()) :: Socket.t()
+@callback auix_apply_action(socket :: Socket.t(), params :: map()) :: Socket.t()
 ```
 
 #### Phoenix.LiveView Callbacks (Advanced)
@@ -927,13 +933,13 @@ The FormComponent is a Phoenix.LiveComponent with Aurora UIX callbacks for custo
 |----------|-----------|---------|------------------|
 | `auix_update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` | Initialize/update component | Add metadata, load templates |
 | `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle custom events | Add custom form interactions |
-| `save_entity/2` | `(Socket.t(), map()) :: {:ok, struct()} \| {:error, term()}` | Save/update entity | Custom validation, authorization, side effects |
+| `auix_save_entity/2` | `(Socket.t(), map()) :: {:ok, struct()} \| {:error, term()}` | Save/update entity | Custom validation, authorization, side effects |
 
 ```elixir
 @callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
 @callback auix_handle_event(event :: binary(), params :: map(), socket :: Socket.t()) ::
             {:noreply, Socket.t()}
-@callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
+@callback auix_save_entity(socket :: Socket.t(), entity_params :: map()) ::
             {:ok, struct()} | {:error, term()}
 ```
 
@@ -983,7 +989,7 @@ Aurora UIX automatically generates forms based on your resource metadata. Forms 
 
 ### Customizing Form Behavior
 
-See the **FormComponent Callbacks** section above for details on overriding `auix_update/2`, `auix_handle_event/3`, and `save_entity/2`.
+See the **FormComponent Callbacks** section above for details on overriding `auix_update/2`, `auix_handle_event/3`, and `auix_save_entity/2`.
 
 ## Working with Streams
 

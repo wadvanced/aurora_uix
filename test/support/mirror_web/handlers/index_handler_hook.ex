@@ -17,8 +17,14 @@ defmodule Aurora.UixWeb.Test.Mirror.Handlers.IndexHandlerHook do
   end
 
   @impl IndexImpl
-  def apply_action(socket, params) do
-    super(socket, params)
+  def auix_apply_action(%{assigns: %{live_action: action}} = socket, params) do
+    super(assign_auix(socket, :hooks_action, action), params)
+  end
+
+  # The deprecated name still runs, after `auix_apply_action/2`, until it is removed in 0.3.
+  @impl IndexImpl
+  def apply_action(%{assigns: %{live_action: action}} = socket, params) do
+    super(assign_auix(socket, :hooks_legacy_action, action), params)
   end
 
   @impl IndexImpl
@@ -34,7 +40,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Handlers.IndexHandlerHook do
   @impl IndexImpl
   def auix_handle_event("hooks_report", _params, %{assigns: %{auix: auix}} = socket) do
     saved = Map.get(auix, :hooks_saved)
-    report = "mount=#{auix.hooks_mount} filter=#{auix.hooks_filter} saved=#{saved}"
+    actions = "action=#{auix.hooks_action} legacy_action=#{auix.hooks_legacy_action}"
+    report = "mount=#{auix.hooks_mount} filter=#{auix.hooks_filter} #{actions} saved=#{saved}"
 
     {:noreply, put_flash(socket, :info, report)}
   end
