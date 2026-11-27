@@ -140,6 +140,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Fixed links between guides that did not reach their section or file on HexDocs or GitHub.
 - README, Getting Started, the tutorial and Troubleshooting were checked against a new Phoenix
   application: dependency requirements, stylesheet imports, icons, hooks, routes and the Ash setup.
+- Resource Metadata, Layout System, Reusable Components and Internationalization were checked
+  against the code: translations need the application's own Gettext backend, a one-to-many list is
+  ordered and filtered from the layout, the Download button needs `downloadable?`, and the title,
+  field order, backend detection and embedded-field descriptions were corrected.
 
 ### Build
 

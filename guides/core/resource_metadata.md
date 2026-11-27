@@ -40,9 +40,9 @@ Resource metadata generation follows a multi-step compile-time process that adap
 
 ### Common Steps (Both Backends)
 
-1. **Backend Detection** - Determines resource type (`:ctx` for Context-based, `:ash` for Ash Framework) based on provided options
+1. **Backend Detection** - Determines the resource type from the schema module: `:ash` for an Ash resource, `:ctx` for an Ecto schema. The `:type` option overrides it
 2. **Configuration Application** - Applies user-defined customizations from the resource metadata block to fields
-3. **Field Ordering** - Maintains field order as defined in configuration, with unconfigured fields appended at the end
+3. **Field Ordering** - Keeps the order the schema declares, with associations after the other fields. The order of the `field` entries does not change it; a `field` entry for a key the schema lacks is appended at the end. Use a [layout](layouts.md) to choose what each view shows and in which order
 4. **Finalization** - Converts field lists to maps for efficient runtime access and generates a `fields_order` list
 
 ### Context-based Resources (Ecto)
@@ -54,6 +54,8 @@ For traditional Phoenix Context modules with Ecto schemas:
 3. **Association Processing** - Detects and configures:
    - `belongs_to` → Many-to-one associations (rendered as select dropdowns)
    - `has_many` → One-to-many associations (rendered as nested lists)
+   - `has_one` → One-to-one associations
+   - `many_to_many` → Many-to-many associations (rendered as multi-selects)
    - `embeds_one`/`embeds_many` → Embedded schemas (rendered inline)
 4. **Context Function Discovery** - Infers CRUD function names from context module (e.g., `list_products/1`, `get_product/2`)
 
@@ -72,8 +74,10 @@ For Ash resources with declarative actions:
 4. **Relationship Processing** - Detects and configures:
    - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
    - `has_many` → One-to-many relationships (rendered as nested lists)
+   - `has_one` → One-to-one relationships
+   - `many_to_many` → Many-to-many relationships (rendered as multi-selects)
    - Embedded resources → Nested Ash resources, rendered inline (see [Embedded Resources](#embedded-resources))
-5. **Calculations and Aggregates** - Discovers Ash calculations and aggregates and parses them into fields when they yield a predictable type (`count → :integer`, `exists → :boolean`, `sum/max/min/avg → :float`, scalar calculation types). Both are disabled in forms. Fields whose type can't be inferred can be overridden via the metadata block — see [Calculations and Aggregates](ash_integration.md#calculations-and-aggregates).
+5. **Calculations and Aggregates** - Discovers Ash calculations and aggregates and parses them into fields. A calculation takes its declared type and an aggregate the type Ash resolves for it (for example `count → :integer`, `exists → :boolean`; a `sum` or a `max` follows the aggregated field). Both are disabled in forms. Fields whose type can't be inferred can be overridden via the metadata block — see [Calculations and Aggregates](ash_integration.md#calculations-and-aggregates).
 6. **Action Resolution** - Discovers CRUD actions from Ash resource:
    - Prioritizes primary actions (`:read`, `:create`, `:update`, `:destroy`)
    - Falls back to first available action of the required type
@@ -224,7 +228,7 @@ Let's see examples for both approaches:
 ### Example Schema
 
 ```elixir
-defmodule Aurora.Uix.Guides.Inventory.Product do
+defmodule MyApp.Inventory.Product do
   use Ecto.Schema
 
   schema "products" do
@@ -252,7 +256,7 @@ defmodule Aurora.Uix.Guides.Inventory.Product do
 
     timestamps()
   end
-
+end
 ```
 
 ### Context-based Resource Configuration
@@ -271,7 +275,7 @@ defmodule MyAppWeb.ProductViews do
     schema Product
     field :name, placeholder: "Product name", length: 40, required: true
     field :description, length: 255
-    field :price, precision: 12, scale: 2, readonly: true
+    field :list_price, precision: 12, scale: 2, readonly: true
   end
 end
 ```
@@ -284,8 +288,6 @@ For Ash Framework resources, use `:ash_resource`:
 defmodule MyAppWeb.BlogViews do
   use Aurora.Uix
 
-  alias MyApp.Blog
-  alias MyApp.Blog.Post
   alias MyApp.Blog.Author
 
   auix_resource_metadata :author do
@@ -317,41 +319,40 @@ The macro generates a `Aurora.Uix.Resource` struct containing:
 - `fields_order` - List of field keys in display order
 - `resolved?` - `true` once the schema is parsed and the defaults are filled
 
-**Example output:**
+**Example output**, abridged:
 
 ```elixir
 %{
   product: %Aurora.Uix.Resource{
     name: :product,
-    schema: Product,
-    context: Inventory,
-    type: :ctx,  # or :ash for Ash resources
+    schema: MyApp.Inventory.Product,
+    context: MyApp.Inventory,
+    type: :ctx,
     order_by: nil,
     renderers: %{},
     backend_opts: [],
     fields: %{
-      id: %Aurora.Uix.Field{key: :id, type: :binary_id, html_type: :text, ...},
-      name: %Aurora.Uix.Field{key: :name, type: :string, html_type: :text, ...},
-      description: %Aurora.Uix.Field{key: :description, type: :string, ...},
+      name: %Aurora.Uix.Field{key: :name, type: :string, html_type: :text},
       product_location_id: %Aurora.Uix.Field{
         key: :product_location_id,
         type: :binary_id,
         html_type: :select,
-        option_label: :name,
-        data: %{resource: :product_location, ...}
+        option_label: nil,
+        data: %{resource: :product_location}
       }
     },
-    fields_order: [:id, :name, :description, :product_location_id, ...]
+    fields_order: [:id, :name, :product_location_id]
   }
 }
 ```
 
 ### Backend Types
 
-Aurora UIX automatically detects the backend type based on the options provided:
+Aurora UIX detects the backend type from the schema module, whichever option names it
+(`:schema` or `:ash_resource`):
 
-- **`:ctx`** - When using `:schema` and `:context` options with Ecto schemas
-- **`:ash`** - When using `:ash_resource` (or Ash resource modules)
+- **`:ctx`** - The module is an Ecto schema. It also needs `:context`
+- **`:ash`** - The module is an Ash resource
 
 The backend type determines how CRUD operations are resolved:
 
@@ -377,7 +378,8 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `key` - Schema's unique identifier for the field (atom)
 - `name` - The field key as a binary string
 - `type` - Ecto schema type (e.g., `:string`, `:integer`, `:decimal`, `:boolean`, `:utc_datetime`, 
-    `:one_to_many_association`, `:many_to_one_association`, `:embeds_one`, `:embeds_many`)
+    `:one_to_many_association`, `:many_to_one_association`, `:one_to_one_association`,
+    `:many_to_many_association`, `:embeds_one`, `:embeds_many`)
 - `html_type` - The HTML type inferred from Ecto type. Common values: `:text`, `textarea`, `:number`,
     `:checkbox`, `:select`, `:datetime-local`, `:time` 
     
@@ -418,8 +420,9 @@ These field options have their own keys on `Aurora.Uix.Field`:
 
 - `option_label` - For many-to-one and many-to-many selectors: the field name (atom) shown for each
   option, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`) returning the label
-- `query_opts` - Keyword list with the `:order_by` and `:where` field options, applied when listing
-  the related entries of an association
+- `query_opts` - Keyword list with `:order_by` and `:where`, applied when listing the options of a
+  many-to-one or many-to-many selector. A one-to-many list does not read it (see
+  [One-to-Many](#one-to-many-has_many))
 - `resource` - (embedded fields and associations) The name of the resource that renders the
   related entries, kept in `data.resource`. On an association it also preloads the association
   fields that the layouts of the named resource render (see
@@ -432,7 +435,8 @@ These field options have their own keys on `Aurora.Uix.Field`:
   collapsed on initial load, in both show and edit modes. Defaults to `false` (collapsed). Accepts a
   boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
   escaped at compile time) that receives the rendering assigns and returns a boolean. The runtime
-  collapse/expand toggle stays available regardless. Configure it via the `:expanded` field option:
+  collapse/expand toggle stays available regardless. Configure it with the `:expanded` field option
+  of the resource metadata; the same option on a layout field has no effect:
 
   ```elixir
   # Always expanded
@@ -465,6 +469,7 @@ The `data` property is a versatile map that holds configuration specific to the 
 - `owner` - The owner schema module
 - `resource` - The name of the resource that renders the embedded record: the one `resource:` names, else `<parent>__<field>`
 - `related` - The embedded schema module
+
 **For select fields with fixed options:**
 
 - `select` - Map containing:
@@ -499,15 +504,16 @@ end
 - `:allow` — keyword list forwarded verbatim to `Phoenix.LiveView.allow_upload/3`.
   Supports `:accept`, `:max_entries`, `:max_file_size`, `:auto_upload?`, and any other
   option that `allow_upload/3` accepts.
-- `:consume` — arity-1 callback receiving `[binary()]` (the read bytes of each selected file).
+- `:consume` — callback receiving `[binary()]` (the read bytes of each selected file). It accepts
+  arity 1 (`binaries`), 2 (`socket, binaries`) or 3 (`socket, binaries, key`).
   Return values:
   - `{:ok, value}` — `value` is written onto the entity params under the field key before save.
   - `:no_change` — the field is left untouched; the helper also short-circuits to `:no_change`
     when no file is selected, so the callback need not handle an empty list.
   - `{:error, reason}` — save aborts and `reason` is displayed as an error flash.
 - `:download` — **optional** producer callback invoked when the user clicks the Download button
-  on show and edit views. Its presence is the opt-in master switch: without this key, no Download
-  button is rendered. Accepts arity 1, 2, or 3:
+  on show and edit views. Without this key no Download button is rendered, and the button also
+  needs `:downloadable?`. Accepts arity 1, 2, or 3:
   - Arity 1: `download.(value)` — field value only.
   - Arity 2: `download.(socket, value)` — socket available for actor/assign access.
   - Arity 3: `download.(socket, value, key)` — one callback handles multiple upload fields.
@@ -515,10 +521,11 @@ end
   - `{:ok, %{name: filename, content: binary}}` — triggers a client-side file download.
   - `:no_download` — does nothing (button click is a no-op).
   - `{:error, reason}` — displays `reason` as an error flash.
-- `:downloadable?` — **optional** gate callback evaluated when the component mounts or updates.
-  Controls whether the Download button is visible. Only evaluated when `:download` is also set.
-  Accepts arity 1, 2, or 3 (same dispatch as `:download`). Must return a boolean. When omitted,
-  the button is shown whenever `:download` is present and the current field value is non-nil.
+- `:downloadable?` — a boolean, or a callback evaluated when the component mounts or updates, that
+  controls whether the Download button is visible. Only read when `:download` is also set. A
+  callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
+  **When omitted, the button is hidden**: set `downloadable?: true` to show it always, or use a
+  callback such as one that checks the value is not `nil`.
 
 Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
 against double registration on re-renders), `live_file_input` rendering with per-entry
@@ -531,7 +538,8 @@ You can specify custom HTML types and provide custom renderers for specialized f
 
 ```elixir
 auix_resource_metadata :product do
-  schema MyApp.Product
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
   field :status, html_type: :select,
     data: %{select: %{opts: [Active: "active", Inactive: "inactive", Archived: "archived"]}}
   field :avatar, html_type: :image, renderer: &MyAppWeb.Helpers.render_avatar/1
@@ -551,7 +559,8 @@ component) that receives the render assigns and returns a `Phoenix.LiveView.Rend
 
 ```elixir
 auix_resource_metadata :product do
-  schema MyApp.Product
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
   field :status,
     index_renderer: &MyAppWeb.Helpers.status_badge/1,
     edit_renderer: &MyAppWeb.Helpers.status_select/1,
@@ -580,7 +589,7 @@ rendering customization points, see
 
 ## Associations
 
-Aurora UIX supports four types of associations: **many_to_one** (`belongs_to`),  **one_to_many** (`has_many`), **embeds_one** and **embeds_many**. You can configure their behavior in the resource metadata.
+Aurora UIX handles **many_to_one** (`belongs_to`), **one_to_many** (`has_many`), **one_to_one** (`has_one`) and **many_to_many** associations, and **embeds_one** and **embeds_many** fields. You can configure their behavior in the resource metadata.
 
 ### Automatic Association Detection
 
@@ -590,6 +599,8 @@ Associations are automatically detected from your schema and converted to associ
 
 - `belongs_to` → `many_to_one_association` type
 - `has_many` → `one_to_many_association` type
+- `has_one` → `one_to_one_association` type
+- `many_to_many` → `many_to_many_association` type
 - `embeds_one` → `embeds_one` type
 - `embeds_many` → `embeds_many` type
 
@@ -597,39 +608,36 @@ Custom backend implementations may provide different association detection mecha
 
 ### Many-to-One (belongs_to)
 
-By default, if a field represents a many-to-one association, if the foreign key field is used with `:select` html_type, association is rendered as a dropdown. You can customize this behavior.
+When the module declares a resource for the related schema, the foreign key field of a `belongs_to`
+association renders as a dropdown. Without `option_label`, each option shows the related primary
+key.
 
-The `option_label` option controls what is shown as the label for each option in the dropdown. It supports three patterns:
+The `option_label` option controls the label of each option. Set it on the foreign key field. It
+supports three patterns:
 
-**Usage:**
-
-- **As an atom (field name)** - Use a single field from the related entity:
+- **As an atom (field name)** - Shows a single field of the related entity:
   ```elixir
-  field :category_id, html_type: :select, option_label: :name
+  field :category_id, option_label: :name
   ```
-  This will use the `:name` field of the related entity as the label in the dropdown.:what
 
-- **As a function (arity 1)** - Use a custom function to generate labels:
+- **As a function (arity 1)** - Receives the related entity and returns the label:
   ```elixir
-  field :category_id, html_type: :select, option_label: &MyApp.Category.label/1
+  field :category_id, option_label: &MyApp.Category.label/1
   ```
-  The function receives the entity instance and should return a string label.
 
-- **As a function (arity 2)** - Use a function that receives both assigns and the entity:
+- **As a function (arity 2)** - Receives the rendering assigns and the entity:
   ```elixir
   # In your Category module:
-  def label(assigns, category) do
-    "#{assigns.prefix}_#{category.code} - #{category.name}"
-  end
+  def label(%{auix: %{layout_type: :index}}, category), do: category.code
+  def label(_assigns, category), do: "#{category.code} - #{category.name}"
   ```
   ```elixir
-  field :category_id, html_type: :select, option_label: &MyApp.Category.label/2
+  field :category_id, option_label: &MyApp.Category.label/2
   ```
 
 ### Query Options for Many-to-One
 
-When `option_label` is set to a field reference (atom), you can also specify query options
-in `query_opts`:
+`query_opts` shapes the query behind the dropdown, with or without `option_label`:
 
 - `:order_by` - Controls the ordering of options in the dropdown
 - `:where` - Filters the options to display
@@ -639,16 +647,17 @@ in `query_opts`:
 ```elixir
 # Renders a selector displaying names ordered ascending
 auix_resource_metadata :product do
-  schema MyApp.Product
-  field :category_id, html_type: :select, option_label: :name, query_opts: [order_by: :name]
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
+  field :category_id, option_label: :name, query_opts: [order_by: :name]
 end
 ```
 
 ```elixir
 # Renders a selector with filtered options ordered descending by reference
 auix_resource_metadata :product do
-  context Inventory
-  schema Product
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
   field :category_id, option_label: :name,
     query_opts: [order_by: [desc: :reference], where: [{:name, :between, "A", "Z"}]]
 end
@@ -656,22 +665,25 @@ end
 
 ### One-to-Many (has_many)
 
-Fields representing a **one-to-many** (`has_many`) association are rendered as a list with customizable actions for adding, editing, and deleting items. You can sort and filter the list.
+A **one-to-many** (`has_many`) field renders as a list with actions for adding, editing and
+deleting items. The list has no filters or sortable headers of its own.
 
-**Available `query_opts`:**
+To order or filter its rows, set these options on the field **in the layout**:
 
-- `:order_by` - Changes the order of how elements are initially rendered. Follows Ecto's order_by syntax.
-- `:where` - Defines filtering. Follows Ecto's where syntax.
-
-**Example:**
+- `:order_by` - Order of the rows, in Ecto's `order_by` syntax
+- `:where` - Filter of the rows, in the syntax described under
+  [QueryBuilder for Advanced Filtering](layouts.md#querybuilder-for-advanced-filtering)
 
 ```elixir
-auix_resource_metadata :product do
-  schema MyApp.Product
-  field :product_transactions,
-    query_opts: [order_by: [desc: :quantity], where: [{:quantity, :between, 8, 16}]]
+edit_layout :product do
+  stacked do
+    field :reference
+    field :product_transactions, order_by: [desc: :quantity], where: [{:quantity, :between, 8, 16}]
+  end
 end
 ```
+
+`query_opts` in the resource metadata does not apply to this list.
 
 ## Related guides
 

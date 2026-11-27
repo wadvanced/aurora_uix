@@ -45,7 +45,7 @@ auix_resource_metadata :product do
   field :reference, required: true
   field :name, required: true
   field :description
-  field :price, precision: 12, scale: 2
+  field :list_price, precision: 12, scale: 2
   field :quantity_initial
   field :quantity_entries
   field :quantity_exits
@@ -299,13 +299,13 @@ Each layout type (`:index`, `:form`, `:show`) supports specific customization op
 Controls list view pagination, titles, and row/header actions:
 
 ```elixir
-index_columns :product, [:reference, :name, :price],
+index_columns :product, [:reference, :name, :list_price],
   page_title: "Products",
   page_subtitle: "Manage your inventory",
   pagination_items_per_page: 20,
   pagination_disabled?: false,
   order_by: [asc: :name],
-  where: [{:active, true}]
+  where: [{:inactive, false}]
 ```
 
 **Options:**
@@ -414,7 +414,7 @@ show_layout :product,
   page_title: "Product Details",
   page_subtitle: "Full product information"
 do
-  stacked [:reference, :name, :description, :price]
+  stacked [:reference, :name, :description, :list_price]
 end
 ```
 
@@ -427,30 +427,40 @@ end
 
 ### Dynamic Titles and Subtitles
 
-For dynamic content, pass function references (named functions only, not anonymous):
+For dynamic content, pass a captured function (`&Module.function/1`, not an anonymous `fn`). It
+receives the assigns and returns rendered HTML (sigil `~H`):
 
 ```elixir
+defmodule MyAppWeb.ProductTitles do
+  use Phoenix.Component
+
+  def edit_title(assigns) do
+    ~H"Edit {@auix.name} {@auix.entity.reference}"
+  end
+
+  def show_title(assigns) do
+    ~H"Product: {@auix.entity.name}"
+  end
+end
+
 defmodule MyAppWeb.ProductViews do
-  def custom_edit_title(assigns) do
-    ~H"Edit #{assigns.auix.name} (ID: #{assigns.entity.id})"
-  end
+  use Aurora.Uix
 
-  def custom_page_title(assigns) do
-    ~H"Product: #{assigns.entity.name}"
-  end
+  auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Inventory.Product
 
-  # Layout definitions
-  edit_layout :product, edit_title: &custom_edit_title/1 do
-    stacked [:reference, :name, :description]
-  end
+  auix_create_ui do
+    edit_layout :product, edit_title: &MyAppWeb.ProductTitles.edit_title/1 do
+      stacked [:reference, :name, :description]
+    end
 
-  show_layout :product, page_title: &custom_page_title/1 do
-    stacked [:reference, :name, :price]
+    show_layout :product, page_title: &MyAppWeb.ProductTitles.show_title/1 do
+      stacked [:reference, :name]
+    end
   end
 end
 ```
 
-The function receives `assigns` and should return rendered HTML (using sigil `~H`).
+The record of the form and show views is `@auix.entity`. An index title has no record.
 
 > **Note:** This is separate from the resource's own `name`/`title` metadata (set via
 > `auix_resource_metadata`), which many of the defaults above interpolate (e.g. `"New
@@ -492,6 +502,7 @@ those fields with `field`, as above. A list that also holds a plain field works:
 - `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (one with an `upload` block) never offers one, even with `sortable?: true`
 - `:option_label` — For select/radio fields
 - `:action_icons` — For one-to-many and embeds-many fields: the icons of the field's default actions (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
+- `:order_by`, `:where` — For one-to-many fields: the order and filter of the listed rows (see [Resource Metadata › One-to-Many](resource_metadata.md#one-to-many-has_many))
 
 Per-layout renderers are especially useful for index columns, which the generic `:renderer`
 does not cover:
@@ -503,155 +514,25 @@ index_columns :product, [
 ]
 ```
 
-> **Note:** Some field options are resolved from the field's `data` map and must be set in
-> `auix_resource_metadata` rather than inline in a layout (layouts do not accept these rendering
-> options in this version). The `:expanded` option for `embeds_many` fields is one such case — see
-> the Resource Metadata guide.
+> **Note:** A layout accepts every resource field option, but `:expanded` (for `embeds_many`
+> fields) has no effect there. Set it in `auix_resource_metadata` — see the
+> [Resource Metadata](resource_metadata.md#selector-embed-and-upload-options) guide.
 
 For complete field attributes reference, see the `Aurora.Uix.Field` module documentation.
 
 ## Actions: Customizing Buttons and Links
 
-Aurora UIX provides a comprehensive action system for customizing the buttons and links rendered in headers, footers, rows, and selection bars of every layout type.
-
-> The full reference — action groups per layout type, the `add_`/`insert_`/`replace_`/`remove_`
-> operations, default action names you can target, and the `row_info` internals — lives in the
-> dedicated [Custom Actions](../customization/custom_actions.md) guide.
-
-The worked examples below show actions being customized inside layout definitions.
-
-### Example: Customizing Index Actions
+Aurora UIX provides an action system for the buttons and links rendered in headers, footers, rows
+and selection bars. A layout changes them with options such as `add_row_action`,
+`replace_header_action` and `remove_row_action`:
 
 ```elixir
-defmodule MyAppWeb.ProductViews do
-  use Aurora.Uix.View
-
-  # Custom archive action for table rows
-  def archive_action(assigns) do
-    ~H"""
-    <.link
-      phx-click={JS.push("archive", value: %{id: row_info_id(@auix)})}
-      name={"auix-archive-#{@auix.module}"}
-      data-confirm="Archive this product?"
-    >
-      <.icon class="auix-icon-size-5 auix-icon-warning" name="hero-archive-box" />
-    </.link>
-    """
-  end
-
-  # Custom export action for header
-  def export_action(assigns) do
-    ~H"""
-    <.button phx-click="export-all" name={"auix-export-#{@auix.module}"}>
-      <.icon name="hero-arrow-down-tray" class="auix-icon-size-4" />
-      Export CSV
-    </.button>
-    """
-  end
-
-  # Custom edit with different styling
-  def custom_edit_action(assigns) do
-    ~H"""
-    <.auix_link 
-      class="auix-index-row-action auix-custom-edit"
-      patch={"/#{@auix.uri_path}/#{row_info_id(@auix)}/edit"}
-      name={"auix-edit-#{@auix.module}"}
-    >
-      <.icon class="auix-icon-size-5 auix-icon-primary" name="hero-pencil" />
-    </.auix_link>
-    """
-  end
-
-  index_columns :product, [:reference, :name, :price, :stock],
-    # Add custom actions
-    add_row_action: {:archive, &archive_action/1},
-    add_header_action: {:export, &export_action/1},
-    # Replace default actions
-    replace_row_action: {:default_row_edit, &custom_edit_action/1},
-    # Remove unwanted actions
-    remove_row_action: :default_row_show
-
-  # Helper to extract row ID from auix context
-  defp row_info_id(%{row_info: {_index, row_entity}, primary_key: primary_key}) do
-    Aurora.Uix.Templates.Basic.Helpers.primary_key_value(row_entity, primary_key)
-  end
-end
+index_columns :product, [:reference, :name], remove_row_action: :default_row_show
 ```
 
-### Example: Customizing Form Actions
-
-```elixir
-defmodule MyAppWeb.ProductViews do
-  use Aurora.Uix.View
-
-  def save_and_continue_action(assigns) do
-    ~H"""
-    <.button 
-      phx-click="save-continue" 
-      phx-disable-with="Saving..." 
-      name={"auix-save-continue-#{@auix.module}"}
-    >
-      Save and Continue
-    </.button>
-    """
-  end
-
-  def cancel_action(assigns) do
-    ~H"""
-    <.auix_back class="auix-button--alt">
-      Cancel
-    </.auix_back>
-    """
-  end
-
-  edit_layout :product,
-    add_footer_action: {:save_continue, &save_and_continue_action/1},
-    add_footer_action: {:cancel, &cancel_action/1}
-  do
-    stacked [:reference, :name, :description, :price]
-  end
-end
-```
-
-### Example: Customizing Show Actions
-
-```elixir
-defmodule MyAppWeb.ProductViews do
-  use Aurora.Uix.View
-
-  def duplicate_action(assigns) do
-    ~H"""
-    <.auix_link 
-      patch={"/#{@auix.uri_path}/new?duplicate_from=#{@auix.entity.id}"}
-      name={"auix-duplicate-#{@auix.module}"}
-    >
-      <.button class="auix-button--alt">Duplicate Product</.button>
-    </.auix_link>
-    """
-  end
-
-  def print_action(assigns) do
-    ~H"""
-    <.button phx-click="print" phx-value-id={@auix.entity.id} class="auix-button--alt">
-      <.icon name="hero-printer" /> Print
-    </.button>
-    """
-  end
-
-  show_layout :product,
-    add_header_action: {:duplicate, &duplicate_action/1},
-    add_header_action: {:print, &print_action/1}
-  do
-    stacked [:reference, :name, :description, :price]
-  end
-end
-```
-
-### Going further
-
-For the action function signature, the assigns available inside an action (`@auix`, `row_info`),
-primary-key helpers, styling conventions, and how actions are processed under the hood, see
-[Custom Actions](../customization/custom_actions.md).
+The [Custom Actions](../customization/custom_actions.md) guide holds the full reference: action
+groups per layout type, the `add_`/`insert_`/`replace_`/`remove_` operations, the default action
+names, the action function signature and the assigns available inside an action.
 
 ## Advanced Patterns
 
@@ -673,7 +554,7 @@ end
 stacked do
   inline [:reference, :name]
   group "Details" do
-    stacked [:description, :price]
+    stacked [:description, :list_price]
   end
 end
 ```
@@ -685,9 +566,9 @@ Aurora UIX index layouts support advanced filtering and sorting. The `:where` an
 **Basic Filtering with Tuples:**
 
 ```elixir
-index_columns :product, [:reference, :name, :price],
-  where: [{:active, true}],
-  order_by: [asc: :name, desc: :created_at]
+index_columns :product, [:reference, :name, :list_price],
+  where: [{:inactive, false}],
+  order_by: [asc: :name, desc: :inserted_at]
 ```
 
 **Using Comparison Operators:**
@@ -695,9 +576,9 @@ index_columns :product, [:reference, :name, :price],
 The `:where` option accepts tuples with operators for complex filtering:
 
 ```elixir
-index_columns :product, [:reference, :name, :price],
+index_columns :product, [:reference, :name, :list_price],
   where: [
-    {:price, :greater_than, 10},
+    {:list_price, :greater_than, 10},
     {:name, :ilike, "%widget%"}
   ],
   order_by: :name
@@ -718,7 +599,7 @@ index_columns :product, [:reference, :name, :price],
 **Range Filtering with Between:**
 
 ```elixir
-index_columns :product, [:reference, :name, :price],
+index_columns :product, [:reference, :name, :list_price],
   where: [{:reference, :between, "A", "M"}],
   order_by: :reference
 ```
@@ -726,8 +607,8 @@ index_columns :product, [:reference, :name, :price],
 **Multiple Sort Fields:**
 
 ```elixir
-index_columns :product, [:reference, :name, :price],
-  order_by: [asc: :category, desc: :price, asc: :name]
+index_columns :product, [:reference, :name, :list_price],
+  order_by: [asc: :status, desc: :list_price, asc: :name]
 ```
 
 This enables:

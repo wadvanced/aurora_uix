@@ -80,7 +80,7 @@ generated `.Index` LiveView. There the list events, the back and edit actions of
 navigator and the actions of a one-to-many list carry no target and reach the LiveView.
 A custom action sends its event to the component with it:
 
-```elixir
+```heex
 <.auix_link phx-click="archive" phx-target={@auix._myself}>Archive</.auix_link>
 ```
 
