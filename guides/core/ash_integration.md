@@ -28,7 +28,7 @@ Before enabling Aurora UIX's Ash integration, ensure you have:
 1. **Aurora UIX** installed and working (see [Getting Started](../introduction/getting_started.md))
 2. **Ash Framework** installed and configured in your Phoenix project
 3. **Ash Resources** with defined actions and attributes
-4. **An Ash Domain** (optional but recommended) organizing your resources
+4. **An Ash Domain** listing your resources, registered in `config :my_app, ash_domains: [...]`
 
 ### Required Dependencies
 
@@ -46,66 +46,162 @@ end
 
 ## Basic Configuration
 
-### Step 1: Define Your Ash Resource (or Use Existing)
+### Step 1: Define Your Ash Resources (or Use Existing)
 
-If you already have Ash resources, skip to Step 3. Otherwise, create an Ash resource with standard or customized CRUD actions:
+If you already have Ash resources, skip to Step 3. The rest of this walkthrough uses a small blog:
+three stored resources and two embedded ones. `MyApp.Repo` must be an `AshPostgres.Repo`; the
+[tutorial](../tutorial/build_your_first_app.md) shows how to set Ash up in a new application.
 
 ```elixir
-defmodule Aurora.Uix.Guides.Blog.Post do
+defmodule MyApp.Blog.Post do
   use Ash.Resource,
-    data_layer: AshPostgres.DataLayer,
-    domain: Aurora.Uix.Guides.Blog
+    domain: MyApp.Blog,
+    data_layer: AshPostgres.DataLayer
 
   postgres do
-    table("posts")
-    repo(Aurora.Uix.Repo)
+    table "posts"
+    repo MyApp.Repo
   end
 
   attributes do
-    uuid_primary_key(:id)
+    uuid_primary_key :id
 
-    attribute(:title, :string)
-    attribute(:content, :string)
-    attribute(:published_at, :utc_datetime)
+    attribute :title, :string, public?: true
+    attribute :content, :string, public?: true
+    attribute :published_at, :utc_datetime, public?: true
 
     attribute :status, :atom do
       constraints one_of: [:draft, :published, :archived]
       default :draft
+      public? true
     end
 
-    create_timestamp(:inserted_at)
-    update_timestamp(:updated_at)
+    attribute :comment, MyApp.Blog.Comment do
+      default %{}
+      public? true
+    end
+
+    attribute :tags, {:array, MyApp.Blog.Tag}, public?: true
+
+    create_timestamp :inserted_at
+    update_timestamp :updated_at
   end
 
   relationships do
-    belongs_to(:author, Aurora.Uix.Guides.Blog.Author)
-    belongs_to(:category, Aurora.Uix.Guides.Blog.Category)
+    belongs_to :author, MyApp.Blog.Author, public?: true
+    belongs_to :category, MyApp.Blog.Category, public?: true
   end
 
   actions do
-    default_accept [:title, :content, :status, :author_id, :category_id]
-    defaults [:create, :read, :destroy, :update]
+    default_accept [
+      :title,
+      :content,
+      :status,
+      :published_at,
+      :comment,
+      :tags,
+      :author_id,
+      :category_id
+    ]
+
+    defaults [:create, :read, :update, :destroy]
+  end
+end
+```
+
+```elixir
+defmodule MyApp.Blog.Author do
+  use Ash.Resource,
+    domain: MyApp.Blog,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "authors"
+    repo MyApp.Repo
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :name, :string, public?: true
+    attribute :email, :string, public?: true
+    attribute :bio, :string, public?: true
+  end
+
+  actions do
+    default_accept [:name, :email, :bio]
+    defaults [:create, :read, :update, :destroy]
+  end
+end
+```
+
+```elixir
+defmodule MyApp.Blog.Category do
+  use Ash.Resource,
+    domain: MyApp.Blog,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "categories"
+    repo MyApp.Repo
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :name, :string, public?: true
+  end
+
+  actions do
+    default_accept [:name]
+    defaults [:create, :read, :update, :destroy]
+  end
+end
+```
+
+```elixir
+defmodule MyApp.Blog.Comment do
+  use Ash.Resource, data_layer: :embedded
+
+  attributes do
+    attribute :title, :string, public?: true
+    attribute :description, :string, public?: true
+  end
+end
+```
+
+```elixir
+defmodule MyApp.Blog.Tag do
+  use Ash.Resource, data_layer: :embedded
+
+  attributes do
+    attribute :name, :string, public?: true
   end
 end
 ```
 
 ### Step 2: Define Your Ash Domain
 
-Organize resources in an Ash domain:
-
 ```elixir
-defmodule Aurora.Uix.Guides.Blog do
+defmodule MyApp.Blog do
   use Ash.Domain
 
   resources do
-    resource Aurora.Uix.Guides.Blog.Post
-    resource Aurora.Uix.Guides.Blog.Author
-    
-    resource Aurora.Uix.Guides.Blog.Category do
-      define :list_categories, action: :read
-    end
+    resource MyApp.Blog.Post
+    resource MyApp.Blog.Author
+    resource MyApp.Blog.Category
   end
 end
+```
+
+Register the domain and create the tables:
+
+```elixir
+# config/config.exs
+config :my_app, ash_domains: [MyApp.Blog]
+```
+
+```shell
+mix ash.codegen create_blog
+mix ash.migrate
 ```
 
 ### Step 3: Configure Aurora UIX Resource Metadata
@@ -113,14 +209,14 @@ end
 Create a module to configure your UI:
 
 ```elixir
-defmodule Aurora.UixWeb.Guides.AshOverview do
+defmodule MyAppWeb.BlogViews do
   use Aurora.Uix
 
-  alias Aurora.Uix.Guides.Blog.Author
-  alias Aurora.Uix.Guides.Blog.Category
-  alias Aurora.Uix.Guides.Blog.Comment
-  alias Aurora.Uix.Guides.Blog.Post
-  alias Aurora.Uix.Guides.Blog.Tag
+  alias MyApp.Blog.Author
+  alias MyApp.Blog.Category
+  alias MyApp.Blog.Comment
+  alias MyApp.Blog.Post
+  alias MyApp.Blog.Tag
 
   auix_resource_metadata :author do
     ash_resource Author
@@ -177,23 +273,30 @@ end
 ### Step 4: Add to Router
 
 ```elixir
-defmodule Aurora.UixWeb.Router do
-  use Aurora.UixWeb, :router
-  import Aurora.Uix.Router
+defmodule MyAppWeb.Router do
+  use MyAppWeb, :router
 
-  scope "/guides-overview", Aurora.UixWeb.Guides do
+  import Aurora.Uix.RouteHelper
+
+  # ... your pipelines
+
+  scope "/blog", MyAppWeb do
     pipe_through :browser
 
-    auix_live_resources("/posts", AshOverview.Post)
-    auix_live_resources("/authors", AshOverview.Author)
-    auix_live_resources("/categories", AshOverview.Category)
+    auix_live_resources("/posts", BlogViews.Post)
+    auix_live_resources("/authors", BlogViews.Author)
+    auix_live_resources("/categories", BlogViews.Category)
   end
 end
 ```
 
+The stylesheet and JavaScript hooks are set up as in
+[Getting Started](../introduction/getting_started.md).
+
 That's it! Aurora UIX will generate complete CRUD interfaces using your existing Ash actions, without requiring any changes to your Ash resources or domain definitions.
 
-Here are the generated items
+The screenshots below come from the library's own blog demo, which also has many-to-many topics
+and labels.
 
 #### Desktop generation
 
@@ -248,17 +351,17 @@ When configuring an Ash resource, you can use these options:
 
 #### Alternative Syntax
 
-You can also use `:schema` as an alias for `:ash_resource`:
+You can also use `:schema` as an alias for `:ash_resource`. A `:context` is not needed:
 
 ```elixir
 # These are equivalent
 auix_resource_metadata :user, ash_resource: User
-auix_resource_metadata :user, schema: User, context: Accounts
+auix_resource_metadata :user, schema: User
 ```
 
 ### Examples
 
-#### Without Domain
+#### Basic
 
 ```elixir
 auix_resource_metadata :author do
@@ -268,7 +371,7 @@ auix_resource_metadata :author do
 end
 ```
 
-#### With Domain and Ordering
+#### With Ordering
 
 ```elixir
 auix_resource_metadata :post do
@@ -300,57 +403,63 @@ end
 ## How Aurora UIX Discovers Ash Actions
 
 One of Aurora UIX's strengths is its ability to work with your existing code. When configured to use an Ash resource, 
-Aurora UIX automatically discovers and maps Ash actions to UI operations without requiring any modifications to your Ash resources. The resolution process follows these rules:
+Aurora UIX discovers and maps Ash actions to UI operations at compile time.
 
 ### Action Discovery Process
 
-Aurora UIX provides both automatic action discovery and manual configuration options.
+For each operation, Aurora UIX picks one action of the matching type:
 
-#### Automatic Discovery
+1. **The configured action** - The one you name in `backend_opts` (see [Custom Actions](#custom-actions))
+2. **The action named like its type** - Without a configured name: `:read`, `:create`, `:update`
+   or `:destroy`, even when another action of the type is primary
+3. **The primary action** - When there is no action of that name
+4. **The first action** of the type - When none is primary
 
-When actions are not explicitly configured, Aurora UIX automatically discovers them using the following priority:
-
-1. **Primary Actions First** - If an action is marked as `primary?: true`, it's selected
-2. **Fallback to First Available** - If no primary action exists, the first action of the matching type is used
-
-#### Manual Configuration
-
-You can override automatic discovery by explicitly specifying actions using configuration options (see [Custom Actions](#custom-actions) below). When an option is provided, automatic discovery is bypassed for that specific action.
+> #### Check the action names {: .warning}
+> A configured name that matches no action is ignored, and steps 3 and 4 pick another action
+> without any error ([#664](https://github.com/wadvanced/aurora_uix/issues/664)).
 
 ### Aurora UIX Operation Mapping
 
-Aurora UIX provides these UI operations and automatically maps them to corresponding Ash action types:
+| Aurora UIX Operation | Ash Alias | Ash Action Type | Used For |
+|---------------------|-----------|-----------------|----------|
+| `:list_function_paginated` | `:ash_read_action_paginated` | `:read` | Index view |
+| `:list_function` | `:ash_read_action` | `:read` | Association lists and select options |
+| `:get_function` | `:ash_get_action` | `:read` | Show and edit views |
+| `:new_function` | `:ash_new_function` | N/A (function) | New form initialization |
+| `:create_function` | `:ash_create_action` | `:create` | Create form |
+| `:update_function` | `:ash_update_action` | `:update` | Edit form |
+| `:delete_function` | `:ash_destroy_action` | `:destroy` | Delete operation |
+| `:change_function` | `:ash_change_action` | `:update` | Building the form |
 
-| Aurora UIX Operation | Ash Alias | Ash Action Type | Used For | Notes |
-|---------------------|-----------|-----------------|----------|-------|
-| `:list_function` | `:ash_read_action` | `:read` | Index view (non-paginated) | Uses first read action without pagination |
-| `:list_function_paginated` | `:ash_read_action_paginated` | `:read` | Index view (paginated) | Requires `pagination` configuration on action |
-| `:get_function` | `:ash_get_action` | `:read` | Show view | Uses read action for fetching single record |
-| `:new_function` | `:ash_new_function` | N/A (function) | New form initialization | Requires a 2-arity function returning a struct representing the entity |
-| `:create_function` | `:ash_create_action` | `:create` | New/Create form | Uses create action |
-| `:update_function` | `:ash_update_action` | `:update` | Edit form | Uses update action |
-| `:delete_function` | `:ash_destroy_action` | `:destroy` | Delete operation | Uses destroy action |
-| `:change_function` | `:ash_update_action` | `:update` | Changeset creation | Uses update action for building changesets |
+When only one of update and change is configured, it serves both. The same holds for the two list
+operations.
 
 ### Pagination Support
 
-For paginated index views, your read action must have pagination configured:
+The index needs a read action with offset pagination:
 
 ```elixir
 actions do
-  read :list do
+  read :read do
     primary? true
-    
+
     pagination do
       offset? true
       countable true
+      required? false
       default_limit 20
     end
   end
 end
 ```
 
-Aurora UIX will automatically use this action for paginated index views.
+The actions generated by `defaults [:read]` are already paginated.
+
+The paginated list is picked by the [discovery rules](#action-discovery-process) and must have
+pagination. An action named `:read` without it therefore fails compilation, even when another read
+action is paginated: add pagination to `:read`, or name the paginated action with
+`ash_read_action_paginated`.
 
 ### Custom Actions
 
@@ -359,55 +468,56 @@ Aurora UIX will automatically use this action for paginated index views.
 > buttons and links in generated views, see the [Custom Actions](../customization/custom_actions.md)
 > guide instead.
 
-You can override automatic action discovery by explicitly specifying custom actions or action names. When provided, these options bypass the automatic discovery process and use the specified action instead.
+Name the actions to use when discovery would pick others:
 
 ```elixir
 auix_resource_metadata :post do
   ash_resource Post
 
-  backend_opts ash_read_action: :published_posts,  # Override default read action
-               ash_create_action: :publish,        # Override default create action
-               ash_update_action: :edit_published  # Override default update action
+  backend_opts ash_read_action: :published_posts,  # Index and association lists
+               ash_create_action: :publish,        # Create form
+               ash_update_action: :edit_published  # Edit form
 
   # field configuration...
 end
 ```
 
+A read action named with `ash_read_action` alone also serves the index, so give it pagination. An
+action without it compiles and then crashes the index
+([#665](https://github.com/wadvanced/aurora_uix/issues/665)). To keep an action without pagination
+for association lists and selects, name the index action too, with `ash_read_action_paginated`.
+
 Available action configuration options, all given inside `backend_opts`:
 
-- `:ash_read_action` (or `:list_function`) - Custom read action name for non-paginated list
-- `:ash_read_action_paginated` (or `:list_function_paginated`) - Custom paginated read action name
-- `:ash_get_action` (or `:get_function`) - Custom read action for show view
-- `:ash_new_function` (or `:new_function`) - Custom 2-arity function for new form initialization (must return a struct)
-- `:ash_create_action` (or `:create_function`) - Custom create action name
-- `:ash_update_action` (or `:update_function`) - Custom update action name
-- `:ash_destroy_action` (or `:delete_function`) - Custom destroy action name
-- `:ash_change_action` (or `:change_function`) - Custom update action for changeset creation
+- `:ash_read_action` (or `:list_function`) - Read action for association lists and select options
+- `:ash_read_action_paginated` (or `:list_function_paginated`) - Paginated read action for the index
+- `:ash_get_action` (or `:get_function`) - Read action for a single record
+- `:ash_new_function` (or `:new_function`) - 2-arity function for new form initialization
+- `:ash_create_action` (or `:create_function`) - Create action
+- `:ash_update_action` (or `:update_function`) - Update action
+- `:ash_destroy_action` (or `:delete_function`) - Destroy action
+- `:ash_change_action` (or `:change_function`) - Update action the form is built with
 
 > **Note:** Each option has two aliases (e.g., `:ash_read_action` and `:list_function`). The `:ash_*` prefix is recommended for clarity when working with Ash resources.
 
 #### Custom New Function
 
-Unlike other options that reference Ash actions, `:ash_new_function` accepts a custom function for initializing new records:
+Unlike other options that reference Ash actions, `:ash_new_function` accepts a function that sets
+the initial values of a new record. It receives a map of attributes and the call options, and
+returns the attributes as a map or keyword list, not a struct:
+
+```elixir
+defmodule MyApp.BlogDefaults do
+  def new_post(attrs, _opts) do
+    Map.merge(%{status: :draft, title: "Untitled"}, attrs)
+  end
+end
+```
 
 ```elixir
 auix_resource_metadata :post do
   ash_resource Post
-  backend_opts ash_new_function: &MyApp.Blog.new_post/2
-  # field configuration...
-end
-
-# The function must have arity 2 and return a struct
-defmodule MyApp.Blog do
-  def new_post(attrs, _opts) do
-    struct(
-      %Post{
-        status: :draft,
-        published_at: nil,
-        author_id: get_current_user_id()
-      }, attrs
-    )
-  end
+  backend_opts ash_new_function: &MyApp.BlogDefaults.new_post/2
 end
 ```
 
@@ -418,7 +528,8 @@ This works with your existing relationship definitions—no changes needed.
 
 ### Belongs To Relationships
 
-`belongs_to` relationships are rendered as select dropdowns:
+When the module declares a resource for the related record, the foreign key of a `belongs_to`
+relationship renders as a select dropdown:
 
 ```elixir
 # In your Ash resource
@@ -426,14 +537,19 @@ relationships do
   belongs_to :author, MyApp.Blog.Author
   belongs_to :category, MyApp.Blog.Category
 end
+```
 
+```elixir
 # In your Aurora UIX configuration
 auix_resource_metadata :post do
   ash_resource Post
-  field :author_id, html_type: :select, option_label: :name
-  field :category_id, html_type: :select, option_label: :name
+  field :author_id, option_label: :name
+  field :category_id, option_label: :name
 end
 ```
+
+See [Many-to-One](resource_metadata.md#many-to-one-belongs_to) for the labels and the query of the
+options.
 
 ### Has Many Relationships
 
@@ -444,27 +560,36 @@ end
 relationships do
   has_many :posts, MyApp.Blog.Post
 end
+```
 
-# In your Aurora UIX configuration
-auix_resource_metadata :author do
-  ash_resource Author
-  field :posts, query_opts: [order_by: [desc: :published_at]]
+To order or filter the rows, set `order_by:` or `where:` on the field **in the layout**.
+`query_opts` in the resource metadata does not apply to this list:
+
+```elixir
+edit_layout :author do
+  stacked do
+    field :name
+    field :posts, order_by: [desc: :published_at]
+  end
 end
 ```
 
 ## Calculations and Aggregates
 
-Aurora UIX automatically parses Ash `calculations` and `aggregates` into fields — no manual configuration required — **as long as the element resolves to a predictable field type**. Both are rendered **read-only / disabled in forms** because they are computed values, not writable attributes.
+Aurora UIX automatically parses Ash `calculations` and `aggregates` into fields — no manual configuration required. Both are rendered **read-only / disabled in forms** because they are computed values, not writable attributes.
 
 ### Aggregate type mapping
 
+The type of an aggregate is the one Ash resolves for it:
+
 | Aggregate kind | Resolved type |
 |---|---|
-| `count` | `:integer` |
-| `exists` | `:boolean` |
-| `sum`, `max`, `min`, `avg` | `:float` |
+| `count` | integer |
+| `exists` | boolean |
+| `sum`, `max`, `min`, `first`, `avg`, `custom` | the type Ash derives from the aggregated field, or the declared one |
+| `list` | a list of the field's type, shown read-only |
 
-Other aggregate kinds (e.g. `first`, `list`, custom) are **not** auto-typed.
+An aggregate whose type Ash cannot resolve is treated as a string, and an error is logged.
 
 ### Calculations
 
@@ -472,18 +597,18 @@ Calculations resolve from the calculation's declared return type. Simple scalar 
 
 ### When the type can't be inferred
 
-When the parser cannot predictably map an element it logs an error and the field may render with an unusable type. Declare the field explicitly in `auix_resource_metadata` to fix it:
+When the parser cannot map an element it logs an error and the field may render with an unusable type. Declare the field explicitly in `auix_resource_metadata` to fix it:
 
 ```elixir
 auix_resource_metadata :order do
   ash_resource MyApp.Sales.Order
-  # An aggregate/calculation the parser can't type predictably:
+  # An aggregate/calculation the parser can't type:
   field :latest_status, type: :string, html_type: :text
   field :total_amount, type: :decimal, html_type: :number, readonly: true
 end
 ```
 
-Any `field/2` option overrides the parsed value, so `type:` and `html_type:` give full control for these computed fields. See [Field Properties / Custom Field Types](resource_metadata.md) for the full option list.
+Any `field/2` option overrides the parsed value, so `type:` and `html_type:` give full control for these computed fields. See [Resource Metadata](resource_metadata.md) for the full option list.
 
 ### Loading a computed field the parser does not detect
 
@@ -508,20 +633,20 @@ defmodule MyApp.Blog.Comment do
   use Ash.Resource, data_layer: :embedded
 
   attributes do
-    attribute :body, :string
-    attribute :author_name, :string
+    attribute :title, :string, public?: true
+    attribute :description, :string, public?: true
   end
 end
+```
 
-# Use in main resource
-defmodule MyApp.Blog.Post do
-  attributes do
-    # Single embed
-    attribute :primary_comment, MyApp.Blog.Comment
-    
-    # Array of embeds
-    attribute :comments, {:array, MyApp.Blog.Comment}
-  end
+```elixir
+# In the attributes of the main resource
+attributes do
+  # Single embed
+  attribute :comment, MyApp.Blog.Comment, public?: true
+
+  # Array of embeds
+  attribute :comments, {:array, MyApp.Blog.Comment}, public?: true
 end
 ```
 
@@ -620,103 +745,50 @@ end
 
 ## Ash vs Aurora UIX Filtering and Sorting
 
-When using Aurora UIX with Ash, you have two options for implementing filtering and sorting: using Ash's declarative approach or Aurora UIX's built-in features. Both are valid choices, and **it's perfectly fine to use Ash's declarative options**, especially if Ash will remain your application's backend.
+Filtering and sorting can live in the Ash read action or in Aurora UIX. They combine, with two
+limits to keep in mind.
 
-### Using Ash's Declarative Approach
+### Filtering in the Read Action
 
-You can define filtering and sorting directly in your Ash resource using preparations and argument definitions:
-
-```elixir
-defmodule MyApp.Blog.Post do
-  use Ash.Resource,
-    data_layer: AshPostgres.DataLayer,
-    domain: MyApp.Blog
-
-  actions do
-    read :list do
-      primary? true
-      
-      # Define sortable fields
-      prepare build(sort: [published_at: :desc])
-      
-      # Define filterable arguments
-      argument :status, :atom do
-        constraints one_of: [:draft, :published, :archived]
-      end
-      
-      argument :author_id, :uuid
-      
-      # Apply filters
-      prepare fn query, _ ->
-        query
-        |> Ash.Query.filter_input(status: arg(:status))
-        |> Ash.Query.filter_input(author_id: arg(:author_id))
-      end
-    end
-  end
-end
-```
-
-### Advantages of Ash's Approach
-
-✅ **Declarative and Centralized** - All logic lives in the resource definition  
-✅ **Backend Consistency** - Same filtering/sorting logic across all interfaces (UI, API, GraphQL)  
-✅ **Type Safety** - Leverages Ash's type system and constraints  
-✅ **Authorization Integration** - Works seamlessly with Ash policies  
-✅ **Domain Logic Cohesion** - Keeps business rules with the resource  
-✅ **Long-term Stability** - If Ash is your committed backend, no future migration needed  
-
-### Advantages of Aurora UIX's Approach
-
-✅ **UI-Specific Control** - Fine-tune filtering/sorting per UI without affecting other interfaces  
-✅ **Simpler Resource Definitions** - Keeps Ash resources focused on core domain logic  
-✅ **Flexibility** - Easier to change UI behavior without modifying backend  
-✅ **Backend Independence** - Same Aurora UIX code works if you switch from Ash to Contexts (consider using [Aurora Ctx](https://github.com/wadvanced/aurora_ctx) for declarative Context functions)  
-✅ **Rapid Prototyping** - Quick UI iterations without touching resource definitions  
-
-### When to Use Each Approach
-
-**Use Ash's declarative approach when:**
-- Ash is your long-term backend strategy
-- You want consistent filtering/sorting across all application interfaces
-- Your filtering logic involves complex business rules or authorization
-- You prefer keeping all domain logic in one place
-- You're building multiple clients (web UI, mobile API, GraphQL) that need the same filtering
-
-**Use Aurora UIX's built-in features when:**
-- You need UI-specific filtering that shouldn't affect other interfaces
-- You're prototyping or experimenting with different UI approaches
-- You want to keep Ash resources minimal and focused
-- You might migrate away from Ash in the future (Aurora Ctx provides a similar declarative approach for Contexts)
-- You have simple, UI-only filtering requirements
-
-### Combining Both Approaches
-
-You can also use both together for maximum flexibility:
+A `filter` in the action always applies, to every interface that uses it, and the filters of the UI
+narrow its result further:
 
 ```elixir
-# In Ash resource - core business filtering
 actions do
   read :published_posts do
-    prepare build(sort: [published_at: :desc])
+    pagination offset?: true, countable: true, required?: false
     filter expr(status == :published)
   end
 end
+```
 
-# In Aurora UIX - additional UI-specific filtering
+```elixir
 auix_resource_metadata :post do
   ash_resource Post
   backend_opts ash_read_action: :published_posts
-  
-  field :author_id, filterable?: true, html_type: :select
-  field :category_id, filterable?: true, html_type: :select
+
+  field :author_id, filterable?: true
+  field :category_id, filterable?: true
 end
 ```
 
-### Recommendation
+Aurora UIX passes **no arguments** to read actions, so a filter or preparation that depends on an
+action argument receives `nil`.
 
-**If Ash is staying as your backend, using Ash's declarative options is encouraged.** It provides better cohesion, type safety, and ensures consistency across your application. 
-Aurora UIX is designed to work seamlessly with Ash's native features—you don't need to duplicate logic in the UI layer.
+### Sorting
+
+Aurora UIX adds its sort (`order_by`, or the column the user clicked) after the action's
+preparations. A sort set by the action, such as `prepare build(sort: [published_at: :desc])`,
+therefore stays the primary one, and clicking a column header only orders records that tie on it.
+Leave the sort out of the read action when users should sort the index, and set the default order
+with `order_by`:
+
+```elixir
+auix_resource_metadata :post do
+  ash_resource Post
+  order_by [desc: :published_at]
+end
+```
 
 ## Choosing Between Ash and Context Integration
 
@@ -777,7 +849,12 @@ If you want to add Ash to an existing Aurora UIX application using Contexts:
      use Ash.Resource,
        data_layer: AshPostgres.DataLayer,
        domain: MyApp.Accounts
-     
+
+     postgres do
+       table "users"
+       repo MyApp.Repo
+     end
+
      attributes do
        uuid_primary_key :id
        attribute :email, :string
@@ -785,6 +862,7 @@ If you want to add Ash to an existing Aurora UIX application using Contexts:
      end
      
      actions do
+       default_accept [:email, :name]
        defaults [:read, :create, :update, :destroy]
      end
    end
@@ -832,14 +910,10 @@ The Aurora UIX UI code and layouts remain unchanged—only the backend configura
 
 **Error**: `Error processing action ':read' of resource ':user' with expected type ':read' : Does not exists or it is of the wrong type`
 
-**Solution**: Ensure your resource has the required action defined:
+**Solution**: The resource has no action of the expected type. Define one:
 ```elixir
 actions do
   defaults [:read, :create, :update, :destroy]
-  # or explicitly
-  read :read do
-    primary? true
-  end
 end
 ```
 
@@ -847,47 +921,47 @@ end
 
 **Error**: `Does not exists or it is of the wrong type, or pagination is not supported`
 
-**Solution**: Add pagination to your read action:
+**Solution**: The read action picked for the index has no pagination. See
+[Pagination Support](#pagination-support):
 ```elixir
-read :list do
+read :read do
   primary? true
-  
+
   pagination do
     offset? true
     countable true
+    required? false
   end
 end
 ```
 
-#### Domain Resolution Issues
+#### The Index Crashes with `CaseClauseError`
 
-If actions aren't being discovered, try:
+An action named with `ash_read_action` has no pagination
+([#665](https://github.com/wadvanced/aurora_uix/issues/665)). Add it, or name the index action with
+`ash_read_action_paginated`.
 
-1. **Explicitly specify the domain**:
-   ```elixir
-   auix_resource_metadata :user, ash_resource: User
-   ```
+#### Another Action Runs Than the One Configured
 
-2. **Or define domain actions**:
-   ```elixir
-   # In your domain
-   resources do
-     resource User do
-       define :list_users, action: :read
-     end
-   end
-   ```
+The configured name matches no action, so another one is used
+([#664](https://github.com/wadvanced/aurora_uix/issues/664)). Check the spelling.
+
+#### Saving a Form Stores Nothing or Fails on the Inputs
+
+The action does not accept the attributes. List them in `default_accept` or in the action's
+`accept`.
 
 #### Relationship Not Rendering
 
 Ensure the related resource is also configured:
 
 ```elixir
-auix_resource_metadata :post, ash_resource: Post
 auix_resource_metadata :author, ash_resource: Author  # Must also be configured
 
-# In post configuration
-field :author_id, html_type: :select, option_label: :name
+auix_resource_metadata :post do
+  ash_resource Post
+  field :author_id, option_label: :name
+end
 ```
 
 ## Best Practices for Aurora UIX with Ash
@@ -896,7 +970,8 @@ These practices help Aurora UIX work optimally with your Ash resources.
 
 ### 1. Mark Primary Actions
 
-Help Aurora UIX select the right actions by marking your main actions as primary:
+Mark your main actions as primary. Aurora UIX picks them when no action is named like its type
+(see [Action Discovery Process](#action-discovery-process)):
 
 ```elixir
 actions do
@@ -1004,7 +1079,7 @@ end
 
 ```elixir
 defmodule MyAppWeb.TemplatesLive do
-  use Aurora.Uix.Layout
+  use Aurora.Uix
 
   auix_resource_metadata :template,
     ash_resource: MyApp.Templates.InterfaceDocumentTemplate,
@@ -1028,24 +1103,31 @@ must populate it before the generated LiveView mounts. The Phoenix 1.8 +
 AshAuthentication idiom is an `on_mount` hook inside a `live_session`:
 
 ```elixir
-# lib/my_app_web/router.ex
+# lib/my_app_web/router.ex, inside `scope "/", MyAppWeb do`
 live_session :authenticated,
   on_mount: {MyAppWeb.UserAuth, :ensure_authenticated} do
-  live "/templates", TemplatesLive, :index
-  live "/templates/new", TemplatesLive, :new
-  live "/templates/:id/edit", TemplatesLive, :edit
+  auix_live_resources("/templates", TemplatesLive.Template)
 end
 ```
 
 ```elixir
 # lib/my_app_web/user_auth.ex
-def on_mount(:ensure_authenticated, _params, session, socket) do
-  case fetch_current_user(session) do
-    {:ok, user} -> {:cont, assign(socket, :current_user, user)}
-    :error      -> {:halt, redirect(socket, to: ~p"/sign-in")}
+defmodule MyAppWeb.UserAuth do
+  use MyAppWeb, :verified_routes
+
+  import Phoenix.Component, only: [assign: 3]
+  import Phoenix.LiveView, only: [redirect: 2]
+
+  def on_mount(:ensure_authenticated, _params, session, socket) do
+    case fetch_current_user(session) do
+      {:ok, user} -> {:cont, assign(socket, :current_user, user)}
+      :error -> {:halt, redirect(socket, to: ~p"/sign-in")}
+    end
   end
 end
 ```
+
+`fetch_current_user/1` stands for your authentication.
 
 The assign key (`:current_user`) must match `ash_actor_assign:` exactly.
 
@@ -1096,31 +1178,43 @@ thread the right actor.
 
 ### What happens on a forbidden read or write
 
-- **Reads** (list, paginated list, `to_page`, dropdown queries) translate
-  `Ash.Error.Forbidden` into an empty result so the generated index renders an
-  empty state rather than crashing.
-- **Writes** (create, update, destroy) propagate
-  `{:error, %Ash.Error.Forbidden{}}`. The generated form handler catches the
-  error and renders an error flash; the LiveView stays alive.
+- **Lists** (index, association lists, dropdown queries) translate `Ash.Error.Forbidden` into an
+  empty result, so the page renders an empty state.
+- **Opening a record** that the actor may not read shows "Item not found" and returns to the index.
+- **Create and update** return `{:error, %Ash.Error.Forbidden{}}`. The form shows an error flash and
+  stays open.
+- **A refused delete** from the index crashes the LiveView
+  ([#649](https://github.com/wadvanced/aurora_uix/issues/649)).
 
 ### Using the actor from custom handlers
 
 If you override Aurora UIX's generated handlers (see
-[LiveView integration](liveview.md)) and call CRUD functions yourself, use
+[LiveView integration](liveview.md)) and call Ash yourself, use
 `Aurora.Uix.Templates.Basic.Helpers.backend_socket_opts/2` to extract the
 `[actor: …]` keyword list from the socket before merging it into your own
 options:
 
 ```elixir
-import Aurora.Uix.Templates.Basic.Helpers, only: [backend_socket_opts: 2]
+defmodule MyAppWeb.TemplateIndexHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
-def handle_event("custom_filter", %{"q" => q}, socket) do
-  socket_opts = backend_socket_opts(socket, socket.assigns.auix.list_function)
-  results = apply_list_function(
-    socket.assigns.auix.list_function,
-    socket_opts ++ [filter: [title: q]]
-  )
-  {:noreply, stream(socket, :items, results, reset: true)}
+  alias Aurora.Uix.Events
+  alias MyApp.Templates.InterfaceDocumentTemplate, as: Template
+
+  @impl IndexImpl
+  def auix_handle_event("archive", %{"id" => id}, socket) do
+    actor_opts = backend_socket_opts(socket, socket.assigns.auix.get_function)
+
+    Template
+    |> Ash.get!(id, actor_opts)
+    |> Ash.update!(%{}, [action: :archive] ++ actor_opts)
+
+    Events.refresh()
+
+    {:noreply, socket}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
 end
 ```
 

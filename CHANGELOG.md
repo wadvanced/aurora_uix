@@ -152,6 +152,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
   handler examples import what they use, removing routes does not remove their buttons, the
   one-to-many and embeds-many default actions are listed, action options apply in the order written,
   and the stream, async and sorting examples were rewritten.
+- Ash Integration was checked against the code: a walkthrough on the reader's own modules, how
+  actions are picked and paginated, aggregate types, the custom new function, sorting next to read
+  actions, and the actor examples.
 
 ### Build
 
