@@ -562,8 +562,9 @@ relationships do
 end
 ```
 
-To order or filter the rows, set `order_by:` or `where:` on the field **in the layout**.
-`query_opts` in the resource metadata does not apply to this list:
+To order or filter the rows, set `query_opts` on the field in the resource metadata, or
+`order_by:` and `where:` on the field in the layout, which take precedence over the same option in
+`query_opts` (see [One-to-Many](resource_metadata.md#one-to-many-has_many)):
 
 ```elixir
 edit_layout :author do

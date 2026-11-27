@@ -191,8 +191,8 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `renderer` | Custom rendering function/component (form/edit + show) | [Custom Field Types](../core/resource_metadata.md#custom-field-types-and-rendering) |
 | `index_renderer` / `edit_renderer` / `show_renderer` | Per-layout custom rendering function/component | [Per-layout renderers](../core/resource_metadata.md#per-layout-renderers) |
 | `option_label` | Label source for select dropdowns (atom or function) | [Many-to-One](../core/resource_metadata.md#many-to-one-belongs_to) |
-| `query_opts: [order_by: …]` | Sort order for the options of many-to-one and many-to-many fields | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
-| `query_opts: [where: …]` | Filter for the options of many-to-one and many-to-many fields | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `query_opts: [order_by: …]` | Sort order for the options of many-to-one and many-to-many fields, and the rows of one-to-many lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `query_opts: [where: …]` | Filter for the options of many-to-one and many-to-many fields, and the rows of one-to-many lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
 | `generated?` | Mark a calculation or aggregate loaded with the entity, not stored with it | [Field Properties](../core/resource_metadata.md#validation-and-constraints) |
 | `upload` block | Turn a field into a managed LiveView upload | [File Uploads](../core/resource_metadata.md#file-uploads) |
 
