@@ -90,6 +90,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Info flash with the daisyUI bridge**: `auix-bridge-daisyui.css` mapped the info text and the
+  info background to the same `--color-info`, so the info flash had no readable text. The info text
+  now uses `--color-info-content`. A host that already copied the bridge re-runs
+  `mix auix.gen.stylesheet --force` or edits its copy.
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.
