@@ -210,7 +210,7 @@ defmodule Aurora.UixWeb.Test.ShowScenariosTest do
     conn: conn
   } do
     each_backend(fn backend ->
-      create_sample_products(100, :test)
+      products = create_sample_products(100, :test)
       path = fn suffix -> mirror_path(backend, "show", "products", suffix) end
       row_link = fn n -> "table tbody tr:nth-of-type(#{n}) td:nth-of-type(2) a" end
 
@@ -277,6 +277,19 @@ defmodule Aurora.UixWeb.Test.ShowScenariosTest do
       assert has_element?(view, "#{@navigator} span.hero-chevron-right.auix-icon-inactive")
 
       assert_cross_page_navigation(conn, path)
+
+      # a direct link to a record outside the loaded page has no known position
+      %{id: off_page_id} = products["id_test-050"]
+
+      for action <- ["show", "edit"] do
+        {:ok, view, _html} = live(conn, path.("/#{off_page_id}/#{action}"))
+        assert has_element?(view, "#auix-product-#{action}-modal-content")
+
+        refute has_element?(
+                 view,
+                 "#auix-product-#{action}-modal-content .auix-record-navigator-bar"
+               )
+      end
     end)
   end
 

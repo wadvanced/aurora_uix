@@ -702,7 +702,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Returns
   boolean() - True if record navigator should be displayed at the given position, false
-  otherwise.
+  otherwise. It is false when the record is not in the loaded page (`:item_index` below 0,
+  as with a direct link to a record of another page), since its position is unknown.
 
   ## Examples
 
@@ -714,9 +715,16 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
       iex> record_navigator?(%{layout_options: %{record_navigator: :top}}, :bottom)
       false
+
+      iex> record_navigator?(%{item_index: -1, layout_options: %{record_navigator: :top}}, :top)
+      false
   """
   @spec record_navigator?(map(), atom()) :: boolean()
   def record_navigator?(%{pagination: nil}, _position), do: false
+
+  def record_navigator?(%{item_index: item_index}, _position)
+      when is_integer(item_index) and item_index < 0,
+      do: false
 
   def record_navigator?(%{layout_options: %{record_navigator: positions}}, position)
       when is_list(positions), do: position in positions
