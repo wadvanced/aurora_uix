@@ -64,10 +64,10 @@ directly. This is intentionally last-resort; see [Escape hatch: semantic class o
 ### Import order
 
 ```css
-@import "auix-variables.css";
-@import "auix-bridge-daisyui.css";  /* or your custom bridge */
-@import "auix-custom.css";          /* host customizations (opt-in via --custom) */
-@import "auix-rules.css";
+@import "./auix-variables.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
 ```
 
 ### Scaffolding `auix-custom.css`
@@ -158,11 +158,11 @@ mix auix.gen.stylesheet --baseline --force
 Add one extra import **before** `auix-variables.css`:
 
 ```css
-@import "auix-baseline.css"; /* non-Tailwind hosts only */
-@import "auix-variables.css";
-@import "auix-bridge-daisyui.css";  /* or your custom bridge */
-@import "auix-custom.css";          /* host customizations (opt-in via --custom) */
-@import "auix-rules.css";
+@import "./auix-baseline.css"; /* non-Tailwind hosts only */
+@import "./auix-variables.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
 ```
 
 The reset uses the same `--auix-*` variables a bridge maps, so a style bridge still controls

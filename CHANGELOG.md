@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`auix-stylesheet.css` with Tailwind v4**: `mix auix.gen.stylesheet` wrote the shim's two imports
+  without `./`, so Tailwind v4 resolved them as packages and failed with `Can't resolve
+  'auix-variables.css'`. The shim now imports `./auix-variables.css` and `./auix-rules.css`, and the
+  import examples in the task docs and the styling guides use `./` too.
 - **`mix auix.gen.icons` without Heroicons**: in a host application without the `heroicons` dependency,
   the task crashed with a bare "could not list directory" error. It now stops with a message giving the
   dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and

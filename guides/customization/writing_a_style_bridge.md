@@ -84,10 +84,10 @@ You don't have to bridge every variable. Anything left unmapped falls back to Au
 Place the bridge between the two Aurora UIX imports in `app.css`:
 
 ```css
-@import "auix-variables.css";   /* Aurora UIX defaults — must come first */
-@import "my-bridge.css";        /* your overrides */
+@import "./auix-variables.css";   /* Aurora UIX defaults — must come first */
+@import "./my-bridge.css";        /* your overrides */
 :root { /* any extra one-off tweaks */ }
-@import "auix-rules.css";       /* component rules — must come last */
+@import "./auix-rules.css";       /* component rules — must come last */
 ```
 
 No mix task is needed. Drop the file anywhere that your bundler (esbuild) can resolve it — `assets/css/` is the conventional location.
