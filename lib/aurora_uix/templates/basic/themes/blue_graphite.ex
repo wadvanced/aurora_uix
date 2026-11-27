@@ -139,7 +139,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
 
   /* Dark theme - Apply dark variant via media query */
   @media (prefers-color-scheme: dark) {
-    :root[data-theme-name="#{@theme_name}"], :host[data-theme-name="#{@theme_name}"] {
+    :root[data-theme-name="#{@theme_name}"]:not([data-theme="light"]), :host[data-theme-name="#{@theme_name}"]:not([data-theme="light"]) {
       --auix-color-bg-default: var(--dark--auix-color-bg-default);
       --auix-color-bg-default--reverted: var(--dark--auix-color-bg-default--reverted);
       --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);

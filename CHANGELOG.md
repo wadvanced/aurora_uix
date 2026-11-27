@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
+  in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
+  stayed dark. The media query now skips `[data-theme="light"]`.
 - **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
   `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
   primary action was used instead. Compilation now fails with a `DslError` naming the missing action.

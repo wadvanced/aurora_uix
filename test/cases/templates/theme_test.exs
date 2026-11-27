@@ -138,6 +138,22 @@ defmodule Aurora.Uix.Test.Cases.ThemeTest do
       assert Enum.all?(selectors, &String.contains?(&1, ~s([data-theme-name="#{name}"])))
     end
 
+    # An explicit data-theme="light" must beat an OS dark preference (#672).
+    for theme <- @themes do
+      [_, media] =
+        Regex.run(
+          ~r/@media \(prefers-color-scheme: dark\) \{\s*([^{]+)\{/,
+          theme.rule(:root_colors)
+        )
+
+      media_selectors = media |> String.split(",") |> Enum.map(&String.trim/1)
+
+      assert length(media_selectors) == 2
+
+      assert Enum.all?(media_selectors, &String.ends_with?(&1, ~s{:not([data-theme="light"])})),
+             "#{inspect(theme)} applies OS dark colors over data-theme=\"light\""
+    end
+
     assert Basic.default_theme_name() == :white_charcoal
   end
 
