@@ -89,6 +89,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Theme of embedded components**: only the generated index LiveView set `data-theme-name` on
   `<html>`, so a page that only embeds the index, form or show components got no theme colors. Every
   component now renders the `AuixThemeName` hook, which reads the theme name from its element.
+  The generated index also loses the empty space it had above its title on wide screens.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
