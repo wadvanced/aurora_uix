@@ -93,6 +93,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Flash after a save**: a flash message was rendered wrapped in quotes, and saving a new record
   reported it as updated. The message is now rendered as written, and a new record reports
   "<Name> created successfully".
+- **Info flash with the daisyUI bridge**: `auix-bridge-daisyui.css` mapped the info text and the
+  info background to the same `--color-info`, so the info flash had no readable text. The info text
+  now uses `--color-info-content`. A host that already copied the bridge re-runs
+  `mix auix.gen.stylesheet --force` or edits its copy.
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.
@@ -257,6 +261,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - The tutorial's schema generators run without a duplicate migration number, and the guides tell
   how to work around the empty list after **New**, the unreadable info message and the `preload`
   warning.
+- What's New lists the upload file cards and the renamed handler callbacks.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.
