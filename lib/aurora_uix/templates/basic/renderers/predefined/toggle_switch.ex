@@ -2,7 +2,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch do
   @moduledoc """
   Predefined `:toggle_switch` renderer for boolean fields.
 
-  - `:index` / `:show` — a read-only (disabled) sliding switch showing the on/off state.
+  - `:index` — a read-only (disabled) sliding switch showing the on/off state.
+  - `:show` — the field label above the same read-only switch.
   - `:form` — the same sliding switch, interactive and bound to the form field.
   """
 
@@ -24,9 +25,29 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch do
     """
   end
 
-  def render(%{auix: %{layout_type: lt}} = assigns) when lt in [:index, :show] do
+  def render(%{auix: %{layout_type: :index}} = assigns) do
     assigns = assign(assigns, :on, truthy?(display_value(assigns)))
 
+    ~H"""
+    <.switch on={@on} />
+    """
+  end
+
+  def render(%{auix: %{layout_type: :show}} = assigns) do
+    assigns = assign(assigns, :on, truthy?(display_value(assigns)))
+
+    ~H"""
+    <div class="auix-show-field">
+      <span class="auix-label">{dt(@field.label)}</span>
+      <.switch on={@on} />
+    </div>
+    """
+  end
+
+  # PRIVATE
+
+  @spec switch(map()) :: Phoenix.LiveView.Rendered.t()
+  defp switch(assigns) do
     ~H"""
     <input
       type="checkbox"
