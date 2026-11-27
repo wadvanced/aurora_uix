@@ -5,7 +5,8 @@ defmodule Aurora.Uix.Templates.Basic do
 
   Delegates module generation to `ModulesGenerator`, which creates LiveView handler code
   for index, show, and form layouts. Provides information about supported layout tags and
-  default core components and theme modules.
+  the default core components module and
+  theme name.
   """
 
   @behaviour Aurora.Uix.Template
@@ -19,7 +20,7 @@ defmodule Aurora.Uix.Templates.Basic do
   - `parsed_opts` (map()) - Parsed options for generation.
 
   ## Returns
-  Macro.t() - The generated module as a macro.
+  Macro.t() - The code of the generated modules.
   """
   @impl true
   @spec generate_module(map()) :: Macro.t()

@@ -35,7 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
   ## Parameters
 
     - `container` (Socket.t() | map()) - The assigns map or Socket to update.
-    - `action_group` (atom()) - The target action group (e.g., `:main`, `:secondary`).
+    - `action_group` (atom()) - The target action group (e.g., `:index_row_actions`, `:form_footer_actions`).
     - `actions` (list(map() | struct())) - List of actions to add. Each action must be convertible via `Aurora.Uix.Action.new/1`:
       a `{name, function}` tuple, or a `{name, function, opts}` tuple taking options (such as `destructive?:`) as a third element.
 
@@ -64,7 +64,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions do
     - `assigns` (Socket.t() | map()) - Must contain `:auix.layout_tree.actions` with action definitions.
     - `actions` (map()) - Map of action names to tuples specifying:
       * `{action_group, :remove_auix_action}` - Removes the action
-      * `{action_group, function}` - Applies the specified BasicHelpers function
+      * `{action_group, function_name}` - Applies the named `Aurora.Uix.Templates.Basic.Helpers`
+      function
 
     The layout's action value is a `{name, function}` tuple, or a `{name, function, opts}` tuple that takes
     options (such as `destructive?:`) as a third element; see `Aurora.Uix.Action.new/1`.

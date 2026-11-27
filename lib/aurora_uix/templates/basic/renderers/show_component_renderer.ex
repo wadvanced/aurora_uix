@@ -1,15 +1,12 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   @moduledoc """
-  Renders detail (show) views for individual entities in Aurora UIX.
+  Renders the show component of a record.
 
   ## Key Features
 
-  - Displays entity attributes with layout support
-  - Provides edit functionality via modal popup form
-  - Consistent navigation with back button
-  - Supports CSS class customization
-  - Layout-aware content rendering
-  - Integrates with Aurora UIX context and helpers
+  - Renders the header with its actions (edit by default), the inner layout and the footer actions
+    (back by default)
+  - Renders the record navigator at the positions of the layout's `record_navigator` option
   """
 
   use Aurora.Uix.CoreComponentsImporter
@@ -26,8 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
 
   ## Parameters
   - `assigns` (map()) - LiveView assigns containing:
-    * `:auix` (map()) - Aurora UIX context with configurations and layout_tree info.
-    * `:live_action` (atom()) - Current live action (`:edit`).
+    * `:auix` (map()) - Aurora UIX context with the entity, configurations and layout_tree.
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered detail view with entity information and actions.

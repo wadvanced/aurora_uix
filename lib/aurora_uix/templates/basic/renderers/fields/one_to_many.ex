@@ -4,11 +4,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
 
   ## Key Features
 
-  - Displays and manages collections of associated records
+  - Displays the collection of associated records
   - Lists the related records in a table, honouring the field's `order_by` and `where` options
   - Supports actions for each record (show, edit, delete)
   - Links to create new associated records
-  - Enables filtering and relationship management
   - Integrates with Aurora UIX context and helpers
   """
 
