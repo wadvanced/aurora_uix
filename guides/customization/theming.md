@@ -400,14 +400,10 @@ config :aurora_uix, theme_name: :ocean
 **Step 3: Generate the Stylesheet**
 
 ```bash
-mix do app.config + auix.gen.stylesheet
+mix auix.gen.stylesheet
 ```
 
-`app.config` makes the theme modules of your application visible to the task; running
-`mix auix.gen.stylesheet` alone fails with `nil.rules/0`
-([#671](https://github.com/wadvanced/aurora_uix/issues/671)).
-
-The task writes the `:root_colors` of every theme it finds, and the other rules of the
+The task compiles your application first, so it finds the themes defined there. It writes the `:root_colors` of every theme it finds, and the other rules of the
 **configured** theme. Run it again after changing the configuration.
 
 **Step 4: Apply the Theme to HTML**
