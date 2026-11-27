@@ -14,7 +14,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   header, validation, and submission handling.
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components,

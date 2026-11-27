@@ -9,7 +9,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating do
   The number of stars defaults to `5`; override it per field with `renderer_opts: [max: 10]`.
   """
 
-  use Aurora.Uix.Renderer
+  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
 
   @impl Aurora.Uix.Renderer
   def render(%{auix: %{layout_type: :form}} = assigns) do

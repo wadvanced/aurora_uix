@@ -13,7 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.EmbedsOneRenderer do
   - Requires field configuration with embedded resource information.
   - Layout must be available for the embedded resource.
   """
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers

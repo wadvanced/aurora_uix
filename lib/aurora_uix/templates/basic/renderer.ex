@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderer do
   for index, show, form, and layout container tags (group, inline, stacked, sections).
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
 
   alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Templates.Basic.Renderers

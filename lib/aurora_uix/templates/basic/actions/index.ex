@@ -23,7 +23,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Pagination requires specific assigns structure
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
   use Phoenix.Component
 

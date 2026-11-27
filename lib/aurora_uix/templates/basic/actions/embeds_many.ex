@@ -19,7 +19,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
     - Designed for use within Phoenix LiveView templates and Aurora UIX layouts.
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   import Phoenix.Component, only: [sigil_H: 2, live_component: 1]

@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FieldRenderer do
   `Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer`.
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Field

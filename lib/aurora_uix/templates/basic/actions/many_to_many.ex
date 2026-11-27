@@ -28,7 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ManyToMany do
       `:many_to_many_toggle_state` and the layout tree options, plus the `:field` being rendered.
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   import Phoenix.Component, only: [sigil_H: 2]

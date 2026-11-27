@@ -37,7 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToOne do
     handles this; a missing preload surfaces as an unloaded association, not as rendered inputs.
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers

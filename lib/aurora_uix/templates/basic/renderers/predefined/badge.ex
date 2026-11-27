@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Badge do
   - `:form` — editing is not special; delegates to the default input.
   """
 
-  use Aurora.Uix.Renderer
+  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
 
   alias Aurora.Uix.Renderers
 

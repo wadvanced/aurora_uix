@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ProgressBar do
   The maximum defaults to `100`; override it per field with `renderer_opts: [max: 5]`.
   """
 
-  use Aurora.Uix.Renderer
+  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
 
   alias Aurora.Uix.Renderers
 

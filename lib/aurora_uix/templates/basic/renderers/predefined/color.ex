@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Color do
   styling choice.
   """
 
-  use Aurora.Uix.Renderer
+  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
 
   @impl Aurora.Uix.Renderer
   def render(%{auix: %{layout_type: :form}} = assigns) do

@@ -34,7 +34,7 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
       />
   """
 
-  use Aurora.Uix.CoreComponentsImporter
+  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
   use Aurora.Uix.GettextResolver
   use Phoenix.LiveComponent
 

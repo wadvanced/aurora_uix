@@ -616,6 +616,36 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     ])
   end
 
+  # A host application's modules compile after its dependencies, so the packaged library
+  # compiles in another VM, with a configured template that does not exist yet.
+  @tag :tmp_dir
+  test "the packaged library compiles with a template defined in the host application",
+       %{tmp_dir: tmp_dir} do
+    exclude_patterns = Mix.Project.config()[:package][:exclude_patterns]
+
+    files =
+      "lib/**/*.ex"
+      |> Path.wildcard()
+      |> Enum.reject(fn file -> Enum.any?(exclude_patterns, &Regex.match?(&1, file)) end)
+
+    code_paths = :code.get_path() -- [String.to_charlist(Mix.Project.compile_path())]
+
+    script = """
+    Application.put_env(:aurora_uix, :template, Aurora.UixWeb.Test.HostTemplate)
+    files = #{inspect(files, limit: :infinity)}
+
+    case Kernel.ParallelCompiler.compile_to_path(files, #{inspect(tmp_dir)}, return_diagnostics: true) do
+      {:ok, _modules, _diagnostics} -> :ok
+      {:error, _errors, _diagnostics} -> System.halt(1)
+    end
+    """
+
+    args = Enum.flat_map(code_paths, &["-pa", to_string(&1)]) ++ ["-e", script]
+    {output, status} = System.cmd("elixir", args, stderr_to_stdout: true)
+
+    assert status == 0, output
+  end
+
   ## PRIVATE ##
 
   @spec assert_compile_errors([{binary(), binary(), Regex.t()}]) :: term()
