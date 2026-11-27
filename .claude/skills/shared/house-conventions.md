@@ -63,6 +63,12 @@ against a stub.
 (no `[#343](…)`); older releases keep theirs, and that predates this rule — do not copy it, do not
 strip it.
 
+Documentation changes that only correct or sync existing text (guides checked against the code,
+module docs fixed, examples rewritten, screenshots regenerated) share **one** generic entry per
+release under `Documentation`, such as "Guides, README and module documentation brought up to
+date with the codebase." Do not list which guides or modules changed. If the current release
+already has that entry, add nothing. Only a new guide gets its own line.
+
 `improve-issue` prescribes the entry verbatim in `DOC-1`; `code-issue` transcribes it;
 `review-issue` raises a missing entry as a gap. A section outside `DOC-1` never edits the file.
 

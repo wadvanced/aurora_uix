@@ -231,54 +231,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Documentation
 
-- New [Reusable Components](guides/core/components.md) guide.
-- New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
-- Overview and README: features grouped by use, with reusable components and the other missing ones.
-- Fixed links between guides that did not reach their section or file on HexDocs or GitHub.
-- README, Getting Started, the tutorial and Troubleshooting were checked against a new Phoenix
-  application: dependency requirements, stylesheet imports, icons, hooks, routes and the Ash setup.
-- Resource Metadata, Layout System, Reusable Components and Internationalization were checked
-  against the code: translations need the application's own Gettext backend, a one-to-many list is
-  ordered and filtered from the layout, the Download button needs `downloadable?`, and the title,
-  field order, backend detection and embedded-field descriptions were corrected.
-- LiveView Integration, Custom Actions and the customization hub were checked against the code:
-  handler examples import what they use, removing routes does not remove their buttons, the
-  one-to-many and embeds-many default actions are listed, action options apply in the order written,
-  and the stream, async and sorting examples were rewritten.
-- Ash Integration was checked against the code: a walkthrough on the reader's own modules, how
-  actions are picked and paginated, aggregate types, the custom new function, sorting next to read
-  actions, and the actor examples.
-- Advanced Usage was checked against the code: a custom backend example that works, the template
-  callbacks and their input, separated metadata and introspection examples that compile, and how to
-  configure a template of the application.
-- Overview, Theming, Styling, Writing a Style Bridge and Overriding Components were checked against
-  the code: a custom theme defines every color, how to generate and apply it, which variables the
-  built-in rules read, and the overview examples use one set of fields.
-- Contributing: databases, setup and asset commands, local configuration and the quality checks.
-  The roadmap no longer lists shipped features as wishes.
-- Module documentation of the root module, the DSL, the layout options, `Action`, `Resource`,
-  `Filter` and `Counter` was corrected: examples, option defaults and types.
-- Module documentation of the parsers, CRUD modules, Gettext helpers, template modules and route
-  helper was corrected, and the module groups of the API reference list the existing modules.
-- Module documentation of the Basic template's handlers, components, actions, generators, helpers
-  and themes was corrected, with the CSS sanitizer examples and the conditions of the Download
-  button.
-- Documented examples of the CRUD modules, the theme helper and the layout option lookup were
-  corrected.
-- Guide screenshots were regenerated with the default White Charcoal theme, and the nested
-  sections example describes what they show.
-- The upgrade notes include the new rules of `ash_read_action`, and the Ash troubleshooting matches
-  its error messages.
-- Resource Metadata: the example that orders a one-to-many list compiles.
-- Module documentation of the renderers was corrected: the many-to-one, upload, form and show
-  renderers.
-- The tutorial's schema generators run without a duplicate migration number, and the guides tell
-  how to work around the empty list after **New**, the unreadable info message and the `preload`
-  warning.
-- What's New lists the upload file cards and the renamed handler callbacks.
-- Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
-  filter-panel actions, the dependency requirements of a new application, the icons error and the
-  theme name of embedded components.
+- New [Reusable Components](guides/core/components.md) and [What's New in 0.2.1](guides/whats_new/0.2.1.md)
+  guides.
+- Guides, README and module documentation brought up to date with the codebase.
 
 ### Build
 
