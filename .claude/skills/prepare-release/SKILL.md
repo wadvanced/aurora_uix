@@ -80,7 +80,10 @@ the images would not show the real UI. It must exit `0`.
 
 ## 5. Screenshots
 
-`mix test test/guides/capture_*.exs`
+`mix test test/guides/capture_*.exs`, run in a **clean temporary worktree**: a checkout with a local
+`config/test.exs` (gitignored) can set another theme, and the images must show the default one. In the
+worktree build the assets (step 4), create and migrate the test database, run the captures, copy the
+changed PNGs back, then remove the worktree and run `scripts/test_pg.sh sweep`.
 
 Overwrites the PNGs in `guides/overview/images`, `guides/core/images/layouts`
 and `guides/core/images/ash` (desktop 1024×768, mobile 412×915) through

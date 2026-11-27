@@ -92,6 +92,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Theme of embedded components**: only the generated index LiveView set `data-theme-name` on
   `<html>`, so a page that only embeds the index, form or show components got no theme colors. Every
   component now renders the `AuixThemeName` hook, which reads the theme name from its element.
+  The generated index also loses the empty space it had above its title on wide screens.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
@@ -230,6 +231,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   button.
 - Documented examples of the CRUD modules, the theme helper and the layout option lookup were
   corrected.
+- Guide screenshots were regenerated with the default White Charcoal theme, and the nested
+  sections example describes what they show.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.
