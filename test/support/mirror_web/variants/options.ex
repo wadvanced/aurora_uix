@@ -6,6 +6,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Options do
   ## Key Features
 
   - Sets the titles and subtitles of the product index, form and show layouts
+  - Replaces the product index's `get_streams` and `row_id` functions
   - Marks, in each index row, whether the relationship of the row is loaded
   - Declares the product transactions index with a layout preload and the product locations
     resource with a preload and a `where`
@@ -18,6 +19,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Options do
 
   use Phoenix.Component
 
+  alias Aurora.Uix.Layout.Options.Index
   alias Aurora.UixWeb.Test.Mirror.Variants.Options
 
   @doc """
@@ -55,7 +57,9 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Options do
 
       auix_create_ui do
         index_columns(:product, [:id, :reference, :name, :description, :quantity_at_hand],
-          page_title: "The Products Listing"
+          page_title: "The Products Listing",
+          get_streams: &Options.get_streams/1,
+          row_id: &Options.row_id/1
         )
 
         edit_layout :product,
@@ -103,6 +107,14 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Options do
   @spec new_subtitle(map()) :: term()
   def new_subtitle(assigns),
     do: ~H"Please fill <strong>{@auix.name}'s</strong> values properly"
+
+  @doc false
+  @spec get_streams(map()) :: term()
+  def get_streams(assigns), do: Index.get_streams(assigns)
+
+  @doc false
+  @spec row_id({binary(), term()}) :: binary()
+  def row_id({dom_id, _entity}), do: "#{dom_id}-row"
 
   @doc false
   @spec product_marker(map()) :: Phoenix.LiveView.Rendered.t()

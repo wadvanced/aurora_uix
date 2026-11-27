@@ -7,17 +7,16 @@ defmodule Aurora.Uix.Templates.Basic.Themes.ThemeBase do
   `:root_colors` block (or in user CSS) to change one component without
   touching its siblings.
 
-  This module sits between the theme palette files and `BaseVariables` in the
-  delegation chain:
+  The built-in themes `include` this module, which includes the next one in turn:
 
   ```
-  WhiteCharcoal / VitreousMarble  (own :root_colors)
-          ↓ fallthrough
-  ThemeBase                       (:root_color_aliases)
-          ↓ fallthrough
-  BaseVariables                   (:root sizes/shadows)
-          ↓ fallthrough
-  Base                            (all .auix-* component rules)
+  WhiteCharcoal / VitreousMarble / BlueGraphite  (own :root_colors)
+          ↓ include
+  ThemeBase                                      (:root_color_aliases)
+          ↓ include
+  BaseVariables                                  (:root sizes/shadows)
+          ↓ include
+  Base                                           (all .auix-* component rules)
   ```
   """
   use Aurora.Uix.Templates.Theme

@@ -59,7 +59,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
               {:ok, Socket.t()}
 
   @doc """
-  Handles URL parameter changes, updates routing stack, and assigns form component.
+  Handles URL parameter changes: stores the current path and builds the routing stack.
+  `apply_action/2` runs after it.
 
   ## Parameters
   - `params` (map()) - URL/query parameters.
@@ -67,7 +68,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with routing stack and form component.
+  `{:noreply, Socket.t()}` - Updated socket with the current path and routing stack.
   """
   @callback auix_handle_params(params :: map(), url :: binary(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -246,8 +247,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @doc """
   Handles URL parameter changes and updates socket state.
 
-  Updates routing stack, assigns form component, and applies the current action based on
-  live_action and parameters.
+  Stores the current path, sends the theme name to the page and builds the routing stack.
+  `apply_action/2` runs after it and applies the current action.
 
   ## Parameters
   - `params` (map()) - URL/query parameters.
@@ -255,7 +256,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   - `socket` (Socket.t()) - LiveView socket with `:auix` assigns.
 
   ## Returns
-  `{:noreply, Socket.t()}` - Updated socket with routing stack, form component, and action applied.
+  `{:noreply, Socket.t()}` - Updated socket with the current path and routing stack.
   """
   @spec auix_handle_params(map(), binary(), Socket.t()) :: {:noreply, Socket.t()}
   def auix_handle_params(params, url, socket) do

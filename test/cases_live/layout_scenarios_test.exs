@@ -245,12 +245,15 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
     end)
   end
 
-  test "layout options set the page titles and subtitles", %{conn: conn} do
+  test "layout options set the page titles and subtitles and replace the index row functions",
+       %{conn: conn} do
     each_backend(fn backend ->
       create_sample_products_with_transactions(2, 2, :test)
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "options", "products"))
       assert has_element?(view, ".auix-header-title", "The Products Listing")
+      assert has_element?(view, "tbody tr[id^='products-'][id$='-row']")
+      assert has_element?(view, "div[name='auix-card'][id^='products__mobile-'][id$='-row']")
       assert has_element?(view, "a[name='auix-new-product']", "New Product")
       view |> element("a[name='auix-new-product']") |> render_click()
       assert has_element?(view, "div#auix-product-new-modal .auix-header-title", "Add a Product")
