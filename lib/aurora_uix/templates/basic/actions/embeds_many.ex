@@ -1,16 +1,16 @@
 defmodule Aurora.Uix.Templates.Basic.Actions.EmbedsMany do
   @moduledoc """
-  Provides helpers for managing one-to-many association actions in Aurora UIX index layouts.
+  Provides helpers for managing the actions of an embeds-many field in Aurora UIX form layouts.
 
-  This module sets up and modifies actions for header, footer, and row elements in form layouts
-  that represent embeds-many associations. It ensures that default actions are present and
+  This module sets up and modifies the header, footer, new-entry and existing-entry actions of an
+  embeds-many field. It ensures that default actions are present and
   allows for further customization via the `Actions.modify_actions/2` function.
 
   ## Key Features
 
-    - Adds default actions for headers, footers, and rows in embeds-many association tables.
+    - Adds default actions to the header, the footer, the new entry and each existing entry.
     - Integrates with the Aurora UIX action modification pipeline.
-    - Provides helpers for rendering "new", "show", "edit", and "delete" child links in form layouts.
+    - Provides the buttons that open a new entry, add it and remove an existing one.
     - The add-entry and remove-entry actions take their icons from the field's `action_icons:` option; below the `sm` breakpoint the add-entry buttons show only their icons.
 
   ## Key Constraints

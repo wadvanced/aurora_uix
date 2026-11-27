@@ -206,6 +206,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
   `Filter` and `Counter` was corrected: examples, option defaults and types.
 - Module documentation of the parsers, CRUD modules, Gettext helpers, template modules and route
   helper was corrected, and the module groups of the API reference list the existing modules.
+- Module documentation of the Basic template's handlers, components, actions, generators, helpers
+  and themes was corrected, with the CSS sanitizer examples and the conditions of the Download
+  button.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application and the icons error.
 

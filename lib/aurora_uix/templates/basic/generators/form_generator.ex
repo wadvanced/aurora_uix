@@ -2,7 +2,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.FormGenerator do
   @moduledoc """
   Generates form component modules for the Basic template implementation.
 
-  This module provides a macro to generate LiveComponent modules for handling forms in Aurora UIX Basic templates.
+  `generate_module/1` returns the code of the form LiveComponent of a resource.
 
   ## Key Features
 

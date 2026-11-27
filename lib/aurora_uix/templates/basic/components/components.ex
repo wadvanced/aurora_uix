@@ -13,6 +13,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   - `auix_items_card/1` — card view for collections: a header with a menu of row actions, a body, and the show action as the card's tap target.
   - `pages_selection/1` — pagination bar with page numbers and selection counts.
   - `record_navigator_bar/1` — previous/next record navigation for form/show views.
+  - `auix_checkbox_group/1` — checkboxes submitted under one array name.
+  - `auix_selected_list/1` — read-only list of labels.
 
   ## Overriding
 
@@ -42,13 +44,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.simple_form for={@form} phx-change="validate" phx-submit="save">
+      <.auix_simple_form for={@form} phx-change="validate" phx-submit="save">
         <.input field={@form[:email]} label="Email"/>
         <.input field={@form[:username]} label="Username" />
         <:actions>
           <.button>Save</.button>
         </:actions>
-      </.simple_form>
+      </.auix_simple_form>
   """
   attr(:for, :any, required: true, doc: "the data structure for the form")
   attr(:as, :any, default: nil, doc: "the server side parameter to collect all input under")
@@ -83,7 +85,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items id="users" rows={@users}>
+      <.auix_items id="users" streams={@streams} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -165,7 +167,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items_table id="users" rows={@users}>
+      <.auix_items_table id="users" rows={@users} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -281,7 +283,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items_card id="users" rows={@users}>
+      <.auix_items_card id="users" rows={@users} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -662,9 +664,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   Determines if record navigator should be displayed at the specified position.
 
   ## Parameters
-  - `layout_options` (map()) - Layout configuration map containing record_navigator setting.
-  - `position` (atom()) - The position to check. Common values include `:top`, `:bottom`,
-    or `:both`.
+  - `auix` (map()) - The `auix` assigns, with `:pagination` and the `:record_navigator` layout
+    option.
+  - `position` (atom()) - The position to check: `:top` or `:bottom`.
 
   ## Returns
   boolean() - True if record navigator should be displayed at the given position, false

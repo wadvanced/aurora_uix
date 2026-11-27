@@ -1,12 +1,13 @@
 defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @moduledoc """
-  Provides the core set of reusable UI components for Aurora UIX, including modals, tables, forms, flash messages, and more.
+  Provides the core set of reusable UI components for Aurora UIX: modals, forms, inputs, flash
+  messages, headers, lists and icons.
 
-  Most functions in this module are equivalent to those in the original Phoenix Framework's `core_components.ex`,
-  with some stylistic changes for Aurora UIX, but retaining 100% compatibility with the Phoenix API and usage patterns.
+  Most functions in this module follow those of a Phoenix application's `core_components.ex`, styled
+  with the `auix-*` classes.
 
   ## Key Features
-  - Provides modal, table, form, flash, and input components for LiveView UIs.
+  - Provides modal, form, flash, and input components for LiveView UIs.
   - All components are built with CSS classes for customization via the theme system.
   - Includes icon support via [Heroicons](https://heroicons.com). See `icon/1` for usage.
   - Designed for extensibility and override in your own application.
@@ -16,7 +17,8 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   > #### Note {: .info}
   > This module may be injected as the core components module depending on the Aurora UIX template configuration.
   > Dynamic selection and import of the core components module is handled via `use Aurora.Uix.CoreComponentsImporter`,
-  > which will import either this module or a custom one as configured in your application or template.
+  > which imports the core components module of the configured template (this module for the Basic
+  > template).
 
   """
   use Aurora.Uix.GettextResolver
@@ -125,7 +127,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   ## Examples
 
       <.flash kind={:info} flash={@flash} />
-      <.flash kind={:info} phx-mounted={show("#flash")}>Welcome Back!</.flash>
+      <.flash kind={:info} phx-mounted={uix_show("#flash")}>Welcome Back!</.flash>
   """
   attr(:id, :string, doc: "the optional id of flash container")
   attr(:flash, :map, default: %{}, doc: "the map of flash messages to display")
@@ -633,15 +635,16 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
   @doc """
   Renders a [Heroicon](https://heroicons.com).
 
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
+  Heroicons come in four styles – outline, solid, mini and micro.
+  By default, the outline style is used; the others are applied with the `-solid`, `-mini` and
+  `-micro` suffixes.
 
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
 
-  Icons are generated from the `heroicons` dependency by `mix auix.gen.icons` into `assets/css/auix-icons.css`,
-  then esbuild compiles the app.css.
+  The icon classes come from the application's Heroicons setup, or from the file
+  `mix auix.gen.icons` writes to `assets/css/auix-icons.css` (see "Icons Configuration" in the
+  Getting Started guide).
 
   ## Examples
 
@@ -734,7 +737,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   ## Examples
 
-      <button phx-click={show("#my-element")}>Show</button>
+      <button phx-click={uix_show("#my-element")}>Show</button>
   """
   @spec uix_show(JS.t() | nil, binary) :: JS.t()
   def uix_show(js \\ %JS{}, selector) do
@@ -768,7 +771,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   ## Examples
 
-      <button phx-click={hide("#my-element")}>Hide</button>
+      <button phx-click={uix_hide("#my-element")}>Hide</button>
   """
   @spec uix_hide(JS.t() | nil, binary) :: JS.t()
   def uix_hide(js \\ %JS{}, selector) do
