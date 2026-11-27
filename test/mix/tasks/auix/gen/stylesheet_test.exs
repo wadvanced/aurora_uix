@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Auix.Gen.StylesheetTest do
     tmp_dir = Map.fetch!(context, :tmp_dir)
     original_dir = File.cwd!()
     File.cd!(tmp_dir)
+    Mix.Task.reenable("app.config")
 
     on_exit(fn -> File.cd!(original_dir) end)
 
@@ -25,6 +26,9 @@ defmodule Mix.Tasks.Auix.Gen.StylesheetTest do
        _context do
     Stylesheet.run([])
 
+    # The host's themes are only on the code path once its project is compiled and configured,
+    # so the task must have run app.config itself.
+    assert Mix.Task.run("app.config", []) == :noop
     assert File.exists?(@variables_file)
     assert File.exists?(@rules_file)
     assert File.exists?(@combined_file)

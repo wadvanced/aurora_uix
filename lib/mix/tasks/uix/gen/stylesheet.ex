@@ -116,6 +116,10 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   """
   @spec run([binary()]) :: any()
   def run(args) do
+    # Mix only loads the dependencies' code paths to find this task, so the host's
+    # themes are not available until its project is compiled and configured.
+    Mix.Task.run("app.config", [])
+
     File.mkdir_p!(@output_dir)
 
     force? = "--force" in args
