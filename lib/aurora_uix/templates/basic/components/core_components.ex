@@ -879,7 +879,7 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
 
   defp format_message(assigns) do
     ~H"""
-    {inspect(@msg)}
+    {@msg}
     """
   end
 

@@ -504,7 +504,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     {:noreply,
      socket
      |> clear_flash()
-     |> put_flash(:info, "#{auix.name} updated successfully")
+     |> put_flash(:info, FormImpl.saved_message(auix.name, action))
      |> route_after_save(entity, action)}
   end
 

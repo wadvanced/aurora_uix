@@ -267,7 +267,13 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
         |> render_submit()
 
         assert has_element?(view, "#{@intents} li[data-component='f1'][data-intent='saved']")
-        assert has_element?(view, "#flash-info", "Product updated successfully")
+
+        assert has_element?(
+                 view,
+                 "#flash-info .auix-flash-message",
+                 ~r/^\s*Product created successfully\s*$/
+               )
+
         assert has_element?(view, "#auix-host")
 
         [first, second | _] = sorted_products()
@@ -567,7 +573,11 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
                  "#auix-product-edit-modal input[name='product[name]'][value='Typed name']"
                )
 
-        assert has_element?(view, "#flash-info", "Product updated successfully")
+        assert has_element?(
+                 view,
+                 "#flash-info .auix-flash-message",
+                 ~r/^\s*Product updated successfully\s*$/
+               )
 
         request_close(view)
 

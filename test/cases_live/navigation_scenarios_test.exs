@@ -207,7 +207,7 @@ defmodule Aurora.UixWeb.Test.NavigationScenariosTest do
              |> Enum.count() == 0
 
       {_saved_to, saved_flash} = assert_redirect(child)
-      assert saved_flash["info"] =~ "updated successfully"
+      assert saved_flash["info"] =~ ~r/^\S.* created successfully$/
 
       {:ok, failed, _html} = live(conn, to)
 

@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Flash after a save**: a flash message was rendered wrapped in quotes, and saving a new record
+  reported it as updated. The message is now rendered as written, and a new record reports
+  "<Name> created successfully".
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.

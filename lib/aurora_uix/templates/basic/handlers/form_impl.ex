@@ -130,7 +130,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
           {:noreply,
            socket
-           |> FormImpl.put_saved_flash()
+           |> FormImpl.put_saved_flash(action)
            |> assign(:action, :edit)
            |> assign_auix(:entity, new_entity)}
         else
@@ -482,18 +482,34 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Parameters
   - `socket` (Socket.t()) - The form component socket.
+  - `action` (atom()) - The form action: `:new` reports a created record, any other an updated one.
 
   ## Returns
   `Socket.t()` - The socket with its flash updated.
   """
-  @spec put_saved_flash(Socket.t()) :: Socket.t()
-  def put_saved_flash(%{assigns: %{auix: %{notify: _notify}}} = socket) do
+  @spec put_saved_flash(Socket.t(), atom()) :: Socket.t()
+  def put_saved_flash(%{assigns: %{auix: %{notify: _notify}}} = socket, action) do
     socket
     |> clear_flash()
-    |> put_flash(:info, "#{socket.assigns.auix.name} updated successfully")
+    |> put_flash(:info, saved_message(socket.assigns.auix.name, action))
   end
 
-  def put_saved_flash(socket), do: clear_flash(socket)
+  def put_saved_flash(socket, _action), do: clear_flash(socket)
+
+  @doc """
+  Builds the info message of a successful save.
+
+  ## Parameters
+  - `name` (binary()) - The resource display name.
+  - `action` (atom()) - The form or LiveView action: `:new` reports a created record, any other
+    an updated one.
+
+  ## Returns
+  `binary()` - The message.
+  """
+  @spec saved_message(binary(), atom()) :: binary()
+  def saved_message(name, :new), do: "#{name} created successfully"
+  def saved_message(name, _action), do: "#{name} updated successfully"
 
   @doc """
   Publishes the saved record on its schema's topic, skipping the calling LiveView.
