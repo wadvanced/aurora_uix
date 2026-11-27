@@ -71,35 +71,26 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 
 ### Layout representation with primitives
 ```elixir
-# Option 1: Groups and sections are shown with very similar syntax
-# Sections are enclose within a parent curly brackets, and contains only tuples
-# Groups are just a tuple
+# Lists are inline fields, a tuple of tuples holds sections and a map holds a group
 [
   [:reference, :description], # <- Inline
   [:quantity, :price],
   {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
-  {"Text" => [:one, :two]} # <- Groups
-]
-
-# Option 2: Easier to parse
-[
-  [:reference, :description], # <- Inline
-  [:quantity, :price],
-  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
-  %{"Text" => [:one, :two]} # <- Groups?
+  %{"Text" => [:one, :two]} # <- Groups
 ]
 ```
+
+---
 
 ### Enhanced Rendering Components
 
 **Objective**: Expand the library of pre-built UI components and improve rendering flexibility.
 
 **Ideas**:
-- Additional form input types (multi-select, date picker, time picker, rich text editor)
-- Advanced table features (column visibility toggle, custom cell rendering, sub-rows)
+- Additional form input types (custom date and time pickers, rich text editor)
+- Advanced table features (column visibility toggle, sub-rows)
 - Chart and data visualization components
 - Modal and sidebar components with customizable triggers
-- Progress bars and status indicators
 - Custom component injection points in generated layouts
 
 **Why**: Developers can build more sophisticated UIs without custom component creation.
@@ -111,6 +102,7 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 **Objective**: Lower the barrier to creating custom templates with better defaults and clearer patterns.
 
 **Ideas**:
+- Let an application configure its own template ([#669](https://github.com/wadvanced/aurora_uix/issues/669))
 - Template scaffold generator (`mix auix.gen.template`)
 - Pre-built Bootstrap template (easier CSS framework integration)
 - Better documentation on template callback structure
@@ -127,7 +119,6 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 
 **Ideas**:
 - Unified theme configuration API
-- Theme variable system (colors, spacing, typography)
 - Automatic theme documentation generation
 - Theme preview/testing utilities
 - Community theme registry integration
@@ -160,10 +151,9 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 
 **Ideas**:
 - Virtual scrolling for large tables
-- Database query optimization (eager loading, pagination strategies)
+- Further database query optimization
 - Lazy-loading for nested associations
 - Caching strategies for metadata
-- LiveView component splitting for better performance
 - Render performance profiling tools
 
 **Why**: Aurora UIX-powered applications remain performant at scale.
@@ -240,7 +230,6 @@ These are exciting concepts that warrant further investigation based on communit
 - **Visual UI Builder**: Drag-and-drop interface for creating layouts
 - **Real-Time Collaboration**: Multi-user editing with conflict resolution
 - **Offline Support**: Sync local changes when connectivity returns
-- **Mobile-First Themes**: Native-feeling mobile interfaces
 - **No-Code Admin Panels**: Generate complete admin panels from just schema definitions
 
 ---
@@ -280,7 +269,6 @@ Have ideas or requests? We'd love to hear from you:
 
 - **GitHub Issues**: For feature requests and discussions
 - **GitHub Discussions**: For broader topic conversations
-- **Community Chat**: Join our community channels
 - **Email**: suggestions@wadvanced.com
 
 Your feedback helps shape the future of Aurora UIX!
