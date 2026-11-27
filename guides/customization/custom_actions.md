@@ -48,10 +48,6 @@ The action system works by:
 │  │  □   │  ...           │  [show]  [edit]  [delete]   │  │
 │  └──────┴────────────────┴─────────────────────────────┘  │
 │                                                           │
-│  ┌─ :index_filters_actions ────────────────────────────┐  │
-│  │  (filters panel, shown when toggle_filters active)  │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                           │
 │  ┌─ :index_footer_actions ─────────────────────────────┐  │
 │  │  [← prev]  [1] [2] [3]  [next →]   (pagination)     │  │
 │  └─────────────────────────────────────────────────────┘  │
@@ -59,13 +55,14 @@ The action system works by:
 ```
 
 > The slot labels above (`:index_header_actions`, etc.) are internal names used in socket assigns. Use the operation key prefixes in the table below as your `index_columns` options.
+> `:index_selected_all_actions` is the header of the selection checkbox column.
 
 | Operation Key Prefix | Available Operations | Defaults You Can Target |
 |---|---|---|
 | `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_sort`, `:default_clear`, `:default_submit`, `:default_new` |
 | `*_selected_all_action` | replace, remove *(no add / insert)* | `:default_toggle_all_selected` |
 | `*_selected_action` | add, insert, replace, remove | `:default_selected_uncheck_all`, `:default_selected_delete_all`, `:default_selected_check_all` |
-| `*_filters_action` | add, insert, replace, remove | *(none by default)* |
+| `*_filters_action` | accepted, but nothing renders this group ([#644](https://github.com/wadvanced/aurora_uix/issues/644)) | *(none by default)* |
 | `*_row_action` | add, insert, replace, remove | `:default_row_show`, `:default_row_edit`, `:default_row_delete` |
 | `*_footer_action` | add, insert, replace, remove | `:default_pagination` |
 
@@ -117,27 +114,18 @@ The action system works by:
 | `*_header_action` | add, insert, replace, remove | `:default_edit` |
 | `*_footer_action` | add, insert, replace, remove | `:default_back` |
 
-### One-to-Many & Embeds-Many Layout Actions
-
+### One-to-Many Layout Actions
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  ┌─ :one_to_many_header_actions ──────────────────────┐  │
-│  │  (embeds_many: new entry button)                   │  │
+│  │  [new]                                             │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                          │
 │  ┌──────────────────────┬─────────────────────────────┐  │
 │  │  field  field        │ :one_to_many_row_actions    │  │
-│  │  ...                 │ :embeds_many_row_actions    │  │
+│  │  ...                 │ [show]  [edit]  [delete]    │  │
 │  └──────────────────────┴─────────────────────────────┘  │
-│                                                          │
-│  ┌─ :embeds_many_new_entry_actions ───────────────────┐  │
-│  │  (inline new-entry form controls)                  │  │
-│  └────────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌─ :embeds_many_existing_actions ────────────────────┐  │
-│  │  (per-row existing entry controls)                 │  │
-│  └────────────────────────────────────────────────────┘  │
 │                                                          │
 │  ┌─ :one_to_many_footer_actions ──────────────────────┐  │
 │  │  (empty by default)                                │  │
@@ -145,24 +133,49 @@ The action system works by:
 └──────────────────────────────────────────────────────────┘
 ```
 
-> `one_to_many` and `embeds_many` share similar slot positions but differ in available operation keys — see both tables below.
+| Operation Key Prefix | Available Operations | Defaults You Can Target |
+|---|---|---|
+| `*_header_action` | add, insert, replace, remove | `:default_new` |
+| `*_row_action` | add, insert, replace, remove | `:default_row_show`, `:default_row_edit`, `:default_row_delete` |
+| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
 
-**one_to_many layout options:**
+New, edit and delete render in the form only, and New only once the parent record is saved; show
+renders in both the form and the show view. In a form or show view embedded as a
+[reusable component](../core/components.md) these default actions render nothing.
+
+### Embeds-Many Layout Actions
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ┌─ :embeds_many_header_actions ──────────────────────┐  │
+│  │  [add new entry]                                   │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│   entry fields                                           │
+│  ┌─ :embeds_many_existing_actions ────────────────────┐  │
+│  │  [remove entry]              (once per entry)      │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌─ :embeds_many_footer_actions ──────────────────────┐  │
+│  │  [add new entry]             (when entries exist)  │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  New entry dialog                                        │
+│  ┌─ :embeds_many_new_entry_actions ───────────────────┐  │
+│  │  [add]                                             │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
 
 | Operation Key Prefix | Available Operations | Defaults You Can Target |
 |---|---|---|
-| `*_header_action` | add, insert, replace, remove | *(none by default)* |
-| `*_row_action` | add, insert, replace, remove | *(none by default)* |
-| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+| `*_header_action` | add, insert, replace, remove | `:default_header_enable_add_entry` |
+| `*_existing_action` | add, insert, replace, remove | `:default_remove_entry` |
+| `*_new_entry_action` | add, insert, replace, remove | `:default_add_entry` |
+| `*_footer_action` | add, insert, replace, remove | `:default_footer_enable_add_entry` |
 
-**embeds_many layout options:**
-
-| Operation Key Prefix | Available Operations | Defaults You Can Target |
-|---|---|---|
-| `*_header_action` | add, insert, replace, remove | *(none by default)* |
-| `*_new_entry_action` | add, insert, replace, remove | *(none by default)* |
-| `*_existing_action` | add, insert, replace, remove | *(none by default)* |
-| `*_footer_action` | add, insert, replace, remove | *(none by default)* |
+The default embeds-many actions render in the form only. There is no row operation for embeds-many
+fields.
 
 ### Many-to-Many Layout Actions
 
@@ -241,56 +254,65 @@ Aurora UIX provides four operations to customize actions in layout options. The 
 
 **Add Action** — Appends an action to the end of the group:
 ```elixir
-# Append a custom archive button after the default row actions
-add_row_action: {:archive, &MyViews.archive_action/1}
+index_columns :product, [:name],
+  # Append a custom archive button after the default row actions
+  add_row_action: {:archive, &MyViews.archive_action/1},
+  # Append an Export CSV button after the default header actions (toggle_filters, sort, clear, submit, new)
+  add_header_action: {:export, &MyViews.export_action/1}
 
-# Append an Export CSV button after the default header actions (toggle_filters, sort, clear, submit, new)
-add_header_action: {:export, &MyViews.export_action/1}
-
-# Append a "Save and Continue" button after the default Save button in a form
-add_footer_action: {:save_continue, &MyViews.save_and_continue_action/1}
+edit_layout :product,
+  # Append a "Save and Continue" button after the default Save button in a form
+  add_footer_action: {:save_continue, &MyViews.save_and_continue_action/1} do
+  stacked [:name]
+end
 ```
 
 **Insert Action** — Prepends an action to the beginning of the group:
 ```elixir
-# Prepend an Approve button before the default row actions (show, edit, delete)
-insert_row_action: {:approve, &MyViews.approve_action/1}
+index_columns :product, [:name],
+  # Prepend an Approve button before the default row actions (show, edit, delete)
+  insert_row_action: {:approve, &MyViews.approve_action/1},
+  # Prepend a Help link before the default header actions
+  insert_header_action: {:help, &MyViews.help_action/1}
 
-# Prepend a Help link before the default header actions
-insert_header_action: {:help, &MyViews.help_action/1}
-
-# Prepend a Cancel button before the default Save button in a form
-insert_footer_action: {:cancel, &MyViews.cancel_action/1}
+edit_layout :product,
+  # Prepend a Cancel button before the default Save button in a form
+  insert_footer_action: {:cancel, &MyViews.cancel_action/1} do
+  stacked [:name]
+end
 ```
 
 **Replace Action** — Replaces an existing action by name:
 ```elixir
-# Swap the default edit icon for a custom styled one in row actions
-replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1}
+index_columns :product, [:name],
+  # Swap the default edit icon for a custom styled one in row actions
+  replace_row_action: {:default_row_edit, &MyViews.custom_edit_action/1},
+  # Swap the default New button for one that opens a slide-over instead of navigating
+  replace_header_action: {:default_new, &MyViews.slide_over_new_action/1}
 
-# Swap the default New button for one that opens a slide-over instead of navigating
-replace_header_action: {:default_new, &MyViews.slide_over_new_action/1}
-
-# Swap the default Save button for one with a loading spinner
-replace_footer_action: {:default_save, &MyViews.spinner_save_action/1}
+edit_layout :product,
+  # Swap the default Save button for one with a loading spinner
+  replace_footer_action: {:default_save, &MyViews.spinner_save_action/1} do
+  stacked [:name]
+end
 ```
 
 **Remove Action** — Removes an action by name:
 ```elixir
-# Remove the Show icon from row actions (edit and delete remain)
-remove_row_action: :default_row_show
-
-# Remove the New button from the header (useful for read-only index views)
-remove_header_action: :default_new
-
-# Remove the card view's sort control (the column headers still sort)
-remove_header_action: :default_sort
+index_columns :product, [:name],
+  # Remove the Show icon from row actions (edit and delete remain)
+  remove_row_action: :default_row_show,
+  # Remove the New button from the header (useful for read-only index views)
+  remove_header_action: :default_new,
+  # Remove the card view's sort control (the column headers still sort)
+  remove_header_action: :default_sort,
+  # Remove the bulk delete button shown when rows are selected
+  remove_selected_action: :default_selected_delete_all
 
 # Remove the Back link from a show page footer
-remove_footer_action: :default_back
-
-# Remove the bulk delete button shown when rows are selected
-remove_selected_action: :default_selected_delete_all
+show_layout :product, remove_footer_action: :default_back do
+  stacked [:name]
+end
 ```
 
 All operations accept `{action_name, &function/1}` pairs (except remove, which only needs the name). A row action also takes options as a third element: `{action_name, &function/1, destructive?: true}`.
@@ -301,7 +323,7 @@ Actions are configured in your UI layout definition using the `auix_create_ui` D
 
 ```elixir
 auix_create_ui do
-  index_columns(:product, [:id, :name, :price],
+  index_columns(:product, [:id, :name, :list_price],
     # Remove a default action
     remove_row_action: :default_row_edit,
 
@@ -320,9 +342,6 @@ auix_create_ui do
   )
 end
 ```
-
-For complete worked examples of customizing index, form, and show actions inside layouts,
-see [Layout System → Actions: Customizing Buttons and Links](../core/layouts.md#actions-customizing-buttons-and-links).
 
 ## Action Icons
 
@@ -453,47 +472,51 @@ the menu styles the action's top `a` and `button` elements, and the tap target i
 
 ## Action Handlers
 
-Action handlers are simple function components that receive an `assigns` map containing:
+Action handlers are simple function components that receive an `assigns` map. Every action gets
+`:auix`, the context of the view; association actions get a few keys more:
 
-- `:auix` - Context information including:
-  - `:row_info` - For row actions: tuple of {id, entity_map}
-  - `:module` - Module/resource name
-  - `:uri_path` - Base path for routing
-  - `:index_new_link` - Link for creating new records
-  - And other layout context...
-- `:field` - Field information (for association actions)
-- `:target` - LiveComponent target for event handling
+| Action group | Assigns |
+|---|---|
+| index, form and show | `auix` |
+| one-to-many row | `auix`, with `auix.row_info` |
+| one-to-many header and footer, many-to-many, multi-select | `auix`, `field` |
+| embeds-many header and footer | `auix`, `field`, `target` |
+| embeds-many existing entry | `auix`, `field`, `target`, `entry_index` |
+| embeds-many new entry | `auix`, `field`, `target`, `form_id` |
+
+`target` is the embeds-many component, for `phx-target`.
 
 Example handler:
 
 ```elixir
 defmodule MyApp.CustomActions do
-  use Phoenix.Component
+  use Aurora.Uix.CoreComponentsImporter
+
   import Aurora.Uix.Templates.Basic.RoutingComponents
 
   def custom_edit_handler(assigns) do
     ~H"""
-      <.auix_link 
-        patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"} 
-        name={"auix-edit-#{@auix.module}"}
-      >
-        Custom Edit
-      </.auix_link>
+    <.auix_link
+      patch={"/#{@auix.uri_path}/#{elem(@auix.row_info, 1).id}/edit"}
+      name={"auix-edit-#{@auix.module}"}
+    >
+      Custom Edit
+    </.auix_link>
     """
   end
 
   def custom_new_handler(assigns) do
     ~H"""
-      <.auix_link 
-        patch={"#{@auix[:index_new_link]}"} 
-        name={"auix-new-#{@auix.module}"}
-      >
-        <.button>New Item</.button>
-      </.auix_link>
+    <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}"}>
+      <.button>New Item</.button>
+    </.auix_link>
     """
   end
 end
 ```
+
+`use Aurora.Uix.CoreComponentsImporter` brings in `Phoenix.Component` and the core components, such
+as `<.button>`.
 
 ### Important Implementation Notes
 
@@ -504,9 +527,9 @@ end
 
 **Available Assigns in Actions:**
 - `@auix` — Contains all Aurora UIX context
-  - `.row_info` — Tuple of `{index, entity}` for row actions (see Row Info Structure below)
+  - `.row_info` — Tuple of `{id, entity}` for row actions (see Row Info Structure below)
   - `.entity` — Current entity for form/show actions
-  - `.module` — Resource module name
+  - `.module` — Resource module name, as used in element names
   - `.name` — Resource display name
   - `.primary_key` — Primary key field(s)
   - `.uri_path` — Current URI path for navigation
@@ -519,31 +542,24 @@ end
 **Row Info Structure:**
 
 The `@auix.row_info` in row actions is a 2-tuple containing:
-1. **Index/ID** (first element) — The stream identifier or row ID from Phoenix LiveView streams
-2. **Entity** (second element) — The actual entity struct/map for the row
+1. **ID** (first element) — In the index, the DOM id of the stream item; in a one-to-many list,
+   the primary key value
+2. **Entity** (second element) — In the index, the record as a plain map with its fields; in a
+   one-to-many list, the record struct
 
 ```elixir
-# Example row_info tuple structure
-row_info = {"products-123", %Product{id: 123, name: "Widget", price: 29.99}}
+# In the index
+{dom_id, entity} = assigns.auix.row_info
+# dom_id = "products-123"
+# entity = %{id: 123, name: "Widget", ...}
 
-# Extracting components
-{stream_id, entity} = assigns.auix.row_info
-# stream_id = "products-123"
-# entity = %Product{id: 123, name: "Widget", price: 29.99}
+# Pattern match in the function head
+def process_action(%{auix: %{row_info: {_id, entity}}} = assigns) do
+  assigns = Map.put(assigns, :entity, entity)
 
-# Common patterns for accessing data:
-# 1. Get the primary key value
-id = row_info_id(assigns.auix)  # Using helper function
-
-# 2. Access entity fields directly
-{_id, product} = assigns.auix.row_info
-price = product.price
-
-# 3. Pattern match in function head
-def custom_action(%{auix: %{row_info: {_index, entity}}} = assigns) do
   ~H"""
-  <button phx-click="process" phx-value-id={entity.id}>
-    Process {entity.name}
+  <button type="button" phx-click="process" phx-value-id={@entity.id}>
+    Process {@entity.name}
   </button>
   """
 end
@@ -716,7 +732,7 @@ auix_create_ui do
   edit_layout :product do
     stacked([
       :name,
-      :price,
+      :list_price,
       product_transactions: [
         # Configure actions for the nested table
         add_header_action: {:custom_new, &__MODULE__.custom_new_transaction/1},
@@ -751,14 +767,18 @@ end
 
 ## How Actions Are Processed
 
-The action system processes configuration in this order:
+Each time a view builds its actions:
 
-1. **Initialize** - Default actions are added by the template (index adds show/edit/delete, form adds save/cancel, etc.)
-2. **Remove** - Specified actions are removed from their groups
-3. **Add** - New actions are appended
-4. **Insert** - Actions are prepended
-5. **Replace** - Actions matching the name are replaced
-6. **Finalize** - Layout options are applied via `Aurora.Uix.Templates.Basic.Actions.modify_actions/2`
+1. The groups are emptied and the template adds its default actions: show, edit and delete rows,
+   filters, selection, New and pagination in the index; Save in the form; Edit and Back in the show
+   view; the actions of the [association fields](#action-groups-by-layout-type). The form has no
+   default Cancel action.
+2. The action options of the layout, or of the field, are applied one by one **in the order you
+   write them**.
+
+So `add_*_action` appends to what is there at that point, `insert_*_action` prepends (the last
+insert ends up first), and `replace_*_action` and `remove_*_action` do nothing when no action of
+that name exists yet.
 
 ## Action Modification Under the Hood
 
@@ -771,6 +791,6 @@ See `Aurora.Uix.Action` module for the complete mapping of action names to their
 ## Related guides
 
 - [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
-- [Layout System](../core/layouts.md) — worked examples of action customization inside layouts
+- [Layout System](../core/layouts.md) — the layout macros that take these options
 - [LiveView Integration](../core/liveview.md) — handling the events your custom actions fire
 - [Ash Integration](../core/ash_integration.md#custom-actions) — Ash *resource* actions (a different concept)

@@ -41,9 +41,15 @@ Aurora UIX generates complete CRUD UIs out of the box — this hub catalogs ever
 ```elixir
 defmodule MyApp.Themes.Ocean do
   use Aurora.Uix.Templates.Theme, theme_name: :ocean
+
+  alias Aurora.Uix.Templates.Basic.Themes.ThemeBase
+
   rule :root_colors, "..."   # your palette
   include ThemeBase          # inherit the rest
 end
+```
+
+```elixir
 # config/config.exs
 config :aurora_uix, theme_name: :ocean
 ```
@@ -81,10 +87,20 @@ config :aurora_uix, theme_name: :ocean
 ```elixir
 # config/config.exs
 config :aurora_uix, :core_components, MyApp.MyCoreComponents
+```
 
+```elixir
 defmodule MyApp.MyCoreComponents do
   use Phoenix.Component
-  def button(assigns), do: ~H"<button class=\"my-button\" {@rest}>{render_slot(@inner_block)}</button>"
+
+  attr :rest, :global, include: ~w(type name form value disabled)
+  slot :inner_block, required: true
+
+  def button(assigns) do
+    ~H"""
+    <button class="my-button" {@rest}>{render_slot(@inner_block)}</button>
+    """
+  end
 end
 ```
 
@@ -97,7 +113,8 @@ end
 
 ```elixir
 auix_resource_metadata :product do
-  schema MyApp.Product
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
   field :avatar, html_type: :image, renderer: &MyAppWeb.Helpers.render_avatar/1
 end
 ```
@@ -128,12 +145,12 @@ and `show_renderer`. See [Per-layout renderers](../core/resource_metadata.md#per
 **When to use it:** add an Export button, swap the Edit icon, remove Delete from a read-only view, etc.
 
 ```elixir
-index_columns :product, [:name, :price],
+index_columns :product, [:name, :list_price],
   add_header_action: {:export, &MyViews.export_action/1},
   remove_row_action: :default_row_show
 ```
 
-Positions by context: index (row / header / footer / filters / selected / selected-all), form (header / footer), show (header / footer), one-to-many (row / header / footer), embeds-many (header / footer / new-entry / existing).
+Positions by context: index (row / header / footer / selected / selected-all), form (header / footer), show (header / footer), one-to-many (row / header / footer), embeds-many (header / footer / new-entry / existing), many-to-many and multi-select (label / header / footer).
 
 → **See:** [Custom Actions](custom_actions.md)
 
@@ -145,6 +162,9 @@ Positions by context: index (row / header / footer / filters / selected / select
 ```elixir
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
+
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Phoenix.Component, only: [assign: 3]
 
   @impl FormImpl
   def auix_handle_event("preview", _params, socket),
@@ -171,8 +191,8 @@ The most-used field options, all configured in `auix_resource_metadata` (some al
 | `renderer` | Custom rendering function/component (form/edit + show) | [Custom Field Types](../core/resource_metadata.md#custom-field-types-and-rendering) |
 | `index_renderer` / `edit_renderer` / `show_renderer` | Per-layout custom rendering function/component | [Per-layout renderers](../core/resource_metadata.md#per-layout-renderers) |
 | `option_label` | Label source for select dropdowns (atom or function) | [Many-to-One](../core/resource_metadata.md#many-to-one-belongs_to) |
-| `query_opts: [order_by: …]` | Sort order for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
-| `query_opts: [where: …]` | Filter for association options / lists | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `query_opts: [order_by: …]` | Sort order for the options of many-to-one and many-to-many fields | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
+| `query_opts: [where: …]` | Filter for the options of many-to-one and many-to-many fields | [Query Options](../core/resource_metadata.md#query-options-for-many-to-one) |
 | `generated?` | Mark a calculation or aggregate loaded with the entity, not stored with it | [Field Properties](../core/resource_metadata.md#validation-and-constraints) |
 | `upload` block | Turn a field into a managed LiveView upload | [File Uploads](../core/resource_metadata.md#file-uploads) |
 
@@ -201,10 +221,11 @@ config :aurora_uix, :fields_parser_integration_modules, custom: MyApp.CustomBack
 ## 8. Internationalization
 
 **What it is:** all generated labels and messages pass through a configurable Gettext backend — translating the UI is itself a customization point (custom domain, custom backend, POT auto-generation).
-**When to use it:** translating the generated UI, or enforcing translation completeness in CI.
+**When to use it:** translating the generated UI, or logging missing translations.
 
 ```elixir
-config :aurora_uix, gettext_domain: "aurora_uix"
+# Use your application's backend, so that your translations are found
+config :aurora_uix, gettext_backend: MyAppWeb.Gettext
 ```
 
 → **See:** [Internationalization](../core/internationalization.md)

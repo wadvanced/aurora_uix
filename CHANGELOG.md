@@ -148,6 +148,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
   against the code: translations need the application's own Gettext backend, a one-to-many list is
   ordered and filtered from the layout, the Download button needs `downloadable?`, and the title,
   field order, backend detection and embedded-field descriptions were corrected.
+- LiveView Integration, Custom Actions and the customization hub were checked against the code:
+  handler examples import what they use, removing routes does not remove their buttons, the
+  one-to-many and embeds-many default actions are listed, action options apply in the order written,
+  and the stream, async and sorting examples were rewritten.
 
 ### Build
 
