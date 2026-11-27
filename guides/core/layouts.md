@@ -514,8 +514,9 @@ index_columns :product, [
 ]
 ```
 
-> **Note:** A layout accepts every resource field option, but `:expanded` (for `embeds_many`
-> fields) has no effect there. Set it in `auix_resource_metadata` — see the
+> **Note:** A layout accepts every resource field option, `:expanded` (for `embeds_many` fields)
+> included: `contacts: [expanded: true]` in an `edit_layout` or `show_layout` opens the collection in
+> that view, over the value of `auix_resource_metadata` — see the
 > [Resource Metadata](resource_metadata.md#selector-embed-and-upload-options) guide.
 
 For complete field attributes reference, see the `Aurora.Uix.Field` module documentation.

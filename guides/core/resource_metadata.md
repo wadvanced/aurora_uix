@@ -436,7 +436,8 @@ These field options have their own keys on `Aurora.Uix.Field`:
   boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
   escaped at compile time) that receives the rendering assigns and returns a boolean. The runtime
   collapse/expand toggle stays available regardless. Configure it with the `:expanded` field option
-  of the resource metadata; the same option on a layout field has no effect:
+  of the resource metadata, or on the field in an `edit_layout` or `show_layout`, which takes
+  precedence in that view:
 
   ```elixir
   # Always expanded
