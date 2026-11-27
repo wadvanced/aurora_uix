@@ -97,8 +97,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
 - **Ash read actions named in `backend_opts`**: an action named with `ash_read_action` was copied to
-  the index, and the two list options could be combined
-  ([#665](https://github.com/wadvanced/aurora_uix/issues/665)). A named read action is now always the
+  the index, and the two list options could be combined. A named read action is now always the
   one used. `ash_read_action` takes an action without pagination and lists the index on one page;
   `ash_read_action_paginated` takes a paginated one. Compilation fails when both are given or when an
   action does not match its option. Without a name, the index prefers a paginated read action and
@@ -233,6 +232,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   corrected.
 - Guide screenshots were regenerated with the default White Charcoal theme, and the nested
   sections example describes what they show.
+- The upgrade notes include the new rules of `ash_read_action`, and the Ash troubleshooting matches
+  its error messages.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.

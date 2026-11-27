@@ -928,12 +928,11 @@ end
 
 **Error**: `Does not exists or it is of the wrong type, or pagination is not supported`
 
-**Solution**: No read action has pagination, or the one named with `ash_read_action_paginated` lacks
-it or does not exist. See [Pagination Support](#pagination-support):
+**Solution**: The action named with `ash_read_action_paginated` has no pagination, or no read action
+has that name. Add pagination to it (see [Pagination Support](#pagination-support)), or name an
+action without pagination with `ash_read_action`:
 ```elixir
-read :read do
-  primary? true
-
+read :published_posts do
   pagination do
     offset? true
     countable true
@@ -950,8 +949,11 @@ name it with `ash_read_action_paginated`.
 
 #### Compilation Fails Naming a Read Action
 
-The action does not match the option that names it. `ash_read_action` takes an action without
-pagination, `ash_read_action_paginated` one with it, and only one of the two can be given.
+**Errors**: ``It is paginated. Name it with `ash_read_action_paginated` instead``, or
+``Set `ash_read_action` or `ash_read_action_paginated`, not both``
+
+**Solution**: `ash_read_action` takes an action without pagination, `ash_read_action_paginated` one
+with it, and only one of the two can be given.
 
 #### Another Action Runs Than Expected
 
