@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Flash after a save**: a flash message was rendered wrapped in quotes, and saving a new record
+  reported it as updated. The message is now rendered as written, and a new record reports
+  "<Name> created successfully".
 - **Index `preload` warning**: every index mount logged `Option preload is not implemented` when its
   layout set no `preload`, because the option had no default. It now defaults to `nil`, and the
   resource's `preload` applies.
