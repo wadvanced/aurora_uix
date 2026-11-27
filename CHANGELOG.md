@@ -254,6 +254,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - The tutorial's schema generators run without a duplicate migration number, and the guides tell
   how to work around the empty list after **New**, the unreadable info message and the `preload`
   warning.
+- What's New lists the upload file cards and the renamed handler callbacks.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.
