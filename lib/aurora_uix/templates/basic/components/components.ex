@@ -119,7 +119,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   slot(:filter_action,
-    doc: "the slot for showing filter actions in the last table heading column"
+    doc: "the filter panel actions, after the filter elements (the last filter cell of a table)"
   )
 
   slot(:filter_element, doc: "The filter elements to display")
@@ -202,7 +202,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   slot(:filter_action,
-    doc: "the slot for showing filter actions in the last table heading column"
+    doc: "the filter panel actions, after the filter elements (the last filter cell of a table)"
   )
 
   slot(:filter_element, doc: "The filter elements to display")
@@ -218,6 +218,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
           <tr :if={Map.get(@auix, :filters_enabled?)} >
             <th :for={filter_element <- @filter_element} class="auix-items-table-header-filter-cell">
               {render_slot(filter_element, "")}
+            </th>
+            <th :if={@filter_action != []} class="auix-items-table-header-filter-cell">
+              {render_slot(@filter_action)}
             </th>
           </tr>
           <tr class="auix-items-table-header-row">
@@ -250,7 +253,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
             >
                 {render_slot(col, @row_item.(row))}
             </td>
-            <td :if={@action != []} class="auix-items-table-action-cell">
+            <td :if={@action != [] or @filter_action != []} class="auix-items-table-action-cell">
                 <div :for={action <- @action}>
                   {render_slot(action, @row_item.(row))}
                 </div>
@@ -313,7 +316,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   slot(:filter_action,
-    doc: "the slot for showing filter actions in the last table heading column"
+    doc: "the filter panel actions, after the filter elements (the last filter cell of a table)"
   )
 
   slot(:filter_element, doc: "The filter elements to display")
@@ -337,6 +340,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
       <div :if={Map.get(@auix, :filters_enabled?)}>
         <div :for={filter_element <- @filter_element} class="auix-filter-card">
           {render_slot(filter_element, "--mobile--")}
+        </div>
+        <div :if={@filter_action != []} class="auix-filter-card">
+          {render_slot(@filter_action)}
         </div>
       </div>
 

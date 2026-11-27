@@ -941,7 +941,7 @@ defmodule Aurora.UixWeb.Test.IndexScenariosTest do
     end)
   end
 
-  test "index row, header and footer actions are removed, replaced, added and inserted",
+  test "index row, header, footer and filter actions are removed, replaced, added and inserted",
        %{conn: conn} do
     fun = &__MODULE__.name_icon/1
 
@@ -996,6 +996,17 @@ defmodule Aurora.UixWeb.Test.IndexScenariosTest do
 
       assert texts(view, "div[name='auix-index-footer-actions'] a[name^='auix-new-product']") ==
                ["Footer Product"]
+
+      refute has_element?(view, "[name='auix-index-filters-actions']")
+
+      view = open_filters(view)
+
+      for panel <- [".auix-items-desktop th:last-child", ".auix-items-mobile"] do
+        assert texts(view, "#{panel} [name='auix-index-filters-actions'] a") == [
+                 "Inserted filter action",
+                 "Replaced filter action"
+               ]
+      end
     end)
   end
 
