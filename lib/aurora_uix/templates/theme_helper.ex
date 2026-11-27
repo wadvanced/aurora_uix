@@ -18,13 +18,15 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   alias Aurora.Uix.BehaviourHelper
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
+  alias Aurora.Uix.Template
   alias Aurora.Uix.Templates.Basic.Themes.Baseline
   alias Aurora.Uix.Templates.CssSanitizer
   alias Aurora.Uix.Templates.Theme
 
-  @template Aurora.Uix.Template.uix_template()
-  @default_theme_name @template.default_theme_name()
-  @theme_name Application.compile_env(:aurora_uix, :theme_name, @default_theme_name)
+  # The template is resolved when the theme name is read, not when this module compiles:
+  # a template defined in the host application does not exist yet when the library compiles.
+  @template Application.compile_env(:aurora_uix, :template, Aurora.Uix.Templates.Basic)
+  @theme_name Application.compile_env(:aurora_uix, :theme_name)
 
   @doc """
   Generates the whole stylesheet of the configured theme: the variables of
@@ -117,7 +119,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec theme_module() :: module()
   def theme_module do
-    Map.get(registered_themes(), @theme_name)
+    Map.get(registered_themes(), theme_name())
   end
 
   @doc """
@@ -130,7 +132,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   """
   @spec theme_name() :: atom()
   def theme_name do
-    @theme_name
+    @theme_name || BehaviourHelper.validate(@template, Template).default_theme_name()
   end
 
   @doc """

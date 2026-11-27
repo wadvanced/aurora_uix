@@ -13,6 +13,10 @@ defmodule Aurora.Uix.CoreComponentsImporter do
     `config :aurora_uix, :core_components, MyApp.MyCoreComponents`
     (see `Aurora.Uix.ComponentsResolver`)
 
+  The library's own modules compile before the host application's modules. When the configured
+  template is not available yet, the default template's (`Aurora.Uix.Templates.Basic`) core
+  components are imported, so a template defined in the host application can be configured.
+
   ## Examples
   ```elixir
   defmodule MyAppWeb.MyComponent do
@@ -21,18 +25,29 @@ defmodule Aurora.Uix.CoreComponentsImporter do
   ```
   """
   alias Aurora.Uix.Template
+  alias Aurora.Uix.Templates.Basic
+
+  @configured_template Application.compile_env(:aurora_uix, :template, Basic)
 
   @doc false
   # Imports component and helper functions from the configured template.
   @spec __using__(keyword()) :: Macro.t()
   defmacro __using__(_opts) do
-    template = Template.uix_template()
-
-    core_components_module = template.default_core_components_module()
+    core_components_module = template().default_core_components_module()
 
     quote do
       import Phoenix.Component
       import unquote(core_components_module)
+    end
+  end
+
+  ## PRIVATE
+
+  @spec template() :: module()
+  defp template do
+    case Code.ensure_compiled(@configured_template) do
+      {:module, _template} -> Template.uix_template()
+      {:error, _reason} -> Basic
     end
   end
 end
