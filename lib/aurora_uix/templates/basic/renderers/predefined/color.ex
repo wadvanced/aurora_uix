@@ -2,8 +2,8 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Color do
   @moduledoc """
   Predefined `:color` renderer for colour-string fields (hex, rgb, named).
 
-  - `:index` / `:show` — a framed box filled with the colour, showing the hex value
-    in a contrasting text colour.
+  - `:index` / `:show` — a framed box filled with the colour, showing the value
+    in a text colour that contrasts with a hex colour.
   - `:form` — a native `<input type="color">` picker bound to the form field.
 
   The box uses an inline `style` because the colour is dynamic data, not a

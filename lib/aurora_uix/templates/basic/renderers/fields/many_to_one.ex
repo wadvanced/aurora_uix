@@ -1,15 +1,18 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.ManyToOne do
   @moduledoc """
-  Renders many-to-one association fields for Aurora UIX in Phoenix LiveView templates.
+  Renders the related record of a many-to-one association, read-only.
 
   ## Key Features
 
-  - Displays and manages single associated records
-  - Groups and labels associated fields
-  - Supports nested rendering of related fields
-  - Handles both form and show modes
-  - Manages label and layout_tree configuration for associations
-  - Integrates with Aurora UIX context and helpers
+  - The association field renders a group, titled with the related resource name, holding the fields
+    of that resource's show layout
+  - An association path, such as `{:category, :name}`, renders that related field, with a label
+    that joins the resource name and the field label
+  - In a form the related values come from the form field
+
+  ## Key Constraints
+
+  - Choosing the related record is done by the select of the foreign key field, not by this renderer.
   """
 
   alias Aurora.Uix.Field
