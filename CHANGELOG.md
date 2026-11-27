@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`mix auix.gen.icons` without Heroicons**: in a host application without the `heroicons` dependency,
+  the task crashed with a bare "could not list directory" error. It now stops with a message giving the
+  dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and
+  creates `assets/css` when it is missing.
 - **Registering a custom backend**: `Aurora.Uix.Integration.Crud` and
   `Aurora.Uix.Integration.ContextParserDefaults` both read `:crud_integration_modules`, so setting it
   sent the CRUD modules to the parser, and registering only a new backend dropped `:ash` and `:ctx`.

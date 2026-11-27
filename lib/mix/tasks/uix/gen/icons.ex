@@ -2,28 +2,58 @@ defmodule Mix.Tasks.Auix.Gen.Icons do
   @shortdoc "Generates CSS for heroicons"
 
   @moduledoc """
-    Reads hero icons from deps/heroicons and creates a assets/css/icons.css.
+  Reads the Heroicons SVG files from the `heroicons` dependency and writes `assets/css/auix-icons.css`.
+
+  ## Key Features
+
+  - Writes one `.hero-{name}` CSS class per icon, with `-solid`, `-mini` and `-micro` variants.
+  - Finds the dependency under the project's deps path (`Mix.Project.deps_path/0`).
+
+  ## Key Constraints
+
+  - Aurora UIX does not bring `heroicons` to a host application: the host adds it to its own `mix.exs`.
+    When it is missing, the task stops with a message giving the dependency to add.
   """
 
   use Mix.Task
 
-  @icons_root_dir "deps/heroicons/optimized/"
   @output_file "assets/css/auix-icons.css"
+
+  @missing_dependency_message """
+  The heroicons dependency was not found at %{path}.
+
+  Aurora UIX does not bring it with it. Add it to the deps in your mix.exs:
+
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.2.0",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1}
+
+  Then run `mix deps.get` and `mix auix.gen.icons` again. See "Icons Configuration" in the
+  Getting Started guide.
+  """
 
   @doc """
   Runs the icons generator.
   """
   @spec run(keyword()) :: any()
   def run(_) do
+    icons_root_dir = icons_root_dir!()
+
     tasks =
       for {suffix, directory} <- icon_sets() do
         Task.async(fn ->
           IO.puts("Fetching icon list for #{directory}...")
-          read_and_process_icons(suffix, directory)
+          read_and_process_icons(suffix, Path.join(icons_root_dir, directory))
         end)
       end
 
     css_rules = tasks |> Task.await_many(:infinity) |> List.flatten()
+
+    @output_file |> Path.dirname() |> File.mkdir_p!()
 
     File.write!(
       @output_file,
@@ -34,20 +64,31 @@ defmodule Mix.Tasks.Auix.Gen.Icons do
   end
 
   ## PRIVATE
+  @spec icons_root_dir!() :: binary()
+  defp icons_root_dir! do
+    path = Path.join([Mix.Project.deps_path(), "heroicons", "optimized"])
+
+    if File.dir?(path) do
+      path
+    else
+      @missing_dependency_message
+      |> String.replace("%{path}", Path.relative_to_cwd(path))
+      |> Mix.raise()
+    end
+  end
+
   @spec icon_sets() :: list()
   defp icon_sets do
     [
-      {"", "/24/outline"},
-      {"-solid", "/24/solid"},
-      {"-mini", "/20/solid"},
-      {"-micro", "/16/solid"}
+      {"", "24/outline"},
+      {"-solid", "24/solid"},
+      {"-mini", "20/solid"},
+      {"-micro", "16/solid"}
     ]
   end
 
   @spec read_and_process_icons(binary(), binary()) :: list()
-  defp read_and_process_icons(suffix, directory) do
-    icons_path = Path.join(@icons_root_dir, directory)
-
+  defp read_and_process_icons(suffix, icons_path) do
     icons_path
     |> File.ls!()
     |> Enum.map(&generate_css(&1, suffix, icons_path))
