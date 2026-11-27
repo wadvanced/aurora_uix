@@ -240,6 +240,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Resource Metadata: the example that orders a one-to-many list compiles.
 - Module documentation of the renderers was corrected: the many-to-one, upload, form and show
   renderers.
+- The tutorial's schema generators run without a duplicate migration number, and the guides tell
+  how to work around the empty list after **New**, the unreadable info message and the `preload`
+  warning.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.

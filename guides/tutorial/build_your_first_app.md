@@ -157,9 +157,13 @@ in a moment:
 
 ```shell
 mix phx.gen.schema Catalog.Category categories name description
+sleep 1
 mix phx.gen.schema Catalog.Product products \
   name price:decimal stock:integer category_id:references:categories
 ```
+
+Keep the `sleep 1`: each generator names its migration after the current second, and
+`mix ecto.migrate` rejects two migrations with the same number.
 
 The generator creates `lib/inventory/catalog/category.ex` and
 `lib/inventory/catalog/product.ex` (plus migrations), but it does **not** wire up
@@ -434,7 +438,8 @@ module — this matters: for the product form to render the category as a dropdo
 Aurora UIX needs the *related* resource (`:category`) registered alongside
 `:product` in the same module.
 
-Create `lib/inventory_web/catalog_views.ex`:
+Create `lib/inventory_web/catalog_views.ex`. With Option B, replace the `context` and `schema`
+lines of each resource as the comments say, and drop the `alias Inventory.Catalog` line:
 
 ```elixir
 defmodule InventoryWeb.CatalogViews do
@@ -548,6 +553,12 @@ You have a complete, responsive CRUD app — list, detail, create, and edit view
 with validation — and you wrote almost no UI code. 🎉 To refresh open lists when
 another session changes data, see
 [Live Updates](../introduction/getting_started.md#live-updates-optional).
+
+> #### The list is empty after you add a record? {: .warning}
+> Clicking **New** empties the list behind the form, and it stays empty after saving. The record is
+> saved: reload the page to see it ([#705](https://github.com/wadvanced/aurora_uix/issues/705)).
+> The daisyUI bridge also hides the text of the confirmation message
+> ([#706](https://github.com/wadvanced/aurora_uix/issues/706)).
 
 > #### Generate routes for one resource at a time {: .info}
 > `auix_live_resources/2` accepts `only:` / `except:` to limit which routes it
