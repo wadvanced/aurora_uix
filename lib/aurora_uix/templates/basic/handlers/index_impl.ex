@@ -60,7 +60,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
   @doc """
   Handles URL parameter changes: stores the current path and builds the routing stack.
-  `apply_action/2` runs after it.
+  `auix_apply_action/2` runs after it.
 
   ## Parameters
   - `params` (map()) - URL/query parameters.
@@ -128,6 +128,19 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   Socket.t() - Updated socket with action-specific assigns.
   """
+  @callback auix_apply_action(
+              socket :: Socket.t(),
+              params :: map()
+            ) ::
+              Socket.t()
+
+  @doc """
+  Deprecated name of `c:auix_apply_action/2`, removed in 0.3.
+
+  The default `auix_apply_action/2` calls it, so an existing override keeps working. Override
+  `c:auix_apply_action/2` instead.
+  """
+  @doc deprecated: "Override auix_apply_action/2 instead"
   @callback apply_action(
               socket :: Socket.t(),
               params :: map()
@@ -161,7 +174,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
          params
          |> auix_handle_params(url, socket)
          |> elem(1)
-         |> then(&apply_action(&1, params))}
+         |> then(&auix_apply_action(&1, params))}
       end
 
       @doc false
@@ -201,7 +214,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
 
       @doc false
       @impl IndexImpl
-      defdelegate apply_action(socket, params), to: IndexImpl
+      def auix_apply_action(socket, params), do: apply_action(socket, params)
+
+      @doc false
+      @impl IndexImpl
+      defdelegate apply_action(socket, params), to: IndexImpl, as: :auix_apply_action
 
       defoverridable Phoenix.LiveView
       defoverridable auix_mount: 3
@@ -209,6 +226,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
       defoverridable auix_handle_event: 3
       defoverridable auix_handle_info: 2
       defoverridable auix_handle_async: 3
+      defoverridable auix_apply_action: 2
       defoverridable apply_action: 2
     end
   end
@@ -248,7 +266,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   Handles URL parameter changes and updates socket state.
 
   Stores the current path and builds the routing stack.
-  `apply_action/2` runs after it and applies the current action.
+  `auix_apply_action/2` runs after it and applies the current action.
 
   ## Parameters
   - `params` (map()) - URL/query parameters.
@@ -531,8 +549,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   ## Returns
   Socket.t() - Updated socket with action-specific entity assignment.
   """
-  @spec apply_action(Socket.t(), map()) :: Socket.t()
-  def apply_action(
+  @spec auix_apply_action(Socket.t(), map()) :: Socket.t()
+  def auix_apply_action(
         %{assigns: %{auix: auix, live_action: live_action}} = socket,
         %{"id" => id} = params
       )
@@ -547,7 +565,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> assign_record_entity(socket, params)
   end
 
-  def apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
+  def auix_apply_action(%{assigns: %{auix: auix, live_action: :new}} = socket, params) do
     new_opts =
       socket
       |> backend_socket_opts(auix.new_function)
@@ -561,14 +579,28 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
     |> assign_live_component()
   end
 
-  def apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
+  def auix_apply_action(%{assigns: %{live_action: :index}} = socket, %{"page" => page}) do
     page = String.to_integer(page)
     paginate(socket, page, nil)
   end
 
-  def apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
+  def auix_apply_action(%{assigns: %{live_action: :index}} = socket, _params) do
     assign_auix(socket, :entity, nil)
   end
+
+  @doc """
+  Deprecated name of `auix_apply_action/2`, removed in 0.3.
+
+  ## Parameters
+  - `socket` (Socket.t()) - LiveView socket.
+  - `params` (map()) - Action parameters.
+
+  ## Returns
+  Socket.t() - What `auix_apply_action/2` returns.
+  """
+  @deprecated "Use auix_apply_action/2 instead"
+  @spec apply_action(Socket.t(), map()) :: Socket.t()
+  def apply_action(socket, params), do: auix_apply_action(socket, params)
 
   ## PRIVATE
 

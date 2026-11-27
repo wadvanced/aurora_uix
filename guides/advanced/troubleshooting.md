@@ -84,7 +84,7 @@ fails.
 
 ## Incorrect LiveView Routes
 
-**Symptoms:** "module not found" errors, a `FunctionClauseError` in `apply_action` when a page is
+**Symptoms:** "module not found" errors, a `FunctionClauseError` in `auix_apply_action` when a page is
 opened, or pages that show the wrong view.
 
 **Cause:** `auix_create_ui` generates, for each resource, these modules:

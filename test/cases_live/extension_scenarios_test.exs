@@ -51,7 +51,12 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
 
         {:ok, filtered, _html} = live(conn, path <> "?filter=abc")
         render_click(filtered, "hooks_report", %{})
-        assert has_element?(filtered, "#flash-info", "mount=mounted filter=abc")
+
+        assert has_element?(
+                 filtered,
+                 "#flash-info",
+                 "mount=mounted filter=abc action=index legacy_action=index"
+               )
 
         {:ok, async_view, _html} = live(conn, path)
         render_click(async_view, "hooks_async", %{})

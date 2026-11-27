@@ -156,7 +156,7 @@ Positions by context: index (row / header / footer / selected / selected-all), f
 
 ## 5. Customizing LiveView Behavior
 
-**What it is:** generated LiveViews delegate to handler modules. Provide your own (`handler_module`, `edit_handler_module`, `show_handler_module`) and override `auix_*` callbacks (`auix_mount`, `auix_handle_event`, `save_entity`, …), calling `super` for the default behavior. Phoenix callbacks remain overridable for advanced cases.
+**What it is:** generated LiveViews delegate to handler modules. Provide your own (`handler_module`, `edit_handler_module`, `show_handler_module`) and override `auix_*` callbacks (`auix_mount`, `auix_handle_event`, `auix_save_entity`, …), calling `super` for the default behavior. Phoenix callbacks remain overridable for advanced cases.
 **When to use it:** custom save logic, authorization, extra assigns, custom events — anything behavioral rather than visual.
 
 ```elixir

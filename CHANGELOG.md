@@ -77,6 +77,12 @@ breaking changes: see the What's New guide for the upgrade checklist.
   `vertical`, `horizontal`, `inline`, and `content` to one plain quoted string such as `""`; any
   other value of either property is dropped. `object-fit` is allowed too.
 
+### Deprecated
+
+- **`save_entity/2` and `apply_action/2` handler callbacks**: renamed `auix_save_entity/2` (FormImpl)
+  and `auix_apply_action/2` (IndexImpl), like every other handler callback. The old names are
+  removed in 0.3; until then an override of them still runs (LiveView guide, "Handler Hooks").
+
 ### Fixed
 
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option

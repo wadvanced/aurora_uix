@@ -8,12 +8,12 @@ defmodule Aurora.UixWeb.Test.Mirror.Handlers.FormHandlerHook do
   alias Phoenix.LiveView.Socket
 
   @impl FormImpl
-  @spec save_entity(map(), Socket.t()) :: {:ok, struct()} | {:error, Ecto.Changeset.t()}
-  def save_entity(%{assigns: %{action: :edit, auix: auix}}, _entity_params) do
+  @spec auix_save_entity(Socket.t(), map()) :: {:ok, struct()} | {:error, Ecto.Changeset.t()}
+  def auix_save_entity(%{assigns: %{action: :edit, auix: auix}}, _entity_params) do
     {:ok, auix.entity}
   end
 
-  def save_entity(socket, entity_params), do: super(socket, entity_params)
+  def auix_save_entity(socket, entity_params), do: super(socket, entity_params)
 
   @impl Phoenix.LiveComponent
   def update(assigns, socket) do
