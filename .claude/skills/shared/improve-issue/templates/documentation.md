@@ -19,6 +19,9 @@ content, once. Whether `DOC-1` exists, and what depends on it, is **Partition**'
    section (`### Added`, `### Changed`, `### Fixes` or `### Documentation`), in the style of the
    entries already there. The entry carries no issue-link suffix. Name the UI components by their
    simple names (H-2).
+   A correction or sync of existing documentation uses the release's single generic
+   `### Documentation` entry (H-4) instead of its own: when that entry already exists, the issue
+   has no `CHANGELOG.md` block. Only a new guide gets its own line.
 8. What the common targets owe:
 
    | File | The block carries |
