@@ -22,6 +22,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
     `auix_event`.
   """
 
+  use Aurora.Uix.GettextResolver
+
   import Aurora.Uix.Templates.Basic.Helpers
   import Phoenix.Component, only: [assign: 3]
   import Phoenix.LiveView
@@ -188,8 +190,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl do
   def auix_handle_event("auix_open", params, socket), do: {:noreply, report_open(socket, params)}
 
   def auix_handle_event("delete", %{"id" => id}, socket) do
-    {socket, ids} = IndexList.delete(socket, id)
-    {:noreply, report_intent(socket, {:deleted, ids})}
+    case IndexList.delete(socket, id) do
+      {socket, []} -> {:noreply, put_flash(socket, :error, dt("Item could not be deleted"))}
+      {socket, ids} -> {:noreply, report_intent(socket, {:deleted, ids})}
+    end
   end
 
   def auix_handle_event("pagination_to_page", %{"page" => page}, socket),

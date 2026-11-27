@@ -321,8 +321,10 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
         %{"id" => id},
         %{assigns: %{auix: _auix, streams: _streams}} = socket
       ) do
-    {socket, _ids} = IndexList.delete(socket, id)
-    {:noreply, put_flash(socket, :info, dt("Item deleted successfully"))}
+    case IndexList.delete(socket, id) do
+      {socket, []} -> {:noreply, put_flash(socket, :error, dt("Item could not be deleted"))}
+      {socket, _ids} -> {:noreply, put_flash(socket, :info, dt("Item deleted successfully"))}
+    end
   end
 
   def auix_handle_event(

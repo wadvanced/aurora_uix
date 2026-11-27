@@ -73,7 +73,8 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
     assert has_element?(embeds_view, "#auix-policy_item-form")
   end
 
-  test "without an actor the views mount and a policy denies the create", %{conn: conn} do
+  test "without an actor the views mount and a policy denies the create and the delete",
+       %{conn: conn} do
     {:ok, public_view, _html} = live(conn, "/ash-actor-public-items")
     assert has_element?(public_view, "div.auix-index-container")
 
@@ -94,5 +95,17 @@ defmodule Aurora.UixWeb.Test.AshActorPolicyTest do
 
     denied = Ash.read!(AshActorTest.PolicyItem, authorize?: false)
     assert Enum.filter(denied, &(&1.name == "denied-item")) == []
+
+    # a refused delete keeps the index up and shows an error
+    item = seed_policy_item("undeletable-item")
+    {:ok, delete_view, _html} = live(conn, "/ash-actor-policy-items")
+
+    delete_view
+    |> element("tr a[name='auix-delete-policy_item'][phx-click*='#{item.id}']")
+    |> render_click()
+
+    assert has_element?(delete_view, "div.auix-index-container")
+    assert has_element?(delete_view, "#flash-error", "Item could not be deleted")
+    assert Ash.get!(AshActorTest.PolicyItem, item.id, authorize?: false)
   end
 end
