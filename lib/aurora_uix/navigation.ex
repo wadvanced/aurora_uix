@@ -58,7 +58,8 @@ defmodule Aurora.Uix.Navigation do
 
   With a binary `base_path`, `uri_path` is the base path without its leading `/`. Otherwise
   it is derived from `current_path`, dropping the record id and the action suffix for the
-  `:edit`, `:show` and `:show_edit` live actions.
+  `:edit`, `:show` and `:show_edit` live actions, and the `new` segment for the `:new` live
+  action.
 
   ## Parameters
 
@@ -92,6 +93,7 @@ defmodule Aurora.Uix.Navigation do
         {:edit, [_ | paths]} -> paths
         {:show, [_ | paths]} -> paths
         {:show_edit, [_ | paths]} -> paths
+        {:new, ["new" | paths]} -> paths
         {_, paths} -> paths
       end
 

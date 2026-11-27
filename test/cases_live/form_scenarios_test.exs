@@ -419,7 +419,7 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
       {:ok, view, _html} = live(conn, mirror_path(backend, "form", "products", "/new"))
       request_close(view, :new)
-      {path, _flash} = assert_redirect(view)
+      path = assert_patch(view)
       assert String.starts_with?(path, mirror_path(backend, "form", "products", "?"))
 
       view =

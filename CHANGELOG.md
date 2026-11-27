@@ -93,6 +93,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Flash after a save**: a flash message was rendered wrapped in quotes, and saving a new record
   reported it as updated. The message is now rendered as written, and a new record reports
   "<Name> created successfully".
+- **New emptied the index list**: opening New from a generated index emptied the list behind the
+  form, and it stayed empty after saving until the page was reloaded. The `new` segment of the
+  `:new` route is now dropped from the index path, so the stream container keeps its id.
 - **Info flash with the daisyUI bridge**: `auix-bridge-daisyui.css` mapped the info text and the
   info background to the same `--color-info`, so the info flash had no readable text. The info text
   now uses `--color-info-content`. A host that already copied the bridge re-runs
