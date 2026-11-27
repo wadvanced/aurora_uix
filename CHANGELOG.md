@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **New emptied the index list**: opening New from a generated index emptied the list behind the
+  form, and it stayed empty after saving until the page was reloaded. The `new` segment of the
+  `:new` route is now dropped from the index path, so the stream container keeps its id.
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.

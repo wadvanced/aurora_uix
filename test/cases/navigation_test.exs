@@ -26,7 +26,7 @@ defmodule Aurora.Uix.Test.NavigationTest do
           {"/a/products/7/edit", :edit, "a/products"},
           {"/a/products/7/show", :show, "a/products"},
           {"/a/products/7/show-edit", :show_edit, "a/products"},
-          {"/a/products/new", :new, "a/products/new"}
+          {"/a/products/new", :new, "a/products"}
         ] do
       resolved =
         [current_path: path]
