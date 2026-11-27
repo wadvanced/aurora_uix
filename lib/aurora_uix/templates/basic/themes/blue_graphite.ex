@@ -3,7 +3,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
   The Blue Graphite theme for the Basic template.
 
   ## Key Features
-  - Slate text and borders, a navy primary and light / dark values for every color variable.
+  - Slate text and borders, a blue primary, graphite table headers, a dimmed modal backdrop and
+    light / dark values for every color variable.
   - Registered as `:blue_graphite`; select it with `config :aurora_uix, theme_name: :blue_graphite`.
 
   ## Key Constraints
@@ -16,18 +17,18 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
   rule(:root_colors, """
   :root[data-theme-name="#{@theme_name}"], :host[data-theme-name="#{@theme_name}"] {
   /* Theme Name: Blue Graphite */
-  /* Base Palette: Gray (Slate), Navy (Primary), Red (Danger) */
+  /* Base Palette: Gray (Slate), Blue (Primary), Graphite (Table header), Red (Danger) */
 
     /* Backgrounds */
     --auix-color-bg-default: #FFFFFF;
-    --auix-color-bg-default--reverted: #0F172A;
+    --auix-color-bg-default--reverted: #1D4ED8;
     --auix-color-bg-secondary: #D0D5DD;
     --auix-color-bg-disabled: #98A2B3;
     --auix-color-bg-info: #EFF4FF;
     --auix-color-bg-light: #F2F4F7;
     --auix-color-bg-hover: #F9FAFB;
-    --auix-color-bg-hover--reverted: #1E293B;
-    --auix-color-bg-backdrop: #DDE1E8;
+    --auix-color-bg-hover--reverted: #1E40AF;
+    --auix-color-bg-backdrop: rgba(31, 41, 55, 0.6);
     --auix-color-bg-inner-container: rgba(249, 250, 251, 0.8);
     --auix-color-bg-danger: #B42318;
     --auix-color-bg-danger-hover: #912018;
@@ -53,7 +54,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
     --auix-color-icon-fill: #00359E;
     --auix-color-icon-default: #101828;
     --auix-color-icon-safe: #085D3A;
-    --auix-color-icon-info: #2F56D6;
+    --auix-color-icon-info: #1D4ED8;
     --auix-color-icon-danger: #B42318;
     --auix-color-icon-inactive: #D0D5DD;
 
@@ -61,11 +62,11 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
     --auix-color-border-primary: #C4CAD4;
     --auix-color-border-secondary: #E4E7EC;
     --auix-color-border-tertiary: #F2F4F7;
-    --auix-color-border-focus: #0F172A;
+    --auix-color-border-focus: #2563EB;
 
     /* Focus States */
-    --auix-color-focus-ring: #0F172A;
-    --auix-color-focus-ring-halo: rgba(15, 23, 42, 0.22);
+    --auix-color-focus-ring: #2563EB;
+    --auix-color-focus-ring-halo: rgba(37, 99, 235, 0.28);
 
     /* Success, warning and selection */
     --auix-color-success-bg: #ECFDF3;
@@ -74,24 +75,30 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
     --auix-color-warning-bg: #FFFAEB;
     --auix-color-warning-border: #FEDF89;
     --auix-color-warning-text: #7A2E0E;
-    --auix-color-selection-bg: #F1F1F2;
-    --auix-color-selection-border: #0F172A;
+    --auix-color-selection-bg: #EFF6FF;
+    --auix-color-selection-border: #1D4ED8;
 
     /* Rings and shadows */
     --auix-ring-color: rgba(16, 24, 40, 0.1);
     --auix-color-shadow-alpha: rgba(16, 24, 40, 0.1);
     --auix-color-shadow-black-alpha: rgba(16, 24, 40, 0.1);
     --auix-color-shadow-black-alpha-small: rgba(16, 24, 40, 0.05);
+    /* Component colors */
+    --auix-color-items-table-header-bg: #374151;
+    --auix-color-items-table-header-text: #E5E7EB;
+    --auix-color-items-table-header-sorted-text: #FFFFFF;
+    --auix-color-sections-tab-active-text: #1D4ED8;
+
 
     /* Dark theme variant - intermediate variables used in the dark mode selectors */
     --dark--auix-color-bg-default: #111723;
-    --dark--auix-color-bg-default--reverted: #E6E9EF;
+    --dark--auix-color-bg-default--reverted: #84ADFF;
     --dark--auix-color-bg-secondary: #3A4558;
     --dark--auix-color-bg-disabled: #5B6678;
     --dark--auix-color-bg-info: #111C3A;
     --dark--auix-color-bg-light: #1D2535;
     --dark--auix-color-bg-hover: #161C29;
-    --dark--auix-color-bg-hover--reverted: #D0D5DD;
+    --dark--auix-color-bg-hover--reverted: #B2CCFF;
     --dark--auix-color-bg-backdrop: #05070B;
     --dark--auix-color-bg-inner-container: rgba(17, 23, 35, 0.8);
     --dark--auix-color-bg-danger: #F97066;
@@ -120,17 +127,17 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
     --dark--auix-color-border-primary: #3A4558;
     --dark--auix-color-border-secondary: #262F3F;
     --dark--auix-color-border-tertiary: #1D2535;
-    --dark--auix-color-border-focus: #E6E9EF;
-    --dark--auix-color-focus-ring: #E6E9EF;
-    --dark--auix-color-focus-ring-halo: rgba(230, 233, 239, 0.28);
+    --dark--auix-color-border-focus: #84ADFF;
+    --dark--auix-color-focus-ring: #84ADFF;
+    --dark--auix-color-focus-ring-halo: rgba(132, 173, 255, 0.3);
     --dark--auix-color-success-bg: #0B261A;
     --dark--auix-color-success-border: #17573A;
     --dark--auix-color-success-text: #75E0A7;
     --dark--auix-color-warning-bg: #2B1D08;
     --dark--auix-color-warning-border: #6B4A0F;
     --dark--auix-color-warning-text: #FEC84B;
-    --dark--auix-color-selection-bg: #1E2636;
-    --dark--auix-color-selection-border: #E6E9EF;
+    --dark--auix-color-selection-bg: #17264A;
+    --dark--auix-color-selection-border: #84ADFF;
     --dark--auix-ring-color: rgba(230, 233, 239, 0.1);
     --dark--auix-color-shadow-alpha: rgba(0, 0, 0, 0.3);
     --dark--auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.3);
@@ -191,6 +198,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
       --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
       --auix-color-shadow-black-alpha: var(--dark--auix-color-shadow-black-alpha);
       --auix-color-shadow-black-alpha-small: var(--dark--auix-color-shadow-black-alpha-small);
+      --auix-color-items-table-header-bg: #2B3648;
+      --auix-color-sections-tab-active-text: #84ADFF;
     }
   }
 
@@ -247,6 +256,8 @@ defmodule Aurora.Uix.Templates.Basic.Themes.BlueGraphite do
     --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
     --auix-color-shadow-black-alpha: var(--dark--auix-color-shadow-black-alpha);
     --auix-color-shadow-black-alpha-small: var(--dark--auix-color-shadow-black-alpha-small);
+    --auix-color-items-table-header-bg: #2B3648;
+    --auix-color-sections-tab-active-text: #84ADFF;
   }
   """)
 

@@ -525,8 +525,9 @@ messages stay `:info` and `:error`. A host handler puts one like any other flash
 Aurora UIX ships with three registered themes:
 
 - `:white_charcoal` — the library default (light-first, neutral grays)
-- `:vitreous_marble` — Slate/Cyan/Ruby palette
-- `:blue_graphite` — slate text and borders with a navy primary, light and dark
+- `:vitreous_marble` — Slate/Cyan/Ruby palette with a teal primary and pale cyan table headers
+- `:blue_graphite` — slate text and borders with a blue primary, graphite table headers and a dimmed
+  modal backdrop, light and dark
 
 Select one via `config :aurora_uix, theme_name: :white_charcoal` and re-run
 `mix auix.gen.stylesheet` after changing the configuration.
