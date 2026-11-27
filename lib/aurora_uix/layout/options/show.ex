@@ -17,12 +17,12 @@ defmodule Aurora.Uix.Layout.Options.Show do
 
   * `:edit_action_label` - The edit text that will appear in the action button.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
-      `Aurora.Uix.Layout.Options.parse_value/1`).
+      `Aurora.Uix.Layout.Options.get_option/3`).
     - Default: `"Edit {name}"`, where `{name}` is the resource name.
 
   * `:back_action_label` - The text for the back action.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
-      `Aurora.Uix.Layout.Options.parse_value/1`).
+      `Aurora.Uix.Layout.Options.get_option/3`).
     - Default: `"Back to {title}"`, where `{title}` is the resource title.
 
   * `:record_navigator` - Controls the display position of the record navigation bar.

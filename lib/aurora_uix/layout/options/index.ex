@@ -36,7 +36,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
     - Default: `""`.
   * `:new_action_label` - The label used in the "new" action button.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
-      `Aurora.Uix.Layout.Options.parse_value/1`).
+      `Aurora.Uix.Layout.Options.get_option/3`).
     - Default: `"New {name}"`, where `{name}` is the resource name.
   * `:action_icons` - The icons of the default actions, by action name. Below the `sm`
     breakpoint a default action button shows only its icon.
