@@ -4,7 +4,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Uploads do
 
   ## Key Features
 
-  - `image` consumes its entries with an arity-1 consumer and offers no download
+  - `image` consumes its entries with an arity-1 consumer and offers no download: it sets
+    `downloadable?: true` without a `download` producer, so no button shows
   - `thumbnail` consumes with an arity-1 consumer and offers a download
   - `description` consumes with an arity-2, socket-aware consumer
   - `status` consumes with a consumer that returns an error
@@ -35,7 +36,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.Uploads do
         field :image do
           upload(
             allow: [accept: ~w(.png .jpg), max_entries: 1],
-            consume: &Handlers.Consumer.consume_image/1
+            consume: &Handlers.Consumer.consume_image/1,
+            downloadable?: true
           )
         end
 

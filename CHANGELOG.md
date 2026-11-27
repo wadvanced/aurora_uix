@@ -82,6 +82,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.
+- **Download button without a `download` callback**: an upload with `downloadable?` set and no
+  `download` callback showed a Download button that did nothing, and a `downloadable?` callback was
+  invoked. The button now needs `download`; without it `downloadable?` is not read.
 - **`get_streams` and `row_id` index options**: a function set for either option was called with the
   assigns when the option was read, so the index used its result instead of the function. The given
   function now replaces the default one.
@@ -92,9 +95,20 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Theme of embedded components**: only the generated index LiveView set `data-theme-name` on
   `<html>`, so a page that only embeds the index, form or show components got no theme colors. Every
   component now renders the `AuixThemeName` hook, which reads the theme name from its element.
+  The generated index also loses the empty space it had above its title on wide screens.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
+- **Ash read actions named in `backend_opts`**: an action named with `ash_read_action` was copied to
+  the index, and the two list options could be combined
+  ([#665](https://github.com/wadvanced/aurora_uix/issues/665)). A named read action is now always the
+  one used. `ash_read_action` takes an action without pagination and lists the index on one page;
+  `ash_read_action_paginated` takes a paginated one. Compilation fails when both are given or when an
+  action does not match its option. Without a name, the index prefers a paginated read action and
+  falls back to one without pagination instead of failing compilation.
+  **Upgrade:** a resource that names a paginated action (such as the default `:read`) with
+  `ash_read_action` must name it with `ash_read_action_paginated`, and one that set both options keeps
+  one.
 - **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
   `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
   primary action was used instead. Compilation now fails with a `DslError` naming the missing action.
@@ -220,6 +234,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   button.
 - Documented examples of the CRUD modules, the theme helper and the layout option lookup were
   corrected.
+- Guide screenshots were regenerated with the default White Charcoal theme, and the nested
+  sections example describes what they show.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.

@@ -267,9 +267,9 @@ Combine all layout types for sophisticated UIs:
 ```
 
 **Result**:
-- Top section: Reference and name in the same row
-- Middle: Nested section inside the first tab containing description and quantities
-- Information tab: Nested section inside the information top level tab containing price related fields 
+- "References" tab: reference and name in one row, followed by the nested tabs "Descriptions"
+  (description and status) and "Specifications" (dimensions and weight)
+- "Information" tab: the nested tabs "Quantities" and "Sale Prices", the latter open by default
 
 <div align="center">
     <img src="./images/layouts/nested_1-desktop.png" width="600"/>
