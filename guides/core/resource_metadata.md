@@ -677,14 +677,18 @@ options on the field in the layout:
   [QueryBuilder for Advanced Filtering](layouts.md#querybuilder-for-advanced-filtering)
 
 ```elixir
-auix_resource_metadata :product, schema: Product, context: Inventory do
+auix_resource_metadata :product do
+  context Inventory
+  schema Product
   field :product_transactions, query_opts: [order_by: [asc: :inserted_at], where: [{:quantity, :gt, 0}]]
 end
 
-edit_layout :product do
-  stacked do
-    field :reference
-    field :product_transactions, order_by: [desc: :quantity]
+auix_create_ui do
+  edit_layout :product do
+    stacked do
+      field :reference
+      field :product_transactions, order_by: [desc: :quantity]
+    end
   end
 end
 ```
