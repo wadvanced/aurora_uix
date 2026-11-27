@@ -29,6 +29,8 @@ defmodule Aurora.Uix.Layout.Options do
 
   - **Layout options** (e.g. `:page_title`, `:edit_title`, `:new_action_label`) accept an
     arity-1 function that receives `assigns` and returns a `Phoenix.LiveView.Rendered.t()`.
+    Action labels (`:new_action_label`, `:save_action_label`, `:edit_action_label`,
+    `:back_action_label`) also accept a 0-arity function returning a `binary()`.
     See `get_option/3`.
   - **Resource `name`/`title` metadata** (set via `auix_resource_metadata`, consumed as
     `assigns.auix.name` / `assigns.auix.title`) additionally accepts a **0-arity** function
@@ -228,7 +230,10 @@ defmodule Aurora.Uix.Layout.Options do
   def get(_assigns, option), do: {:not_found, option}
 
   @doc """
-  Gets an option value, processing it if it's a function or a title.
+  Gets an option value, calling it when it is a function.
+
+  A 0-arity function is called with no arguments; an arity-1 function receives `assigns`.
+  Any other value is returned unchanged.
 
   ## Parameters
 
@@ -241,6 +246,10 @@ defmodule Aurora.Uix.Layout.Options do
   - `{:ok, term()}` - A tuple with `:ok` and the processed option value.
   """
   @spec get_option(map(), term(), atom()) :: {:ok, term()}
+  def get_option(_assigns, value, _option)
+      when is_function(value, 0),
+      do: {:ok, value.()}
+
   def get_option(assigns, value, _option)
       when is_function(value, 1),
       do: {:ok, value.(assigns)}

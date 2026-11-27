@@ -25,7 +25,7 @@ defmodule Aurora.Uix.Layout.Options.Form do
 
   * `:save_action_label` - The text to show for the save action button.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
-      `Aurora.Uix.Layout.Options.parse_value/1`).
+      `Aurora.Uix.Layout.Options.get_option/3`).
     - Default: `"Save {name}"`, where `{name}` is the resource name.
 
   * `:record_navigator` - Controls the display position of the record navigation bar.
