@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`get_streams` and `row_id` index options**: a function set for either option was called with the
+  assigns when the option was read, so the index used its result instead of the function. The given
+  function now replaces the default one.
 - **A template of the application**: `config :aurora_uix, :template` naming a module of the host
   application stopped the library from compiling, because the template was read before the host's
   modules existed. Such a template can now be configured; the library's built-in renderers keep the
