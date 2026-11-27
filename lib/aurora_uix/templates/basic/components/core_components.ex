@@ -877,9 +877,15 @@ defmodule Aurora.Uix.Templates.Basic.CoreComponents do
     """
   end
 
-  defp format_message(assigns) do
+  defp format_message(%{msg: msg} = assigns) when is_binary(msg) do
     ~H"""
     {@msg}
+    """
+  end
+
+  defp format_message(assigns) do
+    ~H"""
+    {inspect(@msg)}
     """
   end
 
