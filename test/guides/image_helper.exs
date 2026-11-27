@@ -9,6 +9,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   - Multi-device screenshot capture (desktop and mobile)
   - Window resizing and zoom controls
   - Image post-processing (cropping, sharpening)
+  - Light captures by default, dark ones with `color_scheme: "dark"`
   - Automatic file management and cleanup
   - Compare mode, to check that a change keeps the guide screens as they were: with
     `AURORA_UIX_CAPTURES=compare`, captures go to `tmp/captures/` (the committed images stay
@@ -44,6 +45,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     * `:width` (integer()) - Window width in pixels.
     * `:height` (integer()) - Window height in pixels.
     * `:zoom` (number()) - CSS zoom level.
+    * `:color_scheme` (binary()) - `"light"` (default) or `"dark"`.
     * `:click` (binary()) - CSS selector to click before capture.
     * `:center_crop_width` (integer()) - Crop image width from center.
     * `:center_crop_height` (integer()) - Crop image height from center.
@@ -61,7 +63,7 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
     opts = get_options(screen_size, options_set)
 
     session
-    |> force_light_scheme()
+    |> force_color_scheme(Keyword.get(opts, :color_scheme, "light"))
     |> set_window_prefs(opts)
     |> pause()
     |> take_screenshot(name: file_name, log: true)
@@ -123,13 +125,13 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
 
   ## PRIVATE
 
-  # Pins prefers-color-scheme to light through the Chrome DevTools Protocol so the guide
-  # images never depend on the OS appearance of the machine that captures them.
-  @spec force_light_scheme(Wallaby.Session.t()) :: Wallaby.Session.t()
-  defp force_light_scheme(session) do
+  # Pins prefers-color-scheme through the Chrome DevTools Protocol so the guide images never
+  # depend on the OS appearance of the machine that captures them.
+  @spec force_color_scheme(Wallaby.Session.t(), binary()) :: Wallaby.Session.t()
+  defp force_color_scheme(session, scheme) do
     params = %{
       cmd: "Emulation.setEmulatedMedia",
-      params: %{features: [%{name: "prefers-color-scheme", value: "light"}]}
+      params: %{features: [%{name: "prefers-color-scheme", value: scheme}]}
     }
 
     {:ok, _response} =
@@ -210,6 +212,8 @@ defmodule Aurora.UixWeb.Test.Guides.ImageHelper do
   defp replace_file(session, file_name, target) do
     source_path = get_source_path(file_name)
     target_path = Path.expand("#{target}/#{file_name}.png")
+
+    target_path |> Path.dirname() |> File.mkdir_p!()
 
     with :ok <- maybe_remove_file(target_path),
          :ok <- File.cp(source_path, target_path) do
