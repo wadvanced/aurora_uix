@@ -55,7 +55,7 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
       </.live_component>
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
   use Phoenix.LiveComponent
   alias Phoenix.LiveView.JS

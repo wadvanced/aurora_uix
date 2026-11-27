@@ -8,7 +8,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Url do
   - `:form` — editing is not special; delegates to the default text input.
   """
 
-  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.Renderer
 
   alias Aurora.Uix.Renderers
 

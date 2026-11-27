@@ -16,7 +16,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.ShowComponent do
   - Only intended for use in show page layouts.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
   import Aurora.Uix.Templates.Basic.RoutingComponents
 

@@ -91,11 +91,11 @@ defmodule Aurora.Uix.Renderer do
 
   @doc false
   @spec __using__(keyword()) :: Macro.t()
-  defmacro __using__(opts) do
+  defmacro __using__(_opts) do
     quote do
       @behaviour Aurora.Uix.Renderer
 
-      use Aurora.Uix.CoreComponentsImporter, unquote(opts)
+      use Aurora.Uix.CoreComponentsImporter
       use Aurora.Uix.GettextResolver
 
       import Aurora.Uix.Renderer, only: [display_value: 1, form_field: 1]

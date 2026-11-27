@@ -15,7 +15,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
     renders the cards alone
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
   use Phoenix.LiveView
 

@@ -6,7 +6,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.ToggleSwitch do
   - `:form` — the same sliding switch, interactive and bound to the form field.
   """
 
-  use Aurora.Uix.Renderer, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.Renderer
 
   @impl Aurora.Uix.Renderer
   def render(%{auix: %{layout_type: :form}} = assigns) do

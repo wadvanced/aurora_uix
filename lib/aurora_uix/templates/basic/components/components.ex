@@ -28,7 +28,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   See `Aurora.Uix.ComponentsResolver` and `Aurora.Uix.ComponentsResolverHelper` for
   details on the override mechanism.
   """
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.ComponentsResolver, :basic_components
   use Aurora.Uix.GettextResolver
   use Phoenix.Component

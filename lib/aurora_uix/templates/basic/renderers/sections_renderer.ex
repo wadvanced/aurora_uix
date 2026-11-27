@@ -10,7 +10,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.SectionsRenderer do
   - Provides section-level rendering for custom layouts
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
   alias Aurora.Uix.Templates.Basic.Renderer
 

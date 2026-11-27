@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.DefaultRenderer do
   delegate back to the default.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components

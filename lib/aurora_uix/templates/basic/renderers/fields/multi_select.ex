@@ -43,7 +43,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.MultiSelect do
     which renders them as a single `<input type="hidden">`.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components

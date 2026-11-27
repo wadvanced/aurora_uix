@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   Renders a file upload field for a form.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
 
   @doc """

@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   - Integrates with Aurora UIX context and helpers
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
   import Aurora.Uix.Templates.Basic.Components
   import Aurora.Uix.Integration.Crud

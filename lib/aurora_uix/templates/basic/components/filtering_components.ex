@@ -11,7 +11,7 @@ defmodule Aurora.Uix.Templates.Basic.Components.FilteringComponents do
   `config :aurora_uix, :basic_filtering_components, MyApp.MyFilteringComponents`.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.ComponentsResolver, :basic_filtering_components
   use Phoenix.Component
 

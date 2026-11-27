@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Form do
     - Designed for use within Phoenix LiveView templates.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
 
   alias Aurora.Uix.Action

@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Templates.Basic.RoutingComponents do
   `config :aurora_uix, :basic_routing_components, MyApp.MyRoutingComponents`.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.ComponentsResolver, :basic_routing_components
   use Phoenix.Component
 

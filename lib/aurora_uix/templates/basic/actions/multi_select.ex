@@ -31,7 +31,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.MultiSelect do
       `:multi_select_toggle_state` and the layout tree options, plus the `:field` being rendered.
   """
 
-  use Aurora.Uix.CoreComponentsImporter, template: Aurora.Uix.Templates.Basic
+  use Aurora.Uix.CoreComponentsImporter
   use Aurora.Uix.GettextResolver
 
   import Phoenix.Component, only: [sigil_H: 2]
