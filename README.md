@@ -24,7 +24,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 **Why Aurora UIX?**
 - **Rapid Development** — Build CRUD interfaces in minutes, not days. Define resource metadata once, get complete index, show, and edit views.
 - **Compile-Time Generation** — The UI modules are generated when your application compiles, and mistakes in a declaration fail the build.
-- **Extensible by Design** — Customize every layer: field renderers, layouts, templates, themes, and LiveView event handlers.
+- **Extensible by Design** — Customize every layer: field renderers, layouts, components, themes, and LiveView event handlers.
 - **Production-Ready Features** — Built-in pagination, validation, error handling, i18n, responsive design, and real-time updates via LiveView.
 
 **Key Features:**
@@ -55,7 +55,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Responsive cards** - Small screens show [one card per record](./guides/core/layouts.md#index-cards); a layout can design the card and show it at every width
 - **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](./guides/customization/theming.md)
 - **Actions** - [Add, replace or remove buttons](./guides/customization/custom_actions.md), change their icons, and run [bulk actions](./guides/customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
-- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers, templates and [component overrides](./guides/customization/customization.md)
+- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](./guides/customization/customization.md)
 - **Behavior** - [Handler hooks](./guides/core/liveview.md#handler-hooks) for your business logic
 - **Internationalization** - A [configurable Gettext backend](./guides/core/internationalization.md)
 
@@ -199,7 +199,7 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Styling](./guides/customization/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
 - **[Internationalization](./guides/core/internationalization.md)** — Configuring the Gettext backend, automatic POT generation, and translation workflow
 - **[CSS Bridges](./guides/customization/writing_a_style_bridge.md)** — Mapping host design-system tokens onto `--auix-*` variables
-- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Custom templates and backends
+- **[Advanced Usage](./guides/advanced/advanced_usage.md)** — Templates, metadata separation and custom backends
 - **[Troubleshooting](./guides/advanced/troubleshooting.md)** — Common issues and solutions
 
 ---

@@ -83,7 +83,13 @@ or `""` for a name the theme does not have.
 
 ## Layer 1: Color Palette (Custom Theme)
 
-Create your own theme by defining colors as the foundation:
+Create your own theme by defining colors as the foundation.
+
+> #### Define every color {: .warning}
+> A theme's `:root_colors` replaces the whole palette: nothing is inherited from another theme's
+> colors, and a color you leave out is undefined. The examples in this guide show a few colors to
+> keep them short. Start from the complete `:root_colors` of a built-in theme, such as
+> `lib/aurora_uix/templates/basic/themes/white_charcoal.ex`, and change its values.
 
 ```elixir
 defmodule MyApp.Themes.CustomTheme do
@@ -160,6 +166,9 @@ Aurora UIX uses a **light-first approach** with dark mode as an optional variant
 4. **Conditional Switching** - Two CSS mechanisms reassign the main variables to dark values when needed
 
 **Switching Mechanisms (Priority Order)**:
+
+In the built-in themes there is no selector for `data-theme="light"`, so an operating system set to
+dark mode wins over it ([#672](https://github.com/wadvanced/aurora_uix/issues/672)).
 
 1. **Data Attribute** (Highest Priority)
    ```css
@@ -302,7 +311,7 @@ defmodule MyApp.Themes.Ocean do
 end
 ```
 
-This creates a complete ocean-blue theme with light and dark modes. All dimensions, fonts, shadows come from the parent layers.
+Completed with every color, this is an ocean-blue theme with light and dark modes. All dimensions, fonts, shadows come from the parent layers.
 
 **Using the Ocean theme**:
 
@@ -317,8 +326,6 @@ This creates a complete ocean-blue theme with light and dark modes. All dimensio
 <!-- Dark mode via explicit attribute (overrides OS preference) -->
 <html data-theme-name="ocean" data-theme="dark">
 
-<!-- Light mode via explicit attribute (overrides OS preference) -->
-<html data-theme-name="ocean" data-theme="light">
 ```
 
 ## Overriding Specific Rules
@@ -378,59 +385,46 @@ defmodule MyApp.Themes.Ocean do
 end
 ```
 
-**Step 2: Generate Stylesheet**
+**Step 2: Configure the Theme**
 
-The build task `mix auix.gen.stylesheet` automatically:
-- Discovers all theme modules in your application
-- Collects all rules from each theme
-- Generates a unified stylesheet with all themes
-
-No manual registration needed!
-
-```bash
-mix auix.gen.stylesheet
-```
-
-**Step 3: Configure Default Theme**
-
-Set the default theme in your application config:
+Set the theme in your application config:
 
 ```elixir
 # config/config.exs
 config :aurora_uix, theme_name: :ocean
 ```
 
-**Step 4: Apply Theme to HTML**
+**Step 3: Generate the Stylesheet**
 
-The `AuixThemeName` hook automatically sets the `data-theme-name` attribute on the HTML element:
-
-- **For Generated UI**: The hook is already included in all generated layouts
-- **For Custom/Non-Generated UI**: Add the hook manually:
-
-```elixir
-# In your custom root layout template
-<html phx-hook="AuixThemeName">
-  <!-- content -->
-</html>
+```bash
+mix do app.config + auix.gen.stylesheet
 ```
 
-The hook:
-- Listens for `set_html_theme_name` events from the server
-- Sets `data-theme-name` attribute to the configured theme
-- Triggers CSS theme switching automatically
+`app.config` makes the theme modules of your application visible to the task; running
+`mix auix.gen.stylesheet` alone fails with `nil.rules/0`
+([#671](https://github.com/wadvanced/aurora_uix/issues/671)).
 
-**Using Multiple Themes**
+The task writes the `:root_colors` of every theme it finds, and the other rules of the
+**configured** theme. Run it again after changing the configuration.
 
-If you want to support theme switching at runtime:
+**Step 4: Apply the Theme to HTML**
 
-```elixir
-# In your view/controller
-def handle_event("switch_theme", %{"theme" => theme_name}, socket) do
-  {:noreply, push_event(socket, "set_html_theme_name", %{theme_name: theme_name})}
-end
+The colors are scoped to the `data-theme-name` attribute. Set it in your root layout:
+
+```heex
+<html data-theme-name="ocean">
 ```
 
-The CSS will automatically apply the correct theme based on the `data-theme-name` attribute.
+The generated index also sets the configured theme name, through the `AuixThemeName`
+[JavaScript hook](../introduction/getting_started.md#javascript-setup). Pages that only embed
+[reusable components](../core/components.md) rely on the attribute in the layout
+([#673](https://github.com/wadvanced/aurora_uix/issues/673)).
+
+**Switching Themes at Runtime**
+
+Changing `data-theme-name` in the browser switches the colors between the themes in the stylesheet.
+Rules a theme overrides apply only when it is the configured one. The generated index sets the
+configured name again on each navigation.
 
 ## Building Rules from Shared CSS
 
@@ -543,7 +537,7 @@ For complete examples, see:
 - `lib/aurora_uix/templates/basic/themes/vitreous_marble.ex` - Full theme implementation
 - `lib/aurora_uix/templates/basic/themes/theme_base.ex` - Color alias definitions (Layer 2)
 - `lib/aurora_uix/templates/basic/themes/base_variables.ex` - Base variables definition
-- `lib/aurora_uix/templates/basic/themes/base.ex` - Base CSS rules (over 2.7k lines of composition)
+- `lib/aurora_uix/templates/basic/themes/base.ex` - Base CSS rules
 
 ## Related guides
 

@@ -75,7 +75,7 @@ Phoenix-compatible base components, equivalent to a standard `core_components.ex
 | Function | Description |
 |---|---|
 | `modal/1` | Modal dialog with focus trap and close button |
-| `flash/1` | Single flash notice (info or error) |
+| `flash/1` | Single flash notice (info, error, success or warning) |
 | `flash_group/1` | Grouped flash notices including disconnected states |
 | `simple_form/1` | Form wrapper with action slot |
 | `button/1` | Submit/action button |
@@ -86,6 +86,8 @@ Phoenix-compatible base components, equivalent to a standard `core_components.ex
 | `list/1` | Definition list (`<dl>`) for key/value display |
 | `back/1` | Back navigation link with arrow icon |
 | `icon/1` | Heroicon rendered as a CSS `<span>` |
+| `action_icon/1` | The icon of an action: a Heroicon, an image or a character |
+| `action_content/1` | Icon and label of an action button, following the `sm` breakpoint |
 
 ### `:basic_components` — `Aurora.Uix.Templates.Basic.Components`
 

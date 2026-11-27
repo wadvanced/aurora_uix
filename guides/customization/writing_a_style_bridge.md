@@ -64,7 +64,6 @@ A bridge mapping the most visible `--auix-*` variables:
     --auix-color-text-label:     var(--ds-on-surface);
     --auix-color-text-on-accent: var(--ds-on-primary);
 
-    --auix-color-border-focus:   var(--ds-primary);
     --auix-color-focus-ring:     var(--ds-primary);
 
     --auix-color-error:          var(--ds-danger);
