@@ -265,7 +265,7 @@ defmodule Aurora.Uix.MixProject do
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.7"},
       {:phoenix_html, "~> 4.4"},
-      {:phoenix_live_dashboard, "~> 0.9"},
+      {:phoenix_live_dashboard, "~> 0.9", only: [:dev, :test]},
       {:phoenix_live_view, "~> 1.2"},
       {:phoenix_live_reload, "~> 1.7", only: :dev},
       {:postgrex, ">= 0.0.0"},
