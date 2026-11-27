@@ -667,8 +667,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @doc """
   Assigns a layout option to the socket's assigns using the LayoutOptions module.
 
-  Retrieves the option value using `LayoutOptions.get/2` and stores it, or `nil` when the option is
-  not found, in the `:layout_options` key within the `auix` map.
+  Retrieves the option value using `LayoutOptions.get/2` and stores it, or `nil` when it answers
+  `:not_found`, in the `:layout_options` key within the `auix` map. For an option no option set
+  knows, the option's name is stored
+  ([#694](https://github.com/wadvanced/aurora_uix/issues/694)).
 
   ## Parameters
 

@@ -214,9 +214,9 @@ defmodule Aurora.Uix.Layout.Options do
   @doc """
   Retrieves a layout option for the given assigns and option key.
 
-  This function delegates the option retrieval to specialized modules (`ShowOptions`,
-  `FormOptions`, `IndexOptions`). If the option is not found in any of the delegated
-  modules, it logs a warning and returns a `:not_found` tuple.
+  This function asks the option sets in turn: those of `:layout_options_parsers`, then
+  `IndexOptions`, `ShowOptions` and `FormOptions`. An option none of them knows is returned as its
+  own value, without a warning ([#694](https://github.com/wadvanced/aurora_uix/issues/694)).
 
   ## Parameters
 
@@ -226,15 +226,15 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Returns
 
-  - `{:ok, term()}` - If the option is found, returns a tuple with `:ok` and the option value.
-  - `{:not_found, atom()}` - If the option is not found or the tag is unsupported.
+  - `{:ok, term()}` - The option value, or the option itself when no option set knows it.
+  - `{:not_found, atom()}` - When `assigns` lacks the layout type or the layout tree.
 
   ## Examples
 
   ```elixir
   iex> assigns = %{auix: %{layout_type: :show, layout_tree: %Aurora.Uix.Layout.Node.Show{resource: :resource}}}
   iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
-  {:not_found, :unsupported_option}
+  {:ok, :unsupported_option}
 
   iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
   {:not_found, :page_title}
