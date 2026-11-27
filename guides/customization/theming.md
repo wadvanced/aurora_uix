@@ -119,8 +119,8 @@ defmodule MyApp.Themes.CustomTheme do
   
   /* Apply Dark Mode via Media Query (respects OS preference) */
   @media (prefers-color-scheme: dark) {
-    :root[data-theme-name="#{@theme_name}"],
-    :host[data-theme-name="#{@theme_name}"] {
+    :root[data-theme-name="#{@theme_name}"]:not([data-theme="light"]),
+    :host[data-theme-name="#{@theme_name}"]:not([data-theme="light"]) {
       --auix-color-bg-default: var(--dark--auix-color-bg-default);
       --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
       --auix-color-text-primary: var(--dark--auix-color-text-primary);
@@ -153,6 +153,7 @@ end
 - Dark mode colors stored as `--dark--` prefixed variables in the same rule
 - Use `@media (prefers-color-scheme: dark)` to switch colors based on OS preference
 - Use `[data-theme="dark"]` selector for explicit dark mode override (highest priority)
+- Exclude `[data-theme="light"]` from the media query selector so an explicit light choice beats the OS preference
 - `include` the parent layer for every non-color rule
 
 ## Understanding Light and Dark Modes
@@ -167,9 +168,6 @@ Aurora UIX uses a **light-first approach** with dark mode as an optional variant
 
 **Switching Mechanisms (Priority Order)**:
 
-In the built-in themes there is no selector for `data-theme="light"`, so an operating system set to
-dark mode wins over it ([#672](https://github.com/wadvanced/aurora_uix/issues/672)).
-
 1. **Data Attribute** (Highest Priority)
    ```css
    :root[data-theme="dark"][data-theme-name="..."] {
@@ -181,10 +179,12 @@ dark mode wins over it ([#672](https://github.com/wadvanced/aurora_uix/issues/67
 2. **Media Query** (Medium Priority)
    ```css
    @media (prefers-color-scheme: dark) {
-     --auix-color-bg-default: var(--dark--auix-color-bg-default);
+     :root[data-theme-name="..."]:not([data-theme="light"]) {
+       --auix-color-bg-default: var(--dark--auix-color-bg-default);
+     }
    }
    ```
-   Respects OS/browser dark mode preference
+   Respects OS/browser dark mode preference, unless `data-theme="light"` is set
 
 3. **Default Light** (Lowest Priority)
    ```css
@@ -284,8 +284,8 @@ defmodule MyApp.Themes.Ocean do
   
   /* Apply Dark Mode via Media Query */
   @media (prefers-color-scheme: dark) {
-    :root[data-theme-name="#{@theme_name}"],
-    :host[data-theme-name="#{@theme_name}"] {
+    :root[data-theme-name="#{@theme_name}"]:not([data-theme="light"]),
+    :host[data-theme-name="#{@theme_name}"]:not([data-theme="light"]) {
       --auix-color-bg-default: var(--dark--auix-color-bg-default);
       --auix-color-bg-secondary: var(--dark--auix-color-bg-secondary);
       --auix-color-text-primary: var(--dark--auix-color-text-primary);
@@ -325,6 +325,9 @@ Completed with every color, this is an ocean-blue theme with light and dark mode
 
 <!-- Dark mode via explicit attribute (overrides OS preference) -->
 <html data-theme-name="ocean" data-theme="dark">
+
+<!-- Light mode via explicit attribute (overrides OS preference) -->
+<html data-theme-name="ocean" data-theme="light">
 
 ```
 
