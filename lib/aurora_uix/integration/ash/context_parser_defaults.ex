@@ -10,7 +10,12 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   - An action named in `backend_opts` is used; naming one the resource does not define fails
     compilation
   - Without a name, the primary action of the type, or else its first action
-  - The paginated list is picked among the actions with pagination
+  - A read action named with `:ash_read_action` has no pagination and serves the association
+    lists, the selects and the index; it is never swapped for another action
+  - A read action named with `:ash_read_action_paginated` serves the index with pagination, and
+    must have it
+  - Without a name, the index prefers a paginated read action and falls back to one without
+    pagination
   - Update and change share an action when only one of them is named, as the two list operations do
 
   ## Key Constraints
@@ -18,10 +23,13 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   - Requires an Ash resource
   - Fails compilation when the resource has no action an operation needs
   - `:new_function` takes a function of arity 2, not an action name
+  - `:ash_read_action` and `:ash_read_action_paginated` exclude each other
+  - A paginated action named with `:ash_read_action`, or one without pagination named with
+    `:ash_read_action_paginated`, fails compilation
 
   ## Implemented Options
 
-  - `:list_function` (alias: `:ash_read_action`) - Read action for association lists and selects
+  - `:list_function` (alias: `:ash_read_action`) - Read action for every list, without pagination
   - `:list_function_paginated` (alias: `:ash_read_action_paginated`) - Paginated read action of
     the index
   - `:get_function` (alias: `:ash_get_action`) - Read action for one record
@@ -90,6 +98,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
 
   @error_action_type "Does not exists or it is of the wrong type"
   @error_action_needs_pagination "#{@error_action_type}, or pagination is not supported"
+  @error_paginated_list_action "It is paginated. Name it with `ash_read_action_paginated` instead"
+  @error_both_list_actions "Set `ash_read_action` or `ash_read_action_paginated`, not both"
   @error_new_function_invalid "The function reference is nil or invalid, should be a function with 2 arity (attrs, opts)"
 
   @impl true
@@ -137,13 +147,15 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @list_function_aliases do
     ash_action_type = :read
-
     ash_action_name = get_option(opts, @list_function_aliases, nil)
+
+    notify_both_list_actions(opts, resource_name)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
     |> maybe_get_primary_action()
     |> notify_action_error(@error_action_type, resource_name, ash_action_type, ash_action_name)
+    |> notify_unpaginated(resource_name, ash_action_name)
     |> create_function_reference(ash_resource, auix_action, opts)
   end
 
@@ -156,18 +168,27 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       when auix_action in @list_function_paginated_aliases do
     ash_action_type = :read
     ash_action_name = get_option(opts, @list_function_paginated_aliases, nil)
+    read_actions = get_proper_actions(ash_resource, ash_action_type, ash_action_name)
 
-    ash_resource
-    |> get_proper_actions(ash_action_type, ash_action_name)
-    |> Enum.filter(& &1.pagination)
-    |> maybe_get_primary_action()
-    |> notify_action_error(
-      @error_action_needs_pagination,
-      resource_name,
-      ash_action_type,
-      ash_action_name
-    )
-    |> create_function_reference(ash_resource, auix_action, opts)
+    case {ash_action_name, primary_paginated_action(read_actions)} do
+      # Pagination is preferred, not required: a resource without a paginated read action
+      # lists its index on one page.
+      {nil, nil} ->
+        read_actions
+        |> maybe_get_primary_action()
+        |> notify_action_error(@error_action_type, resource_name, ash_action_type, nil)
+        |> create_function_reference(ash_resource, :list_function, opts)
+
+      {_ash_action_name, paginated_action} ->
+        paginated_action
+        |> notify_action_error(
+          @error_action_needs_pagination,
+          resource_name,
+          ash_action_type,
+          ash_action_name
+        )
+        |> create_function_reference(ash_resource, auix_action, opts)
+    end
   end
 
   def option_value(
@@ -461,11 +482,51 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
 
       {nil, list_function} ->
         list_function
-        |> struct(%{auix_action_name: :list_function_paginated})
+        |> paginated_list_connector()
         |> then(&Map.put(parsed_opts, :list_function_paginated, &1))
 
       _ ->
         parsed_opts
     end
+  end
+
+  # A named list action is authoritative: it serves the index too, without pagination.
+  @spec paginated_list_connector(Connector.t()) :: Connector.t()
+  defp paginated_list_connector(%Connector{crud_spec: crud_spec} = list_function) do
+    %{list_function | crud_spec: %{crud_spec | auix_action_name: :list_function}}
+  end
+
+  @spec notify_both_list_actions(keyword(), atom()) :: :ok
+  defp notify_both_list_actions(opts, resource_name) do
+    if Enum.any?(@list_function_paginated_aliases, &Keyword.has_key?(opts, &1)),
+      do:
+        raise(DslError,
+          message:
+            "Error processing resource ':#{resource_name}' options : #{@error_both_list_actions}"
+        )
+
+    :ok
+  end
+
+  # Only a named list action must be unpaginated: without a name, the list is resolved for the
+  # index, which prefers pagination.
+  @spec notify_unpaginated(struct(), atom(), atom() | nil) :: struct()
+  defp notify_unpaginated(action, _resource_name, nil), do: action
+
+  defp notify_unpaginated(%{pagination: pagination} = action, resource_name, _ash_action_name)
+       when pagination not in [nil, false],
+       do:
+         raise(DslError,
+           message:
+             "Error processing action ':#{action.name}' of resource ':#{resource_name}' with expected type ':read' : #{@error_paginated_list_action}"
+         )
+
+  defp notify_unpaginated(action, _resource_name, _ash_action_name), do: action
+
+  @spec primary_paginated_action(list(struct())) :: struct() | nil
+  defp primary_paginated_action(read_actions) do
+    read_actions
+    |> Enum.filter(& &1.pagination)
+    |> maybe_get_primary_action()
   end
 end
