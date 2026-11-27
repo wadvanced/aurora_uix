@@ -162,9 +162,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   @doc """
   Loads the rows of a one-to-many list.
 
-  Without `where` and `order_by` on the field, or for a parent whose owner key is not set yet,
-  the rows are the preloaded value of the field. Otherwise the related list function is queried
-  with the owner keys, the field's `where` and its `order_by`.
+  The `where` and `order_by` of the layout field take precedence over the ones in the field's
+  `query_opts`, declared in the resource metadata. Without either, or for a parent whose owner key
+  is not set yet, the rows are the preloaded value of the field. Otherwise the related list
+  function is queried with the owner keys, the `where` and the `order_by`.
 
   ## Parameters
   - `one_to_many` (map()) - Map containing:
@@ -178,8 +179,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.OneToMany do
   """
   @spec load_rows(map()) :: list()
   def load_rows(%{auix: auix, field: field} = one_to_many) do
-    order_by = Map.get(auix.layout_tree, :order_by)
-    custom_where = Map.get(auix.layout_tree, :where)
+    query_opts = Map.get(field, :query_opts) || []
+    order_by = Map.get(auix.layout_tree, :order_by) || query_opts[:order_by]
+    custom_where = Map.get(auix.layout_tree, :where) || query_opts[:where]
 
     if is_nil(order_by) and is_nil(custom_where) do
       preloaded_rows(auix.entity, field.key)

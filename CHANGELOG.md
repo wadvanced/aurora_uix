@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`query_opts` of a one-to-many field**: the `order_by` and `where` in the `query_opts` of a
+  one-to-many field in the resource metadata were ignored, and the list showed every related record.
+  They now order and filter the list, and the `order_by` and `where` of the layout field take
+  precedence over them.
 - **Filters-panel actions**: `add_filters_action`, `insert_filters_action`, `replace_filters_action`
   and `remove_filters_action` accepted actions into `:index_filters_actions`, but no renderer read the
   group, so the actions never appeared. They now render in the filter panel of the index, on both the
