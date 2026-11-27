@@ -2,30 +2,35 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @moduledoc """
   Parsing functionality for Ash-based resource configurations.
 
-  Automatically detects and configures context-related functions for resources, such as
-  listing, getting, creating, updating, and deleting elements. Infers function names
-  based on context and schema module conventions using Ash resource naming conventions.
+  Resolves the Ash action of each operation (list, get, create, update, change, delete) and the
+  function building a new record.
 
   ## Key Features
 
-  - Automatic function discovery from Ash resources
-  - Primary action detection with fallback to first available action
-  - Support for paginated and non-paginated read operations
-  - Function reference creation with action metadata
+  - An action named in `backend_opts` is used; naming one the resource does not define fails
+    compilation
+  - Without a name, the primary action of the type, or else its first action
+  - The paginated list is picked among the actions with pagination
+  - Update and change share an action when only one of them is named, as the two list operations do
 
   ## Key Constraints
 
-  - Currently only implements read-related actions (`:list_function`,
-    `:list_function_paginated`, `:get_function`)
-  - Requires Ash resource configuration
-  - Returns placeholder function when no valid action is found
-  - Functions are resolved from configured Ash resource
+  - Requires an Ash resource
+  - Fails compilation when the resource has no action an operation needs
+  - `:new_function` takes a function of arity 2, not an action name
 
   ## Implemented Options
 
-  - `:list_function` - Function reference for reading all elements
-  - `:list_function_paginated` - Function reference for reading elements using pagination
-  - `:get_function` - Function reference for getting one element
+  - `:list_function` (alias: `:ash_read_action`) - Read action for association lists and selects
+  - `:list_function_paginated` (alias: `:ash_read_action_paginated`) - Paginated read action of
+    the index
+  - `:get_function` (alias: `:ash_get_action`) - Read action for one record
+  - `:create_function` (alias: `:ash_create_action`) - Create action
+  - `:update_function` (alias: `:ash_update_action`) - Update action
+  - `:change_function` (alias: `:ash_change_action`) - Update action the form is built with
+  - `:delete_function` (alias: `:ash_destroy_action`) - Destroy action
+  - `:new_function` (alias: `:ash_new_function`) - Function returning the attributes of a new
+    record
   - `:ash_actor_assign` (alias: `:actor_assign`) - Atom naming the `socket.assigns`
     key that holds the actor for policy-protected resources. Default `nil`. When set,
     every generated CRUD call forwards `actor: socket.assigns[<assign>]` to Ash.
@@ -87,19 +92,19 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @error_action_needs_pagination "#{@error_action_type}, or pagination is not supported"
   @error_new_function_invalid "The function reference is nil or invalid, should be a function with 2 arity (attrs, opts)"
 
+  @impl true
+  def backend_opts_schema, do: @backend_opts_schema
+
   @doc """
   Filters out options that are not relevant based on the presence of related options.
 
   In the ash case, update and change actions are usually the same. In this case we want
   to use the primary update action if neither of them were defined. But if only one of 
-  them is defined, then both should used the same provided action.
+  them is defined, then both should use the same provided action.
 
-  The fill_missing_options in in charge of 'copying' the missing one, thus ensuring that
+  `fill_missing_options/2` is in charge of 'copying' the missing one, thus ensuring that
   both are the same wether one or none were provided and respect the distinction if both were provided.
   """
-  @impl true
-  def backend_opts_schema, do: @backend_opts_schema
-
   @impl true
   def filter_options(valid_options, resource_opts) do
     valid_options
@@ -108,32 +113,19 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   end
 
   @doc """
-  Resolves default values for context-derived properties.
-
-  Discovers Ash actions from the resource, selecting primary actions when
-  available or falling back to the first available action.
+  Resolves the connector of one operation.
 
   ## Parameters
 
-  - `parsed_opts` (map()) - Map containing resolved options with `:source` and `:module`.
-  - `resource_config` (map()) - Map with keys:
-    * `:schema` (module() | nil) - The Ash resource module.
-  - `key` (atom()) - The Aurora UIX action key (`:list_function`,
-    `:list_function_paginated`, `:get_function`, `:change_function`, `:create_function`,
-    `:update_function`, `:delete_function`, `:new_function`).
+  - `parsed_opts` (map()) - Options parsed so far; not read.
+  - `resource_config` (map()) - Holds `:schema`, the Ash resource, and `:name`.
+  - `opts` (keyword()) - The resource's backend options.
+  - `auix_action` (atom()) - The operation, such as `:list_function` or `:get_function`.
 
   ## Returns
 
-  Connector.t() | nil - Returns `%Connector{}` struct with `%CrudSpec{}` if action
-  found, otherwise returns `nil` for unhandled keys.
-
-  ## Examples
-
-      iex> default_value(%{}, %{context: MyApp.Accounts, schema: MyApp.User}, :list_function)
-      %Connector{type: :ash, crud_spec: %CrudSpec{...}}
-
-      iex> default_value(%{}, %{context: nil, schema: MyApp.Post}, :get_function)
-      %Connector{type: :ash, crud_spec: %CrudSpec{...}}
+  `Connector.t() | nil` - A connector wrapping a `CrudSpec`, or `nil` for an unhandled key.
+  Raises `Spark.Error.DslError` when no action fits.
   """
   @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec option_value(map(), map(), keyword(), atom()) :: Connector.t() | nil

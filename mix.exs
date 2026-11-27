@@ -90,7 +90,18 @@ defmodule Aurora.Uix.MixProject do
           Developers: [~r"CONTRIBUTING.*", ~r"CHANGELOG.*"]
         ],
         groups_for_modules: [
+          "Getting Started": [
+            Aurora.Uix,
+            Aurora.Uix.Dsl
+          ],
+          "LiveView Support": [
+            Aurora.Uix.Events,
+            Aurora.Uix.Live.ComponentHooks,
+            Aurora.Uix.Navigation
+          ],
           "Core Data Structures": [
+            Aurora.Uix.Event,
+            Aurora.Uix.Field.Upload,
             Aurora.Uix.Action,
             Aurora.Uix.Counter,
             Aurora.Uix.Field,
@@ -101,6 +112,16 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Stack.EmptyStackError
           ],
           Layouts: [
+            Aurora.Uix.Layout.CreateUI.IndexColumns,
+            Aurora.Uix.Layout.CreateUI.IndexLive,
+            Aurora.Uix.Layout.Options.Definition,
+            Aurora.Uix.Layout.Options.Extension,
+            Aurora.Uix.Layout.Options.Extension.BuildOptions,
+            Aurora.Uix.Layout.Options.Extension.Dsl,
+            Aurora.Uix.Layout.Options.Option,
+            Aurora.Uix.Layout.RenderTree,
+            Aurora.Uix.Layout.ResourceMetadata.Dsl,
+            Aurora.Uix.Layout.ResourceMetadata.ResolveResources,
             Aurora.Uix.Layout.CreateUI,
             Aurora.Uix.Layout.CreateUI.Dsl,
             Aurora.Uix.Layout.CreateUI.Call,
@@ -111,6 +132,19 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Layout.Options.Index,
             Aurora.Uix.Layout.Options.Show,
             Aurora.Uix.Layout.ResourceMetadata
+          ],
+          "Layout Nodes": [
+            Aurora.Uix.Layout.Node,
+            Aurora.Uix.Layout.Node.Card,
+            Aurora.Uix.Layout.Node.Field,
+            Aurora.Uix.Layout.Node.Form,
+            Aurora.Uix.Layout.Node.Group,
+            Aurora.Uix.Layout.Node.Index,
+            Aurora.Uix.Layout.Node.Inline,
+            Aurora.Uix.Layout.Node.Section,
+            Aurora.Uix.Layout.Node.Sections,
+            Aurora.Uix.Layout.Node.Show,
+            Aurora.Uix.Layout.Node.Stacked
           ],
           "Parsers & Integration": [
             Aurora.Uix.Parser,
@@ -137,6 +171,12 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Integration.Default.FieldsParser
           ],
           "Template System": [
+            Aurora.Uix.Templates.Theme.Definition,
+            Aurora.Uix.Templates.Theme.Extension,
+            Aurora.Uix.Templates.Theme.Extension.BuildRules,
+            Aurora.Uix.Templates.Theme.Extension.Dsl,
+            Aurora.Uix.Templates.Theme.Include,
+            Aurora.Uix.Templates.Theme.Rule,
             Aurora.Uix.Template,
             Aurora.Uix.Templates.Basic,
             Aurora.Uix.Templates.CssSanitizer,
@@ -154,11 +194,11 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Renderers.Predefined.Badge,
             Aurora.Uix.Templates.Basic.Renderers.Predefined.ProgressBar,
             Aurora.Uix.Templates.Basic.Renderers.Predefined.Url,
-            Aurora.Uix.Templates.Basic.Renderers.Predefined.Image,
-            Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating,
-            Aurora.Uix.Templates.Basic.Renderers.Predefined.Canvas
+            Aurora.Uix.Templates.Basic.Renderers.Predefined.Rating
           ],
           "Basic Template - Actions": [
+            Aurora.Uix.Templates.Basic.Actions.ManyToMany,
+            Aurora.Uix.Templates.Basic.Actions.MultiSelect,
             Aurora.Uix.Templates.Basic.Actions,
             Aurora.Uix.Templates.Basic.Actions.EmbedsMany,
             Aurora.Uix.Templates.Basic.Actions.Form,
@@ -181,6 +221,9 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.ModulesGenerator
           ],
           "Basic Template - Handlers": [
+            Aurora.Uix.Templates.Basic.Handlers.IndexComponent,
+            Aurora.Uix.Templates.Basic.Handlers.IndexComponentImpl,
+            Aurora.Uix.Templates.Basic.Handlers.IndexList,
             Aurora.Uix.Templates.Basic.Handlers.Form,
             Aurora.Uix.Templates.Basic.Handlers.FormImpl,
             Aurora.Uix.Templates.Basic.Handlers.Index,
@@ -189,6 +232,10 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
           ],
           "Basic Template - Renderers": [
+            Aurora.Uix.Templates.Basic.Renderers.ManyToMany,
+            Aurora.Uix.Templates.Basic.Renderers.MultiSelect,
+            Aurora.Uix.Templates.Basic.Renderers.OneToOne,
+            Aurora.Uix.Templates.Basic.Renderers.UploadRenderer,
             Aurora.Uix.Templates.Basic.Helpers,
             Aurora.Uix.Templates.Basic.Renderer,
             Aurora.Uix.Templates.Basic.Renderers.EmbedsManyRenderer,
@@ -202,6 +249,9 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer
           ],
           "Basic Template - Themes": [
+            Aurora.Uix.Templates.Basic.Themes.Breakpoints,
+            Aurora.Uix.Templates.Basic.Themes.ThemeBase,
+            Aurora.Uix.Templates.Basic.Themes.Baseline,
             Aurora.Uix.Templates.Basic.Themes.Base,
             Aurora.Uix.Templates.Basic.Themes.BaseVariables,
             Aurora.Uix.Templates.Basic.Themes.BlueGraphite,
@@ -209,6 +259,7 @@ defmodule Aurora.Uix.MixProject do
             Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
           ],
           "General Helpers": [
+            Aurora.Uix.Repo,
             Aurora.Uix.BehaviourHelper,
             Aurora.Uix.ComponentsResolver,
             Aurora.Uix.ComponentsResolverHelper,
@@ -220,8 +271,8 @@ defmodule Aurora.Uix.MixProject do
           ],
           "Mix Tasks": [
             Mix.Tasks.Auix.Gen.TailwindClasses,
-            Mix.Tasks.Uix.Gen.Icons,
-            Mix.Tasks.Uix.Gen.Stylesheet
+            Mix.Tasks.Auix.Gen.Icons,
+            Mix.Tasks.Auix.Gen.Stylesheet
           ]
         ],
         exclude: ["lib/aurora_uix_web/**/*", "lib/aurora_uix/guides/**/*"],

@@ -74,14 +74,8 @@ defmodule Aurora.Uix.Template do
   # => Aurora.Uix.Templates.Basic
   ```
 
-  If a module that does not implement the behaviour is configured, it will raise an error.
-
-  ```elixir
-  # Assuming `MyInvalidTemplate` does not implement the behaviour
-  Application.put_env(:aurora_uix, :template, MyInvalidTemplate)
-  # Aurora.Uix.Template.uix_template()
-  # ** (ArgumentError) MyInvalidTemplate must adopt the Aurora.Uix.Template behaviour.
-  ```
+  The template is read when the library compiles. A configured module that does not implement the
+  behaviour raises `ArgumentError`.
   """
   @spec uix_template() :: module()
   def uix_template do
