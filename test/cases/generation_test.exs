@@ -958,6 +958,10 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert options_set.get(assigns, :farewell) == {:ok, "bye"}
     assert options_set.get(assigns, :unlisted) == {:not_found, :unlisted}
 
+    show_assigns = %{auix: %{layout_type: :show, layout_tree: %Node.Show{resource: :resource}}}
+
+    assert Options.get(show_assigns, :unlisted) == {:not_found, :unlisted}
+
     label_option = fn label ->
       Form.get(
         %{auix: %{layout_type: :form, layout_tree: %{options: [save_action_label: label]}}},

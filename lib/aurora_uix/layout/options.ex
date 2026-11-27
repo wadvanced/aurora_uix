@@ -215,8 +215,8 @@ defmodule Aurora.Uix.Layout.Options do
   Retrieves a layout option for the given assigns and option key.
 
   This function asks the option sets in turn: those of `:layout_options_parsers`, then
-  `IndexOptions`, `ShowOptions` and `FormOptions`. An option none of them knows is returned as its
-  own value, without a warning ([#694](https://github.com/wadvanced/aurora_uix/issues/694)).
+  `IndexOptions`, `ShowOptions` and `FormOptions`. If none of them knows the option, it logs a
+  warning and returns a `:not_found` tuple.
 
   ## Parameters
 
@@ -226,15 +226,16 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Returns
 
-  - `{:ok, term()}` - The option value, or the option itself when no option set knows it.
-  - `{:not_found, atom()}` - When `assigns` lacks the layout type or the layout tree.
+  - `{:ok, term()}` - The option value.
+  - `{:not_found, atom()}` - When no option set knows the option, or `assigns` lacks the layout
+    type or the layout tree.
 
   ## Examples
 
   ```elixir
   iex> assigns = %{auix: %{layout_type: :show, layout_tree: %Aurora.Uix.Layout.Node.Show{resource: :resource}}}
   iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
-  {:ok, :unsupported_option}
+  {:not_found, :unsupported_option}
 
   iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
   {:not_found, :page_title}
@@ -244,7 +245,7 @@ defmodule Aurora.Uix.Layout.Options do
   def get(%{auix: %{layout_type: tag, layout_tree: %{resource: name}}} = assigns, option) do
     @layout_options_parsers
     |> Enum.reduce_while(
-      {:cont, option},
+      {:not_found, option},
       fn parser, _acc ->
         assigns
         |> parser.get(option)
@@ -328,18 +329,20 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## PRIVATE
 
-  # Halts the reduction if the option is found.
-  @spec maybe_halt({:ok, term()} | {:not_found, atom()}) :: {:halt, term()} | {:cont, atom()}
-  defp maybe_halt({:ok, result}), do: {:halt, result}
-  defp maybe_halt({:not_found, result}), do: {:cont, result}
+  # Halts the reduction if the option is found. The accumulator keeps the parser's tagged result,
+  # so a found value is never confused with the option name (#694).
+  @spec maybe_halt({:ok, term()} | {:not_found, atom()}) ::
+          {:halt, {:ok, term()}} | {:cont, {:not_found, atom()}}
+  defp maybe_halt({:ok, _value} = found), do: {:halt, found}
+  defp maybe_halt({:not_found, _option} = not_found), do: {:cont, not_found}
 
   # Evaluates the result of the option retrieval.
-  @spec evaluate_option_result({:cont, atom()} | term(), atom(), atom()) ::
+  @spec evaluate_option_result({:ok, term()} | {:not_found, atom()}, atom(), atom()) ::
           {:ok, term()} | {:not_found, atom()}
-  defp evaluate_option_result({:cont, option}, tag, name) do
+  defp evaluate_option_result({:not_found, option} = not_found, tag, name) do
     Logger.warning("Option #{option} is not implemented for tag: #{tag}: #{name}")
-    {:not_found, option}
+    not_found
   end
 
-  defp evaluate_option_result(result, _tag, _name), do: {:ok, result}
+  defp evaluate_option_result({:ok, _value} = found, _tag, _name), do: found
 end

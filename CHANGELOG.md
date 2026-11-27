@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
+  no option set knows, so the option's own name was stored as its value. It now logs a warning and
+  answers `{:not_found, option}`, and the option is stored as `nil`.
 - **`get_streams` and `row_id` index options**: a function set for either option was called with the
   assigns when the option was read, so the index used its result instead of the function. The given
   function now replaces the default one.
