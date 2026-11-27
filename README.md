@@ -144,8 +144,8 @@ def deps do
 end
 ```
 
-Aurora UIX needs `phoenix_live_view ~> 1.2` and `phoenix_live_dashboard ~> 0.9`. If your project
-pins older versions, as some `mix phx.new` releases do, raise both before running `mix deps.get`.
+Aurora UIX needs `phoenix_live_view ~> 1.2`. If your project pins an older version, as some
+`mix phx.new` releases do, raise it before running `mix deps.get`.
 
 Then follow [Getting Started](./guides/introduction/getting_started.md):
 

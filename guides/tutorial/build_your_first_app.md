@@ -358,16 +358,14 @@ the next step.
 
 ## 5. Add Aurora UIX
 
-Add the dependency to `mix.exs`. Aurora UIX needs `phoenix_live_view ~> 1.2` and
-`phoenix_live_dashboard ~> 0.9`, so if `mix phx.new` wrote older requirements for those two, change
-those lines too:
+Add the dependency to `mix.exs`. Aurora UIX needs `phoenix_live_view ~> 1.2`, so if `mix phx.new`
+wrote an older requirement, change that line too:
 
 ```elixir
 def deps do
   [
     # ...your other deps...
     {:phoenix_live_view, "~> 1.2"},
-    {:phoenix_live_dashboard, "~> 0.9"},
     {:aurora_uix, "~> 0.2.1"}
   ]
 end
