@@ -1,11 +1,11 @@
-# Aurora UIX Feature Wishlist
+# Aurora UIX Roadmap
 
-This document outlines potential features and enhancements for Aurora UIX. Rather than a committed roadmap with timelines, 
-this is a dynamic wishlist that evolves based on community feedback, adoption patterns, and real-world use cases.
-
-**Note**: Priorities and implementation order will be determined based on community adoption, feature requests, and identified pain points.
+This roadmap groups planned work into milestones, one per minor version, followed by ideas that are not
+scheduled yet. It is not a commitment to dates: priorities follow community feedback, adoption and
+real-world use cases.
 
 ## Current Status: v0.2.1
+
 
 Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in any LiveView, adds action icons and a card layout for the index list, refreshes the look of every theme and fixes a set of form, index and Ash backend bugs. It has three compile-time breaking changes; see the What's New guide.
 
@@ -17,6 +17,137 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 - Refreshed look in every theme and the Blue Graphite theme
 - `resource:` on embedded fields and associations
 - Fixes for Ash forms (field errors, embeds), Ash pagination and field order, and nested Ecto errors
+
+---
+
+## Milestones
+
+Planned work is grouped by minor version. Each milestone has a theme; patch releases (0.2.2, 0.2.3, ...)
+ship within their minor version's milestone. Issues are tracked in the
+[GitHub milestones](https://github.com/wadvanced/aurora_uix/milestones). Several items are inspired by
+[OpenXava](https://www.openxava.org/), the project that originally inspired Aurora UIX.
+
+Scope and order inside a milestone can change; a feature moves to a later milestone rather than delay a
+release.
+
+### 0.2 - Remaining 0.2.x releases
+
+**Theme**: additive, non-breaking improvements on the 0.2 DSL.
+
+- Bug fixes and documentation alignment
+  ([#646](https://github.com/wadvanced/aurora_uix/issues/646))
+- `auix_save_entity` handler callback, with `save_entity` deprecated until 0.3
+  ([#661](https://github.com/wadvanced/aurora_uix/issues/661))
+- Real `href`s on index links, so open in new tab and copy link work
+  ([#469](https://github.com/wadvanced/aurora_uix/issues/469))
+- **Wizard** layout grouping with ordered steps, Back / Next and per-step validation
+  ([#415](https://github.com/wadvanced/aurora_uix/issues/415))
+- **Summary + detail** layout grouping ([#416](https://github.com/wadvanced/aurora_uix/issues/416))
+- **Filter presets**: named one-click filters on the index
+  ([#280](https://github.com/wadvanced/aurora_uix/issues/280))
+- Layout shorthand with primitives:
+
+  ```elixir
+  # Lists are inline fields, a tuple of tuples holds sections and a map holds a group
+  [
+    [:reference, :description], # <- Inline
+    [:quantity, :price],
+    {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
+    %{"Text" => [:one, :two]} # <- Groups
+  ]
+  ```
+
+- An `AGENTS.md` guide for host applications, so AI coding assistants write correct Aurora UIX code
+
+### 0.3 - Plugins and templates
+
+**Theme**: make templates and extensions first-class. Breaking changes are allowed.
+
+- Templates own their built-in renderer catalog; `Aurora.Uix.Renderers.BuiltIn` is removed
+  ([#459](https://github.com/wadvanced/aurora_uix/issues/459))
+- Removal of the APIs deprecated during 0.2.x (such as `save_entity`)
+- Template scaffold generator (`mix auix.gen.template`)
+- Template composition: inherit from a template and override only some parts (for example, how
+  sections render)
+- Complete documentation of the template callbacks
+- A plugin API for packaging field types, renderers, themes and layout groupings, designed together with
+  the 0.5 field types
+- Custom component injection points in generated layouts
+- Theme packaging, preview and testing utilities, generated theme documentation, a community theme
+  registry
+
+### 0.4 - Lists and data
+
+**Theme**: the index becomes a working tool for the data it shows.
+
+- **Totalizer lines**: totals and subtotals on index columns and one-to-many collections (sum, count,
+  average), using Ash aggregates where they exist
+- **Configurable columns**: users show, hide and reorder columns, and the choice is remembered
+- **Export and import**: CSV and Excel export of the filtered list, Excel import, PDF reports
+- **Editable collections**: spreadsheet-style inline row editing, with row actions on hover
+- **Associations**: polymorphic associations, batch updates of related records, inline editing of
+  associated records, association previews
+- **Scale**: lazy-loading of nested associations, virtual scrolling for large lists, metadata caching
+- Advanced filtering: saved filters, filter export and import, full-text search, visual query builder
+- Query optimization and render profiling tools
+
+### 0.5 - Rich fields and dashboards
+
+**Theme**: new kinds of fields and views, shipped as plugins where possible.
+
+- **Charts**: a chart view of the current index query (grouped or over time) and chart widgets
+- **Dashboards**: pages of charts and key figures built from resource metadata
+- **Maps**: a geographic field shown on a map, and a map view of the list
+- **Photo gallery**: several images per record, built on file uploads
+- **Discussion threads**: a comments field per record, updated live through PubSub
+- Additional inputs: date and time pickers, rich text editor
+- Advanced table features: sub-rows
+- Modal and sidebar components with customizable triggers
+
+### 0.6 - Workflows
+
+**Theme**: applications with state and process.
+
+- State machine integration (for example `AshStateMachine`), with actions per state
+- Conditional field visibility based on the record's state
+- Workflow follow-ups to the wizard: step indicators on show, conditional steps
+- Approval workflows
+- Audit trail generation
+
+### 0.7 - AI assistant
+
+**Theme**: natural-language access to the data behind the generated UI.
+
+- An in-app chat that queries data, changes records and answers questions alongside the normal UI
+- Ash backend through Ash AI; Ecto backend through a tool layer over the context functions
+- Respects the same authorization as the UI (Ash policies, host-provided checks)
+
+### 1.0 - Stable API
+
+**Theme**: a stable, documented public API.
+
+- DSL frozen; remaining deprecations removed
+- The [version support policy](#version-support-policy) applies from this release
+
+---
+
+## Ideas Not Yet Scheduled
+
+These have no milestone yet. They are scheduled when there is demand and a clear use case.
+
+- **API and headless**: REST or JSON:API scaffolding from metadata, GraphQL through Absinthe, headless
+  (unstyled) components, mobile app scaffolding
+- **Integrations**: authentication and role-based access helpers, telemetry hooks, advanced Gettext
+  features
+- **Additional CSS frameworks**: Bootstrap or Bulma templates and themes
+- **Hot reload** for template development
+- **Exploratory**: metadata and layouts generated from natural language, a visual drag-and-drop layout
+  builder, real-time collaborative editing, offline support, complete admin panels from schema
+  definitions alone
+
+---
+
+## Release History
 
 **Previous Release (v0.2.0)**:
 - Resource metadata, layout, theme and layout option DSLs moved to Spark
@@ -64,172 +195,6 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 - Metadata-driven configuration
 - Compile-time code generation
 - Extensible template system
-
----
-
-## Feature Wishlist
-
-### Layout representation with primitives
-```elixir
-# Lists are inline fields, a tuple of tuples holds sections and a map holds a group
-[
-  [:reference, :description], # <- Inline
-  [:quantity, :price],
-  {{"Section 1", [:valid, :invalid]}, {"Section 2", [:state]}}, # <- Sections
-  %{"Text" => [:one, :two]} # <- Groups
-]
-```
-
----
-
-### Enhanced Rendering Components
-
-**Objective**: Expand the library of pre-built UI components and improve rendering flexibility.
-
-**Ideas**:
-- Additional form input types (custom date and time pickers, rich text editor)
-- Advanced table features (column visibility toggle, sub-rows)
-- Chart and data visualization components
-- Modal and sidebar components with customizable triggers
-- Custom component injection points in generated layouts
-
-**Why**: Developers can build more sophisticated UIs without custom component creation.
-
----
-
-### Simplified Template Creation
-
-**Objective**: Lower the barrier to creating custom templates with better defaults and clearer patterns.
-
-**Ideas**:
-- Template scaffold generator (`mix auix.gen.template`)
-- Pre-built Bootstrap template (easier CSS framework integration)
-- Better documentation on template callback structure
-- Template inheritance/composition support
-- Hot-reload support for template development
-
-**Why**: Custom template creation becomes accessible to more developers.
-
----
-
-### Theme Normalization & Adoption
-
-**Objective**: Standardize theme system and make theme creation easier.
-
-**Ideas**:
-- Unified theme configuration API
-- Automatic theme documentation generation
-- Theme preview/testing utilities
-- Community theme registry integration
-- Support for Tailwind CSS, Bootstrap, and Bulma themes
-
-**Why**: Easier theme customization and community theme sharing.
-
----
-
-
-### Advanced Filtering & Query Builder
-
-**Objective**: Enable more sophisticated data filtering without code generation.
-
-**Ideas**:
-- Visual query builder in index views
-- Saved filter support
-- Filter templates and presets
-- Advanced search with full-text support
-- Filter export/import
-- Dynamic filter field generation from schema
-
-**Why**: End users can slice and dice data without developer involvement.
-
----
-
-### Performance Optimizations
-
-**Objective**: Ensure Aurora UIX scales to large datasets and complex UIs.
-
-**Ideas**:
-- Virtual scrolling for large tables
-- Further database query optimization
-- Lazy-loading for nested associations
-- Caching strategies for metadata
-- Render performance profiling tools
-
-**Why**: Aurora UIX-powered applications remain performant at scale.
-
----
-
-### Enhanced Association Management
-
-**Objective**: Deeper support for complex relationship workflows.
-
-**Ideas**:
-- Polymorphic associations
-- Association cascades (add/delete multiple related records)
-- Batch association updates
-- Association preview/inline editing
-- Cross-resource references
-
-**Why**: Complex data models work seamlessly with Aurora UIX.
-
----
-
-### Workflow & State Management
-
-**Objective**: Support complex application workflows and state transitions.
-
-**Ideas**:
-- State machine integration
-- Workflow step indicators
-- Multi-step forms with progress tracking
-- Conditional field visibility based on state
-- Approval workflows
-- Audit trail generation
-
-**Why**: Aurora UIX can handle enterprise-level workflows.
-
----
-
-### API & Mobile Support
-
-**Objective**: Extend Aurora UIX beyond traditional web UIs.
-
-**Ideas**:
-- GraphQL API generation from metadata
-- REST API scaffolding
-- Mobile app scaffolding (React Native, Flutter)
-- Headless UI support (components without styling)
-- JSON API specification compliance
-
-**Why**: Aurora UIX metadata can power multiple interfaces.
-
----
-
-### Integration Ecosystem
-
-**Objective**: First-class integrations with popular Elixir/Phoenix tools.
-
-**Ideas**:
-- Absinthe GraphQL integration
-- Ecto Embedded schema enhancements
-- Pow authentication integration
-- Coherence role-based access control
-- Gettext advanced translation features
-- Analytics/telemetry hooks
-
-**Why**: Developers spend less time on boilerplate integration.
-
----
-
-## Exploratory Ideas
-
-These are exciting concepts that warrant further investigation based on community interest:
-
-- **AI-Powered UI Generation**: Generate metadata and layouts from natural language descriptions
-- **Visual UI Builder**: Drag-and-drop interface for creating layouts
-- **Real-Time Collaboration**: Multi-user editing with conflict resolution
-- **Offline Support**: Sync local changes when connectivity returns
-- **No-Code Admin Panels**: Generate complete admin panels from just schema definitions
 
 ---
 
