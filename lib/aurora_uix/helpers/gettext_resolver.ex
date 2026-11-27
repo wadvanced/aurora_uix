@@ -10,6 +10,10 @@ defmodule Aurora.Uix.GettextResolver do
   If a deprecated `:gettext` application configuration exists, it imports that module
   instead of using the standard Gettext setup.
 
+  The default backend reads the `aurora_uix` dependency's translations only, never the host
+  application's, so it returns the English source strings. To translate, configure the host's
+  backend with `:gettext_backend` (see `Aurora.Uix.GettextBackend`).
+
   ## Options
   - `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
     `Aurora.Uix.GettextBackend`.
@@ -29,14 +33,14 @@ defmodule Aurora.Uix.GettextResolver do
     use Aurora.Uix.GettextResolver
   end
 
-  # Then use standard Gettext functions
-  MyApp.Gettext.gettext("Hello") # => "Hola" (depending on locale)
+  # Then use dt/1 or the standard Gettext macros of the configured backend
+  dt("Hello") # => "Hola" with `gettext_backend: MyAppWeb.Gettext` and the "es" locale
   ```
 
   ## Configuration
   Can be configured via application config:
   ```elixir
-  config :aurora_uix, :gettext_backend, MyCustomBackend
+  config :aurora_uix, :gettext_backend, MyAppWeb.Gettext
   ```
   """
 

@@ -12,6 +12,17 @@ defmodule Aurora.Uix.GettextBackend do
     an `msgid` is encountered at runtime, keeping translation templates in sync with the UI
     without any manual editing.
 
+  This backend does **not** translate the UI for a host application. It is declared with
+  `otp_app: :aurora_uix`, so it compiles the `.po` files of the `aurora_uix` dependency only,
+  and those ship no per-locale translations. Translations in the host's
+  `priv/gettext/<locale>/LC_MESSAGES/` are never read, and the English source strings are
+  returned. To translate the UI, configure the host's own backend:
+
+  ```elixir
+  # config/config.exs
+  config :aurora_uix, gettext_backend: MyAppWeb.Gettext
+  ```
+
   See the [Internationalization guide](guides/core/internationalization.md) for the full
   configuration reference and recommended development workflow.
 
