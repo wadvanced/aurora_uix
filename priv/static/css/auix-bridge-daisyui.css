@@ -29,7 +29,7 @@
     --auix-color-error-text:          var(--color-error);
     --auix-color-error-text-default:  var(--color-error);
     --auix-color-error-ring:          var(--color-error);
-    --auix-color-info-text:           var(--color-info);
+    --auix-color-info-text:           var(--color-info-content);
     --auix-color-info-ring:           var(--color-info);
 
     /* Icons */

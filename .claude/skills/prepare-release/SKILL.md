@@ -58,8 +58,9 @@ the `-rc.N` suffix removed. Call it `<ver>` below; `<today>` is today's date
 ## 3. Other docs
 
 - `ROADMAP.md`: "Current Status" → `v<ver>` with a one-paragraph summary and a
-  "Recent Changes" list; the former current release becomes "Previous Release",
-  the one before "Earlier Release".
+  "Recent Changes" list; the former current release moves to the top of "Release History"
+  as "Previous Release", the one before becomes "Earlier Release". Move the released
+  milestone's delivered items out of "Milestones".
 - `guides/whats_new/<ver>.md`: create it for this version (title "What's New in <ver>") and
   never edit an earlier version's file. Headline items only, an "Upgrading from <previous>"
   checklist first, and a copy-pasteable example per item. No screenshots. Check every snippet

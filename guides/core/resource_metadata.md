@@ -540,9 +540,15 @@ end
            downloadable?: true,
            file_info: &MyApp.Templates.xlsx_info/1
   end
+  ```
 
-  # in MyApp.Templates
-  def xlsx_info(ref), do: %{name: "#{ref}.xlsx", size: blob_size(ref), content_type: "application/xlsx"}
+  ```elixir
+  defmodule MyApp.Templates do
+    def xlsx_info(ref),
+      do: %{name: "#{ref}.xlsx", size: blob_size(ref), content_type: "application/xlsx"}
+
+    # store_xlsx/1, fetch_xlsx/1 and blob_size/1 are your storage functions.
+  end
   ```
 
 A stored file is shown as a card: a file icon, the name from `:file_info` (or the field label when
@@ -553,10 +559,9 @@ listed as cards with their progress and a cancel button. The field container car
 `data-upload-field` with the field key, and the card is styled by the theme's `auix-upload-*` rules.
 
 Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
-against double registration on re-renders), `live_file_input` rendering (visually hidden, opened by the "Choose file" and replace
-buttons) with per-entry
-progress, cancel buttons, upload/entry-level error display, and client-side download dispatch
-via the `phx:auix_download` event (requires `hooks.js` — see the Getting Started guide).
+against double registration on re-renders), `live_file_input` rendering (visually hidden, opened by
+the "Choose file" and replace buttons) with per-entry progress, cancel buttons, upload/entry-level
+error display, and client-side download dispatch via the `phx:auix_download` event (requires `hooks.js` — see the Getting Started guide).
 
 ## Custom Field Types and Rendering
 
