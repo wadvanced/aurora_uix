@@ -232,6 +232,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 ### Documentation
 
 - New [Reusable Components](guides/core/components.md) guide.
+- New guide screenshots: filtering and selection, index cards, associations, embedded entries, field
+  renderers, uploads, embedded components, and the themes.
 - New [What's New in 0.2.1](guides/whats_new/0.2.1.md) guide with the upgrade checklist.
 - Overview and README: features grouped by use, with reusable components and the other missing ones.
 - Fixed links between guides that did not reach their section or file on HexDocs or GitHub.

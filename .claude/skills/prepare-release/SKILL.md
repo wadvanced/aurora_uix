@@ -86,12 +86,17 @@ the images would not show the real UI. It must exit `0`.
 worktree build the assets (step 4), create and migrate the test database, run the captures, copy the
 changed PNGs back, then remove the worktree and run `scripts/test_pg.sh sweep`.
 
-Overwrites the PNGs in `guides/overview/images`, `guides/core/images/layouts`
-and `guides/core/images/ash` (desktop 1024×768, mobile 412×915) through
+The theme is a compile-time setting. The default run writes the dark index and edit images of the
+default theme; before removing the worktree, repeat for `:vitreous_marble` and `:blue_graphite`: write
+`config :aurora_uix, theme_name: :<theme>` (after `import Config`) to the worktree's `config/test.exs`,
+run `MIX_ENV=test mix assets.build` and `mix test test/guides/capture_theme_images.exs`.
+
+Overwrites the PNGs in `guides/overview/images` and under `guides/core/images`
+(`layouts`, `ash`, `features`, `themes`; desktop 1024×768, mobile 412×915) through
 `ImageHelper.capture/5`. Capture tests pass even when an image is visually wrong,
 so review the output:
 
-1. `git status --short` — only `.png` files under those three directories change
+1. `git status --short` — only `.png` files under those directories change
    (an unchanged one means byte-identical, which is fine).
 2. **Read every changed PNG** (at least one per capture file, all of the
    index/show/edit views) and check: current UI features are visible (e.g. sort
