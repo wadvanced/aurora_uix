@@ -17,8 +17,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   their menu, in the danger color (Custom Actions guide, "Row actions in cards").
 - **Action icons**: default actions show an icon (Custom Actions guide, "Action Icons").
 - **Index cards**: a card layout for the index list (Layouts guide, "Index Cards").
-- **Blue Graphite theme**: `:blue_graphite`, a slate theme with a navy primary, in light and dark
-  (Theming guide, "Built-in Themes").
+- **Blue Graphite theme**: `:blue_graphite`, a slate theme with a blue primary and graphite table
+  headers, in light and dark (Theming guide, "Built-in Themes").
 - **Success and warning flashes**: `auix-flash--success` and `auix-flash--warning`, rendered by the
   index, form and show views (Theming guide, "Status and selection colors").
 - **Selection colors**: a selected index row and a selected index card use the theme's selection
@@ -76,6 +76,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   is new (Styling guide, "Class reference"). Hosts that override `--auix-*` variables or `.auix-*`
   rules should read the heads-up in the What's New guide (What's New in 0.2.1, "Heads-up: refreshed
   look and CSS overrides").
+- **Vitreous Marble colors**: the primary button and the current page are teal, table headers pale
+  cyan, the active tab teal and the row selection a stronger cyan.
 - **White Charcoal error colors**: the input error border is rose-500 `#F43F5E` and the inline
   error text rose-700 `#BE123C`.
 - **Theme CSS sanitizer**: theme rules may set `resize` to one of `none`, `block`, `both`,

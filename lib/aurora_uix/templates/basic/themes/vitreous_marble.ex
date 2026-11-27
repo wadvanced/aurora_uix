@@ -3,7 +3,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
   The Vitreous Marble theme for the Basic template.
 
   ## Key Features
-  - Light and dark values for every color variable.
+  - Light and dark values for every color variable, with a teal primary and cyan table headers.
   - Registered as `:vitreous_marble`; select it with
     `config :aurora_uix, theme_name: :vitreous_marble`.
 
@@ -23,13 +23,13 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     /* -------- COLORS, BORDERS, TRANSITIONS ------*/
     /* Backgrounds */
     --auix-color-bg-default: #FFFFFF; /* Pure White Marble */
-    --auix-color-bg-default--reverted: #0F172A; /* Slate-900 */
+    --auix-color-bg-default--reverted: #155E75;
     --auix-color-bg-secondary: #CBD5E1; /* Slate-300 - Cold stone secondary */ 
     --auix-color-bg-disabled: #94A3B8; /* Slate-400 */
     --auix-color-bg-info: #ECFEFF;  /* Cyan-50 (Glassy Info Background) */
     --auix-color-bg-light: #F1F5F9; /* Slate-100 */
     --auix-color-bg-hover: #F8FAFC; /* Slate-50 */
-    --auix-color-bg-hover--reverted: #334155;   /* Slate-700 */
+    --auix-color-bg-hover--reverted: #0E7490;
     --auix-color-bg-backdrop: rgba(248, 250, 252, 0.9); /* Slate-50 with 90% opacity */
     --auix-color-bg-inner-container: rgba(248, 250, 252, 0.8); /* Slate-50 with 80% opacity */
     --auix-color-bg-danger: #F87171;     /* Red-400 */
@@ -77,7 +77,7 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     --auix-color-warning-bg: #FFFBEB;       /* Amber-50 */
     --auix-color-warning-border: #FDE68A;   /* Amber-200 */
     --auix-color-warning-text: #78350F;     /* Amber-900 */
-    --auix-color-selection-bg: #ECFEFF;     /* Cyan-50 */
+    --auix-color-selection-bg: #CFFAFE;
     --auix-color-selection-border: #06B6D4; /* Cyan-500 */
 
     --auix-ring-color: rgba(51, 65, 85, 0.1);
@@ -85,16 +85,22 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     --auix-color-shadow-alpha: rgba(51, 65, 85, 0.1);
     --auix-color-shadow-black-alpha: rgba(0, 0, 0, 0.1);
     --auix-color-shadow-black-alpha-small: rgba(0, 0, 0, 0.05);
+    /* Component colors */
+    --auix-color-items-table-header-bg: #ECFEFF;
+    --auix-color-items-table-header-text: #155E75;
+    --auix-color-items-table-header-sorted-text: #083344;
+    --auix-color-sections-tab-active-text: #155E75;
+
 
     /* Dark theme variant - Obsidian/Space Marble */
     --dark--auix-color-bg-default: #020617; /* Slate-950 (Deep Obsidian) */
-    --dark--auix-color-bg-default--reverted: #FFFFFF; 
+    --dark--auix-color-bg-default--reverted: #67E8F9;
     --dark--auix-color-bg-secondary: #334155; /* Slate-700 */
     --dark--auix-color-bg-disabled: #475569; /* Slate-600 */
     --dark--auix-color-bg-info: #042F2E;  /* Teal-950 */
     --dark--auix-color-bg-light: #1E293B; /* Slate-800 */
     --dark--auix-color-bg-hover: #1E293B; /* Slate-800 */
-    --dark--auix-color-bg-hover--reverted: #E2E8F0; /* Slate-200 */
+    --dark--auix-color-bg-hover--reverted: #A5F3FC;
     --dark--auix-color-bg-backdrop: rgba(2, 6, 23, 0.9); /* Slate-950 opacity */
     --dark--auix-color-bg-inner-container: rgba(2, 6, 23, 0.8); 
     --dark--auix-color-bg-danger: #BE123C; /* Rose-700 */
@@ -204,6 +210,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
       --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
       --auix-color-shadow-black-alpha: var(--dark--auix-color-shadow-black-alpha);
       --auix-color-shadow-black-alpha-small: var(--dark--auix-color-shadow-black-alpha-small);
+      --auix-color-items-table-header-bg: #0B2A33;
+      --auix-color-items-table-header-text: #A5F3FC;
+      --auix-color-items-table-header-sorted-text: #ECFEFF;
+      --auix-color-sections-tab-active-text: #67E8F9;
     }
   }
 
@@ -265,6 +275,10 @@ defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
     --auix-color-shadow-alpha: var(--dark--auix-color-shadow-alpha);
     --auix-color-shadow-black-alpha: var(--dark--auix-color-shadow-black-alpha);
     --auix-color-shadow-black-alpha-small: var(--dark--auix-color-shadow-black-alpha-small);
+    --auix-color-items-table-header-bg: #0B2A33;
+    --auix-color-items-table-header-text: #A5F3FC;
+    --auix-color-items-table-header-sorted-text: #ECFEFF;
+    --auix-color-sections-tab-active-text: #67E8F9;
   }
   """)
 
