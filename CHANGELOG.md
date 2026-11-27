@@ -23,6 +23,11 @@ breaking changes: see the What's New guide for the upgrade checklist.
   index, form and show views (Theming guide, "Status and selection colors").
 - **Selection colors**: a selected index row and a selected index card use the theme's selection
   colors (Theming guide, "Status and selection colors").
+- **Upload file cards**: a stored upload shows as a card with a file icon, its name, its type and
+  size, an icon button to download and, in the form, one to replace it. An empty upload shows a
+  styled "Choose file" button with the accepted types, and selected files are listed as cards. The
+  new `file_info` upload option describes the stored file; without a name the card shows the field
+  label (Resource Metadata guide, "File Uploads").
 
 ### Changed
 

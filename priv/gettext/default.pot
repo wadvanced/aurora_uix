@@ -245,3 +245,15 @@ msgstr ""
 
 msgid "Item could not be deleted"
 msgstr ""
+
+msgid "Choose file"
+msgstr ""
+
+msgid "Replace file"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "bytes"
+msgstr ""
