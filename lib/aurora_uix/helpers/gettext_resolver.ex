@@ -3,9 +3,9 @@ defmodule Aurora.Uix.GettextResolver do
   Injects Gettext functionality with configurable backend support.
 
   Sets up the module to use Gettext with a configurable backend. The backend is resolved by:
-  1. Checking the `:backend` option in opts.
-  2. Checking the `:gettext_backend` application configuration.
-  3. Falling back to `Aurora.Uix.GettextBackend`.
+  1. The `:gettext_backend` application configuration, which wins over the option.
+  2. The `:backend` option.
+  3. `Aurora.Uix.GettextBackend`.
 
   If a deprecated `:gettext` application configuration exists, it imports that module
   instead of using the standard Gettext setup.
@@ -15,30 +15,23 @@ defmodule Aurora.Uix.GettextResolver do
   backend with `:gettext_backend` (see `Aurora.Uix.GettextBackend`).
 
   ## Options
-  - `:backend` (module()) - Optional. The Gettext backend module to use. Defaults to
-    `Aurora.Uix.GettextBackend`.
+  - `:backend` (module()) - Optional. The Gettext backend of the module when
+    `:gettext_backend` is not configured.
 
   ## Examples
   ```elixir
-  defmodule MyApp.Gettext do
+  defmodule MyAppWeb.ProductActions do
     use Aurora.Uix.GettextResolver
-  end
 
-  defmodule MyApp.Gettext do
-    use Aurora.Uix.GettextResolver, backend: MyCustomBackend
+    def archive_label, do: dt("Archive")
   end
-
-  # Usage in modules
-  defmodule MyApp.Web do
-    use Aurora.Uix.GettextResolver
-  end
-
-  # Then use dt/1 or the standard Gettext macros of the configured backend
-  dt("Hello") # => "Hola" with `gettext_backend: MyAppWeb.Gettext` and the "es" locale
   ```
 
+  `dt/1` is a private macro of the using module. It translates in the domain of
+  `config :aurora_uix, :gettext_domain` (default `"default"`): `dt("Archive")` gives the host's
+  translation with `gettext_backend: MyAppWeb.Gettext` and its locale set.
+
   ## Configuration
-  Can be configured via application config:
   ```elixir
   config :aurora_uix, :gettext_backend, MyAppWeb.Gettext
   ```

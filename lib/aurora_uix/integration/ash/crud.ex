@@ -74,7 +74,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Returns
 
-  Pagination.t() - `%Pagination{}` structure containing query results and metadata.
+  `Pagination.t() | list()` - A `%Pagination{}` with the results and metadata. When the read is
+  forbidden, the paginated list returns an empty page and `:list_function` returns `[]`.
 
   ## Examples
 

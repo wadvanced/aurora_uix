@@ -30,9 +30,9 @@ defmodule Aurora.Uix.Parser do
 
   Parser implementations must provide:
 
-  - `get_options/0` - Returns list of option keys the parser supports
-  - `option_value/4` - Resolves default values for configuration options
-  - `fill_missing_options/1` - Fills in any missing configuration options after parsing
+  - `get_options/2` - Returns the option keys the parser resolves
+  - `option_value/4` - Resolves the value of one option
+  - `fill_missing_options/2` - Fills in any missing configuration options after parsing
 
   ## Key Constraints
 
@@ -56,18 +56,11 @@ defmodule Aurora.Uix.Parser do
   - `resource_config` (map()) - The resource configuration map passed to `parse/2`, containing keys like
     `:schema`, `:type`, `:context`, and any default options. This allows parsers to conditionally
     declare supported options based on the resource configuration.
-  - `opts` (map()) - The resource configuration map passed to `parse/2`, containing keys like
-    `:schema`, `:type`, `:context`, and any default options. This allows parsers to conditionally
-    declare supported options based on the resource configuration.
+  - `opts` (keyword()) - The options passed to `parse/2`, merged with the resource's own.
 
   ## Returns
 
   list(atom()) - List of configuration option keys supported by the parser.
-
-  ## Examples
-
-      iex> Aurora.Uix.Parsers.Common.get_options()
-      [:module, :module_name, :name, :source, :source_key, :title, :primary_key]
   """
   @callback get_options(resource_config :: map(), opts :: map()) :: list(atom())
   @doc """

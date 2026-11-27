@@ -33,11 +33,10 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   Resolution mechanism:
 
-  1. Extracts `type` from `resource_config` (`:ash` or `:ctx`)
-  2. Looks up parser module in `@parser_defaults_integration_modules` map
-  3. Delegates `default_value/3` to resolved implementation
-  4. Implementation uses its own logic to resolve the option atom
-  5. Raises error if type is `nil` or not configured
+  1. Reads `type` from `resource_config` (`:ash`, `:ctx` or a registered type)
+  2. Looks up the parser module of that type
+  3. Calls its `filter_options/2`, `option_value/4` and `fill_missing_options/2`
+  4. Raises an error if the type is `nil` or not configured
 
   ## Supported Options
 
@@ -59,17 +58,16 @@ defmodule Aurora.Uix.Integration.ContextParserDefaults do
 
   ## Implementation Guidelines
 
-  When creating a new parser defaults implementation:
+  A parser defaults module implements this behaviour:
 
-  1. Implement `default_value/3` to handle option atoms
-  2. Return `Connector.t()` wrapping the resolved function reference
-  3. Use backend-specific conventions for function discovery
-  4. Document backend-specific behavior and conventions
+  1. `backend_opts_schema/0` - the `backend_opts` the backend accepts
+  2. `filter_options/2` - which of the operations to resolve
+  3. `option_value/4` - the `Aurora.Uix.Integration.Connector` of one operation
+  4. `fill_missing_options/2` - last adjustments of the parsed options
 
   ## Key Constraints
 
-  - Requires valid context module in resource configuration
-  - Type must be configured in application environment
+  - The type must be configured in the application environment
   - Invalid types raise runtime errors
   - Implementations define their own option handling logic
   """
