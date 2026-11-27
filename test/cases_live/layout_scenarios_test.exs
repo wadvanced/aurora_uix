@@ -71,6 +71,8 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
                "New Product"
              )
 
+      assert has_element?(view, "tbody[id$='-products-index'] tr.auix-items-table-row")
+
       {:ok, view, _html} = live(conn, mirror_path(backend, "default", "products", "/new"))
       modal_header = "div#auix-product-new-modal header.auix-header--top-actions"
       assert has_element?(view, "#{modal_header} .auix-header-title", "New Product")
