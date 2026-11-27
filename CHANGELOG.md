@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Show labels for predefined renderers**: a show view drew no label for a field rendered with
+  `:toggle_switch`, `:color` or `:badge`. These renderers now draw the label above the widget in the
+  show view, as `:progress_bar`, `:url` and `:rating` do; the index cell is unchanged.
 - **Flash after a save**: a flash message was rendered wrapped in quotes, and saving a new record
   reported it as updated. The message is now rendered as written, and a new record reports
   "<Name> created successfully".

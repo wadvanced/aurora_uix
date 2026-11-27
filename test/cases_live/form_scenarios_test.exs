@@ -816,7 +816,7 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
       assert has_element?(
                view,
-               "#auix-product-show-modal input[type=checkbox][disabled].auix-toggle-switch"
+               "#auix-product-show-modal .auix-show-field input[type=checkbox][disabled].auix-toggle-switch"
              )
 
       refute has_element?(
@@ -824,8 +824,27 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
                "#auix-product-show-modal input[type=checkbox][disabled][checked].auix-toggle-switch"
              )
 
-      assert has_element?(view, "#auix-product-show-modal span.auix-badge", "in_stock")
-      assert has_element?(view, "#auix-product-show-modal span.auix-color", "item_show-1")
+      assert has_element?(
+               view,
+               "#auix-product-show-modal .auix-show-field .auix-label",
+               "Toggle switch"
+             )
+
+      assert has_element?(
+               view,
+               "#auix-product-show-modal .auix-show-field span.auix-badge",
+               "in_stock"
+             )
+
+      assert has_element?(view, "#auix-product-show-modal .auix-show-field .auix-label", "Badge")
+
+      assert has_element?(
+               view,
+               "#auix-product-show-modal .auix-show-field span.auix-color",
+               "item_show-1"
+             )
+
+      assert has_element?(view, "#auix-product-show-modal .auix-show-field .auix-label", "Colour")
 
       assert has_element?(
                view,

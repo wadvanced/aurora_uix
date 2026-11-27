@@ -2,8 +2,9 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Color do
   @moduledoc """
   Predefined `:color` renderer for colour-string fields (hex, rgb, named).
 
-  - `:index` / `:show` — a framed box filled with the colour, showing the value
+  - `:index` — a framed box filled with the colour, showing the value
     in a text colour that contrasts with a hex colour.
+  - `:show` — the field label above the same colour box.
   - `:form` — a native `<input type="color">` picker bound to the form field.
 
   The box uses an inline `style` because the colour is dynamic data, not a
@@ -28,13 +29,30 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Color do
     """
   end
 
-  def render(%{auix: %{layout_type: lt}} = assigns) when lt in [:index, :show] do
-    value = to_string(display_value(assigns) || "")
+  def render(%{auix: %{layout_type: :index}} = assigns) do
+    assigns = assign(assigns, :value, to_string(display_value(assigns) || ""))
 
-    assigns =
-      assigns
-      |> assign(:value, value)
-      |> assign(:text_color, contrast_text_color(value))
+    ~H"""
+    <.swatch value={@value} />
+    """
+  end
+
+  def render(%{auix: %{layout_type: :show}} = assigns) do
+    assigns = assign(assigns, :value, to_string(display_value(assigns) || ""))
+
+    ~H"""
+    <div class="auix-show-field">
+      <span class="auix-label">{dt(@field.label)}</span>
+      <.swatch value={@value} />
+    </div>
+    """
+  end
+
+  # PRIVATE
+
+  @spec swatch(map()) :: Phoenix.LiveView.Rendered.t()
+  defp swatch(assigns) do
+    assigns = assign(assigns, :text_color, contrast_text_color(assigns.value))
 
     ~H"""
     <span class="auix-color" style={"background-color: #{@value}; color: #{@text_color};"}>
@@ -42,8 +60,6 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.Predefined.Color do
     </span>
     """
   end
-
-  # PRIVATE
 
   # Picks black or white text for readability against `hex`, via the YIQ contrast
   # formula. Falls back to the theme's default input text colour when `hex` isn't a
