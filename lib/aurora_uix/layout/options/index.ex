@@ -26,11 +26,14 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:pagination_items_per_page` - Number of items to display per page.
     - Accepts a positive `integer()` or a function of arity 1 that receives assigns.
     - Default: `40`.
-  * `:pages_bar_range_offset` - Function for calculating pagination bar range offset
-    - Accepts a function of arity 2 that receives assigns and the breakpoint.
+  * `:pages_bar_range_offset` - The number of page links shown around the current page, per
+    breakpoint.
+    - Accepts a function of arity 2, called with `nil` and the breakpoint (`:md`, `:lg`, `:xl` or
+      `:xl2`), returning an `integer()`.
+    - Default: `page_bar_range_offset/2`.
   * `:page_title` - Title for showing in the page.
     - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
-    - Default: `"List {name}"`, where `{name}` is the resource name.
+    - Default: `"Listing {title}"`, where `{title}` is the resource title.
   * `:page_subtitle` - The subtitle for the index list.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and returns a Phoenix.LiveView.Rendered.
     - Default: `""`.
@@ -48,10 +51,14 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:preload` - Associations the index list loads besides the ones the layout renders, e.g.
     `[:category, posts: :author]`. It replaces the resource's `preload` for this layout.
     - Accepts a `list()`.
-  * `:get_streams` - Function for extracting row data from assigns
-    - Accepts a function of arity 1.
-  * `:row_id` - Function for extracting row identifiers
-    - Accepts a function of arity 1.
+  * `:get_streams` - Returns the streams an index component renders, from its assigns.
+    - Default: `get_streams/1`.
+  * `:row_id` - Returns the DOM id of a row.
+    - Default: `row_id/1`.
+
+  A function set for `:get_streams` or `:row_id` is called with the assigns when the option is
+  read, like the other function options, so it does not replace the default function
+  ([#680](https://github.com/wadvanced/aurora_uix/issues/680)).
   """
 
   use Aurora.Uix.Layout.Options, layout_type: :index
@@ -112,17 +119,13 @@ defmodule Aurora.Uix.Layout.Options.Index do
   def page_bar_range_offset(_assigns, _media_query), do: @default_pages_bar_range_offset
 
   @doc """
-  Extracts row data from assigns.
-
-  Retrieves row data from either streams (if available and matching source_key) or directly
-  from the `auix.rows` field. Prioritizes stream data when both are present and source_key
-  matches.
+  Returns the rows of the index from its assigns.
 
   ## Parameters
-  - `assigns` (map()) - Assigns map containing `auix` and optionally `streams`.
+  - `assigns` (map()) - Assigns map containing `:streams`, or `:auix` with `:rows`.
 
   ## Returns
-  list() - List of row data, or empty list if no rows found.
+  term() - `assigns.streams` when present, otherwise `assigns.auix.rows`, or `[]`.
   """
   @spec get_streams(map()) :: list()
   def get_streams(%{streams: streams}), do: streams

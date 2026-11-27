@@ -58,7 +58,7 @@ defmodule Aurora.Uix.Layout.Helpers do
   is raised.
 
   ## Parameters
-  - `type` (atom()) - The connector type (`:ash` or `:ctx`).
+  - `type` (atom()) - The backend type: `:ash`, `:ctx`, `:default` or a registered one.
 
   ## Returns
   module() - The fields parser implementation module.

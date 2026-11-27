@@ -15,25 +15,27 @@ defmodule Aurora.Uix.Layout.ResourceMetadata do
     use Aurora.Uix
 
     auix_resource_metadata :product do
-      schema MyApp.Product
+      schema MyApp.Inventory.Product
       context MyApp.Inventory
       field :id, hidden: true
       field :name, placeholder: "Product name", length: 40, required: true
-      field :price, precision: 12, scale: 2
-      fields [:msrp, :rrp], precision: 10, scale: 2
+      fields [:list_price, :rrp], precision: 10, scale: 2
 
       field :image do
-        upload allow: [accept: ~w(.png .jpg), max_entries: 1], consume: &MyApp.store/1
+        upload allow: [accept: ~w(.png .jpg), max_entries: 1],
+               consume: &MyApp.Inventory.store_image/1
       end
     end
 
-    auix_resource_metadata :category do
-      schema MyApp.Category
+    auix_resource_metadata :product_location do
+      schema MyApp.Inventory.ProductLocation
       context MyApp.Inventory
       field :products, resource: :product
     end
 
-    auix_resource_metadata :author, ash_resource: MyApp.Blog.Author, order_by: [:name],
+    auix_resource_metadata :author,
+      ash_resource: MyApp.Blog.Author,
+      order_by: [:name],
       backend_opts: [ash_actor_assign: :current_user]
   end
   ```

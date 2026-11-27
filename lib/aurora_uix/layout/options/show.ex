@@ -9,11 +9,11 @@ defmodule Aurora.Uix.Layout.Options.Show do
 
   * `:page_title` - The page title for the show layout.
     - Accepts a `binary()` (static title) or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
-    - Default: `"{name} Details"`, where `{name}` is the capitalized schema name.
+    - Default: `"{name}"`, where `{name}` is the resource name.
 
   * `:page_subtitle` - The page subtitle for the show layout.
     - Accepts a `binary()` or a function of arity 1 that receives assigns and expected to return a Phoenix.LiveView.Rendered.
-    - Default: `"Detail"`
+    - Default: `"Details"`
 
   * `:edit_action_label` - The edit text that will appear in the action button.
     - Accepts a `binary()` or a 0-arity function returning a `binary()` (see
