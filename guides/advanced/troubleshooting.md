@@ -21,8 +21,8 @@ fails.
    - Ensure you've run `mix auix.gen.stylesheet` to generate the stylesheet
    - Verify `assets/css/app.css` imports `./auix-variables.css` and then `./auix-rules.css`
      (see [CSS Configuration](../introduction/getting_started.md#css-configuration))
-   - `Can't resolve 'auix-variables.css'` means an import lacks `./`, or `auix-stylesheet.css` is
-     imported: its own imports lack it, so import the two files directly
+   - `Can't resolve 'auix-variables.css'` means an import lacks `./`. If it comes from
+     `auix-stylesheet.css`, an earlier version generated it: re-run `mix auix.gen.stylesheet`
    - Rebuild the assets: `mix assets.build`
    - In development, restart your server to ensure hot reload picks up CSS changes
 

@@ -5,6 +5,11 @@ properties. This guide shows how to align those properties with your host applic
 system — either by remapping them through a style bridge file or by overriding individual tokens
 directly — without touching any library source.
 
+The stylesheet is pure CSS by design: custom properties and `.auix-*` rules in native cascade
+layers, with nothing that needs Tailwind or another framework to process it. That leaves the host
+free to choose how the files reach the page: imported into a Tailwind v4 `app.css`, bundled by
+esbuild or another tool, or served as plain stylesheets.
+
 ## The five files and their cascade layers
 
 Running `mix auix.gen.stylesheet` writes the following files and declares the layer order
@@ -64,11 +69,25 @@ directly. This is intentionally last-resort; see [Escape hatch: semantic class o
 ### Import order
 
 ```css
-@import "auix-variables.css";
-@import "auix-bridge-daisyui.css";  /* or your custom bridge */
-@import "auix-custom.css";          /* host customizations (opt-in via --custom) */
-@import "auix-rules.css";
+@import "./auix-variables.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
 ```
+
+`auix-stylesheet.css` imports only `auix-variables.css` and `auix-rules.css`. With a bridge or
+`auix-custom.css`, list the files as above, or import the shim and then the files it leaves out:
+
+```css
+@import "./auix-stylesheet.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";
+```
+
+Both forms give the same result. `auix-variables.css` declares the layer order
+(`auix.variables`, `auix.bridge`, `auix.rules`) before any rule, so a bridge or custom override
+wins over the defaults wherever it is imported, and the rules read the `--auix-*` variables when
+the page renders, not when they are imported.
 
 ### Scaffolding `auix-custom.css`
 
@@ -158,11 +177,11 @@ mix auix.gen.stylesheet --baseline --force
 Add one extra import **before** `auix-variables.css`:
 
 ```css
-@import "auix-baseline.css"; /* non-Tailwind hosts only */
-@import "auix-variables.css";
-@import "auix-bridge-daisyui.css";  /* or your custom bridge */
-@import "auix-custom.css";          /* host customizations (opt-in via --custom) */
-@import "auix-rules.css";
+@import "./auix-baseline.css"; /* non-Tailwind hosts only */
+@import "./auix-variables.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
 ```
 
 The reset uses the same `--auix-*` variables a bridge maps, so a style bridge still controls
@@ -173,6 +192,52 @@ rules-level overrides win over it.
 > **Tailwind hosts:** do not pass `--baseline` and do not import this file. Tailwind's
 > preflight already normalises the same selectors, and double-resetting can produce
 > subtle border and spacing regressions.
+
+## Tailwind v3 hosts
+
+The import examples in this guide are written for Tailwind v4. Tailwind v3 processes `@layer`
+itself and accepts only `base`, `components` and `utilities`, so importing the Aurora UIX files
+into a v3 `app.css` fails on `@layer auix.variables`. The files need no Tailwind processing, so the
+workaround is to keep them out of Tailwind's input and bundle them separately with esbuild, which
+keeps native cascade layers as they are.
+
+Create `assets/css/auix.css` with the imports from [Import order](#import-order):
+
+```css
+@import "./auix-variables.css";
+@import "./my-bridge.css";            /* optional: your bridge (see daisyUI below) */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
+```
+
+Add an esbuild profile for it in `config/config.exs`:
+
+```elixir
+config :esbuild,
+  auix: [
+    args: ~w(css/auix.css --bundle --outdir=../priv/static/assets/css),
+    cd: Path.expand("../assets", __DIR__)
+  ]
+```
+
+Run `esbuild auix` next to the existing profiles in the `assets.build` and `assets.deploy`
+aliases (add `--minify` for deploy) and, in development, add
+`auix: {Esbuild, :install_and_run, [:auix, ~w(--watch)]}` to the endpoint's `watchers`. Then load
+the bundle in the root layout, next to the `app.css` link:
+
+```heex
+<link phx-track-static rel="stylesheet" href={~p"/assets/css/auix.css"} />
+```
+
+Two more differences from v4:
+
+- **Icons:** v3 has no `@source`. Add `"../deps/aurora_uix/priv/static/classes.js"` to `content`
+  in `tailwind.config.js`, so the Heroicons plugin generates the `hero-*` classes Aurora UIX uses.
+- **daisyUI:** `auix-bridge-daisyui.css` maps daisyUI 5 tokens (`--color-primary`, …). daisyUI 4,
+  which pairs with Tailwind v3, uses other variable names, so leave the bridge out or write your
+  own (see [Writing a Style Bridge](writing_a_style_bridge.md)).
+
+Tailwind v3 ships a preflight, so skip `auix-baseline.css` as for v4.
 
 ## Variable reference
 

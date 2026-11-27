@@ -66,10 +66,10 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   ## Import order for hosts using customization
 
   ```css
-  @import "auix-variables.css";
-  @import "auix-bridge-daisyui.css";  /* or your custom bridge */
-  @import "auix-custom.css";          /* host customizations (opt-in via --custom) */
-  @import "auix-rules.css";
+  @import "./auix-variables.css";
+  @import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+  @import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+  @import "./auix-rules.css";
   ```
 
   For the full customization workflow, including the variable reference and recipe
@@ -78,10 +78,10 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   ## Import order for non-Tailwind hosts (no customization)
 
   ```css
-  @import "auix-baseline.css"; /* non-Tailwind hosts only; generate with --baseline */
-  @import "auix-variables.css";
-  @import "<your-bridge>.css";  /* optional */
-  @import "auix-rules.css";
+  @import "./auix-baseline.css"; /* non-Tailwind hosts only; generate with --baseline */
+  @import "./auix-variables.css";
+  @import "./<your-bridge>.css";  /* optional */
+  @import "./auix-rules.css";
   ```
 
   ## Import order for Tailwind hosts (no customization)
@@ -90,9 +90,9 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
   `auix-baseline.css` and use the two-file path or the legacy shim:
 
   ```css
-  @import "auix-variables.css";
-  @import "auix-rules.css";
-  /* or simply: @import "auix-stylesheet.css"; */
+  @import "./auix-variables.css";
+  @import "./auix-rules.css";
+  /* or simply: @import "./auix-stylesheet.css"; */
   ```
   """
 
@@ -141,7 +141,7 @@ defmodule Mix.Tasks.Auix.Gen.Stylesheet do
     File.write!(
       combined_path,
       @header <>
-        ~s(@import "#{@variables_file}";\n@import "#{@rules_file}";\n)
+        ~s(@import "./#{@variables_file}";\n@import "./#{@rules_file}";\n)
     )
 
     IO.puts("\e[32mGenerated #{variables_path}, #{rules_path}, and #{combined_path}\e[0m")
