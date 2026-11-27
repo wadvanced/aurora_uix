@@ -217,6 +217,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   button.
 - Documented examples of the CRUD modules, the theme helper and the layout option lookup were
   corrected.
+- Guide screenshots were regenerated with the default White Charcoal theme, and the nested
+  sections example describes what they show.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.
