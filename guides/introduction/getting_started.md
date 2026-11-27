@@ -151,6 +151,11 @@ Switching the daisyUI theme (or toggling dark mode) then automatically restyles 
 mix auix.gen.stylesheet --force
 ```
 
+With this bridge the info message, such as the one after a save, has text of the same colour as its
+background ([#706](https://github.com/wadvanced/aurora_uix/issues/706)). Until that is fixed, set the
+text colour between the bridge and the rules, for example
+`:root { --auix-color-info-text: var(--color-info-content); }`.
+
 If you use a design system other than daisyUI, see the [Writing a Style Bridge](../customization/writing_a_style_bridge.md) guide to create your own mapping.
 
 ## Icons Configuration
