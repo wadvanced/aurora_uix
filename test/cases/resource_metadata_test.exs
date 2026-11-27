@@ -4,6 +4,9 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
   import Aurora.UixWeb.Test.UICase,
     only: [assert_values_order: 2, resource_configs: 1, validate_schema: 3]
 
+  alias Aurora.Uix.Integration.Ash.CrudSpec
+  alias Aurora.Uix.Integration.Connector
+  alias Aurora.Uix.Parser
   alias Aurora.Uix.Test.MirrorAsh
   alias Aurora.Uix.Test.MirrorCtx
   alias Spark.Error.DslError
@@ -22,6 +25,26 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     schema "people" do
       field :name, :string
       embeds_one(:address, Aurora.Uix.Test.Cases.ResourceMetadataTest.Address)
+    end
+  end
+
+  defmodule UnpaginatedReads do
+    use Ash.Resource, data_layer: Ash.DataLayer.Ets
+
+    ets do
+      private?(true)
+    end
+
+    attributes do
+      uuid_primary_key(:id)
+    end
+
+    actions do
+      defaults([:destroy, create: [], update: []])
+
+      read :plain do
+        primary?(true)
+      end
     end
   end
 
@@ -430,10 +453,56 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
          auix_create_ui do
          end
-       """, ~r/action ':nope'.*expected type ':update'/}
+       """, ~r/action ':nope'.*expected type ':update'/},
+      {"a non-paginated Ash read action on a resource with no paginated one",
+       """
+         auix_resource_metadata :unpaginated,
+           ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads,
+           backend_opts: [ash_read_action: :plain]
+
+         auix_create_ui do
+         end
+       """, ~r/action ':plain'.*expected type ':read'.*pagination is not supported/}
     ]
 
     assert_compile_errors(cases)
+  end
+
+  # Backend-specific: only an Ash read action declares whether it paginates.
+  test "an Ash read action in backend_opts serves the paginated list only when it paginates" do
+    [{meta, _}] =
+      compile("""
+        auix_resource_metadata :unpaginated,
+          ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
+          backend_opts: [ash_read_action: :read_all]
+
+        auix_resource_metadata :paginated,
+          ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
+          backend_opts: [ash_read_action: :read]
+      """)
+
+    for {resource, {list_action, paginated_action}} <- [
+          unpaginated: {:read_all, :read},
+          paginated: {:read, :read}
+        ] do
+      parsed = resource |> meta.auix_resource() |> Parser.parse([])
+
+      assert %Connector{
+               crud_spec: %CrudSpec{
+                 action: %{name: ^list_action},
+                 auix_action_name: :list_function
+               }
+             } = parsed.list_function
+
+      assert %Connector{
+               crud_spec: %CrudSpec{
+                 action: %{name: ^paginated_action, pagination: pagination},
+                 auix_action_name: :list_function_paginated
+               }
+             } = parsed.list_function_paginated
+
+      assert pagination
+    end
   end
 
   test "resource: links that fail compilation" do

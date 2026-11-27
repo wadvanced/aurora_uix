@@ -479,10 +479,11 @@ auix_resource_metadata :post do
 end
 ```
 
-A read action named with `ash_read_action` alone also serves the index, so give it pagination. An
-action without it compiles and then crashes the index
-([#665](https://github.com/wadvanced/aurora_uix/issues/665)). To keep an action without pagination
-for association lists and selects, name the index action too, with `ash_read_action_paginated`.
+A read action named with `ash_read_action` alone also serves the index when it has pagination.
+Without pagination it serves only association lists and selects, and the index uses the primary
+paginated read action of the resource, or else its first paginated one. When the resource has no
+paginated read action, compilation fails naming the action. To pick another action for the index,
+name it with `ash_read_action_paginated`.
 
 Available action configuration options, all given inside `backend_opts`:
 
@@ -936,10 +937,10 @@ read :read do
 end
 ```
 
-#### The Index Crashes with `CaseClauseError`
+#### Compilation Fails with "pagination is not supported"
 
-An action named with `ash_read_action` has no pagination
-([#665](https://github.com/wadvanced/aurora_uix/issues/665)). Add it, or name the index action with
+The action named with `ash_read_action` has no pagination, and the resource has no paginated read
+action for the index. Add pagination to one, or name the index action with
 `ash_read_action_paginated`.
 
 #### Another Action Runs Than Expected

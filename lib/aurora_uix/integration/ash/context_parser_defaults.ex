@@ -11,6 +11,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     compilation
   - Without a name, the primary action of the type, or else its first action
   - The paginated list is picked among the actions with pagination
+  - A list action without pagination does not serve the paginated list: the paginated one is
+    resolved among the actions with pagination
   - Update and change share an action when only one of them is named, as the two list operations do
 
   ## Key Constraints
@@ -285,10 +287,10 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   """
   @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec fill_missing_options(map(), map()) :: map()
-  def fill_missing_options(parsed_opts, _resource_config) do
+  def fill_missing_options(parsed_opts, resource_config) do
     parsed_opts
     |> fill_missing_update_change()
-    |> fill_missing_list_paginated()
+    |> fill_missing_list_paginated(resource_config)
   end
 
   ## PRIVATE
@@ -448,8 +450,8 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     end
   end
 
-  @spec fill_missing_list_paginated(map()) :: map()
-  defp fill_missing_list_paginated(parsed_opts) do
+  @spec fill_missing_list_paginated(map(), map()) :: map()
+  defp fill_missing_list_paginated(parsed_opts, resource_config) do
     case {parsed_opts[:list_function_paginated], parsed_opts[:list_function]} do
       {nil, nil} ->
         parsed_opts
@@ -461,11 +463,42 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
 
       {nil, list_function} ->
         list_function
-        |> struct(%{auix_action_name: :list_function_paginated})
+        |> paginated_list_connector(resource_config)
         |> then(&Map.put(parsed_opts, :list_function_paginated, &1))
 
       _ ->
         parsed_opts
     end
+  end
+
+  # The list action also serves the paginated index only when it paginates; otherwise the
+  # index falls back to the resource's paginated read action.
+  @spec paginated_list_connector(Connector.t(), map()) :: Connector.t()
+  defp paginated_list_connector(%Connector{crud_spec: crud_spec} = list_function, resource_config) do
+    %{resource: ash_resource, action: list_action} = crud_spec
+
+    paginated_action =
+      if list_action.pagination,
+        do: list_action,
+        else:
+          ash_resource
+          |> get_proper_actions(:read, nil)
+          |> Enum.filter(& &1.pagination)
+          |> maybe_get_primary_action()
+          |> notify_action_error(
+            @error_action_needs_pagination,
+            resource_config.name,
+            :read,
+            list_action.name
+          )
+
+    %{
+      list_function
+      | crud_spec: %{
+          crud_spec
+          | action: paginated_action,
+            auix_action_name: :list_function_paginated
+        }
+    }
   end
 end
