@@ -255,7 +255,7 @@ it catalogs every customization mechanism (styling, theming, component overrides
 actions, renderers, behavior hooks) with deep links:
 
 - **[Customizing & Extending Aurora UIX](../customization/customization.md)** — start here
-- **[Advanced Usage Guide](../advanced/advanced_usage.md)** — custom templates and backends
+- **[Advanced Usage Guide](../advanced/advanced_usage.md)** — templates, metadata separation and custom backends
 - **[LiveView Integration](../core/liveview.md)** — behavior hooks and event handling
 
 ### Troubleshooting

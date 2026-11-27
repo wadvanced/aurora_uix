@@ -170,6 +170,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Ash Integration was checked against the code: a walkthrough on the reader's own modules, how
   actions are picked and paginated, aggregate types, the custom new function, sorting next to read
   actions, and the actor examples.
+- Advanced Usage was checked against the code: a custom backend example that works, the template
+  callbacks and their input, separated metadata and introspection examples that compile, and a
+  warning that a template of the application cannot be configured.
 
 ### Build
 

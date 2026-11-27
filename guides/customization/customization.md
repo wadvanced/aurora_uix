@@ -13,7 +13,7 @@ Aurora UIX generates complete CRUD UIs out of the box — this hub catalogs ever
 | Render one field differently | Field `renderer:` option | [Resource Metadata](../core/resource_metadata.md#custom-field-types-and-rendering) |
 | Add/remove/replace action buttons | Action operations | [Custom Actions](custom_actions.md) |
 | Hook into mount/save/events | Handler modules (`auix_*` callbacks) | [LiveView Integration](../core/liveview.md#customizing-behavior) |
-| Replace the whole generation pipeline | Custom templates / backends | [Advanced Usage](../advanced/advanced_usage.md) |
+| Connect another data source | Custom backends | [Advanced Usage](../advanced/advanced_usage.md) |
 
 ## 1. Theming & Styling
 
@@ -206,17 +206,16 @@ Options of the resource itself that shape its index list (an `index_columns` lay
 
 ## 7. Deep Extension Points
 
-**What it is:** the generation pipeline itself is replaceable — custom templates (implement `Aurora.Uix.Template`), custom layout trees, custom data backends (implement `Aurora.Uix.Integration.Crud`), and metadata/UI module separation for reuse across views.
-**When to use it:** the built-in Basic template or the Ecto/Ash backends fundamentally don't fit (different markup architecture, GraphQL/REST data source, multi-representation metadata).
+**What it is:** deeper changes to the generation pipeline — custom layout trees, custom data backends (implement `Aurora.Uix.Integration.Crud`), and metadata/UI module separation for reuse across views.
+**When to use it:** the Ecto/Ash backends don't fit (GraphQL/REST data source) or you need multi-representation metadata. Your own template cannot be configured yet ([#669](https://github.com/wadvanced/aurora_uix/issues/669)).
 
 ```elixir
-config :aurora_uix, :template, MyApp.CustomTemplate
 config :aurora_uix, :crud_integration_modules, custom: MyApp.CustomBackend.Crud
 config :aurora_uix, :parser_defaults_integration_modules, custom: MyApp.CustomBackend.ContextParserDefaults
 config :aurora_uix, :fields_parser_integration_modules, custom: MyApp.CustomBackend.FieldsParser
 ```
 
-→ **See:** [Advanced Usage](../advanced/advanced_usage.md) — templates, macro conversions, metadata separation, custom backends
+→ **See:** [Advanced Usage](../advanced/advanced_usage.md) — how templates work, macro conversions, metadata separation, custom backends
 
 ## 8. Internationalization
 

@@ -129,4 +129,4 @@ module.
 - [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
 - [Custom Actions](custom_actions.md) — add, replace, or remove action buttons instead of whole components
 - [Styling Aurora UIX in a Host Application](styling.md) — restyle the built-in components without replacing them
-- [Advanced Usage](../advanced/advanced_usage.md) — custom templates for deeper structural changes
+- [Advanced Usage](../advanced/advanced_usage.md) — how templates work, and custom backends
