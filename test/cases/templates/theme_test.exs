@@ -70,6 +70,15 @@ defmodule Aurora.Uix.Test.Cases.ThemeTest do
     contents = File.read!(path)
     assert contents =~ "--auix-color-bg-default:"
     assert contents =~ "var(--color-base-100)"
+
+    # Text drawn on the info background must use daisyUI's paired content colour,
+    # not the background colour itself.
+    bridged = fn name ->
+      [_, value] = Regex.run(~r/--#{name}:\s*([^;]+);/, contents)
+      String.trim(value)
+    end
+
+    refute bridged.("auix-color-info-text") == bridged.("auix-color-bg-info")
   end
 
   test "every variable a rule uses is declared" do
