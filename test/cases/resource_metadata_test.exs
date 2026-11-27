@@ -421,7 +421,16 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
            schema: Aurora.Uix.Test.MirrorCtx.Product,
            context: Aurora.Uix.Test.MirrorCtx,
            backend_opts: [ash_actor_assign: :current_user]
-       """, ~r/unknown options \[:ash_actor_assign\]/}
+       """, ~r/unknown options \[:ash_actor_assign\]/},
+      {"an Ash action the resource does not define",
+       """
+         auix_resource_metadata :product,
+           ash_resource: Aurora.Uix.Test.MirrorAsh.Product,
+           backend_opts: [ash_update_action: :nope]
+
+         auix_create_ui do
+         end
+       """, ~r/action ':nope'.*expected type ':update'/}
     ]
 
     assert_compile_errors(cases)

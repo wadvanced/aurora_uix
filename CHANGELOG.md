@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
+  `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
+  primary action was used instead. Compilation now fails with a `DslError` naming the missing action.
 - **`query_opts` of a one-to-many field**: the `order_by` and `where` in the `query_opts` of a
   one-to-many field in the resource metadata were ignored, and the list showed every related record.
   They now order and filter the list, and the `order_by` and `where` of the layout field take
