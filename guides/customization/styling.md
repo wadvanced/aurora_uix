@@ -70,6 +70,20 @@ directly. This is intentionally last-resort; see [Escape hatch: semantic class o
 @import "./auix-rules.css";
 ```
 
+`auix-stylesheet.css` imports only `auix-variables.css` and `auix-rules.css`. With a bridge or
+`auix-custom.css`, list the files as above, or import the shim and then the files it leaves out:
+
+```css
+@import "./auix-stylesheet.css";
+@import "./auix-bridge-daisyui.css";  /* or your custom bridge */
+@import "./auix-custom.css";
+```
+
+Both forms give the same result. `auix-variables.css` declares the layer order
+(`auix.variables`, `auix.bridge`, `auix.rules`) before any rule, so a bridge or custom override
+wins over the defaults wherever it is imported, and the rules read the `--auix-*` variables when
+the page renders, not when they are imported.
+
 ### Scaffolding `auix-custom.css`
 
 Run the following to create the stub on first use:
