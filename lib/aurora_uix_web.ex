@@ -39,6 +39,29 @@ defmodule Aurora.UixWeb do
   end
 
   @doc """
+  Mounts LiveDashboard at `/dev/dashboard` in a router, when `Phoenix.LiveDashboard` is loaded.
+
+  `phoenix_live_dashboard` is a dev and test dependency only, so a host that compiles this
+  library from its sources (a path or git dependency) has no LiveDashboard. The routes are built
+  here instead of in the router because `import` fails while the router is expanded, even in a
+  branch that is never taken.
+  """
+  @spec dev_dashboard() :: Macro.t()
+  def dev_dashboard do
+    if Code.ensure_loaded?(Phoenix.LiveDashboard.Router) do
+      quote do
+        import Phoenix.LiveDashboard.Router
+
+        scope "/dev" do
+          pipe_through(:browser)
+
+          live_dashboard("/dashboard", metrics: Aurora.UixWeb.Telemetry)
+        end
+      end
+    end
+  end
+
+  @doc """
   Defines a channel with all the necessary imports.
   """
   @spec channel() :: Macro.t()
