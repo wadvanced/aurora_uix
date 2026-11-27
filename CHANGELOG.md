@@ -209,6 +209,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Module documentation of the Basic template's handlers, components, actions, generators, helpers
   and themes was corrected, with the CSS sanitizer examples and the conditions of the Download
   button.
+- Documented examples of the CRUD modules, the theme helper and the layout option lookup were
+  corrected.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application and the icons error.
 

@@ -235,8 +235,8 @@ defmodule Aurora.Uix.Integration.Crud do
       %Pagination{entries: [...], pages_count: 1}
 
       iex> connector = %Connector{type: :ctx, crud_spec: %CrudSpec{...}}
-      iex> apply_list_function(connector, limit: 10)
-      %Pagination{entries: [...]}
+      iex> apply_list_function(connector, order_by: :name)
+      [%MyApp.User{}, ...] # what the context function returns
   """
   @spec apply_list_function(Connector.t(), keyword()) :: Pagination.t() | list()
   def apply_list_function(%Connector{type: type, crud_spec: crud_spec}, opts),

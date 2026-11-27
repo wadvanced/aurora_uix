@@ -79,9 +79,10 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :read, pagination: false}}
+      iex> crud_spec = %CrudSpec{resource: MyApp.User, action: %{name: :read},
+      ...>   auix_action_name: :list_function}
       iex> list(crud_spec, where: [{:status, :eq, "active"}])
-      %Pagination{entries: [...], pages_count: 1, per_page: :infinity}
+      %Pagination{entries: [...], page: 1, pages_count: 1} # per_page is the entry count plus one
 
       iex> crud_spec = %CrudSpec{resource: MyApp.Post, action: %{name: :read, pagination: true},
       ...>   auix_action_name: :list_function_paginated}
@@ -313,7 +314,8 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Parameters
 
-  - `crud_spec` (CrudSpec.t()) - The CrudSpec containing resource configuration.
+  - `crud_spec` (CrudSpec.t()) - The CrudSpec with the resource and, as its `:action`, the new
+    function of arity 2.
   - `attrs` (map()) - Initial attributes for the new resource.
   - `opts` (keyword()) - Options:
     * `:actor` (term()) - Actor forwarded to `Ash.load/3` during preload.
@@ -325,12 +327,13 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
 
   ## Examples
 
-      iex> crud_spec = %CrudSpec{resource: MyApp.User}
+      iex> crud_spec = %CrudSpec{resource: MyApp.User,
+      ...>   action: &Aurora.Uix.Integration.Ash.Crud.default_new_function/2}
       iex> new(crud_spec, %{name: "Jane"}, preload: [:profile])
       %MyApp.User{name: "Jane", profile: %MyApp.Profile{}}
 
-      iex> new(crud_spec, %{title: "Hello"}, [])
-      %MyApp.Post{title: "Hello"}
+      iex> new(crud_spec, %{name: "John"}, [])
+      %MyApp.User{name: "John"}
   """
   @impl true
   @spec new(CrudSpec.t(), map(), keyword()) :: struct()
@@ -474,26 +477,25 @@ defmodule Aurora.Uix.Integration.Ash.Crud do
   def socket_opts(_crud_spec, _socket), do: []
 
   @doc """
-  Default new function for initializing Ash resource structs.
+  Default new function of an Ash resource.
 
-  Returns the entity struct as-is without modifications. This function serves as the
+  Returns the initial attributes as they are. This function serves as the
   default implementation for the `:new_function` operation when no custom function is
   provided via `:ash_new_function` option.
 
   ## Parameters
 
-  - `entity` (struct()) - The Ash resource struct to initialize.
+  - `attrs` (map()) - The initial attributes of the new record.
   - `opts` (keyword()) - Options (currently unused).
 
   ## Returns
 
-  struct() - The unmodified entity struct.
+  map() - The unmodified attributes.
 
   ## Examples
 
-      iex> post = %Post{status: :draft}
-      iex> default_new_function(post, [])
-      %Post{status: :draft}
+      iex> Aurora.Uix.Integration.Ash.Crud.default_new_function(%{status: :draft}, [])
+      %{status: :draft}
   """
   @spec default_new_function(struct(), keyword()) :: struct()
   def default_new_function(entity, _opts) do

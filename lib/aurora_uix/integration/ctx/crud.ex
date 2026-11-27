@@ -44,9 +44,9 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Examples
 
-      iex> crud_spec = %CrudSpec{function_spec: &MyContext.list_users/1}
+      iex> crud_spec = %CrudSpec{function_spec: &MyContext.list_users_paginated/1}
       iex> list(crud_spec, where: [{:active, true}])
-      %Pagination{entries: [...]}
+      %Pagination{entries: [...]} # what the context function returns
   """
   @impl true
   @spec list(CrudSpec.t(), keyword()) :: term()
