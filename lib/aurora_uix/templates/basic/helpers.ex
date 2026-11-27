@@ -1497,10 +1497,9 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Must be called in `auix_update/2` after the entity is assigned. The renderer reads
   the precomputed boolean so no user-provided code runs inside the pure function component.
 
-  A field's button shows when its `:downloadable?` is `true`, or is a callback returning `true`;
-  without `:downloadable?` it is hidden. The `:download` producer is not checked here, so a button
-  without one shows and does nothing
-  ([#691](https://github.com/wadvanced/aurora_uix/issues/691)).
+  A field's button shows when it has a `:download` producer and its `:downloadable?` is `true`, or
+  is a callback returning `true`. Without `:download` the button is hidden and `:downloadable?` is
+  not read, so its callback is not invoked; without `:downloadable?` it is hidden too.
 
   ## Parameters
   - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
@@ -1667,6 +1666,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   defp field_expanded?(_assigns, _gate), do: false
 
   @spec field_downloadable?(Socket.t(), Upload.t(), term(), atom()) :: boolean()
+  defp field_downloadable?(_socket, %Upload{download: download}, _value, _key)
+       when not is_function(download),
+       do: false
+
   defp field_downloadable?(socket, upload, value, key) do
     case upload.downloadable? do
       gate when is_function(gate) ->
