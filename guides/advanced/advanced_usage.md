@@ -10,91 +10,46 @@ Templates are the core of Aurora UIX's code generation system. A template is a m
 2. **Component Rendering**: Generating the HTML/component markup for different view types
 3. **Event Handling**: Creating the logic for user interactions
 
+The library ships one template, `Aurora.Uix.Templates.Basic`.
+
+> #### Your own template cannot be configured {: .warning}
+> `config :aurora_uix, :template, MyApp.CustomTemplate` with a module of your application stops the
+> library from compiling, because the template is loaded before your modules exist
+> ([#669](https://github.com/wadvanced/aurora_uix/issues/669)). To change the generated UI, use
+> [component overrides](../customization/overriding_components.md),
+> [custom renderers](../core/resource_metadata.md#custom-field-types-and-rendering) and
+> [handler modules](../core/liveview.md#customizing-behavior).
+
 ### The Template Lifecycle
 
-When you define a resource with `auix_resource_metadata`, Aurora UIX:
+When a module calls `auix_create_ui`, Aurora UIX:
 
-1. Parses your field configurations
+1. Takes the resources declared with `auix_resource_metadata`, with their parsed fields
 2. Builds the render tree of each layout from the layouts you declared (see [Layout Structures](#layout-structures))
-3. Calls the configured template's `generate_module/1` callback
-4. The template generates LiveView modules for each layout type (index, show, form)
+3. Calls the template's `generate_module/1` callback for each resource and layout type
+4. The template returns the code of the modules for that layout type (index, show, form)
 
 ### Template Callbacks
 
-A template module must implement:
+A template module implements:
 
-- **`generate_module(parsed_opts)`**: Receives a map with:
+- **`generate_module(parsed_opts)`**: Returns the quoted code of the generated modules. It receives
+  the options parsed for the resource, plus:
   - `:layout_type` - The layout being generated (`:index`, `:show` or `:form`)
   - `:layout_tree` - Its render tree, an `Aurora.Uix.Layout.Node` struct
-  - `:fields` - Field configurations
+  - `:resource_name` - The resource
+  - `:configurations` - The configuration of every resource, with its fields in
+    `configurations[resource_name].resource_config.fields`
   - `:modules` - Module references
-  - `:name` - Resource name
-  
-  Returns generated Macro code for the LiveView module.
+  - `:artifacts`, `:used`, `:generate`, `:exposed_layouts` - Which modules to generate and under
+    what names
 
-- **`default_core_components_module()`**: Returns the module containing your core UI components (forms, tables, buttons, modals, etc.)
+- **`default_core_components_module()`**: Returns the module of the core UI components (forms, tables, buttons, modals, etc.)
 
-- **`layout_tags()`**: Returns list of supported layout tags (e.g., `:index`, `:show`, `:form`)
+- **`layout_tags()`**: Returns the supported layout tags (`:index`, `:form`, `:show`)
 
-- **`default_theme_name()`**: Returns the default theme atom
-
-### Example: Creating a Custom Template
-
-```elixir
-defmodule MyApp.CustomTemplate do
-  @behaviour Aurora.Uix.Template
-
-  @impl true
-  def generate_module(parsed_opts) do
-    case parsed_opts.layout_type do
-      :index -> generate_index_module(parsed_opts)
-      :show -> generate_show_module(parsed_opts)
-      :form -> generate_form_module(parsed_opts)
-      _ -> quote do end
-    end
-  end
-
-  @impl true
-  def layout_tags do
-    [:index, :show, :form]
-  end
-
-  @impl true
-  def default_core_components_module do
-    MyAppWeb.CoreComponents
-  end
-
-  @impl true
-  def default_theme_name do
-    :default
-  end
-
-  # Your custom generator logic...
-  defp generate_index_module(parsed_opts) do
-    quote do
-      # Custom index module generation
-    end
-  end
-
-  defp generate_show_module(parsed_opts) do
-    quote do
-      # Custom show module generation
-    end
-  end
-
-  defp generate_form_module(parsed_opts) do
-    quote do
-      # Custom form module generation
-    end
-  end
-end
-```
-
-Then configure it in `config.exs`:
-
-```elixir
-config :aurora_uix, :template, MyApp.CustomTemplate
-```
+- **`default_theme_name()`**: Returns the default theme atom; the Basic template returns
+  `:white_charcoal`
 
 ## Understanding Macro Type Conversions
 
@@ -173,10 +128,10 @@ end
 
 ### Learning More About Conversions
 
-Check test files to see real-world examples of these conversions:
+The repository's tests show these conversions:
 
-- `test/cases_live/manual_resource_test.exs` - Resource metadata structures
-- `test/cases_live/manual_layouts_test.exs` - Layout option configurations
+- `test/cases/resource_metadata_test.exs` - Resource metadata structures
+- `test/cases/generation_test.exs` - Layouts and the generated modules
 
 ## Separating Resource Metadata from UI Modules
 
@@ -248,36 +203,26 @@ auix_resource_metadata :product_audit do
 end
 ```
 
-Then use them in different views (organized by role/context):
+A view module takes the resources it needs from the metadata module and generates its UI from
+them:
 
 ```elixir
-# Admin portal uses admin metadata
-defmodule MyAppWeb.Admin.ProductsLive do
-  @auix_resource_metadata %{product_admin: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_admin)}
-  
+# Admin portal uses the admin representation
+defmodule MyAppWeb.Admin.ProductViews do
+  use Aurora.Uix
+
+  alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
+
+  @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
+
   auix_create_ui do
     index_columns(:product_admin, [:reference, :name, :quantity_at_hand, :list_price])
   end
 end
-
-# Customer portal uses customer metadata
-defmodule MyAppWeb.Customer.ProductsLive do
-  @auix_resource_metadata %{product_customer: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_customer)}
-  
-  auix_create_ui do
-    index_columns(:product_customer, [:reference, :name, :list_price, :rrp])
-  end
-end
-
-# Audit logs use audit metadata
-defmodule MyAppWeb.Audit.ProductsLive do
-  @auix_resource_metadata %{product_audit: MyAppWeb.Metadata.Inventory.Product.auix_resource(:product_audit)}
-  
-  auix_create_ui do
-    index_columns(:product_audit, [:reference, :inserted_at, :updated_at])
-  end
-end
 ```
+
+The generated modules are named after the view module and the schema, so route this one with
+`auix_live_resources("/products", Admin.ProductViews.Product)` inside your web scope.
 
 ### Accessing Separated Metadata
 
@@ -292,25 +237,28 @@ resources by name, so the view refers to the resource by that name.
 
 ### Introspecting generated UI modules
 
-Every module produced by `auix_create_ui` exposes three introspection functions that are useful for debugging and for tooling that inspects the generated UI structure at runtime:
+A module that calls `auix_create_ui` exposes functions that are useful for debugging and for tooling that inspects the generated UI structure:
 
 - **`auix_layouts/0`** — returns the layouts as you defined them, before the build (excluding the defaults Aurora UIX injects automatically). Useful for verifying that custom layout macros were applied correctly.
 
   ```elixir
-  MyAppWeb.Products.Index.auix_layouts()
+  MyAppWeb.Admin.ProductViews.auix_layouts()
   ```
 
 - **`auix_configurations/0`** — returns the full configuration map from which all LiveView code is generated. This is the "fat" intermediate representation: fields, metadata, module references, and resolved options. Useful when debugging unexpected rendering or when building tooling on top of Aurora UIX.
 
   ```elixir
-  MyAppWeb.Products.Index.auix_configurations()
+  MyAppWeb.Admin.ProductViews.auix_configurations()
   ```
 
-- **`auix_modules/0`** — maps the names of the generated and the imported modules to the modules. `auix_module/1` returns one of them. A generated module tells its kind with `auix_kind/0` and the fields its layout places with `auix_fields/0`.
+- **`auix_modules/0`** — maps the names of the generated and the imported modules to the modules. `auix_module/1` returns one of them.
 
   ```elixir
-  MyAppWeb.Products.Index.auix_modules()
+  MyAppWeb.Admin.ProductViews.auix_modules()
   ```
+
+A generated module, such as `MyAppWeb.Admin.ProductViews.Product.Index`, tells its kind with
+`auix_kind/0` and the fields its layout places with `auix_fields/0`.
 
 ### Recommended Project Structure
 
@@ -326,13 +274,13 @@ lib/my_app_web/
 │       └── user.ex              # User representations
 ├── live/                        # Organized by ROLE/VIEW CONTEXT
 │   ├── admin/                   # (Who uses it - admin users)
-│   │   ├── products_live.ex
-│   │   └── orders_live.ex
+│   │   ├── product_views.ex
+│   │   └── order_views.ex
 │   ├── customer/                # (Who uses it - customers)
-│   │   ├── products_live.ex
-│   │   └── orders_live.ex
+│   │   ├── product_views.ex
+│   │   └── order_views.ex
 │   └── public/                  # (Who uses it - public/guests)
-│       └── product_catalog_live.ex
+│       └── catalog_views.ex
 └── ...
 ```
 
@@ -396,23 +344,23 @@ defmodule MyAppWeb.Metadata.Inventory.Product do
 end
 ```
 
-Then use metadata in views organized by role:
+Then use the metadata in views organized by role:
 
 ```elixir
-# lib/my_app_web/live/admin/products_live.ex
-# Admin role sees full product information
-defmodule MyAppWeb.Admin.ProductsLive do
-  use MyAppWeb, :live_view
-  
+# lib/my_app_web/live/admin/product_views.ex
+# The admin role sees the full product information
+defmodule MyAppWeb.Admin.ProductViews do
+  use Aurora.Uix
+
   alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
-  
+
   @auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
-  
+
   auix_create_ui do
     index_columns(:product_admin, [
       :reference, :name, :quantity_at_hand, :list_price, :inactive
     ])
-    
+
     edit_layout :product_admin do
       inline([:reference, :name])
       inline([:quantity_at_hand, :quantity_initial])
@@ -420,623 +368,330 @@ defmodule MyAppWeb.Admin.ProductsLive do
       inline([:inserted_at, :updated_at, :inactive])
     end
   end
-  
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
-  
-  # ... live view handlers ...
 end
+```
 
-# lib/my_app_web/live/customer/products_live.ex
-# Customer role sees only public product information
-defmodule MyAppWeb.Customer.ProductsLive do
-  use MyAppWeb, :live_view
-  
+```elixir
+# lib/my_app_web/live/customer/product_views.ex
+# The customer role sees only public product information
+defmodule MyAppWeb.Customer.ProductViews do
+  use Aurora.Uix
+
   alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
-  
+
   @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
-  
+
   auix_create_ui do
     index_columns(:product_customer, [:reference, :name, :list_price, :rrp])
-    
+
     show_layout :product_customer do
       inline([:reference, :name])
       inline([:description])
       inline([:list_price, :rrp])
     end
   end
-  
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
-  
-  # ... live view handlers ...
-end
-
-# lib/my_app_web/live/public/product_catalog_live.ex
-# Public catalog also uses customer metadata
-defmodule MyAppWeb.Public.ProductCatalogLive do
-  use MyAppWeb, :live_view
-  
-  alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
-  
-  @auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
-  
-  auix_create_ui do
-    index_columns(:product_customer, [:name, :list_price])
-  end
-  
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
-  
-  # ... live view handlers ...
 end
 ```
 
 ### Single vs Multiple Resources
 
-You can organize metadata for one or multiple schemas within a metadata context module:
+A metadata module may describe one schema in several ways, as above, or group related schemas:
 
-**Single Schema with Multiple Representations:**
-```elixir
-# lib/my_app_web/metadata/inventory/product.ex
-defmodule MyAppWeb.Metadata.Inventory.Product do
-  use Aurora.Uix
-  
-  alias MyApp.Inventory
-  alias MyApp.Inventory.Product
-
-  auix_resource_metadata :product_admin do
-    context Inventory
-    schema Product
-    # ... admin representation ...
-  end
-
-  auix_resource_metadata :product_customer do
-    context Inventory
-    schema Product
-    # ... customer representation ...
-  end
-end
-
-# In your views:
-alias MyAppWeb.Metadata.Inventory.Product, as: ProductMetadata
-
-# In the admin view:
-@auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
-
-# In the customer view:
-@auix_resource_metadata %{product_customer: ProductMetadata.auix_resource(:product_customer)}
-```
-
-Both resources share the `Product` schema. A view that imports both gives one of them its own module names;
-see [Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
-
-**Multiple Schemas in Same Context:**
 ```elixir
 # lib/my_app_web/metadata/inventory/catalog.ex
-# Group related schemas together
 defmodule MyAppWeb.Metadata.Inventory.Catalog do
   use Aurora.Uix
-  
+
   alias MyApp.Inventory
-  alias MyApp.Inventory.{Product, Category, Stock}
+  alias MyApp.Inventory.Product
+  alias MyApp.Inventory.ProductLocation
 
-  # Product representations
-  auix_resource_metadata :product_admin do
-    context Inventory
-    schema Product
-    # ...
-  end
-
-  auix_resource_metadata :product_customer do
-    context Inventory
-    schema Product
-    # ...
-  end
-
-  # Category representations
-  auix_resource_metadata :category_admin do
-    context Inventory
-    schema Category
-    # ...
-  end
-
-  # Stock representations
-  auix_resource_metadata :stock_admin do
-    context Inventory
-    schema Stock
-    # ...
-  end
+  auix_resource_metadata :product_admin, context: Inventory, schema: Product
+  auix_resource_metadata :location_admin, context: Inventory, schema: ProductLocation
 end
-
-# In your views:
-alias MyAppWeb.Metadata.Inventory.Catalog, as: CatalogMetadata
-
-@auix_resource_metadata %{product_admin: CatalogMetadata.auix_resource(:product_admin)}
-@auix_resource_metadata %{category_admin: CatalogMetadata.auix_resource(:category_admin)}
 ```
 
-**Completely Separate Metadata Modules (Fine-Grained):**
+A view writes one `@auix_resource_metadata` line for each resource it takes:
+
 ```elixir
-# lib/my_app_web/metadata/inventory/products.ex
-defmodule MyAppWeb.Metadata.Inventory.Products do
+defmodule MyAppWeb.Admin.CatalogViews do
   use Aurora.Uix
-  # Product representations only
+
+  alias MyAppWeb.Metadata.Inventory.Catalog
+
+  @auix_resource_metadata %{product_admin: Catalog.auix_resource(:product_admin)}
+  @auix_resource_metadata %{location_admin: Catalog.auix_resource(:location_admin)}
+
+  auix_create_ui()
 end
-
-# lib/my_app_web/metadata/inventory/categories.ex
-defmodule MyAppWeb.Metadata.Inventory.Categories do
-  use Aurora.Uix
-  # Category representations only
-end
-
-# In your views, use the specific modules:
-alias MyAppWeb.Metadata.Inventory.Products, as: ProductMetadata
-alias MyAppWeb.Metadata.Inventory.Categories, as: CategoryMetadata
-
-@auix_resource_metadata %{product_admin: ProductMetadata.auix_resource(:product_admin)}
-@auix_resource_metadata %{category_admin: CategoryMetadata.auix_resource(:category_admin)}
 ```
+
+A view that takes two resources over the same schema gives one of them its own module names; see
+[Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules).
 
 **Choose based on your preferences:**
 - **Single module** - Good for small contexts with few schemas
 - **Grouped module** - Good for related schemas (e.g., inventory catalog items)
 - **Separate modules** - Good for large contexts or when schemas have complex, independent metadata
 
-See test files for complete examples:
-- `test/cases_live/separated_single_resource_ui_test.exs` - Single resource separation
-- `test/cases_live/separated_multiple_resources_ui_test.exs` - Multiple resources separation
+The repository's `test/support/mirror_web/variants/separated.ex` is a complete example.
 
 ## Defining Custom Backends
 
-Aurora UIX's architecture is extensible and supports custom backend implementations beyond the built-in Context (Ecto) and Ash Framework integrations. You can integrate other data layers, ORMs, or custom data sources by implementing the required behaviours.
+Besides the built-in Context (Ecto) and Ash integrations, you can connect Aurora UIX to another
+data source: an external API, an in-memory store or another database library. A backend is made of
+three modules:
 
-### Backend Architecture Overview
+| Module | Role |
+|---|---|
+| Fields parser | Describes the fields of a schema as `Aurora.Uix.Field` structs |
+| Parser defaults | Returns one `Aurora.Uix.Integration.Connector` for each operation |
+| CRUD | Implements the `Aurora.Uix.Integration.Crud` behaviour |
 
-Aurora UIX uses a polymorphic dispatch system for CRUD operations through three main components:
+The example below keeps notes in memory. It covers listing, pagination, show, create, edit and
+delete. It does not sort, filter or load associations.
 
-1. **Connector** (`Aurora.Uix.Integration.Connector`) - Wraps backend-specific configuration with a type identifier
-2. **CRUD Interface** (`Aurora.Uix.Integration.Crud`) - Behaviour defining unified CRUD operations
-3. **Parser Interface** (`Aurora.Uix.Parser`) - Behaviour for extracting metadata from resources
+### Step 1: The Record and Its Store
 
-### When to Create a Custom Backend
-
-Consider creating a custom backend when:
-
-- Using a different ORM or database library (e.g., Mnesia, Datomic adapters)
-- Integrating with external APIs (REST, GraphQL, gRPC)
-- Working with non-relational data sources (Redis, document stores)
-- Implementing custom business logic layers
-- Needing specialized query or caching strategies
-
-### Step 1: Implement the CRUD Behaviour
-
-Create a module implementing `Aurora.Uix.Integration.Crud` with all 9 required callbacks
-(8 data callbacks plus `socket_opts/2` for per-call options resolved from
-`socket.assigns`):
+A schema is any struct module. It defines two `__schema__/1` clauses: Aurora UIX takes the paths
+and stream names from `:source`, and identifies records by `:primary_key`.
 
 ```elixir
-defmodule MyApp.CustomBackend.Crud do
-  @moduledoc """
-  Custom backend CRUD implementation for MyApp data layer.
-  """
-  
+defmodule MyApp.Notes.Note do
+  defstruct [:id, :title, :body]
+
+  def __schema__(:source), do: "notes"
+  def __schema__(:primary_key), do: [:id]
+  def __fields__, do: [id: :string, title: :string, body: :string]
+end
+```
+
+```elixir
+defmodule MyApp.Notes.Store do
+  use Agent
+
+  def start_link(_opts), do: Agent.start_link(fn -> %{} end, name: __MODULE__)
+  def all, do: __MODULE__ |> Agent.get(&Map.values/1) |> Enum.sort_by(& &1.title)
+  def get(id), do: Agent.get(__MODULE__, &Map.get(&1, id))
+  def put(note), do: Agent.update(__MODULE__, &Map.put(&1, note.id, note))
+  def delete(id), do: Agent.update(__MODULE__, &Map.delete(&1, id))
+end
+```
+
+Add `MyApp.Notes.Store` to your application's supervision tree.
+
+### Step 2: The Fields Parser
+
+```elixir
+defmodule MyApp.MemoryBackend.FieldsParser do
+  alias Aurora.Uix.Field
+
+  def parse_fields(nil, _resource_name), do: []
+
+  def parse_fields(schema, resource_name),
+    do: Enum.map(schema.__fields__(), &parse_field(schema, resource_name, &1))
+
+  # Also called by the index, for its selection column
+  def parse_field(_schema, resource_name, {key, type}) do
+    Field.new(%{
+      key: key,
+      type: type,
+      html_type: html_type(type),
+      name: to_string(key),
+      label: key |> to_string() |> String.capitalize(),
+      resource: resource_name,
+      disabled: key == :id,
+      filterable?: false,
+      sortable?: false
+    })
+  end
+
+  # No associations or embeds. The fields are expected back in reverse order.
+  def parse_associations(_schema, _resource_name, _resources, fields), do: Enum.reverse(fields)
+  def embedded_resource(_parent_resource, resources), do: resources
+  def embedded_schema?(_schema), do: false
+
+  defp html_type(:boolean), do: :checkbox
+  defp html_type(:integer), do: :number
+  defp html_type(_type), do: :text
+end
+```
+
+### Step 3: The Parser Defaults
+
+This module implements the `Aurora.Uix.Integration.ContextParserDefaults` behaviour. It returns a
+connector whose second argument is the backend type. The first one is a map with whatever your CRUD
+module needs to run the operation; the CRUD callbacks receive it.
+
+```elixir
+defmodule MyApp.MemoryBackend.ParserDefaults do
+  @behaviour Aurora.Uix.Integration.ContextParserDefaults
+
+  alias Aurora.Uix.Integration.Connector
+
+  # The `backend_opts` the backend accepts
+  @impl true
+  def backend_opts_schema, do: []
+
+  # Which of the operations to resolve
+  @impl true
+  def filter_options(operations, _resource_opts), do: operations
+
+  @impl true
+  def option_value(_parsed_opts, _resource_config, _opts, operation),
+    do: Connector.new(%{operation: operation}, :memory)
+
+  @impl true
+  def fill_missing_options(parsed_opts, _resource_config), do: parsed_opts
+end
+```
+
+The operations are `:list_function`, `:list_function_paginated`, `:get_function`,
+`:create_function`, `:update_function`, `:delete_function`, `:change_function` and
+`:new_function`.
+
+### Step 4: The CRUD Module
+
+The behaviour has nine callbacks:
+
+```elixir
+defmodule MyApp.MemoryBackend.Crud do
   @behaviour Aurora.Uix.Integration.Crud
 
   alias Aurora.Ctx.Pagination
-  alias MyApp.CustomBackend.CrudSpec
+  alias MyApp.Notes.Note
+  alias MyApp.Notes.Store
+
+  @types %{title: :string, body: :string}
+
+  # The index reads pages; association lists and selects read everything
+  @impl true
+  def list(%{operation: :list_function_paginated}, opts) do
+    %{page: page, per_page: per_page} = Keyword.fetch!(opts, :paginate)
+    read_page(page, per_page)
+  end
+
+  def list(%{operation: :list_function}, _opts), do: Store.all()
 
   @impl true
-  def list(crud_spec, opts) do
-    # Implement listing logic for your backend
-    # Return: %Pagination{entries: [...], page: 1, pages_count: N}
-    resource = crud_spec.resource_module
-    entries = resource.all(opts)
-    
+  def to_page(_spec, %{pages_count: pages_count} = pagination, page, _opts)
+      when page < 1 or page > pages_count,
+      do: pagination
+
+  def to_page(_spec, pagination, page, _opts), do: read_page(page, pagination.per_page)
+
+  @impl true
+  def get(_spec, id, _opts), do: Store.get(id)
+
+  @impl true
+  def new(_spec, attrs, _opts), do: struct(Note, attrs)
+
+  @impl true
+  def change(_spec, note, _form_name, attrs, _opts), do: changeset(note, attrs)
+
+  @impl true
+  def create(_spec, params, _opts),
+    do: save(%Note{id: Integer.to_string(System.unique_integer([:positive]))}, params)
+
+  @impl true
+  def update(_spec, note, params, _opts), do: save(note, params)
+
+  @impl true
+  def delete(_spec, note, _opts) do
+    Store.delete(note.id)
+    {:ok, note}
+  end
+
+  # Options read from the socket and passed to the calls above, such as an actor
+  @impl true
+  def socket_opts(_spec, _socket), do: []
+
+  defp changeset(note, attrs) do
+    {note, @types}
+    |> Ecto.Changeset.cast(attrs, Map.keys(@types))
+    |> Ecto.Changeset.validate_required([:title])
+  end
+
+  defp save(note, params) do
+    with {:ok, note} <- note |> changeset(params) |> Ecto.Changeset.apply_action(:save) do
+      Store.put(note)
+      {:ok, note}
+    end
+  end
+
+  defp read_page(page, per_page) do
+    notes = Store.all()
+    count = length(notes)
+
     %Pagination{
-      entries: entries,
-      page: Keyword.get(opts, :page, 1),
-      pages_count: 1,
-      total_count: length(entries)
+      entries: Enum.slice(notes, (page - 1) * per_page, per_page),
+      entries_count: count,
+      pages_count: ceil(count / per_page),
+      page: page,
+      per_page: per_page
     }
-  end
-
-  @impl true
-  def to_page(crud_spec, pagination, page, opts) do
-    # Implement pagination navigation
-    %{pagination | page: page}
-  end
-
-  @impl true
-  def get(crud_spec, id, opts) do
-    # Implement single resource retrieval
-    crud_spec.resource_module.find(id, opts)
-  end
-
-  @impl true
-  def change(crud_spec, entity, form_name, attrs, opts) do
-    # Create a changeset or form for the entity
-    # Return: changeset structure compatible with Phoenix forms
-    crud_spec.resource_module.changeset(entity, attrs)
-  end
-
-  @impl true
-  def new(crud_spec, attrs, opts) do
-    # Create a new resource struct
-    struct(crud_spec.resource_module, attrs)
-  end
-
-  @impl true
-  def create(crud_spec, params, opts) do
-    # Implement resource creation
-    crud_spec.resource_module.insert(params)
-  end
-
-  @impl true
-  def update(crud_spec, entity, params, opts) do
-    # Implement resource update
-    crud_spec.resource_module.update(entity, params)
-  end
-
-  @impl true
-  def delete(crud_spec, entity, opts) do
-    # Implement resource deletion
-    crud_spec.resource_module.delete(entity)
-  end
-
-  @impl true
-  def socket_opts(_crud_spec, _socket) do
-    # Resolve any per-call options from socket.assigns (e.g. an actor for
-    # policy-protected resources). Return [] if your backend needs nothing.
-    []
-  end
-end
-```
-
-### Step 2: Define a CrudSpec Structure
-
-Create a module to hold backend-specific configuration:
-
-```elixir
-defmodule MyApp.CustomBackend.CrudSpec do
-  @moduledoc """
-  Specification structure for custom backend operations.
-  """
-  
-  @type t() :: %__MODULE__{
-    resource_module: module(),
-    action: atom(),
-    options: keyword()
-  }
-
-  @enforce_keys [:resource_module, :action]
-  defstruct [:resource_module, :action, options: []]
-
-  @doc """
-  Creates a new CrudSpec for the custom backend.
-  """
-  def new(resource_module, action, options \\ []) do
-    %__MODULE__{
-      resource_module: resource_module,
-      action: action,
-      options: options
-    }
-  end
-end
-```
-
-### Step 3: Implement Context Parser
-
-Create a parser to discover and configure CRUD functions from your backend:
-
-```elixir
-defmodule MyApp.CustomBackend.ContextParserDefaults do
-  @moduledoc """
-  Parser for resolving custom backend actions and configurations.
-  """
-  
-  alias Aurora.Uix.Integration.Connector
-  alias MyApp.CustomBackend.CrudSpec
-
-  @doc """
-  Resolves default values for backend operations.
-  
-  Called by Aurora.Uix.Parser to discover CRUD actions.
-  """
-  def option_value(_parsed_opts, resource_config, opts, :list_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :list,
-      Keyword.get(opts, :list_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :get_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :get,
-      Keyword.get(opts, :get_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :create_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :create,
-      Keyword.get(opts, :create_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :update_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :update,
-      Keyword.get(opts, :update_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :delete_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :delete,
-      Keyword.get(opts, :delete_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :change_function) do
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :change,
-      Keyword.get(opts, :change_options, [])
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  def option_value(_parsed_opts, resource_config, opts, :new_function) do
-    new_fn = Keyword.get(opts, :new_function, &default_new_function/2)
-    
-    crud_spec = CrudSpec.new(
-      resource_config.schema,
-      :new,
-      [new_function: new_fn]
-    )
-    
-    Connector.new(crud_spec, :custom)
-  end
-
-  # Fallback for unhandled options
-  def option_value(_parsed_opts, _resource_config, _opts, _key), do: nil
-
-  defp default_new_function(attrs, _opts) do
-    # Default implementation for creating new structs
-    %{}
-  end
-end
-```
-
-### Step 4: Implement Fields Parser
-
-Create a parser for extracting field metadata from your resources:
-
-```elixir
-defmodule MyApp.CustomBackend.FieldsParser do
-  @moduledoc """
-  Parses fields from custom backend resources.
-  """
-  
-  alias Aurora.Uix.Field
-
-  @doc """
-  Parses all fields from a custom resource.
-  """
-  def parse_fields(resource_module, resource_name) do
-    # Extract field definitions from your resource
-    resource_module.__fields__()
-    |> Enum.map(&parse_field(resource_module, resource_name, &1))
-  end
-
-  defp parse_field(resource_module, resource_name, field_spec) do
-    Field.new(
-      key: field_spec.name,
-      type: field_spec.type,
-      html_type: infer_html_type(field_spec.type),
-      label: humanize(field_spec.name),
-      resource: resource_name,
-      required: field_spec.required || false,
-      length: field_spec.max_length || 255
-    )
-  end
-
-  defp infer_html_type(:string), do: :text
-  defp infer_html_type(:integer), do: :number
-  defp infer_html_type(:boolean), do: :checkbox
-  defp infer_html_type(:date), do: :date
-  defp infer_html_type(:datetime), do: :"datetime-local"
-  defp infer_html_type(_), do: :text
-
-  defp humanize(atom) when is_atom(atom) do
-    atom
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
   end
 end
 ```
 
 ### Step 5: Register Your Backend
 
-Register each of your backend's modules under its own key. The built-in `:ash` and `:ctx`
-backends stay registered, so list only yours:
+Register each module under your backend's type. The built-in `:ash` and `:ctx` backends stay
+registered, so list only yours:
 
 ```elixir
 # config/config.exs
-
-config :aurora_uix, :crud_integration_modules, custom: MyApp.CustomBackend.Crud
+config :aurora_uix, :crud_integration_modules, memory: MyApp.MemoryBackend.Crud
 
 config :aurora_uix, :parser_defaults_integration_modules,
-  custom: MyApp.CustomBackend.ContextParserDefaults
+  memory: MyApp.MemoryBackend.ParserDefaults
 
 config :aurora_uix, :fields_parser_integration_modules,
-  custom: MyApp.CustomBackend.FieldsParser
+  memory: MyApp.MemoryBackend.FieldsParser
 ```
 
-An entry under a built-in key (`:ash` or `:ctx`) replaces that built-in module.
+These keys are read when Aurora UIX compiles. An entry under a built-in key (`:ash` or `:ctx`)
+replaces that built-in module.
 
-### Step 6: Use Your Custom Backend
+### Step 6: Use Your Backend
 
-Define resources using your custom backend:
+Give the resource its `type`; it is not detected for a custom backend.
 
 ```elixir
-defmodule MyAppWeb.ProductViews do
+defmodule MyAppWeb.NoteViews do
   use Aurora.Uix
 
-  alias MyApp.Products.Product
-
-  # Use custom backend options
-  auix_resource_metadata :product do
-    schema Product
-    type :custom
-    custom_option :value
-    
-    field :name, required: true
-    field :price, html_type: :number
+  auix_resource_metadata :note do
+    schema MyApp.Notes.Note
+    type :memory
   end
 
   auix_create_ui do
-    index_columns(:product, [:name, :price])
-    
-    show_layout :product do
-      stacked([:name, :price])
-    end
-    
-    edit_layout :product do
-      inline([:name, :price])
+    index_columns(:note, [:title, :body])
+
+    edit_layout :note do
+      stacked([:title, :body])
     end
   end
 end
 ```
 
-### Step 7: Detect Backend Type (Optional)
-
-If you want automatic backend type detection, extend the resource metadata macro detection logic:
+Route it like any other resource:
 
 ```elixir
-# In your custom macro or configuration
-defp detect_backend_type(opts) do
-  cond do
-    Keyword.has_key?(opts, :custom_resource) -> :custom
-    Keyword.has_key?(opts, :ash_resource) -> :ash
-    Keyword.has_key?(opts, :context) -> :ctx
-    true -> :ctx  # default
-  end
-end
+auix_live_resources("/notes", NoteViews.Note)
 ```
 
-### Key Considerations
+### Beyond the Example
 
-**CRUD Spec Design:**
-- Keep backend-specific configuration in your CrudSpec struct
-- Store resource references, action names, and options
-- Make it serializable if storing in assigns
+- **Sorting and filtering**: the list operations receive `:where` and `:order_by` options. Apply
+  them before you mark a field `filterable?: true` or `sortable?: true`.
+- **Associations and embeds**: `parse_associations/4` and `embedded_resource/2` describe them. See
+  the built-in parsers.
+- **Errors**: `create` and `update` return `{:error, changeset}` or `{:error, message}`.
 
-**Field Parsing:**
-- Map your backend's types to Ecto-compatible types
-- Handle associations and embedded resources appropriately
-- Define `embedded_schema?/1` in the fields parser: `true` for a schema that exists only embedded
-  in another one, so that its resources generate no modules
-
-**Error Handling:**
-- Wrap backend errors in standard `{:ok, result}` or `{:error, reason}` tuples
-- Provide meaningful error messages
-- Handle missing resources gracefully
-
-**Pagination:**
-- Return `Aurora.Ctx.Pagination` structs from list operations
-- Implement proper page navigation in `to_page/3`
-- Track total counts when possible
-
-**Testing:**
-- Create integration tests for your CRUD operations
-- Test field parsing with various resource configurations
-- Verify connector type resolution
-
-### Example: GraphQL Backend
-
-Here's a minimal example for a GraphQL backend:
-
-```elixir
-defmodule MyApp.GraphQLBackend.Crud do
-  @behaviour Aurora.Uix.Integration.Crud
-  
-  alias Aurora.Ctx.Pagination
-  alias MyApp.GraphQLBackend.Client
-
-  @impl true
-  def list(crud_spec, opts) do
-    query = """
-    query List#{crud_spec.resource_name} {
-      #{crud_spec.resource_name}(limit: #{opts[:limit] || 20}) {
-        id
-        #{Enum.join(crud_spec.fields, "\n")}
-      }
-    }
-    """
-    
-    case Client.query(query) do
-      {:ok, %{data: data}} ->
-        %Pagination{
-          entries: data[crud_spec.resource_name],
-          page: 1,
-          pages_count: 1
-        }
-      
-      {:error, reason} ->
-        %Pagination{entries: [], page: 1, pages_count: 0, error: reason}
-    end
-  end
-
-  @impl true
-  def get(crud_spec, id, _opts) do
-    query = """
-    query Get#{crud_spec.resource_name} {
-      #{crud_spec.resource_name}(id: "#{id}") {
-        id
-        #{Enum.join(crud_spec.fields, "\n")}
-      }
-    }
-    """
-    
-    case Client.query(query) do
-      {:ok, %{data: data}} -> data[crud_spec.resource_name]
-      {:error, _reason} -> nil
-    end
-  end
-
-  # Implement other callbacks...
-end
-```
-
-### References
-
-For implementation examples, see:
-- `lib/aurora_uix/integration/ctx/` - Context backend implementation
-- `lib/aurora_uix/integration/ash/` - Ash Framework backend implementation
-- `lib/aurora_uix/integration/connector.ex` - Connector structure
-- `lib/aurora_uix/integration/crud.ex` - CRUD behaviour definition
+The built-in backends are in `lib/aurora_uix/integration/ctx/` and
+`lib/aurora_uix/integration/ash/`.
 
 ## Managing Actions
 
@@ -1047,15 +702,8 @@ the add/insert/replace/remove operations, action handlers, and processing order.
 ## Creating Custom Registered Themes
 
 The content of this section has moved to its own guide:
-[Creating Custom Registered Themes](../customization/theming.md) — the three-layer theme
+[Creating Custom Registered Themes](../customization/theming.md) — the layered theme
 architecture, `use Aurora.Uix.Templates.Theme`, light/dark modes, and theme registration.
-
-## Notes
-
-- Only the callbacks listed in the Template behaviour are required and present in the default template implementation.
-- The built-in `Aurora.Uix.Templates.Basic` is designed for extensibility - you can create wrappers or custom templates by referencing its structure.
-- If you need custom markup or layout parsing, add additional functions to your template modules.
-- The rendering pipeline is separated into handlers (event processing) and renderers (HTML generation) for flexible customization.
 
 ## Related guides
 
