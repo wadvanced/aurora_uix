@@ -40,7 +40,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   alias Aurora.Uix.Templates.Basic.Handlers.IndexList
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
   alias Aurora.Uix.Templates.Basic.Renderer
-  alias Aurora.Uix.Templates.ThemeHelper
 
   alias Phoenix.LiveView
   alias Phoenix.LiveView.Socket
@@ -267,7 +266,6 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> assign_auix_current_path(url)
      |> assign_auix_uri_path()
      |> assign_auix_index_new_link()
-     |> push_event(:set_html_theme_name, %{theme_name: ThemeHelper.theme_name()})
      |> assign_index_routing_stack(params)
      |> render_with(&Renderer.render/1)}
   end

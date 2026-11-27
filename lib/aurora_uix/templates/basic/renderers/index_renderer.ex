@@ -46,8 +46,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
-    <div id={"auix-table-#{@auix.uri_path_id}-index-hook"} class="auix-index-container" phx-hook="AuixThemeName">
-    </div>
+    <.theme_name_hook id={"auix-table-#{@auix.uri_path_id}-index-hook"} />
 
     <div class="auix-index-container">
       <.header>
@@ -124,6 +123,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
   def render_component(assigns) do
     ~H"""
     <div id={@id} class="auix-index-container" name="auix-index-component">
+      <.theme_name_hook id={"#{@id}-theme-hook"} />
       <.index_list auix={@auix} id={"auix-table-#{@id}-index"} streams={@auix.layout_options.get_streams.(assigns)} />
     </div>
     """

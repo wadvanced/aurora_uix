@@ -58,6 +58,11 @@ defmodule Aurora.UixWeb.Test.LayoutScenariosTest do
       assert has_element?(view, ".auix-header-title", "Listing Products")
       assert has_element?(view, "a[name='auix-new-product']", "New Product")
 
+      assert has_element?(
+               view,
+               "[phx-hook='AuixThemeName'][data-auix-theme-name='white_charcoal']"
+             )
+
       view |> element("a[name='auix-new-product']") |> render_click()
 
       assert has_element?(

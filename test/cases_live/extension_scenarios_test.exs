@@ -16,6 +16,7 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
 
   @badge "#auix-delete-all-button-product>button span.auix-button-badge"
   @intents "#auix-host-intents"
+  @theme_hook "[phx-hook='AuixThemeName'][data-auix-theme-name='white_charcoal']"
 
   @gettext_files [
     "lib/aurora_uix/templates/basic/components/embeds_many_component.ex",
@@ -140,6 +141,7 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
           ])
 
         assert has_element?(view, "#low[name='auix-index-component']")
+        assert has_element?(view, "#low #{@theme_hook}")
         assert has_element?(view, row("low", p(products, 1)))
         assert has_element?(view, row("low", p(products, 3)))
         refute has_element?(view, row("low", p(products, 4)))
@@ -251,6 +253,7 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
         {:ok, view, _html} = mount_components(conn, [new_form(form_module)])
 
         assert has_element?(view, "#auix-product-form input[name='product[reference]']")
+        assert has_element?(view, "#auix-host #{@theme_hook}")
 
         view
         |> form("#auix-product-form",
@@ -312,6 +315,8 @@ defmodule Aurora.UixWeb.Test.ExtensionScenariosTest do
         form_module = component(backend, Components, Product, FormComponent)
 
         {:ok, view, _html} = mount_components(conn, [show(show_module, product)])
+
+        assert has_element?(view, "#auix-host #{@theme_hook}")
 
         view |> element("div[name='auix-show-navigate-back'] a") |> render_click()
         assert has_element?(view, "#{@intents} li[data-component='s1'][data-intent='closed']")

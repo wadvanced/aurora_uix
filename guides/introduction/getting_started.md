@@ -228,7 +228,8 @@ mix assets.build
 ```
 
 > #### What does this enable? {: .info}
-> - **`AuixThemeName` hook** — syncs the active theme on index pages.
+> - **`AuixThemeName` hook** — sets the active theme on `<html>` (`data-theme-name`) for the generated
+>   pages and the embedded components.
 > - **`AuixCopyToClipboard` hook** — the copy button of copyable inputs.
 > - **`phx:auix_download` listener** — performs browser file downloads for upload fields configured
 >   with a `:download` callback. Without this import, clicking the Download button on a show or edit
