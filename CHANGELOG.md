@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`expanded` on a layout field**: `edit_layout` and `show_layout` accepted `expanded:` on an
+  `embeds_many` field, but the initial state was read only from the resource field, so the collection
+  stayed collapsed. The layout value now applies, a boolean or a function of the assigns, and takes
+  precedence over the resource one.
 - **Filters-panel actions**: `add_filters_action`, `insert_filters_action`, `replace_filters_action`
   and `remove_filters_action` accepted actions into `:index_filters_actions`, but no renderer read the
   group, so the actions never appeared. They now render in the filter panel of the index, on both the
