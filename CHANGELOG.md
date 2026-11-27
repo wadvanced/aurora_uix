@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
+  no option set knows, so the option's own name was stored as its value. It now logs a warning and
+  answers `{:not_found, option}`, and the option is stored as `nil`.
 - **Download button without a `download` callback**: an upload with `downloadable?` set and no
   `download` callback showed a Download button that did nothing, and a `downloadable?` callback was
   invoked. The button now needs `download`; without it `downloadable?` is not read.
