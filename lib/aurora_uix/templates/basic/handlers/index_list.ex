@@ -343,27 +343,36 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexList do
 
   @doc """
   Reads and deletes the record with `id`, publishes the deletion and re-reads the current page.
+  A refused delete leaves the list as it is.
 
   ## Parameters
   - `socket` (Socket.t()) - Socket with the list `auix` assigns.
   - `id` (term()) - Id of the record to delete.
 
   ## Returns
-  `{Socket.t(), list()}` - Updated socket and the primary key values of the deleted record.
+  `{Socket.t(), list()}` - Updated socket and the primary key values of the deleted record. The
+  list is empty when the record is gone or the backend refuses the delete, e.g. a policy or a
+  constraint error.
   """
   @spec delete(Socket.t(), term()) :: {Socket.t(), list()}
   def delete(%{assigns: %{auix: auix}} = socket, id) do
     get_opts = backend_socket_opts(socket, auix.get_function)
     delete_opts = backend_socket_opts(socket, auix.delete_function)
     entity = apply_get_function(auix.get_function, id, get_opts)
-    {:ok, _} = apply_delete_function(auix.delete_function, entity, delete_opts)
-    id_value = BasicHelpers.primary_key_value(entity, auix.primary_key)
-    publish_deleted(auix, [id_value])
 
-    {socket
-     |> stream_delete(auix.source_key, entity)
-     |> assign_selected_states()
-     |> refresh_current_page(), [id_value]}
+    case delete_selected(entity, auix.delete_function, delete_opts, auix.primary_key) do
+      [] ->
+        # The row was hidden on click; re-reading the page shows it again.
+        {refresh_current_page(socket), []}
+
+      ids ->
+        publish_deleted(auix, ids)
+
+        {socket
+         |> stream_delete(auix.source_key, entity)
+         |> assign_selected_states()
+         |> refresh_current_page(), ids}
+    end
   end
 
   @doc """

@@ -66,7 +66,7 @@ A component reports to its parent with a message `{Aurora.Uix, component_id, int
 | `{:closed}` | The form or the show view closed |
 | `{:open, action, id}` | The user asked to open a record; `action` is `:show`, `:edit` or `:new` |
 | `{:page, page}` | The index moved to another page |
-| `{:deleted, ids}` | The index deleted records |
+| `{:deleted, ids}` | The index deleted records. A refused row delete sends nothing and shows the flash "Item could not be deleted" |
 
 A component never patches, navigates or reads the URL. The form sends these in every host. The show view
 and the index component send them when you embed them. In the generated `.Index` LiveView, the back and

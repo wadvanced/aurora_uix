@@ -33,8 +33,9 @@ defmodule Mix.Tasks.Auix.Gen.StylesheetTest do
 
     shim = File.read!(@combined_file)
     refute shim =~ "auix-custom.css"
-    assert shim =~ "auix-variables.css"
-    assert shim =~ "auix-rules.css"
+    # Tailwind v4 resolves a bare specifier as a package, so the imports must be relative.
+    assert shim =~ ~s(@import "./auix-variables.css";)
+    assert shim =~ ~s(@import "./auix-rules.css";)
   end
 
   @tag :tmp_dir

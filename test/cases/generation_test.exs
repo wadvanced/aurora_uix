@@ -927,6 +927,18 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
     assert options_set.get(assigns, :greeting) == {:ok, "hello"}
     assert options_set.get(assigns, :farewell) == {:ok, "bye"}
     assert options_set.get(assigns, :unlisted) == {:not_found, :unlisted}
+
+    label_option = fn label ->
+      Form.get(
+        %{auix: %{layout_type: :form, layout_tree: %{options: [save_action_label: label]}}},
+        :save_action_label
+      )
+    end
+
+    assert label_option.(fn -> "Store" end) == {:ok, "Store"}
+
+    assert label_option.(fn %{auix: auix} -> "Store #{auix.layout_type}" end) ==
+             {:ok, "Store form"}
   end
 
   @spec assert_field_in_block() :: term()

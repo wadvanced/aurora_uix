@@ -72,15 +72,36 @@ live "/:id/show-edit", Overview.Product.Index, :show_edit
 
 All routes point to the Index LiveView, which dynamically renders FormComponent or ShowComponent in modals based on the `:live_action` assign.
 
-You can also selectively generate routes:
+You can also generate a subset of the routes, with `only:` or `except:`. The route actions are
+`:index`, `:new`, `:edit`, `:show` and `:show_edit`:
 
 ```elixir
-# Read-only interface (no create/update)
+# Read-only interface: no create or edit routes
 auix_live_resources("/", Overview.Product, only: [:index, :show])
 
-# Hide delete capability
-auix_live_resources("/", Overview.Product, except: [:delete])
+# The same routes, naming the ones to leave out
+auix_live_resources("/", Overview.Product, except: [:new, :edit, :show_edit])
 ```
+
+These options only choose routes. The buttons that lead to a missing route still render, and
+deleting is an event, not a route, so remove those actions in the layout too:
+
+```elixir
+auix_create_ui do
+  index_columns :product, [:name],
+    remove_header_action: :default_new,
+    remove_row_action: :default_row_edit,
+    remove_row_action: :default_row_delete,
+    remove_selected_action: :default_selected_delete_all
+
+  show_layout :product, remove_header_action: :default_edit do
+    stacked [:name]
+  end
+end
+```
+
+Removing routes and buttons is not authorization: enforce permissions in your context functions or
+Ash policies.
 
 A LiveView renamed with an `index_live` line is routed with `index_live:`:
 
@@ -119,6 +140,24 @@ Aurora UIX provides two layers of callbacks:
 - **Override `auix_*` callbacks** when you want to customize Aurora UIX behavior (filtering, actions, data loading)
 - **Override Phoenix callbacks** only when you need to fundamentally change how the component works
 
+### What a Handler Module Imports
+
+`use` on a handler implementation brings in less than `use Phoenix.LiveView` does. Import the rest
+in your module, as the examples below do:
+
+| `use` | Brings in | Import or alias yourself |
+|---|---|---|
+| `IndexImpl` | `Phoenix.LiveView`, `Aurora.Uix.Templates.Basic.Helpers` (`assign_auix/3`, `auix_route_back/1`, …) and the `IndexImpl` alias | `Phoenix.Component` functions such as `assign/3` |
+| `FormImpl` | the default callbacks only | the `FormImpl` alias, `assign/3`, `put_flash/3`, `push_navigate/2`, the helpers |
+| `ShowComponentImpl` | the default callbacks only | the `ShowComponentImpl` alias, `assign/3`, `put_flash/3`, `push_navigate/2`, the helpers |
+
+Functions the examples call that Aurora UIX does not define, such as `load_user/1`, stand for your
+own code.
+
+A form or show handler runs in a LiveComponent, so it does not see the assigns of the parent
+LiveView, such as `current_user`. Of those, it receives only the actor assign, when one is
+configured (see [Ash Integration](ash_integration.md)).
+
 ### Index Handler Hook (LiveView)
 
 The Index handler manages the Index LiveView for list pages and hosting modals.
@@ -140,6 +179,8 @@ The Index handler manages the Index LiveView for list pages and hosting modals.
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
+  import Phoenix.Component, only: [assign: 3]
+
   # Override mount to add custom initialization
   @impl IndexImpl
   def auix_mount(params, session, socket) do
@@ -156,6 +197,8 @@ end
 ```elixir
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+
+  import Phoenix.Component, only: [assign: 3]
 
   @impl IndexImpl
   def auix_handle_params(params, url, socket) do
@@ -212,6 +255,8 @@ end
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
+  import Phoenix.Component, only: [assign: 3]
+
   @impl IndexImpl
   def auix_handle_async(:custom_export, {:ok, result}, socket) do
     {:noreply, assign(socket, :export_result, result)}
@@ -228,6 +273,8 @@ end
 ```elixir
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+
+  import Phoenix.Component, only: [assign: 3]
 
   @impl IndexImpl
   def apply_action(socket, params) do
@@ -262,6 +309,9 @@ The FormComponent handler manages the LiveComponent for create and edit operatio
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Phoenix.Component, only: [assign: 3]
+
   @impl FormImpl
   def auix_update(assigns, socket) do
     socket
@@ -274,50 +324,43 @@ end
 
 **Example - Override `save_entity/2`:**
 
+`save_entity/2` returns `{:ok, record}`, or `{:error, reason}` where `reason` is an
+`Ecto.Changeset`, an Ash error or a message shown as the error flash.
+
 ```elixir
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+
   # Customize creation logic
   @impl FormImpl
-  def save_entity(%{assigns: %{action: :new, auix: auix}} = socket, entity_params) do
+  def save_entity(%{assigns: %{action: :new, auix: auix}} = _socket, entity_params) do
     # Add custom pre-processing
-    entity_params = 
-      entity_params
-      |> Map.put("created_by", socket.assigns.current_user.id)
-      |> enrich_params(socket)
-    
+    entity_params = Map.put(entity_params, "reference", build_reference(entity_params))
+
     # Use context function to save
     case auix.modules.context.create_product(entity_params) do
-      {:ok, product} -> 
+      {:ok, product} ->
         # Custom post-creation logic
         notify_team(product)
         {:ok, product}
-      {:error, changeset} -> 
+
+      {:error, changeset} ->
         {:error, changeset}
     end
   end
 
   # Customize update logic
-  def save_entity(%{assigns: %{action: action, auix: auix}} = socket, entity_params)
+  def save_entity(%{assigns: %{action: action, auix: auix}} = _socket, entity_params)
       when action in [:edit, :show_edit] do
     # Custom validation before update
-    if authorized?(socket, auix.entity) do
-      case auix.modules.context.update_product(auix.entity, entity_params) do
-        {:ok, product} ->
-          audit_change(product, socket.assigns.current_user)
-          {:ok, product}
-        error -> error
-      end
+    if editable?(auix.entity) do
+      auix.modules.context.update_product(auix.entity, entity_params)
     else
-      {:error, :unauthorized}
+      {:error, "This product can no longer be edited"}
     end
   end
-
-  defp enrich_params(params, socket), do: # ... custom logic
-  defp authorized?(socket, entity), do: # ... authorization logic
-  defp notify_team(product), do: # ... notification logic
-  defp audit_change(product, user), do: # ... audit logic
 end
 ```
 
@@ -326,6 +369,9 @@ end
 ```elixir
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
+
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Phoenix.Component, only: [assign: 3]
 
   @impl FormImpl
   def auix_handle_event("load_template", %{"id" => template_id}, socket) do
@@ -362,6 +408,9 @@ The ShowComponent handler manages the LiveComponent for detail views.
 defmodule MyApp.ProductShowHandler do
   use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
 
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+  import Phoenix.Component, only: [assign: 3]
+
   @impl ShowComponentImpl
   def auix_update(assigns, socket) do
     socket
@@ -377,6 +426,10 @@ end
 ```elixir
 defmodule MyApp.ProductShowHandler do
   use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+  import Phoenix.LiveView, only: [put_flash: 3, push_navigate: 2]
+  import Aurora.Uix.Templates.Basic.Helpers, only: [auix_route_back: 1]
 
   @impl ShowComponentImpl
   def auix_handle_event("duplicate", _params, socket) do
@@ -408,9 +461,6 @@ defmodule MyApp.ProductShowHandler do
   def auix_handle_event(event, params, socket) do
     super(event, params, socket)
   end
-
-  defp duplicate_product(product), do: # ... duplication logic
-  defp archive_product(product), do: # ... archive logic
 end
 ```
 
@@ -421,28 +471,29 @@ defmodule MyAppWeb.ProductViews do
   use Aurora.Uix
 
   alias MyApp.Inventory
+  alias MyApp.Inventory.Product
 
   auix_resource_metadata :product do
     context Inventory
     schema Product
     field :name, required: true
     field :description
-    field :price
+    field :list_price
   end
 
   auix_create_ui do
     # Index handler for custom list behavior
-    index_columns :product, [:name, :price],
+    index_columns :product, [:name, :list_price],
       handler_module: MyApp.ProductIndexHandler
 
     # Edit handler for custom save logic
     edit_layout :product, edit_handler_module: MyApp.ProductFormHandler do
-      inline [:name, :price, :description]
+      inline [:name, :list_price, :description]
     end
 
     # Show handler for custom event handling
     show_layout :product, show_handler_module: MyApp.ProductShowHandler do
-      inline [:name, :price, :description]
+      inline [:name, :list_price, :description]
     end
   end
 end
@@ -468,6 +519,8 @@ While Aurora UIX callbacks (`auix_*`) are recommended for most customizations, y
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
+  import Phoenix.Component, only: [assign: 3]
+
   # This bypasses auix_mount completely
   @impl Phoenix.LiveView
   def mount(params, session, socket) do
@@ -488,6 +541,9 @@ end
 ```elixir
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
+
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Phoenix.Component, only: [assign: 3]
 
   # This bypasses auix_update completely
   @impl Phoenix.LiveComponent
@@ -537,6 +593,7 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 - `"pagination_to_page"` - Navigate to a specific page
 - `"pagination_previous"` - Navigate to the previous page
 - `"pagination_next"` - Navigate to the next page
+- `"read_indexed_entry"` - Open the previous or next record from the open form or show view
 
 **FormComponent (LiveComponent):**
 - `"validate"` - Form validation on field change
@@ -552,6 +609,11 @@ Aurora UIX generates handlers for standard CRUD events. You can extend or overri
 **ShowComponent (LiveComponent):**
 - `"switch_section"` - Switch between tabs/sections in show view
 - `"auix_download_upload"` - Download a previously uploaded file
+- `"auix_open"` and `"auix_route_back"` - Sent by the Edit and Back actions when the show view is
+  embedded as a [reusable component](components.md)
+
+An event that neither your clauses nor the defaults handle raises. When you override
+`auix_handle_event/3`, end it with a clause that calls `super`, so the built-in events keep working.
 
 #### Adding Custom Events
 
@@ -584,6 +646,9 @@ end
 defmodule MyApp.ProductFormHandler do
   use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Phoenix.Component, only: [assign: 3]
+
   # Custom events in forms use auix_handle_event
   @impl FormImpl
   def auix_handle_event("preview", _params, socket) do
@@ -609,6 +674,10 @@ end
 ```elixir
 defmodule MyApp.ProductShowHandler do
   use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+
+  alias Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl
+  import Phoenix.Component, only: [assign: 3]
+  import Phoenix.LiveView, only: [put_flash: 3]
 
   # Custom events in show views use auix_handle_event
   @impl ShowComponentImpl
@@ -659,13 +728,18 @@ A form or show handler hides fields for one entity by assigning `:fields_to_reje
 renderer skips them, in any group or section:
 
 ```elixir
-import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]
+defmodule MyApp.ProductFormHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.FormImpl
 
-@impl FormImpl
-def auix_update(assigns, socket) do
-  {:ok, socket} = super(assigns, socket)
+  alias Aurora.Uix.Templates.Basic.Handlers.FormImpl
+  import Aurora.Uix.Templates.Basic.Helpers, only: [assign_auix: 3]
 
-  {:ok, assign_auix(socket, :fields_to_reject, [:internal_notes])}
+  @impl FormImpl
+  def auix_update(assigns, socket) do
+    {:ok, socket} = super(assigns, socket)
+
+    {:ok, assign_auix(socket, :fields_to_reject, [:internal_notes])}
+  end
 end
 ```
 
@@ -673,9 +747,21 @@ Use the `hidden` and `omitted` field options when the field is hidden for every 
 
 #### What Is Internal
 
-Besides the callbacks and assigns this guide documents, `:fields_to_reject` and `@auix._myself` are the only
-`auix` assigns a handler may rely on. The others, such as `:index_layout_form`, `:filters_selected_count`,
-`:query_options` and `:read_items`, are internal and can change in any release. The `auix-*` CSS classes and the
+Besides the callbacks, a handler may rely on these `auix` assigns:
+
+| Assign | Content |
+|---|---|
+| `entity` | the record of the open form or show view |
+| `modules` | the modules of the resource, such as `modules.context` |
+| `source_key` | the name of the primary index stream |
+| `selection` | the selected rows of the index (`%Aurora.Uix.Selection{}`) |
+| `navigation`, `uri_path`, `uri_path_id`, `routing_stack`, `index_new_link` | the [navigation state](#navigation) |
+| `layout_tree`, `load_items_options` | the [index query](#scoping-the-index-query-at-runtime) |
+| `fields_to_reject` | fields hidden at runtime |
+| `_myself` | the event target of a component |
+
+The others, such as `:index_layout_form`, `:filters_selected_count`, `:query_options` and
+`:read_items`, are internal and can change in any release. The `auix-*` CSS classes and the
 `name` and `id` attributes of the generated markup, such as `auix-delete-*`, follow the semi-public policy of the
 [styling guide](../customization/styling.md#escape-hatch-semantic-class-overrides): they can change in any
 release, and the change is listed in the CHANGELOG.
@@ -770,6 +856,9 @@ end
 def handle_info(%Aurora.Uix.Event{action: :created}, socket) do
   {:noreply, put_flash(socket, :info, "A product was added")}
 end
+
+# The topic also carries :updated, :deleted and :changed
+def handle_info(%Aurora.Uix.Event{}, socket), do: {:noreply, socket}
 ```
 
 ### Index commands
@@ -838,14 +927,14 @@ The FormComponent is a Phoenix.LiveComponent with Aurora UIX callbacks for custo
 |----------|-----------|---------|------------------|
 | `auix_update/2` | `(map(), Socket.t()) :: {:ok, Socket.t()}` | Initialize/update component | Add metadata, load templates |
 | `auix_handle_event/3` | `(binary(), map(), Socket.t()) :: {:noreply, Socket.t()}` | Handle custom events | Add custom form interactions |
-| `save_entity/2` | `(Socket.t(), map()) :: {:ok, struct()} \| {:error, Ecto.Changeset.t()}` | Save/update entity | Custom validation, authorization, side effects |
+| `save_entity/2` | `(Socket.t(), map()) :: {:ok, struct()} \| {:error, term()}` | Save/update entity | Custom validation, authorization, side effects |
 
 ```elixir
 @callback auix_update(assigns :: map(), socket :: Socket.t()) :: {:ok, Socket.t()}
 @callback auix_handle_event(event :: binary(), params :: map(), socket :: Socket.t()) ::
             {:noreply, Socket.t()}
 @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
-            {:ok, struct()} | {:error, Ecto.Changeset.t()}
+            {:ok, struct()} | {:error, term()}
 ```
 
 #### Phoenix.LiveComponent Callbacks (Advanced)
@@ -898,65 +987,43 @@ See the **FormComponent Callbacks** section above for details on overriding `aui
 
 ## Working with Streams
 
-Aurora UIX uses Phoenix LiveView streams for efficient list rendering. Streams are automatically managed for the index view and automatically created with specific naming conventions.
+The index lists its records in LiveView streams and manages them for you.
 
 ### Stream Naming
 
-Aurora UIX creates multiple streams for different layout types:
-
-- **Primary stream** - Named after the resource key (e.g., `:products` for a product index)
-- **Alternate streams** - For different view types, named as `#{source_key}__#{suffix}`,
-  where each suffix comes from the `:alternate_streams_suffixes` layout option
-  (default: `["mobile"]`, e.g. `:products__mobile`). Suffixes are arbitrary,
+- **Primary stream** - Named by `auix.source_key` (e.g., `:products` for a product index)
+- **Alternate streams** - For other views of the same records, named with the string
+  `"#{source_key}__#{suffix}"`, where each suffix comes from the `:alternate_streams_suffixes`
+  layout option (default: `["mobile"]`, giving `"products__mobile"`). Suffixes are arbitrary,
   host-defined strings, not built-in view types — configure additional ones
   (e.g. `"card"`, `"calendar"`) to fit your own alternate layouts.
 
-The framework automatically manages these streams, inserting, updating, or deleting entries as needed.
+### Changing What the List Shows
 
-### Accessing Streams in Handler Hooks
-
-To access streams in a custom handler:
+A stream item is not the record itself: it is the record as a plain map, with keys the library adds
+for selection and row striping. Do not insert records into these streams yourself. Write the data,
+then let the index read its page again:
 
 ```elixir
 defmodule MyApp.ProductIndexHandler do
   use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
-  @impl IndexImpl
-  def auix_handle_event("refresh", _params, %{assigns: %{streams: streams}} = socket) do
-    # Access all streams for the current view
-    {:noreply, refresh_data(socket, streams)}
-  end
+  alias Aurora.Uix.Events
 
   @impl IndexImpl
-  def auix_handle_event("custom_action", _params, %{assigns: %{auix: auix}} = socket) do
-    # Use the source_key to work with the primary stream
-    source_key = auix.source_key  # :products
-    {:noreply, stream_insert(socket, source_key, new_product)}
+  def auix_handle_event("restock", %{"id" => id}, socket) do
+    {:ok, _product} = MyApp.Inventory.restock_product(id)
+    Events.refresh()
+
+    {:noreply, socket}
   end
 
-  def auix_handle_event(event, params, socket) do
-    super(event, params, socket)
-  end
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
 end
 ```
 
-### Stream Operations
-
-Standard Phoenix LiveView stream operations work with Aurora UIX streams:
-
-```elixir
-# Insert a new entry
-stream_insert(socket, :products, new_product)
-
-# Update an existing entry
-stream_insert(socket, :products, updated_product)
-
-# Delete an entry
-stream_delete(socket, :products, deleted_product)
-
-# Reset the entire stream
-stream(socket, :products, fetched_products)
-```
+`Events.refresh/0` re-reads the page of this view. To update every open index, publish the change
+instead (see [Publishing from host code](#publishing-from-host-code)).
 
 ## Filtering and Sorting
 
@@ -964,62 +1031,29 @@ Aurora UIX supports sorting via configuration in both resource metadata and layo
 
 ### Configuring Default Sort Order
 
-**Option 1: In Resource Metadata**
-
-Define a default sort order at the resource level:
+Set `order_by:` on the resource, on the `index_columns` layout, or both; the layout's value wins:
 
 ```elixir
-auix_resource_metadata :product, context: Inventory, schema: Product,
-  order_by: :reference  # Sort by reference field by default
-do
-  field :name
-  field :reference
-  field :price
+auix_resource_metadata :product do
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
+  order_by :reference
+  field :name, required: true
 end
-```
-
-**Option 2: In Layout DSL**
-
-Override or specify sort order for a specific view:
-
-```elixir
-auix_create_ui do
-  # Override metadata sort with name-based sort
-  index_columns :product, [:id, :reference, :name, :cost],
-    order_by: :name
-end
-```
-
-### How Sorting Works
-
-The `order_by` option:
-- Can be a single field atom (`:name`)
-- Determines the default sort column when the index loads
-- Is applied through the query layer to the database
-- Is replaced when the user sorts: a click on a sortable column header (a second click reverses the direction, a third restores the backend order), or, in the mobile card view, the sort select and its direction button. A column opts out with the field option `sortable?: false`; the layout option `sort_disabled?: true` turns user sorting off for the whole index
-
-### Example: Default Sort Configuration
-
-```elixir
-# Metadata defines reference as default sort
-auix_resource_metadata :product, context: Inventory, schema: Product,
-  order_by: :reference
 
 auix_create_ui do
-  # Layout overrides with name sort
-  index_columns :product, [:id, :reference, :name, :cost],
-    order_by: :name
-  
-  # Show layout has no sort (N/A for detail view)
-  show_layout :product do
-    inline [:name, :reference, :price]
-  end
+  index_columns :product, [:reference, :name], order_by: :name
 end
 ```
 
-When the index loads:
-- Products are sorted by `:name` (from layout)
-- The sort is applied at the database level for performance
+The order is applied by the database query, and is replaced when the user sorts: a click on a
+sortable column header (a second click reverses the direction, a third restores the backend order),
+or, in the mobile card view, the sort control. A column opts out with the field option
+`sortable?: false`; the layout option `sort_disabled?: true` turns user sorting off for the whole
+index.
+
+The accepted values of `order_by` and `where` are listed in
+[Index Query Options](resource_metadata.md#index-query-options).
 
 ### Scoping the Index Query at Runtime
 
@@ -1115,47 +1149,56 @@ Without `resource:` it loads the related records alone.
 
 ### Async Operations
 
-Use `handle_async/3` for heavy operations:
+Run heavy work with `start_async/3` and receive the result in `auix_handle_async/3`:
 
 ```elixir
-def handle_event("export", _params, socket) do
-  {:noreply,
-   start_async(socket, :export, fn -> export_products() end)}
-end
+defmodule MyApp.ProductIndexHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
 
-def handle_async(:export, {:ok, file_path}, socket) do
-  {:noreply, push_download(socket, :file, file_path)}
+  @impl IndexImpl
+  def auix_handle_event("export", _params, socket) do
+    {:noreply, start_async(socket, :export, fn -> MyApp.Inventory.export_products() end)}
+  end
+
+  def auix_handle_event(event, params, socket), do: super(event, params, socket)
+
+  @impl IndexImpl
+  def auix_handle_async(:export, {:ok, _result}, socket) do
+    {:noreply, put_flash(socket, :info, "Export finished")}
+  end
+
+  def auix_handle_async(task, result, socket), do: super(task, result, socket)
 end
 ```
+
+Keep the `super` clauses: the index runs its own events and async tasks through the same callbacks.
 
 ## Debugging
 
 ### Inspecting Socket Assigns
 
-The `:auix` assign contains all configuration and runtime state:
+The `:auix` assign holds the configuration and the runtime state. To look at it, inspect it from a
+handler:
 
 ```elixir
-def mount(_params, _session, socket) do
-  # Set assigns and do my own logic
-  {:ok, assign(socket, :something, :anything}
+defmodule MyApp.ProductIndexHandler do
+  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
+
+  @impl IndexImpl
+  def auix_mount(params, session, socket) do
+    {:ok, socket} = super(params, session, socket)
+    IO.inspect(Map.keys(socket.assigns.auix), label: "auix")
+
+    {:ok, socket}
+  end
 end
 ```
 
 ### LiveView DevTools
 
-Use Phoenix LiveDashboard to monitor:
-- Active LiveView processes
-- Socket state and assigns
-- Event flow and timing
-
-Enable in development:
-
-```elixir
-# config/dev.exs
-config :aurora_uix, :dev_routes, true
-```
-
-Visit `http://localhost:4000/dev/dashboard`
+The generated views are ordinary LiveViews, so
+[Phoenix LiveDashboard](https://hexdocs.pm/phoenix_live_dashboard) shows their processes like any
+other. Applications created with `mix phx.new` serve it at `/dev/dashboard`.
 
 ## Best Practices
 
