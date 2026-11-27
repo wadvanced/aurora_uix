@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **A template of the application**: `config :aurora_uix, :template` naming a module of the host
+  application stopped the library from compiling, because the template was read before the host's
+  modules existed. Such a template can now be configured; the library's built-in renderers keep the
+  Basic core components.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
@@ -191,8 +195,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   actions are picked and paginated, aggregate types, the custom new function, sorting next to read
   actions, and the actor examples.
 - Advanced Usage was checked against the code: a custom backend example that works, the template
-  callbacks and their input, separated metadata and introspection examples that compile, and a
-  warning that a template of the application cannot be configured.
+  callbacks and their input, separated metadata and introspection examples that compile, and how to
+  configure a template of the application.
 - Overview, Theming, Styling, Writing a Style Bridge and Overriding Components were checked against
   the code: a custom theme defines every color, how to generate and apply it, which variables the
   built-in rules read, and the overview examples use one set of fields.

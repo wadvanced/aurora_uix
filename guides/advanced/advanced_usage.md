@@ -12,13 +12,43 @@ Templates are the core of Aurora UIX's code generation system. A template is a m
 
 The library ships one template, `Aurora.Uix.Templates.Basic`.
 
-> #### Your own template cannot be configured {: .warning}
-> `config :aurora_uix, :template, MyApp.CustomTemplate` with a module of your application stops the
-> library from compiling, because the template is loaded before your modules exist
-> ([#669](https://github.com/wadvanced/aurora_uix/issues/669)). To change the generated UI, use
-> [component overrides](../customization/overriding_components.md),
-> [custom renderers](../core/resource_metadata.md#custom-field-types-and-rendering) and
-> [handler modules](../core/liveview.md#customizing-behavior).
+### Using Your Own Template
+
+A template of your application implements the [callbacks](#template-callbacks). The shortest way to
+start is to delegate to the Basic template and change what you need:
+
+```elixir
+defmodule MyAppWeb.AuixTemplate do
+  @behaviour Aurora.Uix.Template
+
+  alias Aurora.Uix.Templates.Basic
+
+  @impl true
+  def generate_module(parsed_opts), do: Basic.generate_module(parsed_opts)
+
+  @impl true
+  def layout_tags, do: Basic.layout_tags()
+
+  @impl true
+  def default_core_components_module, do: Basic.default_core_components_module()
+
+  @impl true
+  def default_theme_name, do: Basic.default_theme_name()
+end
+```
+
+Configure it in `config/config.exs`:
+
+```elixir
+config :aurora_uix, :template, MyAppWeb.AuixTemplate
+```
+
+The setting is read at compile time, and one template serves the whole application.
+
+To change only parts of the generated UI, you don't need a template: use
+[component overrides](../customization/overriding_components.md),
+[custom renderers](../core/resource_metadata.md#custom-field-types-and-rendering) or
+[handler modules](../core/liveview.md#customizing-behavior).
 
 ### The Template Lifecycle
 
@@ -44,12 +74,16 @@ A template module implements:
   - `:artifacts`, `:used`, `:generate`, `:exposed_layouts` - Which modules to generate and under
     what names
 
-- **`default_core_components_module()`**: Returns the module of the core UI components (forms, tables, buttons, modals, etc.)
+- **`default_core_components_module()`**: Returns the module of the core UI components (forms,
+  tables, buttons, modals, etc.) that your own modules import through `use Aurora.Uix.Renderer` or
+  `use Aurora.Uix.CoreComponentsImporter`. The built-in renderers keep the Basic components when the
+  template belongs to your application, because the library compiles first; replace those with
+  [component overrides](../customization/overriding_components.md)
 
 - **`layout_tags()`**: Returns the supported layout tags (`:index`, `:form`, `:show`)
 
-- **`default_theme_name()`**: Returns the default theme atom; the Basic template returns
-  `:white_charcoal`
+- **`default_theme_name()`**: Returns the theme used when `:theme_name` is not configured; the
+  Basic template returns `:white_charcoal`
 
 ## Understanding Macro Type Conversions
 

@@ -206,8 +206,8 @@ Options of the resource itself that shape its index list (an `index_columns` lay
 
 ## 7. Deep Extension Points
 
-**What it is:** deeper changes to the generation pipeline — custom layout trees, custom data backends (implement `Aurora.Uix.Integration.Crud`), and metadata/UI module separation for reuse across views.
-**When to use it:** the Ecto/Ash backends don't fit (GraphQL/REST data source) or you need multi-representation metadata. Your own template cannot be configured yet ([#669](https://github.com/wadvanced/aurora_uix/issues/669)).
+**What it is:** deeper changes to the generation pipeline — custom layout trees, [your own template](../advanced/advanced_usage.md#using-your-own-template), custom data backends (implement `Aurora.Uix.Integration.Crud`), and metadata/UI module separation for reuse across views.
+**When to use it:** you need different generated modules, the Ecto/Ash backends don't fit (GraphQL/REST data source) or you need multi-representation metadata.
 
 ```elixir
 config :aurora_uix, :crud_integration_modules, custom: MyApp.CustomBackend.Crud

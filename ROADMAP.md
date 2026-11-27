@@ -102,7 +102,6 @@ Aurora UIX v0.2.1 lets the index, form and show UIs be embedded as components in
 **Objective**: Lower the barrier to creating custom templates with better defaults and clearer patterns.
 
 **Ideas**:
-- Let an application configure its own template ([#669](https://github.com/wadvanced/aurora_uix/issues/669))
 - Template scaffold generator (`mix auix.gen.template`)
 - Pre-built Bootstrap template (easier CSS framework integration)
 - Better documentation on template callback structure
