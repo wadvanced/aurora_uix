@@ -200,6 +200,14 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.IndexRenderer do
                     auix={@auix}/>
         </:filter_element>
 
+        <:filter_element :if={@auix.index_filters_actions != []}>
+          <div name="auix-index-filters-actions" class="auix-index-filters-actions">
+            <%= for %{function_component: action} <- @auix.index_filters_actions do %>
+              {action.(%{auix: @auix})}
+            <% end %>
+          </div>
+        </:filter_element>
+
         <:col :let={{_id, entity} = row_info} :for={field <- @auix.index_fields} label={dt(field.label)} field={field}>
           <%= if field.key == :selected_check__ or !@default_show_function do %>
             <.field_value entity={entity} field={field} auix={@auix}/>

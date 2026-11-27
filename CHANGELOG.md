@@ -79,6 +79,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Filters-panel actions**: `add_filters_action`, `insert_filters_action`, `replace_filters_action`
+  and `remove_filters_action` accepted actions into `:index_filters_actions`, but no renderer read the
+  group, so the actions never appeared. They now render in the filter panel of the index, on both the
+  table and the card view (Custom Actions guide).
 - **`mix auix.gen.icons` without Heroicons**: in a host application without the `heroicons` dependency,
   the task crashed with a bare "could not list directory" error. It now stops with a message giving the
   dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and

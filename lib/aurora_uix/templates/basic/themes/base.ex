@@ -2147,6 +2147,15 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   }
   """)
 
+  rule(:auix_index_filters_actions, """
+  .auix-index-filters-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+  }
+  """)
+
   rule(:auix_index_sort_action, """
     .auix-index-sort-action {
       display: flex;

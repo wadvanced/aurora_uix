@@ -654,6 +654,7 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-index-container` | Index page column | `--auix-gap-xl`, `--auix-padding-default`, `--auix-padding-xl`, `--auix-padding-large` |
 | `.auix-index-actions` | Select and header action row of the index | `--auix-gap-large` |
 | `.auix-index-header-actions` | Header actions of the index (filters, sort, new) | `--auix-gap-medium` |
+| `.auix-index-filters-actions` | Custom actions of the index filter panel | `--auix-gap-medium` |
 | `.auix-items-table-container` | Card around the index table; from the `md` breakpoint up its pagination bar is its footer | `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-items-table-border`, `--auix-border-radius-medium`, `--auix-color-items-table-bg`, `--auix-shadow-small` |
 | `.auix-items-table` | Index table | Structural only |
 | `.auix-items-table-header` | Tinted header of the index table; marks the sorted column | `--auix-font-size-label`, `--auix-color-items-table-header-text`, `--auix-color-items-table-header-bg`, `--auix-color-items-table-body-border`, `--auix-color-items-table-header-sorted-text`, `--auix-color-text-inactive` |

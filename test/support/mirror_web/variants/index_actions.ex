@@ -5,8 +5,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.IndexActions do
 
   ## Key Features
 
-  - Declares a product index whose row, header and footer actions are removed, replaced, added
-    and inserted, with a bulk action on the selection
+  - Declares a product index whose row, header, footer and filter actions are removed, replaced,
+    added and inserted, with a bulk action on the selection
   - Declares a product locations index with a destructive and a plain added row action
   - Declares a suppliers index with replaced action icons
 
@@ -57,6 +57,12 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.IndexActions do
           replace_header_action:
             {:default_new, &IndexActions.custom_header_action_directly_replaced/1},
           add_footer_action: {:custom_footer_action, &IndexActions.custom_footer_action/1},
+          add_filters_action: {:custom_filter_added, &IndexActions.custom_filter_added/1},
+          add_filters_action: {:custom_filter_removed, &IndexActions.custom_filter_removed/1},
+          insert_filters_action:
+            {:custom_filter_inserted, &IndexActions.custom_filter_inserted/1},
+          replace_filters_action: {:custom_filter_added, &IndexActions.custom_filter_replaced/1},
+          remove_filters_action: :custom_filter_removed,
           handler_module: Aurora.UixWeb.Test.Mirror.Handlers.SelectedBulkActionIndexHandler,
           add_selected_action: {:deactivate_selected, &IndexActions.deactivate_selected/1}
         )
@@ -152,6 +158,38 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.IndexActions do
     <.auix_link patch={"#{@auix[:index_new_link]}"} name={"auix-new-#{@auix.module}-footer"}>
       <.button>Footer {@auix.name}</.button>
     </.auix_link>
+    """
+  end
+
+  @doc false
+  @spec custom_filter_added(map()) :: Rendered.t()
+  def custom_filter_added(assigns) do
+    ~H"""
+    <a href="#" name="auix-filter-action-added">Added filter action</a>
+    """
+  end
+
+  @doc false
+  @spec custom_filter_inserted(map()) :: Rendered.t()
+  def custom_filter_inserted(assigns) do
+    ~H"""
+    <a href="#" name="auix-filter-action-inserted">Inserted filter action</a>
+    """
+  end
+
+  @doc false
+  @spec custom_filter_replaced(map()) :: Rendered.t()
+  def custom_filter_replaced(assigns) do
+    ~H"""
+    <a href="#" name="auix-filter-action-replaced">Replaced filter action</a>
+    """
+  end
+
+  @doc false
+  @spec custom_filter_removed(map()) :: Rendered.t()
+  def custom_filter_removed(assigns) do
+    ~H"""
+    <a href="#" name="auix-filter-action-removed">Removed filter action</a>
     """
   end
 
