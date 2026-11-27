@@ -11,15 +11,15 @@ defmodule Aurora.Uix.Action do
 
   ## Key Constraints
 
-    * The `:name` must be a binary.
-    * The `:function_component` must be a function.
+    * The `:name` is an atom, such as `:default_new`.
+    * The `:function_component` is a function of arity 1 receiving the action's assigns.
 
   """
 
   defstruct [:name, :function_component, destructive?: false]
 
   @type t() :: %__MODULE__{
-          name: binary(),
+          name: atom(),
           function_component: function(),
           destructive?: boolean()
         }
@@ -181,8 +181,9 @@ defmodule Aurora.Uix.Action do
 
   ## Examples
 
-      iex> Aurora.Uix.Action.new("save", fn -> :ok end)
-      %Aurora.Uix.Action{name: "save", function_component: #Function<...>, destructive?: false}
+      Aurora.Uix.Action.new(:save, &MyAppWeb.ProductActions.save/1)
+      #=> %Aurora.Uix.Action{name: :save, function_component: &MyAppWeb.ProductActions.save/1,
+      #=>   destructive?: false}
 
   """
   @spec new(atom(), function()) :: t()
@@ -213,8 +214,9 @@ defmodule Aurora.Uix.Action do
 
   ## Examples
 
-      iex> Aurora.Uix.Action.new({"delete", fn -> :deleted end})
-      %Aurora.Uix.Action{name: "delete", function_component: #Function<...>, destructive?: false}
+      Aurora.Uix.Action.new({:default_row_delete, &MyAppWeb.ProductActions.delete/1})
+      #=> %Aurora.Uix.Action{name: :default_row_delete,
+      #=>   function_component: &MyAppWeb.ProductActions.delete/1, destructive?: true}
 
   """
   @spec new({atom(), function()} | {atom(), function(), keyword()}) :: t()

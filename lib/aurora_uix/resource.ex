@@ -108,7 +108,8 @@ defmodule Aurora.Uix.Resource do
 
   ## Parameters
   - `resource_config` (`Aurora.Uix.Resource.t()`) - Existing resource struct to update.
-  - `attrs` (map() | `keyword()`) - Attributes to update with :name, :schema, :context, and :fields keys.
+  - `attrs` (map() | `keyword()`) - Struct keys to update. In a keyword list, `:fields` and unknown
+    keys are ignored.
 
   ## Returns
   `Aurora.Uix.Resource.t()` - Updated resource struct.

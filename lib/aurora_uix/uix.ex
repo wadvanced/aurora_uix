@@ -1,96 +1,57 @@
 defmodule Aurora.Uix do
   @moduledoc """
-  Provides a low-code, opinionated framework for building dynamic UIs in Phoenix applications.
-
-  This module simplifies UI development by offering declarative tools for schema configuration
-  and UI composition. It is designed to reduce boilerplate code while maintaining flexibility
-  for customization.
-
-  ## Key Constraints
-  - Designed for use with Phoenix and Ecto schemas, but supports any structured data format.
-  - Intended to be used via `use Aurora.Uix` in your modules.
-  - Not intended for use outside Phoenix UI layer or for non-UIX applications.
+  Generates the index, form and show views of Ecto schemas and Ash resources in a Phoenix
+  application.
 
   ## Key Features
 
-  ### 1. Schema Configuration (`auix_resource_metadata`)
-  - Attaches UI-specific metadata to schemas or structured data.
-  - Enables consistent rendering of forms, lists, and detail views.
-  - Supports customization of field labels, placeholders, validation rules, and more.
-  - Works with Ecto schemas, structs, or any structured data format.
-
-  ### 2. UI Composition (`auix_create_ui`)
-  - Dynamically generates UI layouts based on schema metadata.
-  - Provides pre-built templates for common UI patterns (forms, tables, etc.).
-  - Allows customization of layout and interaction logic.
-  - Integrates seamlessly with Phoenix LiveView.
-
-  ### 3. Renderers by HTML type (`renderers:`)
+  - `auix_resource_metadata` describes a resource: its schema, its backend and the options of
+    its fields. See `Aurora.Uix.Layout.ResourceMetadata`.
+  - `auix_create_ui` generates the LiveView and the components of the declared resources from
+    their layouts. See `Aurora.Uix.Layout.CreateUI`.
   - `use Aurora.Uix, renderers: %{checkbox: :toggle_switch}` sets the renderer of every field of
-    an HTML type for every resource of the module.
-  - `auix_resource_metadata`, `auix_create_ui`, `index_columns`, `edit_layout` and `show_layout`
-    accept the same option; see `Aurora.Uix.Renderers` for the precedence.
+    an HTML type for every resource of the module. `auix_resource_metadata`, `auix_create_ui`,
+    `index_columns`, `edit_layout` and `show_layout` accept the same option; see
+    `Aurora.Uix.Renderers` for the precedence.
 
-  ## Getting Started
+  ## Key Constraints
 
-  To use `Aurora.Uix`, simply `use` it in your module:
+  - Used through `use Aurora.Uix`.
+  - A resource is an Ecto schema with an `aurora_ctx` style context, or an Ash resource. A custom
+    backend can be registered.
+
+  ## Example
 
   ```elixir
-  defmodule MyAppWeb.ProductView do
+  defmodule MyAppWeb.ProductViews do
     use Aurora.Uix
 
-    # Define schema configuration
+    alias MyApp.Inventory
+    alias MyApp.Inventory.Product
+
     auix_resource_metadata :product do
-      schema MyApp.Product
-      context MyApp.Products
-      field :name, placeholder: "Product name", max_length: 40, required: true
-      field :description, max_length: 255
-      field :price, precision: 12, scale: 2, readonly: true
+      context Inventory
+      schema Product
+      field :name, placeholder: "Product name", length: 40, required: true
+      field :list_price, precision: 12, scale: 2, readonly: true
     end
 
-    # Create a UI layout
-    auix_create_ui :product, actions: [:create, :update] do
-      index: [:name, :price]
+    auix_create_ui do
+      index_columns :product, [:name, :list_price]
+
+      edit_layout :product do
+        stacked [:name, :description, :list_price]
+      end
     end
   end
   ```
 
-  ## Use Cases
-  * Rapid prototyping of UIs for CRUD operations.
-  * Consistent rendering of forms and tables across an application.
-  * Customizable UI components with minimal boilerplate.
-  * Integration with Phoenix LiveView for real-time updates.
-
-  ## Example: Full Workflow
+  Route the generated views with `Aurora.Uix.RouteHelper.auix_live_resources/3`, inside your web
+  scope:
 
   ```elixir
-  defmodule MyAppWeb.UserView do
-    use Aurora.Uix
-
-    # Configure schema metadata
-    auix_resource_metadata :user do
-      schema MyApp.Accounts.User
-      context MyApp.Accounts
-      field :email, placeholder: "user@example.com", required: true
-      field :password, type: :password, required: true
-    end
-
-    # Generate a UI layout
-    auix_create_ui :user,
-      actions: [:new, :create],
-      renderer: &CustomComponents.registration_form/1
-    end
-  end
+  auix_live_resources("/products", ProductViews.Product)
   ```
-
-  ## Opinionated Design
-  This module is intentionally opinionated to:
-
-  * Reduce decision fatigue by providing sensible defaults.
-  * Encourage consistent UI patterns across applications.
-  * Minimize boilerplate code for common use cases.
-
-  While it provides flexibility for customization, it works best when embracing its conventions.
   """
   use StructInspect.Overrides
 

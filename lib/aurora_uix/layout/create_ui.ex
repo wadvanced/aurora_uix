@@ -12,7 +12,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   defmodule MyAppWeb.Inventory.Views do
     use Aurora.Uix
 
-    auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Product
+    auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Inventory.Product
 
     auix_create_ui renderers: %{checkbox: :toggle_switch} do
       index_columns :product, [:reference, name: [label: "Product"]], page_title: "Products"
@@ -21,11 +21,11 @@ defmodule Aurora.Uix.Layout.CreateUI do
         group "Identification", [:reference, :name]
 
         sections do
-          section "Prices", [:msrp, :rrp], default: true
+          section "Prices", [:list_price, :rrp], default: true
 
           section "Details" do
             inline [:description]
-            field :notes, readonly: true
+            field :quantity_at_hand, readonly: true
           end
         end
       end
@@ -52,7 +52,7 @@ defmodule Aurora.Uix.Layout.CreateUI do
   - `edit_layout resource, options do ... end` - the form layout. See
     `Aurora.Uix.Layout.Options.Form`.
   - `show_layout resource, options do ... end` - the show layout. See
-    `Aurora.Uix.Layout.Options.Page`. Without it, the show view reuses the form layout.
+    `Aurora.Uix.Layout.Options.Show`. Without it, the show view reuses the form layout.
 
   Every layout also takes the `add_/insert_/replace_/remove_*_action` options of its action
   groups (see `Aurora.Uix.Templates.Basic.Actions.Index`), `renderers:` (an `html_type =>
