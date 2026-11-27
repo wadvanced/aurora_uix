@@ -86,11 +86,16 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
-- **Non-paginated `ash_read_action`**: a read action without pagination named with
-  `ash_read_action` alone also served the paginated index, which then ignored pagination and showed
-  every row on one page. The index now prefers the resource's paginated read action. A resource
-  with no paginated read action, named or not, lists its index without pagination on one page
-  instead of failing compilation ([#665](https://github.com/wadvanced/aurora_uix/issues/665)).
+- **Ash read actions named in `backend_opts`**: an action named with `ash_read_action` was copied to
+  the index, and the two list options could be combined
+  ([#665](https://github.com/wadvanced/aurora_uix/issues/665)). A named read action is now always the
+  one used. `ash_read_action` takes an action without pagination and lists the index on one page;
+  `ash_read_action_paginated` takes a paginated one. Compilation fails when both are given or when an
+  action does not match its option. Without a name, the index prefers a paginated read action and
+  falls back to one without pagination instead of failing compilation.
+  **Upgrade:** a resource that names a paginated action (such as the default `:read`) with
+  `ash_read_action` must name it with `ash_read_action_paginated`, and one that set both options keeps
+  one.
 - **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
   `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
   primary action was used instead. Compilation now fails with a `DslError` naming the missing action.

@@ -465,46 +465,70 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
          auix_create_ui do
          end
-       """, ~r/action ':nope'.*expected type ':update'/}
+       """, ~r/action ':nope'.*expected type ':update'/},
+      {"both Ash list actions",
+       """
+         auix_resource_metadata :product,
+           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
+           backend_opts: [ash_read_action: :read_all, ash_read_action_paginated: :read]
+
+         auix_create_ui do
+         end
+       """,
+       ~r/resource ':product' options : Set `ash_read_action` or `ash_read_action_paginated`, not both/},
+      {"a paginated Ash action named as the list action",
+       """
+         auix_resource_metadata :product_location,
+           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
+           backend_opts: [ash_read_action: :read]
+
+         auix_create_ui do
+         end
+       """,
+       ~r/action ':read'.*It is paginated\. Name it with `ash_read_action_paginated` instead/},
+      {"an unpaginated Ash action named as the paginated list action",
+       """
+         auix_resource_metadata :product_location,
+           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
+           backend_opts: [ash_read_action_paginated: :read_all]
+
+         auix_create_ui do
+         end
+       """, ~r/action ':read_all'.*pagination is not supported/}
     ]
 
     assert_compile_errors(cases)
   end
 
   # Backend-specific: only an Ash read action declares whether it paginates.
-  test "the index lists through a paginated Ash read action when there is one, else without pagination" do
+  test "a named Ash read action is the one listed; without a name the index prefers pagination" do
     [{meta, _}] =
       compile("""
-        auix_resource_metadata :unpaginated_named,
+        auix_resource_metadata :list_unpaginated,
           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
           backend_opts: [ash_read_action: :read_all]
 
-        auix_resource_metadata :paginated_named,
+        auix_resource_metadata :index_paginated,
           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
-          backend_opts: [ash_read_action: :read]
+          backend_opts: [ash_read_action_paginated: :read]
 
-        auix_resource_metadata :no_paginated_named,
-          ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads,
-          backend_opts: [ash_read_action: :plain]
+        auix_resource_metadata :unnamed,
+          ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation
 
-        auix_resource_metadata :no_paginated,
+        auix_resource_metadata :unnamed_unpaginated,
           ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads
       """)
 
     for {resource, {list_action, index_action, index_auix_action}} <- [
-          unpaginated_named: {:read_all, :read, :list_function_paginated},
-          paginated_named: {:read, :read, :list_function_paginated},
-          no_paginated_named: {:plain, :plain, :list_function},
-          no_paginated: {:plain, :plain, :list_function}
+          list_unpaginated: {:read_all, :read_all, :list_function},
+          index_paginated: {:read, :read, :list_function_paginated},
+          unnamed: {:read, :read, :list_function_paginated},
+          unnamed_unpaginated: {:plain, :plain, :list_function}
         ] do
       parsed = resource |> meta.auix_resource() |> Parser.parse([])
 
-      assert %Connector{
-               crud_spec: %CrudSpec{
-                 action: %{name: ^list_action},
-                 auix_action_name: :list_function
-               }
-             } = parsed.list_function
+      assert %Connector{crud_spec: %CrudSpec{action: %{name: ^list_action}}} =
+               parsed.list_function
 
       assert %Connector{
                crud_spec: %CrudSpec{
@@ -516,7 +540,7 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
     for _ <- 1..3, do: Ash.create!(UnpaginatedReads, %{})
 
-    parsed = :no_paginated |> meta.auix_resource() |> Parser.parse([])
+    parsed = :unnamed_unpaginated |> meta.auix_resource() |> Parser.parse([])
 
     assert %Pagination{entries_count: 3, page: 1, pages_count: 1} =
              Crud.apply_list_function(parsed.list_function_paginated,
