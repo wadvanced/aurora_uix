@@ -2,8 +2,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.ShowComponentGenerator do
   @moduledoc """
   Generates show component modules for the Basic template implementation.
 
-  This module provides a macro to generate LiveComponent modules for handling show views
-  in Aurora UIX Basic templates.
+  `generate_module/1` returns the code of the show LiveComponent of a resource.
 
   ## Key Features
 

@@ -2,7 +2,7 @@ defmodule Aurora.Uix.Templates.Basic.Generators.IndexGenerator do
   @moduledoc """
   Generates index view LiveView modules for the Basic template implementation.
 
-  This module provides a macro to generate LiveView modules for index (listing) pages in Aurora UIX Basic templates.
+  `generate_module/1` returns the code of the index LiveView and the index component of a resource.
 
   ## Key Features
 

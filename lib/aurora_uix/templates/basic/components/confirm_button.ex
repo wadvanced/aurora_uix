@@ -27,7 +27,9 @@ defmodule Aurora.Uix.Templates.Basic.ConfirmButton do
   * `:confirm_message` - Slot for the confirmation question text
   * `:accept_message` - Slot for the accept button label
   * `:cancel_message` - Slot for the cancel button label
-  * `:target` - Event target (defaults to `:myself`)
+  * `:target` - Target of the confirmed event, as `Phoenix.LiveView.JS.push/3` takes it, such as
+    the receiving component's `@myself` (the default, the atom `:myself`, is passed on as it is)
+  * `:type` - Type of the main button (defaults to `"button"`)
   * `:title` - Text for the main button's `title` and `aria-label` (defaults to `nil`: no attribute)
   * `:class` - CSS class for the main button (defaults to
     `"auix-confirm-button--show-action"`)

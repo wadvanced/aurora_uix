@@ -1,23 +1,23 @@
 defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @moduledoc """
-  Behaviour and macro for implementing form live view component handlers in Aurora UIX LiveView templates.
+  Behaviour and macro for the handlers of a generated form component.
 
-  Provides a set of callbacks and a `__using__/1` macro to standardize the handling of mount, parameter changes,
-  events, info messages, and action application. Designed for use with Phoenix LiveView and
-  Aurora UIX conventions.
+  `use Aurora.Uix.Templates.Basic.Handlers.FormImpl` defines the `Phoenix.LiveComponent` callbacks
+  `update/2` and `handle_event/3`, delegating to the overridable `auix_update/2`,
+  `auix_handle_event/3` and `save_entity/2`.
 
   ## Key Features
 
-    - Defines required callbacks for form live component lifecycle and event handling.
-    - Supplies a macro to inject default implementations and imports for LiveView modules.
-    - Integrates with Aurora UIX context and module generators for dynamic entity management.
+    - Builds the form with the change function of the resource and validates it as the user types.
+    - Handles `"save"` itself: consumes the uploads, calls `save_entity/2`, reports and publishes
+      the saved record, and shows the backend errors.
+    - Guards a close request while the form has unsaved changes.
 
   ## Key Constraints
 
-    - Expects the `:auix` assign to be present in the LiveView socket.
-    - Designed for use with Phoenix LiveView and Aurora UIX context modules.
-    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
-
+    - Expects the `:auix` assign in the component socket.
+    - `"save"` does not reach `auix_handle_event/3`; override `save_entity/2` to change how a record
+      is persisted.
   """
   import Aurora.Uix.Integration.Crud
   import Aurora.Uix.Templates.Basic.Helpers
@@ -68,7 +68,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   Performs the creation or update of an entity.
 
   Should perform the creation or update of an entity based on the current action in the socket
-  assigns (`:edit` for updates, `:new` for creation).
+  assigns (`:edit` and `:show_edit` for updates, `:new` for creation).
 
   ## Parameters
   - `socket` (Socket.t()) - Current socket with assigns containing action type.
@@ -76,7 +76,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Returns
   `{:ok, struct()}` - If the entity was correctly saved.
-  `{:error, Ecto.Changeset.t()}` - If any error occurred with changeset details.
+  `{:error, term()}` - An `Ecto.Changeset`, an Ash error or a message, shown as an error flash.
   """
   @callback save_entity(socket :: Socket.t(), entity_params :: map()) ::
               {:ok, struct()} | {:error, Ecto.Changeset.t()}
@@ -205,11 +205,13 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   end
 
   @doc """
-  Handles form-related events such as validation, saving, and section switching.
+  Handles the form events other than `"save"`: validation, section switching, uploads and closing.
+  Raises for any other event.
 
   ## Parameters
-  - `event` (binary()) - The event name (e.g., "validate", "switch_section", "auix_request_close",
-    "auix_keep_editing", "auix_discard_changes").
+  - `event` (binary()) - `"validate"`, `"switch_section"`, `"auix_cancel_upload"`,
+    `"auix_download_upload"`, `"auix_route_back"`, `"auix_request_close"`, `"auix_keep_editing"` or
+    `"auix_discard_changes"`.
   - `params` (map()) - Parameters from the event.
   - `socket` (Socket.t()) - The current LiveView socket.
 
@@ -311,8 +313,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
   @doc """
   Saves or updates the entity using the given params.
 
-  Based on the action type (`:new` or `:edit`), either creates a new entity or updates an
-  existing one.
+  Creates a record for the `:new` action, and updates the record for `:edit` and `:show_edit`.
 
   ## Parameters
   - `socket` (Socket.t()) - The current LiveView socket with action and auix assigns.
@@ -320,7 +321,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Returns
   `{:ok, struct()}` - If the entity was correctly saved.
-  `{:error, Ecto.Changeset.t()}` - If any error occurred with changeset details.
+  `{:error, term()}` - An `Ecto.Changeset`, an Ash error or a message, shown as an error flash.
 
   """
   @spec save_entity(Socket.t(), map()) ::

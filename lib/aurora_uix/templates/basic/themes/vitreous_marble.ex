@@ -1,9 +1,14 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.VitreousMarble do
   @moduledoc """
-  The sky theme for the basic template.
+  The Vitreous Marble theme for the Basic template.
 
-  This theme defines the CSS variables with light / dark mode for blueish / purpleish theme 
-  and delegates the rest of the rules to the `BaseVariables` theme.
+  ## Key Features
+  - Light and dark values for every color variable.
+  - Registered as `:vitreous_marble`; select it with
+    `config :aurora_uix, theme_name: :vitreous_marble`.
+
+  ## Key Constraints
+  - Defines colors only; every other rule comes from `ThemeBase` through `include`.
   """
   use Aurora.Uix.Templates.Theme, theme_name: :vitreous_marble
 

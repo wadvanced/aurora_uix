@@ -513,8 +513,8 @@ end
     when no file is selected, so the callback need not handle an empty list.
   - `{:error, reason}` — save aborts and `reason` is displayed as an error flash.
 - `:download` — **optional** producer callback invoked when the user clicks the Download button
-  on show and edit views. Without this key no Download button is rendered, and the button also
-  needs `:downloadable?`. Accepts arity 1, 2, or 3:
+  on show and edit views. It produces the file; the button shows through `:downloadable?`. Accepts
+  arity 1, 2, or 3:
   - Arity 1: `download.(value)` — field value only.
   - Arity 2: `download.(socket, value)` — socket available for actor/assign access.
   - Arity 3: `download.(socket, value, key)` — one callback handles multiple upload fields.
@@ -523,8 +523,9 @@ end
   - `:no_download` — does nothing (button click is a no-op).
   - `{:error, reason}` — displays `reason` as an error flash.
 - `:downloadable?` — a boolean, or a callback evaluated when the component mounts or updates, that
-  controls whether the Download button is visible. Only read when `:download` is also set. A
-  callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
+  controls whether the Download button is visible. Set it together with `:download`: without one
+  the button still shows and does nothing
+  ([#691](https://github.com/wadvanced/aurora_uix/issues/691)). A callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
   **When omitted, the button is hidden**: set `downloadable?: true` to show it always, or use a
   callback such as one that checks the value is not `nil`.
 

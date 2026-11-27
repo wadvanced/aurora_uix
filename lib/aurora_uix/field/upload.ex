@@ -31,9 +31,8 @@ defmodule Aurora.Uix.Field.Upload do
     The socket is **never** returned by `consume`; use a `handle_event("save", …)` override
     for socket mutations on save.
   - `download` - **optional** producer callback invoked when the user clicks the Download
-    button. Its presence is the opt-in master switch: **no `download` means no button is
-    rendered.** Arity is detected the same way as `consume`, with the stored field value as
-    the primary argument:
+    button. It produces the file; without it the button does nothing. Arity is detected the same
+    way as `consume`, with the stored field value as the primary argument:
 
     | Arity | Call shape                          | When to use                                  |
     |-------|-------------------------------------|----------------------------------------------|
@@ -51,8 +50,8 @@ defmodule Aurora.Uix.Field.Upload do
     since the socket (and thus `current_user`) is available to arity-2 and arity-3 callbacks.
   - `downloadable?` - **optional** gate evaluated when the component mounts or updates. A
     boolean, or a callback following the same arity dispatch as `download`, returning a
-    boolean. Only evaluated when `download` is also configured. When absent, the button is
-    hidden.
+    boolean. When absent, the button is hidden. Set it together with `download`: a button without
+    one still shows ([#691](https://github.com/wadvanced/aurora_uix/issues/691)).
 
   ## Key Features
   - Gives the upload options of a field a fixed shape instead of a free-form map.
