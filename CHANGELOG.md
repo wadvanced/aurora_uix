@@ -82,6 +82,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
   `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
   primary action was used instead. Compilation now fails with a `DslError` naming the missing action.
+  Without a name, the primary action of the type is now picked, or else the first one; an action
+  called like its type (`:read`, `:create`, ...) no longer comes before the primary one.
 - **`query_opts` of a one-to-many field**: the `order_by` and `where` in the `query_opts` of a
   one-to-many field in the resource metadata were ignored, and the list showed every related record.
   They now order and filter the list, and the `order_by` and `where` of the layout field take
@@ -193,6 +195,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   `Filter` and `Counter` was corrected: examples, option defaults and types.
 - Module documentation of the parsers, CRUD modules, Gettext helpers, template modules and route
   helper was corrected, and the module groups of the API reference list the existing modules.
+- Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
+  filter-panel actions, the dependency requirements of a new application and the icons error.
 
 ### Build
 

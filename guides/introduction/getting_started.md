@@ -22,13 +22,11 @@ def deps do
 end
 ```
 
-Aurora UIX needs `phoenix_live_view ~> 1.2` and `phoenix_live_dashboard ~> 0.9`. Some
-`mix phx.new` releases write older requirements (`~> 1.1.0` and `~> 0.8.3`), and dependency
-resolution then fails. Raise both in your `mix.exs`:
+Aurora UIX needs `phoenix_live_view ~> 1.2`. Some `mix phx.new` releases write an older requirement
+(`~> 1.1.0`), and dependency resolution then fails. Raise it in your `mix.exs`:
 
 ```elixir
 {:phoenix_live_view, "~> 1.2"},
-{:phoenix_live_dashboard, "~> 0.9"},
 ```
 
 Then fetch the dependencies:

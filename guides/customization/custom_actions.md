@@ -56,13 +56,15 @@ The action system works by:
 
 > The slot labels above (`:index_header_actions`, etc.) are internal names used in socket assigns. Use the operation key prefixes in the table below as your `index_columns` options.
 > `:index_selected_all_actions` is the header of the selection checkbox column.
+> `:index_filters_actions` shows only while the filters are open: in the last filter cell of the
+> table, and in a card of its own in the card view.
 
 | Operation Key Prefix | Available Operations | Defaults You Can Target |
 |---|---|---|
 | `*_header_action` | add, insert, replace, remove | `:default_toggle_filters`, `:default_sort`, `:default_clear`, `:default_submit`, `:default_new` |
 | `*_selected_all_action` | replace, remove *(no add / insert)* | `:default_toggle_all_selected` |
 | `*_selected_action` | add, insert, replace, remove | `:default_selected_uncheck_all`, `:default_selected_delete_all`, `:default_selected_check_all` |
-| `*_filters_action` | accepted, but nothing renders this group ([#644](https://github.com/wadvanced/aurora_uix/issues/644)) | *(none by default)* |
+| `*_filters_action` | add, insert, replace, remove | *(none by default)* |
 | `*_row_action` | add, insert, replace, remove | `:default_row_show`, `:default_row_edit`, `:default_row_delete` |
 | `*_footer_action` | add, insert, replace, remove | `:default_pagination` |
 
