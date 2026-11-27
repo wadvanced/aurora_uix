@@ -5,6 +5,11 @@ properties. This guide shows how to align those properties with your host applic
 system — either by remapping them through a style bridge file or by overriding individual tokens
 directly — without touching any library source.
 
+The stylesheet is pure CSS by design: custom properties and `.auix-*` rules in native cascade
+layers, with nothing that needs Tailwind or another framework to process it. That leaves the host
+free to choose how the files reach the page: imported into a Tailwind v4 `app.css`, bundled by
+esbuild or another tool, or served as plain stylesheets.
+
 ## The five files and their cascade layers
 
 Running `mix auix.gen.stylesheet` writes the following files and declares the layer order

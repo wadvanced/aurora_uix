@@ -75,9 +75,12 @@ dark: White Charcoal (the default), Vitreous Marble and Blue Graphite. See the
 
 To enable Aurora UIX styling, generate the stylesheet and import it in your application's CSS:
 
-> #### Tailwind and daisyUI are optional {: .info}
-> The generated stylesheet is plain CSS in native cascade layers, so it needs neither Tailwind nor
-> daisyUI. The steps below are written for Tailwind v4, the default in a new Phoenix application.
+> #### Pure CSS: Tailwind and daisyUI are optional {: .info}
+> Aurora UIX styles its components with pure CSS: `--auix-*` custom properties and `.auix-*` rules
+> in native cascade layers, with no Tailwind utilities, `@apply` or build plugin. That is
+> deliberate, so a host can adopt the styles however its own CSS is built: through Tailwind v4,
+> another bundler, or plain stylesheets, and map them onto any design system with a bridge. The
+> steps below are written for Tailwind v4, the default in a new Phoenix application.
 > Without Tailwind, see [Hosts without Tailwind](../customization/styling.md#hosts-without-tailwind);
 > with Tailwind v3, see [Tailwind v3 hosts](../customization/styling.md#tailwind-v3-hosts).
 
