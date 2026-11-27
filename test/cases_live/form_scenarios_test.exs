@@ -695,36 +695,52 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
     end)
   end
 
-  test "the download button shows for a stored file with :download, and its click pushes the file",
+  test "a stored file shows as a card with its description, a download button and a replace button",
        %{conn: conn} do
+    image = "[data-upload-field='image']"
+    thumbnail = "[data-upload-field='thumbnail']"
+
     each_backend(fn backend ->
       with_image = insert_product("with-image", %{image: "fake-image-binary"})
       with_thumbnail = insert_product("with-thumbnail", %{thumbnail: "the-file-bytes"})
       no_file = insert_product("no-file", %{})
 
+      # Without :file_info the card is named after the field label and shows no type or size.
       {:ok, view, _html} = live(conn, upload_path(backend, with_image, "show"))
+      assert has_element?(view, "#{image} .auix-upload-file .auix-upload-file-name", "Image")
+      refute has_element?(view, "#{image} .auix-upload-file-meta")
       refute has_element?(view, @download_button)
       refute has_element?(view, "input[type='file']")
+      refute has_element?(view, ".auix-upload-file-replace")
 
       {:ok, view, _html} = live(conn, upload_path(backend, with_image, "edit"))
       refute has_element?(view, @download_button)
-      assert has_element?(view, "input[type='file']")
+      assert has_element?(view, "#{image} .auix-upload-file label.auix-upload-file-replace[for]")
+      refute has_element?(view, "#{image} .auix-upload-picker")
+      assert has_element?(view, "#{image} input[type='file'].auix-upload-input")
 
       {:ok, view, _html} = live(conn, upload_path(backend, no_file, "show"))
       refute has_element?(view, @download_button)
-      assert has_element?(view, "span", "No file")
+      refute has_element?(view, "#{thumbnail} .auix-upload-file")
+      assert has_element?(view, "#{thumbnail} span.auix-upload-empty", "No file")
       refute_push_event(view, "auix_download", _)
 
       {:ok, view, _html} = live(conn, upload_path(backend, no_file, "edit"))
       refute has_element?(view, @download_button)
-      assert has_element?(view, "input[type='file']")
+      refute has_element?(view, "#{thumbnail} .auix-upload-file")
+      assert has_element?(view, "#{thumbnail} label.auix-upload-picker[for]", "Choose file")
+      assert has_element?(view, "#{thumbnail} .auix-upload-hint", "PNG, JPG")
+      assert has_element?(view, "#{thumbnail} input[type='file']")
 
       {:ok, view, _html} = live(conn, upload_path(backend, with_thumbnail, "edit"))
-      assert has_element?(view, @download_button)
-      assert has_element?(view, "input[type='file']")
+      assert has_element?(view, "#{thumbnail} .auix-upload-file #{@download_button}")
+      assert has_element?(view, "#{thumbnail} .auix-upload-file-replace")
+      assert has_element?(view, "#{thumbnail} input[type='file']")
 
       {:ok, view, _html} = live(conn, upload_path(backend, with_thumbnail, "show"))
-      assert has_element?(view, @download_button)
+      assert has_element?(view, "#{thumbnail} .auix-upload-file-name", "image.png")
+      assert has_element?(view, "#{thumbnail} .auix-upload-file-meta", "PNG · 14 bytes")
+      assert has_element?(view, "#{thumbnail} .auix-upload-file #{@download_button}")
       view |> element(@download_button) |> render_click()
       assert_push_event(view, "auix_download", %{name: "image.png", data: data})
       assert Base.decode64!(data) == "the-file-bytes"

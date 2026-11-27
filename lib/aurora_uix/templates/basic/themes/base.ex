@@ -2529,6 +2529,137 @@ defmodule Aurora.Uix.Templates.Basic.Themes.Base do
   }
   """)
 
+  rule(:auix_upload, """
+  /* auix-upload */
+  .auix-form-field-container > .auix-upload-file,
+  .auix-form-field-container > .auix-upload-entry,
+  .auix-form-field-container > .auix-upload-picker-container,
+  .auix-form-field-container > .auix-upload-empty {
+    flex: none;
+  }
+
+  .auix-upload-file,
+  .auix-upload-entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+    padding: var(--auix-padding-small) var(--auix-padding-medium);
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-color: var(--auix-color-border-primary);
+    border-radius: var(--auix-border-radius-default);
+    background-color: var(--auix-color-bg-default);
+  }
+
+  .auix-upload-entry {
+    margin-top: var(--auix-gap-minimal);
+  }
+
+  .auix-upload-file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--auix-row-action-size);
+    height: var(--auix-row-action-size);
+    border-radius: var(--auix-border-radius-small);
+    background-color: var(--auix-color-bg-light);
+    color: var(--auix-color-text-secondary);
+  }
+
+  .auix-upload-file-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .auix-upload-file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--auix-font-size-label);
+    font-weight: var(--auix-font-weight-medium);
+    color: var(--auix-color-text-primary);
+  }
+
+  .auix-upload-file-meta,
+  .auix-upload-hint {
+    font-size: var(--auix-font-size-caption);
+    color: var(--auix-color-text-tertiary);
+  }
+
+  .auix-upload-file-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    min-width: var(--auix-row-action-size);
+    min-height: var(--auix-row-action-size);
+    border-radius: var(--auix-border-radius-default);
+    color: var(--auix-color-text-secondary);
+    cursor: pointer;
+  }
+
+  .auix-upload-file-action:hover {
+    background-color: var(--auix-color-button-iconized-bg-hover);
+    color: var(--auix-color-text-primary);
+  }
+
+  .auix-upload-picker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--auix-gap-minimal);
+  }
+
+  .auix-upload-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--auix-gap-medium);
+    height: var(--auix-control-height);
+    padding: 0 var(--auix-padding-panel);
+    border-width: var(--auix-border-width-default);
+    border-style: var(--auix-border-style-default);
+    border-color: var(--auix-color-button-alt-border);
+    border-radius: var(--auix-border-radius-default);
+    background-color: var(--auix-color-button-alt-bg);
+    color: var(--auix-color-button-alt-text);
+    font-size: var(--auix-font-size-label);
+    font-weight: var(--auix-font-weight-bold-semi);
+    cursor: pointer;
+  }
+
+  .auix-upload-picker:hover {
+    background-color: var(--auix-color-bg-hover);
+  }
+
+  .auix-form-field-container:has(.auix-upload-input:focus-visible) .auix-upload-picker,
+  .auix-form-field-container:has(.auix-upload-input:focus-visible) .auix-upload-file-replace {
+    border-color: var(--auix-color-focus-ring);
+    box-shadow: 0 0 0 var(--auix-focus-ring-width) var(--auix-color-focus-ring-halo);
+  }
+
+  .auix-upload-empty {
+    font-size: var(--auix-font-size-label);
+    font-style: italic;
+    color: var(--auix-color-text-tertiary);
+  }
+
+  .auix-upload-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  """)
+
   rule(:auix_form_field_input, """
     .auix-form-field-input {
       border-width: var(--auix-border-width-default);

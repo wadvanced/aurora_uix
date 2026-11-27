@@ -527,9 +527,34 @@ end
   without `:download` no button is rendered and the callback is not invoked. A callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
   **When omitted, the button is hidden**: set `downloadable?: true` to show it always, or use a
   callback such as one that checks the value is not `nil`.
+- `:file_info` — **optional** callback describing the stored file, evaluated when the component
+  mounts or updates and only when the field holds a value. It accepts arity 1, 2, or 3 (same
+  dispatch as `:download`) and returns a map with any of `:name` (binary), `:size` (bytes) and
+  `:content_type` (binary), or `nil`:
+
+  ```elixir
+  field :uploaded_blob_ref do
+    upload allow: [accept: ~w(.xlsx), max_entries: 1],
+           consume: &MyApp.Templates.store_xlsx/1,
+           download: &MyApp.Templates.fetch_xlsx/1,
+           downloadable?: true,
+           file_info: &MyApp.Templates.xlsx_info/1
+  end
+
+  # in MyApp.Templates
+  def xlsx_info(ref), do: %{name: "#{ref}.xlsx", size: blob_size(ref), content_type: "application/xlsx"}
+  ```
+
+A stored file is shown as a card: a file icon, the name from `:file_info` (or the field label when
+there is none), its type and size when given, a download button when the field is downloadable and,
+in the form, a replace button that opens the file picker. A field without a value shows "No file"
+on the show page and a "Choose file" button with the accepted types in the form. Selected files are
+listed as cards with their progress and a cancel button. The field container carries
+`data-upload-field` with the field key, and the card is styled by the theme's `auix-upload-*` rules.
 
 Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
-against double registration on re-renders), `live_file_input` rendering with per-entry
+against double registration on re-renders), `live_file_input` rendering (visually hidden, opened by the "Choose file" and replace
+buttons) with per-entry
 progress, cancel buttons, upload/entry-level error display, and client-side download dispatch
 via the `phx:auix_download` event (requires `hooks.js` — see the Getting Started guide).
 

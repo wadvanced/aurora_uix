@@ -37,6 +37,7 @@ spark_locals_without_parens = [
   field_opts: 1,
   fields: 1,
   fields: 2,
+  file_info: 1,
   filterable?: 1,
   generate: 1,
   generated?: 1,

@@ -52,6 +52,11 @@ defmodule Aurora.Uix.Field.Upload do
     boolean, or a callback following the same arity dispatch as `download`, returning a
     boolean. When absent, the button is hidden. It is only read when `download` is also set:
     without `download` no button is rendered and the callback is not invoked.
+  - `file_info` - **optional** callback describing the stored file, evaluated when the component
+    mounts or updates and only when the field holds a value. It follows the same arity dispatch
+    as `download` and returns a map with any of `:name` (binary), `:size` (bytes, integer) and
+    `:content_type` (binary), or `nil`. The stored file is shown as a card with its name and,
+    when given, its type and size. Without a `:name` the card shows the field label.
 
   ## Key Features
   - Gives the upload options of a field a fixed shape instead of a free-form map.
@@ -62,7 +67,12 @@ defmodule Aurora.Uix.Field.Upload do
 
   alias Phoenix.LiveView.Socket
 
-  defstruct allow: [], consume: nil, download: nil, downloadable?: nil, __spark_metadata__: nil
+  defstruct allow: [],
+            consume: nil,
+            download: nil,
+            downloadable?: nil,
+            file_info: nil,
+            __spark_metadata__: nil
 
   @typedoc "Result of `consume`: the value to store, no change, or an error shown as a flash."
   @type consume_result() :: {:ok, term()} | :no_change | {:error, term()}
@@ -96,11 +106,27 @@ defmodule Aurora.Uix.Field.Upload do
           | (Socket.t(), term() -> boolean())
           | (Socket.t(), term(), atom() -> boolean())
 
+  @typedoc "Description of a stored file: its name, size in bytes and content type, all optional."
+  @type file_info_result() ::
+          %{
+            optional(:name) => binary() | nil,
+            optional(:size) => non_neg_integer() | nil,
+            optional(:content_type) => binary() | nil
+          }
+          | nil
+
+  @typedoc "Callback describing the stored file, optionally with the socket and field key."
+  @type file_info() ::
+          (term() -> file_info_result())
+          | (Socket.t(), term() -> file_info_result())
+          | (Socket.t(), term(), atom() -> file_info_result())
+
   @type t() :: %__MODULE__{
           allow: keyword(),
           consume: consume() | nil,
           download: download() | nil,
           downloadable?: downloadable() | boolean() | nil,
+          file_info: file_info() | nil,
           __spark_metadata__: term()
         }
 
@@ -108,7 +134,8 @@ defmodule Aurora.Uix.Field.Upload do
   Builds an upload configuration from a map or keyword list of its options.
 
   ## Parameters
-  - `attrs` (map() | keyword()) - `:allow`, `:consume`, `:download` and `:downloadable?`.
+  - `attrs` (map() | keyword()) - `:allow`, `:consume`, `:download`, `:downloadable?` and
+    `:file_info`.
 
   ## Returns
   `Aurora.Uix.Field.Upload.t()` - The upload configuration.

@@ -1522,6 +1522,37 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   def assign_upload_downloadable(socket), do: socket
 
   @doc """
+  Precomputes the stored-file description of every upload field and stores it in
+  `auix.upload_file_info` as a `%{field_key => map() | nil}` map.
+
+  Must be called in `auix_update/2` after the entity is assigned, so the renderer reads the
+  description without running user-provided code. The `:file_info` callback is only invoked
+  when the field holds a value; a field without the callback, or without a value, maps to `nil`.
+  Anything other than a map returned by the callback is read as `nil`.
+
+  ## Parameters
+  - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
+
+  ## Returns
+  `Phoenix.LiveView.Socket.t()` - Socket with `auix.upload_file_info` assigned.
+  """
+  @spec assign_upload_file_info(Socket.t()) :: Socket.t()
+  def assign_upload_file_info(%Socket{assigns: %{auix: auix}} = socket) do
+    entity = auix[:entity] || %{}
+
+    file_info_map =
+      auix
+      |> upload_fields()
+      |> Map.new(fn %{key: key, upload: upload} ->
+        {key, field_file_info(socket, upload, Map.get(entity, key), key)}
+      end)
+
+    assign_auix(socket, :upload_file_info, file_info_map)
+  end
+
+  def assign_upload_file_info(socket), do: socket
+
+  @doc """
   Handles the `auix_download_upload` event by dispatching to the field's `:download` callback.
 
   Looks up the upload field by key, reads the stored value from the entity, and invokes
@@ -1678,6 +1709,20 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
       _ ->
         false
+    end
+  end
+
+  @spec field_file_info(Socket.t(), Upload.t(), term(), atom()) :: map() | nil
+  defp field_file_info(_socket, %Upload{file_info: file_info}, _value, _key)
+       when not is_function(file_info),
+       do: nil
+
+  defp field_file_info(_socket, _upload, nil, _key), do: nil
+
+  defp field_file_info(socket, upload, value, key) do
+    case invoke_upload_callback(upload.file_info, socket, value, key) do
+      info when is_map(info) -> info
+      _other -> nil
     end
   end
 
