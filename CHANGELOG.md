@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
+  `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
+  primary action was used instead. Compilation now fails with a `DslError` naming the missing action.
 - **Filters-panel actions**: `add_filters_action`, `insert_filters_action`, `replace_filters_action`
   and `remove_filters_action` accepted actions into `:index_filters_actions`, but no renderer read the
   group, so the actions never appeared. They now render in the filter panel of the index, on both the

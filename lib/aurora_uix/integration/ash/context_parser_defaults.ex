@@ -49,6 +49,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   alias Aurora.Uix.Integration.Ash.Crud, as: AshCrud
   alias Aurora.Uix.Integration.Ash.CrudSpec
   alias Aurora.Uix.Integration.Connector
+  alias Spark.Error.DslError
 
   @list_function_aliases [:list_function, :ash_read_action]
   @list_function_paginated_aliases [:list_function_paginated, :ash_read_action_paginated]
@@ -145,7 +146,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       when auix_action in @list_function_aliases do
     ash_action_type = :read
 
-    ash_action_name = get_option(opts, @list_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @list_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -162,7 +163,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @list_function_paginated_aliases do
     ash_action_type = :read
-    ash_action_name = get_option(opts, @list_function_paginated_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @list_function_paginated_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -185,7 +186,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @get_function_aliases do
     ash_action_type = :read
-    ash_action_name = get_option(opts, @get_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @get_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -202,7 +203,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @delete_function_aliases do
     ash_action_type = :destroy
-    ash_action_name = get_option(opts, @delete_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @delete_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -219,7 +220,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @create_function_aliases do
     ash_action_type = :create
-    ash_action_name = get_option(opts, @create_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @create_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -236,7 +237,7 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
       )
       when auix_action in @update_function_aliases do
     ash_action_type = :update
-    ash_action_name = get_option(opts, @update_function_aliases, ash_action_type)
+    ash_action_name = get_option(opts, @update_function_aliases, nil)
 
     ash_resource
     |> get_proper_actions(ash_action_type, ash_action_name)
@@ -313,14 +314,13 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
     |> filter_selected_action(selected_action_name)
   end
 
+  # A name given in `backend_opts` is authoritative: a name the resource does not
+  # define yields no action, so `notify_action_error/5` fails compilation.
   @spec filter_selected_action(list(), nil | atom()) :: list()
   defp filter_selected_action(actions, nil), do: actions
 
   defp filter_selected_action(actions, selected_action_name) do
-    case Enum.filter(actions, &(&1.name == selected_action_name)) do
-      [] -> actions
-      filtered -> filtered
-    end
+    Enum.filter(actions, &(&1.name == selected_action_name))
   end
 
   # Maps action type atom to Ash action module.
@@ -371,8 +371,9 @@ defmodule Aurora.Uix.Integration.Ash.ContextParserDefaults do
   @spec notify_action_error(nil | struct(), binary(), atom(), atom(), atom()) :: struct()
   defp notify_action_error(nil, message, resource_name, ash_action_type, ash_action_name),
     do:
-      raise(
-        "Error processing action ':#{ash_action_name}' of resource ':#{resource_name}' with expected type ':#{ash_action_type}' : #{message}"
+      raise(DslError,
+        message:
+          "Error processing action ':#{ash_action_name}' of resource ':#{resource_name}' with expected type ':#{ash_action_type}' : #{message}"
       )
 
   defp notify_action_error(action, _message, _resource_name, _ash_action_type, _ash_action_name),
