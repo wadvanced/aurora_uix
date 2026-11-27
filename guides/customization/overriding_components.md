@@ -101,6 +101,7 @@ Aurora UIX-specific components for collection views and record navigation.
 | `auix_items_card/1` | Card view for collections: one card per record with a header (checkbox, title, subtitle, ⋮ menu of row actions) and a body, and the filter cards; tapping a card runs its show action |
 | `pages_selection/1` | Pagination bar with page numbers, ellipsis, and selected-item counts |
 | `record_navigator_bar/1` | Previous/next record navigation shown on form and show views |
+| `theme_name_hook/1` | Hidden element that sets the theme name on `<html>`, rendered by the generated views and components |
 | `auix_checkbox_group/1` | Value-carrying checkbox group submitting under one array name (e.g. many-to-many form input) |
 | `auix_selected_list/1` | Read-only list of resolved display labels (e.g. many-to-many show view) |
 

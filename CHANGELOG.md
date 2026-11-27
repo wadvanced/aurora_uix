@@ -218,7 +218,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Documented examples of the CRUD modules, the theme helper and the layout option lookup were
   corrected.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
-  filter-panel actions, the dependency requirements of a new application and the icons error.
+  filter-panel actions, the dependency requirements of a new application, the icons error and the
+  theme name of embedded components.
 
 ### Build
 

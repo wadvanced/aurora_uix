@@ -414,16 +414,17 @@ The colors are scoped to the `data-theme-name` attribute. Set it in your root la
 <html data-theme-name="ocean">
 ```
 
-The generated index also sets the configured theme name, through the `AuixThemeName`
-[JavaScript hook](../introduction/getting_started.md#javascript-setup). Pages that only embed
-[reusable components](../core/components.md) rely on the attribute in the layout
-([#673](https://github.com/wadvanced/aurora_uix/issues/673)).
+The generated views and [embedded components](../core/components.md) also set the configured theme
+name once LiveView connects, through the `AuixThemeName`
+[JavaScript hook](../introduction/getting_started.md#javascript-setup). The attribute in the layout
+gives the page its colors from the first paint.
 
 **Switching Themes at Runtime**
 
 Changing `data-theme-name` in the browser switches the colors between the themes in the stylesheet.
-Rules a theme overrides apply only when it is the configured one. The generated index sets the
-configured name again on each navigation.
+Rules a theme overrides apply only when it is the configured one. A generated view or component
+sets the configured name again when it appears on the page, such as after a navigation or when a
+form opens.
 
 ## Building Rules from Shared CSS
 

@@ -247,7 +247,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   @doc """
   Handles URL parameter changes and updates socket state.
 
-  Stores the current path, sends the theme name to the page and builds the routing stack.
+  Stores the current path and builds the routing stack.
   `apply_action/2` runs after it and applies the current action.
 
   ## Parameters
