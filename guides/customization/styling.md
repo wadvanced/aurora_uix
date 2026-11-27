@@ -188,6 +188,52 @@ rules-level overrides win over it.
 > preflight already normalises the same selectors, and double-resetting can produce
 > subtle border and spacing regressions.
 
+## Tailwind v3 hosts
+
+The import examples in this guide are written for Tailwind v4. Tailwind v3 processes `@layer`
+itself and accepts only `base`, `components` and `utilities`, so importing the Aurora UIX files
+into a v3 `app.css` fails on `@layer auix.variables`. The files need no Tailwind processing, so the
+workaround is to keep them out of Tailwind's input and bundle them separately with esbuild, which
+keeps native cascade layers as they are.
+
+Create `assets/css/auix.css` with the imports from [Import order](#import-order):
+
+```css
+@import "./auix-variables.css";
+@import "./my-bridge.css";            /* optional: your bridge (see daisyUI below) */
+@import "./auix-custom.css";          /* host customizations (opt-in via --custom) */
+@import "./auix-rules.css";
+```
+
+Add an esbuild profile for it in `config/config.exs`:
+
+```elixir
+config :esbuild,
+  auix: [
+    args: ~w(css/auix.css --bundle --outdir=../priv/static/assets/css),
+    cd: Path.expand("../assets", __DIR__)
+  ]
+```
+
+Run `esbuild auix` next to the existing profiles in the `assets.build` and `assets.deploy`
+aliases (add `--minify` for deploy) and, in development, add
+`auix: {Esbuild, :install_and_run, [:auix, ~w(--watch)]}` to the endpoint's `watchers`. Then load
+the bundle in the root layout, next to the `app.css` link:
+
+```heex
+<link phx-track-static rel="stylesheet" href={~p"/assets/css/auix.css"} />
+```
+
+Two more differences from v4:
+
+- **Icons:** v3 has no `@source`. Add `"../deps/aurora_uix/priv/static/classes.js"` to `content`
+  in `tailwind.config.js`, so the Heroicons plugin generates the `hero-*` classes Aurora UIX uses.
+- **daisyUI:** `auix-bridge-daisyui.css` maps daisyUI 5 tokens (`--color-primary`, …). daisyUI 4,
+  which pairs with Tailwind v3, uses other variable names, so leave the bridge out or write your
+  own (see [Writing a Style Bridge](writing_a_style_bridge.md)).
+
+Tailwind v3 ships a preflight, so skip `auix-baseline.css` as for v4.
+
 ## Variable reference
 
 ### Sizes & dimensions

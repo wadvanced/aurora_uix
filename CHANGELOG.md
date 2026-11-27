@@ -83,7 +83,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   without `./`, so Tailwind v4 resolved them as packages and failed with `Can't resolve
   'auix-variables.css'`. The shim now imports `./auix-variables.css` and `./auix-rules.css`, and the
   import examples in the task docs and the styling guides use `./` too. The Styling guide now says
-  which files the shim leaves out.
+  which files the shim leaves out, and has a Tailwind v3 workaround; Getting Started notes that
+  Tailwind and daisyUI are optional.
 - **`mix auix.gen.icons` without Heroicons**: in a host application without the `heroicons` dependency,
   the task crashed with a bare "could not list directory" error. It now stops with a message giving the
   dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and
