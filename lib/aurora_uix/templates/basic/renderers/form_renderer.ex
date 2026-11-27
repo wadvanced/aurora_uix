@@ -1,17 +1,12 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   @moduledoc """
-  Renders form live components for creating or editing entities in Aurora UIX.
+  Renders the form component that creates or edits a record.
 
   ## Key Features
 
-  - Renders form containers and headers
-  - Handles validation and submission
-  - Integrates with Aurora UIX context and helpers
-  - Supports customizable form layouts and actions
-  - Renders the discard-changes dialog when a form with unsaved changes is closed
-
-  This module handles the rendering of form components, including the form container,
-  header, validation, and submission handling.
+  - Renders the form container, the header, the inner layout and the form actions
+  - Binds the form events the component handler validates and saves with
+  - Renders the record navigator and the discard-changes dialog of a form with unsaved changes
   """
 
   use Aurora.Uix.CoreComponentsImporter

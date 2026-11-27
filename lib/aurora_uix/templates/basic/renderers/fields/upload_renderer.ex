@@ -1,6 +1,6 @@
 defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   @moduledoc """
-  Renders a file upload field for a form.
+  Renders a file upload field in the form and show views.
   """
 
   use Aurora.Uix.CoreComponentsImporter
@@ -9,9 +9,10 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.UploadRenderer do
   @doc """
   Renders a file upload field.
 
-  In show mode, renders a download button when a file exists, or a "No file" indicator otherwise.
-  In edit mode, shows a download button when the entity already has a file. The file input and
-  entry list are only rendered when the field is not readonly or disabled.
+  Both views render the Download button when the field's `download` and `downloadable?` options
+  allow it (see `Aurora.Uix.Field.Upload`). Without the button, the show view says "No file" when
+  the record has none. The form view renders the file input and the entry list when the field is
+  neither readonly nor disabled.
   """
   @spec render(map()) :: Phoenix.LiveView.Rendered.t()
   def render(%{auix: %{layout_type: :show, entity: entity}, field: field} = assigns) do
