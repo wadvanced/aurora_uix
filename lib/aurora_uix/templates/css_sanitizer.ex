@@ -103,8 +103,8 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
   @doc """
   Validates all CSS rules from a theme module by applying sanitization.
 
-  This function configures the logger to debug level and processes each rule
-  from the theme module through the CSS sanitization pipeline.
+  This function sets the level of the global logger to `:debug`, without restoring it, and passes
+  each rule of the theme module through the sanitizer, which logs what it drops.
 
   Parameters:
     - theme_module (module): Theme module implementing rules/0
@@ -147,17 +147,17 @@ defmodule Aurora.Uix.Templates.CssSanitizer do
 
   Example:
   ```elixir
-  # Basic sanitization
-  safe_css = Aurora.Uix.Templates.CssSanitizer.sanitize_css("color: red; background: url(javascript:alert());")
-  # => "color: red;"
+  # Declarations outside a rule are dropped
+  Aurora.Uix.Templates.CssSanitizer.sanitize_css("color: red;")
+  # => ""
+
+  # The protocol of a javascript: URL is removed
+  Aurora.Uix.Templates.CssSanitizer.sanitize_css(".a { color: red; background: url(javascript:alert()); }")
+  # => ".a { color: red; background: url(alert()); }"
 
   # Media query preservation
-  safe_css = Aurora.Uix.Templates.CssSanitizer.sanitize_css("@media (min-width: 768px) { .container { display: flex; } }")
+  Aurora.Uix.Templates.CssSanitizer.sanitize_css("@media (min-width: 768px) { .container { display: flex; } }")
   # => "@media (min-width: 768px) { .container { display: flex; } }"
-
-  # Malicious URL removal
-  safe_css = Aurora.Uix.Templates.CssSanitizer.sanitize_css("background: url(javascript:alert('xss'));")
-  # => ""
   ```
   """
   @spec sanitize_css(binary()) :: binary()

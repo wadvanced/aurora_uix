@@ -195,21 +195,23 @@ defmodule Aurora.Uix.Templates.Basic.EmbedsManyComponent do
   end
 
   @doc """
-  Validates the form for adding a new embedded entry.
+  Handles the events of the component:
 
-  This handler is triggered on form change events within the add entry modal.
-  Currently performs no validation logic but is required for the form's
-  `phx-change` binding.
+  - `"toggle-add-embeds"` - Opens or closes the modal of a new entry
+  - `"toggle-details-state"` - Expands or collapses the collection
+  - `"validate"` - Validates the new entry with the change function of the parent record
+  - `"add-embeds-many"` - Adds the new entry, or flashes an error when it has errors
+  - `"remove-entry"` - Removes an existing entry
 
   ## Parameters
 
-  * `event` (String.t()) - The event name (always `"validate"`)
-  * `params` (map()) - Form parameters (unused)
+  * `event` (String.t()) - The event name
+  * `params` (map()) - Event parameters
   * `socket` (Phoenix.LiveView.Socket.t()) - The current socket
 
   ## Returns
 
-  `{:noreply, Phoenix.LiveView.Socket.t()}` with unchanged socket state.
+  `{:noreply, Phoenix.LiveView.Socket.t()}` with the updated socket.
   """
   @impl Phoenix.LiveComponent
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::

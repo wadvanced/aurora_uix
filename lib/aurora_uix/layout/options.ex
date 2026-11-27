@@ -32,6 +32,9 @@ defmodule Aurora.Uix.Layout.Options do
     Action labels (`:new_action_label`, `:save_action_label`, `:edit_action_label`,
     `:back_action_label`) also accept a 0-arity function returning a `binary()`.
     See `get_option/3`.
+  - **Function options** (e.g. the index's `:get_streams` and `:row_id`), whose type is only a
+    function, take the function itself as their value: it replaces the default function and is
+    not called when the option is read.
   - **Resource `name`/`title` metadata** (set via `auix_resource_metadata`, consumed as
     `assigns.auix.name` / `assigns.auix.title`) additionally accepts a **0-arity** function
     returning a `binary()`, resolved through `parse_value/1`. This is what every title,
@@ -119,11 +122,13 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Returns
   `Macro.t()` - The function definitions. `get/2` reads a declared option from the layout, then
-  from the set's `get_default/2`.
+  from the set's `get_default/2`. The value of an option whose type is only a function, such as
+  `{:fun, 1}`, is the function itself: it is returned without being called.
   """
   @spec options_code(atom(), [Option.t()]) :: Macro.t()
   def options_code(layout_type, options) do
     names = Enum.map(options, & &1.name)
+    function_names = for %Option{type: {:fun, _arity}, name: name} <- options, do: name
 
     quote do
       @doc false
@@ -133,6 +138,8 @@ defmodule Aurora.Uix.Layout.Options do
       end
 
       @spec get(map(), atom()) :: {:ok, term()} | {:not_found, atom()}
+      unquote(function_options_code(layout_type, function_names))
+
       def get(
             %{auix: %{layout_type: unquote(layout_type), layout_tree: %{options: opts}}} = assigns,
             option
@@ -144,6 +151,26 @@ defmodule Aurora.Uix.Layout.Options do
       end
 
       def get(_assigns, option), do: {:not_found, option}
+    end
+  end
+
+  # The `get/2` clause of the options whose value is a function: the function is returned, not
+  # called. No clause when the set has none, so `get/2` has no clause that never matches.
+  @spec function_options_code(atom(), [atom()]) :: Macro.t()
+  defp function_options_code(_layout_type, []), do: nil
+
+  defp function_options_code(layout_type, function_names) do
+    quote do
+      def get(
+            %{auix: %{layout_type: unquote(layout_type), layout_tree: %{options: opts}}} = assigns,
+            option
+          )
+          when option in unquote(function_names) do
+        case Keyword.fetch(opts, option) do
+          {:ok, function} -> {:ok, function}
+          :error -> get_default(assigns, option)
+        end
+      end
     end
   end
 
@@ -187,9 +214,9 @@ defmodule Aurora.Uix.Layout.Options do
   @doc """
   Retrieves a layout option for the given assigns and option key.
 
-  This function delegates the option retrieval to specialized modules (`ShowOptions`,
-  `FormOptions`, `IndexOptions`). If the option is not found in any of the delegated
-  modules, it logs a warning and returns a `:not_found` tuple.
+  This function asks the option sets in turn: those of `:layout_options_parsers`, then
+  `IndexOptions`, `ShowOptions` and `FormOptions`. An option none of them knows is returned as its
+  own value, without a warning ([#694](https://github.com/wadvanced/aurora_uix/issues/694)).
 
   ## Parameters
 
@@ -199,15 +226,15 @@ defmodule Aurora.Uix.Layout.Options do
 
   ## Returns
 
-  - `{:ok, term()}` - If the option is found, returns a tuple with `:ok` and the option value.
-  - `{:not_found, atom()}` - If the option is not found or the tag is unsupported.
+  - `{:ok, term()}` - The option value, or the option itself when no option set knows it.
+  - `{:not_found, atom()}` - When `assigns` lacks the layout type or the layout tree.
 
   ## Examples
 
   ```elixir
   iex> assigns = %{auix: %{layout_type: :show, layout_tree: %Aurora.Uix.Layout.Node.Show{resource: :resource}}}
   iex> Aurora.Uix.Layout.Options.get(assigns, :unsupported_option)
-  {:not_found, :unsupported_option}
+  {:ok, :unsupported_option}
 
   iex> Aurora.Uix.Layout.Options.get(%{}, :page_title)
   {:not_found, :page_title}

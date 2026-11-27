@@ -114,6 +114,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
 
   ## Examples
 
+      # With no theme configured
       iex> theme_module()
       Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal
   """
@@ -127,6 +128,7 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   ## Returns
   `atom()` - The name of the configured theme.
   ## Examples
+      # With no theme configured
       iex> theme_name()
       :white_charcoal
   """

@@ -52,13 +52,11 @@ defmodule Aurora.Uix.Layout.Options.Index do
     `[:category, posts: :author]`. It replaces the resource's `preload` for this layout.
     - Accepts a `list()`.
   * `:get_streams` - Returns the streams an index component renders, from its assigns.
+    - Accepts a function of arity 1, which replaces the default one.
     - Default: `get_streams/1`.
-  * `:row_id` - Returns the DOM id of a row.
+  * `:row_id` - Returns the DOM id of a row, from the row.
+    - Accepts a function of arity 1, which replaces the default one.
     - Default: `row_id/1`.
-
-  A function set for `:get_streams` or `:row_id` is called with the assigns when the option is
-  read, like the other function options, so it does not replace the default function
-  ([#680](https://github.com/wadvanced/aurora_uix/issues/680)).
   """
 
   use Aurora.Uix.Layout.Options, layout_type: :index

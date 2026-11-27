@@ -79,10 +79,16 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **`get_streams` and `row_id` index options**: a function set for either option was called with the
+  assigns when the option was read, so the index used its result instead of the function. The given
+  function now replaces the default one.
 - **A template of the application**: `config :aurora_uix, :template` naming a module of the host
   application stopped the library from compiling, because the template was read before the host's
   modules existed. Such a template can now be configured; the library's built-in renderers keep the
   Basic core components.
+- **Theme of embedded components**: only the generated index LiveView set `data-theme-name` on
+  `<html>`, so a page that only embeds the index, form or show components got no theme colors. Every
+  component now renders the `AuixThemeName` hook, which reads the theme name from its element.
 - **`data-theme="light"` under an OS dark preference**: the built-in themes applied their dark colors
   in `@media (prefers-color-scheme: dark)` whatever `data-theme` said, so an explicit light choice
   stayed dark. The media query now skips `[data-theme="light"]`.
@@ -216,6 +222,11 @@ breaking changes: see the What's New guide for the upgrade checklist.
   `Filter` and `Counter` was corrected: examples, option defaults and types.
 - Module documentation of the parsers, CRUD modules, Gettext helpers, template modules and route
   helper was corrected, and the module groups of the API reference list the existing modules.
+- Module documentation of the Basic template's handlers, components, actions, generators, helpers
+  and themes was corrected, with the CSS sanitizer examples and the conditions of the Download
+  button.
+- Documented examples of the CRUD modules, the theme helper and the layout option lookup were
+  corrected.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application and the icons error.
 

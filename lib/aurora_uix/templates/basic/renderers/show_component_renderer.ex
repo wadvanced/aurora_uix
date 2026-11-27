@@ -17,7 +17,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   use Phoenix.LiveView
 
   import Aurora.Uix.Templates.Basic.Components,
-    only: [record_navigator_bar: 1, record_navigator?: 2]
+    only: [record_navigator_bar: 1, record_navigator?: 2, theme_name_hook: 1]
 
   alias Aurora.Uix.Templates.Basic.Renderer
 
@@ -36,6 +36,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.ShowComponentRenderer do
   def render(%{auix: %{layout_type: :show}} = assigns) do
     ~H"""
     <div>
+      <.theme_name_hook id={"auix-#{@auix.module}-#{@id}-theme-hook"} />
       <div class="auix-show-container">
         <.record_navigator_bar :if={record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
         <.header>

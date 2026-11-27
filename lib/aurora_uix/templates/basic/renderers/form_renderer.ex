@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   use Aurora.Uix.GettextResolver
 
   import Aurora.Uix.Templates.Basic.Components,
-    only: [record_navigator_bar: 1, record_navigator?: 2]
+    only: [record_navigator_bar: 1, record_navigator?: 2, theme_name_hook: 1]
 
   alias Aurora.Uix.Templates.Basic.Renderer
   alias Phoenix.LiveView.JS
@@ -38,6 +38,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   def render(assigns) do
     ~H"""
     <div>
+      <.theme_name_hook id={"auix-#{@auix.module}-#{@id}-theme-hook"} />
       <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
       <.header>
         {if @action in [:edit, :show_edit], do: dt(@auix.layout_options.edit_title), else: dt(@auix.layout_options.new_title)}

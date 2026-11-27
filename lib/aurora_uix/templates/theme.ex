@@ -13,25 +13,23 @@ defmodule Aurora.Uix.Templates.Theme do
   defmodule MyApp.Theme do
     use Aurora.Uix.Templates.Theme, theme_name: :my_theme
 
-    rule :root, """
-    :root {
-      --primary-color: #3b82f6;
-      --secondary-color: #6b7280;
+    rule :root_colors, """
+    :root[data-theme-name="#{@theme_name}"] {
+      --auix-color-bg-default: #E0F2FE;
     }
     """
 
-    rule :button, """
-    .button {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
+    rule :my_button, """
+    .my-button {
+      color: var(--auix-color-text-primary);
     }
     """
 
     include Aurora.Uix.Templates.Basic.Themes.ThemeBase
   end
   ```
+
+  A theme of the application defines every color in `:root_colors`; see the Theming guide.
 
   ## Key Constraints
   - Rule CSS is built when the theme compiles, so it cannot call the theme's own functions.

@@ -1,23 +1,20 @@
 defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   @moduledoc """
-  Behaviour and macro for implementing show live view component handlers in Aurora UIX LiveView templates.
+  Behaviour and macro for the handlers of a generated show component.
 
-  Provides a set of callbacks and a `__using__/1` macro to standardize the handling of mount, parameter changes,
-  events, info messages, and action application. Designed for use with Phoenix LiveView and
-  Aurora UIX conventions.
+  `use Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl` defines the `Phoenix.LiveComponent`
+  callbacks `update/2` and `handle_event/3`, delegating to the overridable `auix_update/2` and
+  `auix_handle_event/3`.
 
   ## Key Features
 
-    - Defines required callbacks for form live component lifecycle and event handling.
-    - Supplies a macro to inject default implementations and imports for LiveView modules.
-    - Integrates with Aurora UIX context and module generators for dynamic entity management.
+    - Prepares the navigation, layout options and actions of the show view.
+    - Handles section switching, upload downloads, and the open and close requests of a component.
 
   ## Key Constraints
 
-    - Expects the `:auix` assign to be present in the LiveView socket.
-    - Designed for use with Phoenix LiveView and Aurora UIX context modules.
-    - Assumes certain structure in the `auix` assign (e.g., `modules.context`, `source_key`, etc.).
-
+    - Expects the `:auix` assign in the component socket.
+    - Raises for an event it does not handle.
   """
 
   import Aurora.Uix.Templates.Basic.Helpers
@@ -36,7 +33,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   Updates the show view state and assigns for the LiveComponent.
 
   ## Parameters
-  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{routing_stack: Stack.t()}}`.
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
@@ -95,7 +92,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   Updates the show view state and assigns for the LiveComponent.
 
   ## Parameters
-  - `assigns` (map()) - Assigns containing at least `%{auix: %{entity: map(), routing_stack: Stack.t()}}`.
+  - `assigns` (map()) - Assigns containing at least `%{auix: %{routing_stack: Stack.t()}}`.
   - `socket` (Socket.t()) - The current LiveView socket.
 
   ## Returns
@@ -122,7 +119,7 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.ShowComponentImpl do
   Handles events such as section switching and navigation in the show view.
 
   ## Parameters
-  - `event` (binary()) - The event name (e.g., "switch_section", "auix_route_back").
+  - `event` (binary()) - The event name (`"switch_section"`, `"auix_download_upload"`, `"auix_open"`, `"auix_route_back"`).
   - `params` (map()) - Parameters from the event.
   - `socket` (Socket.t()) - The current LiveView socket.
 

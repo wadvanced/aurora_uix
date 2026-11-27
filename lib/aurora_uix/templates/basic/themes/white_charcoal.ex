@@ -1,9 +1,13 @@
 defmodule Aurora.Uix.Templates.Basic.Themes.WhiteCharcoal do
   @moduledoc """
-  The Snow Coat theme for the Basic template. This is the default template
+  The White Charcoal theme for the Basic template, and its default theme.
 
-  This theme defines the CSS variables with light and dark mode for a mostly white / black theme 
-  and delegates the rest of the rules to the `BaseVariables` module.
+  ## Key Features
+  - A mostly white and black palette, with light and dark values for every color variable.
+  - Registered as `:white_charcoal`.
+
+  ## Key Constraints
+  - Defines colors only; every other rule comes from `ThemeBase` through `include`.
   """
   use Aurora.Uix.Templates.Theme, theme_name: :white_charcoal
 

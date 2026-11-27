@@ -18,7 +18,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - Assumes assigns contain `:auix` with required subkeys:
     * `:row_info` - Entity row information
     * `:source` - Data source identifier
-    * `:module` - Context module name
+    * `:module` - Name of the resource, used in element names
   - Only intended for use in index page layouts
   - Pagination requires specific assigns structure
   """
@@ -72,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
       - `:row_info` (tuple()) - Entity row information
-      - `:module` (atom()) - Context module name
+      - `:module` (binary()) - Name of the resource, used in element names
 
   ## Returns
   Rendered.t() - The rendered "show" action link.
@@ -120,7 +120,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
       - `:row_info` (tuple()) - Entity row information
-      - `:module` (atom()) - Context module name
+      - `:module` (binary()) - Name of the resource, used in element names
 
   ## Returns
   Rendered.t() - The rendered "edit" action link
@@ -168,7 +168,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
       - `:row_info` (tuple()) - Entity row information
-      - `:module` (atom()) - Context module name
+      - `:module` (binary()) - Name of the resource, used in element names
 
   ## Returns
   Rendered.t() - The rendered "delete" action link with confirmation
@@ -362,7 +362,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       - `:selection` (map()) - Current selection states for the page
 
   ## Returns
-  Rendered.t() - Checkbox input that triggers "selected-toggle-all" event
+  Rendered.t() - Checkbox input; the surrounding form sends its change as `"index-layout-change"`
   """
   @spec toggle_selected_all_in_page_action(map()) :: Rendered.t()
   def toggle_selected_all_in_page_action(
@@ -389,7 +389,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   - `assigns` (map()) - Assigns map containing:
     * `:auix` (map()) - Required context with:
       - `:index_new_link` (binary()) - Path for new entity creation
-      - `:module` (atom()) - Context module name
+      - `:module` (binary()) - Name of the resource, used in element names
       - `:name` (binary()) - Display name for the entity type
 
   ## Returns
@@ -417,13 +417,14 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   end
 
   @doc """
-  Renders a open filters or close filters buttons.
+  Renders the button that opens or closes the filters, with the count of filters in use.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing:
+    * `:auix` (map()) - With `:filters`, `:filters_enabled?` and `:filters_selected_count`.
 
   ## Returns
-  Rendered.t() - Button link for creating new entities
+  Rendered.t() - The filter toggle, or nothing when the index has no filters
   """
   @spec toggle_filters_action(map()) :: Rendered.t()
   def toggle_filters_action(assigns) do
@@ -468,7 +469,7 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
       - `:index_fields` (list()) - Index fields; only those with `sortable?: true` are offered
       - `:sort` (map() | nil) - The active sort, `%{key: atom(), direction: :asc | :desc}`
       - `:layout_options` (map()) - Must contain `:sort_disabled?`
-      - `:module` (binary()) - Context module name
+      - `:module` (binary()) - Name of the resource, used in element names
 
   ## Returns
   Rendered.t() - The sort control, or an empty fragment when sorting is disabled or no
@@ -624,12 +625,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.Index do
   Rendered.t() - Responsive pagination controls or empty fragment
 
   ## Breakpoints
-  - Renders different pagination ranges for:
-    * xl2 (2xl): widest range
-    * xl: medium range
-    * lg: smaller range
-    * md: minimal range
-    * sm: mobile-optimized
+  - Renders one pagination bar for each of `:xl2`, `:xl`, `:lg` and `:md`, with the page range
+    `:pages_bar_range_offset` returns for it.
   """
   @spec pagination_action(map()) :: Rendered.t()
   def pagination_action(

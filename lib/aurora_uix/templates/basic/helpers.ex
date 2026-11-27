@@ -607,7 +607,9 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  Assigns routing stack to the socket. Decodes stack from params or uses default route.
+  Assigns the routing stack to the socket: the one decoded from the `"routing_stack"` param, else one
+  holding the default route, else an empty one. It is stored in the navigation of `auix`, and read as
+  `auix.routing_stack`.
 
   ## Parameters
 
@@ -618,18 +620,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   Phoenix.LiveView.Socket.t() - The socket with updated routing stack.
-
-  ## Examples
-
-      iex> params = %{"routing_stack" => encoded_stack}
-      iex> assign_auix_routing_stack(socket, params, nil)
-      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
-
-      iex> assign_auix_routing_stack(socket, %{}, nil)
-      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{}}}
-
-      iex> assign_auix_routing_stack(socket, %{}, %{path: "/default"})
-      %Phoenix.LiveView.Socket{assigns: %{routing_stack: %Stack{...}}}
   """
   @spec assign_auix_routing_stack(Socket.t(), map(), map() | nil) :: Socket.t()
   def assign_auix_routing_stack(socket, params, default_route \\ nil)
@@ -677,8 +667,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   @doc """
   Assigns a layout option to the socket's assigns using the LayoutOptions module.
 
-  Retrieves the option value using `LayoutOptions.get/2`. If the option is not found, assigns the
-  socket unchanged. Otherwise, stores the value in the `:layout_options` key within the `auix` map.
+  Retrieves the option value using `LayoutOptions.get/2` and stores it, or `nil` when it answers
+  `:not_found`, in the `:layout_options` key within the `auix` map. For an option no option set
+  knows, the option's name is stored
+  ([#694](https://github.com/wadvanced/aurora_uix/issues/694)).
 
   ## Parameters
 
@@ -1156,7 +1148,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   end
 
   @doc """
-  A helper that transforms changeset errors into a map of messages.
+  A helper that transforms changeset errors into a list of messages.
 
   ## Parameters
 
@@ -1165,13 +1157,6 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   ## Returns
 
   list() - List of formatted error messages.
-
-  ## Examples
-
-      iex> assert {:error, changeset} = Accounts.create_user(%{password: "short"})
-      iex> assert "password is too short" in errors_on(changeset).password
-      iex> assert %{password: ["password is too short"]} = errors_on(changeset)
-
   """
   @spec format_changeset_errors(Ecto.Changeset.t()) :: list()
   def format_changeset_errors(changeset) do
@@ -1512,9 +1497,10 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   Must be called in `auix_update/2` after the entity is assigned. The renderer reads
   the precomputed boolean so no user-provided code runs inside the pure function component.
 
-  A field's button is `false` (hidden) unless it has a `:download` producer function
-  configured — that is the opt-in master switch. When `:downloadable?` is absent, the
-  default gate is `not is_nil(value)`.
+  A field's button shows when its `:downloadable?` is `true`, or is a callback returning `true`;
+  without `:downloadable?` it is hidden. The `:download` producer is not checked here, so a button
+  without one shows and does nothing
+  ([#691](https://github.com/wadvanced/aurora_uix/issues/691)).
 
   ## Parameters
   - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.

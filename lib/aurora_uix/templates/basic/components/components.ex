@@ -13,6 +13,9 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   - `auix_items_card/1` — card view for collections: a header with a menu of row actions, a body, and the show action as the card's tap target.
   - `pages_selection/1` — pagination bar with page numbers and selection counts.
   - `record_navigator_bar/1` — previous/next record navigation for form/show views.
+  - `theme_name_hook/1` — sets the active theme name on the page's `<html>` element.
+  - `auix_checkbox_group/1` — checkboxes submitted under one array name.
+  - `auix_selected_list/1` — read-only list of labels.
 
   ## Overriding
 
@@ -34,6 +37,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   use Phoenix.Component
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.ThemeHelper
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -42,13 +46,13 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.simple_form for={@form} phx-change="validate" phx-submit="save">
+      <.auix_simple_form for={@form} phx-change="validate" phx-submit="save">
         <.input field={@form[:email]} label="Email"/>
         <.input field={@form[:username]} label="Username" />
         <:actions>
           <.button>Save</.button>
         </:actions>
-      </.simple_form>
+      </.auix_simple_form>
   """
   attr(:for, :any, required: true, doc: "the data structure for the form")
   attr(:as, :any, default: nil, doc: "the server side parameter to collect all input under")
@@ -83,7 +87,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items id="users" rows={@users}>
+      <.auix_items id="users" streams={@streams} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -165,7 +169,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items_table id="users" rows={@users}>
+      <.auix_items_table id="users" rows={@users} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -281,7 +285,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   ## Examples
 
-      <.auix_items_card id="users" rows={@users}>
+      <.auix_items_card id="users" rows={@users} auix={@auix}>
         <:col :let={user} label="id"><%= user.id %></:col>
         <:col :let={user} label="username"><%= user.username %></:col>
       </.auix_items>
@@ -659,12 +663,42 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   resolve_component_for(:record_navigator_bar)
 
   @doc """
+  Renders the element of the `AuixThemeName` hook, which sets `data-theme-name` on the page's
+  `<html>` element to the active theme. The theme colors are scoped to that attribute, so every
+  generated LiveView and component renders it: a host page that only embeds components gets the
+  theme too.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns containing:
+    * `:id` (binary()) - The DOM id of the hook element, unique in the page.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - A hidden element carrying the hook.
+
+  ## Examples
+
+      <.theme_name_hook id="auix-product-index-theme" />
+  """
+  attr(:id, :string, required: true)
+  attr(:host_components, :any)
+  @spec theme_name_hook(map()) :: Rendered.t()
+  def theme_name_hook(%{host_components: nil} = assigns) do
+    assigns = assign(assigns, :theme_name, ThemeHelper.theme_name())
+
+    ~H"""
+    <div id={@id} phx-hook="AuixThemeName" data-auix-theme-name={@theme_name} hidden></div>
+    """
+  end
+
+  resolve_component_for(:theme_name_hook)
+
+  @doc """
   Determines if record navigator should be displayed at the specified position.
 
   ## Parameters
-  - `layout_options` (map()) - Layout configuration map containing record_navigator setting.
-  - `position` (atom()) - The position to check. Common values include `:top`, `:bottom`,
-    or `:both`.
+  - `auix` (map()) - The `auix` assigns, with `:pagination` and the `:record_navigator` layout
+    option.
+  - `position` (atom()) - The position to check: `:top` or `:bottom`.
 
   ## Returns
   boolean() - True if record navigator should be displayed at the given position, false

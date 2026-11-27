@@ -1,9 +1,9 @@
 defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @moduledoc """
-  Provides helpers for managing one-to-many association actions in Aurora UIX index layouts.
+  Provides helpers for managing the actions of a one-to-many list in Aurora UIX layouts.
 
-  This module sets up and modifies actions for header, footer, and row elements in index layouts
-  that represent one-to-many associations. It ensures that default actions are present and
+  This module sets up and modifies the header, footer and row actions of the list of a one-to-many
+  association. It ensures that default actions are present and
   allows for further customization via the `Actions.modify_actions/2` function.
 
   ## Key Features
@@ -58,8 +58,8 @@ defmodule Aurora.Uix.Templates.Basic.Actions.OneToMany do
   @doc """
   Renders a link for adding a new child entity in a one-to-many association form.
 
-  The link is only shown if the index new link is enabled, the layout type is `:form`, and the
-  parent entity has a non-nil ID.
+  The link is only shown if the layout type is `:form` and the parent entity has a primary key
+  value.
 
   ## Parameters
   - `assigns` (map()) - Assigns map containing association and entity context.
