@@ -51,6 +51,7 @@ defmodule Aurora.Uix.Layout.Options.Index do
   * `:preload` - Associations the index list loads besides the ones the layout renders, e.g.
     `[:category, posts: :author]`. It replaces the resource's `preload` for this layout.
     - Accepts a `list()`.
+    - Default: `nil` (the resource's `preload` applies).
   * `:get_streams` - Returns the streams an index renders, from its assigns.
     - Accepts a function of arity 1, which replaces the default one.
     - Default: `get_streams/1`.
@@ -175,6 +176,8 @@ defmodule Aurora.Uix.Layout.Options.Index do
 
   defp get_default(%{auix: %{layout_type: :index}}, :pages_bar_range_offset),
     do: {:ok, &__MODULE__.page_bar_range_offset/2}
+
+  defp get_default(%{auix: %{layout_type: :index}}, :preload), do: {:ok, nil}
 
   defp get_default(%{auix: %{layout_type: :index}}, :get_streams),
     do: {:ok, &__MODULE__.get_streams/1}

@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Index `preload` warning**: every index mount logged `Option preload is not implemented` when its
+  layout set no `preload`, because the option had no default. It now defaults to `nil`, and the
+  resource's `preload` applies.
 - **Unknown layout option**: `Aurora.Uix.Layout.Options.get/2` answered `{:ok, option}` for an option
   no option set knows, so the option's own name was stored as its value. It now logs a warning and
   answers `{:not_found, option}`, and the option is stored as `nil`.

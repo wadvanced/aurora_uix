@@ -962,6 +962,21 @@ defmodule Aurora.Uix.Test.Cases.GenerationTest do
 
     assert Options.get(show_assigns, :unlisted) == {:not_found, :unlisted}
 
+    for layout_type <- [:index, :form, :show],
+        option <- Options.available_options(layout_type) do
+      unset_assigns = %{
+        auix: %{
+          layout_type: layout_type,
+          layout_tree: %{resource: :product, options: []},
+          name: "Product",
+          title: "Products"
+        }
+      }
+
+      assert {:ok, _default} = Options.get(unset_assigns, option),
+             "#{layout_type} option #{option} has no default"
+    end
+
     label_option = fn label ->
       Form.get(
         %{auix: %{layout_type: :form, layout_tree: %{options: [save_action_label: label]}}},
