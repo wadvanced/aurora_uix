@@ -523,9 +523,8 @@ end
   - `:no_download` — does nothing (button click is a no-op).
   - `{:error, reason}` — displays `reason` as an error flash.
 - `:downloadable?` — a boolean, or a callback evaluated when the component mounts or updates, that
-  controls whether the Download button is visible. Set it together with `:download`: without one
-  the button still shows and does nothing
-  ([#691](https://github.com/wadvanced/aurora_uix/issues/691)). A callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
+  controls whether the Download button is visible. It is only read when `:download` is also set:
+  without `:download` no button is rendered and the callback is not invoked. A callback accepts arity 1, 2, or 3 (same dispatch as `:download`) and must return a boolean.
   **When omitted, the button is hidden**: set `downloadable?: true` to show it always, or use a
   callback such as one that checks the value is not `nil`.
 

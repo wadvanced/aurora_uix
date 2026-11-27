@@ -79,6 +79,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Download button without a `download` callback**: an upload with `downloadable?` set and no
+  `download` callback showed a Download button that did nothing, and a `downloadable?` callback was
+  invoked. The button now needs `download`; without it `downloadable?` is not read.
 - **`get_streams` and `row_id` index options**: a function set for either option was called with the
   assigns when the option was read, so the index used its result instead of the function. The given
   function now replaces the default one.

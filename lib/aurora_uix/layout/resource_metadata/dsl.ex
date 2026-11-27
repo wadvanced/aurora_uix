@@ -37,11 +37,12 @@ defmodule Aurora.Uix.Layout.ResourceMetadata.Dsl do
     ],
     download: [
       type: @callback_type,
-      doc: "Produces the file for the Download button. Without it, the button does nothing."
+      doc: "Produces the file for the Download button. Without it, no button is rendered."
     ],
     downloadable?: [
       type: {:or, [:boolean, {:fun, 1}, {:fun, 2}, {:fun, 3}]},
-      doc: "Whether the Download button is shown, or a callback deciding it."
+      doc:
+        "Whether the Download button is shown, or a callback deciding it. Only read when `download` is set."
     ]
   ]
 
