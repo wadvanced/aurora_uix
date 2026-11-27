@@ -237,6 +237,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
   sections example describes what they show.
 - The upgrade notes include the new rules of `ash_read_action`, and the Ash troubleshooting matches
   its error messages.
+- Resource Metadata: the example that orders a one-to-many list compiles.
 - Guides were checked again after the latest fixes: how Ash actions are picked, refused deletes,
   filter-panel actions, the dependency requirements of a new application, the icons error and the
   theme name of embedded components.
