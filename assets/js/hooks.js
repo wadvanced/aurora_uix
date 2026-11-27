@@ -2,9 +2,14 @@ let Hooks = {}
 
 Hooks.AuixThemeName = {
   mounted() {
-    this.handleEvent("set_html_theme_name", ({ theme_name }) => {
-      document.documentElement.setAttribute("data-theme-name", theme_name)
-    })
+    this.setThemeName()
+  },
+  updated() {
+    this.setThemeName()
+  },
+  setThemeName() {
+    const themeName = this.el.dataset.auixThemeName
+    if (themeName) document.documentElement.setAttribute("data-theme-name", themeName)
   }
 }
 

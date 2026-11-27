@@ -13,6 +13,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   - `auix_items_card/1` — card view for collections: a header with a menu of row actions, a body, and the show action as the card's tap target.
   - `pages_selection/1` — pagination bar with page numbers and selection counts.
   - `record_navigator_bar/1` — previous/next record navigation for form/show views.
+  - `theme_name_hook/1` — sets the active theme name on the page's `<html>` element.
 
   ## Overriding
 
@@ -34,6 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   use Phoenix.Component
 
   alias Aurora.Uix.Templates.Basic.Helpers, as: BasicHelpers
+  alias Aurora.Uix.Templates.ThemeHelper
   alias Phoenix.LiveView.JS
   alias Phoenix.LiveView.Rendered
 
@@ -657,6 +659,36 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   end
 
   resolve_component_for(:record_navigator_bar)
+
+  @doc """
+  Renders the element of the `AuixThemeName` hook, which sets `data-theme-name` on the page's
+  `<html>` element to the active theme. The theme colors are scoped to that attribute, so every
+  generated LiveView and component renders it: a host page that only embeds components gets the
+  theme too.
+
+  ## Parameters
+  - `assigns` (map()) - Component assigns containing:
+    * `:id` (binary()) - The DOM id of the hook element, unique in the page.
+
+  ## Returns
+  Phoenix.LiveView.Rendered.t() - A hidden element carrying the hook.
+
+  ## Examples
+
+      <.theme_name_hook id="auix-product-index-theme" />
+  """
+  attr(:id, :string, required: true)
+  attr(:host_components, :any)
+  @spec theme_name_hook(map()) :: Rendered.t()
+  def theme_name_hook(%{host_components: nil} = assigns) do
+    assigns = assign(assigns, :theme_name, ThemeHelper.theme_name())
+
+    ~H"""
+    <div id={@id} phx-hook="AuixThemeName" data-auix-theme-name={@theme_name} hidden></div>
+    """
+  end
+
+  resolve_component_for(:theme_name_hook)
 
   @doc """
   Determines if record navigator should be displayed at the specified position.
