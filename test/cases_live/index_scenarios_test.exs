@@ -1001,12 +1001,12 @@ defmodule Aurora.UixWeb.Test.IndexScenariosTest do
 
       view = open_filters(view)
 
-      assert texts(view, ".auix-items-desktop [name='auix-index-filters-actions'] a") == [
-               "Inserted filter action",
-               "Replaced filter action"
-             ]
-
-      assert has_element?(view, ".auix-items-mobile [name='auix-index-filters-actions']")
+      for panel <- [".auix-items-desktop th:last-child", ".auix-items-mobile"] do
+        assert texts(view, "#{panel} [name='auix-index-filters-actions'] a") == [
+                 "Inserted filter action",
+                 "Replaced filter action"
+               ]
+      end
     end)
   end
 
