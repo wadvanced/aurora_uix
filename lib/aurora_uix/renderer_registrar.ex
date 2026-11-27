@@ -13,7 +13,9 @@ defmodule Aurora.Uix.RendererRegistrar do
   ```elixir
   # config/config.exs
   config :aurora_uix, :renderers, MyApp.Renderers
+  ```
 
+  ```elixir
   # lib/my_app/renderers.ex
   defmodule MyApp.Renderers do
     @behaviour Aurora.Uix.RendererRegistrar

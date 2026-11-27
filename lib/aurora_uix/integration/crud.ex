@@ -275,7 +275,6 @@ defmodule Aurora.Uix.Integration.Crud do
   - `id` (term()) - The entity identifier.
   - `opts` (keyword()) - Options:
     * `:actor` (term()) - Actor for Ash policy authorization (Ash only).
-    * `:where` (list()) - Additional filter clauses (Ash only).
     * `:preload` (term()) - Associations to load.
 
   ## Returns

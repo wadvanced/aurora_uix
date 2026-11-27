@@ -1,12 +1,17 @@
 defmodule Aurora.Uix.CoreComponentsImporter do
   @moduledoc """
-  Dynamically selects the core components module from either the provided options or the
-  template configuration, and imports it along with Phoenix.Component.
+  Imports `Phoenix.Component` and the core components of the template, as returned by its
+  `default_core_components_module/0` callback.
 
-  ## Options
-  - `:core_components_module` (module()) - Optional. Override the default core components
-    module. If not provided, uses the module returned by the template's
-    `default_core_components_module/0` callback.
+  ## Key Features
+
+  - One `use` line brings the components such as `<.button>` and `<.input>`
+
+  ## Key Constraints
+
+  - It takes no options. To replace components at runtime, configure
+    `config :aurora_uix, :core_components, MyApp.MyCoreComponents`
+    (see `Aurora.Uix.ComponentsResolver`)
 
   The library's own modules compile before the host application's modules. When the configured
   template is not available yet, the default template's (`Aurora.Uix.Templates.Basic`) core
@@ -14,9 +19,9 @@ defmodule Aurora.Uix.CoreComponentsImporter do
 
   ## Examples
   ```elixir
-    defmodule MyAppWeb.MyComponent do
-      use Aurora.Uix.CoreComponentsImporter
-    end
+  defmodule MyAppWeb.MyComponent do
+    use Aurora.Uix.CoreComponentsImporter
+  end
   ```
   """
   alias Aurora.Uix.Template

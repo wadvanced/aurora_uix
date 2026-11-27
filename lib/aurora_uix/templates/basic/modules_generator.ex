@@ -7,7 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   validation, and flexible rendering. All code generation is performed at compile time.
 
   Delegates actual code generation to specialized sub-generators: FormGenerator, IndexGenerator,
-  and ShowGenerator.
+  and ShowComponentGenerator.
   """
 
   alias Aurora.Uix.Layout.Node
@@ -25,16 +25,6 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
 
   ## Returns
   Macro.t() - The generated LiveView module code.
-
-  ## Examples
-  ```elixir
-  Aurora.Uix.Templates.Basic.ModulesGenerator.generate_module(
-    %{layout_type: :index, name: :product,
-        modules: %{caller: MyAppWeb, context: MyApp.Accounts, module: MyApp.User, web: MyAppWeb}
-      }
-    }
-  )
-  ```
 
   If the tag is not implemented, returns a quoted block with no generation logic.
   """
@@ -120,9 +110,8 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   Generates a module name by concatenating the caller, module name, and suffix.
 
   ## Parameters
-  - `modules` (map()) - Module configuration with caller reference.
-  - `parsed_opts` (map()) - Options containing `module_name`.
-  - `suffix` (binary()) - String to append to module name.
+  - `parsed_opts` (map()) - Holds `modules.caller` and `module_name`.
+  - `suffix` (binary()) - String to append to the module name.
 
   ## Returns
   - `module()` - The generated module name.
@@ -130,9 +119,9 @@ defmodule Aurora.Uix.Templates.Basic.ModulesGenerator do
   ## Examples
   ```elixir
   Aurora.Uix.Templates.Basic.ModulesGenerator.module_name(
-    %{caller: MyAppWeb}, %{module_name: "User"}, ".Index"
+    %{modules: %{caller: MyAppWeb}, module_name: "User"}, ".Index"
   )
-  # => MyAppWeb.User.Index
+  #=> MyAppWeb.User.Index
   ```
   """
   @spec module_name(map(), binary()) :: module()

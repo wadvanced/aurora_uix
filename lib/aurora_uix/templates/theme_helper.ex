@@ -29,17 +29,11 @@ defmodule Aurora.Uix.Templates.ThemeHelper do
   @theme_name Application.compile_env(:aurora_uix, :theme_name)
 
   @doc """
-  Generates a complete stylesheet from all rules in the theme module.
+  Generates the whole stylesheet of the configured theme: the variables of
+  `generate_variables_stylesheet/0` followed by the rules of `generate_rules_stylesheet/0`.
 
   ## Returns
-  binary() - All the :root_colors from all the registered themes plus 
-    the CSS rules from the configured theme module.
-
-  ## Examples
-  ```elixir
-  iex> generate_stylesheet(MyApp.Theme)
-  ["<style>.button { color: blue; }</style>", "<style>.card { ... }</style>"]
-  ```
+  `binary()` - The CSS.
   """
   @spec generate_stylesheet() :: binary()
   def generate_stylesheet do

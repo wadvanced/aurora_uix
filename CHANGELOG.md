@@ -191,6 +191,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
   The roadmap no longer lists shipped features as wishes.
 - Module documentation of the root module, the DSL, the layout options, `Action`, `Resource`,
   `Filter` and `Counter` was corrected: examples, option defaults and types.
+- Module documentation of the parsers, CRUD modules, Gettext helpers, template modules and route
+  helper was corrected, and the module groups of the API reference list the existing modules.
 
 ### Build
 

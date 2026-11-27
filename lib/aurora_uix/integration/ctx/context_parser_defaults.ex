@@ -18,7 +18,8 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
 
   - Requires context module to be available
   - Function discovery based on naming conventions
-  - Returns placeholder function when no valid function is found
+  - Fails compilation when a resource with a context has no matching function; a resource
+    without a context, such as an embedded one, gets a function returning `nil`
   - Expected function arities must match operation requirements
 
   ## Implemented Options
@@ -71,26 +72,25 @@ defmodule Aurora.Uix.Integration.Ctx.ContextParserDefaults do
 
   ## Parameters
 
-  - `parsed_opts` (map()) - Map containing:
+  - `parsed_opts` (map()) - Options parsed so far, holding:
     * `:source` (binary()) - The source name (e.g., "users").
     * `:module` (binary()) - The module name (e.g., "user").
-  - `resource_config` (map()) - Map with:
-    * `:context` (module()) - The context module to introspect.
-  - `auix_action_name` (atom()) - The Aurora UIX action key (e.g., `:list_function`,
-    `:get_function`).
+  - `resource_config` (map()) - Holds `:context`, the module to read, and `:name`.
+  - `opts` (keyword()) - The resource's backend options; a function given here is used as is.
+  - `auix_action_name` (atom()) - The operation, such as `:list_function` or `:get_function`.
 
   ## Returns
 
-  Connector.t() - A `%Connector{}` struct wrapping the `%CrudSpec{}` and function reference.
+  Connector.t() - A `%Connector{}` wrapping a `%CrudSpec{}` with the function. Raises when no
+  function of the expected name and arity exists.
 
   ## Examples
 
-      iex> default_value(%{source: "users", module: "user"}, %{context: MyApp.Accounts},
-      ...>   :list_function)
-      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Accounts.list_users/1}}
-
-      iex> default_value(%{module: "post"}, %{context: MyApp.Blog}, :get_function)
-      %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Blog.get_post/2}}
+  ```elixir
+  option_value(%{source: "users", module: "user"}, %{context: MyApp.Accounts, name: :user}, [],
+    :list_function)
+  #=> %Connector{type: :ctx, crud_spec: %CrudSpec{function_spec: &MyApp.Accounts.list_users/1}}
+  ```
   """
   @impl Aurora.Uix.Integration.ContextParserDefaults
   @spec option_value(map(), map(), keyword(), atom()) :: Connector.t()

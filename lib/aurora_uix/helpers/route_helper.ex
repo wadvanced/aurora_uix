@@ -18,7 +18,7 @@ defmodule Aurora.Uix.RouteHelper do
 
   ## Parameters
   - `path` (binary()) - Base URL path segment (e.g., `"/users"`, `"/products"`).
-  - `module` (module()) - Base LiveView module name. Must have `.Index` and `.Show` submodules.
+  - `module` (module()) - Base module name. Routes go to its `.Index` LiveView, or the one `:index_live` names.
   - `opts` (Keyword.t()) - Options:
     * `:only` (list(atom())) - Generate only the specified actions. Valid actions: `:index`, `:new`, `:edit`, `:show`, `:show_edit`.
     * `:except` (list(atom())) - Exclude the specified actions from generation.

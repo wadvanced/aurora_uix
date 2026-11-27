@@ -26,9 +26,10 @@ defmodule Aurora.Uix.GettextBackend do
   See the [Internationalization guide](guides/core/internationalization.md) for the full
   configuration reference and recommended development workflow.
 
-  ## Compile-time configuration
+  ## Configuration
 
-  All options are read once at compile time via `Application.compile_env/2`:
+  `:gettext_show_warnings?` is read when the library compiles; `:gettext_pot_path` is read each
+  time a translation is missing.
 
   | Key | Type | Default | Description |
   |---|---|---|---|
