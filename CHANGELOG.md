@@ -109,6 +109,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
   the task crashed with a bare "could not list directory" error. It now stops with a message giving the
   dependency to add, finds the dependency under the project's deps path instead of a fixed `deps/`, and
   creates `assets/css` when it is missing.
+- **`mix auix.gen.stylesheet` with a host theme**: with `theme_name` set to a theme defined in the
+  host application, the task crashed with `function nil.rules/0 is undefined`, even after `mix
+  compile`, because Mix ran it with only the dependencies on the code path. The task now runs
+  `app.config` first, so the host's themes are found without `mix do app.config + auix.gen.stylesheet`.
 - **Registering a custom backend**: `Aurora.Uix.Integration.Crud` and
   `Aurora.Uix.Integration.ContextParserDefaults` both read `:crud_integration_modules`, so setting it
   sent the CRUD modules to the parser, and registering only a new backend dropped `:ash` and `:ctx`.
