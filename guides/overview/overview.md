@@ -16,7 +16,7 @@ auix_resource_metadata :product do
   context Inventory
   schema Product
   field :name, placeholder: "Product name", required: true
-  field :price, precision: 12, scale: 2
+  field :list_price, precision: 12, scale: 2
 end
 ```
 
@@ -26,10 +26,10 @@ Compose complex, nested layouts for index, show, and edit views using a flexible
 ```elixir
 show_layout :product do
   stacked do
-    inline [:name, :price]
+    inline [:name, :list_price]
     sections do
       section "Details" do
-        stacked [:description, :category]
+        stacked [:description, :product_location]
       end
     end
   end
@@ -67,7 +67,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 - **Responsive cards** - Small screens show [one card per record](../core/layouts.md#index-cards); a layout can design the card and show it at every width
 - **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](../customization/theming.md)
 - **Actions** - [Add, replace or remove buttons](../customization/custom_actions.md), change their icons, and run [bulk actions](../customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
-- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers, templates and [component overrides](../customization/customization.md)
+- **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](../customization/customization.md)
 - **Behavior** - [Handler hooks](../core/liveview.md#handler-hooks) for your business logic
 - **Internationalization** - A [configurable Gettext backend](../core/internationalization.md)
 
@@ -91,13 +91,13 @@ defmodule MyAppWeb.InventoryViews do
     context Inventory
     schema Product
     field :name, placeholder: "Product name", required: true
-    field :price, precision: 12, scale: 2
+    field :list_price, precision: 12, scale: 2
   end
 
   # Define layouts for each view
   auix_create_ui do
     # Index view configuration
-    index_columns :product, [:reference, :name, :price, :quantity_at_hand],
+    index_columns :product, [:reference, :name, :list_price, :quantity_at_hand],
       pagination_items_per_page: 15
 
     # Show view configuration
@@ -105,7 +105,7 @@ defmodule MyAppWeb.InventoryViews do
       stacked do
         inline [:reference, :name]
         inline [:description]
-        inline [:price, :quantity_at_hand]
+        inline [:list_price, :quantity_at_hand]
         inline [:product_location, :product_transactions]
       end
     end
@@ -119,7 +119,7 @@ defmodule MyAppWeb.InventoryViews do
             stacked [:name, :description]
           end
           section "Pricing" do
-            stacked [:price, :cost]
+            stacked [:list_price, :rrp]
           end
           section "Inventory" do
             stacked [:quantity_initial, :quantity_entries]

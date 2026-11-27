@@ -82,6 +82,14 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - **Misspelled Ash action in `backend_opts`**: an action named in `backend_opts` (`ash_update_action`,
   `ash_create_action`, `ash_read_action`, ...) that the resource does not define was ignored and the
   primary action was used instead. Compilation now fails with a `DslError` naming the missing action.
+- **`query_opts` of a one-to-many field**: the `order_by` and `where` in the `query_opts` of a
+  one-to-many field in the resource metadata were ignored, and the list showed every related record.
+  They now order and filter the list, and the `order_by` and `where` of the layout field take
+  precedence over them.
+- **`expanded` on a layout field**: `edit_layout` and `show_layout` accepted `expanded:` on an
+  `embeds_many` field, but the initial state was read only from the resource field, so the collection
+  stayed collapsed. The layout value now applies, a boolean or a function of the assigns, and takes
+  precedence over the resource one.
 - **Filters-panel actions**: `add_filters_action`, `insert_filters_action`, `replace_filters_action`
   and `remove_filters_action` accepted actions into `:index_filters_actions`, but no renderer read the
   group, so the actions never appeared. They now render in the filter panel of the index, on both the
@@ -176,6 +184,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Advanced Usage was checked against the code: a custom backend example that works, the template
   callbacks and their input, separated metadata and introspection examples that compile, and a
   warning that a template of the application cannot be configured.
+- Overview, Theming, Styling, Writing a Style Bridge and Overriding Components were checked against
+  the code: a custom theme defines every color, how to generate and apply it, which variables the
+  built-in rules read, and the overview examples use one set of fields.
 
 ### Build
 

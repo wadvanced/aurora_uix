@@ -5,7 +5,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.EmbedsExpanded do
 
   ## Key Features
 
-  - Declares the contacts as expanded in the form and show layouts
+  - Declares the contacts as expanded in the layouts only: a boolean in the form layout and a
+    function of the assigns in the show layout
   - Replaces the add and remove entry icons of the contacts
 
   ## Key Constraints
@@ -31,9 +32,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.EmbedsExpanded do
     quote do
       use Aurora.UixWeb.Test.Mirror, unquote(opts)
 
-      mirror_resource :product do
-        field(:contacts, expanded: &EmbedsExpanded.always_expanded/1)
-      end
+      mirror_resource(:product)
 
       auix_create_ui do
         edit_layout :product do
@@ -42,6 +41,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.EmbedsExpanded do
             :name,
             :quantity_initial,
             contacts: [
+              expanded: true,
               action_icons: [
                 default_header_enable_add_entry: "hero-sparkles",
                 default_remove_entry: "hero-x-mark"
@@ -51,7 +51,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.EmbedsExpanded do
         end
 
         show_layout :product do
-          stacked([:reference, :name, :contacts])
+          stacked([:reference, :name, contacts: [expanded: &EmbedsExpanded.always_expanded/1]])
         end
       end
     end

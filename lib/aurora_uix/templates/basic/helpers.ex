@@ -35,6 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
   alias Aurora.Uix.Field.Upload
   alias Aurora.Uix.Helpers.Common, as: CommonHelper
   alias Aurora.Uix.Integration.Connector
+  alias Aurora.Uix.Layout.Node
   alias Aurora.Uix.Layout.Options, as: LayoutOptions
   alias Aurora.Uix.Navigation
   alias Aurora.Uix.Stack
@@ -1480,7 +1481,8 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
   A field's `expanded` key may be a boolean or a function of arity 1 that
   receives the current assigns and returns a boolean. When absent, the default is `false`
-  (collapsed).
+  (collapsed). An `expanded` set on the field in the layout (`edit_layout`, `show_layout`)
+  takes precedence over the one set on the resource field.
 
   ## Parameters
   - `socket` (`Phoenix.LiveView.Socket.t()`) - The current LiveView socket.
@@ -1493,6 +1495,7 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
     expanded_map =
       socket.assigns.auix
       |> embeds_many_fields()
+      |> Enum.concat(layout_embeds_many_fields(socket.assigns.auix))
       |> Map.new(fn %{key: key, expanded: expanded} ->
         {key, field_expanded?(assigns, expanded)}
       end)
@@ -1660,6 +1663,17 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
       _ -> :no_download
     end
   end
+
+  # Resolved layout fields carry the layout overrides merged over the resource field.
+  @spec layout_embeds_many_fields(map()) :: list(Field.t())
+  defp layout_embeds_many_fields(%{layout_tree: layout_tree}) do
+    layout_tree
+    |> Node.fields()
+    |> Enum.map(& &1.field)
+    |> Enum.filter(&embeds_many_field?/1)
+  end
+
+  defp layout_embeds_many_fields(_auix), do: []
 
   @spec field_expanded?(map(), boolean() | function()) :: boolean()
   defp field_expanded?(assigns, gate) when is_function(gate, 1), do: gate.(assigns) == true

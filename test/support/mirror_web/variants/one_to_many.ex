@@ -1,12 +1,13 @@
 defmodule Aurora.UixWeb.Test.Mirror.Variants.OneToMany do
   @moduledoc """
   The `one-to-many` views variant: a one-to-many list of the transactions of a product and of the
-  products of a location, ordered and limited by the layout.
+  products of a location, ordered and limited by the resource metadata and the layout.
 
   ## Key Features
 
   - Declares the product transactions list with an `order_by`
-  - Declares the products list of a location with an `order_by` and a `where`
+  - Declares the products list of a location with a `where` and an `order_by` in the resource
+    metadata, and an `order_by` in the layout that takes precedence
   - Fixes the index columns of the related resources so both backends list them in one order
 
   ## Key Constraints
@@ -30,7 +31,15 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.OneToMany do
     quote do
       use Aurora.UixWeb.Test.Mirror, unquote(opts)
 
-      mirror_resource(:product_location)
+      mirror_resource :product_location do
+        field(:products,
+          query_opts: [
+            order_by: [asc: :name],
+            where: {:name, :between, "Item test-2", "Item test-4"}
+          ]
+        )
+      end
+
       mirror_resource(:product_transaction)
       mirror_resource(:product)
 
@@ -52,10 +61,7 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.OneToMany do
           stacked([
             :reference,
             :name,
-            products: [
-              order_by: [desc: :name],
-              where: {:name, :between, "Item test-2", "Item test-4"}
-            ]
+            products: [order_by: [desc: :name]]
           ])
         end
       end

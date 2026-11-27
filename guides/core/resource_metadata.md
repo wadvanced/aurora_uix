@@ -421,7 +421,7 @@ These field options have their own keys on `Aurora.Uix.Field`:
 - `option_label` - For many-to-one and many-to-many selectors: the field name (atom) shown for each
   option, or a function of arity 1 (`entity`) or 2 (`assigns`, `entity`) returning the label
 - `query_opts` - Keyword list with `:order_by` and `:where`, applied when listing the options of a
-  many-to-one or many-to-many selector. A one-to-many list does not read it (see
+  many-to-one or many-to-many selector, or the rows of a one-to-many list (see
   [One-to-Many](#one-to-many-has_many))
 - `resource` - (embedded fields and associations) The name of the resource that renders the
   related entries, kept in `data.resource`. On an association it also preloads the association
@@ -436,7 +436,8 @@ These field options have their own keys on `Aurora.Uix.Field`:
   boolean or a captured function of arity 1 (`&MyApp.fun/1`, not an inline `fn` — field options are
   escaped at compile time) that receives the rendering assigns and returns a boolean. The runtime
   collapse/expand toggle stays available regardless. Configure it with the `:expanded` field option
-  of the resource metadata; the same option on a layout field has no effect:
+  of the resource metadata, or on the field in an `edit_layout` or `show_layout`, which takes
+  precedence in that view:
 
   ```elixir
   # Always expanded
@@ -668,22 +669,29 @@ end
 A **one-to-many** (`has_many`) field renders as a list with actions for adding, editing and
 deleting items. The list has no filters or sortable headers of its own.
 
-To order or filter its rows, set these options on the field **in the layout**:
+To order or filter its rows, set `query_opts` on the field in the resource metadata, or these
+options on the field in the layout:
 
 - `:order_by` - Order of the rows, in Ecto's `order_by` syntax
 - `:where` - Filter of the rows, in the syntax described under
   [QueryBuilder for Advanced Filtering](layouts.md#querybuilder-for-advanced-filtering)
 
 ```elixir
+auix_resource_metadata :product, schema: Product, context: Inventory do
+  field :product_transactions, query_opts: [order_by: [asc: :inserted_at], where: [{:quantity, :gt, 0}]]
+end
+
 edit_layout :product do
   stacked do
     field :reference
-    field :product_transactions, order_by: [desc: :quantity], where: [{:quantity, :between, 8, 16}]
+    field :product_transactions, order_by: [desc: :quantity]
   end
 end
 ```
 
-`query_opts` in the resource metadata does not apply to this list.
+An option set in the layout takes precedence over the same option in `query_opts`; the other one
+still applies. Above, the rows keep the `where` of the metadata and follow the `order_by` of the
+layout.
 
 ## Related guides
 

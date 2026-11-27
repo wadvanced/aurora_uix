@@ -365,7 +365,7 @@ defmodule Aurora.UixWeb.Test.AssociationScenariosTest do
     end)
   end
 
-  test "layout order_by and where order and filter a one-to-many list", %{conn: conn} do
+  test "metadata query_opts and layout options order and filter a one-to-many list", %{conn: conn} do
     each_backend(fn backend ->
       [{_key, product}] = create_sample_products_with_transactions(1, 10, :one2)
 
