@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Record navigator off the loaded page**: opening the show or edit URL of a record that is not on
+  the loaded index page (a direct link to a record of page 2, for example) showed the navigator
+  counter as `0 / N`. The navigator is now hidden when the record's position is unknown.
 - **Show labels for predefined renderers**: a show view drew no label for a field rendered with
   `:toggle_switch`, `:color` or `:badge`. These renderers now draw the label above the widget in the
   show view, as `:progress_bar`, `:url` and `:rating` do; the index cell is unchanged.
