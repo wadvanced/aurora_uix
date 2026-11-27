@@ -256,7 +256,7 @@ Tailwind v3 ships a preflight, so skip `auix-baseline.css` as for v4.
 | `--auix-border-radius-medium` | `0.75rem` | Tables, index cards, menus, groups, embedded records and the form and show containers |
 | `--auix-border-radius-nested` | `0.625rem` | Nested groups and sections, flashes, icon-only buttons below the `sm` breakpoint |
 | `--auix-border-width-default` | `0.0625rem` | Standard border width |
-| `--auix-border-width-thick` | `0.125rem` | Active tab underline |
+| `--auix-border-width-thick` | `0.125rem` | Not used by the built-in rules |
 | `--auix-border-style-default` | `solid` | Border style across all components |
 | `--auix-gap-minimal` | `0.125rem` | Tightest flex gap |
 | `--auix-gap-default` | `0.250rem` | Standard flex gap |
@@ -296,20 +296,23 @@ Tailwind v3 ships a preflight, so skip `auix-baseline.css` as for v4.
 | `--auix-focus-outline-width` | `2px` | Focus outline width |
 | `--auix-focus-ring-width` | `3px` | Width of the ring around a focused control |
 | `--auix-icon-size-base` | `0.25rem` | Base unit for icon size calculations |
+| `--auix-icon-size-3`, `-4`, `-5`, `-6` | `calc(var(--auix-icon-size-base) * n)` | Icon sizes (`.auix-icon-size-3` to `.auix-icon-size-6`) |
+| `--auix-checkbox-group-max-height` | `12rem` | Height at which checkbox groups and selected lists scroll |
+| `--auix-divide-y-reverse` | `0` | Which side of a list row gets the divider |
 | `--auix-icon-size-button` | `var(--auix-icon-size-4)` | Icon size inside buttons |
-| `--auix-breakpoint-sm` | `640px` | Small breakpoint |
-| `--auix-breakpoint-md` | `768px` | Medium breakpoint |
-| `--auix-breakpoint-lg` | `1024px` | Large breakpoint |
-| `--auix-breakpoint-xl` | `1280px` | Extra-large breakpoint |
-| `--auix-breakpoint-xxl` | `1536px` | Double-XL breakpoint |
+| `--auix-breakpoint-sm` | `640px` | Small breakpoint; not used by the built-in rules, whose media queries have fixed widths |
+| `--auix-breakpoint-md` | `768px` | Medium breakpoint; not used by the built-in rules, whose media queries have fixed widths |
+| `--auix-breakpoint-lg` | `1024px` | Large breakpoint; not used by the built-in rules, whose media queries have fixed widths |
+| `--auix-breakpoint-xl` | `1280px` | Extra-large breakpoint; not used by the built-in rules, whose media queries have fixed widths |
+| `--auix-breakpoint-xxl` | `1536px` | Double-XL breakpoint; not used by the built-in rules, whose media queries have fixed widths |
 
 ### Typography
 
 | Variable | Default | Affects |
 |---|---|---|
 | `--auix-font-sans` | `ui-sans-serif, system-ui, sans-serif, …` | Sans-serif font stack |
-| `--auix-font-mono` | `ui-monospace, SFMono-Regular, Menlo, …` | Monospace font stack |
-| `--auix-font-family-default` | `var(--auix-font-sans)` | Default font family for all components |
+| `--auix-font-mono` | `ui-monospace, SFMono-Regular, Menlo, …` | Monospace font stack; not used by the built-in rules |
+| `--auix-font-family-default` | `var(--auix-font-sans)` | Font family of the page in the [baseline stylesheet](#hosts-without-tailwind); the component rules do not read it |
 | `--auix-font-size-title` | `1.25rem` | Modal and show titles (`.auix-header-title`) |
 | `--auix-font-size-group-title` | `0.875rem` | Group title bars (`.auix-group-title`) |
 | `--auix-font-size-empty-state` | `1.125rem` | Index empty-state message (table and card) |
@@ -357,8 +360,9 @@ them yourself:
 | `--auix-ring-default` | `0 0 0 calc(1px + …) var(--auix-ring-color)` | Default focus ring |
 | `--auix-ring-info` | `0 0 0 calc(1px + …) var(--auix-color-info-ring)` | Not used by the built-in rules |
 | `--auix-ring-secondary` | `0 0 0 calc(1px + …) var(--auix-color-shadow-alpha)` | Secondary ring |
+| `--auix-calc-shadow` | _(internal)_ | Part of the modal panel shadow |
 | `--auix-shadow-small` | `0 1px 2px 0 …` | Primary buttons, the index table and index cards |
-| `--auix-shadow-default` | `0 1px 3px 0 …, 0 1px 2px -1px …` | Default component shadow |
+| `--auix-shadow-default` | `0 1px 3px 0 …, 0 1px 2px -1px …` | Not used by the built-in rules |
 | `--auix-shadow-md` | `0 4px 6px -1px …, 0 2px 4px -2px …` | Medium shadow (not used by the built-in rules) |
 | `--auix-shadow-lg` | `0 10px 15px -3px …, 0 4px 6px -4px …` | Large shadow (modal, flashes, menus, standalone show view) |
 | `--auix-shadow-primary` | `var(--auix-shadow-lg)` | Primary shadow alias |
@@ -376,7 +380,7 @@ them yourself:
 |---|---|---|
 | `--auix-color-bg-default` | `#FFFFFF` | Primary component background |
 | `--auix-color-bg-default--reverted` | `#18181B` | Inverted background (button fill) |
-| `--auix-color-bg-secondary` | `#D4D4D8` | Secondary / alternating row background |
+| `--auix-color-bg-secondary` | `#D4D4D8` | Not used by the built-in rules |
 | `--auix-color-bg-disabled` | `#A1A1AA` | Disabled element background |
 | `--auix-color-bg-info` | `#F0FDF4` | Info flash background |
 | `--auix-color-bg-light` | `#F4F4F5` | Disabled inputs and buttons; hover of tabs, menu items and row actions |
@@ -384,7 +388,7 @@ them yourself:
 | `--auix-color-bg-hover--reverted` | `#47474a` | Hover on inverted elements |
 | `--auix-color-bg-backdrop` | `rgba(250,250,250,0.9)` | Modal / overlay backdrop |
 | `--auix-color-bg-inner-container` | `rgba(250,250,250,0.8)` | Embedded container background |
-| `--auix-color-bg-danger` | `#FB7185` | Danger/destructive background |
+| `--auix-color-bg-danger` | `#FB7185` | Not used by the built-in rules |
 | `--auix-color-bg-danger-hover` | `#E11D48` | Danger hover background |
 | `--auix-color-error-bg` | `#FFF1F2` | Error flash / message background |
 
@@ -570,7 +574,6 @@ Common visual adjustments and the minimal set of variables to override:
 | Larger touch targets | `--auix-control-height`, `--auix-touch-target-size` |
 | Custom focus ring | `--auix-color-focus-ring`, `--auix-color-focus-ring-halo` |
 | Error palette | `--auix-color-error`, `--auix-color-error-bg`, `--auix-color-error-text`, `--auix-color-error-ring` |
-| Monospace inputs | `--auix-font-family-default` set to `var(--auix-font-mono)` |
 | Brand primary color | `--auix-color-button-bg`, `--auix-color-button-text`, `--auix-color-bg-default--reverted` |
 | Dark backgrounds | `--auix-color-bg-default`, `--auix-color-bg-light`, `--auix-color-bg-hover` |
 | Tighter list rows | `--auix-gap-minimal`, `--auix-padding-minimal`, `--auix-margin-default` |
@@ -613,6 +616,9 @@ a component's flex direction or inserting an additional layout layer — you can
 
 ### Class reference
 
+The table covers the classes of the main components; the generated `auix-rules.css` holds every
+class. A variant row lists what the variant adds to its base class.
+
 | Class | Used by | Tokens it consumes |
 |---|---|---|
 | `.auix-button-default` | Structural base auto-applied to every `<.button>` (layout, border, padding, typography — no color) | `--auix-gap-medium`, `--auix-control-height`, `--auix-padding-panel`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-default`, `--auix-font-size-caption`, `--auix-font-weight-bold`, `--auix-color-focus-ring`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-touch-target-size`, `--auix-border-radius-nested` |
@@ -621,9 +627,9 @@ a component's flex direction or inserting an additional layout layer — you can
 | `.auix-index-all-action-button` | Select-all / deselect-all index-bar variant — color only; replaces, not supplements, `.auix-button` | `--auix-color-button-alt-bg`, `--auix-color-button-alt-text`, `--auix-color-button-alt-border`, `--auix-color-bg-hover`, `--auix-color-button-disabled-bg`, `--auix-color-button-disabled-border`, `--auix-color-button-disabled-text` |
 | `.auix-button--iconized` | Icon-only button (no border); a 32px minimum target | `--auix-row-action-size`, `--auix-border-radius-default`, `--auix-color-button-iconized-bg-hover` |
 | `.auix-button-badge` | Embedded-relation count badge | `--auix-font-size-small`, `--auix-border-radius-round`, `--auix-padding-minimal` |
-| `.auix-input` | Text / number / date inputs; disabled and read-only states (a show-view input is read-only) | `--auix-control-height`, `--auix-padding-control`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-default`, `--auix-font-size-caption`, `--auix-color-input-text`, `--auix-color-input-bg`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-color-input-bg-disabled`, `--auix-color-input-border-disabled`, `--auix-color-input-text-disabled`, `--auix-color-input-bg-readonly`, `--auix-touch-target-size`, `--auix-font-size-input-mobile` |
+| `.auix-input` | Text / number / date inputs; disabled and read-only states (a show-view input is read-only) | `--auix-control-height`, `--auix-padding-control`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-default`, `--auix-font-size-caption`, `--auix-color-input-text`, `--auix-color-input-bg`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-color-input-bg-disabled`, `--auix-color-input-border-disabled`, `--auix-color-input-text-disabled`, `--auix-color-input-bg-readonly`, `--auix-touch-target-size`, `--auix-font-size-input-mobile`, `--auix-color-input-border`, `--auix-color-input-border-focus` |
 | `.auix-input--errors` | Input in validation-error state | `--auix-color-input-border-error` |
-| `.auix-textarea` | Multi-line textarea; disabled and read-only states | `--auix-padding-default`, `--auix-padding-control`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-default`, `--auix-font-size-caption`, `--auix-line-height-default`, `--auix-color-textarea-text`, `--auix-color-input-bg`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-color-input-bg-disabled`, `--auix-color-input-border-disabled`, `--auix-color-input-text-disabled`, `--auix-color-input-bg-readonly`, `--auix-font-size-input-mobile`, `--auix-line-height-relaxed` |
+| `.auix-textarea` | Multi-line textarea; disabled and read-only states | `--auix-padding-default`, `--auix-padding-control`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-border-radius-default`, `--auix-font-size-caption`, `--auix-line-height-default`, `--auix-color-textarea-text`, `--auix-color-input-bg`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-color-input-bg-disabled`, `--auix-color-input-border-disabled`, `--auix-color-input-text-disabled`, `--auix-color-input-bg-readonly`, `--auix-font-size-input-mobile`, `--auix-line-height-relaxed`, `--auix-color-textarea-border`, `--auix-color-textarea-border-focus` |
 | `.auix-textarea--errors` | Textarea in validation-error state | `--auix-color-textarea-border-error` |
 | `.auix-select` | Dropdown select; disabled, read-only and multiple states | `--auix-control-height`, `--auix-padding-control`, `--auix-border-radius-default`, `--auix-border-width-default`, `--auix-border-style-default`, `--auix-color-select-border`, `--auix-box-size-unit`, `--auix-color-input-bg`, `--auix-font-size-caption`, `--auix-color-input-text`, `--auix-color-input-bg-disabled`, `--auix-color-input-border-disabled`, `--auix-color-input-text-disabled`, `--auix-color-input-bg-readonly`, `--auix-padding-medium`, `--auix-color-select-border-focus`, `--auix-focus-ring-width`, `--auix-color-focus-ring-halo`, `--auix-touch-target-size`, `--auix-font-size-input-mobile` |
 | `.auix-select-label` | Label paired with a select | Structural only |
