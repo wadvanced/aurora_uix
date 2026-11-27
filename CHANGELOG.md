@@ -184,6 +184,8 @@ breaking changes: see the What's New guide for the upgrade checklist.
 - Overview, Theming, Styling, Writing a Style Bridge and Overriding Components were checked against
   the code: a custom theme defines every color, how to generate and apply it, which variables the
   built-in rules read, and the overview examples use one set of fields.
+- Contributing: databases, setup and asset commands, local configuration and the quality checks.
+  The roadmap no longer lists shipped features as wishes.
 
 ### Build
 
