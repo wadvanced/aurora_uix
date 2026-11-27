@@ -48,7 +48,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureOverviewImages do
       all: [
         click: "input[id^='auix-field-product-reference-'][id$='#{product_id}--form']"
       ],
-      desktop: [zoom: 0.90, center_crop_width: 640],
+      desktop: [height: 1_200, zoom: 0.90, center_crop_width: 640, crop_height: 920],
       mobile: [zoom: 0.75]
     })
 

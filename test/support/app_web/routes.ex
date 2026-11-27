@@ -174,6 +174,33 @@ defmodule Aurora.UixWeb.Test.Routes do
         )
 
         RoutesHelper.register_crud(
+          GuidesCapture.IndexCardsLayout.Product,
+          "guides-capture-cards-products"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.AssociationsLayout.Product,
+          "guides-capture-associations-products"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.EmbedsLayout.Post,
+          "guides-capture-embeds-posts"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.RenderersLayout.Product,
+          "guides-capture-renderers-products"
+        )
+
+        RoutesHelper.register_crud(
+          GuidesCapture.UploadsLayout.Product,
+          "guides-capture-uploads-products"
+        )
+
+        live("/guides-capture-dashboard", GuidesCapture.DashboardLive)
+
+        RoutesHelper.register_crud(
           AshActorViews.PublicItem,
           "ash-actor-public-items"
         )
