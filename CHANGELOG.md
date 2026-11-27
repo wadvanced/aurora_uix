@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Index `preload` warning**: every index mount logged `Option preload is not implemented` when its
+  layout set no `preload`, because the option had no default. It now defaults to `nil`, and the
+  resource's `preload` applies.
 - **New emptied the index list**: opening New from a generated index emptied the list behind the
   form, and it stayed empty after saving until the page was reloaded. The `new` segment of the
   `:new` route is now dropped from the index path, so the stream container keeps its id.
