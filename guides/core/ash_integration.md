@@ -480,10 +480,11 @@ end
 ```
 
 A read action named with `ash_read_action` alone also serves the index when it has pagination.
-Without pagination it serves only association lists and selects, and the index uses the primary
-paginated read action of the resource, or else its first paginated one. When the resource has no
-paginated read action, compilation fails naming the action. To pick another action for the index,
-name it with `ash_read_action_paginated`.
+Without pagination, the index prefers the primary paginated read action of the resource, or else
+its first paginated one. Pagination is preferred, not required: when the resource has no paginated
+read action, the index lists through the read action without pagination and shows every row on one
+page, with no pages bar. To pick another action for the index, name it with
+`ash_read_action_paginated`, which must have pagination.
 
 Available action configuration options, all given inside `backend_opts`:
 
@@ -937,11 +938,10 @@ read :read do
 end
 ```
 
-#### Compilation Fails with "pagination is not supported"
+#### The Index Shows Every Row on One Page
 
-The action named with `ash_read_action` has no pagination, and the resource has no paginated read
-action for the index. Add pagination to one, or name the index action with
-`ash_read_action_paginated`.
+The resource has no paginated read action, so the index lists without pagination. Add pagination
+to a read action to page the index.
 
 #### Another Action Runs Than Expected
 

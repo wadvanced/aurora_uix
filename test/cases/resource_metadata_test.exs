@@ -4,8 +4,10 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
   import Aurora.UixWeb.Test.UICase,
     only: [assert_values_order: 2, resource_configs: 1, validate_schema: 3]
 
+  alias Aurora.Ctx.Pagination
   alias Aurora.Uix.Integration.Ash.CrudSpec
   alias Aurora.Uix.Integration.Connector
+  alias Aurora.Uix.Integration.Crud
   alias Aurora.Uix.Parser
   alias Aurora.Uix.Test.MirrorAsh
   alias Aurora.Uix.Test.MirrorCtx
@@ -28,8 +30,18 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
     end
   end
 
+  defmodule UnpaginatedDomain do
+    use Ash.Domain, validate_config_inclusion?: false
+
+    resources do
+      allow_unregistered?(true)
+    end
+  end
+
   defmodule UnpaginatedReads do
-    use Ash.Resource, data_layer: Ash.DataLayer.Ets
+    use Ash.Resource,
+      domain: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedDomain,
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
@@ -453,37 +465,37 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
          auix_create_ui do
          end
-       """, ~r/action ':nope'.*expected type ':update'/},
-      {"a non-paginated Ash read action on a resource with no paginated one",
-       """
-         auix_resource_metadata :unpaginated,
-           ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads,
-           backend_opts: [ash_read_action: :plain]
-
-         auix_create_ui do
-         end
-       """, ~r/action ':plain'.*expected type ':read'.*pagination is not supported/}
+       """, ~r/action ':nope'.*expected type ':update'/}
     ]
 
     assert_compile_errors(cases)
   end
 
   # Backend-specific: only an Ash read action declares whether it paginates.
-  test "an Ash read action in backend_opts serves the paginated list only when it paginates" do
+  test "the index lists through a paginated Ash read action when there is one, else without pagination" do
     [{meta, _}] =
       compile("""
-        auix_resource_metadata :unpaginated,
+        auix_resource_metadata :unpaginated_named,
           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
           backend_opts: [ash_read_action: :read_all]
 
-        auix_resource_metadata :paginated,
+        auix_resource_metadata :paginated_named,
           ash_resource: Aurora.Uix.Test.MirrorAsh.ProductLocation,
           backend_opts: [ash_read_action: :read]
+
+        auix_resource_metadata :no_paginated_named,
+          ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads,
+          backend_opts: [ash_read_action: :plain]
+
+        auix_resource_metadata :no_paginated,
+          ash_resource: Aurora.Uix.Test.Cases.ResourceMetadataTest.UnpaginatedReads
       """)
 
-    for {resource, {list_action, paginated_action}} <- [
-          unpaginated: {:read_all, :read},
-          paginated: {:read, :read}
+    for {resource, {list_action, index_action, index_auix_action}} <- [
+          unpaginated_named: {:read_all, :read, :list_function_paginated},
+          paginated_named: {:read, :read, :list_function_paginated},
+          no_paginated_named: {:plain, :plain, :list_function},
+          no_paginated: {:plain, :plain, :list_function}
         ] do
       parsed = resource |> meta.auix_resource() |> Parser.parse([])
 
@@ -496,13 +508,20 @@ defmodule Aurora.Uix.Test.Cases.ResourceMetadataTest do
 
       assert %Connector{
                crud_spec: %CrudSpec{
-                 action: %{name: ^paginated_action, pagination: pagination},
-                 auix_action_name: :list_function_paginated
+                 action: %{name: ^index_action},
+                 auix_action_name: ^index_auix_action
                }
              } = parsed.list_function_paginated
-
-      assert pagination
     end
+
+    for _ <- 1..3, do: Ash.create!(UnpaginatedReads, %{})
+
+    parsed = :no_paginated |> meta.auix_resource() |> Parser.parse([])
+
+    assert %Pagination{entries_count: 3, page: 1, pages_count: 1} =
+             Crud.apply_list_function(parsed.list_function_paginated,
+               paginate: %Pagination{page: 1, per_page: 2}
+             )
   end
 
   test "resource: links that fail compilation" do
