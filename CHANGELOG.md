@@ -90,6 +90,9 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **New emptied the index list**: opening New from a generated index emptied the list behind the
+  form, and it stayed empty after saving until the page was reloaded. The `new` segment of the
+  `:new` route is now dropped from the index path, so the stream container keeps its id.
 - **Info flash with the daisyUI bridge**: `auix-bridge-daisyui.css` mapped the info text and the
   info background to the same `--color-info`, so the info flash had no readable text. The info text
   now uses `--color-info-content`. A host that already copied the bridge re-runs
