@@ -237,6 +237,7 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 - New [Reusable Components](guides/core/components.md) and [What's New in 0.2.1](guides/whats_new/0.2.1.md)
   guides.
+- **Theme Gallery** guide: the product list and edit form in each built-in theme.
 - Guides, README and module documentation brought up to date with the codebase.
 
 ### Build

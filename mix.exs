@@ -51,12 +51,17 @@ defmodule Aurora.Uix.MixProject do
       docs: [
         main: "overview",
         logo: "./guides/images/aurora_uix-icon.png",
-        assets: %{"./guides/overview/images/" => "images", "./guides/core/images/" => "images"},
+        assets: %{
+          "./guides/overview/images/" => "images",
+          "./guides/core/images/" => "images",
+          "./guides/customization/images/" => "images"
+        },
         extras: [
           "CONTRIBUTING.md",
           "CHANGELOG.md",
           "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
+          "guides/overview/theme_gallery.md",
           "guides/introduction/getting_started.md",
           "guides/whats_new/0.2.1.md",
           "guides/whats_new/0.2.0.md",

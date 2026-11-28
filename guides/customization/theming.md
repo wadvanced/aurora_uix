@@ -522,7 +522,8 @@ messages stay `:info` and `:error`. A host handler puts one like any other flash
 
 ## Built-in Themes
 
-Aurora UIX ships with three registered themes:
+Aurora UIX ships with three registered themes. The [Theme Gallery](../overview/theme_gallery.md)
+shows each one.
 
 - `:white_charcoal` — the library default (light-first, neutral grays)
 - `:vitreous_marble` — Slate/Cyan/Ruby palette with a teal primary and pale cyan table headers

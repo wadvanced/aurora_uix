@@ -65,7 +65,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 
 - **Layouts** - Compose `inline`, `stacked`, `group` and `sections`, and [reuse layouts](../core/layouts.md#reusable-layouts) across modules with `include:`
 - **Responsive cards** - Small screens show [one card per record](../core/layouts.md#index-cards); a layout can design the card and show it at every width
-- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](../customization/theming.md)
+- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](../customization/theming.md); see the [theme gallery](theme_gallery.md)
 - **Actions** - [Add, replace or remove buttons](../customization/custom_actions.md), change their icons, and run [bulk actions](../customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
 - **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](../customization/customization.md)
 - **Behavior** - [Handler hooks](../core/liveview.md#handler-hooks) for your business logic

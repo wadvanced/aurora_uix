@@ -53,7 +53,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 
 - **Layouts** - Compose `inline`, `stacked`, `group` and `sections`, and [reuse layouts](./guides/core/layouts.md#reusable-layouts) across modules with `include:`
 - **Responsive cards** - Small screens show [one card per record](./guides/core/layouts.md#index-cards); a layout can design the card and show it at every width
-- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](./guides/customization/theming.md)
+- **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](./guides/customization/theming.md); see the [theme gallery](./guides/overview/theme_gallery.md)
 - **Actions** - [Add, replace or remove buttons](./guides/customization/custom_actions.md), change their icons, and run [bulk actions](./guides/customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
 - **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](./guides/customization/customization.md)
 - **Behavior** - [Handler hooks](./guides/core/liveview.md#handler-hooks) for your business logic

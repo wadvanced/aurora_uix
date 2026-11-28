@@ -91,8 +91,9 @@ default theme; before removing the worktree, repeat for `:vitreous_marble` and `
 `config :aurora_uix, theme_name: :<theme>` (after `import Config`) to the worktree's `config/test.exs`,
 run `MIX_ENV=test mix assets.build` and `mix test test/guides/capture_theme_images.exs`.
 
-Overwrites the PNGs in `guides/overview/images` and under `guides/core/images`
-(`layouts`, `ash`, `features`, `themes`; desktop 1024×768, mobile 412×915) through
+Overwrites the PNGs in `guides/overview/images` (with its `themes`), under `guides/core/images`
+(`layouts`, `ash`, `features`) and in `guides/customization/images/features` (desktop 1024×768,
+mobile 412×915) through
 `ImageHelper.capture/5`. Capture tests pass even when an image is visually wrong,
 so review the output:
 
