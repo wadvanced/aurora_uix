@@ -257,3 +257,6 @@ msgstr ""
 
 msgid "bytes"
 msgstr ""
+
+msgid "You have unsaved changes. Discard them and move to another record?"
+msgstr ""

@@ -328,7 +328,13 @@ defmodule Aurora.Uix.Templates.Basic.Helpers do
 
       auix =
         socket.assigns.auix
-        |> Map.drop([:form, :_form_dirty?, :_discard_confirm_open?, :_sections])
+        |> Map.drop([
+          :form,
+          :_form_dirty?,
+          :_discard_confirm_open?,
+          :_pending_navigation,
+          :_sections
+        ])
         |> Map.merge(%{
           entity: record,
           _inputs: inputs,

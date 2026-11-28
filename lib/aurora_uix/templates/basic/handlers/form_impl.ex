@@ -228,8 +228,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   ## Parameters
   - `event` (binary()) - `"validate"`, `"switch_section"`, `"auix_cancel_upload"`,
-    `"auix_download_upload"`, `"auix_route_back"`, `"auix_request_close"`, `"auix_keep_editing"` or
-    `"auix_discard_changes"`.
+    `"auix_download_upload"`, `"auix_route_back"`, `"auix_request_close"`, `"read_indexed_entry"`
+    (the record navigator, guarded like closing), `"auix_keep_editing"` or `"auix_discard_changes"`.
   - `params` (map()) - Parameters from the event.
   - `socket` (Socket.t()) - The current LiveView socket.
 
@@ -312,16 +312,32 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
     {:noreply, request_close(socket, auix)}
   end
 
-  def auix_handle_event("auix_keep_editing", _params, socket) do
-    {:noreply, assign_auix(socket, :_discard_confirm_open?, false)}
+  def auix_handle_event(
+        "read_indexed_entry",
+        %{"page" => _page, "index" => _index} = params,
+        %{assigns: %{auix: auix}} = socket
+      ) do
+    {:noreply, request_navigation(socket, auix, Map.take(params, ["page", "index"]))}
   end
 
-  def auix_handle_event("auix_discard_changes", _params, socket) do
+  def auix_handle_event("auix_keep_editing", _params, socket) do
     {:noreply,
      socket
      |> assign_auix(:_discard_confirm_open?, false)
-     |> assign_auix(:_form_dirty?, false)
-     |> route_back_from_close()}
+     |> assign_auix(:_pending_navigation, nil)}
+  end
+
+  def auix_handle_event("auix_discard_changes", _params, %{assigns: %{auix: auix}} = socket) do
+    socket =
+      socket
+      |> assign_auix(:_discard_confirm_open?, false)
+      |> assign_auix(:_form_dirty?, false)
+      |> assign_auix(:_pending_navigation, nil)
+
+    case Map.get(auix, :_pending_navigation) do
+      %{} = navigation -> {:noreply, report_intent(socket, {:read_indexed_entry, navigation})}
+      nil -> {:noreply, route_back_from_close(socket)}
+    end
   end
 
   def auix_handle_event(event, params, _socket) do
@@ -581,8 +597,11 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
 
   # An open dialog means the request came from `Esc` while it was shown: treat it as "keep editing".
   @spec request_close(Socket.t(), map()) :: Socket.t()
-  defp request_close(socket, %{_discard_confirm_open?: true}),
-    do: assign_auix(socket, :_discard_confirm_open?, false)
+  defp request_close(socket, %{_discard_confirm_open?: true}) do
+    socket
+    |> assign_auix(:_discard_confirm_open?, false)
+    |> assign_auix(:_pending_navigation, nil)
+  end
 
   defp request_close(
          socket,
@@ -591,6 +610,22 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.FormImpl do
        do: assign_auix(socket, :_discard_confirm_open?, true)
 
   defp request_close(socket, _auix), do: route_back_from_close(socket)
+
+  # The LiveView owns the index page the navigator moves through, so a clean form hands it the
+  # move; a changed form first asks, keeping the move until the user discards.
+  @spec request_navigation(Socket.t(), map(), map()) :: Socket.t()
+  defp request_navigation(
+         socket,
+         %{_form_dirty?: true, layout_options: %{unsaved_changes_guard_disabled?: false}},
+         navigation
+       ) do
+    socket
+    |> assign_auix(:_discard_confirm_open?, true)
+    |> assign_auix(:_pending_navigation, navigation)
+  end
+
+  defp request_navigation(socket, _auix, navigation),
+    do: report_intent(socket, {:read_indexed_entry, navigation})
 
   # An embedded form reports to its parent. A hosted form also hands its flash to the LiveView,
   # which pushes the route and cannot read the flash of a component.

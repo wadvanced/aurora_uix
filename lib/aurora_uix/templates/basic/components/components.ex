@@ -635,6 +635,8 @@ defmodule Aurora.Uix.Templates.Basic.Components do
     * `:pagination` (map()) - Pagination state with page, per_page, pages_count, and
       entries_count.
     * `:item_index` (integer()) - Current item index within the page.
+    * `:target` (any()) - Optional `phx-target` of the arrows' `"read_indexed_entry"` event. A form
+      passes itself, so its unsaved-changes guard runs before the LiveView moves to the record.
 
   ## Returns
   Phoenix.LiveView.Rendered.t() - Rendered record navigator bar component.
@@ -648,14 +650,15 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   """
   attr(:pagination, :map, required: true)
   attr(:item_index, :integer, required: true)
+  attr(:target, :any, default: nil)
   attr(:host_components, :any)
   @spec record_navigator_bar(map()) :: Rendered.t()
   def record_navigator_bar(%{host_components: nil} = assigns) do
     ~H"""
     <div class="auix-record-navigator-bar">
-      <.render_previous_icon pagination={@pagination} item_index={@item_index} />
+      <.render_previous_icon pagination={@pagination} item_index={@item_index} target={@target} />
       <.render_record_index pagination={@pagination} item_index={@item_index} />
-      <.render_next_icon pagination={@pagination} item_index={@item_index} />
+      <.render_next_icon pagination={@pagination} item_index={@item_index} target={@target} />
     </div>
     """
   end
@@ -1009,6 +1012,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   # Renders previous navigation icon, handling first page/item boundary conditions
   attr(:pagination, :map, default: %{})
   attr(:item_index, :integer, default: -1)
+  attr(:target, :any, default: nil)
 
   @spec render_previous_icon(map()) :: Rendered.t()
   defp render_previous_icon(%{pagination: %{page: 1}, item_index: 0} = assigns) do
@@ -1019,7 +1023,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp render_previous_icon(%{item_index: 0} = assigns) do
     ~H"""
-    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page - 1} phx-value-index={@pagination.per_page - 1}>
+    <.link href="#" phx-click="read_indexed_entry" phx-target={@target} phx-value-page={@pagination.page - 1} phx-value-index={@pagination.per_page - 1}>
       <.icon name="hero-chevron-left" />
     </.link>
     """
@@ -1027,7 +1031,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp render_previous_icon(assigns) do
     ~H"""
-    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index - 1}>
+    <.link href="#" phx-click="read_indexed_entry" phx-target={@target} phx-value-page={@pagination.page} phx-value-index={@item_index - 1}>
       <.icon name="hero-chevron-left"  />
     </.link>  
     """
@@ -1047,6 +1051,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
   # Renders next navigation icon, handling last page/item boundary conditions
   attr(:pagination, :map, default: %{})
   attr(:item_index, :integer, default: -1)
+  attr(:target, :any, default: nil)
 
   @spec render_next_icon(map()) :: Rendered.t()
   defp render_next_icon(
@@ -1071,7 +1076,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
        )
        when item_index == items_per_page - 1 do
     ~H"""
-    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page + 1} phx-value-index={0}>
+    <.link href="#" phx-click="read_indexed_entry" phx-target={@target} phx-value-page={@pagination.page + 1} phx-value-index={0}>
       <.icon name="hero-chevron-right" />
     </.link>
     """
@@ -1079,7 +1084,7 @@ defmodule Aurora.Uix.Templates.Basic.Components do
 
   defp render_next_icon(assigns) do
     ~H"""
-    <.link href="#" phx-click="read_indexed_entry" phx-value-page={@pagination.page} phx-value-index={@item_index + 1}>
+    <.link href="#" phx-click="read_indexed_entry" phx-target={@target} phx-value-page={@pagination.page} phx-value-index={@item_index + 1}>
       <.icon name="hero-chevron-right"  />
     </.link>  
     """
