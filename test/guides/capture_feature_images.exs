@@ -23,6 +23,8 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureFeatureImages do
   alias Wallaby.Session
 
   @target "guides/core/images/features"
+  # An image sits beside the guide that shows it, so that its relative path works on GitHub too.
+  @customization_target "guides/customization/images/features"
 
   feature "create_images", %{session: session} do
     # Ash counts a page in a separate task, which the browser sandbox does not reach.
@@ -142,7 +144,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureFeatureImages do
 
     session
     |> open_page("/guides-capture-renderers-products/#{product.id}/show")
-    |> capture(:renderers_show, :desktop, @target, %{
+    |> capture(:renderers_show, :desktop, @customization_target, %{
       desktop: [height: 940, zoom: 0.80, center_crop_width: 600, crop_height: 540]
     })
   end

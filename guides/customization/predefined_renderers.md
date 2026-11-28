@@ -40,6 +40,10 @@ A renderer defines a `render/1` clause only for the layout types it specialises.
 layout type where the default rendering is adequate it delegates to the default (so the
 field just gets its normal input).
 
+<div align="center">
+    <img src="./images/features/renderers_show-desktop.png" width="600" alt="A show view with a toggle switch, a color swatch, a badge, a progress bar, a link and a star rating"/>
+</div>
+
 | Atom | Value | index | show | form |
 |------|-------|:-----:|:----:|:----:|
 | `:toggle_switch` | boolean | switch | switch | toggle switch |

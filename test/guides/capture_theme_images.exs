@@ -15,7 +15,7 @@ defmodule Aurora.UixWeb.Test.Guides.CaptureThemeImages do
 
   alias Aurora.Uix.Templates.ThemeHelper
 
-  @target "guides/core/images/themes"
+  @target "guides/overview/images/themes"
 
   feature "create_images", %{session: session} do
     create_guides_sample_data()
