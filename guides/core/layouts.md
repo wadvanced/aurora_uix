@@ -534,6 +534,48 @@ your own.
 The navigator does not ask before it discards the unsaved changes of a form
 ([#727](https://github.com/wadvanced/aurora_uix/issues/727)).
 
+<a id="your-own-layout-options"></a>
+
+#### Your Own Layout Options
+
+An option set adds options to a layout type. Declare each one with `option name, type`, where the
+type is a `Spark.Options` type, and write a `get_default/2` clause for every option you declare:
+
+```elixir
+defmodule MyAppWeb.ProductListOptions do
+  use Aurora.Uix.Layout.Options, layout_type: :index
+
+  option :export_label, :string
+
+  defp get_default(_assigns, :export_label), do: {:ok, "Export"}
+end
+```
+
+Register the module:
+
+```elixir
+# config/config.exs
+config :aurora_uix, layout_options_parsers: [MyAppWeb.ProductListOptions]
+```
+
+The library reads this key when it compiles, so recompile it after a change with
+`mix deps.compile aurora_uix --force`.
+
+Every layout of that type, on any resource, then accepts the option and checks its type at compile
+time:
+
+```elixir
+index_columns :product, [:reference, :name], export_label: "Download"
+```
+
+The views of that layout type hold the value, or the default, in `@auix.layout_options`, so a
+[custom action](../customization/custom_actions.md) or renderer of yours reads
+`@auix.layout_options.export_label`.
+
+When the type allows a text or a function, such as `{:or, [:string, {:fun, 1}]}`, a function of
+arity 0 or 1 is called, and one of arity 1 receives the assigns. When the declared type is only a
+function, such as `{:fun, 1}`, the function itself is the value.
+
 ### Dynamic Titles and Subtitles
 
 For dynamic content, pass a captured function (`&Module.function/1`, not an anonymous `fn`). It
