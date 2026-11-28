@@ -431,6 +431,7 @@ Each field in the resource metadata is a `Aurora.Uix.Field` struct with the foll
 - `index_renderer` - Optional custom rendering function or component, applied only to the **index** layout (does not fall back to `renderer`)
 - `edit_renderer` - Optional custom rendering function or component, applied only to the **form (edit)** layout (falls back to `renderer` when not set)
 - `show_renderer` - Optional custom rendering function or component, applied only to the **show** layout (falls back to `renderer` when not set)
+- `renderer_opts` - Keyword list of settings the field's renderer reads, such as `[max: 10]` for the [predefined renderers](../customization/predefined_renderers.md) `:rating` and `:progress_bar`. Your own renderer reads it as `@field.renderer_opts`
 
 ### Validation and Constraints
 

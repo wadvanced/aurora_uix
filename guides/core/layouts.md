@@ -72,7 +72,15 @@ Generated layouts:
     <img src="./images/layouts/default_index-desktop.png" width="600"/>
 </div>
 
-- **Show / Edit**: Displays fields in vertical (stacked) order
+- **Show / Edit**: Displays fields in vertical (stacked) order. `default_fields_layout: :inline`
+  on `auix_create_ui` places them side by side instead. It applies only to the show and edit
+  layouts that are generated, not to the ones you declare:
+
+```elixir
+auix_create_ui default_fields_layout: :inline do
+  index_columns :product, [:reference, :name]
+end
+```
 
 <div align="center">
     <img src="./images/layouts/default_show-desktop.png" width="600"/>
@@ -319,6 +327,69 @@ index_columns :product, [:reference, :name, :list_price],
 - `:preload` — Associations the list loads besides the ones the layout renders, such as `[:category, posts: :author]`. It replaces the resource's `preload` for this layout (see [Index Query Options](resource_metadata.md#index-query-options))
 - `:order_by` — Initial sort order; uses `Aurora.Ctx.QueryBuilder` syntax on both backends. Clicking a sortable column header replaces it until the page is reloaded
 - `:where` — Query filter; uses `Aurora.Ctx.QueryBuilder` syntax. Conditions submitted from the filter bar are added to it; they never replace it. An OR condition goes inside `:where` as a `dynamic/2` expression on Ecto resources; on Ash resources, filter in a custom read action (see [Custom Actions](ash_integration.md#custom-actions)). `:or_where` and `:select` are not index options
+- `:infinite_scroll_items_load`, `:pages_bar_range_offset` — see [Pagination and Infinite Scroll](#pagination-and-infinite-scroll)
+- `:get_streams`, `:row_id` — see [Stream Functions](#stream-functions)
+
+<a id="pagination-and-infinite-scroll"></a>
+
+#### Pagination and Infinite Scroll
+
+<div align="center">
+    <img src="./images/features/index_in_use-desktop.png" width="600" alt="Product list with the filter bar open, the Name column sorted, two rows selected with a delete selected button, and the page bar under the rows"/>
+</div>
+
+From the 768px breakpoint up, a list of more than one page has a page bar under its rows. A number
+below a page link counts the rows selected on that page. Below the breakpoint there is no page bar.
+
+The list scrolls without pages in two cases:
+
+- **`pagination_disabled?: true`**: the list reads `infinite_scroll_items_load` rows (default: 200)
+  and adds the next batch when you reach its end.
+- **The card list** (see [Index Cards](#index-cards)): reaching its end switches the list to
+  infinite scroll. It reads again from the first row, in batches of `infinite_scroll_items_load`,
+  and the page bar is gone for the rest of that visit.
+
+```elixir
+index_columns :product, [:reference, :name],
+  pagination_disabled?: true,
+  infinite_scroll_items_load: 100
+```
+
+`:pages_bar_range_offset` sets how many page links the bar shows on each side of the current page.
+It takes a named function of arity 2, called with `nil` and the breakpoint: `:md`, `:lg`, `:xl` or
+`:xl2`. The defaults are 4, 6, 8 and 10.
+
+```elixir
+defmodule MyAppWeb.ProductPages do
+  def offset(_assigns, :xl2), do: 5
+  def offset(_assigns, :xl), do: 4
+  def offset(_assigns, _breakpoint), do: 2
+end
+
+defmodule MyAppWeb.ProductViews do
+  use Aurora.Uix
+
+  auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Inventory.Product
+
+  auix_create_ui do
+    index_columns :product, [:reference, :name],
+      pages_bar_range_offset: &MyAppWeb.ProductPages.offset/2
+  end
+end
+```
+
+<a id="stream-functions"></a>
+
+#### Stream Functions
+
+Two index options replace functions the list uses to render its
+[streams](liveview.md#working-with-streams). Each takes a named function of arity 1:
+
+- `:get_streams` — Receives the assigns of the render and returns the streams the list reads
+  (default: the `streams` assign).
+- `:row_id` — Receives a row as `{dom_id, item}` and returns the DOM id of the table row or card
+  (default: `dom_id`). LiveView finds a streamed element by its stream id, so keep the default
+  unless something else needs another id.
 
 <a id="index-cards"></a>
 
@@ -338,6 +409,12 @@ index_columns :product, [:reference, :name, :msrp, :status, :quantity_at_hand] d
   end
 end
 ```
+
+With `show_on: :all` the cards also fill a wide screen, as a grid:
+
+<div align="center">
+    <img src="./images/features/index_cards-desktop.png" width="600" alt="Product cards in a two column grid, each with a title, a subtitle, two values and a Stock group; the actions menu of the first card is open"/>
+</div>
 
 **Card options:**
 - `:title` — The card title: a field, a text, or a named function of arity 1. The function receives the assigns, with the record in `assigns.entity`
@@ -404,6 +481,7 @@ end
 - `:save_action_label` — Label for the save action button (default: `"Save {name}"`)
 - `:action_icons` — The icon of the save action, such as `[default_save: "hero-check"]` (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
 - `:unsaved_changes_guard_disabled?` — When `true`, closing the form modal with unsaved changes closes it without asking for confirmation (default: `false`, the guard is on)
+- `:record_navigator` — Where the [record navigator](#record-navigator) shows on the edit form (default: `[:top, :bottom]`)
 
 #### Show Layout Options
 
@@ -424,6 +502,37 @@ end
 - `:edit_action_label` — Label for the edit action button (default: `"Edit {name}"`)
 - `:back_action_label` — Label for the back action (default: `"Back to {title}"`)
 - `:action_icons` — The icons of the edit and back actions, such as `[default_back: "←"]` (see [Custom Actions › Action Icons](../customization/custom_actions.md#action-icons))
+- `:record_navigator` — Where the [record navigator](#record-navigator) shows (default: `[:top, :bottom]`)
+
+<a id="record-navigator"></a>
+
+#### Record Navigator
+
+The show view and the edit form have a bar with previous and next arrows around the position of the
+record, such as `1 / 100`, in the filtered and sorted list. The arrows continue onto the previous
+or next page. The [Overview](../overview/overview.md#desktop-views) shows it on a show view.
+
+Each of the two layouts sets its own `:record_navigator`:
+
+```elixir
+show_layout :product, record_navigator: :top do
+  stacked [:reference, :name]
+end
+
+edit_layout :product, record_navigator: [] do
+  stacked [:reference, :name]
+end
+```
+
+The value is `:top`, `:bottom`, `[:top, :bottom]`, `[]` to hide the bar, or a named function of
+arity 1 that receives the assigns and returns one of those.
+
+There is no navigator on the new form, for a record outside the loaded page (as with a direct link
+to a record of another page), or on show and form [components](components.md) embedded in a page of
+your own.
+
+The navigator does not ask before it discards the unsaved changes of a form
+([#727](https://github.com/wadvanced/aurora_uix/issues/727)).
 
 ### Dynamic Titles and Subtitles
 
@@ -497,6 +606,7 @@ those fields with `field`, as above. A list that also holds a plain field works:
 - `:index_renderer` — Custom rendering function for the index layout only
 - `:edit_renderer` — Custom rendering function for the form (edit) layout only
 - `:show_renderer` — Custom rendering function for the show layout only
+- `:renderer_opts` — Settings the renderer reads, such as `[max: 10]` for `:rating` (see [Predefined Renderers](../customization/predefined_renderers.md))
 - `:length` — Input field character width
 - `:placeholder` — Placeholder text
 - `:sortable?` — Set to `false` to remove the sort control from this column's index header. An upload field (one with an `upload` block) never offers one, even with `sortable?: true`

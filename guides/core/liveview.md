@@ -1004,6 +1004,9 @@ The index lists its records in LiveView streams and manages them for you.
   host-defined strings, not built-in view types — configure additional ones
   (e.g. `"card"`, `"calendar"`) to fit your own alternate layouts.
 
+For how the list pages and scrolls, see
+[Pagination and Infinite Scroll](layouts.md#pagination-and-infinite-scroll).
+
 ### Changing What the List Shows
 
 A stream item is not the record itself: it is the record as a plain map, with keys the library adds
@@ -1034,6 +1037,10 @@ instead (see [Publishing from host code](#publishing-from-host-code)).
 ## Filtering and Sorting
 
 Aurora UIX supports sorting via configuration in both resource metadata and layout DSL. Sorting is applied automatically and can be customized per view.
+
+<div align="center">
+    <img src="./images/features/index_in_use-desktop.png" width="600" alt="Product list with the filter bar open, the Name column sorted, two rows selected with a delete selected button, and the page bar under the rows"/>
+</div>
 
 ### Configuring Default Sort Order
 
