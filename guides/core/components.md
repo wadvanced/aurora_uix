@@ -37,6 +37,12 @@ defmodule MyAppWeb.DashboardLive do
 end
 ```
 
+<div align="center">
+    <img src="./images/features/components_host-desktop.png" width="600" alt="A host page titled My own dashboard page with a product list component and a location list component side by side"/>
+</div>
+
+The page above embeds the index components of two resources side by side.
+
 ## Inputs
 
 | Input | Applies to | Meaning |
