@@ -867,6 +867,11 @@ end
 def handle_info(%Aurora.Uix.Event{}, socket), do: {:noreply, socket}
 ```
 
+Subscribe once per schema: each call to `subscribe/1` adds a subscription, and each subscription
+delivers the event again. `Aurora.Uix.Events.unsubscribe(MyApp.Inventory.Product)` stops the
+messages, for example when a LiveView changes the schema it watches. With `pubsub_server` not
+configured, both calls do nothing and return `:ok`.
+
 ### Index commands
 
 Two requests are not data changes, so they are messages to one index LiveView process, never
