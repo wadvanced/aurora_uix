@@ -92,6 +92,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Record navigator with unsaved changes**: in an edit form, the record navigator's previous and
+  next arrows moved to the other record and dropped the typed changes without asking. With the
+  unsaved-changes guard on, the arrows now open the discard-changes dialog first, as closing the
+  form does; "Discard changes" then moves to the record.
 - **Delete through a bang context function**: on the Ecto backend, a context whose only delete
   function is `delete_<module>!/1` (or a `delete_function` given as a bang function) had every
   successful delete reported as "Item could not be deleted", because the bang function returns the

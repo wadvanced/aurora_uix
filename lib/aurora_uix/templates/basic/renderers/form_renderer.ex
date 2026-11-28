@@ -7,6 +7,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
   - Renders the form container, the header, the inner layout and the form actions
   - Binds the form events the component handler validates and saves with
   - Renders the record navigator and the discard-changes dialog of a form with unsaved changes
+  - Routes the record navigator through the form, so moving to another record is guarded too
   """
 
   use Aurora.Uix.CoreComponentsImporter
@@ -34,7 +35,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
     ~H"""
     <div>
       <.theme_name_hook id={"auix-#{@auix.module}-#{@id}-theme-hook"} />
-      <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} />
+      <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :top)} pagination={@auix.pagination} item_index={@auix.item_index} target={@myself} />
       <.header>
         {if @action in [:edit, :show_edit], do: dt(@auix.layout_options.edit_title), else: dt(@auix.layout_options.new_title)}
         <:subtitle>{if @action in [:edit, :show_edit], do: dt(@auix.layout_options.edit_subtitle), else: dt(@auix.layout_options.new_subtitle)}</:subtitle>
@@ -71,7 +72,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
           </div>
         </:actions>
         <:actions>
-          <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :bottom)} pagination={@auix.pagination} item_index={@auix.item_index} />
+          <.record_navigator_bar :if={@action in [:edit, :show_edit] and record_navigator?(@auix, :bottom)} pagination={@auix.pagination} item_index={@auix.item_index} target={@myself} />
         </:actions>
       </.simple_form>
 
@@ -79,7 +80,7 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
 
       <.modal :if={@auix._discard_confirm_open?} id={"auix-#{@auix.module}-discard-confirm-modal"} show on_cancel={JS.push("auix_keep_editing", target: @myself)}>
         <div class="auix-discard-confirm">
-          <div class="auix-discard-confirm-message">{dt("You have unsaved changes. Discard them and close the form?")}</div>
+          <div class="auix-discard-confirm-message">{discard_confirm_message(@auix)}</div>
           <div class="auix-discard-confirm-actions">
             <.button type="button" class="auix-button--alt" name="auix-keep-editing" phx-click="auix_keep_editing" phx-target={@myself}>{dt("Keep editing")}</.button>
             <.button type="button" class="auix-button--danger" name="auix-discard-changes" phx-click="auix_discard_changes" phx-target={@myself}>{dt("Discard changes")}</.button>
@@ -89,4 +90,11 @@ defmodule Aurora.Uix.Templates.Basic.Renderers.FormRenderer do
     </div>
     """
   end
+
+  @spec discard_confirm_message(map()) :: binary()
+  defp discard_confirm_message(%{_pending_navigation: %{}}),
+    do: dt("You have unsaved changes. Discard them and move to another record?")
+
+  defp discard_confirm_message(_auix),
+    do: dt("You have unsaved changes. Discard them and close the form?")
 end

@@ -461,7 +461,8 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
   `%Aurora.Uix.Event{}` on the schema's topic (dropping deleted ids from the selection first;
   an open show of an affected record re-reads it on `:updated` and closes on `:deleted`, and an
   open form on an affected record shows a flash), or the `refresh` command; the `reset_selection`
-  command clears the selection, then re-reads.
+  command clears the selection, then re-reads. The intent `{:read_indexed_entry, navigation}` of a
+  form's record navigator moves to that record, as the navigator event does.
   Other messages are ignored.
 
   ## Parameters
@@ -507,6 +508,9 @@ defmodule Aurora.Uix.Templates.Basic.Handlers.IndexImpl do
      |> put_flash(:info, FormImpl.saved_message(auix.name, action))
      |> route_after_save(entity, action)}
   end
+
+  def auix_handle_info({Aurora.Uix, _component_id, {:read_indexed_entry, navigation}}, socket),
+    do: auix_handle_event("read_indexed_entry", navigation, socket)
 
   def auix_handle_info({Aurora.Uix, _component_id, {:closed}}, %{assigns: %{auix: auix}} = socket) do
     {:noreply,

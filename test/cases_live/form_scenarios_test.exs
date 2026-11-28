@@ -23,6 +23,7 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
   @first_edit_link "tr[id^='products']:nth-of-type(1) a[name='auix-edit-product']"
   @first_delete_link "tr[id^='products']:nth-of-type(1) a[name='auix-delete-product']"
   @download_button "button[phx-click='auix_download_upload']"
+  @form_next_record_link "#auix-product-form .auix-record-navigator-bar a[phx-value-index='1']"
 
   test "a product is created with every field type", %{conn: conn} do
     each_backend(fn backend ->
@@ -355,8 +356,9 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
 
   test "the discard guard holds a changed form", %{conn: conn} do
     each_backend(fn backend ->
-      %{"id_test-1" => product} = create_sample_products(1, :test)
+      %{"id_test-1" => product, "id_test-2" => next_product} = create_sample_products(2, :test)
       edit_path = mirror_path(backend, "form", "products", "/#{product.id}/edit")
+      next_edit_path = mirror_path(backend, "form", "products", "/#{next_product.id}/edit")
 
       {:ok, view, _html} = live(conn, edit_path)
       assert has_element?(view, "#auix-product-edit-modal[data-cancel*='auix_request_close']")
@@ -400,6 +402,31 @@ defmodule Aurora.UixWeb.Test.FormScenariosTest do
       view |> element("button[name='auix-discard-changes']") |> render_click()
       refute has_element?(view, "#auix-product-edit-modal")
       assert Repo.get!(MirrorCtx.Product, product.id).name == "Item test-1"
+
+      {:ok, view, _html} = live(conn, edit_path)
+      view |> element(@form_next_record_link) |> render_click()
+      assert_patch(view, next_edit_path)
+
+      view = open_changed_edit(conn, edit_path)
+      view |> element(@form_next_record_link) |> render_click()
+
+      assert has_element?(
+               view,
+               "#auix-product-discard-confirm-modal .auix-discard-confirm-message",
+               "move to another record"
+             )
+
+      view |> element("button[name='auix-keep-editing']") |> render_click()
+      refute has_element?(view, "#auix-product-discard-confirm-modal")
+
+      assert has_element?(
+               view,
+               "#auix-product-edit-modal input[name='product[name]'][value='Changed name']"
+             )
+
+      view |> element(@form_next_record_link) |> render_click()
+      view |> element("button[name='auix-discard-changes']") |> render_click()
+      assert_patch(view, next_edit_path)
 
       view = open_changed_edit(conn, edit_path)
       request_close(view)
