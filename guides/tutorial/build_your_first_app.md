@@ -554,12 +554,6 @@ with validation — and you wrote almost no UI code. 🎉 To refresh open lists 
 another session changes data, see
 [Live Updates](../introduction/getting_started.md#live-updates-optional).
 
-> #### The list is empty after you add a record? {: .warning}
-> Clicking **New** empties the list behind the form, and it stays empty after saving. The record is
-> saved: reload the page to see it ([#705](https://github.com/wadvanced/aurora_uix/issues/705)).
-> The daisyUI bridge also hides the text of the confirmation message
-> ([#706](https://github.com/wadvanced/aurora_uix/issues/706)).
-
 > #### Generate routes for one resource at a time {: .info}
 > `auix_live_resources/2` accepts `only:` / `except:` to limit which routes it
 > creates (for example, a read-only screen). See
