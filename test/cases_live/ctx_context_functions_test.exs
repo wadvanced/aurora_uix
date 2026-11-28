@@ -48,9 +48,10 @@ defmodule Aurora.UixWeb.Test.CtxContextFunctionsTest do
     end)
   end
 
-  test "list_function_paginated in backend_opts lists the same rows", %{conn: conn} do
+  # A bang delete function returns the bare record instead of `{:ok, record}`.
+  test "context functions in backend_opts list and delete the rows", %{conn: conn} do
     each_backend([:ctx], fn backend ->
-      create_sample_products(3, :test)
+      products = create_sample_products(3, :test)
 
       {:ok, view, _html} =
         live(conn, mirror_path(backend, "context-functions", "products"))
@@ -58,6 +59,16 @@ defmodule Aurora.UixWeb.Test.CtxContextFunctionsTest do
       for reference <- ["item_test-1", "item_test-2", "item_test-3"] do
         assert has_element?(view, "tr[id^='products-']", reference)
       end
+
+      product = products["id_test-1"]
+
+      view
+      |> element("tr#products-#{product.id} a[name='auix-delete-product']")
+      |> render_click()
+
+      assert Repo.get(Product, product.id) == nil
+      assert has_element?(view, "#flash-info", "Item deleted successfully")
+      refute has_element?(view, "#flash-error")
     end)
   end
 end

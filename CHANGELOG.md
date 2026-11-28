@@ -92,6 +92,10 @@ breaking changes: see the What's New guide for the upgrade checklist.
 
 ### Fixed
 
+- **Delete through a bang context function**: on the Ecto backend, a context whose only delete
+  function is `delete_<module>!/1` (or a `delete_function` given as a bang function) had every
+  successful delete reported as "Item could not be deleted", because the bang function returns the
+  record instead of `{:ok, record}`. The returned record is now taken as a successful delete.
 - **Record navigator off the loaded page**: opening the show or edit URL of a record that is not on
   the loaded index page (a direct link to a record of page 2, for example) showed the navigator
   counter as `0 / N`. The navigator is now hidden when the record's position is unknown.
