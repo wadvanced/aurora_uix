@@ -658,6 +658,9 @@ Aurora UIX will render:
 - `embeds_one` - Single nested form
 - `embeds_many` - List of nested forms with add/remove actions
 
+The create and update actions must accept these attributes. For relationships, see
+[Saving Associations and Embeds](resource_metadata.md#saving-associations-and-embeds-ash).
+
 A resource declared on an embedded resource generates no modules and no routes. Name it on the
 parent field with `resource:` to render the embedded record with its field options; without
 `resource:` the field uses the resource named `<parent>__<field>`. See

@@ -55,9 +55,10 @@ For traditional Phoenix Context modules with Ecto schemas:
    - `belongs_to` → Many-to-one associations (rendered as select dropdowns)
    - `has_many` → One-to-many associations (rendered as nested lists)
    - `has_one` → One-to-one associations
-   - `many_to_many` → Many-to-many associations (rendered as multi-selects)
+   - `many_to_many` → Many-to-many associations (rendered as a list of checkboxes)
    - `embeds_one`/`embeds_many` → Embedded schemas (rendered inline)
-4. **Context Function Discovery** - Infers CRUD function names from context module (e.g., `list_products/1`, `get_product/2`)
+4. **Context Function Discovery** - Infers the CRUD function names from the context module, such as
+   `list_products_paginated/1` and `get_product/2` (see [Context Functions](#context-functions))
 
 ### Ash Framework Resources
 
@@ -75,7 +76,7 @@ For Ash resources with declarative actions:
    - `belongs_to` → Many-to-one relationships (rendered as select dropdowns)
    - `has_many` → One-to-many relationships (rendered as nested lists)
    - `has_one` → One-to-one relationships
-   - `many_to_many` → Many-to-many relationships (rendered as multi-selects)
+   - `many_to_many` → Many-to-many relationships (rendered as a list of checkboxes)
    - Embedded resources → Nested Ash resources, rendered inline (see [Embedded Resources](#embedded-resources))
 5. **Calculations and Aggregates** - Discovers Ash calculations and aggregates and parses them into fields. A calculation takes its declared type and an aggregate the type Ash resolves for it (for example `count → :integer`, `exists → :boolean`; a `sum` or a `max` follows the aggregated field). Both are disabled in forms. Fields whose type can't be inferred can be overridden via the metadata block — see [Calculations and Aggregates](ash_integration.md#calculations-and-aggregates).
 6. **Action Resolution** - Discovers CRUD actions from Ash resource:
@@ -152,6 +153,42 @@ For traditional Ecto schemas with Phoenix Context modules:
 
 - `:schema` (module()) - Required. Your Ecto schema module
 - `:context` (module()) - Context module with CRUD functions. Required unless the schema has no table (see [Embedded Resources](#embedded-resources))
+
+#### Context Functions
+
+The library looks in the context for one function per operation. The names come from the schema:
+`<source>` is its table name (`products`) and `<module>` is the last part of the module name,
+underscored (`product`). The first name found with the right arity is used, and compilation fails
+when there is none. Contexts generated with
+[Aurora.Ctx](https://hexdocs.pm/aurora_ctx) have these functions.
+
+| Option | Names looked for | Called with | Returns |
+|---|---|---|---|
+| `:list_function` | `list_<source>/1`, `list_<module>/1` | Query options | The entries, for selectors and for ordered or filtered one-to-many lists |
+| `:list_function_paginated` | `list_<source>_paginated/1`, `list_<module>_paginated/1` | Query options with `:paginate` | An `%Aurora.Ctx.Pagination{}` for the index, as `Aurora.Ctx.Core.list_paginated/3` builds |
+| `:get_function` | `get_<module>/2`, `get_<module>!/2` | Id, options with `:preload` | The record |
+| `:new_function` | `new_<module>/2` | Attributes, options with `:preload` | A new struct |
+| `:change_function` | `change_<module>/2` | Record, attributes | A changeset |
+| `:create_function` | `create_<module>/1` | Attributes | `{:ok, record}` or `{:error, changeset}` |
+| `:update_function` | `update_<module>/2` | Record, attributes | `{:ok, record}` or `{:error, changeset}` |
+| `:delete_function` | `delete_<module>/1`, `delete_<module>!/1` | Record | `{:ok, record}`; any other value is reported as a refused delete |
+
+> A context with only `delete_<module>!/1` returns the record itself, so each delete is reported as
+> refused although it happened ([#725](https://github.com/wadvanced/aurora_uix/issues/725)). Give the
+> context a `delete_<module>/1`.
+
+To use a function with another name, give it in `backend_opts` as a captured function. It replaces
+the discovery of that operation only:
+
+```elixir
+auix_resource_metadata :product,
+  context: MyApp.Inventory,
+  schema: MyApp.Inventory.Product,
+  backend_opts: [
+    list_function_paginated: &MyApp.Inventory.list_available_products/1,
+    delete_function: &MyApp.Inventory.archive_product/1
+  ]
+```
 
 ### Ash Framework Resources
 
@@ -556,7 +593,10 @@ there is none), its type and size when given, a download button when the field i
 in the form, a replace button that opens the file picker. A field without a value shows "No file"
 on the show page and a "Choose file" button with the accepted types in the form. Selected files are
 listed as cards with their progress and a cancel button. The field container carries
-`data-upload-field` with the field key, and the card is styled by the theme's `auix-upload-*` rules.
+`data-upload-field` with the field key, and the card is styled by the theme's `auix-upload-*` rules
+(see the [class reference](../customization/styling.md#class-reference)).
+
+<img src="./images/features/uploads_form-desktop.png" width="600" alt="Edit form with a stored upload shown as a file card with download and replace buttons, and an empty upload field with a Choose file button">
 
 Aurora UIX handles the full lifecycle automatically: `allow_upload` registration (guarded
 against double registration on re-renders), `live_file_input` rendering (visually hidden, opened by
@@ -636,6 +676,13 @@ Associations are automatically detected from your schema and converted to associ
 - `embeds_many` → `embeds_many` type
 
 Custom backend implementations may provide different association detection mechanisms while maintaining compatibility with Aurora UIX's rendering system.
+
+An association shows the related records through their own resource, so declare one for each related
+schema. Without it, a one-to-one or many-to-many field renders nothing. A layout places the field by
+its name, like any other.
+
+The library renders the inputs and sends their values to your create and update functions. Saving
+them is the work of your changeset or Ash action, as each section below shows.
 
 ### Many-to-One (belongs_to)
 
@@ -726,6 +773,205 @@ end
 An option set in the layout takes precedence over the same option in `query_opts`; the other one
 still applies. Above, the rows keep the `where` of the metadata and follow the `order_by` of the
 layout.
+
+### One-to-One (has_one)
+
+A **one-to-one** field shows the form of the related record inside the parent form, with the inputs
+of the related resource's `:form` layout, and saves both together. The inputs are there even when
+there is no related record yet. The show page displays the record with its `:show` layout, or
+"Field is empty". The foreign key that points back to the parent is left out.
+
+<img src="./images/features/associations_form-desktop.png" width="600" alt="Edit form of a product with the inputs of its barcode in a framed block and its suppliers as checkboxes">
+
+```elixir
+auix_resource_metadata :product, context: MyApp.Inventory, schema: MyApp.Inventory.Product
+auix_resource_metadata :barcode, context: MyApp.Inventory, schema: MyApp.Inventory.ProductBarcode
+
+auix_create_ui do
+  edit_layout :product do
+    stacked([:name, :product_barcode])
+  end
+
+  edit_layout :barcode do
+    stacked([:code, :registered_at])
+  end
+end
+```
+
+A form whose nested inputs are all blank still sends them. Whether that skips the related record or
+is an error is decided by your changeset or action.
+
+### Many-to-Many
+
+A **many-to-many** field lists every record of the related resource with a checkbox; the checked
+ones are the members. A checkbox beside the label checks or clears all of them. The show page lists
+the members only.
+
+- `option_label` sets the label of each option, as for [many-to-one](#many-to-one-belongs_to).
+  Without it, the label is the first of `:name`, `:title`, `:label`, `:reference`, `:code`,
+  `:description` or `:slug` among the index columns of the related resource, else its first column
+  outside the primary key.
+- `query_opts` orders and filters the options.
+- The field's [actions](../customization/custom_actions.md#many-to-many-layout-actions) can be changed.
+
+```elixir
+auix_resource_metadata :supplier, context: MyApp.Inventory, schema: MyApp.Inventory.Supplier
+
+auix_resource_metadata :product do
+  context MyApp.Inventory
+  schema MyApp.Inventory.Product
+  field :suppliers, option_label: :name, query_opts: [order_by: :name]
+end
+```
+
+The field sends the list of the checked primary keys, always with one blank entry, so that clearing
+every checkbox still sends the field. Your code must drop the blank.
+
+### Embeds (embeds_one, embeds_many)
+
+An **embeds_one** field shows the inputs of the embedded record in a framed block. An
+**embeds_many** field is a collapsible list: each entry has its inputs and a remove button, and
+**Add new entry** opens a dialog for another one. Added and removed entries are saved with the parent
+form. The list starts collapsed unless the field sets
+[`expanded`](#selector-embed-and-upload-options).
+
+<img src="./images/features/embeds_form-desktop.png" width="600" alt="Edit form of a post with an embedded comment in a framed block and an expanded list of embedded tags">
+
+Field options of the embedded records come from their own resource; see
+[Embedded Resources](#embedded-resources).
+
+### Saving Associations and Embeds (Ecto)
+
+Use `cast_assoc/3` for a one-to-one association, `cast_embed/3` for embeds, and `put_assoc/4` with
+the checked records for a many-to-many. The `on_replace` options let an update change and remove
+them:
+
+```elixir
+defmodule MyApp.Inventory.Product do
+  use Ecto.Schema
+
+  import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
+
+  alias MyApp.Inventory.ProductBarcode
+  alias MyApp.Inventory.Supplier
+  alias MyApp.Repo
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+
+  schema "products" do
+    field :name, :string
+
+    has_one :product_barcode, ProductBarcode, on_replace: :update
+    many_to_many :suppliers, Supplier, join_through: "product_suppliers", on_replace: :delete
+
+    embeds_one :packaging, Packaging, on_replace: :update do
+      field :material, :string
+    end
+
+    embeds_many :contacts, Contact, on_replace: :delete do
+      field :email, :string
+    end
+  end
+
+  def changeset(product, attrs) do
+    product
+    |> cast(attrs, [:name])
+    |> cast_assoc(:product_barcode)
+    |> cast_embed(:packaging, with: &cast(&1, &2, [:material]))
+    |> cast_embed(:contacts, with: &cast(&1, &2, [:email]))
+    |> put_suppliers(attrs)
+  end
+
+  # Only a form that has the field changes the members
+  defp put_suppliers(changeset, %{"suppliers" => ids}) do
+    ids = Enum.reject(ids, &(&1 == ""))
+    put_assoc(changeset, :suppliers, Repo.all(from s in Supplier, where: s.id in ^ids))
+  end
+
+  defp put_suppliers(changeset, _attrs), do: changeset
+end
+```
+
+`cast_assoc(:product_barcode)` calls `ProductBarcode.changeset/2`.
+
+### Saving Associations and Embeds (Ash)
+
+Embedded attributes only need to be accepted by the action. A relationship needs an argument of the
+same name and `manage_relationship`, in both the create and the update action:
+
+```elixir
+defmodule MyApp.Catalog.Product do
+  use Ash.Resource, domain: MyApp.Catalog, data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "products"
+    repo MyApp.Repo
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :name, :string, public?: true
+    attribute :packaging, MyApp.Catalog.Packaging, public?: true
+    attribute :contacts, {:array, MyApp.Catalog.Contact}, public?: true
+  end
+
+  relationships do
+    has_one :product_barcode, MyApp.Catalog.ProductBarcode, public?: true
+
+    many_to_many :suppliers, MyApp.Catalog.Supplier do
+      through MyApp.Catalog.ProductSupplier
+      source_attribute_on_join_resource :product_id
+      destination_attribute_on_join_resource :supplier_id
+      public? true
+    end
+  end
+
+  actions do
+    default_accept [:name, :packaging, :contacts]
+    defaults [:destroy]
+
+    read :read do
+      primary? true
+      pagination offset?: true, required?: false
+    end
+
+    create :create do
+      primary? true
+      argument :product_barcode, :map
+      argument :suppliers, {:array, :uuid}, constraints: [nil_items?: true]
+      change &__MODULE__.reject_blank_suppliers/2
+      change manage_relationship(:product_barcode, type: :direct_control)
+      change manage_relationship(:suppliers, type: :append_and_remove)
+    end
+
+    update :update do
+      primary? true
+      # manage_relationship cannot run as an atomic update
+      require_atomic? false
+      argument :product_barcode, :map
+      argument :suppliers, {:array, :uuid}, constraints: [nil_items?: true]
+      change &__MODULE__.reject_blank_suppliers/2
+      change manage_relationship(:product_barcode, type: :direct_control)
+      change manage_relationship(:suppliers, type: :append_and_remove)
+    end
+  end
+
+  # Ash casts the blank entry of the checkboxes to nil
+  def reject_blank_suppliers(changeset, _context) do
+    case Ash.Changeset.fetch_argument(changeset, :suppliers) do
+      {:ok, ids} when is_list(ids) ->
+        Ash.Changeset.set_argument(changeset, :suppliers, Enum.reject(ids, &is_nil/1))
+
+      _other ->
+        changeset
+    end
+  end
+end
+```
+
+Without the argument of a one-to-one relationship, opening the form raises
+`AshPhoenix.Form.NoFormConfigured`.
 
 ## Related guides
 
