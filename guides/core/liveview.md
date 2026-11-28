@@ -53,6 +53,11 @@ Overview.Product                      # Parent module (generated)
 The routes of the `.Index` LiveView are described in
 [Getting Started](../introduction/getting_started.md#3-add-routes-to-router).
 
+Two guides cover what you can change and what the views react to:
+
+- [Handlers and Events](handlers.md) — your own logic when a view loads, saves or receives an event
+- [Live Updates](live_updates.md) — open lists refresh when data changes in another session
+
 ## Working with Streams
 
 The index lists its records in LiveView streams and manages them for you.
@@ -94,7 +99,7 @@ end
 ```
 
 `Events.refresh/0` re-reads the page of this view. To update every open index, publish the change
-instead (see [Publishing from host code](#publishing-from-host-code)).
+instead (see [Publishing from host code](live_updates.md#publishing-from-host-code)).
 
 ## Filtering and Sorting
 
@@ -104,30 +109,12 @@ Aurora UIX supports sorting via configuration in both resource metadata and layo
     <img src="./images/features/index_in_use-desktop.png" width="600" alt="Product list with the filter bar open, the Name column sorted, two rows selected with a delete selected button, and the page bar under the rows"/>
 </div>
 
-### Configuring Default Sort Order
-
-Set `order_by:` on the resource, on the `index_columns` layout, or both; the layout's value wins:
-
-```elixir
-auix_resource_metadata :product do
-  context MyApp.Inventory
-  schema MyApp.Inventory.Product
-  order_by :reference
-  field :name, required: true
-end
-
-auix_create_ui do
-  index_columns :product, [:reference, :name], order_by: :name
-end
-```
-
-The order is applied by the database query, and is replaced when the user sorts: a click on a
-sortable column header (a second click reverses the direction, a third restores the backend order),
-or, in the mobile card view, the sort control. A column opts out with the field option
-`sortable?: false`; the layout option `sort_disabled?: true` turns user sorting off for the whole
-index.
-
-The accepted values of `order_by` and `where` are listed in
+Set the order on the resource, on the `index_columns` layout, or both, with `order_by:`; the
+layout's value wins. The database query applies it until the user sorts: a click on a sortable
+column header (a second click reverses the direction, a third restores the backend order), or, in the
+mobile card view, the sort control. A column opts out with the field option `sortable?: false`; the
+layout option `sort_disabled?: true` turns user sorting off for the whole index. The values of
+`order_by` and `where` are listed in
 [Index Query Options](resource_metadata.md#index-query-options).
 
 ### Scoping the Index Query at Runtime
@@ -202,16 +189,7 @@ never navigate: they report to the LiveView that hosts them; see [Reusable Compo
 `@auix.uri_path`, `@auix.uri_path_id`, `@auix.routing_stack` and `@auix[:index_new_link]` mirror the
 navigation state and stay readable from custom actions.
 
-## Performance Considerations
-
-### Streams for Large Lists
-
-Aurora UIX uses Phoenix LiveView streams for index views, which efficiently handle:
-- Inserts/updates/deletes without full re-render
-- Pagination for large datasets
-- Lazy loading capabilities
-
-### Preloading Associations
+## Preloading Associations
 
 Association fields that a layout renders are preloaded with the entity, so there is no
 per-field preload option to set. To load an association the layout does not render, list it in the
@@ -221,32 +199,6 @@ resource's or the index layout's `preload` (see
 An association field that names its resource with `resource:` also loads, for each related
 record, the association fields that the layouts of the named resource render, one level deep.
 Without `resource:` it loads the related records alone.
-
-### Async Operations
-
-Run heavy work with `start_async/3` and receive the result in `auix_handle_async/3`:
-
-```elixir
-defmodule MyApp.ProductIndexHandler do
-  use Aurora.Uix.Templates.Basic.Handlers.IndexImpl
-
-  @impl IndexImpl
-  def auix_handle_event("export", _params, socket) do
-    {:noreply, start_async(socket, :export, fn -> MyApp.Inventory.export_products() end)}
-  end
-
-  def auix_handle_event(event, params, socket), do: super(event, params, socket)
-
-  @impl IndexImpl
-  def auix_handle_async(:export, {:ok, _result}, socket) do
-    {:noreply, put_flash(socket, :info, "Export finished")}
-  end
-
-  def auix_handle_async(task, result, socket), do: super(task, result, socket)
-end
-```
-
-Keep the `super` clauses: the index runs its own events and async tasks through the same callbacks.
 
 ## Debugging
 
@@ -275,21 +227,12 @@ The generated views are ordinary LiveViews, so
 [Phoenix LiveDashboard](https://hexdocs.pm/phoenix_live_dashboard) shows their processes like any
 other. Applications created with `mix phx.new` serve it at `/dev/dashboard`.
 
-## Best Practices
-
-1. **Keep handlers focused** - One concern per handler module
-2. **Use streams** - Always use streams for list views instead of assigning the full list
-3. **Validate early** - Validate inputs in `handle_event` before database operations
-4. **Handle errors gracefully** - Provide user feedback for all operations
-5. **Preload data** - Configure preloads to avoid N+1 queries
-6. **Test in isolation** - Test handlers independently from LiveView
-7. **Document custom events** - Document any custom event handlers for team clarity
-
 ## Related guides
 
+- [Handlers and Events](handlers.md) — customize what the views do
+- [Live Updates](live_updates.md) — react to data changes
 - [Reusable Components](components.md) — embedding the index, form and show components in your own LiveView
-- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub; behavior hooks are [section 5](../customization/customization.md#5-customizing-liveview-behavior)
-- [Custom Actions](../customization/custom_actions.md) — the buttons and links that fire the events you handle here
-- [Layout System](layouts.md) — where handler modules are attached via layout options
+- [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
+- [Layout System](layouts.md) — the layout options of the index
 - [Getting Started](../introduction/getting_started.md) — the required JavaScript hooks setup
 

@@ -539,7 +539,7 @@ as `<.button>`.
   - `.pagination` — Pagination state (index layouts only)
   - `.filters_enabled?` — Whether filters panel is open
   - `._myself` — The component's `@myself` in form and show actions; target it with `phx-target` to send an event to the
-    form or show handler (see [Targeting the Component](../core/liveview.md#targeting-the-component))
+    form or show handler (see [Targeting the Component](../core/handlers.md#targeting-the-component))
 
 **Row Info Structure:**
 
@@ -690,7 +690,7 @@ end
 
 A custom action that changes data tells the index through `Aurora.Uix.Events`. Handle the
 action's event in an index handler module (see
-[LiveView Integration › Index Handler Hook](../core/liveview.md#index-handler-hook-liveview)):
+[Handlers and Events › Index Handler Hook](../core/handlers.md#index-handler-hook-liveview)):
 
 ```elixir
 defmodule MyApp.ProductIndexHandler do
@@ -722,7 +722,7 @@ end
 - `refresh/1` and `reset_selection/1` take the index LiveView's pid. A handler running inside
   the view calls them with no argument; a task or job that holds the pid passes it.
 
-See [LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes)
+See [Live Updates](../core/live_updates.md)
 for the event shape and how an open index reacts.
 
 ## Association Actions
@@ -794,5 +794,5 @@ See `Aurora.Uix.Action` module for the complete mapping of action names to their
 
 - [Customizing & Extending Aurora UIX](customization.md) — the central customization hub
 - [Layout System](../core/layouts.md) — the layout macros that take these options
-- [LiveView Integration](../core/liveview.md) — handling the events your custom actions fire
+- [Handlers and Events](../core/handlers.md) — handling the events your custom actions fire
 - [Ash Integration](../core/ash_integration.md#custom-actions) — Ash *resource* actions (a different concept)

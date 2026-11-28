@@ -12,7 +12,7 @@ Aurora UIX generates complete CRUD UIs out of the box — this hub catalogs ever
 | Replace a button/input/modal implementation | Runtime component override | [Overriding Components](overriding_components.md) |
 | Render one field differently | Field `renderer:` option | [Resource Metadata](../core/resource_metadata.md#custom-field-types-and-rendering) |
 | Add/remove/replace action buttons | Action operations | [Custom Actions](custom_actions.md) |
-| Hook into mount/save/events | Handler modules (`auix_*` callbacks) | [LiveView Integration](../core/liveview.md#customizing-behavior) |
+| Hook into mount/save/events | Handler modules (`auix_*` callbacks) | [Handlers and Events](../core/handlers.md) |
 | Connect another data source | Custom backends | [Advanced Usage](../advanced/advanced_usage.md) |
 
 ## 1. Theming & Styling
@@ -174,7 +174,7 @@ defmodule MyApp.ProductFormHandler do
 end
 ```
 
-→ **See:** [LiveView Integration → Customizing Behavior](../core/liveview.md#customizing-behavior)
+→ **See:** [Handlers and Events](../core/handlers.md)
 
 ## 6. Field and Resource Options Reference
 

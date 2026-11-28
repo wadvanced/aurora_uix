@@ -573,7 +573,7 @@ its views → add routes**. From here, deepen each piece:
 - **[Customizing & Extending](../customization/customization.md)** — make the
   generated UI match your brand: [styling](../customization/styling.md),
   [theming](../customization/theming.md), and component overrides.
-- **[LiveView Integration](../core/liveview.md)** — hook your own event handlers
+- **[Handlers and Events](../core/handlers.md)** — hook your own event handlers
   and business logic into the generated views.
 - **[Ash Integration](../core/ash_integration.md)** — get the most out of Aurora
   UIX with Ash resources, including policies and actors.
