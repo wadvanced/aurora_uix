@@ -50,21 +50,6 @@ Aurora UIX exports the calls of its DSLs (`schema`, `label`, `backend_opts`, `ru
 Without it, `mix format` rewrites `ash_resource Employment` as `ash_resource(Employment)`, and keeps the
 parentheses afterwards.
 
-## Live Updates (optional)
-
-Name your application's PubSub server so every generated index updates when data changes in
-another session:
-
-```elixir
-# config/config.exs
-config :aurora_uix, pubsub_server: MyApp.PubSub
-```
-
-Use the server your Phoenix application already starts (`{Phoenix.PubSub, name: MyApp.PubSub}`
-in `application.ex`). Without this key the generated views work as before, and only the
-session that made a change refreshes. See
-[LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes).
-
 ## CSS Configuration
 
 Aurora UIX renders its UI with CSS themes. The `basic` template includes three, each in light and
@@ -336,7 +321,65 @@ auix_live_resources "/products", ProductViews.Product, only: [:index, :show]
 auix_live_resources "/products", ProductViews.Product, except: [:new, :edit]
 ```
 
-For more details on routing, see the [LiveView Integration Guide](../core/liveview.md).
+#### Using Generated Modules with Routes
+
+The `auix_live_resources/3` macro creates all necessary routes:
+
+```elixir
+import Aurora.Uix.RouteHelper
+
+scope "/products" do
+  pipe_through(:browser)
+  auix_live_resources("/", Overview.Product)
+end
+
+# Expands to:
+live "/", Overview.Product.Index, :index
+live "/new", Overview.Product.Index, :new
+live "/:id/edit", Overview.Product.Index, :edit
+live "/:id/show", Overview.Product.Index, :show
+live "/:id/show-edit", Overview.Product.Index, :show_edit
+```
+
+All routes point to the Index LiveView, which dynamically renders FormComponent or ShowComponent in modals based on the `:live_action` assign.
+
+You can also generate a subset of the routes, with `only:` or `except:`. The route actions are
+`:index`, `:new`, `:edit`, `:show` and `:show_edit`:
+
+```elixir
+# Read-only interface: no create or edit routes
+auix_live_resources("/", Overview.Product, only: [:index, :show])
+
+# The same routes, naming the ones to leave out
+auix_live_resources("/", Overview.Product, except: [:new, :edit, :show_edit])
+```
+
+These options only choose routes. The buttons that lead to a missing route still render, and
+deleting is an event, not a route, so remove those actions in the layout too:
+
+```elixir
+auix_create_ui do
+  index_columns :product, [:name],
+    remove_header_action: :default_new,
+    remove_row_action: :default_row_edit,
+    remove_row_action: :default_row_delete,
+    remove_selected_action: :default_selected_delete_all
+
+  show_layout :product, remove_header_action: :default_edit do
+    stacked [:name]
+  end
+end
+```
+
+Removing routes and buttons is not authorization: enforce permissions in your context functions or
+Ash policies.
+
+A LiveView renamed with an `index_live` line is routed with `index_live:`:
+
+```elixir
+auix_live_resources("/catalog", Overview.Product, index_live: :catalog)
+```
+
 
 ### Run Your App
 
@@ -347,6 +390,21 @@ mix phx.server
 ```
 
 Visit `http://localhost:4000/inventory/products` to see your generated interface with list, detail, create, and edit views.
+
+## Live Updates (optional)
+
+Name your application's PubSub server so every generated index updates when data changes in
+another session:
+
+```elixir
+# config/config.exs
+config :aurora_uix, pubsub_server: MyApp.PubSub
+```
+
+Use the server your Phoenix application already starts (`{Phoenix.PubSub, name: MyApp.PubSub}`
+in `application.ex`). Without this key the generated views work as before, and only the
+session that made a change refreshes. See
+[LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes).
 
 ## Next Steps
 
