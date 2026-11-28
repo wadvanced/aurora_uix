@@ -290,8 +290,8 @@ defmodule MyAppWeb.Router do
 end
 ```
 
-The stylesheet and JavaScript hooks are set up as in
-[Getting Started](../introduction/getting_started.md).
+The [routes](../introduction/getting_started.md#3-add-routes-to-router), the stylesheet and the
+JavaScript hooks are set up as in [Getting Started](../introduction/getting_started.md).
 
 That's it! Aurora UIX will generate complete CRUD interfaces using your existing Ash actions, without requiring any changes to your Ash resources or domain definitions.
 

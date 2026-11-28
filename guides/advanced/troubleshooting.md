@@ -88,7 +88,8 @@ edited the file, `mix auix.gen.stylesheet --force` replaces it with the current 
 **Symptoms:** UI updates don't work, no response to form submissions.
 
 **Solutions:**
-- Verify your router includes the necessary LiveView routes
+- Verify your router includes the
+  [routes of the views](../introduction/getting_started.md#3-add-routes-to-router)
 - Check that Phoenix LiveView is properly installed and configured
 - Open browser DevTools to see if there are WebSocket connection errors
 - Ensure the `/live` endpoint is accessible (check router configuration)
@@ -112,33 +113,19 @@ selects the view.
 
 **Solutions:**
 
-1. **Use the `auix_live_resources` helper (recommended):**
-   ```elixir
-   import Aurora.Uix.RouteHelper
-
-   scope "/", MyAppWeb do
-     pipe_through :browser
-     auix_live_resources "/products", ProductViews.Product
-   end
-   ```
-
-2. **If you write the routes yourself, give each one its action:**
-   ```elixir
-   live "/products", ProductViews.Product.Index, :index
-   live "/products/new", ProductViews.Product.Index, :new
-   live "/products/:id/edit", ProductViews.Product.Index, :edit
-   live "/products/:id/show", ProductViews.Product.Index, :show
-   live "/products/:id/show-edit", ProductViews.Product.Index, :show_edit
-   ```
-   A route without an action, such as `live "/products", ProductViews.Product.Index`, raises a
+1. Route only to the `Index` module, with the `auix_live_resources` helper or with one `live` route
+   per action: see
+   [Add Routes to Router](../introduction/getting_started.md#3-add-routes-to-router). A route
+   without an action, such as `live "/products", ProductViews.Product.Index`, raises a
    `FunctionClauseError`.
+2. Check the registered routes with `mix phx.routes`:
 
-3. **Verify routes with `mix phx.routes`:**
-   Run this command to see all registered routes and verify they point to the correct modules:
    ```shell
    mix phx.routes | grep products
    ```
-   Look for routes like: `GET  /products   MyAppWeb.ProductViews.Product.Index :index`
+
+   Each one names the `Index` module and an action, such as
+   `GET  /products   MyAppWeb.ProductViews.Product.Index :index`.
 
 ## Database Issues
 

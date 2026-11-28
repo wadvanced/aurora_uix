@@ -127,14 +127,9 @@ end
 ---
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- [Elixir](https://elixir-lang.org/install.html) 1.17+, with an [Erlang/OTP](https://www.erlang.org/downloads) release it supports
-- [Phoenix](https://hexdocs.pm/phoenix/installation.html) 1.8+ and Phoenix LiveView 1.2+
-
-### Installation
-
-Add Aurora UIX to your `mix.exs`:
+You need [Elixir](https://elixir-lang.org/install.html) 1.17+ and a
+[Phoenix](https://hexdocs.pm/phoenix/installation.html) 1.8+ application with Phoenix LiveView
+1.2+. Add Aurora UIX to its `mix.exs`:
 
 ```elixir
 def deps do
@@ -144,24 +139,11 @@ def deps do
 end
 ```
 
-Aurora UIX needs `phoenix_live_view ~> 1.2`. If your project pins an older version, as some
-`mix phx.new` releases do, raise it before running `mix deps.get`.
+Then follow the **[Getting Started guide](./guides/introduction/getting_started.md)**: the
+stylesheet, the icons, the JavaScript hooks, your first views and their routes.
 
-Then follow [Getting Started](./guides/introduction/getting_started.md):
-
-1. [Generate and import the stylesheet](./guides/introduction/getting_started.md#css-configuration)
-2. [Set up the icons](./guides/introduction/getting_started.md#icons-configuration)
-3. [Import the JavaScript hooks](./guides/introduction/getting_started.md#javascript-setup)
-4. [Declare your UI and add its routes](./guides/introduction/getting_started.md#basic-usage)
-
-### 📚 Next Steps
-
-- **[Build Your First App](./guides/tutorial/build_your_first_app.md)** — Zero-background, end-to-end tutorial: install the toolchain and build a complete app from scratch
-- **[Complete Getting Started Guide](./guides/introduction/getting_started.md)** — Detailed setup with a working example
-- **[Resource Metadata Guide](./guides/core/resource_metadata.md)** — Learn field configuration, validation, and associations
-- **[Layout System Guide](./guides/core/layouts.md)** — Master the layout DSL for complex UIs
-- **[LiveView Integration](./guides/core/liveview.md)** — Handle events and business logic
-- **Make it look like your app** → [Customizing & Extending Aurora UIX](./guides/customization/customization.md) — styling, theming, component overrides, and custom actions in one place
+Starting from nothing installed? Follow
+**[Build Your First App](./guides/tutorial/build_your_first_app.md)** instead.
 
 ---
 ## 💡 Use Cases

@@ -59,18 +59,15 @@ defmodule Aurora.Uix.MixProject do
         extras: [
           "CONTRIBUTING.md",
           "CHANGELOG.md",
-          "guides/tutorial/build_your_first_app.md",
           "guides/overview/overview.md",
           "guides/overview/theme_gallery.md",
           "guides/introduction/getting_started.md",
-          "guides/whats_new/0.2.1.md",
-          "guides/whats_new/0.2.0.md",
-          "guides/whats_new/0.1.7.md",
+          "guides/tutorial/build_your_first_app.md",
           "guides/core/resource_metadata.md",
-          "guides/core/ash_integration.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
           "guides/core/components.md",
+          "guides/core/ash_integration.md",
           "guides/core/internationalization.md",
           "guides/customization/customization.md",
           "guides/customization/styling.md",
@@ -80,18 +77,21 @@ defmodule Aurora.Uix.MixProject do
           "guides/customization/predefined_renderers.md",
           "guides/customization/custom_actions.md",
           "guides/advanced/advanced_usage.md",
-          "guides/advanced/troubleshooting.md"
+          "guides/advanced/troubleshooting.md",
+          "guides/whats_new/0.2.1.md",
+          "guides/whats_new/0.2.0.md",
+          "guides/whats_new/0.1.7.md"
         ],
         groups_for_extras: [
-          Tutorial: ~r{guides/tutorial/.*},
           Introduction: [
             ~r{guides/overview/.*},
             ~r{guides/introduction/.*},
-            ~r{guides/whats_new/.*}
+            ~r{guides/tutorial/.*}
           ],
           "Core Concepts": ~r{guides/core/.*},
           "Customization & Extension": ~r{guides/customization/.*},
           Advanced: ~r{guides/advanced/.*},
+          "What's New": ~r{guides/whats_new/.*},
           Developers: [~r"CONTRIBUTING.*", ~r"CHANGELOG.*"]
         ],
         groups_for_modules: [

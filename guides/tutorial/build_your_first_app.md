@@ -554,10 +554,10 @@ with validation — and you wrote almost no UI code. 🎉 To refresh open lists 
 another session changes data, see
 [Live Updates](../introduction/getting_started.md#live-updates-optional).
 
-> #### Generate routes for one resource at a time {: .info}
-> `auix_live_resources/2` accepts `only:` / `except:` to limit which routes it
-> creates (for example, a read-only screen). See
-> [Getting Started → Add Routes to Router](../introduction/getting_started.md#3-add-routes-to-router).
+> #### Generate only some routes {: .info}
+> `auix_live_resources` accepts `only:` / `except:` to limit which routes it
+> creates (for example, for a read-only screen). See
+> [Getting Started → Only Some Routes](../introduction/getting_started.md#only-some-routes).
 
 ---
 
