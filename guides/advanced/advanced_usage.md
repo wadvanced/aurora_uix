@@ -48,7 +48,7 @@ The setting is read at compile time, and one template serves the whole applicati
 To change only parts of the generated UI, you don't need a template: use
 [component overrides](../customization/overriding_components.md),
 [custom renderers](../core/resource_metadata.md#custom-field-types-and-rendering) or
-[handler modules](../core/liveview.md#customizing-behavior).
+[handler modules](../core/handlers.md).
 
 ### The Template Lifecycle
 

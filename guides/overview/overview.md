@@ -53,7 +53,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 
 - **Filtering and sorting** - Filters on the index fields (turn one off with `filterable?: false`), sortable column headers, and `where` and `order_by` to scope a list
 - **Pagination** - Pages in the table, infinite scroll in the card view
-- **Live updates** - With a PubSub server configured, [open lists re-read their page](../core/liveview.md#reacting-to-data-changes) when another session saves or deletes a record
+- **Live updates** - With a PubSub server configured, [open lists re-read their page](../core/live_updates.md) when another session saves or deletes a record
 - **Ash authorization** - The current actor is [passed to every generated call](../core/ash_integration.md#authorization-and-policies), so your policies apply
 - **Ash calculations and aggregates** - [Discovered and loaded](../core/ash_integration.md#calculations-and-aggregates) like any other field
 
@@ -68,7 +68,7 @@ Aurora UIX generates optimized LiveView modules and HEEx templates at compile ti
 - **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](../customization/theming.md); see the [theme gallery](theme_gallery.md)
 - **Actions** - [Add, replace or remove buttons](../customization/custom_actions.md), change their icons, and run [bulk actions](../customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
 - **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](../customization/customization.md)
-- **Behavior** - [Handler hooks](../core/liveview.md#handler-hooks) for your business logic
+- **Behavior** - [Handler hooks](../core/handlers.md#handler-hooks) for your business logic
 - **Internationalization** - A [configurable Gettext backend](../core/internationalization.md)
 
 ## Complete Example
@@ -256,7 +256,7 @@ actions, renderers, behavior hooks) with deep links:
 
 - **[Customizing & Extending Aurora UIX](../customization/customization.md)** — start here
 - **[Advanced Usage Guide](../advanced/advanced_usage.md)** — templates, metadata separation and custom backends
-- **[LiveView Integration](../core/liveview.md)** — behavior hooks and event handling
+- **[Handlers and Events](../core/handlers.md)** — behavior hooks and event handling
 
 ### Troubleshooting
 

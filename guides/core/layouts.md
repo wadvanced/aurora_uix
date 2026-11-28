@@ -836,6 +836,6 @@ recompiles when an included module changes.
 - [Customizing & Extending Aurora UIX](../customization/customization.md) — the central customization hub
 - [Resource Metadata](./resource_metadata.md) — field configuration options
 - [Custom Actions](../customization/custom_actions.md) — the full action system reference
-- [LiveView Integration](./liveview.md) — handle custom events in your layouts
+- [Handlers and Events](./handlers.md) — handle custom events in your layouts
 - [Styling Aurora UIX in a Host Application](../customization/styling.md) — styling generated layouts
 - [Troubleshooting](../advanced/troubleshooting.md) — common layout issues

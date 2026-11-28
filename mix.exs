@@ -66,6 +66,8 @@ defmodule Aurora.Uix.MixProject do
           "guides/core/resource_metadata.md",
           "guides/core/layouts.md",
           "guides/core/liveview.md",
+          "guides/core/handlers.md",
+          "guides/core/live_updates.md",
           "guides/core/components.md",
           "guides/core/ash_integration.md",
           "guides/core/internationalization.md",

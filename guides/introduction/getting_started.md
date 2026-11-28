@@ -386,7 +386,7 @@ config :aurora_uix, pubsub_server: MyApp.PubSub
 Use the server your Phoenix application already starts (`{Phoenix.PubSub, name: MyApp.PubSub}`
 in `application.ex`). Without this key the generated views work as before, and only the
 session that made a change refreshes. See
-[LiveView Integration › Reacting to Data Changes](../core/liveview.md#reacting-to-data-changes).
+[Live Updates](../core/live_updates.md).
 
 ## Next Steps
 
@@ -394,7 +394,7 @@ session that made a change refreshes. See
 |---|---|
 | Configure fields, validation and associations | [Resource Metadata](../core/resource_metadata.md) |
 | Arrange the list, the form and the show view | [Layouts](../core/layouts.md) |
-| Run your own logic when the views load, save or receive events | [LiveView Integration](../core/liveview.md#handler-hooks) |
+| Run your own logic when the views load, save or receive events | [Handlers and Events](../core/handlers.md#handler-hooks) |
 | Make the UI look and behave like your application | [Customizing & Extending](../customization/customization.md) |
 | Use Ash resources, actors and policies | [Ash Integration](../core/ash_integration.md) |
 | Write your own templates or data source | [Advanced Usage](../advanced/advanced_usage.md) |

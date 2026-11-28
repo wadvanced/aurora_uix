@@ -41,7 +41,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 
 - **Filtering and sorting** - Filters on the index fields (turn one off with `filterable?: false`), sortable column headers, and `where` and `order_by` to scope a list
 - **Pagination** - Pages in the table, infinite scroll in the card view
-- **Live updates** - With a PubSub server configured, [open lists re-read their page](./guides/core/liveview.md#reacting-to-data-changes) when another session saves or deletes a record
+- **Live updates** - With a PubSub server configured, [open lists re-read their page](./guides/core/live_updates.md) when another session saves or deletes a record
 - **Ash authorization** - The current actor is [passed to every generated call](./guides/core/ash_integration.md#authorization-and-policies), so your policies apply
 - **Ash calculations and aggregates** - [Discovered and loaded](./guides/core/ash_integration.md#calculations-and-aggregates) like any other field
 
@@ -56,7 +56,7 @@ Aurora UIX is a metadata-driven UI framework for Elixir's Phoenix LiveView that 
 - **Themes** - White Charcoal, Vitreous Marble and Blue Graphite, in light and dark, or [your own](./guides/customization/theming.md); see the [theme gallery](./guides/overview/theme_gallery.md)
 - **Actions** - [Add, replace or remove buttons](./guides/customization/custom_actions.md), change their icons, and run [bulk actions](./guides/customization/custom_actions.md#bulk-actions-on-selected-rows) on selected rows
 - **Renderers and components** - Built-in field renderers such as toggle switch, badge, progress bar and rating, your own renderers and [component overrides](./guides/customization/customization.md)
-- **Behavior** - [Handler hooks](./guides/core/liveview.md#handler-hooks) for your business logic
+- **Behavior** - [Handler hooks](./guides/core/handlers.md#handler-hooks) for your business logic
 - **Internationalization** - A [configurable Gettext backend](./guides/core/internationalization.md)
 
 ### Technology Stack
@@ -176,7 +176,9 @@ Complete documentation is available in the [guides](./guides/overview/overview.m
 - **[Resource Metadata](./guides/core/resource_metadata.md)** — Field configuration and validation
 - **[Layout System](./guides/core/layouts.md)** — Layout DSL and composition
 - **[Reusable Components](./guides/core/components.md)** — Embed the index, form and show components in your own LiveViews
-- **[LiveView Integration](./guides/core/liveview.md)** — Event handling and business logic
+- **[LiveView Integration](./guides/core/liveview.md)** — Generated modules, streams and navigation
+- **[Handlers and Events](./guides/core/handlers.md)** — Event handling and business logic
+- **[Live Updates](./guides/core/live_updates.md)** — Lists that refresh when data changes
 - **[Customizing & Extending](./guides/customization/customization.md)** — Central hub for styling, theming, component overrides, and custom actions
 - **[Styling](./guides/customization/styling.md)** — Host styling with `--auix-*` variable overrides and the cascade-layer model
 - **[Internationalization](./guides/core/internationalization.md)** — Configuring the Gettext backend, automatic POT generation, and translation workflow

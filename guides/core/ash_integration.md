@@ -1206,7 +1206,7 @@ thread the right actor.
 ### Using the actor from custom handlers
 
 If you override Aurora UIX's generated handlers (see
-[LiveView integration](liveview.md)) and call Ash yourself, use
+[handler module](handlers.md)) and call Ash yourself, use
 `Aurora.Uix.Templates.Basic.Helpers.backend_socket_opts/2` to extract the
 `[actor: …]` keyword list from the socket before merging it into your own
 options:
@@ -1258,7 +1258,7 @@ which is why dropdowns are policy-correct without further configuration.
 - [Customizing & Extending Aurora UIX](../customization/customization.md) - The central customization hub
 - [Resource Metadata](resource_metadata.md) - Configure fields, validations, and display options
 - [Layouts](layouts.md) - Build custom UI structures with Aurora UIX's layout DSL
-- [LiveView Integration](liveview.md) - Advanced customization and event handling
+- [Handlers and Events](handlers.md) - Advanced customization and event handling
 - [Getting Started](../introduction/getting_started.md) - Learn about Context-based integration
 
 ## Additional Resources
