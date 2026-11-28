@@ -10,6 +10,14 @@ Aurora UIX is a low-code framework for building dynamic, metadata-driven UIs in 
 > tutorial first — it installs the toolchain and builds a complete app from
 > nothing, then sends you back here for the details.
 
+The setup has five steps, in order:
+
+1. [Install the dependency](#installation)
+2. [Add the stylesheet](#css-configuration)
+3. [Set up the icons](#icons-configuration)
+4. [Import the JavaScript hooks](#javascript-setup)
+5. [Describe a resource, lay out its views and add the routes](#basic-usage)
+
 ## Installation
 
 Add `aurora_uix` to your `mix.exs` dependencies. Make sure your Phoenix project is using Phoenix 1.8+ and Phoenix LiveView 1.2+:
@@ -310,48 +318,19 @@ end
 
 `:show_edit` is the edit form opened from the show view.
 
-You can generate some of the routes with `:only` or `:except`. They remove routes, not the buttons
-that point to them:
+<a id="only-some-routes"></a>
 
-```elixir
-# Only the index and show routes
-auix_live_resources "/products", ProductViews.Product, only: [:index, :show]
+#### Only Some Routes
 
-# Every route except new and edit
-auix_live_resources "/products", ProductViews.Product, except: [:new, :edit]
-```
-
-#### Using Generated Modules with Routes
-
-The `auix_live_resources/3` macro creates all necessary routes:
-
-```elixir
-import Aurora.Uix.RouteHelper
-
-scope "/products" do
-  pipe_through(:browser)
-  auix_live_resources("/", Overview.Product)
-end
-
-# Expands to:
-live "/", Overview.Product.Index, :index
-live "/new", Overview.Product.Index, :new
-live "/:id/edit", Overview.Product.Index, :edit
-live "/:id/show", Overview.Product.Index, :show
-live "/:id/show-edit", Overview.Product.Index, :show_edit
-```
-
-All routes point to the Index LiveView, which dynamically renders FormComponent or ShowComponent in modals based on the `:live_action` assign.
-
-You can also generate a subset of the routes, with `only:` or `except:`. The route actions are
-`:index`, `:new`, `:edit`, `:show` and `:show_edit`:
+Generate some of the routes with `only:` or `except:`. The route actions are `:index`, `:new`,
+`:edit`, `:show` and `:show_edit`:
 
 ```elixir
 # Read-only interface: no create or edit routes
-auix_live_resources("/", Overview.Product, only: [:index, :show])
+auix_live_resources "/products", ProductViews.Product, only: [:index, :show]
 
 # The same routes, naming the ones to leave out
-auix_live_resources("/", Overview.Product, except: [:new, :edit, :show_edit])
+auix_live_resources "/products", ProductViews.Product, except: [:new, :edit, :show_edit]
 ```
 
 These options only choose routes. The buttons that lead to a missing route still render, and
@@ -374,12 +353,15 @@ end
 Removing routes and buttons is not authorization: enforce permissions in your context functions or
 Ash policies.
 
-A LiveView renamed with an `index_live` line is routed with `index_live:`:
+#### A Renamed LiveView
+
+A LiveView renamed with an `index_live` line (see
+[Naming and reusing generated modules](../core/components.md#naming-and-reusing-generated-modules))
+is routed with `index_live:`:
 
 ```elixir
-auix_live_resources("/catalog", Overview.Product, index_live: :catalog)
+auix_live_resources "/catalog", ProductViews.Product, index_live: :catalog
 ```
-
 
 ### Run Your App
 
@@ -408,22 +390,14 @@ session that made a change refreshes. See
 
 ## Next Steps
 
-Now that you have Aurora UIX running, here are some recommended next steps:
-
-### Learn More
-
-- **[Resource Metadata Guide](../core/resource_metadata.md)** - Deep dive into field configuration, associations, and custom renderers
-- **[Layouts Guide](../core/layouts.md)** - Master the layout DSL for customizing UI composition
-- **[LiveView Integration Guide](../core/liveview.md)** - Integrate Aurora UIX with your LiveView event handlers
-- **[Customizing & Extending Aurora UIX](../customization/customization.md)** - Make the generated UI look and behave like your app — styling, theming, component overrides, custom actions
-- **[Advanced Usage](../advanced/advanced_usage.md)** - Custom templates and backends
-
-### Common Tasks
-
-- **Add field validation** - Configure `required`, `readonly`, and custom validation in resource metadata
-- **Handle associations** - Configure many-to-one selects and one-to-many lists
-- **Customize styling** - Create custom themes to match your design system
-- **Add business logic** - Connect Aurora UIX with your context functions for CRUD operations
+| To... | Read |
+|---|---|
+| Configure fields, validation and associations | [Resource Metadata](../core/resource_metadata.md) |
+| Arrange the list, the form and the show view | [Layouts](../core/layouts.md) |
+| Run your own logic when the views load, save or receive events | [LiveView Integration](../core/liveview.md#handler-hooks) |
+| Make the UI look and behave like your application | [Customizing & Extending](../customization/customization.md) |
+| Use Ash resources, actors and policies | [Ash Integration](../core/ash_integration.md) |
+| Write your own templates or data source | [Advanced Usage](../advanced/advanced_usage.md) |
 
 ### Troubleshooting
 

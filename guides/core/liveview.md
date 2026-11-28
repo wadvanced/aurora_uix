@@ -50,6 +50,9 @@ Overview.Product                      # Parent module (generated)
 - Provides edit navigation
 - Implements LiveComponent callbacks: `update/2`, `handle_event/3`
 
+The routes of the `.Index` LiveView are described in
+[Getting Started](../introduction/getting_started.md#3-add-routes-to-router).
+
 ## Customizing Behavior
 
 ### Handler Hooks
