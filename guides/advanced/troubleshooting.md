@@ -39,30 +39,16 @@ fails.
    - Test CSS rules individually by inspecting with browser DevTools
    - Check theme module is properly compiled: `mix compile --force`
 
-## The List Is Empty After Adding a Record
-
-**Symptoms:** Clicking **New** on an index empties the list behind the form, and it stays empty after
-saving.
-
-**Cause:** A library bug ([#705](https://github.com/wadvanced/aurora_uix/issues/705)). The record is
-saved; reload the page to list it again.
-
 ## Info Message Without Text
 
 **Symptoms:** The message after a save is a solid block with no readable text.
 
-**Cause:** The daisyUI bridge gives the info message one colour for text and background
-([#706](https://github.com/wadvanced/aurora_uix/issues/706)).
+**Cause:** Your `assets/css/auix-bridge-daisyui.css` was copied by Aurora UIX 0.2.0 or earlier, and
+gives the info message one colour for text and background. `mix auix.gen.stylesheet` keeps a bridge
+file you already have.
 
-**Solution:** After the bridge import in `app.css`, and before `auix-rules.css`, set
-`:root { --auix-color-info-text: var(--color-info-content); }`.
-
-## Log Warning About the `preload` Option
-
-**Symptoms:** Opening an index logs `Option preload is not implemented for tag: index`.
-
-**Cause:** A library bug ([#708](https://github.com/wadvanced/aurora_uix/issues/708)). The warning
-is harmless.
+**Solution:** In that file, set `--auix-color-info-text: var(--color-info-content);`. If you have not
+edited the file, `mix auix.gen.stylesheet --force` replaces it with the current one.
 
 ## Icons Not Displaying
 
