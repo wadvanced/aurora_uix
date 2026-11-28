@@ -14,7 +14,8 @@ defmodule Aurora.UixWeb.Test.Mirror.Variants.ContextFunctions do
         context: MirrorCtx,
         schema: MirrorCtx.Product,
         backend_opts: [
-          list_function_paginated: &MirrorCtx.list_products_paginated/1
+          list_function_paginated: &MirrorCtx.list_products_paginated/1,
+          delete_function: &MirrorCtx.delete_product!/1
         ]
       )
 

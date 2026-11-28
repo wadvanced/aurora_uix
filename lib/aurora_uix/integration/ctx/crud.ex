@@ -216,7 +216,8 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
 
   ## Returns
 
-  tuple() - Result tuple, typically `{:ok, struct()}` or `{:error, struct()}`.
+  tuple() - Result tuple, `{:ok, struct()}` or `{:error, term()}`. A bang function such as
+  `delete_user!/1` returns the deleted record itself, which is wrapped as `{:ok, struct()}`.
 
   ## Examples
 
@@ -228,8 +229,16 @@ defmodule Aurora.Uix.Integration.Ctx.Crud do
   @spec delete(CrudSpec.t(), struct(), keyword()) :: tuple()
   def delete(crud_spec, entity, opts \\ [])
 
-  def delete(%CrudSpec{function_spec: function_spec}, entity, _opts),
-    do: function_spec.(entity)
+  def delete(%CrudSpec{function_spec: function_spec}, entity, _opts) do
+    entity
+    |> function_spec.()
+    |> delete_result()
+  end
+
+  @spec delete_result(tuple() | struct()) :: tuple()
+  defp delete_result({:ok, _deleted} = result), do: result
+  defp delete_result({:error, _reason} = result), do: result
+  defp delete_result(%_{} = deleted), do: {:ok, deleted}
 
   @doc """
   Returns `[]` — Ecto contexts have no concept of an Ash actor.
